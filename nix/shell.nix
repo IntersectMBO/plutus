@@ -29,7 +29,7 @@ in
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
   packages = [
-    repoRoot.nix.agda-with-stdlib
+    repoRoot.nix.agda.agda-with-stdlib
 
     # R environment
     repoRoot.nix.r-with-packages
@@ -51,6 +51,10 @@ in
     pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
+
+    # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
+    # it's not available on macOS.
+    pkgs.util-linux
 
     # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
     # pkgs.linkchecker
@@ -92,6 +96,7 @@ in
 
   shellHook = ''
     ${builtins.readFile certEnv}
+    ${repoRoot.nix.agda.shell-hook-exports}
   '';
 
   preCommit = {
@@ -101,6 +106,7 @@ in
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
     optipng.enable = true;
+    # fourmolu.enable = true;
     hlint.enable = false;
   };
 }

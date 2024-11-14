@@ -18,15 +18,6 @@ import PlutusTx.Builtins
 -- The Plutus Tx Prelude, discussed further below.
 import PlutusTx.Prelude
 
--- Setup for doctest examples.
-
--- $setup
--- >>> import Tutorial.PlutusTx
--- >>> import PlutusTx
--- >>> import PlutusCore
--- >>> import PlutusCore.Evaluation.Machine.Ck
--- >>> import Data.Text.Prettyprint.Doc
-
 -- BLOCK2
 integerOne :: CompiledCode Integer
 {- 'compile' turns the 'TExpQ Integer' into a

@@ -78,6 +78,7 @@ library
     PlutusTx.Code
     PlutusTx.Coverage
     PlutusTx.Data.AssocMap
+    PlutusTx.Data.List
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
@@ -177,14 +178,14 @@ library plutus-tx-testlib
     , text
 
 test-suite plutus-tx-test
-  import:             lang
+  import:         lang
 
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
@@ -203,8 +204,7 @@ test-suite plutus-tx-test
     Rational.Laws.Serialization
     Show.Spec
 
-  hs-source-dirs:     test
-  build-tool-depends: doctest:doctest
+  hs-source-dirs: test
   build-depends:
     , aeson
     , base                             >=4.9   && <5

@@ -21,7 +21,7 @@ let
   plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
     src = lib.cleanSource (inputs.self + /plutus-metatheory);
-    buildInputs = [ repoRoot.nix.agda-with-stdlib ];
+    buildInputs = [ repoRoot.nix.agda.agda-with-stdlib ];
     dontInstall = true;
 
     # Jekyll requires the _layouts folder to be in the same directory as the

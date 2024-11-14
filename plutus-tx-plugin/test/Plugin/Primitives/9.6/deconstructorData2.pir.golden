@@ -52,7 +52,16 @@ let
        (all a b. (a -> b) -> f a -> f b)
     = /\(f :: * -> *) ->
         \(v : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) f) -> v
-  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r = caseList
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
 in
 letrec
   ~caseData_go : list data -> List data

@@ -1,4 +1,6 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BlockArguments       #-}
+{-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE DerivingVia          #-}
@@ -8,19 +10,16 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 
--- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
-{-# LANGUAGE BlockArguments       #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
 -- We need -fexpose-all-unfoldings to compile the Marlowe validator
--- with GHC 9.6.2.
 -- TODO. Look into this more closely: see https://github.com/IntersectMBO/plutus/issues/6172.
 
 -- | Functions for working with 'Value'.
@@ -43,6 +42,7 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , withCurrencySymbol
     , currencySymbolValueOf
     , lovelaceValue
     , lovelaceValueOf
@@ -74,6 +74,7 @@ import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
+import PlutusTx.AssocMap (Map)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Blueprint (emptySchemaInfo)
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
@@ -275,7 +276,7 @@ taken to be zero.
 There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 do the right thing in some cases.
  -}
-newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
+newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
     deriving stock (Generic, Data, Typeable, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
@@ -349,26 +350,37 @@ instance MeetSemiLattice Value where
 -- | Get the quantity of the given currency in the 'Value'.
 -- Assumes that the underlying map doesn't contain duplicate keys.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
-valueOf (Value mp) cur tn =
-    case Map.lookup cur mp of
-        Nothing -> 0
-        Just i  -> case Map.lookup tn i of
-            Nothing -> 0
-            Just v  -> v
+valueOf value cur tn =
+  withCurrencySymbol cur value 0 \tokens ->
+    case Map.lookup tn tokens of
+      Nothing -> 0
+      Just v  -> v
 
-{-# INLINABLE currencySymbolValueOf #-}
--- | Get the total value of the currency symbol in the 'Value' map.
--- Assumes that the underlying map doesn't contain duplicate keys.
---
--- Note that each token of the currency symbol may have a value that is positive,
--- zero or negative.
+{-# INLINEABLE withCurrencySymbol #-}
+
+{- | Apply a continuation function to the token quantities of the given currency
+symbol in the value or return a default value if the currency symbol is not present
+in the value.
+-}
+withCurrencySymbol :: CurrencySymbol -> Value -> a -> (Map TokenName Integer -> a) -> a
+withCurrencySymbol currency value def k =
+  case Map.lookup currency (getValue value) of
+    Nothing              -> def
+    Just tokenQuantities -> k tokenQuantities
+
+{-# INLINEABLE currencySymbolValueOf #-}
+
+{- | Get the total value of the currency symbol in the 'Value' map.
+Assumes that the underlying map doesn't contain duplicate keys.
+
+Note that each token of the currency symbol may have a value that is positive,
+zero or negative.
+-}
 currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
-currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
-    Nothing     -> 0
-    Just tokens ->
-        -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
-        -- the latter materializes the intermediate result of `Map.elems tokens`.
-        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
+  -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
+  -- the latter materializes the intermediate result of `Map.elems tokens`.
+  PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
@@ -393,7 +405,7 @@ lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
 {-# INLINABLE assetClassValue #-}
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value
-assetClassValue (AssetClass (c, t)) i = singleton c t i
+assetClassValue (AssetClass (c, t)) = singleton c t
 
 {-# INLINABLE assetClassValueOf #-}
 -- | Get the quantity of the given 'AssetClass' class in the 'Value'.
@@ -402,7 +414,7 @@ assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
+unionVal :: Value -> Value -> Map CurrencySymbol (Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
         combined = Map.union l r
@@ -454,7 +466,7 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
 checkPred f l r =
     let
-      inner :: Map.Map TokenName (These Integer Integer) -> Bool
+      inner :: Map TokenName (These Integer Integer) -> Bool
       inner = Map.all f
     in
       Map.all inner (unionVal l r)
@@ -508,7 +520,7 @@ split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
 
-  splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
+  splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
@@ -584,7 +596,7 @@ unordEqWith is0 eqV = goBoth where
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
 -- checking equality of values.
 eqMapWith ::
-    forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
+    forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map k v -> Map k v -> Bool
 eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
 
 {-# INLINABLE eq #-}
