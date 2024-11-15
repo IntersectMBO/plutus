@@ -273,6 +273,29 @@ benchmark validation
     , plutus-core              ^>=1.36
     , plutus-ledger-api        ^>=1.36
 
+---------------- validation-papi ----------------
+
+benchmark validation-papi
+  import:         lang, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchCekPAPI.hs
+  hs-source-dirs: validation/bench
+  other-modules:  Common
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , deepseq
+    , directory
+    , filepath
+    , flat                     ^>=0.6
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.36
+    , plutus-ledger-api        ^>=1.36
+    , tasty
+    , tasty-papi
+
 ---------------- validation-decode ----------------
 
 benchmark validation-decode
