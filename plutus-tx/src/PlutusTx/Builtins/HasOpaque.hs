@@ -25,10 +25,14 @@ import Prelude qualified as Haskell (String)
 import Prelude (type (~))
 #endif
 
+-- plutus-tx-plugin has a special case for this function,
+-- replacing its unfolding with something else.
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = BuiltinByteString (fromString str)
 {-# OPAQUE stringToBuiltinByteString #-}
 
+-- plutus-tx-plugin has a special case for this function,
+-- replacing its unfolding with something else.
 stringToBuiltinString :: Haskell.String -> BuiltinString
 stringToBuiltinString str = BuiltinString (Text.pack str)
 {-# OPAQUE stringToBuiltinString #-}
