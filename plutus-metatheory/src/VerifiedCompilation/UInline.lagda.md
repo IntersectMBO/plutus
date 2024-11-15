@@ -21,6 +21,9 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl)
+
 ```
 ## Translation Relation
 
@@ -63,22 +66,23 @@ something has happened.
 
 ```
 
-data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → Relation where
+data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set₁ where
   var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
-  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Translation (Inline {X} □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
-  sub : {x : (Maybe X) ⊢ } {y v : X ⊢} {e : Env} → Inline e (x [ v ]) y → Inline (e , v) (ƛ x) y
+  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Translation (Inline □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
+  sub : {x : (Maybe X) ⊢ } {y v v₁ : X ⊢} {e : Env} → Inline (e , v₁) (x [ v ]) y → Inline ((e , v₁) , v) (ƛ x) y
 
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = var (var (sub (last-sub reflexive)))
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline {X} □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
+
 _ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
 ```
 # Inline implies pureInline
 ```
 --- TODO
 postulate
-  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Inline {X} □ x y → pureInline x y
+  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Inline □ x y → pureInline x y
 ```
 ## Decision Procedure
 
@@ -86,7 +90,7 @@ postulate
 isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □))
 
 {-# TERMINATING #-}
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline {X} e)
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline e)
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
 ...     | yes p = yes (var p)
@@ -95,9 +99,9 @@ isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
 isIl? □ ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) }
 isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub t) → ¬ƛ (islambda (isterm _)) ; (sub p) → ¬ƛ (islambda (isterm _)) }
 isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = no (λ ())
-isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? {X} (x [ v ]) ast')
+isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? (x [ v ]) ast')
 ... | yes t = yes (last-sub t)
-... | no ¬t = no λ { (last-sub t) → ¬t {!t!} ; (sub p) → {!!} }
+... | no ¬t = no λ { (last-sub t) → ¬t t }
 isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
 ... | yes p = yes (sub p)
 ... | no ¬p = no λ { (sub p) → ¬p p }
