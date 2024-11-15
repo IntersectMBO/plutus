@@ -4,13 +4,13 @@ rec {
 
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
-    version = "1.7.3";
+    version = "2.1.1";
 
     src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
-      sha256 = "sha256-vtL6VPvTXhl/mepulUm8SYyTjnGsqno4RHDmTIy22Xg=";
+      sha256 = "sha256-4HfwNAkIhk1yC/oSxZ30xilzUM5/22nzbUSqTjcW5Ng=";
     };
 
     # This is preConfigure is copied from more recent nixpkgs that also
@@ -124,7 +124,7 @@ rec {
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
-    version = "2.6.4.3";
+    version = "2.7.0";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
     modules = [ agda-project-module-patch-default ];
