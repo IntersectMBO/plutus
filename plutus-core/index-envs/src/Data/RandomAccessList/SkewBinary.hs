@@ -25,8 +25,8 @@ import Data.RandomAccessList.Class qualified as RAL
 -- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
-data Tree a = Leaf a
-            | Node a !(Tree a) !(Tree a)
+data Tree a = Node a !(Tree a) !(Tree a)
+            | Leaf a
             deriving stock (Eq, Show)
 
 -- | A strict list of complete binary trees accompanied by their size.
@@ -154,7 +154,7 @@ safeIndexOne (BHead w t ts) !i =
 safeIndexOneCont :: forall a b. b -> (a -> b) -> RAList a -> Word64 -> b
 safeIndexOneCont z f = skip where
     skip :: RAList a -> Word64 -> b
-    skip Nil _ = z
+    skip Nil !_ = z
     skip (BHead w t ts) i =
         if i <= w
         then indexTree w i t
