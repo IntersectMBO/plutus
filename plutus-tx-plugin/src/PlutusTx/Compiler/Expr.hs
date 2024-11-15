@@ -698,11 +698,27 @@ entryExitTracing lamName displayName e ty =
    when boolean coverage is turned on.
 
    The annotation `<expr evaluated to True>` is implemented by adding a `CoverBool location True`
-   coverage annotation with the head function in `expr` as metadata. This means that in an expression
-   like:
-   `foo x < bar y && all isGood xs`
-   We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a module
-   with coverage turned on).
+   coverage annotation with the head function in `expr` as metadata. This means that in an
+   expression like: `foo x < bar y && all isGood xs`
+
+   We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a
+   module with coverage turned on).
+-}
+
+{- Note [GHC.Magic.noinline]
+   For some functions we have two conflicting desires:
+   - We want to have the unfolding available for the plugin.
+   - We don't want the function to *actually* get inlined before the plugin runs, since we rely
+   on being able to see the original function for some reason.
+
+   'INLINABLE' achieves the first, but may cause the function to be inlined too soon.
+
+   We can solve this at specific call sites by using the 'noinline' magic function from
+   GHC. This stops GHC from inlining it. As a bonus, it also won't be inlined if
+   that function is compiled later into the body of another function.
+
+   We do therefore need to handle 'noinline' in the plugin, as it itself does not have
+   an unfolding.
 -}
 
 compileExpr ::

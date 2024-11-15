@@ -25,23 +25,6 @@ import Prelude qualified as Haskell (String)
 import Prelude (type (~))
 #endif
 
-
-{- Note [GHC.Magic.noinline]
-For some functions we have two conflicting desires:
-- We want to have the unfolding available for the plugin.
-- We don't want the function to *actually* get inlined before the plugin runs, since we rely
-on being able to see the original function for some reason.
-
-'INLINABLE' achieves the first, but may cause the function to be inlined too soon.
-
-We can solve this at specific call sites by using the 'noinline' magic function from
-GHC. This stops GHC from inlining it. As a bonus, it also won't be inlined if
-that function is compiled later into the body of another function.
-
-We do therefore need to handle 'noinline' in the plugin, as it itself does not have
-an unfolding.
--}
-
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = BuiltinByteString (fromString str)
 {-# OPAQUE stringToBuiltinByteString #-}
