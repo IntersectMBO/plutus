@@ -32,8 +32,12 @@ instance Arbitrary MintValue where
       let keyList = Set.toList keySet
       -- For each key, generate a set of token name keys that aren't Ada
       keyVals <- traverse (scale (`quot` 8) . mkInner) keyList
+
+      -- It is possible to generate positive and negative quantity of the same asset so we have to
+      -- prune zeros despite using NonZero generator
       pure
         . getValue
+        . pruneZeros
         . foldMap (\(cs, vals) -> foldMap (uncurry (Value.singleton cs)) vals)
         $ keyVals
     where
@@ -75,3 +79,15 @@ deriving via Value instance CoArbitrary MintValue
 instance Function MintValue where
   {-# INLINEABLE function #-}
   function = functionMap coerce UnsafeMintValue
+
+pruneZeros :: Value.Value -> Value.Value
+pruneZeros (Value.Value assets) =
+  Value.Value $
+    AssocMap.unsafeFromList $
+      filter (not . AssocMap.null . snd) $
+        AssocMap.toList
+          (AssocMap.mapMaybe (assocMapNonEmpty . filter ((/= 0) . snd) . AssocMap.toList) assets)
+  where
+    assocMapNonEmpty :: [(k, v)] -> Maybe (AssocMap.Map k v)
+    assocMapNonEmpty []  = Nothing
+    assocMapNonEmpty lst = Just $ AssocMap.unsafeFromList lst
