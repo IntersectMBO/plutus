@@ -7,7 +7,7 @@ module Main where
 
 import VerifiedCompilation
 open import Agda.Builtin.IO using (IO)
-import IO.Primitive as IO using (return;_>>=_)
+import IO.Primitive.Core as IO using (return;_>>=_)
 open import Agda.Builtin.Unit using (⊤;tt)
 open import Function using (_$_;_∘_)
 open import Data.String using (String;_++_)

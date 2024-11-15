@@ -164,7 +164,7 @@ TallyingBudget : Set
 TallyingBudget = Map ExBudget × ExBudget
 
 lookup : Map ExBudget → ExBudgetCategory → ExBudget
-lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m
+lookup m k with lookupAVL m (mkKeyFromExBudgetCategory k)
 ... | just x = x
 ... | nothing = ε€
 ```
@@ -231,7 +231,7 @@ tallyingReport (mp , budget) =
   where
     totalComputeCost totalBuiltinCosts : ExBudget
     totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
-    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) builtinList)
+    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (arity b) (V-con (atomic aUnit) tt)))) builtinList)
 
     getCPU : ExBudget → Float
     getCPU n = fromℕ (ExCPU n)
@@ -256,7 +256,7 @@ tallyingReport (mp , budget) =
 
     printBuiltinReport : Map ExBudget → String
     printBuiltinReport mp =
-        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs)
+        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (arity b) (V-con (atomic aUnit) tt)))) ++ xs)
               ""
               builtinList
 
