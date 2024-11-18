@@ -21,14 +21,12 @@ let
       echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
     '';
 
-in
 
-{
-  name = "plutus";
+  # Underlying benchmarking library used by plutus-benchmark and tasty-papi
+  papi-pkgs = lib.optionals pksg.hostPlatform.isLinux [ pkgs.papi ];
 
-  welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
-  packages = [
+  all-pkgs = [
     repoRoot.nix.agda.agda-with-stdlib
 
     # R environment
@@ -72,6 +70,17 @@ in
     pkgs.nodejs_20
   ];
 
+in
+
+{
+  name = "plutus";
+
+
+  welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
+
+
+  packages = lib.concatLists all-pkgs papi-pkgs;
+
 
   scripts.assemble-changelog = {
     description = "Assembles the changelog for PACKAGE at VERSION";
@@ -98,6 +107,7 @@ in
     ${builtins.readFile certEnv}
     ${repoRoot.nix.agda.shell-hook-exports}
   '';
+
 
   preCommit = {
     stylish-haskell.enable = true;
