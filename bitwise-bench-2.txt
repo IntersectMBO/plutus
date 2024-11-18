@@ -1,0 +1,2220 @@
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.956 s    (1.897 s .. 1.991 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.944 s    (1.926 s .. 1.951 s)
+std dev              13.54 ms   (3.175 μs .. 16.49 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.395e7 .. 2.407e7)
+  y                  -31716.858 (-308913.213 .. 171371.679)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.8 ms   (277.8 ms .. 279.9 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 281.1 ms   (280.0 ms .. 282.0 ms)
+std dev              1.245 ms   (767.9 μs .. 1.713 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.397e7 .. 2.401e7)
+  y                  9337.982   (-702.224 .. 37503.237)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.950 s    (1.948 s .. NaN s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.958 s    (1.955 s .. 1.964 s)
+std dev              5.441 ms   (1.320 ms .. 7.140 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.400e7 .. 2.403e7)
+  y                  -19222.946 (-78792.108 .. 29623.153)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.8 ms   (273.7 ms .. 283.5 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 281.9 ms   (279.9 ms .. 286.2 ms)
+std dev              3.457 ms   (660.7 μs .. 4.631 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.397e7    (2.380e7 .. 2.409e7)
+  y                  67003.456  (-17950.741 .. 231703.695)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.951 s    (1.930 s .. 1.993 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.936 s    (1.931 s .. 1.944 s)
+std dev              7.814 ms   (553.7 μs .. 9.720 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.410e7    (2.399e7 .. 2.434e7)
+  y                  -330240.292 (-1960946.149 .. 59329.731)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 283.2 ms   (273.7 ms .. 294.1 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 286.1 ms   (282.4 ms .. 290.2 ms)
+std dev              4.809 ms   (2.622 ms .. 7.149 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.371e7 .. 2.417e7)
+  y                  79651.757  (-148545.472 .. 217500.121)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.947 s    (1.901 s .. 1.971 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.954 s    (1.948 s .. 1.959 s)
+std dev              6.470 ms   (2.925 ms .. 8.668 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.406e7    (2.374e7 .. 2.430e7)
+  y                  289236.312 (-693422.918 .. 2534522.388)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 283.4 ms   (274.9 ms .. 295.5 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 284.3 ms   (282.3 ms .. 288.7 ms)
+std dev              3.535 ms   (794.1 μs .. 5.050 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.411e7    (2.378e7 .. 2.445e7)
+  y                  13964.108  (-157252.610 .. 392114.042)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.938 s    (1.918 s .. 1.960 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.921 s .. 1.933 s)
+std dev              6.651 ms   (5.672 ms .. 7.582 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.399e7 .. 2.408e7)
+  y                  -124843.072 (-349175.970 .. -1331.476)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 289.0 ms   (287.8 ms .. 291.1 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 285.2 ms   (282.8 ms .. 286.8 ms)
+std dev              2.418 ms   (1.341 ms .. 3.145 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.421e7    (2.413e7 .. 2.429e7)
+  y                  -67954.479 (-144446.107 .. -28007.084)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.936 s    (1.894 s .. 1.984 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.944 s    (1.930 s .. 1.956 s)
+std dev              14.21 ms   (5.541 ms .. 19.54 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.388e7 .. 2.417e7)
+  y                  100352.259 (-630696.776 .. 486708.195)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 282.6 ms   (267.9 ms .. 297.1 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 283.6 ms   (281.3 ms .. 287.4 ms)
+std dev              4.034 ms   (454.7 μs .. 5.483 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.405e7    (2.372e7 .. 2.437e7)
+  y                  25822.351  (-140191.242 .. 423625.006)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.958 s    (1.901 s .. 2.026 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.937 s    (1.923 s .. 1.951 s)
+std dev              16.85 ms   (7.084 ms .. 20.07 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.395e7 .. 2.409e7)
+  y                  58492.572  (-125267.008 .. 579791.171)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 276.4 ms   (264.7 ms .. 285.4 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 287.4 ms   (281.3 ms .. 304.8 ms)
+std dev              12.90 ms   (224.1 μs .. 16.71 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.387e7    (2.364e7 .. 2.402e7)
+  y                  161371.275 (-9755.897 .. 294668.342)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.907 s    (NaN s .. 1.943 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.905 s    (1.894 s .. 1.913 s)
+std dev              11.30 ms   (4.134 ms .. 15.45 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.406e7    (2.405e7 .. 2.406e7)
+  y                  -75732.309 (-91973.151 .. -48231.845)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 284.6 ms   (282.2 ms .. 288.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 283.0 ms   (281.8 ms .. 283.9 ms)
+std dev              1.283 ms   (675.3 μs .. 1.911 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.400e7 .. 2.404e7)
+  y                  2630.108   (-19006.424 .. 13434.111)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.938 s    (1.885 s .. 1.970 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.952 s    (1.940 s .. 1.957 s)
+std dev              8.475 ms   (598.0 μs .. 10.65 ms)
+cycles:              1.000 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.380e7 .. 2.411e7)
+  y                  157634.266 (-169070.861 .. 1644637.127)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.1 ms   (277.6 ms .. 282.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 281.4 ms   (280.4 ms .. 282.4 ms)
+std dev              1.286 ms   (969.8 μs .. 1.501 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.397e7 .. 2.401e7)
+  y                  13345.470  (-8855.043 .. 36478.575)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.921 s    (1.913 s .. 1.933 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.924 s .. 1.930 s)
+std dev              3.319 ms   (1.072 ms .. 4.172 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.407e7    (2.401e7 .. 2.410e7)
+  y                  -173264.355 (-380444.894 .. -32882.650)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 285.1 ms   (283.2 ms .. 287.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 282.7 ms   (281.9 ms .. 283.9 ms)
+std dev              1.277 ms   (575.8 μs .. 1.883 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.410e7    (2.400e7 .. 2.421e7)
+  y                  -40387.509 (-194269.078 .. 15002.668)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.952 s    (1.694 s .. 2.123 s)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 1.960 s    (1.935 s .. 2.000 s)
+std dev              37.12 ms   (1.189 ms .. 46.02 ms)
+cycles:              0.999 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.418e7    (2.207e7 .. 2.564e7)
+  y                  84544.654  (-6135547.257 .. 1.492e7)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.3 ms   (276.4 ms .. 280.0 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.3 ms   (278.6 ms .. 280.5 ms)
+std dev              1.293 ms   (205.2 μs .. 1.799 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.396e7 .. 2.400e7)
+  y                  20773.067  (-910.189 .. 42572.866)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.917 s    (1.913 s .. 1.926 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.918 s    (1.916 s .. 1.919 s)
+std dev              1.685 ms   (730.4 μs .. 2.267 ms)
+cycles:              1.000 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.401e7)
+  y                  -11230.538 (-99622.636 .. 9107.549)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 276.9 ms   (275.6 ms .. 278.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.7 ms   (277.8 ms .. 279.4 ms)
+std dev              971.0 μs   (554.1 μs .. 1.336 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.396e7 .. 2.400e7)
+  y                  17361.071  (9963.462 .. 39354.965)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.936 s    (1.857 s .. NaN s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.935 s    (1.926 s .. 1.949 s)
+std dev              12.57 ms   (4.884 ms .. 16.56 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.384e7 .. 2.413e7)
+  y                  32950.933  (NaN .. 1396994.906)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 274.0 ms   (261.8 ms .. 285.0 ms)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 282.4 ms   (278.7 ms .. 289.5 ms)
+std dev              7.278 ms   (988.4 μs .. 9.509 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.391e7    (2.353e7 .. 2.406e7)
+  y                  126502.942 (-1693.945 .. 522782.670)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.934 s    (1.924 s .. 1.944 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.930 s    (1.925 s .. 1.933 s)
+std dev              4.984 ms   (139.9 μs .. 6.130 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.406e7    (2.402e7 .. 2.414e7)
+  y                  -151841.730 (-722638.430 .. -27088.141)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.4 ms   (269.0 ms .. 293.5 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 282.8 ms   (275.2 ms .. 290.2 ms)
+std dev              9.201 ms   (5.507 ms .. 14.00 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.394e7    (2.366e7 .. 2.421e7)
+  y                  122147.809 (-23012.255 .. 444078.554)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.923 s    (1.914 s .. 1.931 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.930 s    (1.926 s .. 1.933 s)
+std dev              3.904 ms   (1.725 ms .. 5.408 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -14229.748 (-37179.563 .. -3089.234)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.4 ms   (275.3 ms .. 281.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.4 ms   (278.8 ms .. 280.1 ms)
+std dev              751.7 μs   (410.3 μs .. 1.155 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  343.855    (-2388.385 .. 6784.552)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.932 s    (1.924 s .. NaN s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.930 s    (1.928 s .. 1.931 s)
+std dev              1.987 ms   (1.245 ms .. 2.385 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  396.983    (-12268.173 .. 31027.881)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 281.0 ms   (263.8 ms .. 295.3 ms)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 280.8 ms   (277.9 ms .. 286.9 ms)
+std dev              4.996 ms   (1.313 ms .. 6.697 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.354e7 .. 2.442e7)
+  y                  42936.557  (-193598.986 .. 629365.221)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.922 s    (1.866 s .. 1.966 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.940 s    (1.931 s .. 1.947 s)
+std dev              11.23 ms   (5.703 ms .. 14.65 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.391e7 .. 2.407e7)
+  y                  91313.312  (-136648.858 .. 802544.046)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 273.4 ms   (257.6 ms .. 287.7 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 277.8 ms   (273.3 ms .. 281.2 ms)
+std dev              5.160 ms   (2.792 ms .. 6.012 ms)
+cycles:              0.999 R²   (0.997 R² .. 1.000 R²)
+  cpuTime            2.407e7    (2.288e7 .. 2.539e7)
+  y                  98214.962  (-555609.036 .. 1573640.099)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.842 s    (1.822 s .. 1.854 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.841 s    (1.836 s .. 1.844 s)
+std dev              5.018 ms   (2.555 ms .. 6.310 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  2536.965   (-15242.298 .. 26739.410)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 269.9 ms   (264.2 ms .. 275.1 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 273.0 ms   (270.4 ms .. 277.3 ms)
+std dev              4.087 ms   (1.322 ms .. 5.811 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.414e7    (2.390e7 .. 2.437e7)
+  y                  12493.827  (-247251.364 .. 183640.051)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.942 s    (1.923 s .. 1.982 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.922 s .. 1.934 s)
+std dev              7.714 ms   (344.9 μs .. 9.328 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.399e7 .. 2.410e7)
+  y                  -98678.472 (-614938.043 .. 17222.354)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 287.3 ms   (276.6 ms .. 298.0 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 283.3 ms   (279.7 ms .. 286.4 ms)
+std dev              4.417 ms   (3.188 ms .. 5.282 ms)
+cycles:              1.000 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.415e7    (2.369e7 .. 2.452e7)
+  y                  12170.038  (-196254.007 .. 588128.642)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.970 s    (1.918 s .. 2.070 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.952 s    (1.941 s .. 1.964 s)
+std dev              14.12 ms   (4.831 ms .. 19.25 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.417e7    (2.396e7 .. 2.458e7)
+  y                  -482301.365 (-3376501.299 .. 234205.759)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 288.4 ms   (267.9 ms .. 317.8 ms)
+                     0.997 R²   (0.996 R² .. 1.000 R²)
+mean                 274.0 ms   (270.1 ms .. 283.8 ms)
+std dev              7.542 ms   (1.013 ms .. 9.885 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.420e7    (2.399e7 .. 2.444e7)
+  y                  -106014.223 (-427269.908 .. 5130.215)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.952 s    (1.927 s .. 1.998 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.937 s    (1.932 s .. 1.946 s)
+std dev              8.266 ms   (1.109 ms .. 10.57 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.406e7    (2.398e7 .. 2.422e7)
+  y                  -187744.499 (-1295141.985 .. 132243.469)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 292.8 ms   (282.9 ms .. 301.4 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 284.3 ms   (281.0 ms .. 287.8 ms)
+std dev              4.378 ms   (3.446 ms .. 5.222 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.431e7    (2.402e7 .. 2.454e7)
+  y                  -138288.740 (-432542.146 .. 1425.129)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.933 s    (1.909 s .. 1.964 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.949 s    (1.939 s .. 1.966 s)
+std dev              16.81 ms   (1.478 ms .. 21.22 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.395e7 .. 2.417e7)
+  y                  116021.944 (-862708.116 .. 378384.902)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 289.9 ms   (283.0 ms .. 302.2 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 283.0 ms   (281.0 ms .. 287.7 ms)
+std dev              3.611 ms   (539.0 μs .. 5.025 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.425e7    (2.399e7 .. 2.469e7)
+  y                  -144536.235 (-654696.762 .. 1942.406)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.817 s    (1.736 s .. 1.913 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.914 s    (1.865 s .. 1.948 s)
+std dev              48.64 ms   (22.05 ms .. 63.67 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.393e7 .. 2.409e7)
+  y                  128668.007 (-289251.812 .. 353775.499)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 275.4 ms   (264.2 ms .. 289.9 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 267.5 ms   (265.0 ms .. 271.8 ms)
+std dev              4.406 ms   (932.8 μs .. 6.126 ms)
+cycles:              1.000 R²   (0.999 R² .. 1.000 R²)
+  cpuTime            2.453e7    (2.399e7 .. 2.531e7)
+  y                  -290004.887 (-1120977.701 .. 1861.986)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.873 s    (1.839 s .. 1.932 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.874 s    (1.863 s .. 1.885 s)
+std dev              13.73 ms   (2.139 ms .. 17.32 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.394e7 .. 2.422e7)
+  y                  110089.360 (-1131291.172 .. 390730.986)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 268.3 ms   (268.1 ms .. 268.6 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 267.8 ms   (267.4 ms .. 268.0 ms)
+std dev              361.9 μs   (135.5 μs .. 477.4 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.401e7)
+  y                  -3584.326  (-14073.553 .. 8.562)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.944 s    (NaN s .. 1.969 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.931 s    (1.923 s .. 1.938 s)
+std dev              8.891 ms   (4.389 ms .. 11.50 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.400e7 .. 2.406e7)
+  y                  -70166.915 (-227293.441 .. 104836.985)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 263.3 ms   (258.7 ms .. 267.5 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 264.7 ms   (264.0 ms .. 266.0 ms)
+std dev              1.203 ms   (422.8 μs .. 1.641 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  -339.424   (-765.292 .. 290.758)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.895 s    (1.826 s .. 1.998 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.895 s    (1.874 s .. 1.913 s)
+std dev              24.71 ms   (11.72 ms .. 29.69 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.440e7    (2.400e7 .. 2.530e7)
+  y                  -1267686.356 (-7321289.226 .. -1207.490)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 286.3 ms   (248.8 ms .. 365.4 ms)
+                     0.975 R²   (0.900 R² .. 1.000 R²)
+mean                 287.8 ms   (277.3 ms .. 305.3 ms)
+std dev              17.91 ms   (6.716 ms .. 24.75 ms)
+cycles:              0.991 R²   (0.951 R² .. 1.000 R²)
+  cpuTime            2.506e7    (2.271e7 .. 2.898e7)
+  y                  -83586.001 (-2933511.766 .. 2602376.843)
+variance introduced by outliers: 17% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.929 s    (1.923 s .. 1.932 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.933 s    (1.931 s .. 1.934 s)
+std dev              1.782 ms   (624.8 μs .. 2.449 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  3343.928   (834.115 .. 14425.206)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.7 ms   (277.3 ms .. 280.0 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.3 ms   (278.0 ms .. 278.6 ms)
+std dev              378.0 μs   (206.3 μs .. 535.2 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -1912.500  (-3755.675 .. 1109.310)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.942 s    (1.845 s .. 2.014 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.945 s    (1.930 s .. 1.966 s)
+std dev              19.94 ms   (499.2 μs .. 24.61 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.367e7 .. 2.431e7)
+  y                  165346.130 (-742383.335 .. 1894795.996)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 284.0 ms   (278.6 ms .. 291.1 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 281.4 ms   (279.8 ms .. 283.0 ms)
+std dev              2.079 ms   (1.435 ms .. 2.725 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.405e7    (2.401e7 .. 2.409e7)
+  y                  -13024.477 (-63045.701 .. 15537.232)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.956 s    (1.915 s .. 2.042 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.966 s    (1.950 s .. 1.986 s)
+std dev              22.25 ms   (6.636 ms .. 29.82 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.406e7    (NaN .. 2.431e7)
+  y                  148198.363 (-1619238.697 .. 642045.635)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 294.2 ms   (282.6 ms .. 302.7 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 282.9 ms   (278.2 ms .. 287.7 ms)
+std dev              6.062 ms   (4.135 ms .. 6.828 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.436e7    (2.416e7 .. 2.459e7)
+  y                  -168111.831 (-435123.571 .. -53269.860)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.895 s    (1.883 s .. 1.916 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.936 s    (1.917 s .. 1.968 s)
+std dev              29.97 ms   (137.5 μs .. 36.57 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.391e7    (2.383e7 .. 2.399e7)
+  y                  579639.200 (4057.337 .. 801092.316)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.5 ms   (276.0 ms .. 278.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.1 ms   (277.7 ms .. 278.3 ms)
+std dev              370.9 μs   (217.0 μs .. 558.2 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -376.545   (-2754.539 .. 5355.282)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.916 s    (1.910 s .. 1.924 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.917 s    (1.916 s .. 1.918 s)
+std dev              1.317 ms   (281.5 μs .. 1.610 ms)
+cycles:              1.000 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  1138.229   (580.313 .. 3173.254)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.1 ms   (276.5 ms .. 279.5 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.4 ms   (276.5 ms .. 277.9 ms)
+std dev              883.5 μs   (278.2 μs .. 1.268 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  29.407     (-935.232 .. 2266.453)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.945 s    (1.924 s .. 1.974 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.933 s    (1.930 s .. 1.939 s)
+std dev              6.156 ms   (1.847 ms .. 8.243 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.399e7 .. 2.416e7)
+  y                  -162332.591 (-935655.185 .. 8232.868)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.6 ms   (278.3 ms .. 280.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.7 ms   (277.9 ms .. 279.1 ms)
+std dev              694.4 μs   (165.5 μs .. 1.012 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.401e7)
+  y                  -3552.215  (-13095.290 .. -258.866)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.925 s    (1.834 s .. 1.998 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.953 s    (1.935 s .. 1.966 s)
+std dev              18.35 ms   (8.706 ms .. 23.83 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.369e7 .. 2.429e7)
+  y                  342607.026 (-776311.468 .. 2778483.128)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.2 ms   (277.1 ms .. 281.1 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.1 ms   (277.0 ms .. 278.8 ms)
+std dev              1.144 ms   (566.9 μs .. 1.658 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -288.999   (-3067.288 .. 2095.921)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.928 s    (1.921 s .. 1.934 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.928 s    (1.927 s .. 1.929 s)
+std dev              1.333 ms   (590.2 μs .. 1.750 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  23.676     (-32045.481 .. 41834.256)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.1 ms   (276.9 ms .. 279.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.5 ms   (276.3 ms .. 278.0 ms)
+std dev              917.1 μs   (193.4 μs .. 1.281 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  870.572    (-887.375 .. 5133.204)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.920 s    (1.912 s .. 1.929 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.917 s    (1.915 s .. 1.919 s)
+std dev              2.127 ms   (897.8 μs .. 2.693 ms)
+cycles:              1.000 R²   (NaN R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -4259.634  (-21438.219 .. 8796.782)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 298.6 ms   (270.2 ms .. 339.4 ms)
+                     0.994 R²   (0.987 R² .. 1.000 R²)
+mean                 284.0 ms   (278.8 ms .. 293.9 ms)
+std dev              9.501 ms   (1.190 ms .. 12.43 ms)
+cycles:              0.999 R²   (0.999 R² .. 1.000 R²)
+  cpuTime            2.472e7    (2.392e7 .. 2.585e7)
+  y                  -395973.280 (-1725662.774 .. 81192.998)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 4.711 s    (1.855 s .. 10.95 s)
+                     0.820 R²   (0.729 R² .. NaN R²)
+mean                 2.559 s    (1.979 s .. 3.695 s)
+std dev              1.129 s    (5.044 ms .. 1.334 s)
+cycles:              0.813 R²   (0.715 R² .. 1.000 R²)
+  cpuTime            5.875e7    (2.376e7 .. 1.428e8)
+  y                  -1.122e8   (-6.943e8 .. 1080728.613)
+variance introduced by outliers: 74% (severely inflated)
+
+benchmarking 8-queens
+time                 267.2 ms   (266.7 ms .. 267.6 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 267.2 ms   (267.0 ms .. 267.4 ms)
+std dev              240.6 μs   (113.3 μs .. 341.7 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  196.421    (-222.532 .. 673.274)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.920 s    (1.903 s .. 1.937 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.923 s .. 1.931 s)
+std dev              4.605 ms   (324.2 μs .. 5.720 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.397e7 .. 2.399e7)
+  y                  33564.599  (-32915.082 .. 100138.224)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 276.0 ms   (273.2 ms .. 278.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 274.5 ms   (273.8 ms .. 275.4 ms)
+std dev              985.4 μs   (615.7 μs .. 1.261 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.390e7 .. 2.409e7)
+  y                  24581.186  (-20953.047 .. 119658.028)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.921 s    (1.902 s .. 1.952 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.928 s    (1.924 s .. 1.935 s)
+std dev              6.817 ms   (228.8 μs .. 8.326 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.394e7 .. 2.406e7)
+  y                  75551.578  (-127637.782 .. 331392.905)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.0 ms   (277.5 ms .. 280.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.1 ms   (277.5 ms .. 278.6 ms)
+std dev              640.9 μs   (348.3 μs .. 947.2 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  453.815    (-2121.301 .. 5928.519)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.948 s    (1.918 s .. 1.990 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.915 s .. 1.937 s)
+std dev              13.46 ms   (10.95 ms .. 15.10 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.408e7    (2.393e7 .. 2.425e7)
+  y                  -188663.653 (-982319.340 .. 863666.596)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.1 ms   (275.2 ms .. 278.0 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.8 ms   (277.4 ms .. 278.2 ms)
+std dev              509.3 μs   (216.5 μs .. 725.1 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  2917.820   (760.945 .. 7174.188)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.918 s    (1.908 s .. 1.933 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.918 s    (1.916 s .. 1.919 s)
+std dev              2.028 ms   (141.5 μs .. 2.650 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  5612.400   (-14727.787 .. 12175.405)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.4 ms   (275.5 ms .. 286.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 282.2 ms   (279.7 ms .. 285.1 ms)
+std dev              3.450 ms   (2.057 ms .. 5.050 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.393e7 .. 2.409e7)
+  y                  -2253.755  (-60306.135 .. 88985.433)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.933 s    (1.897 s .. 1.989 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.943 s    (1.930 s .. 1.962 s)
+std dev              18.04 ms   (5.386 ms .. 23.31 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.389e7 .. 2.408e7)
+  y                  170621.000 (-504693.138 .. 443954.163)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 268.0 ms   (262.3 ms .. 273.8 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 272.2 ms   (270.4 ms .. 275.2 ms)
+std dev              2.999 ms   (1.055 ms .. 4.072 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.394e7 .. 2.403e7)
+  y                  15726.073  (-5233.144 .. 63535.278)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.932 s    (1.928 s .. 1.934 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.934 s    (1.933 s .. 1.936 s)
+std dev              1.843 ms   (52.42 μs .. 2.351 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  8929.559   (-9914.841 .. 19462.816)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.1 ms   (278.0 ms .. 280.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.4 ms   (279.2 ms .. 279.8 ms)
+std dev              337.9 μs   (112.3 μs .. 468.7 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.398e7 .. 2.400e7)
+  y                  3492.677   (-1077.257 .. 11907.058)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.923 s    (1.916 s .. 1.932 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.926 s    (1.924 s .. 1.928 s)
+std dev              2.795 ms   (1.467 ms .. 3.842 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  14955.164  (NaN .. 32159.232)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.7 ms   (279.1 ms .. 282.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.5 ms   (278.8 ms .. 280.1 ms)
+std dev              734.7 μs   (478.2 μs .. 991.3 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -1786.092  (-6360.693 .. -49.317)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.920 s    (1.886 s .. 1.962 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.938 s    (1.926 s .. 1.956 s)
+std dev              17.40 ms   (1.621 ms .. 22.07 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.397e7    (2.381e7 .. 2.416e7)
+  y                  248910.621 (-651730.580 .. 1376513.055)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.1 ms   (278.3 ms .. 279.9 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.4 ms   (277.9 ms .. 278.8 ms)
+std dev              567.4 μs   (412.4 μs .. 738.6 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -1043.678  (-3443.970 .. 3053.837)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.944 s    (1.941 s .. 1.950 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.959 s    (1.952 s .. 1.967 s)
+std dev              9.056 ms   (3.311 ms .. 11.81 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.410e7    (2.403e7 .. 2.415e7)
+  y                  111311.687 (-41317.065 .. 552849.005)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 286.9 ms   (280.3 ms .. 297.4 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 282.3 ms   (280.2 ms .. 285.7 ms)
+std dev              3.512 ms   (1.546 ms .. 4.738 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.417e7    (2.405e7 .. 2.438e7)
+  y                  -73409.970 (-236234.649 .. 1236.446)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.919 s    (1.912 s .. 1.928 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.938 s    (1.929 s .. 1.953 s)
+std dev              13.85 ms   (140.5 μs .. 16.89 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.396e7    (2.393e7 .. NaN)
+  y                  202179.258 (-32075.312 .. 294050.162)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.3 ms   (277.8 ms .. 278.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.7 ms   (278.4 ms .. 278.8 ms)
+std dev              167.9 μs   (44.86 μs .. 236.9 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.398e7 .. 2.400e7)
+  y                  1091.547   (-2324.708 .. 8156.804)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.914 s    (1.893 s .. 1.933 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.926 s    (1.919 s .. 1.938 s)
+std dev              11.65 ms   (1.519 ms .. 14.58 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.397e7    (2.392e7 .. 2.400e7)
+  y                  138463.156 (-23211.998 .. 290695.723)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.5 ms   (274.1 ms .. 285.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 280.4 ms   (279.3 ms .. 282.4 ms)
+std dev              1.883 ms   (610.0 μs .. 2.595 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.398e7 .. 2.403e7)
+  y                  516.219    (-19000.774 .. 33284.038)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.976 s    (1.921 s .. 2.028 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.958 s    (1.947 s .. 1.968 s)
+std dev              13.04 ms   (7.574 ms .. 17.63 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.413e7    (2.392e7 .. 2.428e7)
+  y                  -290727.097 (-1269927.110 .. 323236.840)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 282.0 ms   (279.5 ms .. 284.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 281.3 ms   (280.7 ms .. 281.8 ms)
+std dev              664.2 μs   (322.4 μs .. 851.5 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.397e7    (2.394e7 .. 2.400e7)
+  y                  22937.988  (-4052.417 .. 41428.010)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.935 s    (1.881 s .. 2.005 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.940 s    (1.923 s .. 1.953 s)
+std dev              16.70 ms   (7.959 ms .. 22.32 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.391e7 .. 2.408e7)
+  y                  144484.296 (-253992.627 .. 400965.440)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.2 ms   (276.2 ms .. 280.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.0 ms   (278.3 ms .. 279.9 ms)
+std dev              1.002 ms   (618.3 μs .. 1.321 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  693.194    (-246.496 .. 2887.285)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.927 s    (1.908 s .. 1.939 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.938 s    (1.932 s .. 1.949 s)
+std dev              11.12 ms   (702.7 μs .. 13.56 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.396e7    (2.391e7 .. 2.399e7)
+  y                  187118.833 (30011.269 .. 343609.388)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.0 ms   (278.5 ms .. 282.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.1 ms   (277.8 ms .. 279.9 ms)
+std dev              1.334 ms   (580.0 μs .. 2.003 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  1603.244   (-2212.260 .. 7597.396)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.928 s    (1.892 s .. 1.970 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.937 s    (1.926 s .. 1.954 s)
+std dev              16.23 ms   (530.4 μs .. 20.17 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.386e7 .. 2.422e7)
+  y                  62452.536  (NaN .. 544335.811)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.0 ms   (273.5 ms .. 282.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.9 ms   (277.8 ms .. 280.0 ms)
+std dev              1.442 ms   (789.0 μs .. 1.965 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  470.932    (-1927.677 .. 7237.200)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.925 s    (1.896 s .. 1.936 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.932 s    (1.925 s .. 1.942 s)
+std dev              10.28 ms   (1.554 ms .. 13.42 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.384e7 .. 2.415e7)
+  y                  145867.862 (-301751.283 .. 894855.286)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.5 ms   (276.9 ms .. 280.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.2 ms   (277.7 ms .. 278.5 ms)
+std dev              430.5 μs   (173.2 μs .. 596.3 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -4149.028  (-10002.672 .. -1397.526)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.929 s    (1.896 s .. 1.952 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.920 s .. 1.933 s)
+std dev              7.266 ms   (3.313 ms .. 9.426 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.389e7 .. 2.415e7)
+  y                  -52437.256 (-883915.557 .. 593913.782)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.8 ms   (276.7 ms .. 279.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.3 ms   (277.9 ms .. 278.7 ms)
+std dev              541.9 μs   (413.5 μs .. 676.2 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  2596.495   (818.283 .. 6221.911)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.928 s    (1.907 s .. 1.959 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.931 s    (1.926 s .. 1.939 s)
+std dev              7.335 ms   (2.413 ms .. 9.908 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.390e7 .. 2.408e7)
+  y                  91833.686  (-175008.341 .. 532713.451)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 282.8 ms   (279.9 ms .. 285.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 280.2 ms   (279.1 ms .. 281.3 ms)
+std dev              1.351 ms   (1.072 ms .. 1.628 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -302.126   (-2080.733 .. 3073.588)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.917 s    (1.886 s .. 1.960 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.928 s    (1.923 s .. 1.938 s)
+std dev              9.545 ms   (588.1 μs .. 11.84 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.382e7 .. 2.416e7)
+  y                  153199.973 (-322093.197 .. 982833.606)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.4 ms   (274.5 ms .. 280.0 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.6 ms   (277.9 ms .. 279.1 ms)
+std dev              743.2 μs   (423.4 μs .. 1.098 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.398e7 .. 2.399e7)
+  y                  2503.055   (-87.544 .. 10947.295)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.914 s    (1.891 s .. 1.941 s)
+                     1.000 R²   (1.000 R² .. NaN R²)
+mean                 1.926 s    (1.920 s .. 1.932 s)
+std dev              7.310 ms   (4.150 ms .. 8.895 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.391e7 .. 2.408e7)
+  y                  87365.982  (-159043.640 .. 488687.254)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.8 ms   (277.1 ms .. 283.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.6 ms   (278.0 ms .. 279.4 ms)
+std dev              901.9 μs   (452.5 μs .. 1.325 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -980.357   (-6631.945 .. 1919.168)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.912 s    (1.869 s .. 1.965 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.923 s    (1.917 s .. 1.935 s)
+std dev              12.10 ms   (20.04 μs .. 14.17 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.383e7 .. 2.415e7)
+  y                  152733.845 (-298837.845 .. 928956.596)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.3 ms   (275.8 ms .. 279.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.1 ms   (275.4 ms .. 277.9 ms)
+std dev              1.447 ms   (495.4 μs .. 2.024 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -598.710   (-11332.434 .. 4783.176)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.916 s    (1.900 s .. 1.950 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.926 s    (1.920 s .. 1.934 s)
+std dev              7.601 ms   (2.052 ms .. 10.21 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.390e7 .. 2.408e7)
+  y                  89259.498  (-172863.700 .. 529230.182)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.0 ms   (276.2 ms .. 277.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.1 ms   (277.6 ms .. 278.8 ms)
+std dev              790.2 μs   (288.0 μs .. 1.124 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.398e7 .. 2.400e7)
+  y                  1139.762   (-1266.129 .. 7810.054)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.928 s    (1.903 s .. 1.947 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.923 s .. 1.931 s)
+std dev              4.861 ms   (2.178 ms .. 5.726 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.390e7 .. 2.408e7)
+  y                  18287.037  (-408084.517 .. 521380.643)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.5 ms   (275.1 ms .. 279.5 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.9 ms   (278.1 ms .. 279.6 ms)
+std dev              914.8 μs   (526.9 μs .. 1.276 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.401e7)
+  y                  -3004.029  (-15922.944 .. 1935.807)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.927 s    (1.862 s .. 1.982 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.952 s    (1.934 s .. 1.966 s)
+std dev              18.39 ms   (10.69 ms .. 22.67 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.393e7 .. 2.419e7)
+  y                  154941.759 (-1116042.826 .. 1025707.163)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 281.7 ms   (280.4 ms .. 284.5 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 280.5 ms   (279.8 ms .. 281.2 ms)
+std dev              989.9 μs   (525.2 μs .. 1.322 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -1535.440  (-5830.742 .. 6089.841)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.939 s    (1.903 s .. 1.980 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.950 s    (1.944 s .. 1.961 s)
+std dev              9.711 ms   (2.452 ms .. 11.93 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.388e7 .. NaN)
+  y                  128209.110 (-291803.895 .. 880461.851)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 269.5 ms   (265.1 ms .. 274.0 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 267.0 ms   (265.6 ms .. 268.3 ms)
+std dev              1.856 ms   (968.0 μs .. 2.574 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.403e7    (2.399e7 .. 2.408e7)
+  y                  -18596.722 (-78547.682 .. -1149.818)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.870 s    (1.858 s .. 1.893 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.877 s    (1.873 s .. 1.882 s)
+std dev              4.936 ms   (1.107 μs .. 6.581 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.409e7    (2.385e7 .. 2.435e7)
+  y                  62098.021  (-588356.900 .. 1278149.417)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 270.1 ms   (267.2 ms .. 273.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 269.7 ms   (268.8 ms .. 270.9 ms)
+std dev              1.291 ms   (745.8 μs .. 1.779 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.396e7 .. 2.409e7)
+  y                  -1427.695  (-29438.547 .. 49691.768)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.856 s    (1.791 s .. 1.933 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.871 s    (1.850 s .. 1.889 s)
+std dev              23.66 ms   (8.069 ms .. 32.12 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.405e7    (2.374e7 .. 2.432e7)
+  y                  -58467.423 (-1217787.431 .. 2008177.525)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 267.2 ms   (263.7 ms .. 270.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 268.9 ms   (268.1 ms .. 269.7 ms)
+std dev              1.042 ms   (689.9 μs .. 1.372 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.394e7 .. 2.405e7)
+  y                  14313.811  (-11326.444 .. 69533.455)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.858 s    (1.817 s .. 1.900 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.851 s    (1.845 s .. 1.860 s)
+std dev              8.574 ms   (3.290 ms .. 10.52 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.404e7    (2.371e7 .. 2.430e7)
+  y                  -41996.636 (NaN .. 2141161.639)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 268.0 ms   (267.6 ms .. 268.4 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 267.6 ms   (267.4 ms .. 267.7 ms)
+std dev              236.6 μs   (137.4 μs .. 363.4 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.399e7)
+  y                  -341.853   (-1568.011 .. 219.768)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.944 s    (1.866 s .. 2.002 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.913 s    (1.860 s .. 1.933 s)
+std dev              36.23 ms   (5.370 ms .. 46.28 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.382e7 .. 2.415e7)
+  y                  9297.384   (NaN .. 1315304.941)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.6 ms   (274.5 ms .. 280.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.8 ms   (277.7 ms .. 279.9 ms)
+std dev              1.397 ms   (888.3 μs .. 1.831 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -362.069   (-4085.485 .. 2771.498)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.931 s    (1.905 s .. 1.952 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.925 s    (1.918 s .. 1.929 s)
+std dev              6.713 ms   (3.877 ms .. 9.384 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.387e7 .. 2.412e7)
+  y                  -3914.616  (-472783.040 .. 965348.535)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.7 ms   (279.0 ms .. 280.7 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.6 ms   (279.2 ms .. 280.0 ms)
+std dev              482.7 μs   (323.9 μs .. 650.8 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.401e7)
+  y                  -3972.037  (-18135.723 .. 858.774)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.933 s    (1.910 s .. 1.968 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.927 s    (1.920 s .. 1.932 s)
+std dev              6.892 ms   (3.062 ms .. 9.626 ms)
+cycles:              1.000 R²   (1.000 R² .. NaN R²)
+  cpuTime            2.404e7    (2.389e7 .. 2.419e7)
+  y                  -89300.905 (-743135.263 .. 982068.653)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.0 ms   (276.6 ms .. 281.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.5 ms   (279.1 ms .. 280.2 ms)
+std dev              639.0 μs   (12.73 μs .. 808.8 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -360.092   (-2234.455 .. 5558.653)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.931 s    (1.887 s .. 1.976 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.925 s    (1.919 s .. 1.934 s)
+std dev              8.774 ms   (1.255 ms .. 11.32 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.381e7 .. 2.418e7)
+  y                  -6963.251  (-721502.703 .. 1432464.914)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.1 ms   (276.9 ms .. 279.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.0 ms   (277.5 ms .. 278.3 ms)
+std dev              431.8 μs   (266.2 μs .. 536.5 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  1369.195   (-2515.682 .. 5927.281)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.923 s    (1.869 s .. 1.960 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.926 s    (1.921 s .. 1.934 s)
+std dev              7.589 ms   (1.120 ms .. 9.775 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.379e7 .. 2.419e7)
+  y                  8709.406   (-725780.604 .. 1593003.150)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.0 ms   (277.5 ms .. 280.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.5 ms   (276.8 ms .. 278.3 ms)
+std dev              963.7 μs   (500.4 μs .. 1.362 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.399e7 .. 2.403e7)
+  y                  -7200.199  (-28878.548 .. -756.881)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.934 s    (1.900 s .. 1.952 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.936 s    (1.931 s .. 1.940 s)
+std dev              5.254 ms   (2.759 ms .. 6.331 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.379e7 .. 2.420e7)
+  y                  -5455.476  (-779194.636 .. 1556530.262)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.5 ms   (277.8 ms .. 279.3 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.6 ms   (278.4 ms .. 278.8 ms)
+std dev              249.3 μs   (135.3 μs .. 328.2 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -406.487   (-3160.835 .. 2572.647)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.923 s    (1.893 s .. 1.943 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.925 s    (1.922 s .. 1.929 s)
+std dev              4.131 ms   (1.161 ms .. 5.430 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.389e7 .. 2.410e7)
+  y                  -12793.056 (-420000.592 .. 789160.592)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.3 ms   (276.4 ms .. 283.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.6 ms   (277.6 ms .. 279.4 ms)
+std dev              1.221 ms   (924.8 μs .. 1.512 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  -359.378   (-4584.466 .. 4570.804)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.932 s    (1.890 s .. 1.972 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.932 s    (1.927 s .. 1.939 s)
+std dev              6.781 ms   (1.565 ms .. 9.000 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.380e7 .. 2.418e7)
+  y                  1270.219   (-722027.572 .. 1497920.310)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 278.4 ms   (276.7 ms .. 279.8 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 277.2 ms   (276.6 ms .. 277.9 ms)
+std dev              812.9 μs   (385.0 μs .. 1.100 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -1345.525  (-4612.559 .. -54.421)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.926 s    (1.866 s .. 1.975 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.930 s    (1.924 s .. 1.939 s)
+std dev              8.406 ms   (1.610 ms .. 10.98 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.376e7 .. 2.422e7)
+  y                  12503.075  (-862556.206 .. 1808702.154)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.4 ms   (278.8 ms .. 282.2 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.3 ms   (278.3 ms .. 280.0 ms)
+std dev              1.055 ms   (590.3 μs .. 1.489 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.402e7)
+  y                  -2127.433  (-18936.337 .. 7251.937)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.926 s    (1.897 s .. 1.957 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.923 s    (1.919 s .. 1.928 s)
+std dev              5.668 ms   (1.236 ms .. 7.484 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.388e7 .. 2.411e7)
+  y                  -10429.692 (-458327.776 .. 870180.667)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 277.3 ms   (274.7 ms .. 279.9 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.1 ms   (278.2 ms .. 279.7 ms)
+std dev              922.4 μs   (483.5 μs .. 1.314 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  968.205    (-4687.153 .. 4555.539)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.933 s    (1.888 s .. 1.984 s)
+                     1.000 R²   (1.000 R² .. NaN R²)
+mean                 1.927 s    (1.920 s .. 1.936 s)
+std dev              9.396 ms   (3.490 ms .. 12.85 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.405e7    (2.388e7 .. 2.420e7)
+  y                  -97982.141 (NaN .. 1047617.072)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.8 ms   (276.2 ms .. 285.6 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.0 ms   (277.7 ms .. 279.9 ms)
+std dev              1.317 ms   (748.5 μs .. 1.792 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  108.119    (-4350.929 .. 6745.191)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.932 s    (1.903 s .. 1.964 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.931 s    (1.927 s .. 1.936 s)
+std dev              5.299 ms   (2.258 ms .. 7.317 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.401e7    (2.388e7 .. 2.411e7)
+  y                  -3692.737  (-442108.956 .. 899721.369)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 280.6 ms   (273.4 ms .. 290.2 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 283.5 ms   (281.3 ms .. 285.7 ms)
+std dev              2.948 ms   (2.285 ms .. 3.417 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.398e7    (2.389e7 .. 2.409e7)
+  y                  28747.920  (-23245.849 .. 145021.581)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.923 s    (1.877 s .. 1.951 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.943 s    (1.933 s .. 1.949 s)
+std dev              10.22 ms   (486.3 μs .. 12.64 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.379e7 .. NaN)
+  y                  164077.754 (-426679.976 .. 1602876.298)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.6 ms   (276.8 ms .. 282.6 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 279.3 ms   (278.3 ms .. 280.0 ms)
+std dev              1.157 ms   (673.0 μs .. 1.784 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.399e7    (2.399e7 .. 2.400e7)
+  y                  416.173    (-2938.743 .. 8235.433)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.926 s    (1.847 s .. 1.996 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.925 s    (1.918 s .. 1.938 s)
+std dev              12.04 ms   (1.213 ms .. 15.09 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.402e7    (2.379e7 .. 2.420e7)
+  y                  -14347.174 (-804501.139 .. 1605880.002)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 279.4 ms   (278.9 ms .. 279.9 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 278.4 ms   (277.7 ms .. 278.8 ms)
+std dev              681.5 μs   (425.9 μs .. 879.1 μs)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.400e7    (2.399e7 .. 2.400e7)
+  y                  -398.778   (-5140.820 .. 1342.916)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519
+time                 1.951 s    (1.849 s .. 2.045 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.942 s    (1.931 s .. 1.968 s)
+std dev              17.91 ms   (1.093 ms .. 22.27 ms)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  cpuTime            2.411e7    (2.374e7 .. 2.444e7)
+  y                  -163029.220 (-1682624.689 .. 2424094.876)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking 8-queens
+time                 292.8 ms   (279.5 ms .. 322.4 ms)
+                     0.995 R²   (0.983 R² .. 1.000 R²)
+mean                 283.4 ms   (277.9 ms .. 295.6 ms)
+std dev              9.966 ms   (1.503 ms .. 13.51 ms)
+cycles:              0.999 R²   (0.991 R² .. 1.000 R²)
+  cpuTime            2.444e7    (2.381e7 .. 2.592e7)
+  y                  -152486.100 (-1260457.193 .. 663315.872)
+variance introduced by outliers: 16% (moderately inflated)
+
+Benchmark bitwise-bench: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:bitwise-bench) (first run)
+Preprocessing benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Building benchmark 'bitwise-bench' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark bitwise-bench: RUNNING...
+benchmarking Ed25519

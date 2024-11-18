@@ -23,7 +23,7 @@ let
 
 
   # Underlying benchmarking library used by plutus-benchmark and tasty-papi
-  papi-pkgs = lib.optional pkgs.hostPlatform.isLinux pkgs.papi;
+  papi-pkgs = lib.optionals pksg.hostPlatform.isLinux [ pkgs.papi ];
 
 
   all-pkgs = [
@@ -79,7 +79,11 @@ in
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
 
+<<<<<<< HEAD
   packages = lib.concatLists [ all-pkgs papi-pkgs ];
+=======
+  packages = lib.concatLists all-pkgs papi-pkgs;
+>>>>>>> 128877545 (Add papi support to the nix shell)
 
 
   scripts.assemble-changelog = {
