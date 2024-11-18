@@ -43,7 +43,7 @@ an unfolding.
 -}
 
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
-stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
+stringToBuiltinByteString str = BuiltinByteString (fromString str)
 {-# OPAQUE stringToBuiltinByteString #-}
 
 stringToBuiltinString :: Haskell.String -> BuiltinString

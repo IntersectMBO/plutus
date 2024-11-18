@@ -11,24 +11,7 @@
                          (\go ->
                             (\nt ->
                                (\nt ->
-                                  fix1
-                                    (\go ds ->
-                                       force
-                                         (case
-                                            ds
-                                            [ (delay (constr 0 []))
-                                            , (\x xs ->
-                                                 delay
-                                                   (constr 1
-                                                      [ (case
-                                                           x
-                                                           [ (\k v ->
-                                                                constr 0
-                                                                  [ k
-                                                                  , (decodeUtf8
-                                                                       v) ]) ])
-                                                      , (go xs) ])) ]))
-                                    (force go nt))
+                                  force go nt)
                                  ((\rs' ->
                                      (\ls' -> go rs' ls') (force go nt))
                                     (force
@@ -95,24 +78,20 @@
                                        nt)))
                               (unsafeFromList
                                  (\i -> iData i)
-                                 bData
+                                 (\i -> iData i)
                                  (constr 1
-                                    [ (constr 0 [(addInteger 1 n), #6f6e65])
+                                    [ (constr 0 [(addInteger 1 n), 1])
                                     , (constr 1
-                                         [ (constr 0
-                                              [(addInteger 2 n), #74776f])
+                                         [ (constr 0 [(addInteger 2 n), 2])
                                          , (constr 1
-                                              [ (constr 0
-                                                   [ (addInteger 3 n)
-                                                   , #7468726565 ])
+                                              [ (constr 0 [(addInteger 3 n), 3])
                                               , (constr 1
                                                    [ (constr 0
-                                                        [ (addInteger 4 n)
-                                                        , #666f7572 ])
+                                                        [(addInteger 4 n), 4])
                                                    , (constr 1
                                                         [ (constr 0
                                                              [ (addInteger 5 n)
-                                                             , #66697665 ])
+                                                             , 5 ])
                                                         , (constr 0
                                                              [  ]) ]) ]) ]) ]) ])))
                            (fix1
@@ -164,15 +143,14 @@
                                                        nt)
                                                     [ (\r ->
                                                          delay
-                                                           (force
-                                                              mkCons
+                                                           (force mkCons
                                                               (mkPairData
                                                                  k'
-                                                                 (bData
-                                                                    (appendByteString
-                                                                       (unBData
+                                                                 (iData
+                                                                    (addInteger
+                                                                       (unIData
                                                                           v')
-                                                                       (unBData
+                                                                       (unIData
                                                                           r))))
                                                               (force
                                                                  (go
@@ -193,17 +171,15 @@
                               (delay (\x -> x))))
                         (unsafeFromList
                            (\i -> iData i)
-                           bData
+                           (\i -> iData i)
                            (constr 1
-                              [ (constr 0 [(addInteger 3 n), #5448524545])
+                              [ (constr 0 [(addInteger 3 n), 33])
                               , (constr 1
-                                   [ (constr 0 [(addInteger 4 n), #464f5552])
+                                   [ (constr 0 [(addInteger 4 n), 44])
                                    , (constr 1
-                                        [ (constr 0 [(addInteger 6 n), #534958])
+                                        [ (constr 0 [(addInteger 6 n), 66])
                                         , (constr 1
-                                             [ (constr 0
-                                                  [ (addInteger 7 n)
-                                                  , #534556454e ])
+                                             [ (constr 0 [(addInteger 7 n), 77])
                                              , (constr 0 []) ]) ]) ]) ])))
                      (\`$dToData` `$dToData` ->
                         (\go eta -> goList (go eta))
@@ -244,7 +220,7 @@
                           constr 1
                             [ (constr 0
                                  [ (unIData (force (force fstPair) hd))
-                                 , (unBData (force (force sndPair) hd)) ])
+                                 , (unIData (force (force sndPair) hd)) ])
                             , (force (go (delay (\x -> x))) tl) ])))
                (delay (\x -> x))))
          (\z f xs ->
