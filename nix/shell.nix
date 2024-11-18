@@ -80,10 +80,14 @@ in
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   packages = lib.concatLists [ all-pkgs papi-pkgs ];
 =======
   packages = lib.concatLists all-pkgs papi-pkgs;
 >>>>>>> 128877545 (Add papi support to the nix shell)
+=======
+  packages = lib.concatLists [ all-pkgs papi-pkgs ];
+>>>>>>> 3d1f176a0 (wip)
 
 
   scripts.assemble-changelog = {
