@@ -18,19 +18,19 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
-  ~go : list (pair data data) -> List (Tuple2 integer bytestring)
+  ~go : list (pair data data) -> List (Tuple2 integer integer)
     = caseList'
         {pair data data}
-        {List (Tuple2 integer bytestring)}
-        (Nil {Tuple2 integer bytestring})
+        {List (Tuple2 integer integer)}
+        (Nil {Tuple2 integer integer})
         (\(hd : pair data data) (tl : list (pair data data)) ->
            Cons
-             {Tuple2 integer bytestring}
+             {Tuple2 integer integer}
              (Tuple2
                 {integer}
-                {bytestring}
+                {integer}
                 (unIData (fstPair {data} {data} hd))
-                (unBData (sndPair {data} {data} hd)))
+                (unIData (sndPair {data} {data} hd)))
              (go tl))
 in
 letrec
@@ -112,36 +112,24 @@ in
     !nt : list (pair data data)
       = unsafeFromList
           {integer}
-          {bytestring}
+          {integer}
           (\(i : integer) -> iData i)
-          bData
+          (\(i : integer) -> iData i)
           ((let
-               a = Tuple2 integer bytestring
+               a = Tuple2 integer integer
              in
              \(g : all b. (a -> b -> b) -> b -> b) ->
                g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a}))
              (/\a ->
-                \(c : Tuple2 integer bytestring -> a -> a) (n : a) ->
+                \(c : Tuple2 integer integer -> a -> a) (n : a) ->
                   c
-                    (Tuple2 {integer} {bytestring} (addInteger 3 n) #5448524545)
+                    (Tuple2 {integer} {integer} (addInteger 3 n) 33)
                     (c
-                       (Tuple2
-                          {integer}
-                          {bytestring}
-                          (addInteger 4 n)
-                          #464f5552)
+                       (Tuple2 {integer} {integer} (addInteger 4 n) 44)
                        (c
-                          (Tuple2
-                             {integer}
-                             {bytestring}
-                             (addInteger 6 n)
-                             #534958)
+                          (Tuple2 {integer} {integer} (addInteger 6 n) 66)
                           (c
-                             (Tuple2
-                                {integer}
-                                {bytestring}
-                                (addInteger 7 n)
-                                #534556454e)
+                             (Tuple2 {integer} {integer} (addInteger 7 n) 77)
                              n)))))
   in
   letrec
@@ -185,7 +173,7 @@ in
                       {pair data data}
                       (mkPairData
                          k'
-                         (bData (appendByteString (unBData v') (unBData r))))
+                         (iData (addInteger (unIData v') (unIData r))))
                       (go tl))
                (/\dead -> mkCons {pair data data} (mkPairData k' v') (go tl))
                {all dead. dead})
@@ -194,38 +182,26 @@ in
     !nt : list (pair data data)
       = unsafeFromList
           {integer}
-          {bytestring}
+          {integer}
           (\(i : integer) -> iData i)
-          bData
+          (\(i : integer) -> iData i)
           ((let
-               a = Tuple2 integer bytestring
+               a = Tuple2 integer integer
              in
              \(g : all b. (a -> b -> b) -> b -> b) ->
                g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a}))
              (/\a ->
-                \(c : Tuple2 integer bytestring -> a -> a) (n : a) ->
+                \(c : Tuple2 integer integer -> a -> a) (n : a) ->
                   c
-                    (Tuple2 {integer} {bytestring} (addInteger 1 n) #6f6e65)
+                    (Tuple2 {integer} {integer} (addInteger 1 n) 1)
                     (c
-                       (Tuple2 {integer} {bytestring} (addInteger 2 n) #74776f)
+                       (Tuple2 {integer} {integer} (addInteger 2 n) 2)
                        (c
-                          (Tuple2
-                             {integer}
-                             {bytestring}
-                             (addInteger 3 n)
-                             #7468726565)
+                          (Tuple2 {integer} {integer} (addInteger 3 n) 3)
                           (c
-                             (Tuple2
-                                {integer}
-                                {bytestring}
-                                (addInteger 4 n)
-                                #666f7572)
+                             (Tuple2 {integer} {integer} (addInteger 4 n) 4)
                              (c
-                                (Tuple2
-                                   {integer}
-                                   {bytestring}
-                                   (addInteger 5 n)
-                                   #66697665)
+                                (Tuple2 {integer} {integer} (addInteger 5 n) 5)
                                 n))))))
   in
   letrec
@@ -274,30 +250,4 @@ in
       in
       go rs' ls'
   in
-  (let
-      a = Tuple2 integer bytestring
-    in
-    /\b ->
-      \(f : a -> b) ->
-        letrec
-          !go : List a -> List b
-            = \(ds : List a) ->
-                List_match
-                  {a}
-                  ds
-                  {all dead. List b}
-                  (/\dead -> Nil {b})
-                  (\(x : a) (xs : List a) -> /\dead -> Cons {b} (f x) (go xs))
-                  {all dead. dead}
-        in
-        \(eta : List a) -> go eta)
-    {Tuple2 integer string}
-    (\(ds : Tuple2 integer bytestring) ->
-       Tuple2_match
-         {integer}
-         {bytestring}
-         ds
-         {Tuple2 integer string}
-         (\(k : integer) (v : bytestring) ->
-            Tuple2 {integer} {string} k (decodeUtf8 v)))
-    (go nt)
+  go nt
