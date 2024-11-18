@@ -23,7 +23,7 @@ let
 
 
   # Underlying benchmarking library used by plutus-benchmark and tasty-papi
-  papi-pkgs = lib.optionals pkgs.hostPlatform.isLinux [ pkgs.papi ];
+  papi-pkgs = lib.optional pkgs.hostPlatform.isLinux pkgs.papi;
 
 
   all-pkgs = [
