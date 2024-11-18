@@ -110,7 +110,7 @@ matchDataList l nilCase consCase =
   where
     handleConstr tag values =
       if tag == 0 then nilCase
-      else if tag == 1 then consCase (BI.head values) (BI.head (BI.tail values))
+      else if tag == 1 then B.matchList values error (\h t -> consCase h (BI.head t))
       else error ()
 
 {-# INLINABLE foldLeftData #-}

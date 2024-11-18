@@ -237,7 +237,7 @@ clear natural ordering which we will assume GHC respects.
 
 {- Note [Ensuring compatibility with spec and stdlib types]
 Haskell's Bool has its constructors ordered with False before True, which results in the
-normal case expression having the oppposite sense to the one in the spec, where
+normal case expression having the opposite sense to the one in the spec, where
 the true branch comes first (which is more logical).
 
 Our options are:

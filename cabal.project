@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2024-06-23T03:51:23Z
+  , hackage.haskell.org 2024-10-16T00:00:00Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2024-08-01T16:18:12Z
+  , cardano-haskell-packages 2024-10-16T00:00:00Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -29,7 +29,6 @@ packages: cardano-constitution
           plutus-tx-plugin
           plutus-tx-test-util
           prettyprinter-configurable
-          stubs/plutus-ghc-stub
           doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.
@@ -58,17 +57,6 @@ if impl(ghc < 9.0) || os(windows)
   -- around the dependency issue, keeping cabal happy, which is fine since it
   -- won't actually build it.
   allow-older: plutus-cert:base
-
-if os(windows)
-   -- When cross compiling we don't have a `ghc` package, so use
-  -- the `plutus-ghc-stub` package instead.
-  package plutus-tx-plugin
-    flags: +use-ghc-stub
-
-  -- Exclude tests that use `doctest`.  They will not work for
-  -- cross compilation and `cabal` will not be able to make a plan.
-  package prettyprinter-configurable
-    tests: False
 
 -- Recently introduced flag to be clever and use SIMD instructions.
 -- We don't need this and it causes problems in a few settings including

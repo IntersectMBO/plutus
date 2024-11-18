@@ -67,7 +67,8 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
     , process
     , text
     , transformers
@@ -100,6 +101,7 @@ library
     MAlonzo.Code.Agda.Builtin.Unit
     MAlonzo.Code.Agda.Primitive
     MAlonzo.Code.Algebra.Bundles
+    MAlonzo.Code.Algebra.Bundles.Raw
     MAlonzo.Code.Algebra.Consequences.Base
     MAlonzo.Code.Algebra.Consequences.Setoid
     MAlonzo.Code.Algebra.Construct.LiftedChoice
@@ -109,11 +111,18 @@ library
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Min
     MAlonzo.Code.Algebra.Construct.NaturalChoice.MinMaxOp
     MAlonzo.Code.Algebra.Construct.NaturalChoice.MinOp
+    MAlonzo.Code.Algebra.Definitions.RawMagma
+    MAlonzo.Code.Algebra.Lattice.Bundles
+    MAlonzo.Code.Algebra.Lattice.Bundles.Raw
+    MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinMaxOp
+    MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinOp
+    MAlonzo.Code.Algebra.Lattice.Properties.BooleanAlgebra
+    MAlonzo.Code.Algebra.Lattice.Properties.DistributiveLattice
+    MAlonzo.Code.Algebra.Lattice.Properties.Lattice
+    MAlonzo.Code.Algebra.Lattice.Properties.Semilattice
+    MAlonzo.Code.Algebra.Lattice.Structures
     MAlonzo.Code.Algebra.Morphism
-    MAlonzo.Code.Algebra.Properties.BooleanAlgebra
-    MAlonzo.Code.Algebra.Properties.DistributiveLattice
-    MAlonzo.Code.Algebra.Properties.Lattice
-    MAlonzo.Code.Algebra.Properties.Semilattice
+    MAlonzo.Code.Algebra.Morphism.Structures
     MAlonzo.Code.Algebra.Structures
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
@@ -130,10 +139,6 @@ library
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
-    MAlonzo.Code.Category.Applicative.Indexed
-    MAlonzo.Code.Category.Comonad
-    MAlonzo.Code.Category.Functor
-    MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
@@ -147,16 +152,17 @@ library
     MAlonzo.Code.Data.DifferenceList
     MAlonzo.Code.Data.Digit
     MAlonzo.Code.Data.Empty
-    MAlonzo.Code.Data.Empty.Irrelevant
     MAlonzo.Code.Data.Empty.Polymorphic
     MAlonzo.Code.Data.Fin.Base
+    MAlonzo.Code.Data.Fin.Properties
     MAlonzo.Code.Data.Float.Properties
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
     MAlonzo.Code.Data.Integer.Properties
     MAlonzo.Code.Data.Integer.Show
+    MAlonzo.Code.Data.Irrelevant
     MAlonzo.Code.Data.List.Base
-    MAlonzo.Code.Data.List.Categorical
+    MAlonzo.Code.Data.List.Effectful
     MAlonzo.Code.Data.List.Extrema
     MAlonzo.Code.Data.List.Extrema.Core
     MAlonzo.Code.Data.List.Membership.DecSetoid
@@ -182,18 +188,20 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
-    MAlonzo.Code.Data.Maybe.Categorical
+    MAlonzo.Code.Data.Maybe.Effectful
     MAlonzo.Code.Data.Maybe.Properties
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
     MAlonzo.Code.Data.Nat.Base
+    MAlonzo.Code.Data.Nat.Divisibility
     MAlonzo.Code.Data.Nat.Divisibility.Core
     MAlonzo.Code.Data.Nat.DivMod
     MAlonzo.Code.Data.Nat.DivMod.Core
     MAlonzo.Code.Data.Nat.Properties
-    MAlonzo.Code.Data.Nat.Properties.Core
     MAlonzo.Code.Data.Nat.Show
+    MAlonzo.Code.Data.Parity.Base
     MAlonzo.Code.Data.Product
+    MAlonzo.Code.Data.Product.Base
     MAlonzo.Code.Data.Product.Function.Dependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Setoid
@@ -205,7 +213,7 @@ library
     MAlonzo.Code.Data.String.Base
     MAlonzo.Code.Data.String.Properties
     MAlonzo.Code.Data.Sum.Base
-    MAlonzo.Code.Data.Sum.Categorical.Left
+    MAlonzo.Code.Data.Sum.Effectful.Left
     MAlonzo.Code.Data.Sum.Function.Propositional
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
@@ -216,52 +224,61 @@ library
     MAlonzo.Code.Data.Tree.AVL.Key
     MAlonzo.Code.Data.Tree.AVL.Map
     MAlonzo.Code.Data.Tree.AVL.Value
-    MAlonzo.Code.Data.Unit.Base
     MAlonzo.Code.Data.Unit.Properties
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Data.Word.Properties
+    MAlonzo.Code.Data.Word64.Properties
     MAlonzo.Code.Declarative
+    MAlonzo.Code.Effect.Applicative
+    MAlonzo.Code.Effect.Choice
+    MAlonzo.Code.Effect.Empty
+    MAlonzo.Code.Effect.Functor
+    MAlonzo.Code.Effect.Monad
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
     MAlonzo.Code.Function.Base
-    MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
-    MAlonzo.Code.Function.Equality
-    MAlonzo.Code.Function.Equivalence
-    MAlonzo.Code.Function.HalfAdjointEquivalence
-    MAlonzo.Code.Function.Identity.Categorical
-    MAlonzo.Code.Function.Injection
-    MAlonzo.Code.Function.Inverse
-    MAlonzo.Code.Function.LeftInverse
+    MAlonzo.Code.Function.Consequences
+    MAlonzo.Code.Function.Consequences.Propositional
+    MAlonzo.Code.Function.Consequences.Setoid
+    MAlonzo.Code.Function.Construct.Composition
+    MAlonzo.Code.Function.Construct.Identity
+    MAlonzo.Code.Function.Construct.Symmetry
+    MAlonzo.Code.Function.Dependent.Bundles
+    MAlonzo.Code.Function.Indexed.Relation.Binary.Equality
     MAlonzo.Code.Function.Metric.Nat.Bundles
     MAlonzo.Code.Function.Metric.Structures
     MAlonzo.Code.Function.Nary.NonDependent.Base
-    MAlonzo.Code.Function.Related
+    MAlonzo.Code.Function.Properties.Bijection
+    MAlonzo.Code.Function.Properties.Inverse
+    MAlonzo.Code.Function.Properties.Inverse.HalfAdjointEquivalence
+    MAlonzo.Code.Function.Properties.RightInverse
+    MAlonzo.Code.Function.Properties.Surjection
+    MAlonzo.Code.Function.Related.Propositional
     MAlonzo.Code.Function.Related.TypeIsomorphisms
+    MAlonzo.Code.Function.Strict
     MAlonzo.Code.Function.Structures
-    MAlonzo.Code.Function.Surjection
     MAlonzo.Code.Induction
     MAlonzo.Code.Induction.WellFounded
-    MAlonzo.Code.IO.Primitive
+    MAlonzo.Code.IO.Primitive.Core
     MAlonzo.Code.Level
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
     MAlonzo.Code.Reflection
-    MAlonzo.Code.Reflection.Abstraction
-    MAlonzo.Code.Reflection.Argument
-    MAlonzo.Code.Reflection.Argument.Information
-    MAlonzo.Code.Reflection.Argument.Modality
-    MAlonzo.Code.Reflection.Argument.QQuantity
-    MAlonzo.Code.Reflection.Argument.Relevance
-    MAlonzo.Code.Reflection.Argument.Visibility
-    MAlonzo.Code.Reflection.Literal
-    MAlonzo.Code.Reflection.Meta
-    MAlonzo.Code.Reflection.Name
-    MAlonzo.Code.Reflection.Show
-    MAlonzo.Code.Reflection.Term
+    MAlonzo.Code.Reflection.AST.Abstraction
+    MAlonzo.Code.Reflection.AST.Argument
+    MAlonzo.Code.Reflection.AST.Argument.Information
+    MAlonzo.Code.Reflection.AST.Argument.Modality
+    MAlonzo.Code.Reflection.AST.Argument.QQuantity
+    MAlonzo.Code.Reflection.AST.Argument.Relevance
+    MAlonzo.Code.Reflection.AST.Argument.Visibility
+    MAlonzo.Code.Reflection.AST.Literal
+    MAlonzo.Code.Reflection.AST.Meta
+    MAlonzo.Code.Reflection.AST.Name
+    MAlonzo.Code.Reflection.AST.Show
+    MAlonzo.Code.Reflection.AST.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -273,7 +290,8 @@ library
     MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
-    MAlonzo.Code.Relation.Binary.Construct.Converse
+    MAlonzo.Code.Relation.Binary.Construct.Composition
+    MAlonzo.Code.Relation.Binary.Construct.Flip.EqAndOrd
     MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left
     MAlonzo.Code.Relation.Binary.Construct.NonStrictToStrict
     MAlonzo.Code.Relation.Binary.Construct.On
@@ -283,8 +301,12 @@ library
     MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Construct.Trivial
     MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
     MAlonzo.Code.Relation.Binary.Lattice
+    MAlonzo.Code.Relation.Binary.Lattice.Bundles
+    MAlonzo.Code.Relation.Binary.Lattice.Structures
+    MAlonzo.Code.Relation.Binary.Morphism.Structures
     MAlonzo.Code.Relation.Binary.Properties.Poset
     MAlonzo.Code.Relation.Binary.Properties.Preorder
+    MAlonzo.Code.Relation.Binary.Properties.Setoid
     MAlonzo.Code.Relation.Binary.PropositionalEquality
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Algebra
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Core
@@ -293,19 +315,18 @@ library
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Single
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple
     MAlonzo.Code.Relation.Binary.Reasoning.Setoid
+    MAlonzo.Code.Relation.Binary.Reasoning.Syntax
     MAlonzo.Code.Relation.Binary.Structures
+    MAlonzo.Code.Relation.Binary.Structures.Biased
     MAlonzo.Code.Relation.Nullary
     MAlonzo.Code.Relation.Nullary.Decidable
     MAlonzo.Code.Relation.Nullary.Decidable.Core
     MAlonzo.Code.Relation.Nullary.Negation
     MAlonzo.Code.Relation.Nullary.Negation.Core
-    MAlonzo.Code.Relation.Nullary.Product
     MAlonzo.Code.Relation.Nullary.Reflects
-    MAlonzo.Code.Relation.Nullary.Sum
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Strict
     MAlonzo.Code.Text.Format
     MAlonzo.Code.Text.Format.Generic
     MAlonzo.Code.Text.Printf
@@ -328,7 +349,10 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.Purity
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UCSE
+    MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
     MAlonzo.Code.VerifiedCompilation.UntypedViews
@@ -362,10 +386,6 @@ library
     MAlonzo.Code.Algebra.Construct.NaturalChoice.MinMaxOp
     MAlonzo.Code.Algebra.Construct.NaturalChoice.MinOp
     MAlonzo.Code.Algebra.Morphism
-    MAlonzo.Code.Algebra.Properties.BooleanAlgebra
-    MAlonzo.Code.Algebra.Properties.DistributiveLattice
-    MAlonzo.Code.Algebra.Properties.Lattice
-    MAlonzo.Code.Algebra.Properties.Semilattice
     MAlonzo.Code.Algebra.Structures
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
@@ -382,10 +402,6 @@ library
     MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
-    MAlonzo.Code.Category.Applicative.Indexed
-    MAlonzo.Code.Category.Comonad
-    MAlonzo.Code.Category.Functor
-    MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
@@ -399,7 +415,6 @@ library
     MAlonzo.Code.Data.DifferenceList
     MAlonzo.Code.Data.Digit
     MAlonzo.Code.Data.Empty
-    MAlonzo.Code.Data.Empty.Irrelevant
     MAlonzo.Code.Data.Empty.Polymorphic
     MAlonzo.Code.Data.Fin.Base
     MAlonzo.Code.Data.Integer
@@ -407,7 +422,6 @@ library
     MAlonzo.Code.Data.Integer.Properties
     MAlonzo.Code.Data.Integer.Show
     MAlonzo.Code.Data.List.Base
-    MAlonzo.Code.Data.List.Categorical
     MAlonzo.Code.Data.List.Extrema
     MAlonzo.Code.Data.List.Extrema.Core
     MAlonzo.Code.Data.List.Membership.DecSetoid
@@ -433,7 +447,6 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
-    MAlonzo.Code.Data.Maybe.Categorical
     MAlonzo.Code.Data.Maybe.Properties
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
@@ -442,7 +455,6 @@ library
     MAlonzo.Code.Data.Nat.DivMod
     MAlonzo.Code.Data.Nat.DivMod.Core
     MAlonzo.Code.Data.Nat.Properties
-    MAlonzo.Code.Data.Nat.Properties.Core
     MAlonzo.Code.Data.Nat.Show
     MAlonzo.Code.Data.Product
     MAlonzo.Code.Data.Product.Function.Dependent.Propositional
@@ -456,7 +468,6 @@ library
     MAlonzo.Code.Data.String.Base
     MAlonzo.Code.Data.String.Properties
     MAlonzo.Code.Data.Sum.Base
-    MAlonzo.Code.Data.Sum.Categorical.Left
     MAlonzo.Code.Data.Sum.Function.Propositional
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
@@ -469,51 +480,39 @@ library
     MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Data.Word.Properties
     MAlonzo.Code.Declarative
     MAlonzo.Code.Evaluator.Base
     MAlonzo.Code.Evaluator.Program
     MAlonzo.Code.Evaluator.Term
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.Function.Base
-    MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
-    MAlonzo.Code.Function.Equality
-    MAlonzo.Code.Function.Equivalence
-    MAlonzo.Code.Function.HalfAdjointEquivalence
-    MAlonzo.Code.Function.Identity.Categorical
-    MAlonzo.Code.Function.Injection
-    MAlonzo.Code.Function.Inverse
-    MAlonzo.Code.Function.LeftInverse
     MAlonzo.Code.Function.Metric.Nat.Bundles
     MAlonzo.Code.Function.Metric.Structures
     MAlonzo.Code.Function.Nary.NonDependent.Base
-    MAlonzo.Code.Function.Related
     MAlonzo.Code.Function.Related.TypeIsomorphisms
     MAlonzo.Code.Function.Structures
-    MAlonzo.Code.Function.Surjection
     MAlonzo.Code.Induction
     MAlonzo.Code.Induction.WellFounded
-    MAlonzo.Code.IO.Primitive
+    MAlonzo.Code.IO.Primitive.Core
     MAlonzo.Code.Level
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU
     MAlonzo.Code.Reflection
     MAlonzo.Code.Data.Float.Properties
-    MAlonzo.Code.Data.Word.Properties
-    MAlonzo.Code.Reflection.Abstraction
-    MAlonzo.Code.Reflection.Argument
-    MAlonzo.Code.Reflection.Argument.Information
-    MAlonzo.Code.Reflection.Argument.Modality
-    MAlonzo.Code.Reflection.Argument.QQuantity
-    MAlonzo.Code.Reflection.Argument.Relevance
-    MAlonzo.Code.Reflection.Argument.Visibility
-    MAlonzo.Code.Reflection.Literal
-    MAlonzo.Code.Reflection.Meta
-    MAlonzo.Code.Reflection.Name
-    MAlonzo.Code.Reflection.Show
-    MAlonzo.Code.Reflection.Term
+    MAlonzo.Code.Reflection.AST.Abstraction
+    MAlonzo.Code.Reflection.AST.Argument
+    MAlonzo.Code.Reflection.AST.Argument.Information
+    MAlonzo.Code.Reflection.AST.Argument.Modality
+    MAlonzo.Code.Reflection.AST.Argument.QQuantity
+    MAlonzo.Code.Reflection.AST.Argument.Relevance
+    MAlonzo.Code.Reflection.AST.Argument.Visibility
+    MAlonzo.Code.Reflection.AST.Literal
+    MAlonzo.Code.Reflection.AST.Meta
+    MAlonzo.Code.Reflection.AST.Name
+    MAlonzo.Code.Reflection.AST.Show
+    MAlonzo.Code.Reflection.AST.Term
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
@@ -525,7 +524,7 @@ library
     MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
-    MAlonzo.Code.Relation.Binary.Construct.Converse
+    MAlonzo.Code.Relation.Binary.Construct.Flip.EqAndOrd
     MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left
     MAlonzo.Code.Relation.Binary.Construct.NonStrictToStrict
     MAlonzo.Code.Relation.Binary.Construct.On
@@ -546,24 +545,75 @@ library
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple
     MAlonzo.Code.Relation.Binary.Reasoning.Setoid
     MAlonzo.Code.Relation.Binary.Structures
-    MAlonzo.Code.Relation.Nullary
     MAlonzo.Code.Relation.Nullary.Decidable
     MAlonzo.Code.Relation.Nullary.Decidable.Core
     MAlonzo.Code.Relation.Nullary.Negation
     MAlonzo.Code.Relation.Nullary.Negation.Core
-    MAlonzo.Code.Relation.Nullary.Product
+    MAlonzo.Code.Relation.Nullary
     MAlonzo.Code.Relation.Nullary.Reflects
-    MAlonzo.Code.Relation.Nullary.Sum
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Strict
     MAlonzo.Code.Text.Format
     MAlonzo.Code.Text.Format.Generic
     MAlonzo.Code.Text.Printf
     MAlonzo.Code.Text.Printf.Generic
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
+    MAlonzo.Code.Algebra.Bundles.Raw
+    MAlonzo.Code.Algebra.Definitions.RawMagma
+    MAlonzo.Code.Algebra.Lattice.Bundles
+    MAlonzo.Code.Algebra.Lattice.Bundles.Raw
+    MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinMaxOp
+    MAlonzo.Code.Algebra.Lattice.Construct.NaturalChoice.MinOp
+    MAlonzo.Code.Algebra.Lattice.Properties.BooleanAlgebra
+    MAlonzo.Code.Algebra.Lattice.Properties.DistributiveLattice
+    MAlonzo.Code.Algebra.Lattice.Properties.Lattice
+    MAlonzo.Code.Algebra.Lattice.Properties.Semilattice
+    MAlonzo.Code.Algebra.Lattice.Structures
+    MAlonzo.Code.Algebra.Morphism.Structures
+    MAlonzo.Code.Data.Fin.Properties
+    MAlonzo.Code.Data.Irrelevant
+    MAlonzo.Code.Data.List.Effectful
+    MAlonzo.Code.Data.Maybe.Effectful
+    MAlonzo.Code.Data.Nat.Divisibility
+    MAlonzo.Code.Data.Parity.Base
+    MAlonzo.Code.Data.Product.Base
+    MAlonzo.Code.Data.Sum.Effectful.Left
+    MAlonzo.Code.Data.Unit.Properties
+    MAlonzo.Code.Data.Word64.Properties
+    MAlonzo.Code.Effect.Applicative
+    MAlonzo.Code.Effect.Choice
+    MAlonzo.Code.Effect.Empty
+    MAlonzo.Code.Effect.Functor
+    MAlonzo.Code.Effect.Monad
+    MAlonzo.Code.Function.Consequences
+    MAlonzo.Code.Function.Consequences.Propositional
+    MAlonzo.Code.Function.Consequences.Setoid
+    MAlonzo.Code.Function.Construct.Composition
+    MAlonzo.Code.Function.Construct.Identity
+    MAlonzo.Code.Function.Construct.Symmetry
+    MAlonzo.Code.Function.Dependent.Bundles
+    MAlonzo.Code.Function.Indexed.Relation.Binary.Equality
+    MAlonzo.Code.Function.Properties.Bijection
+    MAlonzo.Code.Function.Properties.Inverse
+    MAlonzo.Code.Function.Properties.Inverse.HalfAdjointEquivalence
+    MAlonzo.Code.Function.Properties.RightInverse
+    MAlonzo.Code.Function.Properties.Surjection
+    MAlonzo.Code.Function.Related.Propositional
+    MAlonzo.Code.Function.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Composition
+    MAlonzo.Code.Relation.Binary.Lattice.Bundles
+    MAlonzo.Code.Relation.Binary.Lattice.Structures
+    MAlonzo.Code.Relation.Binary.Morphism.Structures
+    MAlonzo.Code.Relation.Binary.Properties.Setoid
+    MAlonzo.Code.Relation.Binary.Reasoning.Syntax
+    MAlonzo.Code.Relation.Binary.Structures.Biased
+    MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UForceDelay
+    MAlonzo.Code.VerifiedCompilation.UntypedTranslation
+    MAlonzo.Code.VerifiedCompilation.UntypedViews
     MAlonzo.Code.Type.BetaNBE.Completeness
     MAlonzo.Code.Type.BetaNBE.RenamingSubstitution
     MAlonzo.Code.Type.BetaNBE.Soundness
@@ -580,6 +630,9 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float
+    MAlonzo.Code.VerifiedCompilation.Purity
+    MAlonzo.Code.VerifiedCompilation.UCSE
+    MAlonzo.Code.VerifiedCompilation.UFloatDelay
 
 executable plc-agda
   import:         lang, os-support
@@ -599,7 +652,8 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based
     , Stream

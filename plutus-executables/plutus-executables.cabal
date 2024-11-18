@@ -12,9 +12,7 @@ author:          Plutus Core Team
 maintainer:      ana.pantilie@iohk.io
 category:        Development
 build-type:      Simple
-extra-doc-files:
-  CHANGELOG.md
-  README.md
+extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
@@ -23,6 +21,7 @@ source-repository head
 common lang
   default-language:   Haskell2010
   default-extensions:
+    BangPatterns
     DeriveFoldable
     DeriveFunctor
     DeriveGeneric
@@ -30,12 +29,20 @@ common lang
     DeriveTraversable
     DerivingStrategies
     DerivingVia
+    ExistentialQuantification
     ExplicitForAll
     FlexibleContexts
+    GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    OverloadedStrings
     ScopedTypeVariables
     StandaloneDeriving
+    TypeApplications
+    TypeSynonymInstances
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -50,19 +57,32 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
+library lib
+  import:          lang, os-support
+  hs-source-dirs:  src
+  exposed-modules: AgdaUnparse
+  build-depends:
+    , base               >=4.9   && <5
+    , bytestring
+    , plutus-core        ^>=1.36
+    , plutus-metatheory
+    , text
+
 executable pir
   import:         lang
   main-is:        pir/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                                       >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
     , cassava
     , containers
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib, plutus-ir}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
+    , plutus-core:plutus-ir
     , text
     , transformers
 
@@ -71,30 +91,37 @@ executable plc
   main-is:        plc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , bytestring
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
 
 executable uplc
   import:         lang, os-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                            >=4.9   && <5
+    , Agda                             ==2.7.0
+    , base                             >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
-    , flat                                            ^>=0.6
+    , filepath
+    , flat                             ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.34
+    , plutus-core                      ^>=1.36
+    , plutus-core:plutus-core-execlib
+    , plutus-executables:lib
     , plutus-metatheory
     , prettyprinter
     , split
     , text
+
+-- build-tool-depends: Agda:agda
 
 test-suite test-simple
   import:             lang, os-support
@@ -120,7 +147,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.34
+    , plutus-core        ^>=1.36
     , plutus-metatheory
     , process
     , tasty

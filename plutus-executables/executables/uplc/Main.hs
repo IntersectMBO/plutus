@@ -1,18 +1,11 @@
  -- editorconfig-checker-disable
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeSynonymInstances      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
-import PlutusCore.Compiler.Types (UPLCSimplifierTrace (..), initUPLCSimplifierTrace)
 import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
@@ -24,7 +17,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
-import MAlonzo.Code.VerifiedCompilation qualified as Agda
 import Untyped qualified as AgdaFFI
 
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
@@ -33,11 +25,11 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Transform.Simplifier
 
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State (runStateT)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
@@ -49,11 +41,27 @@ import Flat (unflat)
 import Options.Applicative
 import Prettyprinter ((<+>))
 import System.Exit (exitFailure)
+import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
+
+import Agda.Interaction.Base (ComputeMode (DefaultCompute))
+import Agda.Interaction.FindFile qualified as HAgda.File
+import Agda.Interaction.Imports qualified as HAgda.Imp
+import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
+import Agda.Syntax.Parser qualified as HAgda.Parser
+
+import Agda.Compiler.Backend (crInterface, iInsideScope, setCommandLineOptions, setScope)
+import Agda.Interaction.BasicOps (evalInCurrent)
+import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
+import Agda.TypeChecking.Pretty (PrettyTCM (..))
+import Agda.Utils.FileName qualified as HAgda.File
+import AgdaUnparse (agdaUnparse)
+import System.Environment (getEnv)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -269,19 +277,65 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     renamed <- PLC.rename prog
     let defaultBuiltinSemanticsVariant :: BuiltinSemanticsVariant PLC.DefaultFun
         defaultBuiltinSemanticsVariant = def
-    flip runStateT initUPLCSimplifierTrace
-      $ UPLC.simplifyProgram UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
+    UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
-  where
-    runCertifier (Just certName) (UPLCSimplifierTrace uplcSimplTrace) = do
-      let processAgdaAST t =
-              case UPLC.deBruijnTerm t of
-                Right res                            -> res
-                Left (err :: UPLC.FreeVariableError) -> error $ show err
-          rawAgdaTrace = AgdaFFI.conv . processAgdaAST . void <$> uplcSimplTrace
-      Agda.runCertifier (T.pack certName) rawAgdaTrace
-    runCertifier Nothing _ = pure ()
+
+---------------- Agda certifier ----------------
+
+-- | Run the Agda certifier on the simplification trace, if requested
+runCertifier
+  :: Maybe String
+  -- ^ Should we run the Agda certifier? If so, what should the certificate file be called?
+  -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -- ^ The trace produced by the simplification process
+  -> IO ()
+runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+  let processAgdaAST Simplification {beforeAST, stage, afterAST} =
+          case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+            (Right before', Right after')             ->
+              (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+            (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+            (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+      rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
+  runAgda certName rawAgdaTrace
+runCertifier Nothing _ = pure ()
+
+-- | Run the Agda compiler on the metatheory and evaluate the 'runCertifier' function
+-- on the given trace.
+runAgda
+  :: String
+  -- ^ The name of the certificate file to write
+  -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))]
+  -- ^ The trace produced by the simplification process
+  -> IO ()
+runAgda certName rawTrace = do
+  let program = "runCertifier (" ++ agdaUnparse rawTrace ++ ")"
+  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser program
+  let parsedTrace =
+        case parseTraceResult of
+          Right (res, _) -> res
+          Left err       -> error $ show err
+  stdlibPath <- getEnv "AGDA_STDLIB_SRC"
+  metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
+  inputFile <- HAgda.File.absolute (metatheoryPath </> "Certifier.agda")
+  runTCMPrettyErrors $ do
+    let opts =
+          defaultOptions
+            { optIncludePaths =
+                [ metatheoryPath
+                , stdlibPath
+                ]
+            }
+    setCommandLineOptions opts
+    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
+    let interface = crInterface result
+        insideScope = iInsideScope interface
+    setScope insideScope
+    internalisedTrace <- toAbstract parsedTrace
+    decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
+    final <- prettyTCM decisionProcedureResult
+    liftIO $ writeFile (certName ++ ".agda") (show final)
 
 ---------------- Script application ----------------
 
@@ -399,7 +453,6 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
 -- TODO: this is just an example of an optional single breakpoint, decide

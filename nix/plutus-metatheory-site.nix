@@ -21,7 +21,7 @@ let
   plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
     src = lib.cleanSource (inputs.self + /plutus-metatheory);
-    buildInputs = [ repoRoot.nix.agda-with-stdlib ];
+    buildInputs = [ repoRoot.nix.agda.agda-with-stdlib ];
     dontInstall = true;
 
     # Jekyll requires the _layouts folder to be in the same directory as the
@@ -35,7 +35,12 @@ let
 
   plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site"
     {
-      buildInputs = [ pkgs.jekyll pkgs.linkchecker ];
+      buildInputs = [
+        pkgs.jekyll
+        # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+        # pkgs.linkchecker
+        inputs.nixpkgs-2405.legacyPackages.linkchecker
+      ];
     }
     ''
       mkdir "$out"

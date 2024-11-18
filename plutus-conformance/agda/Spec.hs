@@ -124,8 +124,8 @@ failingBudgetTests =
   -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
   -- do pass, either because evaluation fails or because two different size
   -- measures happen to be the same for small inputs.
-  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-9"
+  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-11"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-12"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-13"
@@ -134,7 +134,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-16"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-17"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-18"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-19"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-20"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-21"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-22"
@@ -143,12 +142,19 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-25"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-26"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-30"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-31"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-32"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-33"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-34"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-35"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-36"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-37"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-38"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-39"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-40"
+  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-41"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

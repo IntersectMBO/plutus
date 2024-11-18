@@ -1,8 +1,6 @@
-program
-  1.1.0
-  (let
-    data RecordNewtype | RecordNewtype_match where
-      RecordNewtype : integer -> RecordNewtype
-  in
-  \(ds : RecordNewtype) ->
-    RecordNewtype_match ds {integer} (\(ipv : integer) -> ipv))
+let
+  data RecordNewtype | RecordNewtype_match where
+    RecordNewtype : integer -> RecordNewtype
+in
+\(ds : RecordNewtype) ->
+  RecordNewtype_match ds {integer} (\(ipv : integer) -> ipv)

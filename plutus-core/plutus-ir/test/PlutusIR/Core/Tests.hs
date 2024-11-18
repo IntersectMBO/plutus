@@ -1,8 +1,8 @@
 module PlutusIR.Core.Tests where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Pretty
 import PlutusIR
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
 
@@ -25,7 +25,7 @@ test_prettyprintingReadable :: TestTree
 test_prettyprintingReadable =
     runTestNested ["plutus-ir", "test", "PlutusIR", "Core", "prettyprintingReadable"] $
         map
-            (goldenPirDoc prettyPirReadableSimple pTerm)
+            (goldenPirDoc prettyReadableSimple pTerm)
             [ "basic"
             , "maybe"
             , "letInLet"
@@ -60,4 +60,3 @@ roundTripPirTerm = decodeOrError . unflat . flat . void
   where
     decodeOrError (Right tm) = tm
     decodeOrError (Left err) = error (show err)
-

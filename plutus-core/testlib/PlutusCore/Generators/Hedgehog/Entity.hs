@@ -143,7 +143,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
         return $ IterAppValue term pia y
     go (TypeSchemeArrow schB) term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
-        TermOf v x <- liftT $ genTb typeRep  -- Get a Haskell and the correspoding PLC values.
+        TermOf v x <- liftT $ genTb typeRep  -- Get a Haskell and the corresponding PLC values.
         let term' = Apply () term v          -- Apply the term to the PLC value.
             args' = args . (v :)             -- Append the PLC value to the spine.
             y     = f x                      -- Apply the Haskell function to the generated argument.

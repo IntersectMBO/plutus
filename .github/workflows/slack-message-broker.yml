@@ -1,12 +1,15 @@
-# This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
-# has been cancelled or has failed, and will send a message to the plutus-ci channel.
+# This workflow sends a message to the plutus-ci channel whenever a status check fails, 
+# and tried to notify the author of the commit that caused the failure.
 
 name: "📮 Slack Message Broker"
 
 on:
+  check_run:
+    types: [completed]
   workflow_run:
-    types: [completed, requested, in_progress]
     workflows: 
+      - "🔗 Broken Links"
+      - "👷 Cabal Build All"
       - "🗽 Cardano Constitution Tests"
       - "💰 Cost Model Benchmark"
       - "🦕 Docusaurus Site" 
@@ -15,6 +18,7 @@ on:
       - "🔮 Metatheory Site"
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
+      - "🏛️ PlutusTx Template"
 
 jobs:
   Send:
@@ -23,34 +27,136 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@main
         id: prepare-slack-message
+
         with:
           script: | 
-            const name = "${{ github.event.workflow_run.name }}";
-            const url = "${{ github.event.workflow_run.html_url }}";
-            const status = "${{ github.event.workflow_run.status }}";
-            const conclusion = "${{ github.event.workflow_run.conclusion }}";
-            const failure_conclusions = [ "failure", "null", "cancelled", "action_required", "neutral", "timed_out" ];
-            let message = "";
-            if (conclusion == "") {
-              message = `${name} \`${status}\` ⏳ <${url}|View Logs>`;
-            } 
-            else if (conclusion == "success") {
-              message = `${name} \`${conclusion}\` ✅ <${url}|View Logs>`;
-            } 
-            else if (conclusion == "skipped") {
-              message = `${name} \`${conclusion}\` ⏩ <${url}|View Logs>`;
-            } 
-            else if (failure_conclusions.includes(conclusion)) {
-              message = `${name} \`${conclusion}\` ❌ <${url}|View Logs> @channel`;
-            } 
-            else {
-              message = `${name} \`${conclusion}\` ⁉️ <${url}|View Logs> Unknown Conclusion @channel`;
+            console.log(${{ toJson(github.event) }});
+
+
+            function getSlackMembersToBeNotified() {
+              const senderLogin = "${{ github.event.sender.login }}";
+              const workflowName = "${{ github.event.workflow.name }}";
+
+              const slackMemberIds = {
+                "zeme-wana": ["U03HGDNDRKR"],
+                "effectfully": ["UBH8K0ZU2"],
+                "kwxm": ["UCF4SL4BT"],
+                "Unisay": ["U02V796524S"],
+                "ramsay-t": ["U05T49F9FV1"],
+                "ana-pantilie": ["U05V2854W86"],
+                "zliu41": ["U03BP2HTKDK"],
+                "bezirg": ["UQ1LUSR8B"],
+                "erikd": ["U914V9D2B"]
+              };
+
+              const workflowOwners = {
+                "🗽 Cardano Constitution Tests": ["UQ1LUSR8B"],
+                "🩺 Longitudinal Benchmark": ["UBH8K0ZU2"],
+                "💰 Cost Model Benchmark": ["UBH8K0ZU2"],
+                "🌘 Nightly Testsuite": ["UQ1LUSR8B"]
+              };
+
+              function at(ids) {
+                return ids.reduce((acc, id) => acc + `<@${id}> `, "");
+              }
+
+              if (workflowName in workflowOwners) {
+                return at(workflowOwners[workflowName]);
+              } else if (senderLogin in slackMemberIds) {
+                return at(slackMemberIds[senderLogin]);
+              } else {
+                return `@${senderLogin}`;
+              }
             }
-            console.log(message);
+
+                              
+            const isWorkflowRunEvent = "${{ github.event_name }}" == "workflow_run";
+            const isCheckRunEvent = "${{ github.event_name }}" == "check_run";
+
+            
+            function isDraftPullRequest() {
+              const workflowRunPrIsNull = "${{ github.event.workflow_run.pull_requests == null }}" === "true";
+              const isDraftPrWorkflowRun = "${{ github.event.workflow_run.pull_requests[0][0].draft }}" === "true";
+
+              const checkRunPrIsNull = "${{ github.event.check_run.pull_requests == null }}" === "true";
+              const isDraftPrCheckRun = "${{ github.event.check_run.pull_requests[0][0].draft }}" === "true";
+
+              console.log(`isWorkflowRunEvent:  ${isWorkflowRunEvent}`);
+              console.log(`isCheckRunEvent:  ${isCheckRunEvent}`);
+              console.log(`workflowRunPrIsNull:  ${workflowRunPrIsNull}`);
+              console.log(`checkRunPrIsNull:  ${checkRunPrIsNull}`);
+              console.log(`isDraftPrWorkflowRun:  ${isDraftPrWorkflowRun}`);
+              console.log(`isDraftPrCheckRun:  ${isDraftPrCheckRun}`);
+
+              return isDraftPrWorkflowRun || isDraftPrCheckRun;
+            }
+
+            const slackMembers = getSlackMembersToBeNotified();
+            const isDraftPR = isDraftPullRequest();
+
+            let message;
+            let shouldSendMessage;
+            
+         
+            function handleWorkflowRunEvent() {
+              const name = "${{ github.event.workflow_run.name }}";
+              const url = "${{ github.event.workflow_run.html_url }}";
+              const status = "${{ github.event.workflow_run.status }}";
+              const conclusion = "${{ github.event.workflow_run.conclusion }}";
+              const failureConclusions = [ "failure", "null", "action_required", "neutral", "timed_out" ];
+
+              if (failureConclusions.includes(conclusion)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMembers}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMembers}`;
+                shouldSendMessage = false;
+              }
+            }
+
+
+            function handleCheckRunEvent() {
+              const name = "${{ github.event.check_run.name }}";
+              const status = "${{ github.event.check_run.status }}";
+              const conclusion = "${{ github.event.check_run.conclusion }}";
+              const url = "${{ github.event.check_run.html_url }}";
+
+              const checkRunWatchlist = [
+                "ci/hydra-build:aarch64-darwin.required",
+                "ci/hydra-build:x86_64-darwin.required",
+                "ci/hydra-build:x86_64-linux.required",
+                "ci/eval"
+              ];
+
+              if (conclusion == "failure" && checkRunWatchlist.includes(name)) {
+                message = `❌ ${name} \`${conclusion}\` <${url}|View Logs> ${slackMembers}`;
+                shouldSendMessage = true;
+              } else {
+                message = `${name} \`${status}\` \`${conclusion}\` <${url}|View Logs> ${slackMembers}`;
+                shouldSendMessage = false;
+              }
+            }
+
+
+            if (!isDraftPR && isWorkflowRunEvent) { 
+              handleWorkflowRunEvent();
+            } else if (!isDraftPR && isCheckRunEvent) { 
+              handleCheckRunEvent();
+            } else {
+              message = `Unknown event or draft PR: ${{ github.event_name }}`;
+              shouldSendMessage = true;
+            }
+
+            console.log(`message:  ${message}`);
+            console.log(`shouldSendMessage:  ${shouldSendMessage}`);
+
             core.setOutput("message", message); 
+            core.setOutput("shouldSendMessage", shouldSendMessage); 
+
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.27.0
+        if: ${{ steps.prepare-slack-message.outputs.shouldSendMessage == 'true' }}
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
         with:
@@ -68,5 +174,6 @@ jobs:
                 }
               ]
             }
+
 
 

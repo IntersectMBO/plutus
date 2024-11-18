@@ -10,7 +10,7 @@ open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; b
 open import Relation.Unary as Unary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Utils as U using (Maybe; nothing; just; Either)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 open import RawU using (TmCon)
 open import Builtin using (Builtin)
@@ -29,7 +29,7 @@ to recognise that pattern and extract the variables.
 Following suggestions from Philip Wadler: creating Views for each Term type and then
 allowing them to accept arbitrary sub-views should make this reusable. We can create
 patterns using nested calls to these views, and decide them with nested calls to the
-decision procedures. 
+decision procedures.
 ```
 
 Pred : Set₁

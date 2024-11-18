@@ -827,19 +827,3 @@ deriving via PrettyCommon (Maybe a)
 newtype PrettyAny a = PrettyAny
     { unPrettyAny :: a
     }
-
--- $setup
---
--- (Definitions for the doctests)
---
--- >>> :set -XDataKinds
--- >>> :set -XDeriveFunctor
--- >>> :set -XDerivingVia
--- >>> :set -XFlexibleContexts
--- >>> :set -XFlexibleInstances
--- >>> :set -XGeneralizedNewtypeDeriving
--- >>> :set -XMultiParamTypeClasses
--- >>> :set -XOverloadedStrings
--- >>> :set -XStandaloneDeriving
--- >>> :set -XTypeFamilies
--- >>> :set -XUndecidableInstances
