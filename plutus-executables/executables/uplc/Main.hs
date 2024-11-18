@@ -1,5 +1,6 @@
  -- editorconfig-checker-disable
 
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -19,6 +20,7 @@ import PlutusPrelude
 
 import Untyped qualified as AgdaFFI
 
+import Data.FileEmbed qualified as FileEmbed
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -36,6 +38,8 @@ import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
 import Data.List.Split (splitOn)
+import Data.Maybe (fromJust)
+import Data.Strict.Maybe qualified as Maybe.Strict
 import Data.Text qualified as T
 import Flat (unflat)
 import Options.Applicative
@@ -45,6 +49,14 @@ import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
+-- import Data.ByteString qualified as BS
+-- import Data.ByteString.Lazy qualified as BSL
+-- import Data.ByteString.Char8 qualified as BSL8
+
+import Data.ByteString qualified as BS
+import Data.ByteString.Char8 qualified as BS8
+import Data.ByteString.Lazy qualified as BSL
+
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
@@ -52,7 +64,10 @@ import Agda.Interaction.Base (ComputeMode (DefaultCompute))
 import Agda.Interaction.FindFile qualified as HAgda.File
 import Agda.Interaction.Imports qualified as HAgda.Imp
 import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
+import Agda.Interaction.Options qualified as HAgda.Options
 import Agda.Syntax.Parser qualified as HAgda.Parser
+import Agda.TypeChecking.Serialise qualified as HAgda.Serialise
+import Agda.Utils.Trie qualified as HAgda.Trie
 
 import Agda.Compiler.Backend (crInterface, iInsideScope, setCommandLineOptions, setScope)
 import Agda.Interaction.BasicOps (evalInCurrent)
@@ -61,6 +76,7 @@ import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.TypeChecking.Pretty (PrettyTCM (..))
 import Agda.Utils.FileName qualified as HAgda.File
 import AgdaUnparse (agdaUnparse)
+import Debug.Trace (traceShowM)
 import System.Environment (getEnv)
 
 uplcHelpText :: String
@@ -318,19 +334,31 @@ runAgda certName rawTrace = do
           Left err       -> error $ show err
   stdlibPath <- getEnv "AGDA_STDLIB_SRC"
   metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  inputFile <- HAgda.File.absolute (metatheoryPath </> "Certifier.agda")
+  -- inputFile <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/Certifier.agdai")
+  -- ifaceFile <- HAgda.Imp.mkInterfaceFile "/home/ana/Workspace/IOG/plutus/Certifier.agdai"
+  -- let ifaceFile = HAgda.File.InterfaceFile "/home/ana/Workspace/IOG/plutus/Certifier.agdai"
+  -- let embeddedInterfaceFile :: BS.ByteString
+  let embeddedInterfaceFile = BS8.fromStrict $(FileEmbed.embedFile "/home/ana/Workspace/IOG/plutus/Certifier.agdai")
   runTCMPrettyErrors $ do
     let opts =
           defaultOptions
-            { optIncludePaths =
-                [ metatheoryPath
-                , stdlibPath
-                ]
+            { HAgda.Options.optTraceImports = 42
+            , HAgda.Options.optPragmaOptions = HAgda.Options.defaultPragmaOptions
+                { HAgda.Options._optVerbose = Maybe.Strict.Just (HAgda.Trie.singleton ["import.iface"] 7)
+                }
             }
+            -- { optIncludePaths =
+    --         --     [ metatheoryPath
+    --         --     , stdlibPath
+    --         --     ]
+    --         -- }
     setCommandLineOptions opts
-    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    let interface = crInterface result
-        insideScope = iInsideScope interface
+    -- result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
+    -- let interface = crInterface result
+    -- interface <- HAgda.Imp.readInterface ifaceFile
+    interface <- HAgda.Serialise.decodeInterface embeddedInterfaceFile
+    -- traceShowM interface
+    let insideScope = iInsideScope (fromJust interface)
     setScope insideScope
     internalisedTrace <- toAbstract parsedTrace
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
