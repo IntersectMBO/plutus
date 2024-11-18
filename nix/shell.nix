@@ -79,7 +79,7 @@ in
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
 
-  packages = lib.concatLists all-pkgs papi-pkgs;
+  packages = lib.concatLists [ all-pkgs papi-pkgs ];
 
 
   scripts.assemble-changelog = {
