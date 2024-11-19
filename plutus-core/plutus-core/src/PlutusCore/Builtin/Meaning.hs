@@ -302,7 +302,11 @@ instance
         -- exception at any stage, that would be a bug regardless.
         toMonoF @val @args @res $! do
             (f, exF) <- getBoth
-            x <- readKnown arg
+            -- Force the argument that gets passed to the denotation. This seems to help performance
+            -- a bit (possibly due to its impact on strictness analysis), plus this way we ensure
+            -- that if computing the argument throws an exception (isn't supposed to happen), we'll
+            -- catch it in tests.
+            !x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
             let !exY = exF x
             pure (f x, exY)
