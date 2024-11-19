@@ -1055,6 +1055,7 @@ test-suite satint-test
 
 library index-envs
   import:           lang
+  visibility:       public
   hs-source-dirs:   index-envs/src
   default-language: Haskell2010
   exposed-modules:
