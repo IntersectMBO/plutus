@@ -53,7 +53,7 @@ coverage = testNested "Coverage" . pure $ testNestedGhc
   [ embed $ testGroup "Application heads and line coverage"
          [ mkTests "noBool" noBool Set.empty [31]
          , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 41, 42, 43]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 40, 41, 42]
          , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
          ]
  , goldenPirReadable "coverageCode" boolOtherFunction ]
