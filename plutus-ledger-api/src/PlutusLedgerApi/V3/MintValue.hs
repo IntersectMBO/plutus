@@ -71,7 +71,6 @@ instance HasBlueprintDefinition MintValue where
   definitionId = definitionIdFromType @MintValue
 
 instance HasBlueprintSchema MintValue referencedTypes where
-  {-# INLINEABLE schema #-}
   schema =
     SchemaMap
       emptySchemaInfo{title = Just "MintValue"}
@@ -89,6 +88,7 @@ instance HasBlueprintSchema MintValue referencedTypes where
         , minItems = Nothing
         , maxItems = Nothing
         }
+  {-# INLINEABLE schema #-}
 
 emptyMintValue :: MintValue
 emptyMintValue = UnsafeMintValue Map.empty
