@@ -209,25 +209,24 @@ instance (Eq k, Semigroup v) => Monoid (Map k v) where
 instance (Pretty k, Pretty v) => Pretty (Map k v) where
   pretty (Map mp) = pretty mp
 
-{-# INLINEABLE unsafeFromList #-}
 -- | Unsafely create a 'Map' from a list of pairs. This should _only_ be applied to lists which
 -- have been checked to not contain duplicate keys, otherwise the resulting 'Map' will contain
 -- conflicting entries (two entries sharing the same key).
 -- As usual, the "keys" are considered to be the first element of the pair.
 unsafeFromList :: [(k, v)] -> Map k v
 unsafeFromList = Map
+{-# INLINEABLE unsafeFromList #-}
 
-{-# INLINEABLE safeFromList #-}
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
 safeFromList :: Eq k => [(k, v)] -> Map k v
 safeFromList = foldr (uncurry insert) empty
+{-# INLINEABLE safeFromList #-}
 
-{-# INLINEABLE toList #-}
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
+{-# INLINEABLE toList #-}
 
-{-# INLINEABLE lookup #-}
 -- | Find an entry in a 'Map'. If the 'Map' is not well-formed (it contains duplicate keys)
 -- then this will return the value of the left-most pair in the underlying list of pairs.
 lookup :: forall k v. (Eq k) => k -> Map k v -> Maybe v
@@ -238,21 +237,21 @@ lookup c (Map xs) =
     go ((c', i) : xs') = if c' == c then Just i else go xs'
    in
     go xs
+{-# INLINEABLE lookup #-}
 
-{-# INLINEABLE member #-}
 -- | Is the key a member of the map?
 member :: forall k v. (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
+{-# INLINEABLE member #-}
 
-{-# INLINEABLE insert #-}
 -- | If a key already exists in the map, its entry will be replaced with the new value.
 insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
 insert k v (Map xs) = Map (go xs)
   where
     go []                = [(k, v)]
     go ((k', v') : rest) = if k == k' then (k, v) : rest else (k', v') : go rest
+{-# INLINEABLE insert #-}
 
-{-# INLINEABLE delete #-}
 -- | Delete an entry from the 'Map'. Assumes that the 'Map' is well-formed, i.e. if the
 -- underlying list of pairs contains pairs with duplicate keys then only the left-most
 -- pair will be removed.
@@ -263,12 +262,13 @@ delete key (Map ls) = Map (go ls)
     go ((k, v) : rest)
       | k == key = rest
       | otherwise = (k, v) : go rest
+{-# INLINEABLE delete #-}
 
-{-# INLINEABLE keys #-}
 -- | The keys of a 'Map'. Semantically, the resulting list is only a set if the 'Map'
 -- didn't contain duplicate keys.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
+{-# INLINEABLE keys #-}
 
 -- | Combine two 'Map's. Keeps both values on key collisions.
 -- Note that well-formedness is only preserved if the two input maps
@@ -296,7 +296,6 @@ union (Map ls) (Map rs) =
    in
     Map (ls' ++ rs'')
 
-{-# INLINEABLE unionWith #-}
 -- | Combine two 'Map's with the given combination function.
 -- Note that well-formedness of the resulting map depends on the two input maps
 -- being well-formed.
@@ -310,6 +309,7 @@ unionWith merge (Map ls) (Map rs) =
     f a b' = case b' of
       Nothing -> a
       Just b  -> merge a b
+{-# INLINEABLE unionWith #-}
 
     ls' :: [(k, a)]
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
@@ -319,7 +319,6 @@ unionWith merge (Map ls) (Map rs) =
    in
     Map (ls' ++ rs')
 
-{-# INLINEABLE mapThese #-}
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f mps = (Map mpl, Map mpr)
@@ -330,6 +329,7 @@ mapThese f mps = (Map mpl, Map mpr)
       This a    -> ((k, a) : as, bs)
       That b    -> (as, (k, b) : bs)
       These a b -> ((k, a) : as, (k, b) : bs)
+{-# INLINEABLE mapThese #-}
 
 -- | A singleton map.
 singleton :: k -> v -> Map k v

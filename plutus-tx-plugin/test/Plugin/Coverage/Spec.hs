@@ -36,11 +36,11 @@ boolTrueFalse = plc (Proxy @"boolTrueFalse") (\() -> True && False)
 boolOtherFunction :: CompiledCode (Maybe Integer -> Maybe Bool)
 boolOtherFunction = plc (Proxy @"boolOtherFunction") fun
 
-{-# INLINEABLE fun #-}
 fun :: Maybe Integer -> Maybe Bool
 fun x = case x of
   Just y | otherFun y -> Just False
   _                   -> Nothing
+{-# INLINEABLE fun #-}
 
 otherFun :: Integer -> Bool
 otherFun x = (x P.== 5) && True

@@ -127,28 +127,28 @@ instance Pretty ScriptContext where
             , nest 2 $ vsep ["TxInfo:", pretty scriptContextTxInfo]
             ]
 
-{-# INLINABLE findOwnInput #-}
 -- | Find the input currently being validated.
 findOwnInput :: ScriptContext -> Maybe TxInInfo
 findOwnInput ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Spending txOutRef} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
 findOwnInput _ = Nothing
+{-# INLINABLE findOwnInput #-}
 
-{-# INLINABLE findDatum #-}
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
 findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
+{-# INLINABLE findDatum #-}
 
-{-# INLINABLE findDatumHash #-}
 -- | Find the hash of a datum, if it is part of the pending transaction's
 -- hashes
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
 findDatumHash ds TxInfo{txInfoData} = fst <$> find f (toList txInfoData)
     where
         f (_, ds') = ds' == ds
+{-# INLINABLE findDatumHash #-}
 
-{-# INLINABLE findTxInByTxOutRef #-}
 {-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the transaction's inputs (`TxInInfo`).
+{-# INLINABLE findTxInByTxOutRef #-}
 
 Note: this only searches the true transaction inputs and not the referenced transaction inputs.
 -}
@@ -156,59 +156,58 @@ findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
-{-# INLINABLE findContinuingOutputs #-}
 -- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
+{-# INLINABLE findContinuingOutputs #-}
 
-{-# INLINABLE getContinuingOutputs #-}
 -- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 getContinuingOutputs _ = traceError "Lf" -- "Can't get any continuing outputs"
+{-# INLINABLE getContinuingOutputs #-}
 
-{-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> PubKeyHash -> Bool
 txSignedBy TxInfo{txInfoSignatories} k = case find ((==) k) txInfoSignatories of
     Just _  -> True
     Nothing -> False
+{-# INLINABLE txSignedBy #-}
 
-{-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: PubKeyHash -> TxInfo -> [Value]
 pubKeyOutputsAt pk p =
     let flt TxOut{txOutAddress = Address (PubKeyCredential pk') _, txOutValue} | pk == pk' = Just txOutValue
         flt _                             = Nothing
     in mapMaybe flt (txInfoOutputs p)
+{-# INLINABLE pubKeyOutputsAt #-}
 
-{-# INLINABLE valuePaidTo #-}
 -- | Get the total value paid to a public key address by a pending transaction.
 valuePaidTo :: TxInfo -> PubKeyHash -> Value
 valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
+{-# INLINABLE valuePaidTo #-}
 
-{-# INLINABLE valueSpent #-}
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
 valueSpent = foldMap (txOutValue . txInInfoResolved) . txInfoInputs
+{-# INLINABLE valueSpent #-}
 
-{-# INLINABLE valueProduced #-}
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> Value
 valueProduced = foldMap txOutValue . txInfoOutputs
+{-# INLINABLE valueProduced #-}
 
-{-# INLINABLE ownCurrencySymbol #-}
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> CurrencySymbol
 ownCurrencySymbol ScriptContext{scriptContextPurpose=Minting cs} = cs
 ownCurrencySymbol _                                              = traceError "Lh" -- "Can't get currency symbol of the current validator script"
+{-# INLINABLE ownCurrencySymbol #-}
 
-{-# INLINABLE spendsOutput #-}
 {- | Check if the pending transaction spends a specific transaction output
 (identified by the hash of a transaction and an index into that
 transactions' outputs)
@@ -219,6 +218,7 @@ spendsOutput p h i =
             let outRef = txInInfoOutRef inp
             in h == txOutRefId outRef
                 && i == txOutRefIdx outRef
+{-# INLINABLE spendsOutput #-}
 
     in any spendsOutRef (txInfoInputs p)
 

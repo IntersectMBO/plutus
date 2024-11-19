@@ -41,10 +41,10 @@ data RAList a = BHead
              deriving stock (Eq, Show)
              deriving (IsList) via RAL.AsRAL (RAList a)
 
-{-# INLINABLE null #-}
 null :: RAList a -> Bool
 null Nil = True
 null _   = False
+{-# INLINABLE null #-}
 
 {-# complete Cons, Nil #-}
 {-# complete BHead, Nil #-}

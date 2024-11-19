@@ -8,7 +8,6 @@ import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Prelude hiding (inv)
 
 -- Based on https://ed25519.cr.yp.to/python/ed25519.py
-{-# INLINEABLE checkValid #-}
 checkValid ::
   BuiltinByteString ->
   BuiltinByteString ->
@@ -27,6 +26,7 @@ checkValid sig message pubKey =
     by = 4 * inv 5
     bx :: Integer
     bx = xRecover by
+{-# INLINEABLE checkValid #-}
 
 -- Helpers
 
@@ -36,7 +36,6 @@ instance Eq Point where
   {-# INLINEABLE (==) #-}
   Point (x1, y1) == Point (x2, y2) = x1 == x2 && y1 == y2
 
-{-# INLINEABLE decodePoint #-}
 decodePoint :: BuiltinByteString -> Point
 decodePoint bs
   | odd x /= x_0 = Point (q - x, yInt)
@@ -45,8 +44,8 @@ decodePoint bs
     x_0 = readBit bs 7
     x = xRecover yInt
     yInt = decodeInt $ clearBit 7 bs
+{-# INLINEABLE decodePoint #-}
 
-{-# INLINEABLE encodePoint #-}
 encodePoint :: Point -> BuiltinByteString
 encodePoint (Point (x, y)) = result
   where
@@ -56,8 +55,8 @@ encodePoint (Point (x, y)) = result
     yBS = integerToByteString LittleEndian 32 y
     xBS = integerToByteString LittleEndian 32 x
     xLSBVal = readBit xBS 248
+{-# INLINEABLE encodePoint #-}
 
-{-# INLINEABLE scalarMult #-}
 scalarMult :: Point -> Integer -> Point
 scalarMult p e =
   if e == 0
@@ -66,8 +65,8 @@ scalarMult p e =
       let q' = scalarMult p (e `divide` 2)
           q'' = edwards q' q'
        in if odd e then edwards q'' p else q''
+{-# INLINEABLE scalarMult #-}
 
-{-# INLINEABLE edwards #-}
 edwards :: Point -> Point -> Point
 edwards (Point (x1, y1)) (Point (x2, y2)) = Point (x3 `modulo` q, y3 `modulo` q)
   where
@@ -75,21 +74,21 @@ edwards (Point (x1, y1)) (Point (x2, y2)) = Point (x3 `modulo` q, y3 `modulo` q)
     x3 = (x1 * y2 + x2 * y1) * inv (1 + d * x1 * x2 * y1 * y2)
     y3 :: Integer
     y3 = (y1 * y2 + x1 * x2) * inv (1 - d * x1 * x2 * y1 * y2)
+{-# INLINEABLE edwards #-}
 
-{-# INLINEABLE asSha512Integer #-}
 asSha512Integer :: BuiltinByteString -> Integer
 asSha512Integer = byteStringToInteger LittleEndian . sha512
+{-# INLINEABLE asSha512Integer #-}
 
-{-# INLINEABLE decodeInt #-}
 decodeInt :: BuiltinByteString -> Integer
 decodeInt = byteStringToInteger LittleEndian
+{-# INLINEABLE decodeInt #-}
 
-{-# INLINEABLE q #-}
 -- 2 ^ 255 - 19, but as a constant
 q :: Integer
 q = 57896044618658097711785492504343953926634992332820282019728792003956564819949
+{-# INLINEABLE q #-}
 
-{-# INLINEABLE xRecover #-}
 xRecover :: Integer -> Integer
 xRecover y =
   if
@@ -114,20 +113,20 @@ xRecover y =
     cond2 = if cond1 then odd xA else odd x
     i :: Integer
     i = expModManual 2 ((q - 1) `divide` 4) q
+{-# INLINEABLE xRecover #-}
 
-{-# INLINEABLE clearBit #-}
 clearBit :: Integer -> BuiltinByteString -> BuiltinByteString
 clearBit ix bs = writeBits bs [ix] False
+{-# INLINEABLE clearBit #-}
 
-{-# INLINEABLE inv #-}
 inv :: Integer -> Integer
 inv x = expModManual x (q - 2) q
+{-# INLINEABLE inv #-}
 
-{-# INLINEABLE d #-}
 d :: Integer
 d = (-121665) * inv 121666
+{-# INLINEABLE d #-}
 
-{-# INLINEABLE expModManual #-}
 -- TODO: switch to the builtin `expMod` (aka ExpModInteger)?
 expModManual :: Integer -> Integer -> Integer -> Integer
 expModManual b' e m =
@@ -139,3 +138,4 @@ expModManual b' e m =
        in if odd e
             then (t * b') `modulo` m
             else t
+{-# INLINEABLE expModManual #-}

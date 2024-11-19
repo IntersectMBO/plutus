@@ -30,7 +30,6 @@ type ChangedParams = [(BuiltinData, BuiltinData)]
 
 {- HLINT ignore "Redundant lambda" -} -- I like to see until where it supposed to be first applied.
 {- HLINT ignore "Collapse lambdas" -} -- I like to see and comment on each arg
-{-# INLINABLE withChangedParams #-}
 withChangedParams :: (ChangedParams -> Bool) -> ConstitutionValidator
 withChangedParams fun (scriptContextToValidGovAction -> validGovAction) =
     case validGovAction of
@@ -38,8 +37,8 @@ withChangedParams fun (scriptContextToValidGovAction -> validGovAction) =
             then BI.unitval
             else traceError "ChangedParams failed to validate"
         Nothing -> BI.unitval -- this is a treasury withdrawal, we just accept it
+{-# INLINABLE withChangedParams #-}
 
-{-# INLINABLE validateParamValue #-}
 validateParamValue :: ParamValue -> BuiltinData -> Bool
 validateParamValue = \case
     ParamInteger preds -> validatePreds preds . B.unsafeDataAsI
@@ -56,6 +55,7 @@ validateParamValue = \case
               && validateParamValues paramValueTl (BI.tail actualValueData)
           -- if reached the end of list of param-values to check, ensure no more proposed data are left
           [] -> B.fromOpaque . BI.null
+{-# INLINABLE validateParamValue #-}
 
       validatePreds :: forall a. Tx.Ord a => Predicates a -> a -> Bool
       validatePreds (Predicates preds) (validatePred -> validatePredAppliedToActual) =
@@ -70,7 +70,6 @@ validateParamValue = \case
           -- apply the meaning to actual value: expectedValue is 1st argument, actualValue is 2nd argument
           meaningWithActual = (`meaning` actualValue)
 
-{-# INLINABLE scriptContextToValidGovAction #-}
 scriptContextToValidGovAction :: BuiltinData -> Maybe ChangedParams
 scriptContextToValidGovAction = scriptContextToScriptInfo
                            >>> scriptInfoToProposalProcedure
@@ -83,6 +82,7 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
                                >>> BI.tail
                                >>> BI.tail
                                >>> BI.head
+{-# INLINABLE scriptContextToValidGovAction #-}
 
     scriptInfoToProposalProcedure :: BuiltinData -> BuiltinData
     scriptInfoToProposalProcedure (BI.unsafeDataAsConstr -> si) =

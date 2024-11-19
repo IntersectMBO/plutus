@@ -31,7 +31,6 @@ oneAtATimePolicy _ ctx =
     -- will assume we've got from elsewhere for now.
     in currencyValueOf minted ownSymbol == singleton ownSymbol tname 1
 
-{-# INLINABLE currencyValueOf #-}
 -- | Get the quantities of just the given 'CurrencySymbol' in the 'Value'.
 currencyValueOf :: Value -> CurrencySymbol -> Value
 currencyValueOf (Value m) c = case Map.lookup c m of
@@ -44,6 +43,7 @@ oneAtATimePolicyUntyped :: BuiltinData -> BuiltinData -> BuiltinUnit
 -- 'check' fails with 'error' if the argument is not 'True'.
 oneAtATimePolicyUntyped r c =
     check $ oneAtATimePolicy (unsafeFromBuiltinData r) (unsafeFromBuiltinData c)
+{-# INLINABLE currencyValueOf #-}
 
 -- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
 -- just as for validator scripts.

@@ -61,11 +61,11 @@ import System.IO.Unsafe (unsafePerformIO)
 import Prelude (fromIntegral)
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# OPAQUE listOfByteStringsOfLength #-}
 listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
 listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
+{-# OPAQUE listOfByteStringsOfLength #-}
 
 -- | Treat string of hexidecimal bytes literally, without encoding. Useful for hashes.
 bytesFromHex :: BS.ByteString -> BuiltinByteString
@@ -77,25 +77,25 @@ bytesFromHex = toBuiltin . P.bytes . fromEither . P.fromHex
 blsSigBls12381G2XmdSha256SswuRoNul :: BuiltinByteString
 blsSigBls12381G2XmdSha256SswuRoNul = toBuiltin $ C8.pack "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_"
 
-{-# INLINABLE byteString16Null #-}
 byteString16Null :: BuiltinByteString
 byteString16Null = bytesFromHex "00000000000000000000000000000000"
+{-# INLINABLE byteString16Null #-}
 
 -- Little-endian bytestring to integer conversion
-{-# INLINABLE byteStringToIntegerLE #-}
 byteStringToIntegerLE :: BuiltinByteString -> Integer
 byteStringToIntegerLE = Tx.byteStringToInteger LittleEndian
+{-# INLINABLE byteStringToIntegerLE #-}
 
 ---------------- Examples ----------------
 
 -- Hash some bytestrings onto G1 and add them all together
 
-{-# INLINABLE hashAndAddG1 #-}
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 hashAndAddG1 l =
     go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
+{-# INLINABLE hashAndAddG1 #-}
 
 mkHashAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG1Script l =
@@ -103,12 +103,12 @@ mkHashAndAddG1Script l =
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Hash some bytestrings onto G2 and add them all together
-{-# INLINABLE hashAndAddG2 #-}
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 hashAndAddG2 l =
     go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] !acc     = acc
           go (q:qs) !acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
+{-# INLINABLE hashAndAddG2 #-}
 
 mkHashAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG2Script l =
@@ -116,12 +116,12 @@ mkHashAndAddG2Script l =
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Uncompress a list of compressed G1 points and add them all together
-{-# INLINABLE uncompressAndAddG1 #-}
 uncompressAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 uncompressAndAddG1 l =
     go l (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_uncompress q) acc
+{-# INLINABLE uncompressAndAddG1 #-}
 
 mkUncompressAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG1Script l =
@@ -130,12 +130,12 @@ mkUncompressAndAddG1Script l =
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Uncompress a list of compressed G1 points and add them all together
-{-# INLINABLE uncompressAndAddG2 #-}
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 uncompressAndAddG2 l =
     go l (Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_zero)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
+{-# INLINABLE uncompressAndAddG2 #-}
 
 mkUncompressAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG2Script l =
@@ -147,7 +147,6 @@ mkUncompressAndAddG2Script l =
 
 -- Take two points p1 and p2 in G1 and two points q1 and q2 in G2, apply the
 -- Miller loop to (p1,q1) and (p2,q2), and then call finalVerify on the results.
-{-# INLINABLE runPairingFunctions #-}
 runPairingFunctions
     :: BuiltinByteString  -- G1
     -> BuiltinByteString  -- G2
@@ -158,6 +157,7 @@ runPairingFunctions p1 q1 p2 q2 =
     let r1 = Tx.bls12_381_millerLoop (Tx.bls12_381_G1_uncompress p1) (Tx.bls12_381_G2_uncompress q1)
         r2 = Tx.bls12_381_millerLoop (Tx.bls12_381_G1_uncompress p2) (Tx.bls12_381_G2_uncompress q2)
     in Tx.bls12_381_finalVerify r1 r2
+{-# INLINABLE runPairingFunctions #-}
 
 mkPairingScript
     :: BuiltinBLS12_381_G1_Element
@@ -241,7 +241,6 @@ groth16c :: CompressedG1Element
 groth16c = mkG1Element ("b569cc491b4df035cbf49e951fd4fe30aa8236b0e2af68f4" <>
                         "c1592cd40debeb718af33639db6bc1e2da9d98e553e5eaed")
 
-{-# INLINABLE groth16Verify #-}
 groth16Verify
     :: BuiltinByteString  -- G1
     -> BuiltinByteString  -- G2
@@ -270,6 +269,7 @@ groth16Verify (Tx.bls12_381_G1_uncompress -> alpha)
                       l4 = Tx.bls12_381_millerLoop p gamma
                       y  = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
                   in Tx.bls12_381_finalVerify l1 y
+{-# INLINABLE groth16Verify #-}
 
 {- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
  newtype inputs increases the size and CPU cost slightly, so we unwrap them
@@ -298,18 +298,18 @@ checkGroth16Verify_Haskell =
 
 ---------------- Simple Sign and Verify ----------------
 
-{-# INLINABLE simpleVerifyPrivKey #-}
 simpleVerifyPrivKey :: Integer
 simpleVerifyPrivKey = 50166937291276222007610100461546392414157570314060957244808461481762532157524
+{-# INLINABLE simpleVerifyPrivKey #-}
 
-{-# INLINABLE simpleVerifyMessage #-}
 simpleVerifyMessage :: BuiltinByteString
 simpleVerifyMessage  = "I am a message"
+{-# INLINABLE simpleVerifyMessage #-}
 
-{-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
   let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+{-# INLINABLE verifyBlsSimpleScript #-}
 
       -- calculate public key
       pubKey = Tx.bls12_381_G1_scalarMul privKey g1generator
@@ -339,13 +339,13 @@ mkVerifyBlsSimplePolicy =
    and more readable and mathematical in nature see https://eprint.iacr.org/2017/099.pdf.
 -}
 
-{-# INLINABLE vrfPrivKey #-}
 vrfPrivKey :: Integer
 vrfPrivKey = 50166937291276222007610100461546392414157570314060957244808461481762532157524 :: Integer
+{-# INLINABLE vrfPrivKey #-}
 
-{-# INLINABLE vrfMessage #-}
 vrfMessage :: BuiltinByteString
 vrfMessage = "I am a message" :: BuiltinByteString
+{-# INLINABLE vrfMessage #-}
 
 data VrfProof = VrfProof
   { vrfProofGamma :: BuiltinByteString
@@ -362,12 +362,12 @@ data VrfProofWithOutput = VrfProofWithOutput
 Tx.makeLift ''VrfProofWithOutput
 Tx.unstableMakeIsData ''VrfProofWithOutput
 
-{-# INLINABLE vrfBlsScript #-}
 vrfBlsScript :: BuiltinByteString -> BuiltinByteString -> VrfProofWithOutput -> Bool
 vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
   let
       -- cofactor of G2
       f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+{-# INLINABLE vrfBlsScript #-}
 
       -- The proof of that the VRF hash of input alpha under our priv key is beta
       -- To verify a VRF hash given an
@@ -450,22 +450,21 @@ mkVrfBlsPolicy =
     * Check that pairing(pk_deser, hashed_msg) = pairing(G1Generator, sig_deser)
 -}
 
-{-# INLINABLE g1VerifyMessage #-}
 g1VerifyMessage :: BuiltinByteString
 g1VerifyMessage  = bytesFromHex "3e00ef2f895f40d67f5bb8e81f09a5a12c840ec3ce9a7f3b181be188ef711a1e"
+{-# INLINABLE g1VerifyMessage #-}
 
-{-# INLINABLE g1VerifyPubKey #-}
 g1VerifyPubKey :: BuiltinByteString
 g1VerifyPubKey = bytesFromHex ("aa04a34d4db073e41505ebb84eee16c0094fde9fa22ec974" <>
                                "adb36e5b3df5b2608639f091bff99b5f090b3608c3990173")
+{-# INLINABLE g1VerifyPubKey #-}
 
-{-# INLINABLE g1VerifySignature #-}
 g1VerifySignature :: BuiltinByteString
 g1VerifySignature = bytesFromHex
                    ("808ccec5435a63ae01e10d81be2707ab55cd0dfc235dfdf9f70ad32799e42510d67c9f61d98a6578a96a76cf6f4c105d" <>
                     "09262ec1d86b06515360b290e7d52d347e48438de2ea2233f3c72a0c2221ed2da5e115367bca7a2712165032340e0b29")
+{-# INLINABLE g1VerifySignature #-}
 
-{-# INLINABLE g1VerifyScript #-}
 g1VerifyScript ::
      BuiltinByteString
   -> BuiltinByteString
@@ -477,6 +476,7 @@ g1VerifyScript message pubKey signature dst =
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       sigDeser = Tx.bls12_381_G2_uncompress signature
       hashedMsg = Tx.bls12_381_G2_hashToGroup message dst
+{-# INLINABLE g1VerifyScript #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser hashedMsg)
          (Tx.bls12_381_millerLoop g1generator sigDeser)
@@ -502,22 +502,21 @@ mkG1VerifyPolicy =
     * Check that pairing(hashed_msg, pk_deser) = pairing(sig_deser, G2Generator)
 -}
 
-{-# INLINABLE g2VerifyMessage #-}
 g2VerifyMessage :: BuiltinByteString
 g2VerifyMessage  = bytesFromHex "5032ec38bbc5da98ee0c6f568b872a65a08abf251deb21bb4b56e5d8821e68aa"
+{-# INLINABLE g2VerifyMessage #-}
 
-{-# INLINABLE g2VerifyPubKey #-}
 g2VerifyPubKey :: BuiltinByteString
 g2VerifyPubKey = bytesFromHex
                   ("b4953c4ba10c4d4196f90169e76faf154c260ed73fc77bb65dc3be31e0cec614a7287cda94195343676c2c57494f0e65" <>
                   "1527e6504c98408e599a4eb96f7c5a8cfb85d2fdc772f28504580084ef559b9b623bc84ce30562ed320f6b7f65245ad4")
+{-# INLINABLE g2VerifyPubKey #-}
 
-{-# INLINABLE g2VerifySignature #-}
 g2VerifySignature :: BuiltinByteString
 g2VerifySignature  = bytesFromHex ("a9d4de7b0b2805fe52bccb86415ef7b8ffecb313c3c25404" <>
                                    "4dfc1bdc531d3eae999d87717822a052692140774bd7245c")
+{-# INLINABLE g2VerifySignature #-}
 
-{-# INLINABLE g2VerifyScript #-}
 g2VerifyScript ::
      BuiltinByteString
   -> BuiltinByteString
@@ -529,6 +528,7 @@ g2VerifyScript message pubKey signature dst =
       pkDeser = Tx.bls12_381_G2_uncompress pubKey
       sigDeser = Tx.bls12_381_G1_uncompress signature
       hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
+{-# INLINABLE g2VerifyScript #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser g2generator)
 
@@ -557,7 +557,6 @@ mkG2VerifyPolicy =
     * Check that pairing(pk_deser, aggr_msg) = pairing(G1Generator, aggr_sig_deser)
 -}
 
-{-# INLINABLE aggregateSingleKeyG1Messages #-}
 aggregateSingleKeyG1Messages :: [BuiltinByteString]
 aggregateSingleKeyG1Messages  = [
         bytesFromHex "2ba037cdb63cb5a7277dc5d6dc549e4e28a15c70670f0e97787c170485829264"
@@ -571,21 +570,21 @@ aggregateSingleKeyG1Messages  = [
       , bytesFromHex "4e73ba04bae3a083c8a2109f15b8c4680ae4ba1c70df5b513425349a77e95d3b"
       , bytesFromHex "565825a0227d45068e61eb90aa1a4dc414c0976911a52d46b39f40c5849e5abe"
       ]
+{-# INLINABLE aggregateSingleKeyG1Messages #-}
 
-{-# INLINABLE aggregateSingleKeyG1PubKey #-}
 aggregateSingleKeyG1PubKey :: BuiltinByteString
 aggregateSingleKeyG1PubKey = bytesFromHex ("97c919babda8d928d771d107a69adfd85a75cee2cedc4afa" <>
                                            "4c0a7e902f38b340ea21a701a46df825210dd6942632b46c")
+{-# INLINABLE aggregateSingleKeyG1PubKey #-}
 
-{-# INLINABLE aggregateSingleKeyG1Signature #-}
 aggregateSingleKeyG1Signature :: BuiltinByteString
 aggregateSingleKeyG1Signature = bytesFromHex
                                  ("b425291f423235b022cdd038e1a3cbdcc73b5a4470251634" <>
                                   "abb874c7585a3a05b8ea54ceb93286edb0e9184bf9a852a1" <>
                                   "138c6dd860e4b756c63dff65c433a6c5aa06834f00ac5a1a" <>
                                   "1acf6bedc44bd4354f9d36d4f20f66318f39116428fabb88")
+{-# INLINABLE aggregateSingleKeyG1Signature #-}
 
-{-# INLINABLE aggregateSingleKeyG1Script #-}
 aggregateSingleKeyG1Script
     :: [BuiltinByteString]
     -> BuiltinByteString
@@ -598,6 +597,7 @@ aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       aggrSigDeser = Tx.bls12_381_G2_uncompress aggregateSignature
       aggrMsg = foldl1 Tx.bls12_381_G2_add hashedMsgs
+{-# INLINABLE aggregateSingleKeyG1Script #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser aggrMsg) (Tx.bls12_381_millerLoop g1generator aggrSigDeser)
     where
@@ -638,12 +638,11 @@ mkAggregateSingleKeyG1Policy =
     * Check that pairing(hashed_msg, aggr_pk) = pairing(aggr_sig_deser, G2Generator)
 -}
 
-{-# INLINABLE aggregateMultiKeyG2Message #-}
 aggregateMultiKeyG2Message :: BuiltinByteString
 aggregateMultiKeyG2Message  = bytesFromHex
                                 "e345b7f2c017b16bb335c696bc0cc302f3db897fa25365a2ead1f149d87a97e8"
+{-# INLINABLE aggregateMultiKeyG2Message #-}
 
-{-# INLINABLE aggregateMultiKeyG2PubKeys #-}
 aggregateMultiKeyG2PubKeys :: [BuiltinByteString]
 aggregateMultiKeyG2PubKeys = [
     bytesFromHex
@@ -677,13 +676,13 @@ aggregateMultiKeyG2PubKeys = [
       ("96f8d678f40dd83b2060e14372d0bc43a423fecac44f082afd89cb481b855885ac83fb366516dc74023cc41a0c606be2" <>
       "067ba826ea612f84c9f0e895d02bc04d6c34e201ff8c26cc22cb4c426c53f503d8948eafceb12e2f4b6ad49b4e051690")
   ]
+{-# INLINABLE aggregateMultiKeyG2PubKeys #-}
 
-{-# INLINABLE aggregateMultiKeyG2Signature #-}
 aggregateMultiKeyG2Signature :: BuiltinByteString
 aggregateMultiKeyG2Signature = bytesFromHex ("b24d876661d0d1190c796bf7eaa7e02b807ff603093b1733" <>
                                              "6289d4de0477f6c17afb487275cb9de44325016edfeda042")
+{-# INLINABLE aggregateMultiKeyG2Signature #-}
 
-{-# INLINABLE aggregateMultiKeyG2Script #-}
 aggregateMultiKeyG2Script
     :: BuiltinByteString
     -> [BuiltinByteString]
@@ -700,6 +699,7 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
                     (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
       aggrSigDeser = Tx.bls12_381_G1_uncompress aggregateSignature
       aggrPk = calcAggregatedPubkeys dsScalar pksDeser
+{-# INLINABLE aggregateMultiKeyG2Script #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg aggrPk) (Tx.bls12_381_millerLoop aggrSigDeser g2generator)
     where
@@ -776,23 +776,22 @@ mkAggregateMultiKeyG2Policy =
     * Check that r_deser * G1Generator = A_deser + c * pk_deser
 -}
 
-{-# INLINABLE schnorrG1VerifyMessage #-}
 schnorrG1VerifyMessage :: BuiltinByteString
 schnorrG1VerifyMessage  = bytesFromHex "0558db9aff738e5421439601e7f30e88b74f43b80c1d172b5d371ce0dc05c912"
+{-# INLINABLE schnorrG1VerifyMessage #-}
 
-{-# INLINABLE schnorrG1VerifyPubKey #-}
 schnorrG1VerifyPubKey :: BuiltinByteString
 schnorrG1VerifyPubKey = bytesFromHex ("b91cacee903a53383c504e9e9a39e57d1eaa6403d5d38fc9" <>
                                       "496e5007d54ca92d106d1059f09461972aa98514d07000ae")
+{-# INLINABLE schnorrG1VerifyPubKey #-}
 
-{-# INLINABLE schnorrG1VerifySignature #-}
 schnorrG1VerifySignature :: (BuiltinByteString, BuiltinByteString)
 schnorrG1VerifySignature =
                  (bytesFromHex
                     "8477e8491acc1cfbcf675acf7cf6b92e027cad7dd604a0e8205703aa2cc590066c1746f89e10d492d0230e6620c29726",
                   bytesFromHex "4e908280c0100cfe53501171ffa93528b9e2bb551d1025decb4a5b416a0aee53")
+{-# INLINABLE schnorrG1VerifySignature #-}
 
-{-# INLINABLE schnorrG1VerifyScript #-}
 schnorrG1VerifyScript ::
      BuiltinByteString
   -> BuiltinByteString
@@ -816,6 +815,7 @@ schnorrG1VerifyScript message pubKey signature bs16Null =
          (rDeser `Tx.bls12_381_G1_scalarMul` g1generator)
          `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
               == c `Tx.bls12_381_G1_scalarMul` pkDeser
+{-# INLINABLE schnorrG1VerifyScript #-}
 
 checkSchnorrG1VerifyScript :: Bool
 checkSchnorrG1VerifyScript = schnorrG1VerifyScript schnorrG1VerifyMessage schnorrG1VerifyPubKey
@@ -840,25 +840,24 @@ mkSchnorrG1VerifyPolicy =
     * Check that r_deser * G2Generator = A_deser + c * pk_deser
 -}
 
-{-# INLINABLE schnorrG2VerifyMessage #-}
 schnorrG2VerifyMessage :: BuiltinByteString
 schnorrG2VerifyMessage  = bytesFromHex "2b71175d0486006a33f14bc4e1fe711a3d4a3a3549b230013240e8f80e54372f"
+{-# INLINABLE schnorrG2VerifyMessage #-}
 
-{-# INLINABLE schnorrG2VerifyPubKey #-}
 schnorrG2VerifyPubKey :: BuiltinByteString
 schnorrG2VerifyPubKey = bytesFromHex
      ("88370a4b4ddc627613b0396498fb068f1c1ff8f2aa6b946a9fc65f930d24394ddc45042e602094f6a88d49a8a037e781" <>
      "08dce014586ff5ff5744842f382e3917d180c7eb969585748d20ae8c6e07ca786e8da7ea2c7bdef5ae1becebe4da59ad")
+{-# INLINABLE schnorrG2VerifyPubKey #-}
 
-{-# INLINABLE schnorrG2VerifySignature #-}
 schnorrG2VerifySignature :: (BuiltinByteString, BuiltinByteString)
 schnorrG2VerifySignature  =
                 (bytesFromHex
                   ("964851eb8823492c8720bf8c515b87043f5bab648000e63cfb6fc6fcdf6709061e0035c315cd23d239866471dea907d9" <>
                   "1568b69297dc8c4360f65d0bd399c2de19781c13bbf3a82ff1fcab8ac9f688ed96d6f2ea9a8ed057e76f0347d858ae22"),
                  bytesFromHex "2c5a22cb1e2fb77586c0c6908060b38107675a6277b8a61b1d6394a162af6718")
+{-# INLINABLE schnorrG2VerifySignature #-}
 
-{-# INLINABLE schnorrG2VerifyScript #-}
 schnorrG2VerifyScript ::
      BuiltinByteString
   -> BuiltinByteString
@@ -882,6 +881,7 @@ schnorrG2VerifyScript message pubKey signature bs16Null =
     (rDeser `Tx.bls12_381_G2_scalarMul` g2generator)
     `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
          == c `Tx.bls12_381_G2_scalarMul` pkDeser
+{-# INLINABLE schnorrG2VerifyScript #-}
 
 checkSchnorrG2VerifyScript :: Bool
 checkSchnorrG2VerifyScript = schnorrG2VerifyScript schnorrG2VerifyMessage schnorrG2VerifyPubKey

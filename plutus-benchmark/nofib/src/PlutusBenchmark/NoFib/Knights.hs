@@ -21,34 +21,34 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import Prelude qualified as Haskell
 
-{-# INLINABLE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]
 zipConst a = map ((,) a)
+{-# INLINABLE zipConst #-}
 
-{-# INLINABLE grow #-}
 grow :: (Integer,ChessSet) -> [(Integer,ChessSet)]
 grow (x,y) = zipConst (x+1) (descendents y)
+{-# INLINABLE grow #-}
 
-{-# INLINABLE isFinished #-}
 isFinished :: (Integer,ChessSet) -> Bool
 isFinished (_,y) = tourFinished y
+{-# INLINABLE isFinished #-}
 
-{-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a0 b = go a0 where
     go a = if a > b then [] else a : go (a + 1)
+{-# INLINABLE interval #-}
 
 -- % Original version used infinite lists.
-{-# INLINABLE mkStarts #-}
 mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
     let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
         numStarts = Tx.length l  -- = sze*sze
     in Tx.zip (replicate numStarts (1-numStarts)) l
+{-# INLINABLE mkStarts #-}
 
-{-# INLINABLE root #-}
 root :: Integer -> Queue (Integer, ChessSet)
 root sze = addAllFront (mkStarts sze) createQueue
+{-# INLINABLE root #-}
 
 {-% Original version
 root sze = addAllFront
@@ -62,7 +62,6 @@ root sze = addAllFront
 
 type Solution = (Integer, ChessSet)
 
-{-# INLINABLE depthSearch #-}
 -- % Added a depth parameter to stop things getting out of hand in the strict world.
 depthSearch :: (Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
 depthSearch depth q growFn finFn
@@ -75,6 +74,7 @@ depthSearch depth q growFn finFn
                                               (removeFront q))
                                  growFn
                                  finFn
+{-# INLINABLE depthSearch #-}
 
 -- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Haskell.String]
@@ -82,9 +82,9 @@ unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d
 
 
 -- % Haskell entry point for testing
-{-# INLINABLE runKnights #-}
 runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
+{-# INLINABLE runKnights #-}
 
 mkKnightsCode :: Integer -> Integer -> Tx.CompiledCode [Solution]
 mkKnightsCode depth boardSize =
