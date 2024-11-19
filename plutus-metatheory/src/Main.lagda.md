@@ -6,6 +6,7 @@ layout: page
 module Main where
 
 import VerifiedCompilation
+import Certifier
 open import Agda.Builtin.IO using (IO)
 import IO.Primitive.Core as IO using (return;_>>=_)
 open import Agda.Builtin.Unit using (⊤;tt)
