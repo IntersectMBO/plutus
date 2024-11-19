@@ -529,7 +529,6 @@ identified by a key, given a function checking whether a 'Value' is zero and a f
 checking equality of values. Note that the caller must ensure that the two lists are
 well-defined in this sense. This is not checked or enforced in `unordEqWith`, and therefore
 it might yield undefined results for ill-defined input.
-{-# INLINABLE unordEqWith #-}
 
 This function recurses on both the lists in parallel and checks whether the key-value pairs are
 equal pointwise. If there is a mismatch, then it tries to find the left key-value pair in the right
@@ -591,6 +590,7 @@ unordEqWith is0 eqV = goBoth where
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
                 | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
                 | otherwise = goRight (kvR : acc) kvsR'
+{-# INLINABLE unordEqWith #-}
 
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
 -- checking equality of values.
