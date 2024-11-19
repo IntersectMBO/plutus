@@ -148,13 +148,12 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f (toList txInfoData)
 {-# INLINABLE findDatumHash #-}
 
 {-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the transaction's inputs (`TxInInfo`).
-{-# INLINABLE findTxInByTxOutRef #-}
-
 Note: this only searches the true transaction inputs and not the referenced transaction inputs.
 -}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
+{-# INLINABLE findTxInByTxOutRef #-}
 
 -- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]

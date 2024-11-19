@@ -290,36 +290,32 @@ instance (Enum a, Ord a) => Haskell.Ord (LowerBound a) where
     compare = PlutusTx.compare
 
 {- | Construct a strict upper bound from a value.
-{-# INLINABLE strictUpperBound #-}
-
 The resulting bound includes all values that are (strictly) smaller than the input value.
 -}
 strictUpperBound :: a -> UpperBound a
 strictUpperBound a = UpperBound (Finite a) False
+{-# INLINABLE strictUpperBound #-}
 
 {- | Construct a strict lower bound from a value.
-{-# INLINABLE strictLowerBound #-}
-
 The resulting bound includes all values that are (strictly) greater than the input value.
 -}
 strictLowerBound :: a -> LowerBound a
 strictLowerBound a = LowerBound (Finite a) False
+{-# INLINABLE strictLowerBound #-}
 
 {- | Construct a lower bound from a value.
-{-# INLINABLE lowerBound #-}
-
 The resulting bound includes all values that are equal or greater than the input value.
 -}
 lowerBound :: a -> LowerBound a
 lowerBound a = LowerBound (Finite a) True
+{-# INLINABLE lowerBound #-}
 
 {- |  Construct an upper bound from a value.
-{-# INLINABLE upperBound #-}
-
 The resulting bound includes all values that are equal or smaller than the input value.
 -}
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
+{-# INLINABLE upperBound #-}
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => JoinSemiLattice (Interval a) where
@@ -384,13 +380,12 @@ always = Interval (LowerBound NegInf True) (UpperBound PosInf True)
 {-# INLINABLE always #-}
 
 {- | An 'Interval' that is empty.
-{-# INLINABLE never #-}
-
 There can be many empty intervals, see `isEmpty`.
 The empty interval `never` is arbitrarily set to [+∞,-∞].
 -}
 never :: Interval a
 never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
+{-# INLINABLE never #-}
 
 -- | Check whether a value is in an interval.
 member :: (Enum a, Ord a) => a -> Interval a -> Bool
