@@ -124,7 +124,7 @@ rec {
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
-    version = "2.7.0";
+    version = "2.7.0.1";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
     modules = [ agda-project-module-patch-default ];
