@@ -1,0 +1,1 @@
+Bool -> NumBytesCostedAsNumWords -> Integer -> BuiltinResult ByteString

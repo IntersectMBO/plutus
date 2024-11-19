@@ -1,0 +1,1 @@
+NumBytesCostedAsNumWords -> Word8 -> BuiltinResult ByteString

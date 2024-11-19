@@ -1,0 +1,1 @@
+forall a. SomeConstant DefaultUni [TyVarRep * ('TyNameRep * "a" 0)] -> BuiltinResult Bool

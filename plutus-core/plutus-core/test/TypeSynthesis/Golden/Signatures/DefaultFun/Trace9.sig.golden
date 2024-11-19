@@ -1,0 +1,1 @@
+forall a. Text -> Opaque Val (TyVarRep * ('TyNameRep * "a" 0)) -> BuiltinResult (Opaque Val (TyVarRep * ('TyNameRep * "a" 0)))
