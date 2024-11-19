@@ -64,11 +64,11 @@ myProgram =
         -- Local functions do not need to be marked as 'INLINABLE'.
         plusOneLocal :: Integer -> Integer
         plusOneLocal x = x `addInteger` 1
-{-# INLINABLE myProgram #-}
 
         localTwo = plusOneLocal 1
         externalTwo = plusOne 1
     in localTwo `addInteger` externalTwo
+{-# INLINABLE myProgram #-}
 
 functions :: CompiledCode Integer
 functions = $$(compile [|| myProgram ||])

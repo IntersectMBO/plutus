@@ -26,7 +26,6 @@ ghcSort = mergeAll . sequences
     {- This detects ascending and descending subsequences of a list, reverses
        the descending ones, and accumulates the results in a list.
        For example, [1,2,9,5,4,7,2,8] -> [[1,2,9],[4,5],[2,7],[8]]. -}
-{-# INLINABLE ghcSort #-}
 
     descending a as (b:bs)
       | a > b = descending b (a:as) bs
@@ -55,6 +54,7 @@ ghcSort = mergeAll . sequences
         else b:(merge as bs')
     merge [] bs = bs
     merge as [] = as
+{-# INLINABLE ghcSort #-}
 
 {- I think the worst case input should be about the same as for mergesort.  The
    worst case for 'sequences' is when we start with a list of alternately

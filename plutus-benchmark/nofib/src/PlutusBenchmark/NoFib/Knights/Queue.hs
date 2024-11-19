@@ -31,9 +31,8 @@ addAllBack list q = q Tx.++ list
 
 inquireFront :: Queue a -> a
 inquireFront []    = Tx.error ()
-{-# INLINABLE inquireFront #-}
-
 inquireFront (h:_) = h
+{-# INLINABLE inquireFront #-}
 
 inquireBack :: Queue a -> a
 inquireBack []     = Tx.error ()
@@ -57,9 +56,8 @@ emptyQueue [] = True
 emptyQueue _  = False
 {-# INLINABLE emptyQueue #-}
 
-
 {-
 sizeQueue :: Queue b -> Integer
 sizeQueue xs = length' xs
--}
 {-# INLINABLE sizeQueue #-}
+-}

@@ -266,8 +266,6 @@ any p (Map m) = go m
         )
 {-# INLINEABLE any #-}
 
-{-# INLINEABLE union #-}
-
 -- | Combine two 'Map's into one. It saves both values if the key is present in both maps.
 union ::
   forall k a b.
@@ -326,6 +324,7 @@ union (Map ls) (Map rs) = Map res
                 v = BI.snd hd
              in insert' k v (safeAppend tl xs2)
         )
+{-# INLINEABLE union #-}
 
 -- | Combine two 'Map's with the given combination function.
 unionWith ::
@@ -354,7 +353,6 @@ unionWith f (Map ls) (Map rs) =
                       Nothing -> v'
                  in BI.mkCons (BI.mkPairData k' v'') (go tl)
             )
-{-# INLINEABLE unionWith #-}
 
     rs' :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     rs' = go rs
@@ -377,6 +375,7 @@ unionWith f (Map ls) (Map rs) =
           P.caseList'
             acc
             (\hd -> go (BI.mkCons hd acc))
+{-# INLINEABLE unionWith #-}
 
 -- | Convert the `Map` to a list of key-value pairs. This operation is O(n).
 -- See 'toBuiltinList' for a more efficient alternative.

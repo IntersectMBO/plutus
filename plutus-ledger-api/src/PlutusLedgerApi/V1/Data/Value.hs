@@ -454,12 +454,12 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
   where
     goOuter acc []             = acc
     goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
-{-# INLINABLE flattenValue #-}
 
     goInner _ acc [] = acc
     goInner cs acc ((tn, a) : tl)
         | a /= 0    = goInner cs ((cs, tn, a) : acc) tl
         | otherwise = goInner cs acc tl
+{-# INLINABLE flattenValue #-}
 
 -- Num operations
 
@@ -526,11 +526,11 @@ lt l r = leq l r && not (eq l r)
 split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
-{-# INLINABLE split #-}
 
   splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+{-# INLINABLE split #-}
 
 {- | Check equality of two lists of distinct key-value pairs, each value being uniquely
 identified by a key, given a function checking whether a 'Value' is zero and a function

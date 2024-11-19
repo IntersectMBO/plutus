@@ -73,8 +73,6 @@ modifyCounter i f c = do
   pure modified
 {-# INLINE modifyCounter #-}
 
--- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
--- as well just go straight for that
 -- | Traverse the counters with an effectful function.
 itraverseCounter_
   :: forall n m
@@ -86,7 +84,6 @@ itraverseCounter_ f (StepCounter arr) = do
   -- The implementation of this function is very performance-sensitive. I believe
   -- it may be possible to do better, but it's time-consuming to experiment more
   -- and unclear what improves things.
-{-# INLINE itraverseCounter_ #-}
 
   -- The safety of this operation is a little subtle. The frozen array is only
   -- safe to use if the underlying mutable array is not mutated 'afterwards'.
@@ -103,6 +100,10 @@ itraverseCounter_ f (StepCounter arr) = do
           go (i+1)
       | otherwise = pure ()
   go 0
+-- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
+-- as well just go straight for that
+{-# INLINE itraverseCounter_ #-}
+
 
 -- | Traverse the counters with an effectful function.
 iforCounter_

@@ -309,7 +309,6 @@ unionWith merge (Map ls) (Map rs) =
     f a b' = case b' of
       Nothing -> a
       Just b  -> merge a b
-{-# INLINEABLE unionWith #-}
 
     ls' :: [(k, a)]
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
@@ -318,6 +317,7 @@ unionWith merge (Map ls) (Map rs) =
     rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
    in
     Map (ls' ++ rs')
+{-# INLINEABLE unionWith #-}
 
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
@@ -335,49 +335,41 @@ mapThese f mps = (Map mpl, Map mpr)
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
-{-# INLINEABLE empty #-}
 
 -- | An empty 'Map'.
 empty :: Map k v
 empty = Map ([] :: [(k, v)])
-
-{-# INLINEABLE null #-}
+{-# INLINEABLE empty #-}
 
 -- | Is the map empty?
 null :: Map k v -> Bool
 null = P.null . unMap
-
-{-# INLINEABLE filter #-}
+{-# INLINEABLE null #-}
 
 -- | Filter all values that satisfy the predicate.
 filter :: (v -> Bool) -> Map k v -> Map k v
 filter f (Map m) = Map $ P.filter (f . snd) m
-
-{-# INLINEABLE elems #-}
+{-# INLINEABLE filter #-}
 
 -- | Return all elements of the map.
 elems :: Map k v -> [v]
 elems (Map xs) = P.fmap (\(_ :: k, v) -> v) xs
-
-{-# INLINEABLE mapWithKey #-}
+{-# INLINEABLE elems #-}
 
 -- | Map a function over all values in the map.
 mapWithKey :: (k -> a -> b) -> Map k a -> Map k b
 mapWithKey f (Map xs) = Map $ fmap (\(k, v) -> (k, f k v)) xs
-
-{-# INLINEABLE mapMaybe #-}
+{-# INLINEABLE mapWithKey #-}
 
 -- | Map keys\/values and collect the 'Just' results.
 mapMaybe :: (a -> Maybe b) -> Map k a -> Map k b
 mapMaybe f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k,) <$> f v) xs
-
-{-# INLINEABLE mapMaybeWithKey #-}
+{-# INLINEABLE mapMaybe #-}
 
 -- | Map keys\/values and collect the 'Just' results.
 mapMaybeWithKey :: (k -> a -> Maybe b) -> Map k a -> Map k b
 mapMaybeWithKey f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k,) <$> f k v) xs
-
-{-# INLINEABLE all #-}
+{-# INLINEABLE mapMaybeWithKey #-}
 
 -- | Determines whether all elements in the map satisfy the predicate.
 all :: (a -> Bool) -> Map k a -> Bool
@@ -386,6 +378,7 @@ all f (Map m) = go m
     go = \case
       []          -> True
       (_, x) : xs -> if f x then go xs else False
+{-# INLINEABLE all #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

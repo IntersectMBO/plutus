@@ -424,7 +424,6 @@ sortBy cmp l = mergeAll (sequences l)
       | a `cmp` b == GT = descending b [a]  xs
       | otherwise       = ascending  b (a:) xs
     sequences xs = [xs]
-{-# INLINABLE sortBy #-}
 
     descending a as (b:bs)
       | a `cmp` b == GT = descending b (a:as) bs
@@ -447,3 +446,4 @@ sortBy cmp l = mergeAll (sequences l)
       | otherwise       = a:merge as' bs
     merge [] bs         = bs
     merge as []         = as
+{-# INLINABLE sortBy #-}

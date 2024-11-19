@@ -124,7 +124,6 @@ mkMarloweValidator
     MarloweData{..}
     marloweTxInputs
     ctx@ScriptContext{scriptContextTxInfo} = do
-{-# INLINABLE mkMarloweValidator #-}
 
     let scriptInValue = txOutValue $ txInInfoResolved ownInput
     let interval =
@@ -387,6 +386,7 @@ mkMarloweValidator
     -- Tally the value paid to an address.
     valuePaidToAddress :: Ledger.Address -> Val.Value
     valuePaidToAddress address = foldMap txOutValue $ filter ((== address) . txOutAddress) allOutputs
+{-# INLINABLE mkMarloweValidator #-}
 
 
 -- | Convert semantics input to transaction input.

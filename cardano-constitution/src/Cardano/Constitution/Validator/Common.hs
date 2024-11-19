@@ -55,7 +55,6 @@ validateParamValue = \case
               && validateParamValues paramValueTl (BI.tail actualValueData)
           -- if reached the end of list of param-values to check, ensure no more proposed data are left
           [] -> B.fromOpaque . BI.null
-{-# INLINABLE validateParamValue #-}
 
       validatePreds :: forall a. Tx.Ord a => Predicates a -> a -> Bool
       validatePreds (Predicates preds) (validatePred -> validatePredAppliedToActual) =
@@ -69,6 +68,7 @@ validateParamValue = \case
           meaning = defaultPredMeanings predKey
           -- apply the meaning to actual value: expectedValue is 1st argument, actualValue is 2nd argument
           meaningWithActual = (`meaning` actualValue)
+{-# INLINABLE validateParamValue #-}
 
 scriptContextToValidGovAction :: BuiltinData -> Maybe ChangedParams
 scriptContextToValidGovAction = scriptContextToScriptInfo
@@ -82,7 +82,6 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
                                >>> BI.tail
                                >>> BI.tail
                                >>> BI.head
-{-# INLINABLE scriptContextToValidGovAction #-}
 
     scriptInfoToProposalProcedure :: BuiltinData -> BuiltinData
     scriptInfoToProposalProcedure (BI.unsafeDataAsConstr -> si) =
@@ -104,3 +103,4 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
         -- Constructor Index of `TreasuryWithdrawals` is 2
         | govActionConstr `B.equalsInteger` 2 = Nothing -- means treasurywithdrawal
         | otherwise = traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
+{-# INLINABLE scriptContextToValidGovAction #-}

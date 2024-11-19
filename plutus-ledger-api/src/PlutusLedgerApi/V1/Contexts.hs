@@ -270,9 +270,8 @@ spendsOutput p h i =
             let outRef = txInInfoOutRef inp
             in h == txOutRefId outRef
                 && i == txOutRefIdx outRef
-{-# INLINABLE spendsOutput #-}
-
     in any spendsOutRef (txInfoInputs p)
+{-# INLINABLE spendsOutput #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

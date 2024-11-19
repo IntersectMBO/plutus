@@ -309,7 +309,6 @@ simpleVerifyMessage  = "I am a message"
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
   let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
-{-# INLINABLE verifyBlsSimpleScript #-}
 
       -- calculate public key
       pubKey = Tx.bls12_381_G1_scalarMul privKey g1generator
@@ -322,6 +321,7 @@ verifyBlsSimpleScript privKey message =
 
   -- verify the msg with signature sigma with the check e(g1,sigma)=e(pub,msgToG2)
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop g1generator sigma) (Tx.bls12_381_millerLoop pubKey msgToG2)
+{-# INLINABLE verifyBlsSimpleScript #-}
 
 checkVerifyBlsSimpleScript :: Bool
 checkVerifyBlsSimpleScript = verifyBlsSimpleScript simpleVerifyPrivKey simpleVerifyMessage
@@ -367,7 +367,6 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
   let
       -- cofactor of G2
       f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
-{-# INLINABLE vrfBlsScript #-}
 
       -- The proof of that the VRF hash of input alpha under our priv key is beta
       -- To verify a VRF hash given an
@@ -386,6 +385,7 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
   in c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2generator, h, pubKey', Tx.bls12_381_G2_uncompress gamma, u, v])
          &&
          beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f (Tx.bls12_381_G2_uncompress gamma))
+{-# INLINABLE vrfBlsScript #-}
 
 -- used offchain to generate the vrf proof output
 generateVrfProof :: Integer -> BuiltinByteString -> VrfProofWithOutput
@@ -476,10 +476,10 @@ g1VerifyScript message pubKey signature dst =
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       sigDeser = Tx.bls12_381_G2_uncompress signature
       hashedMsg = Tx.bls12_381_G2_hashToGroup message dst
-{-# INLINABLE g1VerifyScript #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser hashedMsg)
          (Tx.bls12_381_millerLoop g1generator sigDeser)
+{-# INLINABLE g1VerifyScript #-}
 
 checkG1VerifyScript :: Bool
 checkG1VerifyScript = g1VerifyScript g1VerifyMessage g1VerifyPubKey g1VerifySignature blsSigBls12381G2XmdSha256SswuRoNul
@@ -528,9 +528,9 @@ g2VerifyScript message pubKey signature dst =
       pkDeser = Tx.bls12_381_G2_uncompress pubKey
       sigDeser = Tx.bls12_381_G1_uncompress signature
       hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
-{-# INLINABLE g2VerifyScript #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser g2generator)
+{-# INLINABLE g2VerifyScript #-}
 
 checkG2VerifyScript :: Bool
 checkG2VerifyScript =
@@ -597,7 +597,6 @@ aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       aggrSigDeser = Tx.bls12_381_G2_uncompress aggregateSignature
       aggrMsg = foldl1 Tx.bls12_381_G2_add hashedMsgs
-{-# INLINABLE aggregateSingleKeyG1Script #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop pkDeser aggrMsg) (Tx.bls12_381_millerLoop g1generator aggrSigDeser)
     where
@@ -606,6 +605,7 @@ aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
       foldl1 _ []     = traceError "foldr1: empty list"
       foldl1 _ [_]    = traceError "foldr1: only one element in list"
       foldl1 f (x:xs) = Tx.foldl f x xs
+{-# INLINABLE aggregateSingleKeyG1Script #-}
 
 
 checkAggregateSingleKeyG1Script :: Bool
@@ -699,7 +699,6 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
                     (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
       aggrSigDeser = Tx.bls12_381_G1_uncompress aggregateSignature
       aggrPk = calcAggregatedPubkeys dsScalar pksDeser
-{-# INLINABLE aggregateMultiKeyG2Script #-}
 
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg aggrPk) (Tx.bls12_381_millerLoop aggrSigDeser g2generator)
     where
@@ -727,6 +726,7 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
 
       calcAggregatedPubkey :: BuiltinBLS12_381_G2_Element -> Integer -> BuiltinBLS12_381_G2_Element
       calcAggregatedPubkey pk ds = ds `Tx.bls12_381_G2_scalarMul` pk
+{-# INLINABLE aggregateMultiKeyG2Script #-}
 
 {- An alternative implementation of calcAggregatedPubkeys which uses a different
 -- means of scalar exponentiation. It results in a slightly smaller script using less CPU but

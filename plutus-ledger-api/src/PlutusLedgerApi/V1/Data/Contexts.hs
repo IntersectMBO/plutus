@@ -280,6 +280,5 @@ spendsOutput p h i =
             let outRef = txInInfoOutRef inp
             in h == txOutRefId outRef
                 && i == txOutRefIdx outRef
-{-# INLINABLE spendsOutput #-}
-
     in Data.List.any spendsOutRef (txInfoInputs p)
+{-# INLINABLE spendsOutput #-}
