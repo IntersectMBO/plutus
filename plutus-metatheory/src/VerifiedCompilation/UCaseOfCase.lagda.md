@@ -27,7 +27,7 @@ open import Data.Nat using (ℕ)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 open import Data.List using (List; _∷_; [])
 ```

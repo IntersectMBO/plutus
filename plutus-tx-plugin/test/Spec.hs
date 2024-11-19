@@ -4,6 +4,7 @@ import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
+import ByteStringLiterals.Spec qualified as ByteStringLiterals
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
 import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified
 import IntegerLiterals.Strict.NegativeLiterals.Spec qualified
@@ -26,12 +27,14 @@ main = defaultMain tests
 
 tests :: TestTree
 tests =
-  runTestNested ["test"]
+  runTestNested
+    ["test"]
     [ Plugin.tests
     , IntegerLiterals.NoStrict.NegativeLiterals.Spec.tests
     , IntegerLiterals.NoStrict.NoNegativeLiterals.Spec.tests
     , IntegerLiterals.Strict.NegativeLiterals.Spec.tests
     , IntegerLiterals.Strict.NoNegativeLiterals.Spec.tests
+    , embed ByteStringLiterals.tests
     , IsData.tests
     , Lift.tests
     , TH.tests
