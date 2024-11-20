@@ -19,7 +19,6 @@ import GHC.TypeNats (KnownNat, natVal)
 -- to count steps.
 newtype StepCounter (n :: Nat) s = StepCounter (P.MutablePrimArray s Word8)
 
-{-# INLINE newCounter #-}
 -- | Make a new 'StepCounter' with the given number of counters.
 newCounter :: (KnownNat n, PrimMonad m) => Proxy n -> m (StepCounter n (PrimState m))
 newCounter p = do
@@ -27,15 +26,15 @@ newCounter p = do
   c <- StepCounter <$> P.newPrimArray sz
   resetCounter c
   pure c
+{-# INLINE newCounter #-}
 
-{-# INLINE resetCounter #-}
 -- | Reset all the counters in the given 'StepCounter' to zero.
 resetCounter :: forall n m . (KnownNat n, PrimMonad m) => StepCounter n (PrimState m) -> m ()
 resetCounter (StepCounter arr) =
   let sz = fromIntegral $ natVal (Proxy @n)
   in P.setPrimArray arr 0 sz 0
+{-# INLINE resetCounter #-}
 
-{-# INLINE readCounter #-}
 -- | Read the value of a counter.
 readCounter :: forall m n . PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
 readCounter =
@@ -43,8 +42,8 @@ readCounter =
   @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
   @(StepCounter n (PrimState m) -> Int -> m Word8)
   P.readPrimArray
+{-# INLINE readCounter #-}
 
-{-# INLINE writeCounter #-}
 -- | Write to a counter.
 writeCounter
   :: forall m n
@@ -58,8 +57,8 @@ writeCounter =
   @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
   @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
   P.writePrimArray
+{-# INLINE writeCounter #-}
 
-{-# INLINE modifyCounter #-}
 -- | Modify the value of a counter. Returns the modified value.
 modifyCounter
   :: PrimMonad m
@@ -72,10 +71,8 @@ modifyCounter i f c = do
   let modified = f v
   writeCounter c i modified
   pure modified
+{-# INLINE modifyCounter #-}
 
--- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
--- as well just go straight for that
-{-# INLINE itraverseCounter_ #-}
 -- | Traverse the counters with an effectful function.
 itraverseCounter_
   :: forall n m
@@ -103,8 +100,11 @@ itraverseCounter_ f (StepCounter arr) = do
           go (i+1)
       | otherwise = pure ()
   go 0
+-- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
+-- as well just go straight for that
+{-# INLINE itraverseCounter_ #-}
 
-{-# INLINE iforCounter_ #-}
+
 -- | Traverse the counters with an effectful function.
 iforCounter_
   :: (KnownNat n, PrimMonad m)
@@ -112,6 +112,7 @@ iforCounter_
   -> (Int -> Word8 -> m ())
   -> m ()
 iforCounter_ = flip itraverseCounter_
+{-# INLINE iforCounter_ #-}
 
 {- Note [Step counter data structure]
 The step counter data structure has had several iterations.

@@ -71,13 +71,13 @@ newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 recursiveNewtype :: CompiledCode (RecursiveNewtype)
 recursiveNewtype = plc (Proxy @"recursiveNewtype") (RecursiveNewtype [])
 
-{-# INLINABLE evenDirectLocal #-}
 evenDirectLocal :: Integer -> Bool
 evenDirectLocal n = if Builtins.equalsInteger n 0 then True else oddDirectLocal (Builtins.subtractInteger n 1)
+{-# INLINABLE evenDirectLocal #-}
 
-{-# INLINABLE oddDirectLocal #-}
 oddDirectLocal :: Integer -> Bool
 oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal (Builtins.subtractInteger n 1)
+{-# INLINABLE oddDirectLocal #-}
 
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
 mutualRecursionUnfoldingsLocal :: CompiledCode Bool

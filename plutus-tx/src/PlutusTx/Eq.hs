@@ -19,9 +19,9 @@ class Eq a where
     -- (/=) deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
-{-# INLINABLE (/=) #-}
 (/=) :: Eq a => a -> a -> Bool
 x /= y = not (x == y)
+{-# INLINABLE (/=) #-}
 
 instance Eq Builtins.Integer where
     {-# INLINABLE (==) #-}

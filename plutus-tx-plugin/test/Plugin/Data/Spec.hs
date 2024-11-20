@@ -384,18 +384,18 @@ associated :: CompiledCode (AType Bool -> AType Bool)
 associated = plc (Proxy @"associated") (\(x :: AType Bool) -> x)
 
 -- Despite the type family being applied to a parameterized type we can still reduce it
-{-# OPAQUE paramId #-}
 paramId :: forall a . Param a -> AType (Param a) -> AType (Param a)
 paramId _ x = x
+{-# OPAQUE paramId #-}
 
 associatedParam :: CompiledCode Integer
 associatedParam = plc (Proxy @"associatedParam") (paramId (Param 1) 1)
 
 -- Here we cannot reduce the type family
-{-# OPAQUE tfId #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 tfId :: forall a . a -> BasicClosed a -> BasicClosed a
 tfId _ x = x
+{-# OPAQUE tfId #-}
 
 irreducible :: CompiledCode Integer
 irreducible = plc (Proxy @"irreducible") (tfId True 1)

@@ -11,7 +11,6 @@ import PlutusTx qualified as Tx
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx hiding (sort)
 
-{-# INLINABLE insertionSort #-}
 insertionSort :: [Integer] -> [Integer]
 insertionSort l0 = sort l0 []
     where sort [] r     = r
@@ -22,6 +21,7 @@ insertionSort l0 = sort l0 []
                 m:ms -> if n <= m
                         then n:acc
                         else m:(insert n ms)
+{-# INLINABLE insertionSort #-}
 
 {- The worst case should be when the list is already sorted, since then whenever
    we insert a new element in the accumulator it'll have to go at the very end. -}

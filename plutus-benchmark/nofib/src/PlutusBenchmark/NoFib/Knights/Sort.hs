@@ -8,18 +8,17 @@ module PlutusBenchmark.NoFib.Knights.Sort
 
 import PlutusTx.Prelude qualified as Tx
 
-{-# INLINABLE insertSort #-}
 insertSort :: (Tx.Ord a) => [a] -> [a]
 insertSort xs = foldr insertion [] xs
+{-# INLINABLE insertSort #-}
 
-{-# INLINABLE insertion #-}
 insertion :: (Tx.Ord a) => a -> [a] -> [a]
 insertion x [] = [x]
 insertion x (y:ys)
         | x Tx.<= y    = x:y:ys
         | otherwise = y:insertion x ys
+{-# INLINABLE insertion #-}
 
-{-# INLINABLE mergeSort #-}
 mergeSort :: (Tx.Ord a) => [a] -> [a]
 mergeSort xs
         = if (n <=1 ) then xs
@@ -29,49 +28,49 @@ mergeSort xs
                 ( mergeSort (drop (n `div` 2) xs)))
           where
                 n = length xs
+{-# INLINABLE mergeSort #-}
 
-{-# INLINABLE mergeList #-}
 mergeList :: (Tx.Ord a) => [a] -> [a] -> [a]
 mergeList []   ys = ys
 mergeList xs   [] = xs
 mergeList (x:xs) (y:ys)
         | x Tx.<= y    = x:mergeList xs (y:ys)
         | otherwise = y:mergeList (x:xs) ys
+{-# INLINABLE mergeList #-}
 
-{-# INLINABLE quickSort #-}
 quickSort :: (Tx.Ord a) => [a] -> [a]
 quickSort []     = []
 quickSort (x:xs) = (quickSort [y | y<-xs, y Tx.< x]) ++ [x] ++
                    (quickSort [y | y<-xs, y Tx.>= x])
+{-# INLINABLE quickSort #-}
 
 {-% These don't work in Plutus, and aren't used in the original program.
-{-# INLINABLE lazySortLe #-}
 lazySortLe :: (a -> a -> Bool) -> [a] -> [a]
 lazySortLe le l = lazyQsort le   l []
+{-# INLINABLE lazySortLe #-}
 
-{-# INLINABLE lazySort #-}
 lazySort :: (Tx.Ord a) => [a] -> [a]
 lazySort      l = lazyQsort (<=) l []
+{-# INLINABLE lazySort #-}
 
 -- lazyQsort is stable and does not concatenate.
-{-# INLINABLE lazyQsort #-}
 lazyQsort :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 lazyQsort le []     r = r
 lazyQsort le [x]    r = x:r
 lazyQsort le (x:xs) r = qpart le x xs [] [] r
+{-# INLINABLE lazyQsort #-}
 
 -- rlazyQsort is as lazyQsort but anti-stable,
 -- i.e. reverses equal elements.
-{-# INLINABLE rlazyQsort #-}
 rlazyQsort :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 rlazyQsort  le []     r = r
 rlazyQsort le [x]    r  = x:r
 rlazyQsort  le (x:xs) r = rqpart le x xs [] [] r
+{-# INLINABLE rlazyQsort #-}
 
 -- qpart partitions and sorts the sublists
 -- rlt and rge are in reverse order and must be sorted with an
 -- anti-stable sorting
-{-# INLINABLE qpart #-}
 qpart :: (a -> a -> Bool) -> a -> [a] -> [a] -> [a] -> [a] -> [a]
 qpart le x [] rlt rge r =
     rlazyQsort le rlt (x:rlazyQsort le rge r)
@@ -80,8 +79,8 @@ qpart le x (y:ys) rlt rge r =
         qpart le x ys rlt (y:rge) r
     else
         qpart le x ys (y:rlt) rge r
+{-# INLINABLE qpart #-}
 
-{-# INLINABLE rqpart #-}
 rqpart :: (a -> a -> Bool) -> a -> [a] -> [a] -> [a] -> [a] -> [a]
 rqpart le x [] rle rgt r =
     lazyQsort le rle (x:lazyQsort le rgt r)
@@ -90,9 +89,9 @@ rqpart le x (y:ys) rle rgt r =
         rqpart le x ys (y:rle) rgt r
     else
         rqpart le x ys rle (y:rgt) r
+{-# INLINABLE rqpart #-}
 %-}
 
-{-# INLINABLE randomIntegers #-}
 randomIntegers :: Integer -> Integer -> [Integer]
 randomIntegers s1 s2 =
     if 1 <= s1 && s1 <= 2147483562 then
@@ -102,8 +101,8 @@ randomIntegers s1 s2 =
             error "randomIntegers: Bad second seed."
     else
         error "randomIntegers: Bad first seed."
+{-# INLINABLE randomIntegers #-}
 
-{-# INLINABLE rands #-}
 rands :: Integer -> Integer -> [Integer]
 rands s1 s2
    = if z < 1 then z + 2147483562 : rands s1'' s2''
@@ -119,6 +118,7 @@ rands s1 s2
         s2'' = if s2' < 0 then s2' + 2147483399 else s2'
 
         z    = s1'' - s2''
+{-# INLINABLE rands #-}
 
 -- % These are from the original program.  That's literate Haskell, and it
 -- % contains the results as latex.
