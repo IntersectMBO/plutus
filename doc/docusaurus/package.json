@@ -29,6 +29,9 @@
     "@docusaurus/types": "^3.6.0",
     "typescript": "~5.2.2"
   },
+  "resolutions": {
+    "cheerio": "1.0.0-rc.12"
+  },
   "browserslist": {
     "production": [
       ">0.5%",
