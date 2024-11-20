@@ -352,11 +352,13 @@ runAgda certName rawTrace = do
           Left err       -> error $ show err
   stdlibPath <- getEnv "AGDA_STDLIB_SRC"
   metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  inputFile <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai")
+  -- let ifacePath = "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src"
+  inputFile <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/agda-interfaces/src/Certifier.agdai")
+  interfaceDir <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/agda-interfaces/src")
   Just ifaceFile <- HAgda.File.mkInterfaceFile inputFile
   -- let ifaceFile = HAgda.File.InterfaceFile "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai"
   -- let embeddedInterfaceFile :: BS.ByteString
-  let embeddedInterfaceFile = BS8.fromStrict $(FileEmbed.embedFile "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai")
+  -- let embeddedInterfaceFile = BS8.fromStrict $(FileEmbed.embedFile "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai")
   runTCMPrettyErrors $ do
     let opts =
           -- defaultOptions
@@ -366,10 +368,10 @@ runAgda certName rawTrace = do
           --       }
           --   }
           defaultOptions
-            { optIncludePaths =
-             [ metatheoryPath
-              , stdlibPath
-             ]
+            { HAgda.Options.optAbsoluteIncludePaths = [interfaceDir]
+             -- [ metatheoryPath </> "_build/2.7.0.1/agda/src"
+             --  , stdlibPath </> "../_build/2.7.0.1/agda/src"
+             -- ]
             }
     -- traceShowM opts
     setCommandLineOptions opts
