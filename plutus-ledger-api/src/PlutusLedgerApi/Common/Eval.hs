@@ -104,11 +104,6 @@ mkTermToEvaluate ll pv script args = do
         termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterAppNoAnn t termArgs
 
-    -- check that the Plutus Core language version is available
-    -- See Note [Checking the Plutus Core language version]
-    unless (v `Set.member` plcVersionsAvailableIn ll pv) $
-      throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v ll pv
-
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
