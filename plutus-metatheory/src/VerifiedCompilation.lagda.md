@@ -60,6 +60,9 @@ import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
+open import Effect.Monad.Writer using (Writer; RawMonadWriter; monadWriter; monad)
+open import Data.List.Base using (++-[]-rawMonoid)
+open import Effect.Monad using (RawMonad)
 ```
 
 ## Compiler optimisation traces
@@ -79,6 +82,21 @@ The `isTransformation?` decision procedure just dispatches to the decision proce
 element of the next pair in the list. This might not be necessary if we decide that we can assume that the function
 which produces a `Trace` always produces a correct one, although it might be useful to make this explicit in the type.
 ```
+
+open import Algebra.Bundles.Raw using (RawMonoid)
+open import Agda.Primitive using (lzero)
+
+Log : RawMonoid lzero lzero
+Log = ++-[]-rawMonoid String
+
+Logger : Set → Set
+Logger = Writer Log
+
+open RawMonadWriter (monadWriter {lzero} {lzero} {Log})
+open RawMonad (monad {lzero} {lzero} {Log})
+
+f : Logger ⊤
+f = pure tt
 
 data SimplifierTag : Set where
   floatDelayT : SimplifierTag
