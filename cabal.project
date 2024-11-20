@@ -28,7 +28,6 @@ packages: cardano-constitution
           plutus-tx
           plutus-tx-plugin
           plutus-tx-test-util
-          prettyprinter-configurable
           doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.
@@ -89,7 +88,6 @@ allow-newer:
 -- package cardano-constitution
 --   flags: +force-build
 -- allow-newer: *:plutus-ledger-api
--- allow-newer: *:prettyprinter-configurable
 -- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------

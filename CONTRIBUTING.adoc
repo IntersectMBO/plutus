@@ -356,7 +356,6 @@ We write changelogs for our versioned and published packages, which currently in
 - plutus-ledger-api
 - plutus-tx
 - plutus-tx-plugin
-- prettyprinter-configurable
 
 To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
 
