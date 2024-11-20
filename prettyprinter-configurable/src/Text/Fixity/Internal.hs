@@ -1,15 +1,16 @@
 -- editorconfig-checker-disable-file
--- | Precedence-general machinery for deciding whether an expression needs to be wrapped in
--- parentheses or not. Source code has comments on the approach used and how it compares to some
--- other known approaches.
 
-module Text.Fixity.Internal
-    ( Associativity (..)
-    , FixityOver (..)
-    , Direction (..)
-    , RenderContextOver (..)
-    , encloseIn
-    ) where
+{-| Precedence-general machinery for deciding whether an expression needs to be wrapped in
+parentheses or not. Source code has comments on the approach used and how it compares to some
+other known approaches.
+-}
+module Text.Fixity.Internal (
+  Associativity (..),
+  FixityOver (..),
+  Direction (..),
+  RenderContextOver (..),
+  encloseIn,
+) where
 
 {- Note [Approaches to precedence-aware pretty-printing]
 It's not trivial to find papers on precedence-aware pretty-printing.
@@ -205,49 +206,57 @@ Implementing all of that is left as future work.
 
 -- It's not necessary to deal with associativity, see: https://stackoverflow.com/a/43639618
 -- But I find it easier and nicer than changing precedence on the fly.
+
 -- | Associativity of an operator.
 data Associativity
-    = LeftAssociative
-    | RightAssociative
-    | NonAssociative
-    deriving stock (Show, Eq)
+  = LeftAssociative
+  | RightAssociative
+  | NonAssociative
+  deriving stock (Show, Eq)
 
 -- See Note [Approaches to precedence-aware pretty-printing].
--- | Fixity of an operator.
---
--- We allow unary operators to have associativity, because it's useful to distinguish
--- between an expression like @-(-x)@ (unary minus, left-associative) and @~~b@
--- (boolean NOT, right-associative).
---
--- Associativity of unary operators also matters when pretty-printing expressions like @(-x) + y@,
--- which is pretty-printed as @-x + y@, assuming unary minus has the same fixity as @+@ (and both
--- the operators are left-associative). I.e. unary minus is handled just like the binary one:
--- @(0 - x) + y@ is pretty-printed as @0 - x + y@.
---
--- Postfix operators are handled similarly. E.g. if @!@ is left-associative, then @(x!)!@ is
--- pretty-printed as @x!!@ and if it's right-associative -- @(x!)!@.
---
--- The data type is parameterized, so that the user can choose precedence to be integer\/fractional,
--- bounded\/unbounded, etc (we could also allows operators to be partially or totally ordered, but
--- at the moment @prec@ is required to implement 'Ord', i.e. it has to be totally ordered).
--- By default we go with bounded fractional precedence, see the main "Text.Fixity" module.
-data FixityOver prec = Fixity
-    { _fixityAssociativity :: !Associativity
-    , _fixityPrecedence    :: !prec
-    } deriving stock (Show, Eq)
 
--- | Direction in which pretty-printing goes. For example in @x + y@ @x@ is pretty-printed to the
--- left of @+@ and @y@ is pretty-printed to the right of @+@.
+{-| Fixity of an operator.
+
+We allow unary operators to have associativity, because it's useful to distinguish
+between an expression like @-(-x)@ (unary minus, left-associative) and @~~b@
+(boolean NOT, right-associative).
+
+Associativity of unary operators also matters when pretty-printing expressions like @(-x) + y@,
+which is pretty-printed as @-x + y@, assuming unary minus has the same fixity as @+@ (and both
+the operators are left-associative). I.e. unary minus is handled just like the binary one:
+@(0 - x) + y@ is pretty-printed as @0 - x + y@.
+
+Postfix operators are handled similarly. E.g. if @!@ is left-associative, then @(x!)!@ is
+pretty-printed as @x!!@ and if it's right-associative -- @(x!)!@.
+
+The data type is parameterized, so that the user can choose precedence to be integer\/fractional,
+bounded\/unbounded, etc (we could also allows operators to be partially or totally ordered, but
+at the moment @prec@ is required to implement 'Ord', i.e. it has to be totally ordered).
+By default we go with bounded fractional precedence, see the main "Text.Fixity" module.
+-}
+data FixityOver prec = Fixity
+  { _fixityAssociativity :: !Associativity
+  , _fixityPrecedence    :: !prec
+  }
+  deriving stock (Show, Eq)
+
+{-| Direction in which pretty-printing goes. For example in @x + y@ @x@ is pretty-printed to the
+left of @+@ and @y@ is pretty-printed to the right of @+@.
+-}
 data Direction
-    = ToTheLeft
-    | ToTheRight
-    deriving stock (Show, Eq)
+  = ToTheLeft
+  | ToTheRight
+  deriving stock (Show, Eq)
 
 -- | A context that an expression is being rendered in.
 data RenderContextOver prec = RenderContext
-    { _renderContextDirection :: !Direction
-    , _renderContextFixity    :: !(FixityOver prec)
-    } deriving stock (Show, Eq)
+  { _renderContextDirection :: !Direction
+  , _renderContextFixity    :: !(FixityOver prec)
+  }
+  deriving stock (Show, Eq)
+
+{- FOURMOLU_DISABLE -}
 
 -- Instead of receiving a @a -> a@ this function could simply return a 'Bool'.
 -- | Enclose an @a@ (using the provided function) if required or leave it as is.
@@ -260,19 +269,21 @@ encloseIn
     -> a
     -> a
 encloseIn parens (RenderContext dir (Fixity assocOut precOut)) (Fixity assocInn precInn) =
-    case precOut `compare` precInn of
-        LT -> id                       -- If the outer precedence is lower than the inner, then
-                                       -- do not add parens. E.g. in @Add x (Mul y z)@ the precedence
-                                       -- of @Add@ is lower than the one of @Mul@, hence there is
-                                       -- no need for parens in @x + y * z@.
-        GT -> parens                   -- If the outer precedence is greater than the inner, then
-                                       -- do add parens. E.g. in @Mul x (Add y z)@ the precedence
-                                       -- of @Mul@ is greater than the one of @Add@, hence
-                                       -- parens are needed in @x * (y + z)@.
-        EQ -> case (assocOut, dir) of  -- If precedences are equal, then judge from associativity.
-            _ | assocOut /= assocInn       -> parens  -- Associativities differ => parens are needed.
-            (LeftAssociative, ToTheLeft)   -> id      -- No need for parens in @Add (Add x y) z@
-                                                      -- which is rendered as @x + y + z@.
-            (RightAssociative, ToTheRight) -> id      -- No need for parens in @Concat xs (Concat ys zs)@
-                                                      -- which is rendered as @xs ++ ys ++ zs@.
-            _                              -> parens  -- Every other case requires parens.
+  case precOut `compare` precInn of
+    LT -> id  -- If the outer precedence is lower than the inner, then
+              -- do not add parens. E.g. in @Add x (Mul y z)@ the precedence
+              -- of @Add@ is lower than the one of @Mul@, hence there is
+              -- no need for parens in @x + y * z@.
+    GT -> parens  -- If the outer precedence is greater than the inner, then
+                  -- do add parens. E.g. in @Mul x (Add y z)@ the precedence
+                  -- of @Mul@ is greater than the one of @Add@, hence
+                  -- parens are needed in @x * (y + z)@.
+    EQ ->
+      case (assocOut, dir) of  -- If precedences are equal, then judge from associativity.
+        _ | assocOut /= assocInn       -> parens  -- Associativities differ => parens are needed.
+        (LeftAssociative, ToTheLeft)   -> id      -- No need for parens in @Add (Add x y) z@
+                                                  -- which is rendered as @x + y + z@.
+        (RightAssociative, ToTheRight) -> id      -- No need for parens in
+                                                  -- @Concat xs (Concat ys zs)@
+                                                  -- which is rendered as @xs ++ ys ++ zs@.
+        _                              -> parens  -- Every other case requires parens.

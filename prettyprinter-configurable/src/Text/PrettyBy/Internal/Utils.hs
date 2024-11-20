@@ -1,17 +1,14 @@
--- editorconfig-checker-disable-file
 -- | Utils used internally.
+module Text.PrettyBy.Internal.Utils (
+  view,
+) where
 
-module Text.PrettyBy.Internal.Utils
-    ( view
-    ) where
-
-import Control.Monad.Reader
-import Data.Functor.Const
-import Lens.Micro
+import Control.Monad.Reader (MonadReader, asks)
+import Data.Functor.Const (Const (Const, getConst))
+import Lens.Micro (Getting)
 import Lens.Micro.Internal ((#.))
 
--- | An inlined https://hackage.haskell.org/package/microlens-mtl-0.2.0.1/docs/Lens-Micro-Mtl.html#v:view
--- (just not to depend on this package).
-view :: MonadReader s m => Getting a s a -> m a
+-- | An inlined 'Lens.Micro.Mtl.view' (just not to depend on this package).
+view :: (MonadReader s m) => Getting a s a -> m a
 view l = asks (getConst #. l Const)
 {-# INLINE view #-}
