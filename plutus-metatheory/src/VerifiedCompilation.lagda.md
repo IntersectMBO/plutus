@@ -60,20 +60,6 @@ import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
-open import Effect.Monad.Writer using (Writer)
-open import Data.DifferenceList using (DiffList)
-open import Algebra.Bundles.Raw using (RawMonoid)
-open import Effect.Monad using (RawMonad)
-open import Data.List.Properties
-open import Data.List.Base
-open import Effect.Monad
-open import Effect.Monad.Writer.Instances
-open import Effect.Monad.Identity.Instances
-open import Effect.Monad.Writer.Transformer.Base
-open import Effect.Monad.Writer.Transformer hiding (empty)
-open RawMonad {{...}}
-open RawMonoid {{...}}
-open RawMonadWriter {{...}}
 ```
 
 ## Compiler optimisation traces
@@ -113,21 +99,15 @@ data Transformation : SimplifierTag → Relation where
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
   caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation caseReduceT ast ast'
 
-data Trace : { X : Set } {{_ : DecEq X}} → U.List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
   cons
     : {X : Set}{{_ : DecEq X}} 
     {tag : SimplifierTag} {x x' : X ⊢}
-    {xs : U.List (SimplifierTag × (X ⊢) × (X ⊢))}
+    {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
-
-import Effect.Monad.Identity
-import Agda.Builtin.Sigma
-
-f : Writer (++-[]-rawMonoid String) ℕ
-f = mkWriterT (λ z → Effect.Monad.Identity.mkIdentity (z Agda.Builtin.Sigma., zero))
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
 isTransformation? tag ast ast' with tag
@@ -181,7 +161,12 @@ postulate
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → U.List (SimplifierTag × A × A) → Either E (U.List (SimplifierTag × B × B))
+buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
+buildPairs [] = []
+buildPairs (x ∷ []) = (x , x) ∷ []
+buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
+
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
 traverseEitherList _ [] = inj₂ []
 traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
@@ -193,11 +178,11 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 
 data Proof : Set₁ where
   proof
-    : {X : Set} {result : U.List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
+    : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
     → Dec (Trace {X} result)
     → Proof
 
-runCertifier : U.List (SimplifierTag × Untyped × Untyped) → Maybe Proof
+runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
