@@ -140,11 +140,11 @@ next :: Square -> Square
 next (row,col) = (row,col+1)
 {-# INLINABLE next #-}
 
-{-# INLINABLE maxCol #-}
 maxRow,maxCol :: Integer
 maxRow = 8
 maxCol = 8
 {-# INLINABLE maxRow #-}
+{-# INLINABLE maxCol #-}
 
 
 ------------------------

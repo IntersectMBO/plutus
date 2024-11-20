@@ -232,7 +232,7 @@ newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
   deriving (Pretty) via (PrettyShow (CurrencySymbol, TokenName))
 
 instance HasBlueprintSchema AssetClass referencedTypes where
-  {-# INLINEABLE schema #-}
+  {-# INLINABLE schema #-}
   schema =
     SchemaBuiltInPair emptySchemaInfo $
       MkPairSchema
@@ -364,8 +364,6 @@ valueOf value cur tn =
             Just v  -> v
 {-# INLINABLE valueOf #-}
 
-{-# INLINEABLE withCurrencySymbol #-}
-
 {- | Apply a continuation function to the token quantities of the given currency
 symbol in the value or return a default value if the currency symbol is not present
 in the value.
@@ -375,8 +373,7 @@ withCurrencySymbol currency value def k =
   case Map.lookup currency (getValue value) of
     Nothing              -> def
     Just tokenQuantities -> k tokenQuantities
-
-{-# INLINEABLE currencySymbolValueOf #-}
+{-# INLINABLE withCurrencySymbol #-}
 
 {- | Get the total value of the currency symbol in the 'Value' map.
 Assumes that the underlying map doesn't contain duplicate keys.
@@ -389,6 +386,7 @@ currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
         -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
         -- the latter materializes the intermediate result of `Map.elems tokens`.
         Map.foldr (\amt acc -> amt + acc) 0 tokens
+{-# INLINABLE currencySymbolValueOf #-}
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
 symbols :: Value -> BuiltinList BuiltinData
