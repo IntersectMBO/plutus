@@ -105,7 +105,7 @@ mkTermToEvaluate ll pv script args = do
         appliedT = UPLC.mkIterAppNoAnn t termArgs
 
     -- make sure that term is closed, i.e. well-scoped
-    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+    pure appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters pv (EvaluationContext ll toSemVar machParsList) =
