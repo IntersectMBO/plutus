@@ -1,13 +1,16 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module PlutusBenchmark.Data.ScriptContexts where
 
+import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
-                                ScriptContext (..), ScriptInfo (SpendingScript), TxId (..),
-                                TxInfo (..), TxOut (..), TxOutRef (..), always)
+                                ScriptContext, ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
+                                TxOut (..), TxOutRef (..), always, pattern ScriptContext)
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified

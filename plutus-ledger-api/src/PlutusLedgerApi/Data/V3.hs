@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- | The interface to Plutus V3 for the ledger.
 module PlutusLedgerApi.Data.V3 (
   -- * Scripts
@@ -54,7 +56,8 @@ module PlutusLedgerApi.Data.V3 (
   EvaluationContext.assertWellFormedCostModelParams,
 
   -- * Context types
-  Contexts.ScriptContext (..),
+  Contexts.ScriptContext,
+  pattern Contexts.ScriptContext,
   Contexts.ScriptPurpose (..),
   Contexts.ScriptInfo (..),
 

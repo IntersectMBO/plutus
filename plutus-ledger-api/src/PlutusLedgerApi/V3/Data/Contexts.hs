@@ -4,6 +4,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -32,7 +33,8 @@ module PlutusLedgerApi.V3.Data.Contexts
   , ScriptInfo (..)
   , TxInInfo (..)
   , TxInfo (..)
-  , ScriptContext (..)
+  , ScriptContext
+  , pattern ScriptContext
   , findOwnInput
   , findDatum
   , findDatumHash
@@ -57,6 +59,7 @@ import Prettyprinter.Extras
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusTx qualified
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
@@ -524,19 +527,22 @@ PlutusTx.makeLift ''TxInfo
 PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 -- | The context that the currently-executing script can access.
-data ScriptContext = ScriptContext
-  { scriptContextTxInfo     :: TxInfo
-  -- ^ information about the transaction the currently-executing script is included in
-  , scriptContextRedeemer   :: V2.Redeemer
-  -- ^ Redeemer for the currently-executing script
-  , scriptContextScriptInfo :: ScriptInfo
-  -- ^ the purpose of the currently-executing script, along with information associated
-  -- with the purpose
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data ScriptContext = ScriptContext
+      { scriptContextTxInfo     :: TxInfo
+      -- ^ information about the transaction the currently-executing script is included in
+      , scriptContextRedeemer   :: V2.Redeemer
+      -- ^ Redeemer for the currently-executing script
+      , scriptContextScriptInfo :: ScriptInfo
+      -- ^ the purpose of the currently-executing script, along with information associated
+      -- with the purpose
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''ScriptContext
-PlutusTx.makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
 
 {-# INLINEABLE findOwnInput #-}
 
