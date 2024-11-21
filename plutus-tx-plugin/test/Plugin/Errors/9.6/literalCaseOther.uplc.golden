@@ -1,1 +1,7 @@
-Error: Unsupported feature: Use of fromString on type other than builtin strings or bytestrings: Plugin.Errors.Spec.AType
+Error: Unsupported feature: 
+       Use of fromString is only supported for the following types:
+       - PlutusTx.Builtins.Internal.BuiltinString
+       - PlutusTx.Builtins.Internal.BuiltinByteString
+       - PlutusTx.Builtins.HasOpaque.BuiltinByteStringUtf8
+
+       Using fromString for Plugin.Errors.Spec.AType is not supported.

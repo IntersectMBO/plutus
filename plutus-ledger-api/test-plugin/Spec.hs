@@ -9,6 +9,8 @@ import Spec.ReturnUnit.V2 qualified
 import Spec.ReturnUnit.V3 qualified
 import Spec.ScriptSize qualified
 import Spec.Value qualified
+import Spec.Value.CurrencySymbol qualified
+import Spec.Value.TokenName qualified
 import Spec.Value.WithCurrencySymbol qualified
 
 import Test.Tasty
@@ -29,5 +31,7 @@ tests =
     , Spec.MintValue.V3.tests
     , Spec.ScriptSize.tests
     , Spec.Value.test_EqValue
+    , Spec.Value.TokenName.tests
+    , Spec.Value.CurrencySymbol.tests
     , Spec.Value.WithCurrencySymbol.tests
     ]

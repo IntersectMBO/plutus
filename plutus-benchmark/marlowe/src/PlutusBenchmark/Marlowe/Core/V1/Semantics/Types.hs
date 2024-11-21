@@ -38,7 +38,6 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics.Types where
 
 import Control.Newtype.Generics (Newtype)
 import Data.Data (Data)
-import Data.String (IsString (..))
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
@@ -54,6 +53,7 @@ import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), Pu
                                                ScriptHash (..), StakingCredential (..))
 import PlutusTx.AssocMap qualified as Map
 import Prelude qualified as Haskell
+
 
 deriving stock instance Data POSIXTime
 deriving stock instance Data Ledger.Address
@@ -114,7 +114,7 @@ type Accounts = Map (AccountId, Token) Integer
 -- | Values, as defined using Let ar e identified by name,
 --   and can be used by 'UseValue' construct.
 newtype ValueId = ValueId BuiltinByteString
-  deriving (IsString, Haskell.Show) via TokenName
+  deriving (Haskell.Show) via TokenName
   deriving stock (Haskell.Eq,Haskell.Ord,Generic,Data)
   deriving anyclass (Newtype)
   deriving newtype (Eq)
