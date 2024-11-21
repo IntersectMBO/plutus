@@ -96,6 +96,7 @@ library
     PlutusTx.Monoid
     PlutusTx.Numeric
     PlutusTx.Ord
+    PlutusTx.Plugin.IsString
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
     PlutusTx.Ratio

@@ -67,7 +67,7 @@ import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data (Data, Typeable)
 import Data.Function ((&))
-import Data.String (IsString (fromString))
+import Data.String (IsString)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
@@ -86,6 +86,7 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
+import PlutusTx.Plugin.IsString (Utf8Encoded (..))
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.These (These (..))
@@ -156,10 +157,7 @@ newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
     )
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow TokenName)
-
--- | UTF-8 encoding. Doesn't verify length.
-instance IsString TokenName where
-    fromString = fromText . Text.pack
+  deriving (IsString) via (Utf8Encoded BuiltinByteString)
 
 instance HasBlueprintSchema TokenName referencedTypes where
   {-# INLINABLE schema #-}
@@ -171,9 +169,6 @@ instance HasBlueprintSchema TokenName referencedTypes where
 tokenName :: BS.ByteString -> TokenName
 tokenName = TokenName . PlutusTx.toBuiltin
 {-# INLINABLE tokenName #-}
-
-fromText :: Text -> TokenName
-fromText = tokenName . E.encodeUtf8
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
 fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)

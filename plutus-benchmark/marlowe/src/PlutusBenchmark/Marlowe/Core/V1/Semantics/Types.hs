@@ -53,6 +53,7 @@ import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
                                                ScriptHash (..), StakingCredential (..))
 import PlutusTx.AssocMap qualified as Map
+import PlutusTx.Plugin.IsString (Utf8Encoded (..))
 import Prelude qualified as Haskell
 
 deriving stock instance Data POSIXTime
@@ -114,7 +115,8 @@ type Accounts = Map (AccountId, Token) Integer
 -- | Values, as defined using Let ar e identified by name,
 --   and can be used by 'UseValue' construct.
 newtype ValueId = ValueId BuiltinByteString
-  deriving (IsString, Haskell.Show) via TokenName
+  deriving (IsString) via Utf8Encoded BuiltinByteString
+  deriving (Haskell.Show) via TokenName
   deriving stock (Haskell.Eq,Haskell.Ord,Generic,Data)
   deriving anyclass (Newtype)
   deriving newtype (Eq)

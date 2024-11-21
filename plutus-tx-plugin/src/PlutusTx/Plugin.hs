@@ -32,6 +32,7 @@ import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
+import PlutusTx.Plugin.IsString qualified as IsString
 import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
@@ -410,6 +411,8 @@ compileMarkedExpr locStr codeTy origE = do
           , 'useToOpaque
           , 'useFromOpaque
           , 'mkNilOpaque
+          , ''IsString.Utf8Encoded
+          , ''IsString.RawBytes
           ]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
