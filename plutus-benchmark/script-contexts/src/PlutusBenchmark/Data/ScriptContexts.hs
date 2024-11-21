@@ -9,8 +9,9 @@ module PlutusBenchmark.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
-                                ScriptContext, ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
-                                TxOut (..), TxOutRef (..), always, pattern ScriptContext)
+                                ScriptContext, ScriptInfo (SpendingScript), TxId (..), TxInfo,
+                                TxOut (..), TxOutRef (..), always, pattern ScriptContext,
+                                pattern TxInfo)
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
@@ -31,24 +32,40 @@ mkScriptContext i =
 
 
 mkTxInfo :: Integer -> TxInfo
-mkTxInfo i = TxInfo {
-  txInfoInputs=mempty,
-  txInfoReferenceInputs=mempty,
-  txInfoOutputs=Data.List.map mkTxOut (Data.List.fromSOP ([1..i] :: [Integer])),
-  txInfoFee=10000,
-  txInfoMint=mempty,
-  txInfoTxCerts=mempty,
-  txInfoWdrl=Map.empty,
-  txInfoValidRange=always,
-  txInfoSignatories=mempty,
-  txInfoRedeemers=Map.empty,
-  txInfoData=Map.empty,
-  txInfoId=TxId "",
-  txInfoVotes=Map.empty,
-  txInfoProposalProcedures=mempty,
-  txInfoCurrentTreasuryAmount=Nothing,
-  txInfoTreasuryDonation=Nothing
-  }
+mkTxInfo i =
+  TxInfo
+    -- txInfoInputs
+    mempty
+    -- txInfoReferenceInputs
+    mempty
+    -- txInfoOutputs
+    (Data.List.map mkTxOut (Data.List.fromSOP ([1..i] :: [Integer])))
+    -- txInfoFee
+    10000
+    -- txInfoMint
+    mempty
+    -- txInfoTxCerts
+    mempty
+    -- txInfoWdrl
+    Map.empty
+    -- txInfoValidRange
+    always
+    -- txInfoSignatories
+    mempty
+    -- txInfoRedeemers
+    Map.empty
+    -- txInfoData
+    Map.empty
+    -- txInfoId
+    (TxId "")
+    -- txInfoVotes
+    Map.empty
+    -- txInfoProposalProcedures
+    mempty
+    -- txInfoCurrentTreasuryAmount
+    Nothing
+    -- txInfoTreasuryDonation
+    Nothing
 
 mkTxOut :: Integer -> TxOut
 mkTxOut i = TxOut {
@@ -70,9 +87,9 @@ checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
-      ScriptContext txi _ _ = sc
+      ScriptContext (TxInfo _ _ txInfoOutputs _ _ _ _ _ _ _ _ _ _ _ _ _) _ _ = sc
   in
-  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if Data.List.length txInfoOutputs `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}

@@ -13,6 +13,8 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 
+{-# OPTIONS_GHC-ddump-splices #-}
+
 module PlutusLedgerApi.V3.Data.Contexts
   ( ColdCommitteeCredential (..)
   , HotCommitteeCredential (..)
@@ -32,7 +34,8 @@ module PlutusLedgerApi.V3.Data.Contexts
   , ScriptPurpose (..)
   , ScriptInfo (..)
   , TxInInfo (..)
-  , TxInfo (..)
+  , TxInfo
+  , pattern TxInfo
   , ScriptContext
   , pattern ScriptContext
   , findOwnInput
@@ -499,32 +502,35 @@ instance Pretty TxInInfo where
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | TxInfo for PlutusV3
-data TxInfo = TxInfo
-  { txInfoInputs                :: List TxInInfo
-  , txInfoReferenceInputs       :: List TxInInfo
-  , txInfoOutputs               :: List V2.TxOut
-  , txInfoFee                   :: V2.Lovelace
-  , txInfoMint                  :: V2.Value
-  -- ^ The 'Value' minted by this transaction.
-  --
-  -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
-  -- their namesakes in Plutus V1 and V2's ScriptContexts.
-  , txInfoTxCerts               :: List TxCert
-  , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
-  , txInfoValidRange            :: V2.POSIXTimeRange
-  , txInfoSignatories           :: List V2.PubKeyHash
-  , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
-  , txInfoData                  :: Map V2.DatumHash V2.Datum
-  , txInfoId                    :: V3.TxId
-  , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
-  , txInfoProposalProcedures    :: List ProposalProcedure
-  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
-  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data TxInfo = TxInfo
+      { txInfoInputs                :: List TxInInfo
+      , txInfoReferenceInputs       :: List TxInInfo
+      , txInfoOutputs               :: List V2.TxOut
+      , txInfoFee                   :: V2.Lovelace
+      , txInfoMint                  :: V2.Value
+      -- ^ The 'Value' minted by this transaction.
+      --
+      -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
+      -- their namesakes in Plutus V1 and V2's ScriptContexts.
+      , txInfoTxCerts               :: List TxCert
+      , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
+      , txInfoValidRange            :: V2.POSIXTimeRange
+      , txInfoSignatories           :: List V2.PubKeyHash
+      , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
+      , txInfoData                  :: Map V2.DatumHash V2.Datum
+      , txInfoId                    :: V3.TxId
+      , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
+      , txInfoProposalProcedures    :: List ProposalProcedure
+      , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+      , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''TxInfo
-PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 -- | The context that the currently-executing script can access.
 PlutusTx.asData
