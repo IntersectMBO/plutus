@@ -59,7 +59,7 @@ library
     , base
     , bytestring
     , composition-prelude
-    , cryptonite
+    , crypton
     , extra
     , filepath
     , ghc-prim

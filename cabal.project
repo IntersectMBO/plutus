@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2024-10-16T00:00:00Z
+  , hackage.haskell.org 2024-11-11T20:52:53Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2024-10-16T00:00:00Z
+  , cardano-haskell-packages 2024-11-05T09:09:23Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -91,9 +91,23 @@ allow-newer:
 -- allow-older: *:nothunks
 
 -- -------------------------------------------------------------------------------------------------
--- Following currently required for building with ghc-9.10.
+-- The following two SRPs do two things:
+--   * switch from cryptonite package (deprecated) to crypton (drop in replacement)
+--   * New major version of cardano-crypto-class which is incompatible with current
+--     cardano-ledger@master
 
-constraints:
-  -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
-  -- be updated until after the Conway release.
-  , cardano-crypto-class ^>= 2.1
+source-repository-package
+  type: git
+  location: https://github.com/IntersectMBO/cardano-crypto
+  tag: 790a3027a210ed3684ea9ffa1da504873d96b7de
+  --sha256: 1wlyvqgaf4gwzp80gpf334dwpcq2vbgywv2r31mk0iy469n1slbi
+
+source-repository-package
+  type: git
+  location: https://github.com/IntersectMBO/cardano-base
+  tag: 9c48b9126f412a1a0c926e22769830170484c95e
+  --sha256: 0ssgg71ab2rdc3sp8fipbjipxhwg4195p2r5y5c6rv2jc9625mxc
+  subdir:
+    cardano-crypto-class
+    cardano-crypto-tests
+    cardano-mempool
