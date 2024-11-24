@@ -62,11 +62,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name.Unique
-import PlutusCore.Quote
+-- import PlutusCore.Quote
 
-import Control.Monad.Except
-import Control.Monad.State
-import Data.Bifunctor
+-- import Control.Monad.Except
+-- import Control.Monad.State
+-- import Data.Bifunctor
 import Data.Text (Text)
 
 -- The type of the machine (runner function).
@@ -75,7 +75,7 @@ type MachineRunner cost uni fun ann =
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> (Either (CekEvaluationException DeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 
 {- Note [CEK runners naming convention]
 A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
@@ -99,27 +99,28 @@ runCek ::
     -> EmitterMode uni fun
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
-runCek runner params mode emitMode term =
-    -- translating input
-    case runExcept @FreeVariableError $ deBruijnTerm term of
-        Left fvError -> throw fvError
-        Right dbt -> do
-            -- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876
-            case runner params mode emitMode dbt of
-                -- translating back the output
-                (res, cost', logs) -> (unDeBruijnResult res, cost', logs)
-  where
-    -- *GRACEFULLY* undebruijnifies: a) the error-cause-term (if it exists) or b) the success value-term.
-    -- 'Graceful' means that the (a) && (b) undebruijnifications do not throw an error upon a free variable encounter.
-    unDeBruijnResult :: Either (CekEvaluationException NamedDeBruijn uni fun) (Term NamedDeBruijn uni fun ())
-                     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
-    unDeBruijnResult = bimap (fmap gracefulUnDeBruijn) gracefulUnDeBruijn
+runCek = undefined
+-- runCek runner params mode emitMode term =
+--     -- translating input
+--     case runExcept @FreeVariableError $ deBruijnTerm term of
+--         Left fvError -> throw fvError
+--         Right dbt -> do
+--             -- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876
+--             case runner params mode emitMode dbt of
+--                 -- translating back the output
+--                 (res, cost', logs) -> (unDeBruijnResult res, cost', logs)
+--   where
+--     -- *GRACEFULLY* undebruijnifies: a) the error-cause-term (if it exists) or b) the success value-term.
+--     -- 'Graceful' means that the (a) && (b) undebruijnifications do not throw an error upon a free variable encounter.
+--     unDeBruijnResult :: Either (CekEvaluationException DeBruijn uni fun) (Term DeBruijn uni fun ())
+--                      -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
+--     unDeBruijnResult = bimap (fmap gracefulUnDeBruijn) gracefulUnDeBruijn
 
-    -- free debruijn indices will be turned to free, consistent uniques
-    gracefulUnDeBruijn :: Term NamedDeBruijn uni fun () -> Term Name uni fun ()
-    gracefulUnDeBruijn t = runQuote
-                           . flip evalStateT mempty
-                           $ unDeBruijnTermWith freeIndexAsConsistentLevel t
+--     -- free debruijn indices will be turned to free, consistent uniques
+--     gracefulUnDeBruijn :: Term DeBruijn uni fun () -> Term Name uni fun ()
+--     gracefulUnDeBruijn t = runQuote
+--                            . flip evalStateT mempty
+--                            $ unDeBruijnTermWith freeIndexAsConsistentLevel t
 
 -- | Evaluate a term using a machine with logging disabled and keep track of costing.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*

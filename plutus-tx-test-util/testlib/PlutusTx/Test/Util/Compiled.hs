@@ -4,8 +4,8 @@
 {-# LANGUAGE ViewPatterns     #-}
 
 module PlutusTx.Test.Util.Compiled
-    ( Program
-    , Term
+    ( Term
+    , Program
     , toAnonDeBruijnTerm
     , toAnonDeBruijnProg
     , toNamedDeBruijnTerm
@@ -28,39 +28,40 @@ import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import Data.Text (Text)
 
-type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Term = UPLC.Term PLC.DeBruijn DefaultUni DefaultFun ()
+type Program = UPLC.Program PLC.DeBruijn DefaultUni DefaultFun ()
 
 {- | Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
    123 is the relevant de Bruijn index.-}
 toNamedDeBruijnTerm
-    :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+    :: Term
     -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
 
 {- | Remove the textual names from a NamedDeBruijn term -}
 toAnonDeBruijnTerm
-    :: Term
-    -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
+    :: UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> Term
 toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
 
 toAnonDeBruijnProg
     :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-    -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+    -> Program
 toAnonDeBruijnProg (UPLC.Program () ver body) =
     UPLC.Program () ver $ toAnonDeBruijnTerm body
 
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun a
+    -> UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
 compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
 
 {- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
    if we try to do this over an arbitrary universe.-}
 haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
-haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
+haskellValueToTerm = toAnonDeBruijnTerm . compiledCodeToTerm . Tx.liftCodeDef
 
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
@@ -72,7 +73,7 @@ unsafeRunTermCek =
 -- | Just run a term.
 runTermCek ::
     Term ->
-    ( Either (CekEvaluationException UPLC.NamedDeBruijn DefaultUni DefaultFun) Term
+    ( Either (CekEvaluationException UPLC.DeBruijn DefaultUni DefaultFun) Term
     , [Text]
     )
 runTermCek =

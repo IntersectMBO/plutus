@@ -48,7 +48,7 @@ import NoThunks.Class
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
-    CekError !(UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) -- ^ An error from the evaluator itself
+    CekError !(UPLC.CekEvaluationException DeBruijn DefaultUni DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError !FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
     -- TODO: make this error more informative when we have more information about what went wrong
@@ -96,9 +96,9 @@ mkTermToEvaluate
     -> MajorProtocolVersion -- ^ which major protocol version to run the operation in
     -> ScriptForEvaluation -- ^ the script to evaluate
     -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
-    -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+    -> m (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate ll pv script args = do
-    let ScriptNamedDeBruijn (UPLC.Program _ v t) = deserialisedScript script
+    let ScriptDeBruijn (UPLC.Program _ v t) = deserialisedScript script
         termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterAppNoAnn t termArgs
 
@@ -192,10 +192,10 @@ evaluateTerm
     -> MajorProtocolVersion
     -> VerboseMode
     -> EvaluationContext
-    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
     -> ( Either
-            (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+            (UPLC.CekEvaluationException DeBruijn DefaultUni DefaultFun)
+            (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ())
        , cost
        , [Text]
        )
@@ -262,8 +262,8 @@ processLogsAndErrors ::
     PlutusLedgerLanguage ->
     LogOutput ->
     Either
-        (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
-        (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()) ->
+        (UPLC.CekEvaluationException DeBruijn DefaultUni DefaultFun)
+        (UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()) ->
     m ()
 processLogsAndErrors ll logs res = do
     tell logs
@@ -274,7 +274,7 @@ processLogsAndErrors ll logs res = do
 
 isResultValid ::
     PlutusLedgerLanguage ->
-    UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
+    UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun () ->
     Bool
 isResultValid ll res = ll == PlutusV1 || ll == PlutusV2 || isBuiltinUnit res
     where

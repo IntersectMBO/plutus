@@ -284,7 +284,7 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> (Either (CekEvaluationException DeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudget BStartup $ runIdentity $ cekStartupCost ?cekCosts
@@ -429,8 +429,8 @@ throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 lookupVarName
     :: forall uni fun ann s .
        ThrowableBuiltins uni fun
-    => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+    => DeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName varName@(DeBruijn varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName

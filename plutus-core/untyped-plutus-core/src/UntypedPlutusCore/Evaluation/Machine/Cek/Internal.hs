@@ -156,7 +156,7 @@ this can make a surprisingly large difference.
 
 -- | The 'Term's that CEK can execute must have DeBruijn binders
 -- 'Name' is not necessary but we leave it here for simplicity and debuggability.
-type NTerm uni fun = Term NamedDeBruijn uni fun
+type NTerm uni fun = Term DeBruijn uni fun
 
 data StepKind
     = BConst
@@ -218,7 +218,7 @@ data CekValue uni fun ann =
     -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
   | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
-  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+  | VLamAbs !DeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
     -- | A partial builtin application, accumulating arguments for eventual full application.
     -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     -- values always store their corresponding 'Term's fully discharged, see the comments at
@@ -441,7 +441,7 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
-instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
+instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException DeBruijn uni fun) (CekM uni fun s) where
     -- See Note [Throwing exceptions in ST].
     throwError = CekM . throwM
 
@@ -481,7 +481,7 @@ dischargeCekValEnv valEnv = go 0
   go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
   go !lamCnt =  \case
     LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let idx = coerce ndbnIx :: Word64  in
+    var@(Var _ (DeBruijn ndbnIx)) -> let idx = coerce ndbnIx :: Word64  in
         if lamCnt >= idx
         -- the index n is less-than-or-equal than the number of lambdas we have descended
         -- this means that n points to a bound variable, so we don't discharge it.
@@ -507,9 +507,9 @@ dischargeCekValue = \case
     -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
     -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
     -- lambda, otherwise @name@ could clash with the names that we have in @env@.
-    VLamAbs (NamedDeBruijn n _ix) body env ->
+    VLamAbs (DeBruijn _ix) body env ->
         -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
-        dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) (void body)
+        dischargeCekValEnv env $ LamAbs () (DeBruijn deBruijnInitIndex) (void body)
     -- We only return a discharged builtin application when (a) it's being returned by the machine,
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
@@ -604,7 +604,7 @@ runCekM
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
+    -> (Either (CekEvaluationException DeBruijn uni fun) a, cost, [Text])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
@@ -743,7 +743,7 @@ enterComputeCek = computeCek
     returnCekHeadSpine
         :: Context uni fun ann
         -> HeadSpine (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+        -> CekM uni fun s (Term DeBruijn uni fun ())
     returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
     returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferSpine xs ctx) f
 
@@ -851,7 +851,7 @@ enterComputeCek = computeCek
         -> fun
         -> NTerm uni fun ()
         -> BuiltinRuntime (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+        -> CekM uni fun s (Term DeBruijn uni fun ())
     evalBuiltinApp ctx fun term runtime = case runtime of
         BuiltinCostedResult budgets0 getFXs -> do
             let exCat = BBuiltinApp fun
@@ -876,8 +876,8 @@ enterComputeCek = computeCek
     {-# INLINE spendBudget #-}
 
     -- | Look up a variable name in the environment.
-    lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-    lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+    lookupVarName :: DeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+    lookupVarName varName@(DeBruijn varIx) varEnv =
         Env.safeIndexOneCont
             (throwingWithCause _MachineError OpenTermEvaluatedMachineError . Just $ Var () varName)
             pure
@@ -893,7 +893,7 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+    -> (Either (CekEvaluationException DeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts

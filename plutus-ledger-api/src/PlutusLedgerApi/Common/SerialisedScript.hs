@@ -11,7 +11,7 @@ module PlutusLedgerApi.Common.SerialisedScript (
   serialiseUPLC,
   uncheckedDeserialiseUPLC,
   scriptCBORDecoder,
-  ScriptNamedDeBruijn (..),
+  ScriptDeBruijn (..),
   ScriptForEvaluation, -- Do not export data constructor
   ScriptDecodeError (..),
   AsScriptDecodeError (..),
@@ -26,10 +26,6 @@ import PlutusCore
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
-
--- this allows us to safe, 0-cost coerce from FND->ND. Unfortunately, since Coercible is symmetric,
--- we cannot expose this safe Coercible FND ND w.o. also allowing the unsafe Coercible ND FND.
-import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Read qualified as CBOR
@@ -163,13 +159,13 @@ uncheckedDeserialiseUPLC =
     UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
-newtype ScriptNamedDeBruijn
-  = ScriptNamedDeBruijn (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+newtype ScriptDeBruijn
+  = ScriptDeBruijn (UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ())
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
 -- | A Plutus script ready to be evaluated on-chain, via @evaluateScriptRestricting@.
-data ScriptForEvaluation = UnsafeScriptForEvaluation !SerialisedScript !ScriptNamedDeBruijn
+data ScriptForEvaluation = UnsafeScriptForEvaluation !SerialisedScript !ScriptDeBruijn
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
@@ -181,19 +177,14 @@ deriving via OnlyCheckWhnf ScriptForEvaluation instance NoThunks ScriptForEvalua
 serialisedScript :: ScriptForEvaluation -> SerialisedScript
 serialisedScript (UnsafeScriptForEvaluation s _) = s
 
--- | Get a `ScriptNamedDeBruijn` from a `ScriptForEvaluation`. /O(1)/.
-deserialisedScript :: ScriptForEvaluation -> ScriptNamedDeBruijn
+-- | Get a `ScriptDeBruijn` from a `ScriptForEvaluation`. /O(1)/.
+deserialisedScript :: ScriptForEvaluation -> ScriptDeBruijn
 deserialisedScript (UnsafeScriptForEvaluation _ s) = s
 
-{- | This decoder decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
-This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no
-names in the serialised form of a `Script`. Rather than traversing the term and inserting
-fake names after deserialising, this lets us do at the same time as deserialising.
--}
 scriptCBORDecoder ::
   PlutusLedgerLanguage ->
   MajorProtocolVersion ->
-  CBOR.Decoder s ScriptNamedDeBruijn
+  CBOR.Decoder s ScriptDeBruijn
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
@@ -209,8 +200,7 @@ scriptCBORDecoder ll pv =
             ++ " at and protocol version "
             ++ show (pretty pv)
    in do
-        -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
-        (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <-
+        (p :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()) <-
           decodeViaFlatWith flatDecoder
         pure $ coerce p
 
@@ -235,14 +225,14 @@ deserialiseScript ll pv sScript = do
     throwing _ScriptDecodeError $
       LedgerLanguageNotAvailableError ll llIntroPv pv
 
-  (remderBS, dScript@(ScriptNamedDeBruijn (UPLC.Program{}))) <- deserialiseSScript sScript
+  (remderBS, dScript@(ScriptDeBruijn (UPLC.Program{}))) <- deserialiseSScript sScript
   when (ll /= PlutusV1 && ll /= PlutusV2 && remderBS /= mempty) $
     throwing _ScriptDecodeError $
       RemainderError remderBS
 
   pure $ UnsafeScriptForEvaluation sScript dScript
   where
-    deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptNamedDeBruijn)
+    deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptDeBruijn)
     deserialiseSScript =
       fromShort
         >>> BSL.fromStrict

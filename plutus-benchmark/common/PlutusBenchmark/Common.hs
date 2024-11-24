@@ -78,7 +78,7 @@ getConfig limit = do
               }
 
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
-getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
+getCostsCek :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
 getCostsCek (UPLC.Program _ _ prog) =
     case Cek.runCekDeBruijn PLC.defaultCekParametersForTesting Cek.tallying Cek.noEmitter prog of
       (_res, Cek.TallyingSt _ budget, _logs) ->
@@ -116,10 +116,10 @@ mkMostRecentEvalCtx = mkEvalCtx maxBound maxBound
 -- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
     :: LedgerApi.EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
     -> Either
-            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+            (UPLC.CekEvaluationException UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+            (UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
 evaluateCekLikeInProd evalCtx term = do
     let (getRes, _, _) =
             let -- The validation benchmarks were all created from PlutusV1 scripts
@@ -131,7 +131,7 @@ evaluateCekLikeInProd evalCtx term = do
 -- Useful for benchmarking.
 evaluateCekForBench
     :: LedgerApi.EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> UPLC.Term PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
@@ -178,10 +178,10 @@ printHeader h = do
 printSizeStatistics
     :: Handle
     -> TestSize
-    -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
     -> IO ()
 printSizeStatistics h n script = do
-    let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
+    let serialised = Flat.flat (UPLC.UnrestrictedProgram script)
         size = BS.length serialised
         (cpu, mem) = getCostsCek script
     hPrintf h "  %3s %7d %8s %15d %8s %15d %8s \n"

@@ -426,8 +426,8 @@ analyseUnappliedScript :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
 analyseUnappliedScript
   analyse _ctx _params (PlutusEvent plutusLedgerLanguage ScriptEvaluationData{..} _expected) =
     case deserialiseScript plutusLedgerLanguage dataProtocolVersion dataScript of
-      Left err                                                          -> print err
-      Right (deserialisedScript -> ScriptNamedDeBruijn (Program _ _ t)) -> analyse t
+      Left err                                                     -> print err
+      Right (deserialisedScript -> ScriptDeBruijn (Program _ _ t)) -> analyse t
 
 -- | Run some analysis function over the events from a single event dump file
 analyseOneFile
