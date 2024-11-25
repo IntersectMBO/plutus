@@ -17,14 +17,14 @@ import PlutusTx.Ord as Tx
 import Data.Aeson.THReader as Aeson
 
 -- | The default config read from "data/defaultConstitution.json"
-{-# INLINABLE defaultConstitutionConfig #-}
 defaultConstitutionConfig :: ConstitutionConfig
 defaultConstitutionConfig = $$(Aeson.readJSONFromFile DFP.defaultConstitutionConfigFile)
+{-# INLINABLE defaultConstitutionConfig #-}
 
-{-# INLINABLE defaultPredMeanings #-}
 -- | NOTE: **BE CAREFUL** of the ordering. Expected value is first arg, Proposed Value is second arg
 defaultPredMeanings :: PredKey -> PredMeaning a
 defaultPredMeanings = \case
     MinValue -> (Tx.<=)
     MaxValue -> (Tx.>=)
     NotEqual -> (Tx./=)
+{-# INLINABLE defaultPredMeanings #-}

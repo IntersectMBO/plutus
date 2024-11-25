@@ -19,7 +19,6 @@ import PlutusPrelude
 
 import Control.Lens
 
-{-# INLINE substVarA #-}
 -- | Applicatively replace a variable using the given function.
 substVarA ::
   (Applicative f) =>
@@ -28,8 +27,8 @@ substVarA ::
   f (Term tyname name uni fun ann)
 substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
 substVarA _ t                  = pure t
+{-# INLINE substVarA #-}
 
-{-# INLINE substTyVarA #-}
 -- | Applicatively replace a type variable using the given function.
 substTyVarA ::
   (Applicative f) =>
@@ -38,6 +37,7 @@ substTyVarA ::
   f (Type tyname uni ann)
 substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
 substTyVarA _ ty                        = pure ty
+{-# INLINE substTyVarA #-}
 
 -- | Naively substitute names using the given functions (i.e. do not substitute binders).
 termSubstNames ::

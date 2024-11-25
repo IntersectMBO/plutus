@@ -61,7 +61,6 @@ import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.TypeChecking.Pretty (PrettyTCM (..))
 import Agda.Utils.FileName qualified as HAgda.File
 import AgdaUnparse (agdaUnparse)
-import Data.Text qualified as Text
 import System.Environment (getEnv)
 
 uplcHelpText :: String
@@ -319,7 +318,7 @@ runAgda certName rawTrace = do
           Left err       -> error $ show err
   stdlibPath <- getEnv "AGDA_STDLIB_SRC"
   metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  let inputFile = HAgda.File.AbsolutePath (Text.pack $ metatheoryPath </> "Certifier.agda")
+  inputFile <- HAgda.File.absolute (metatheoryPath </> "Certifier.agda")
   runTCMPrettyErrors $ do
     let opts =
           defaultOptions

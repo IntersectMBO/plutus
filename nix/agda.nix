@@ -4,22 +4,22 @@ rec {
 
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
-    version = "1.7.3";
+    version = "2.1.1";
 
     src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
-      sha256 = "sha256-vtL6VPvTXhl/mepulUm8SYyTjnGsqno4RHDmTIy22Xg=";
+      sha256 = "sha256-4HfwNAkIhk1yC/oSxZ30xilzUM5/22nzbUSqTjcW5Ng=";
     };
 
     # This is preConfigure is copied from more recent nixpkgs that also
-    # uses version 1.7 of standard-library. Old nixpkgs (that used 1.4)
+    # uses version 2.1.1 of standard-library. Old nixpkgs (that used 1.4)
     # had a preConfigure step that worked with 1.7. Less old nixpkgs
     # (that used 1.6) had a preConfigure step that attempts to `rm`
     # files that are now in the .gitignore list for 1.
     preConfigure = ''
-      runhaskell GenerateEverything.hs
+      runhaskell GenerateEverything.hs --include-deprecated
       # We will only build/consider Everything.agda, in particular we don't want Everything*.agda
       # do be copied to the store.
       rm EverythingSafe.agda
@@ -124,7 +124,7 @@ rec {
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
-    version = "2.6.4.3";
+    version = "2.7.0";
     compiler-nix-name = "ghc96";
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
     modules = [ agda-project-module-patch-default ];

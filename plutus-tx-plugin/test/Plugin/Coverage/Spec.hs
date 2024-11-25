@@ -36,11 +36,11 @@ boolTrueFalse = plc (Proxy @"boolTrueFalse") (\() -> True && False)
 boolOtherFunction :: CompiledCode (Maybe Integer -> Maybe Bool)
 boolOtherFunction = plc (Proxy @"boolOtherFunction") fun
 
-{-# INLINEABLE fun #-}
 fun :: Maybe Integer -> Maybe Bool
 fun x = case x of
   Just y | otherFun y -> Just False
   _                   -> Nothing
+{-# INLINEABLE fun #-}
 
 otherFun :: Integer -> Bool
 otherFun x = (x P.== 5) && True
@@ -53,7 +53,7 @@ coverage = testNested "Coverage" . pure $ testNestedGhc
   [ embed $ testGroup "Application heads and line coverage"
          [ mkTests "noBool" noBool Set.empty [31]
          , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [34]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 41, 42, 43]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [37, 40, 41, 42]
          , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
          ]
  , goldenPirReadable "coverageCode" boolOtherFunction ]

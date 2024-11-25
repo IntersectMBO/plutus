@@ -132,7 +132,6 @@ let
             #plutus-metatheory.package.ghcOptions = "-Werror";
             plutus-tx.ghcOptions = [ "-Werror" ];
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-            prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           };
         })
       ];

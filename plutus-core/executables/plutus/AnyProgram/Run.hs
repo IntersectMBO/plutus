@@ -9,6 +9,7 @@ import AnyProgram.IO
 import AnyProgram.With
 import Common
 import Control.Monad
+import Data.Text (unpack)
 import GetOpt
 import PlutusCore as PLC
 import PlutusCore.Evaluation.Machine.Ck as PLC
@@ -18,8 +19,6 @@ import PlutusPrelude
 import Types
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as UPLC
-
-import Data.Text as Text
 
 runRun :: (?opts :: Opts)
        => SLang s -> FromLang s -> IO ()
@@ -48,10 +47,10 @@ runPlc (PLC.Program _ _ t)
       -- CK machine currently only works with ann==() , so we void before
       case PLC.runCk defaultBuiltinsRuntimeForTesting False (void t) of
         (Left errorWithCause, logs) -> do
-            for_ logs (printE . Text.unpack)
+            for_ logs (printE . unpack)
             failE $ show errorWithCause
         (Right finalTerm, logs) -> do
-            for_ logs (printE . Text.unpack)
+            for_ logs (printE . unpack)
             printE "Execution succeeded. Final Term:"
             -- TODO: lift the final term back to the target singleton
             printE "Execution succeeded. Final Term:"
@@ -64,10 +63,10 @@ runUplc :: (?opts :: Opts, Typeable a)
 runUplc (UPLC.UnrestrictedProgram (UPLC.Program _ _ t)) =
     case UPLC.runCekDeBruijn defaultCekParametersForTesting exBudgetMode logEmitter t of
         (Left errorWithCause, _, logs) -> do
-            for_ logs (printE . Text.unpack)
+            for_ logs (printE . unpack)
             failE $ show errorWithCause
         (Right finalTerm, finalBudget, logs) -> do
-            for_ logs (printE . Text.unpack)
+            for_ logs (printE . unpack)
             -- TODO: lift the final term back to the target singleton
             printE "Execution succeeded. Final Term:"
             printE $ show $ prettyWithStyle (_prettyStyle ?opts) finalTerm

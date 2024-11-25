@@ -324,7 +324,7 @@ library
     , nothunks                    ^>=0.2
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.36
+    , prettyprinter-configurable
     , primitive
     , profunctors
     , recursion-schemes
@@ -803,7 +803,7 @@ library plutus-core-testlib
     , plutus-core                 ^>=1.36
     , plutus-core:plutus-ir
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.36
+    , prettyprinter-configurable
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -1055,6 +1055,7 @@ test-suite satint-test
 
 library index-envs
   import:           lang
+  visibility:       public
   hs-source-dirs:   index-envs/src
   default-language: Haskell2010
   exposed-modules:

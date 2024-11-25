@@ -60,9 +60,9 @@ instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
 
-{-# INLINEABLE cons #-}
 cons :: (ToData a) => a -> List a -> List a
 cons h (List t) = List (BI.mkCons (toBuiltinData h) t)
+{-# INLINEABLE cons #-}
 
 {-# INLINEABLE append #-}
 
@@ -86,17 +86,16 @@ instance Haskell.Semigroup  (List a) where
 instance Haskell.Monoid (List a) where
     mempty = List B.mkNil
 
-{-# INLINEABLE toSOP #-}
 toSOP :: (UnsafeFromData a) => List a -> [a]
 toSOP (List l) = go l
   where
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
+{-# INLINEABLE toSOP #-}
 
-{-# INLINEABLE fromSOP #-}
 fromSOP :: (ToData a) => [a] -> List a
 fromSOP = List . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
+{-# INLINEABLE fromSOP #-}
 
-{-# INLINEABLE find #-}
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
 find pred' (List l) = go l
   where
@@ -110,8 +109,8 @@ find pred' (List l) = go l
                         then Just h'
                         else go t
             )
+{-# INLINEABLE find #-}
 
-{-# INLINEABLE findIndices #-}
 findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> List Integer
 findIndices pred' (List l) = go 0 l
   where
@@ -126,8 +125,8 @@ findIndices pred' (List l) = go 0 l
                         then i `cons` indices
                         else indices
             )
+{-# INLINEABLE findIndices #-}
 
-{-# INLINEABLE filter #-}
 filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
 filter pred (List l) = go l
   where
@@ -138,8 +137,8 @@ filter pred (List l) = go l
                 let h' = unsafeFromBuiltinData h
                 in if pred h' then h' `cons` go t else go t
             )
+{-# INLINEABLE filter #-}
 
-{-# INLINEABLE mapMaybe #-}
 mapMaybe :: (UnsafeFromData a, ToData b) => (a -> Maybe b) -> List a -> List b
 mapMaybe f (List l) = go l
   where
@@ -152,8 +151,8 @@ mapMaybe f (List l) = go l
                     Just b  -> b `cons` go t
                     Nothing -> go t
             )
+{-# INLINEABLE mapMaybe #-}
 
-{-# INLINEABLE any #-}
 any :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
 any pred (List l) = go l
   where
@@ -164,8 +163,8 @@ any pred (List l) = go l
                 let h' = unsafeFromBuiltinData h
                 in pred h' || go t
             )
+{-# INLINEABLE any #-}
 
-{-# INLINEABLE foldMap #-}
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f (List l) = go l
   where
@@ -184,8 +183,8 @@ map f (List l) = List (go l)
         B.caseList'
             B.mkNil
             (\h t -> BI.mkCons (toBuiltinData $ f $ unsafeFromBuiltinData h) (go t))
+{-# INLINEABLE foldMap #-}
 
-{-# INLINEABLE length #-}
 length :: List a -> Integer
 length (List l) = go l 0
   where
@@ -193,8 +192,8 @@ length (List l) = go l 0
         B.caseList'
             id
             (\_ t -> B.addInteger 1 . go t)
+{-# INLINEABLE length #-}
 
-{-# INLINABLE mconcat #-}
 -- | Plutus Tx version of 'Data.Monoid.mconcat'.
 mconcat :: (Monoid a, UnsafeFromData a) => List a -> a
 mconcat (List l) = go l
@@ -206,5 +205,6 @@ mconcat (List l) = go l
                 let h' = unsafeFromBuiltinData h
                 in h' <> go t
             )
+{-# INLINABLE mconcat #-}
 
 makeLift ''List

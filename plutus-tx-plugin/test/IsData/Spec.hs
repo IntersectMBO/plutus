@@ -64,7 +64,6 @@ deconstructData = plc (Proxy @"deconstructData4") (\(d :: Builtins.BuiltinData) 
 unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))
 unsafeDeconstructData = plc (Proxy @"deconstructData4") (\(d :: Builtins.BuiltinData) -> IsData.unsafeFromBuiltinData d)
 
-{-# INLINABLE isDataRoundtrip #-}
 isDataRoundtrip :: (IsData.FromData a, IsData.UnsafeFromData a, IsData.ToData a, P.Eq a) => a -> Bool
 isDataRoundtrip a =
     let d = IsData.toBuiltinData a
@@ -73,6 +72,7 @@ isDataRoundtrip a =
             Nothing -> False
         unsafeRoundtrip = IsData.unsafeFromBuiltinData d P.== a
     in safeRoundtrip && unsafeRoundtrip
+{-# INLINABLE isDataRoundtrip #-}
 
 AsData.asData [d|
   data SecretlyData = FirstC () | SecondC Integer
