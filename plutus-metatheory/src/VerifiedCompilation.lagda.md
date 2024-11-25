@@ -60,6 +60,7 @@ import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
+
 ```
 
 ## Compiler optimisation traces
@@ -186,3 +187,39 @@ runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
+
+open import Tactic.Derive.Show
+import Data.List.Base as L
+import Agda.Builtin.Sigma as S
+open import Class.MonadTC.Instances
+open import Tactic.Defaults
+open import Relation.Nullary using (Reflects)
+open import Data.Bool.Base using (Bool)
+open import Class.Show.Core
+open import Agda.Primitive using (Level)
+
+variable
+  l : Level
+  A : Set l
+
+instance 
+  Show-Neg : Show (A → ⊥)
+  Show-Neg = ?
+
+unquoteDecl
+    Show-Dec
+    Show-Trace
+    Show-Reflects
+    Show-Bool
+    Show-Transformation
+    Show-Translation
+  =
+    derive-Show 
+      ( (quote Dec S., Show-Dec)
+      L.∷ (quote Trace S., Show-Trace)
+      L.∷ (quote Reflects S., Show-Reflects)
+      L.∷ (quote Bool S., Show-Bool)
+      L.∷ (quote Transformation S., Show-Transformation)
+      L.∷ (quote Translation S., Show-Translation)
+      L.∷ L.[]
+      )
