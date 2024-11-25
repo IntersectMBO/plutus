@@ -51,6 +51,8 @@ import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
+import VerifiedCompilation.UCaseReduce as UCR
+import VerifiedCompilation.UInline as UIL
 open import Data.Empty using (⊥)
 open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
@@ -68,7 +70,7 @@ A `Trace` represents a sequence of optimisation transformations applied to a pro
 and a tag (`SimplifierTag`), where each pair represents the before and after of a transformation application and the
 tag indicates which transformation was applied.
 The `Transformation` type is a sum type that represents the possible transformations which are implemented in their
-respective modules. 
+respective modules.
 
 The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
 list of ASTs are in relation with one another according to the transformations implemented in the project.
@@ -96,13 +98,13 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
-  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
-  caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation caseReduceT ast ast'
+  isInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UIL.Inline ast ast' → Transformation inlineT ast ast'
+  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.CaseReduce ast ast' → Transformation caseReduceT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
   cons
-    : {X : Set}{{_ : DecEq X}} 
+    : {X : Set}{{_ : DecEq X}}
     {tag : SimplifierTag} {x x' : X ⊢}
     {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
@@ -110,19 +112,18 @@ data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (
     → Trace ((tag , x , x') ∷ xs)
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
-isTransformation? tag ast ast' with tag
-isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
+isTransformation? floatDelayT ast ast' with UFlD.isFloatDelay? ast ast'
 ... | no ¬p = no λ { (isFlD x) → ¬p x }
 ... | yes p = yes (isFlD p)
-isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
+isTransformation? forceDelayT ast ast' with UFD.isForceDelay? ast ast'
 ... | no ¬p = no λ { (isFD x) → ¬p x }
 ... | yes p = yes (isFD p)
-isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
+isTransformation? caseOfCaseT ast ast' with UCC.isCaseOfCase? ast ast'
 ... | no ¬p = no λ { (isCoC x) → ¬p x }
 ... | yes p = yes (isCoC p)
-isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
-isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
-isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
+isTransformation? caseReduceT ast ast' = yes caseReduceNotImplemented
+isTransformation? inlineT ast ast' = yes inlineNotImplemented
+isTransformation? cseT ast ast' with UCSE.isUntypedCSE? ast ast'
 ... | no ¬p = no λ { (isCSE x) → ¬p x }
 ... | yes p = yes (isCSE p)
 
