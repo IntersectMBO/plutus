@@ -1,4 +1,20 @@
 
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-11-25
+
+## Added
+
+- `PlutusLedgerApi.V1.withCurrencySymbol`
+
+## Changed
+
+- 'txInfoMint' function now returns 'MintValue' instead of 'Value' for minted values. This change
+addresses problem described in the issue #5781.
+
+- Changed data-backed version of the API to use `PlutusTx.Data.List`.
+
+- Re-organize `PlutusLedgerApi.V1` exports: expose more bindings.
+
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 
