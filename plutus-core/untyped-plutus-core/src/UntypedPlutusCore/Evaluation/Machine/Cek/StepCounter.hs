@@ -91,12 +91,12 @@ itraverseCounter_ f (StepCounter arr) = do
   -- are done with the frozen version. That ordering is enforced by the fact that
   -- the whole thing runs in 'm': future accesses to the mutable array can't
   -- happen until this whole function is finished.
-  arr' <- P.unsafeFreezePrimArray arr
   let
     sz = fromIntegral $ natVal (Proxy @n)
     go !i
       | i < sz = do
-          f i (P.indexPrimArray arr' i)
+          x <- P.readPrimArray arr i
+          f i x
           go (i+1)
       | otherwise = pure ()
   go 0
