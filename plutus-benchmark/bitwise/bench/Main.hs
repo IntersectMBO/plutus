@@ -12,8 +12,8 @@ import PlutusTx.Code (getPlcNoAnn, unsafeApplyCode)
 
 main :: IO ()
 main = defaultMain [
-  bench "Ed25519" . benchProgramCek mkMostRecentEvalCtx . getPlcNoAnn $
-    checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
+  -- bench "Ed25519" . benchProgramCek mkMostRecentEvalCtx . getPlcNoAnn $
+  --   checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
   bench "8-queens" . benchProgramCek mkMostRecentEvalCtx . getPlcNoAnn $
     nqueensCompiled `unsafeApplyCode` dimAsData
   ]
