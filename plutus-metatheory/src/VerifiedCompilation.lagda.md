@@ -197,14 +197,24 @@ open import Relation.Nullary using (Reflects)
 open import Data.Bool.Base using (Bool)
 open import Class.Show.Core
 open import Agda.Primitive using (Level)
+open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
+open import Relation.Binary.Core using (REL)
 
 variable
   l : Level
+  l' : Level
+  l'' : Level
   A : Set l
+  B : Set l'
+  X : Set
 
 instance 
   Show-Neg : Show (A → ⊥)
   Show-Neg = ?
+
+instance
+  Show-Pointwise : {xs : L.List A} {ys : L.List B} {r : REL A B l''} {{ _ : Show A }} → Show (Pointwise r xs ys)
+  Show-Pointwise = ?
 
 unquoteDecl
     Show-Dec
