@@ -98,8 +98,8 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
-  isInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UIL.Inline ast ast' → Transformation inlineT ast ast'
-  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.CaseReduce ast ast' → Transformation caseReduceT ast ast'
+  isIl : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UIL.Inline ast ast' → Transformation inlineT ast ast'
+  isCR : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.CaseReduce ast ast' → Transformation caseReduceT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
@@ -121,8 +121,12 @@ isTransformation? forceDelayT ast ast' with UFD.isForceDelay? ast ast'
 isTransformation? caseOfCaseT ast ast' with UCC.isCaseOfCase? ast ast'
 ... | no ¬p = no λ { (isCoC x) → ¬p x }
 ... | yes p = yes (isCoC p)
-isTransformation? caseReduceT ast ast' = yes caseReduceNotImplemented
-isTransformation? inlineT ast ast' = yes inlineNotImplemented
+isTransformation? caseReduceT ast ast' with UCR.isCaseReduce? ast ast'
+... | no ¬p = no λ { (isCR x) → ¬p x}
+... | yes p = yes (isCR p)
+isTransformation? inlineT ast ast' with UIL.isInline? ast ast'
+... | no ¬p = no λ { (isIl x) → ¬p x }
+... | yes p = yes (isIl p)
 isTransformation? cseT ast ast' with UCSE.isUntypedCSE? ast ast'
 ... | no ¬p = no λ { (isCSE x) → ¬p x }
 ... | yes p = yes (isCSE p)

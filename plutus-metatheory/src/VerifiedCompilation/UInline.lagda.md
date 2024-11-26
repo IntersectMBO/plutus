@@ -66,15 +66,20 @@ something has happened.
 
 ```
 
-data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set₁ where
-  var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
-  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Translation (Inline □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
-  sub : {x : (Maybe X) ⊢ } {y v v₁ : X ⊢} {e : Env} → Inline (e , v₁) (x [ v ]) y → Inline ((e , v₁) , v) (ƛ x) y
+Inline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
+data Il {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set₁ where
+  var : {x y z : X ⊢} {e : Env} → Il (e , x) z y → Il e (z · x) y
+  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Inline (x [ v ]) y → Il (□ , v) (ƛ x) y
+  sub : {x : (Maybe X) ⊢ } {y v v₁ : X ⊢} {e : Env} → Il (e , v₁) (x [ v ]) y → Il ((e , v₁) , v) (ƛ x) y
+
+Inline = Translation (Il □)
+
+
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Il □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = var (var (sub (last-sub reflexive)))
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
+_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
 
 _ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
 ```
@@ -82,15 +87,15 @@ _ = Translation.app (Translation.istranslation (var (last-sub reflexive))) refle
 ```
 --- TODO
 postulate
-  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Inline □ x y → pureInline x y
+  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Il □ x y → pureInline x y
 ```
 ## Decision Procedure
 
 ```
-isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □))
+isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Inline {X})
 
 {-# TERMINATING #-}
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline e)
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Il e)
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
 ...     | yes p = yes (var p)

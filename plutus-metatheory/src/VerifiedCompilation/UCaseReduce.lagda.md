@@ -40,29 +40,32 @@ iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
 iterApp x [] = x
 iterApp x (v ∷ vs) = iterApp (x · v) vs
 
-data CaseReduce : Relation where
+CaseReduce : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+data CR : Relation where
   casereduce : {X : Set} {{_ : DecEq X}} {x : X ⊢} { x' : X ⊢} {vs xs : List (X ⊢)} {i : ℕ}
                          → lookup? i xs ≡ just x
-                         → Translation CaseReduce (iterApp x vs) x'
-                         → CaseReduce (case (constr i vs) xs) x'
+                         → CaseReduce (iterApp x vs) x'
+                         → CR (case (constr i vs) xs) x'
+CaseReduce = Translation CR
+
 ```
 ## Decision Procedure
 
 ```
-isCaseReduce? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CaseReduce {X})
+isCaseReduce? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CaseReduce {X})
 
 justEq : {X : Set} {x x₁ : X} → (just x) ≡ (just x₁) → x ≡ x₁
 justEq refl = refl
 
 {-# TERMINATING #-}
-isCR? : {X : Set} {{_ : DecEq X}} → Binary.Decidable CaseReduce
+isCR? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (CR {X})
 isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
 ... | no ¬p = no λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _)) }
 ... | yes (iscase (isconstr i (allterms vs)) (allterms xs)) with lookup? i xs in xv
 ...          | nothing = no λ { (casereduce p _) → case trans (sym xv) p of λ { () } }
 ...          | just x with isCaseReduce? (iterApp x vs) ast'
 ...                  | yes p = yes (casereduce xv p)
-...                  | no ¬t = no λ { (casereduce p t) → ¬t (subst (λ x → Translation CaseReduce (iterApp x vs) ast') (justEq (trans (sym p) xv)) t)}
+...                  | no ¬t = no λ { (casereduce p t) → ¬t (subst ((λ x → CaseReduce (iterApp x vs) ast')) ((justEq (trans (sym p) xv))) t) }
 
 isCaseReduce? = translation? isCR?
 
@@ -95,7 +98,7 @@ ast₁ = (case (constr 0 [ (con-integer 99) ]) [ (` nothing) ])
 ast₁' : (Maybe ⊥) ⊢
 ast₁' = ((` nothing) · (con-integer 99))
 
-_ : CaseReduce ast₁ ast₁'
+_ : CR ast₁ ast₁'
 _ = casereduce refl reflexive
 
 ```
