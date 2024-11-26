@@ -101,15 +101,17 @@ data Transformation : SimplifierTag → Relation where
   isIl : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UIL.Inline ast ast' → Transformation inlineT ast ast'
   isCR : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.CaseReduce ast ast' → Transformation caseReduceT ast ast'
 
-data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
-  empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
+data TransformationTrace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × ℕ × (X ⊢) × (X ⊢)) → Set₁ where
+  empty : {X : Set}{{_ : DecEq X}} → TransformationTrace {X} []
   cons
     : {X : Set}{{_ : DecEq X}}
-    {tag : SimplifierTag} {x x' : X ⊢}
-    {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
+    (tag : SimplifierTag)
+    {x x' : X ⊢}
+    (n : ℕ)
+    {xs : List (SimplifierTag × ℕ × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
-    → Trace xs
-    → Trace ((tag , x , x') ∷ xs)
+    → TransformationTrace xs
+    → TransformationTrace ((tag , n , x , x') ∷ xs)
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
 isTransformation? floatDelayT ast ast' with UFlD.isFloatDelay? ast ast'
@@ -131,13 +133,13 @@ isTransformation? cseT ast ast' with UCSE.isUntypedCSE? ast ast'
 ... | no ¬p = no λ { (isCSE x) → ¬p x }
 ... | yes p = yes (isCSE p)
 
-isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
-isTrace? [] = yes empty
-isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
-... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
+isTransformationTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (TransformationTrace {X})
+isTransformationTrace? [] = yes empty
+isTransformationTrace? ((tag , n , x₁ , x₂) ∷ xs) with isTransformationTrace? xs
+... | no ¬pₜ = no λ {(cons tag n _ rest) → ¬pₜ rest}
 ... | yes pₜ with isTransformation? tag x₁ x₂
-...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-...                 | yes pₑ = yes (cons pₑ pₜ)
+...                 | no ¬pₑ = no λ {(cons _ _ x _) → ¬pₑ x}
+...                 | yes pₑ = yes (cons tag n pₑ pₜ)
 
 
 ```
@@ -166,28 +168,28 @@ postulate
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 
-buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
-buildPairs [] = []
-buildPairs (x ∷ []) = (x , x) ∷ []
-buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
+buildPairs : {X : Set} → ℕ → List (SimplifierTag × X) -> List (SimplifierTag × ℕ × X × X)
+buildPairs _ [] = []
+buildPairs n ((tag , x) ∷ []) = (tag , n , x , x) ∷ []
+buildPairs n ((tag , x₁) ∷ (tag₂ , x₂) ∷ xs) = (tag , n , x₁ , x₂) ∷ buildPairs (suc n) ((tag₂ , x₂) ∷ xs)
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × ℕ × A × A) → Either E (List (SimplifierTag × ℕ × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f ((tag , before , after) ∷ xs) with f before
+traverseEitherList f ((tag , n , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
 ... | inj₂ b with f after
 ... | inj₁ e = inj₁ e
 ... | inj₂ a with traverseEitherList f xs
 ... | inj₁ e = inj₁ e
-... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
+... | inj₂ xs' = inj₂ (((tag , n , b , a)) ∷ xs')
 
-data Proof : Set₁ where
-  proof
-    : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
-    → Dec (Trace {X} result)
-    → Proof
+data Certificate : Set₁ where
+  cert
+    : {X : Set} {result : List (SimplifierTag × ℕ × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
+    → (Dec (TransformationTrace {X} result))
+    → Certificate
 
-runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
-runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
+runCertifier : List (SimplifierTag × Untyped) → Maybe Certificate
+runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) (buildPairs 0 rawInput)
 ... | inj₁ _ = nothing
-... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
+... | inj₂ inputTrace = just (cert (isTransformationTrace? inputTrace))
