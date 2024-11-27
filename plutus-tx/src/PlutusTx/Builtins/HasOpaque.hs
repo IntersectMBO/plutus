@@ -25,6 +25,7 @@ import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381
 
 import Codec.Serialise (Serialise)
 import Data.ByteArray qualified as BA
+import Data.ByteString.Base16 qualified as Base16
 import Data.Hashable (Hashable (..))
 import Data.Kind qualified as GHC
 import Data.String (IsString (..))
@@ -101,6 +102,34 @@ instance IsString BuiltinByteStringUtf8 where
 stringToBuiltinByteStringUtf8 :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteStringUtf8 str = BuiltinByteString (Text.encodeUtf8 (Text.pack str))
 {-# OPAQUE stringToBuiltinByteStringUtf8 #-}
+
+newtype BuiltinByteStringHex = BuiltinByteStringHex
+  { unBuiltinByteStringHex :: BuiltinByteString
+  }
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Haskell.Semigroup
+    , Haskell.Monoid
+    , Hashable
+    , Serialise
+    , NFData
+    , BA.ByteArrayAccess
+    , BA.ByteArray
+    , Pretty
+    )
+
+instance IsString BuiltinByteStringHex where
+  fromString s = BuiltinByteStringHex (stringToBuiltinByteStringHex s)
+  {-# INLINE fromString #-}
+
+-- plutus-tx-plugin has a special case for this function,
+-- replacing its unfolding with something else.
+stringToBuiltinByteStringHex :: Haskell.String -> BuiltinByteString
+stringToBuiltinByteStringHex str =
+  BuiltinByteString (Base16.decodeLenient (fromString str))
+{-# OPAQUE stringToBuiltinByteStringHex #-}
 
 {- Note [Built-in types and their Haskell counterparts]
 'HasToBuiltin' allows us to convert a value of a built-in type such as 'ByteString' to its Plutus

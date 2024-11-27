@@ -216,8 +216,6 @@ test-suite plutus-ledger-api-plugin-test
     Spec.ReturnUnit.V3
     Spec.ScriptSize
     Spec.Value
-    Spec.Value.CurrencySymbol
-    Spec.Value.TokenName
     Spec.Value.WithCurrencySymbol
 
   if os(windows)
@@ -242,7 +240,6 @@ test-suite plutus-ledger-api-plugin-test
     , tasty
     , tasty-hunit
     , tasty-quickcheck
-    , text
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.

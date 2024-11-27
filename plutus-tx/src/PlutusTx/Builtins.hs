@@ -25,6 +25,7 @@ module PlutusTx.Builtins (
                          , verifyEcdsaSecp256k1Signature
                          , verifySchnorrSecp256k1Signature
                          , decodeUtf8
+                         , BuiltinByteStringHex (..)
                          , BuiltinByteStringUtf8 (..)
                          -- * Integer builtins
                          , Integer

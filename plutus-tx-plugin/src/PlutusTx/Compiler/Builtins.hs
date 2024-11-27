@@ -162,6 +162,7 @@ mkBuiltin = PIR.Builtin annMayInline
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
+    , ''Builtins.BuiltinByteStringHex
     , ''Builtins.BuiltinByteStringUtf8
     , 'Builtins.appendByteString
     , 'Builtins.consByteString
@@ -180,6 +181,7 @@ builtinNames = [
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
     , 'Builtins.stringToBuiltinByteString
+    , 'Builtins.stringToBuiltinByteStringHex
     , 'Builtins.stringToBuiltinByteStringUtf8
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature

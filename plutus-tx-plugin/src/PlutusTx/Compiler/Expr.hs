@@ -75,6 +75,7 @@ import Control.Monad
 import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
+import Data.ByteString.Base16 qualified as Base16
 import Data.Generics.Uniplate.Data (transform, universeBi)
 import Data.List (elemIndex, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
@@ -135,16 +136,10 @@ compileLiteral = \case
   GHC.LitNullAddr -> throwPlain $ UnsupportedError "Literal null"
   GHC.LitRubbish{} -> throwPlain $ UnsupportedError "Literal rubbish"
 
--- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
--- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
--- through it.
-
-data EncodingAction = UndoUtf8 | PreserveUtf8
-
 -- | Get the bytestring content of a string expression, if possible.
 -- Follows (Haskell) variable references!
-stringLiteralBytes :: EncodingAction -> GHC.CoreExpr -> Maybe BS.ByteString
-stringLiteralBytes encodingAction coreExpr = case coreExpr of
+tryStringLiteralAsBytes :: GHC.CoreExpr -> Maybe BS.ByteString
+tryStringLiteralAsBytes coreExpr = case coreExpr of
   GHC.Lit (GHC.LitString bytes) ->
     Just bytes
   GHC.Var isUnpackCString `GHC.App` GHC.Lit (GHC.LitString bytes)
@@ -152,16 +147,11 @@ stringLiteralBytes encodingAction coreExpr = case coreExpr of
         Just bytes
   GHC.Var isUnpackCStringUtf8 `GHC.App` GHC.Lit (GHC.LitString bytes)
     | GHC.getName isUnpackCStringUtf8 == GHC.unpackCStringUtf8Name ->
-    case encodingAction of
-      PreserveUtf8 -> Just bytes
-      UndoUtf8 ->
-        -- GHC stores bytestring literals UTF-8 encoded, decoding them at runtime.
-        -- In Plinth we decode such bytestrings in compile-time.
-        BS.pack <$> fromUtf8 (BS.unpack bytes)
+        Just bytes
   -- See Note [unpackFoldrCString#]
   GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
     | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName ->
-      stringLiteralBytes encodingAction expr
+      tryStringLiteralAsBytes expr
   -- GHC helpfully generates an empty list for the empty string literal instead of a 'LitString'
   GHC.Var nil `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc)
     | nil == GHC.dataConWorkId GHC.nilDataCon, GHC.getName tc == GHC.charTyConName ->
@@ -169,7 +159,7 @@ stringLiteralBytes encodingAction coreExpr = case coreExpr of
   -- Chase variable references! GHC likes to lift string constants to variables,
   -- that is not good for us!
   GHC.Var (GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) ->
-    stringLiteralBytes encodingAction unfolding
+    tryStringLiteralAsBytes unfolding
   _ -> Nothing
 
 -- | Given a GHC Core expression representing a string literal
@@ -178,44 +168,61 @@ stringLiteralAsBytes
   :: Compiling uni fun m ann
   => GHC.Name
   -- ^ is used for error reporting.
-  -> EncodingAction
-  -- ^ Either preserve or undo UTF-8 encoding done by GHC.
   -> GHC.CoreExpr
   -- ^ The expression to extract the ByteString from.
   -> m BS.ByteString
-stringLiteralAsBytes name encodingAction coreExpr =
-  case stringLiteralBytes encodingAction coreExpr of
+stringLiteralAsBytes name coreExpr =
+  case tryStringLiteralAsBytes coreExpr of
     Just bytes -> pure bytes
     Nothing    -> throwSd CompilationError $
       "Use of fromString @"
         GHC.<+> GHC.ppr name
-        GHC.<+> " with inscrutable content: "
+        GHC.<+> "with inscrutable content: "
         GHC.<+> GHC.ppr coreExpr
 
 -- | Given a GHC Core expression representing a string literal
 -- extracts UTF-8 encoded ByteString from it and decodes it as Text
 stringLiteralAsText :: Compiling uni fun m ann => GHC.Name -> GHC.CoreExpr -> m T.Text
 stringLiteralAsText name coreExpr = do
-  bytes <- stringLiteralAsBytes name PreserveUtf8 coreExpr
+  bytes <- stringLiteralAsBytes name coreExpr
   case TE.decodeUtf8' bytes of
     Right txt -> pure txt
     Left err -> throwSd CompilationError $
       "Invalid UTF-8 in string literal:"
       GHC.<+> GHC.text (displayException err)
 
-{- | Decoding that undoes GHC's UTF-8 encoding of bytestring literals:
+{- | Tries to recover original bytes from a UTF-8 encoded bytestring literal.
 
 This isn't a full UTF-8 decoder: it only decodes the subset of UTF-8 that
 is expected to be found in bytestring literals: 0x00 - 0xFF
+
+If 'ByteString' contains a codepoint that is not in this range, the function will throw an error.
 -}
-fromUtf8 :: [Word8] -> Maybe [Word8]
-fromUtf8 = \case
-  [] -> Just []
-  192 : 128 : rest -> (0x00 :) <$> fromUtf8 rest
-  194 : b : rest | b > 127 && b < 192 -> (b :) <$> fromUtf8 rest
-  195 : b : rest | b > 127 && b < 192 -> ((b + 64) :) <$> fromUtf8 rest
-  b : rest | b > 0 && b < 128 -> (b :) <$> fromUtf8 rest
-  _ -> Nothing
+utf8CodePointsAsBytes :: Compiling uni fun m ann => BS.ByteString -> m BS.ByteString
+utf8CodePointsAsBytes bs =
+  case gracefullyDecodeUtf8Bytes (BS.unpack bs) of
+    Just bytes -> pure $ BS.pack bytes
+    Nothing -> throwPlain . CompilationError $
+      "ByteString literal is expected to contain only codepoints in the range 0 - 255 (0x00 - 0xFF)"
+  where
+    {-
+    Why not use 'Data.Text.Encoding'?
+    1. Some bytes never appear in UTF-8 encoded text (0xC0, 0xC1, 0xF5-0xFF).
+    2. GHC Core could contain such bytes in bytestring literals,
+       e.g. "\0\1" is stored as "\192\128\SOH".
+    3. The UTF-8 parser from 'Data.Text.Encoding' chokes on these bytes:
+        ghci> TE.decodeUtf8 "\192\128\SOH"
+        *** Exception: Cannot decode byte '\xc0': Data.Text.Encoding: Invalid UTF-8 stream
+    4. In the custom parsing logic below we can handle these bytes:
+    -}
+    gracefullyDecodeUtf8Bytes :: [Word8] -> Maybe [Word8]
+    gracefullyDecodeUtf8Bytes = \case
+      [] -> Just []
+      192 : 128 : rest -> (0x00 :) <$> gracefullyDecodeUtf8Bytes rest
+      194 : b : rest | b > 127 && b < 192 -> (b :) <$> gracefullyDecodeUtf8Bytes rest
+      195 : b : rest | b > 127 && b < 192 -> ((b + 64) :) <$> gracefullyDecodeUtf8Bytes rest
+      b : rest | b > 0 && b < 128 -> (b :) <$> gracefullyDecodeUtf8Bytes rest
+      _ -> Nothing
 
 {- | Strip off irrelevant things when we're trying to match a particular pattern in the code. Mostly ticks.
 We only need to do this as part of a complex pattern match: if we're just compiling the expression
@@ -766,8 +773,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   stringToBuiltinStringName <- lookupGhcName 'Builtins.stringToBuiltinString
   builtinByteStringTyName <- lookupGhcName ''Builtins.BuiltinByteString
   stringToBuiltinByteStringName <- lookupGhcName 'Builtins.stringToBuiltinByteString
+  builtinByteStringHexTyName <- lookupGhcName ''Builtins.BuiltinByteStringHex
   builtinByteStringUtf8TyName <- lookupGhcName ''Builtins.BuiltinByteStringUtf8
   stringToBuiltinByteStringUtf8Name <- lookupGhcName 'Builtins.stringToBuiltinByteStringUtf8
+  stringToBuiltinByteStringHexName <- lookupGhcName 'Builtins.stringToBuiltinByteStringHex
   useToOpaqueName <- lookupGhcName 'Builtins.useToOpaque
   useFromOpaqueName <- lookupGhcName 'Builtins.useFromOpaque
   mkNilOpaqueName <- lookupGhcName 'Builtins.mkNilOpaque
@@ -795,29 +804,36 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- we won't accept any applications of fromString that aren't creating literals of
     -- the types we support.
     (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls))
-      `GHC.App` GHC.Type ty `GHC.App` _dict `GHC.App` content
+      `GHC.App` GHC.Type ty `GHC.App` _dict `GHC.App` (strip -> content)
       | GHC.getName cls == GHC.isStringClassName -> do
           let throwUnsupported =
                 throwSd UnsupportedError $ ""
                   GHC.$$ "Use of fromString is only supported for the following types:"
                   GHC.$$ "-" GHC.<+> GHC.ppr stringTyName
                   GHC.$$ "-" GHC.<+> GHC.ppr builtinByteStringTyName
+                  GHC.$$ "-" GHC.<+> GHC.ppr builtinByteStringHexTyName
                   GHC.$$ "-" GHC.<+> GHC.ppr builtinByteStringUtf8TyName
                   GHC.$$ ""
                   GHC.$$ "Using fromString for" GHC.<+> GHC.ppr ty GHC.<+> "is not supported."
           case GHC.tyConAppTyCon_maybe ty of -- extract Type constructor without arguments
             -- BuiltinByteString
-            Just tyCtor | GHC.getName tyCtor == builtinByteStringTyName ->
-              PIR.Constant annMayInline . PLC.someValue
-                <$> stringLiteralAsBytes builtinByteStringTyName UndoUtf8 (strip content)
+            Just tyCtor | GHC.getName tyCtor == builtinByteStringTyName -> do
+              bytes <- stringLiteralAsBytes builtinByteStringTyName content
+              PIR.Constant annMayInline . PLC.someValue <$> utf8CodePointsAsBytes bytes
             -- BuiltinByteStringUtf8
             Just tyCtor | GHC.getName tyCtor == builtinByteStringUtf8TyName ->
               PIR.Constant annMayInline . PLC.someValue
-                <$> stringLiteralAsBytes builtinByteStringUtf8TyName PreserveUtf8 (strip content)
+                <$> stringLiteralAsBytes builtinByteStringUtf8TyName content
+            -- BuiltinByteStringHex
+            Just tyCtor | GHC.getName tyCtor == builtinByteStringHexTyName -> do
+              hexBytes <- stringLiteralAsBytes builtinByteStringHexTyName content
+              case Base16.decode hexBytes of
+                Left err -> throwSd UnsupportedError $ "Invalid hex encoding:" GHC.<+> GHC.text err
+                Right bs -> pure $ PIR.Constant annMayInline $ PLC.someValue bs
             -- BuiltinString
             Just tyCtor | GHC.getName tyCtor == stringTyName ->
               PIR.Constant annMayInline . PLC.someValue
-                <$> stringLiteralAsText stringTyName (strip content)
+                <$> stringLiteralAsText stringTyName content
             -- For other unsupported types we have to fail compilation here,
             -- because it won't succeed anyway:
             -- 'fromString' function contains 'Data.Char' type in its definition
@@ -825,16 +841,24 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
             _ -> throwUnsupported
 
     -- 'stringToBuiltinByteString' invocation
-    (strip -> GHC.Var n) `GHC.App` (strip -> arg)
-      | GHC.getName n == stringToBuiltinByteStringName ->
-      PIR.Constant annMayInline . PLC.someValue
-        <$> stringLiteralAsBytes builtinByteStringTyName UndoUtf8 arg
+    (strip -> GHC.Var n) `GHC.App` (strip -> content)
+      | GHC.getName n == stringToBuiltinByteStringName -> do
+          bytes <- stringLiteralAsBytes builtinByteStringTyName content
+          PIR.Constant annMayInline . PLC.someValue <$> utf8CodePointsAsBytes bytes
 
     -- 'stringToBuiltinByteStringUtf8' invocation
-    (strip -> GHC.Var n) `GHC.App` (strip -> arg)
+    (strip -> GHC.Var n) `GHC.App` (strip -> content)
       | GHC.getName n == stringToBuiltinByteStringUtf8Name ->
       PIR.Constant annMayInline . PLC.someValue
-        <$> stringLiteralAsBytes builtinByteStringTyName PreserveUtf8 arg
+        <$> stringLiteralAsBytes builtinByteStringTyName content
+
+    -- 'stringToBuiltinByteStringHex' invocation
+    (strip -> GHC.Var n) `GHC.App` (strip -> content)
+      | GHC.getName n == stringToBuiltinByteStringHexName -> do
+        hexBytes <- stringLiteralAsBytes builtinByteStringHexTyName content
+        case Base16.decode hexBytes of
+          Left err -> throwSd UnsupportedError $ "Invalid hex encoding:" GHC.<+> GHC.text err
+          Right bs -> pure $ PIR.Constant annMayInline $ PLC.someValue bs
 
     -- 'stringToBuiltinString' invocation
     (strip -> GHC.Var n) `GHC.App` (strip -> arg)
