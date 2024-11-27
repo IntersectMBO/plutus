@@ -1,0 +1,304 @@
+[root@plutus-benchmark:~/plutus (dev-shell)]# for i in {1..10}; do     taskset -c 0 cabal bench plutus-benchmark:validation       --benchmark-options="--c
+sv bench-validation-auction_1-1.csv --regress cpuTime:cycles --regress numGcs
+:iters --regress cycles:time --regress allocated:iters --regress cycles:iters
+ +RTS -T -RTS auction_1-1" | tee bench-validation-auction_1-1.txt;  done
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.6 μs   (239.3 μs .. 239.9 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 247.3 μs   (240.5 μs .. 264.0 μs)
+std dev              41.64 μs   (3.935 μs .. 75.79 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.777e-10)
+  y                  -5.118e-4  (-1.222e-3 .. -4.943e-5)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.571 .. -0.450)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1849.152   (1779.348 .. 1913.621)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.701 .. 721104.224)
+  y                  3107.783   (2812.750 .. 3461.391)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              861079.833 (859862.741 .. 862095.236)
+  y                  2264051.341 (421774.556 .. 4652232.382)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 241.5 μs   (239.5 μs .. 243.5 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 248.8 μs   (242.6 μs .. 267.0 μs)
+std dev              43.62 μs   (23.92 μs .. 72.13 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.770e-10 .. 2.776e-10)
+  y                  -5.032e-4  (-1.057e-3 .. -1.072e-7)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.571 .. -0.452)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  16659.392  (1887.254 .. 48951.528)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.650 .. 721104.259)
+  y                  3107.783   (2813.810 .. 3468.386)
+cycles:              1.000 R²   (0.999 R² .. 1.000 R²)
+  iters              867739.193 (860468.250 .. 873926.587)
+  y                  -844452.440 (-3654086.725 .. 2536860.420)
+variance introduced by outliers: 94% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 240.1 μs   (239.8 μs .. 240.4 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 246.9 μs   (240.0 μs .. 264.0 μs)
+std dev              41.67 μs   (364.5 ns .. 74.59 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.077e-4  (-1.111e-3 .. -4.720e-5)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.570 .. -0.448)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1918.637   (1853.273 .. 1982.959)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.681 .. 721104.256)
+  y                  3107.783   (2798.911 .. 3467.203)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              862852.161 (861584.060 .. 863706.181)
+  y                  1495287.282 (-259078.824 .. 3768360.358)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 240.0 μs   (239.7 μs .. 240.2 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 246.9 μs   (240.1 μs .. 267.7 μs)
+std dev              40.89 μs   (337.3 ns .. 78.76 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.057e-4  (-1.207e-3 .. -3.728e-5)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.568 .. -0.451)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.592e9 .. 3.593e9)
+  y                  153635.299 (1701.796 .. 469154.999)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.683 .. 721104.247)
+  y                  3107.783   (2793.967 .. 3444.226)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              862306.129 (860938.944 .. 863182.683)
+  y                  1813896.019 (3114.819 .. 4641770.887)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.5 μs   (239.1 μs .. 239.7 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 248.8 μs   (242.4 μs .. 263.2 μs)
+std dev              44.18 μs   (22.40 μs .. 70.64 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.078e-4  (-1.102e-3 .. -2.639e-6)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.567 .. -0.443)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1892.204   (1829.286 .. 1951.232)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.657 .. 721104.285)
+  y                  3107.783   (2800.749 .. 3478.154)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              860535.899 (859337.843 .. 861453.596)
+  y                  1953735.207 (25449.106 .. 4399512.845)
+variance introduced by outliers: 94% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 240.3 μs   (239.9 μs .. 240.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 249.1 μs   (243.0 μs .. 267.1 μs)
+std dev              43.48 μs   (23.60 μs .. 72.70 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.770e-10 .. 2.776e-10)
+  y                  -5.053e-4  (-1.174e-3 .. -3.123e-6)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.573 .. -0.454)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1948.367   (1880.348 .. 2018.178)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.687 .. 721104.273)
+  y                  3107.783   (2769.068 .. 3451.632)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              863287.006 (861946.671 .. 864194.937)
+  y                  1680153.384 (-221321.309 .. 4179520.569)
+variance introduced by outliers: 94% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.4 μs   (239.1 μs .. 239.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 246.4 μs   (239.7 μs .. 263.0 μs)
+std dev              40.48 μs   (169.7 ns .. 71.62 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.089e-4  (-1.114e-3 .. -5.581e-5)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.567 .. -0.449)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  2009.529   (1905.483 .. 2146.265)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.681 .. 721104.253)
+  y                  3107.783   (2777.539 .. 3457.639)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              860150.857 (859065.472 .. 861004.986)
+  y                  1973222.408 (225215.679 .. 4252645.808)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.8 μs   (239.5 μs .. 240.1 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 246.7 μs   (240.0 μs .. 263.5 μs)
+std dev              39.71 μs   (291.9 ns .. 72.00 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.057e-4  (-1.155e-3 .. -6.011e-6)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.574 .. -0.452)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1544.815   (929.186 .. 1903.418)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.685 .. 721104.239)
+  y                  3107.783   (2781.341 .. 3450.816)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              861709.322 (860441.345 .. 862636.793)
+  y                  1913122.911 (3997.252 .. 4385948.307)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.3 μs   (238.9 μs .. 239.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 245.7 μs   (239.2 μs .. 259.0 μs)
+std dev              39.09 μs   (281.1 ns .. 66.23 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.100e-4  (-1.146e-3 .. -5.190e-6)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.570 .. -0.456)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1897.246   (1832.053 .. 1952.113)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.689 .. 721104.257)
+  y                  3107.783   (2790.152 .. 3430.115)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              859687.421 (858355.280 .. 860513.222)
+  y                  1505526.205 (-199026.642 .. 4007124.513)
+variance introduced by outliers: 92% (severely inflated)
+
+Benchmark validation: FINISH
+Build profile: -w ghc-9.6.6 -O1
+In order, the following will be built (use -v for more details):
+ - plutus-benchmark-0.1.0.0 (bench:validation) (ephemeral targets)
+Preprocessing benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Building benchmark 'validation' for plutus-benchmark-0.1.0.0...
+Running 1 benchmarks...
+Benchmark validation: RUNNING...
+benchmarking auction_1-1
+time                 239.6 μs   (239.2 μs .. 239.8 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 246.7 μs   (239.7 μs .. 261.1 μs)
+std dev              41.60 μs   (237.1 ns .. 75.80 μs)
+cpuTime:             1.000 R²   (1.000 R² .. 1.000 R²)
+  cycles             2.773e-10  (2.771e-10 .. 2.776e-10)
+  y                  -5.082e-4  (-1.134e-3 .. -4.193e-5)
+numGcs:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              0.173      (0.173 .. 0.173)
+  y                  -0.510     (-0.567 .. -0.450)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  time               3.593e9    (3.593e9 .. 3.593e9)
+  y                  1941.287   (1862.037 .. 2029.250)
+allocated:           1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              721103.940 (721103.694 .. 721104.248)
+  y                  3107.783   (2774.767 .. 3466.528)
+cycles:              1.000 R²   (1.000 R² .. 1.000 R²)
+  iters              860951.646 (859665.131 .. 861799.265)
+  y                  1763578.934 (-21242.027 .. 4328007.335)
+variance introduced by outliers: 93% (severely inflated)
+
+Benchmark validation: FINISH

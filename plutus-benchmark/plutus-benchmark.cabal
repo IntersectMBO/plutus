@@ -258,7 +258,7 @@ test-suite plutus-benchmark-lists-tests
 benchmark validation
   import:         lang, os-support
   type:           exitcode-stdio-1.0
-  main-is:        BenchCek.hs
+  main-is:        BenchCekNew.hs
   hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
