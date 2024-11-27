@@ -193,3 +193,30 @@ runCertifier : List (SimplifierTag × Untyped) → Maybe Certificate
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) (buildPairs 0 rawInput)
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (cert (isTransformationTrace? inputTrace))
+
+postulate
+  show : {X : Set} → (x : X) → String
+  show₁ : {X : Set₁} → (x : X) → String
+
+proofTypeString : SimplifierTag → String
+proofTypeString floatDelayT = "UFlD.FloatDelay"
+proofTypeString forceDelayT = "UFD.ForceDelay"
+proofTypeString caseOfCaseT = "UCoC.CaseOfCase"
+proofTypeString caseReduceT = "UCR.CaseReduce"
+proofTypeString inlineT = "UIL.Inline"
+proofTypeString cseT = "UCSE.UntypedCSE"
+
+makeLemmasInner : {X : Set} {result : List (SimplifierTag × ℕ × (X ⊢) × (X ⊢))} {{_ : DecEq X}} → TransformationTrace result → List String
+makeLemmasInner empty = []
+makeLemmasInner (cons tag n p t) =
+                    let name = (show tag) ++ "_" ++ (show n) in
+                      (( name ++ " : " ++ (proofTypeString tag) ++ " ast" ++ (show n) ++ " ast" ++ (show (suc n)) ++
+                      "\n" ++ name ++ " = " ++ (show₁ p)) ∷ (makeLemmasInner t))
+
+makeLemmas : Certificate → List String
+makeLemmas (cert (yes t)) = makeLemmasInner t
+makeLemmas (cert (no ¬p)) = ("Failed" ∷ [])
+
+makeASTs : {X : Set} → List (SimplifierTag × ℕ × (X ⊢) × (X ⊢)) → List String
+makeASTs [] = []
+makeASTs ((_ , n , term , _) ∷ as) = ( ("ast" ++ (show n) ++ " = " ++ (show term)) ∷ (makeASTs as))
