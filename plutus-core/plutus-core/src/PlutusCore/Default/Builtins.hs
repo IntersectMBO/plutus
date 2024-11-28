@@ -1233,7 +1233,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE costingFun #-}
             consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
-                    consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                    consByteStringDenotation n = BS.cons (fromIntegral n)
                     -- Earlier instructions say never to use `fromIntegral` in the definition of a
                     -- builtin; however in this case it reduces its argument modulo 256 to get a
                     -- `Word8`, which is exactly what we want.
@@ -1447,7 +1447,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Pairs
     toBuiltinMeaning _semvar FstPair =
         let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
-            fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+            fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
                 case uniPairAB of
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
                     _                     ->
@@ -1460,7 +1460,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar SndPair =
         let sndPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val b)
-            sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+            sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
                 case uniPairAB of
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
                     _                     ->
@@ -1474,7 +1474,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Lists
     toBuiltinMeaning _semvar ChooseList =
         let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
-            chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
+            chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b =
                 case uniListA of
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
@@ -1487,12 +1487,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
 
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val (LastArg a b)
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) = do
+              (SomeConstant (Some (ValueOf uniListA xs))) =
                 -- See Note [Structural vs operational errors within builtins].
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
@@ -1507,8 +1526,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar HeadList =
         let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
-            headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Structural vs operational errors within builtins].
+            headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList uniA -> case xs of
                         []    -> fail "Expected a non-empty list but got an empty one"
@@ -1521,10 +1539,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar TailList =
         let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-            tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Structural vs operational errors within builtins].
+            tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _ -> case xs of
+                    DefaultUniList _argUni ->
+                      case xs of
                         []      -> fail "Expected a non-empty list but got an empty one"
                         _ : xs' -> pure $ fromValueOf uniListA xs'
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
@@ -1535,12 +1553,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar NullList =
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
-            nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
+            nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _ -> pure $ null xs
-                    _                ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                    DefaultUniList _argUni -> pure $ null xs
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -1948,8 +1964,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> ListCostedByLength Integer
               -> Bool
               -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength ixs) bit =
-               Bitwise.writeBits s ixs bit
+            writeBitsDenotation s (ListCostedByLength ixs) = Bitwise.writeBits s ixs
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
@@ -1957,7 +1972,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
-            replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
+            replicateByteDenotation (NumBytesCostedAsNumWords n) = Bitwise.replicateByte n
             {-# INLINE replicateByteDenotation #-}
         in makeBuiltinMeaning
             replicateByteDenotation
