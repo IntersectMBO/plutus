@@ -70,8 +70,16 @@ data UplcEvaluator =
   -- there.
   | UplcEvaluatorWithCosting (CostModelParams -> UplcEvaluatorFun (UplcProg, ExBudget))
 
--- | Walk a file tree, making test groups for directories with subdirectories,
--- and test cases for directories without.
+{- | Walk a file tree, making test groups for directories with subdirectories, and
+   test cases for directories without.  We expect every test directory to
+   contain a single `.uplc` file whose name matches that of the directory. For
+   example, the directory `modInteger-15` should contain `modInteger-15.uplc`,
+   and that file should contain a textual UPLC program.  The directory should
+   also contain golden files `modInteger-15.uplc.expected`, containing the
+   expected output of the program, and `modInteger-15.uplc.budget.expected`,
+   containing the expected execution budget, although these will be created by
+   the testing machinery if they aren't already present.
+-}
 discoverTests
   :: UplcEvaluator -- ^ The evaluator to be tested.
   -> CostModelParams
@@ -97,8 +105,9 @@ discoverTests eval modelParams evaluationFailureExpected budgetFailureExpected =
       if null subdirs
          -- no children, this is a test case directory
         then do
-          -- Check that the  directory <name> contains exactly one .uplc file
-          -- and that it's called <name>.uplc
+          -- Check that the  directory <dir> contains exactly one .uplc file
+          -- and that it's called <name>.uplc, where <name> is the final path
+          -- component of <dir>.
           uplcFiles <- findByExtension [".uplc"] dir
           let expectedInputFile = takeFileName dir <.> ".uplc"
               inputFilePath =
@@ -161,7 +170,8 @@ expectedToProg txt
         Left _  -> Left txt
         Right p -> Right $ void p
 
--- | Get the tested value. The tested value is either the shown parse or evaluation error,
+-- | Get the tested value from a file (in this case a textual UPLC source
+-- file). The tested value is either the shown parse error or evaluation error,
 -- or a `UplcProg`.
 getTestedValue ::
     UplcEvaluatorFun res
