@@ -43,7 +43,6 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Pair qualified as PLC
 
 import GHC.Plugins qualified as GHC
-import GHC.Types.TyThing qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
@@ -300,7 +299,7 @@ builtinNames = [
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm ann name term = do
-    ghcId <- GHC.tyThingId <$> getThing name
+    ghcId <- lookupGhcId name
     var <- compileVarFresh ann ghcId
     binfo <- asks ccBuiltinsInfo
     -- See Note [Builtin terms and values]
@@ -311,7 +310,7 @@ defineBuiltinTerm ann name term = do
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: forall uni fun m ann. Compiling uni fun m ann => TH.Name -> PIRType uni -> m ()
 defineBuiltinType name ty = do
-    tc <- GHC.tyThingTyCon <$> getThing name
+    tc <- lookupGhcTyCon name
     var <- compileTcTyVarFresh tc
     PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) mempty
     -- these are all aliases for now
@@ -613,7 +612,7 @@ defineBuiltinTypes = do
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
-    ghcName <- GHC.getName <$> getThing name
+    ghcName <- lookupGhcName name
     maybeTerm <- PIR.lookupTerm annMayInline (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
@@ -622,7 +621,7 @@ lookupBuiltinTerm name = do
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
 lookupBuiltinType :: Compiling uni fun m ann => TH.Name -> m (PIRType uni)
 lookupBuiltinType name = do
-    ghcName <- GHC.getName <$> getThing name
+    ghcName <- lookupGhcName name
     maybeType <- PIR.lookupType annMayInline (LexName ghcName)
     case maybeType of
         Just t  -> pure t

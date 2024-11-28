@@ -17,23 +17,23 @@ import Prelude (($!))
 
 ---------------- Folding over Scott lists ----------------
 
-{-# INLINABLE foldLeftScott #-}
 foldLeftScott :: (b -> a -> b) -> b -> [a] -> b
 foldLeftScott _ z []     = z
 foldLeftScott f z (x:xs) = foldLeftScott f (f z x) xs
+{-# INLINABLE foldLeftScott #-}
 
-{-# INLINABLE sumLeftScott #-}
 sumLeftScott :: [Integer] -> Integer
 sumLeftScott l = foldLeftScott (+) 0 l
+{-# INLINABLE sumLeftScott #-}
 
-{-# INLINABLE foldRightScott #-}
 foldRightScott :: (a -> b -> b) -> b -> [a] -> b
 foldRightScott _ z []     = z
 foldRightScott f z (x:xs) = f x $! (foldRightScott f z xs)
+{-# INLINABLE foldRightScott #-}
 
-{-# INLINABLE sumRightScott #-}
 sumRightScott :: [Integer] -> Integer
 sumRightScott l = foldRightScott (+) 0 l
+{-# INLINABLE sumRightScott #-}
 
 -- Compiling to PLC terms
 
@@ -51,21 +51,21 @@ mkSumRightScottTerm l = compiledCodeToTerm $ mkSumRightScottCode l
 
 ---------------- Folding over built-in lists ----------------
 
-{-# INLINABLE foldLeftBuiltin #-}
 foldLeftBuiltin :: (b -> a -> b) -> b -> BI.BuiltinList a -> b
 foldLeftBuiltin f z l = B.matchList' l z (\x xs -> (foldLeftBuiltin f (f z x) xs))
+{-# INLINABLE foldLeftBuiltin #-}
 
-{-# INLINABLE sumLeftBuiltin #-}
 sumLeftBuiltin :: BI.BuiltinList Integer -> Integer
 sumLeftBuiltin l = foldLeftBuiltin B.addInteger 0 l
+{-# INLINABLE sumLeftBuiltin #-}
 
-{-# INLINABLE foldRightBuiltin #-}
 foldRightBuiltin :: (a -> b -> b) -> b -> BI.BuiltinList a -> b
 foldRightBuiltin f z l = B.matchList' l z (\x xs -> f x $! (foldRightBuiltin f z xs))
+{-# INLINABLE foldRightBuiltin #-}
 
-{-# INLINABLE sumRightBuiltin #-}
 sumRightBuiltin :: BI.BuiltinList Integer -> Integer
 sumRightBuiltin l = foldRightBuiltin B.addInteger 0 l
+{-# INLINABLE sumRightBuiltin #-}
 
 -- Compiling to PLC terms
 
@@ -113,21 +113,21 @@ matchDataList l nilCase consCase =
       else if tag == 1 then B.matchList values error (\h t -> consCase h (BI.head t))
       else error ()
 
-{-# INLINABLE foldLeftData #-}
 foldLeftData :: (b -> BuiltinData -> b) -> b -> DataList -> b
 foldLeftData f z l = matchDataList l z (\x xs -> (foldLeftData f (f z x) xs))
+{-# INLINABLE foldLeftData #-}
 
-{-# INLINABLE sumLeftData #-}
 sumLeftData :: DataList -> Integer
 sumLeftData l = foldLeftData (\acc d -> B.addInteger acc (BI.unsafeDataAsI d)) 0 l
+{-# INLINABLE sumLeftData #-}
 
-{-# INLINABLE foldRightData #-}
 foldRightData :: (BuiltinData -> b -> b) -> b -> DataList -> b
 foldRightData f z l = matchDataList l z (\x xs -> f x $! (foldRightData f z xs))
+{-# INLINABLE foldRightData #-}
 
-{-# INLINABLE sumRightData #-}
 sumRightData :: DataList -> Integer
 sumRightData l = foldRightData (\d acc -> B.addInteger (BI.unsafeDataAsI d) acc) 0 l
+{-# INLINABLE sumRightData #-}
 
 -- Compiling to PLC terms
 

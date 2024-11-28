@@ -11,7 +11,6 @@ import PlutusTx.Prelude
 -- For simplicity, this only accepts multiples of 8 for the dimension (so 8, 16,
 -- 24, etc): in all other cases it will return an empty list. Results are (row,
 -- column) pairs.
-{-# INLINE nqueens #-}
 nqueens :: Integer -> [(Integer, Integer)]
 nqueens dim
   | dim < 8 = []
@@ -60,10 +59,10 @@ nqueens dim
                           next -> (row, available) : next
     lastRow :: Integer
     lastRow = dim - 1
+{-# INLINE nqueens #-}
 
 -- Helpers
 
-{-# INLINE selectByteString #-}
 selectByteString :: Integer -> BuiltinByteString -> Integer
 selectByteString which bs
   | which <= 0 = findFirstSetBit bs
@@ -71,7 +70,8 @@ selectByteString which bs
       in if i == (-1)
          then (-1)
          else i + 1 + findFirstSetBit (shiftByteString bs $ negate (i + 1))
+{-# INLINE selectByteString #-}
 
-{-# INLINE writeBit #-}
 writeBit :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString
 writeBit bs i b = writeBits bs [i] b
+{-# INLINE writeBit #-}

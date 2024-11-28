@@ -74,21 +74,21 @@ instance Hashable Element where
     hashWithSalt salt = hashWithSalt salt . compress
 
 -- | Add two G1 group elements
-{-# INLINE add #-}
 add :: Element -> Element -> Element
 add = coerce (BlstBindings.blsAddOrDouble @BlstBindings.Curve1)
+{-# INLINE add #-}
 
 -- | Negate a G1 group element
-{-# INLINE neg #-}
 neg :: Element -> Element
 neg = coerce (BlstBindings.blsNeg @BlstBindings.Curve1)
+{-# INLINE neg #-}
 
 -- | Multiplication of group elements by scalars. In the blst library the
 -- arguments are the other way round, but scalars acting on the left is more
 -- consistent with standard mathematical practice.
-{-# INLINE scalarMul #-}
 scalarMul :: Integer -> Element -> Element
 scalarMul = coerce $ flip (BlstBindings.blsMult @BlstBindings.Curve1)
+{-# INLINE scalarMul #-}
 
 {- | Compress a G1 element to a bytestring. This serialises a curve point to its
  x coordinate only.  The compressed bytestring is 48 bytes long, with three
@@ -97,9 +97,9 @@ scalarMul = coerce $ flip (BlstBindings.blsMult @BlstBindings.Curve1)
  point is the point at infinity. See
  https://github.com/supranational/blst#serialization-format
 -}
-{-# INLINE compress #-}
 compress :: Element -> ByteString
 compress = coerce (BlstBindings.blsCompress @BlstBindings.Curve1)
+{-# INLINE compress #-}
 
 {- | Uncompress a bytestring to get a G1 point.  This will fail if any of the
    following are true.
@@ -110,9 +110,9 @@ compress = coerce (BlstBindings.blsCompress @BlstBindings.Curve1)
      * The bytestring does represent a point on the E1 curve, but the
        point is not in the G1 subgroup.
 -}
-{-# INLINE uncompress #-}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = coerce (BlstBindings.blsUncompress @BlstBindings.Curve1)
+{-# INLINE uncompress #-}
 
 {-  Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
    bytestring and hash it to obtain an element in the relevant group, as
@@ -152,9 +152,9 @@ offchain_zero = coerce (BlstBindings.Internal.blsZero @BlstBindings.Curve1)
 
 -- | The zero element of G1 compressed into a bytestring.  This is provided for
 -- convenience in PlutusTx and is not exported as a builtin.
-{-# INLINABLE compressed_zero #-}
 compressed_zero :: ByteString
 compressed_zero = compress $ coerce (BlstBindings.Internal.blsZero @BlstBindings.Curve1)
+{-# INLINABLE compressed_zero #-}
 
 -- | The standard generator of G1 compressed into a bytestring.  This is
 -- provided for convenience in PlutusTx and is not exported as a builtin.

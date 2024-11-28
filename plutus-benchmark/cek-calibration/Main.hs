@@ -34,31 +34,31 @@ import Criterion.Types qualified as C
 
 type PlainTerm = UPLC.Term Name DefaultUni DefaultFun ()
 
-{-# INLINABLE rev #-}
 rev :: [()] -> [()]
 rev l0 = rev' l0 []
     where rev' l acc =
               case l of
                 []   -> acc
                 x:xs -> rev' xs (x:acc)
+{-# INLINABLE rev #-}
 
-{-# INLINABLE mkList #-}
 mkList :: Integer -> [()]
 mkList m = mkList' m []
     where mkList' n acc =
               if n == 0 then acc
               else mkList' (n-1) (():acc)
+{-# INLINABLE mkList #-}
 
-{-# INLINABLE zipl #-}
 zipl :: [()] -> [()] -> [()]
 zipl [] []         = []
 zipl l []          = l
 zipl [] l          = l
 zipl (x:xs) (y:ys) = x:y:(zipl xs ys)
+{-# INLINABLE zipl #-}
 
-{-# INLINABLE go #-}
 go :: Integer -> [()]
 go n = zipl (mkList n) (rev $ mkList n)
+{-# INLINABLE go #-}
 
 
 mkListProg :: Integer -> UPLC.Program NamedDeBruijn DefaultUni DefaultFun ()

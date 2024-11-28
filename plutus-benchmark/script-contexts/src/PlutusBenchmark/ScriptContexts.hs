@@ -61,7 +61,6 @@ mkValue i = assetClassValue (assetClass adaSymbol adaToken) (fromIntegral i)
 -- does some work that's roughly proportional to the size of the script context (counting the
 -- outputs). This should be a somewhat realistic example where a reasonable chunk of work is
 -- done in addition to decoding.
-{-# INLINABLE checkScriptContext1 #-}
 checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
@@ -72,6 +71,7 @@ checkScriptContext1 d =
   if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
+{-# INLINABLE checkScriptContext1 #-}
 
 mkCheckScriptContext1Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext1Code sc =
@@ -84,7 +84,6 @@ mkCheckScriptContext1Code sc =
 -- This example aims to *force* the decoding of the script context and then ignore it entirely.
 -- This corresponds to the unfortunate case where the decoding "wrapper" around a script forces
 -- all the decoding work to be done even if it isn't used.
-{-# INLINABLE checkScriptContext2 #-}
 checkScriptContext2 :: PlutusTx.BuiltinData -> ()
 checkScriptContext2 d =
   let (sc :: ScriptContext) = PlutusTx.unsafeFromBuiltinData d
@@ -96,6 +95,7 @@ checkScriptContext2 d =
       if 48 PlutusTx.* 9900 PlutusTx.== (475200 :: Integer)
       then ()
       else PlutusTx.traceError "Got my sums wrong"
+{-# INLINABLE checkScriptContext2 #-}
 
 mkCheckScriptContext2Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext2Code sc =
@@ -119,13 +119,13 @@ for comparison.
 -- This example checks the script context for equality (with itself) when encoded as `Data`.
 -- That means it just takes a single builtin call, which is fast (so long as the builtin is
 -- costed cheaply).
-{-# INLINABLE scriptContextEqualityData #-}
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
   then ()
   else PlutusTx.traceError "The argument is not equal to itself"
+{-# INLINABLE scriptContextEqualityData #-}
 
 mkScriptContextEqualityDataCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityDataCode sc =
@@ -136,9 +136,9 @@ mkScriptContextEqualityDataCode sc =
 
 -- This example is just the overhead from the previous two
 -- See Note [Redundant arguments to equality benchmarks]
-{-# INLINABLE scriptContextEqualityOverhead #-}
 scriptContextEqualityOverhead :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityOverhead _ _ = ()
+{-# INLINABLE scriptContextEqualityOverhead #-}
 
 mkScriptContextEqualityOverheadCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityOverheadCode sc =

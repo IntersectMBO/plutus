@@ -36,7 +36,6 @@ validateParam (ConstitutionConfig cfg) (B.unsafeDataAsI -> actualPid, actualValu
       (lookupUnsafe actualPid cfg)
       actualValueData
 
-{-# INLINEABLE lookupUnsafe #-}
 -- | An unsafe version of PlutusTx.AssocMap.lookup, specialised to Integer keys
 lookupUnsafe :: Integer -> [(Integer, v)] -> v
 lookupUnsafe k = go
@@ -45,6 +44,7 @@ lookupUnsafe k = go
    go ((k', i) : xs') = if k `B.equalsInteger` k'
                         then i
                         else go xs'
+{-# INLINEABLE lookupUnsafe #-}
 
 -- | Statically configure the validator with the `defaultConstitutionConfig`.
 defaultConstitutionValidator :: ConstitutionValidator

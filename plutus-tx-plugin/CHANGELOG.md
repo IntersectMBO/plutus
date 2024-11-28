@@ -1,4 +1,11 @@
 
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-11-25
+
+## Changed
+
+- `BuiltinByteString` literals changed to avoid UTF8 encoding and now can represent bytes in the range 0-255 directly, e.g. `"\x00\x01\x02" :: BuiltinByteString` or `stringToBuiltinByteString "\0\42\255"`.
+
 <a id='changelog-1.34.0.0'></a>
 # 1.34.0.0 — 2024-09-09
 
