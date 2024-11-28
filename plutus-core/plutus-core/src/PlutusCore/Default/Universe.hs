@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 -- on 9.2.4 this is the flag that suppresses the above warning
 {-# OPTIONS -Wno-missing-signatures #-}
@@ -21,7 +20,6 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -41,27 +39,27 @@ module PlutusCore.Default.Universe
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
+import PlutusCore.Builtin
 import PlutusPrelude
 
-import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data
+import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..))
-import PlutusCore.Pretty.Extra
+import PlutusCore.Pretty.Extra (juxtRenderContext)
 
 import Data.ByteString (ByteString)
-import Data.Int
-import Data.Proxy
+import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
-import Data.Word
+import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
-import Text.PrettyBy.Fixity
+import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
 import Universe as Export
 
 {- Note [PLC types and universes]
