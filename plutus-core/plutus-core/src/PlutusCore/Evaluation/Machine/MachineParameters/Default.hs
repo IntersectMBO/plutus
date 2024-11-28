@@ -71,7 +71,7 @@ mkMachineParametersFor semVars newCMP = do
             applyCostModelParams (cekCostModelForVariant semVar) newCMP
     -- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves
     -- us from doing that in every single benchmark runner.
-    pure $! force res
+    pure res
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
 -- the line.
