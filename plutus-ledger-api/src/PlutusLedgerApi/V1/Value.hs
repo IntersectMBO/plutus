@@ -67,7 +67,6 @@ import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data (Data, Typeable)
 import Data.Function ((&))
-import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
@@ -114,9 +113,7 @@ newtype CurrencySymbol = CurrencySymbol {unCurrencySymbol :: PlutusTx.BuiltinByt
     , PlutusTx.UnsafeFromData
     )
   deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
+    ( -- | using hex encoding
       Haskell.Show
     , -- | using hex encoding
       Pretty
@@ -129,10 +126,10 @@ instance HasBlueprintSchema CurrencySymbol referencedTypes where
     & withSchemaInfo \info ->
       info { title = Just "CurrencySymbol" }
 
-{-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.
 currencySymbol :: BS.ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
+{-# INLINABLE currencySymbol #-}
 
 {- | ByteString of a name of a token.
 Shown as UTF-8 string when possible.
@@ -157,23 +154,16 @@ newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow TokenName)
 
--- | UTF-8 encoding. Doesn't verify length.
-instance IsString TokenName where
-    fromString = fromText . Text.pack
-
 instance HasBlueprintSchema TokenName referencedTypes where
   {-# INLINABLE schema #-}
   schema = schema @PlutusTx.BuiltinByteString
     & withSchemaInfo \info ->
       info { title = Just "TokenName" }
 
-{-# INLINABLE tokenName #-}
 -- | Creates `TokenName` from raw `BS.ByteString`.
 tokenName :: BS.ByteString -> TokenName
 tokenName = TokenName . PlutusTx.toBuiltin
-
-fromText :: Text -> TokenName
-fromText = tokenName . E.encodeUtf8
+{-# INLINABLE tokenName #-}
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
 fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
@@ -196,15 +186,15 @@ toString = Text.unpack . fromTokenName asBase16 id
 instance Haskell.Show TokenName where
     show = Text.unpack . fromTokenName asBase16 quoted
 
-{-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol
 adaSymbol = CurrencySymbol emptyByteString
+{-# INLINABLE adaSymbol #-}
 
-{-# INLINABLE adaToken #-}
 -- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
 adaToken = TokenName emptyByteString
+{-# INLINABLE adaToken #-}
 
 -- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
 newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
@@ -223,7 +213,7 @@ newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
   deriving (Pretty) via (PrettyShow (CurrencySymbol, TokenName))
 
 instance HasBlueprintSchema AssetClass referencedTypes where
-  {-# INLINEABLE schema #-}
+  {-# INLINABLE schema #-}
   schema =
     SchemaBuiltInPair emptySchemaInfo $
       MkPairSchema
@@ -231,10 +221,10 @@ instance HasBlueprintSchema AssetClass referencedTypes where
         , right = schema @TokenName
         }
 
-{-# INLINABLE assetClass #-}
 -- | The curried version of 'AssetClass' constructor
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
+{-# INLINABLE assetClass #-}
 
 {- Note [Value vs value]
 We call two completely different things "values": the 'Value' type and a value within a key-value
@@ -346,7 +336,6 @@ instance MeetSemiLattice Value where
     {-# INLINABLE (/\) #-}
     (/\) = unionWith Ord.min
 
-{-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.
 -- Assumes that the underlying map doesn't contain duplicate keys.
 valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
@@ -355,8 +344,7 @@ valueOf value cur tn =
     case Map.lookup tn tokens of
       Nothing -> 0
       Just v  -> v
-
-{-# INLINEABLE withCurrencySymbol #-}
+{-# INLINABLE valueOf #-}
 
 {- | Apply a continuation function to the token quantities of the given currency
 symbol in the value or return a default value if the currency symbol is not present
@@ -367,8 +355,7 @@ withCurrencySymbol currency value def k =
   case Map.lookup currency (getValue value) of
     Nothing              -> def
     Just tokenQuantities -> k tokenQuantities
-
-{-# INLINEABLE currencySymbolValueOf #-}
+{-# INLINABLE withCurrencySymbol #-}
 
 {- | Get the total value of the currency symbol in the 'Value' map.
 Assumes that the underlying map doesn't contain duplicate keys.
@@ -381,38 +368,38 @@ currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
   -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
   -- the latter materializes the intermediate result of `Map.elems tokens`.
   PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+{-# INLINABLE currencySymbolValueOf #-}
 
-{-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
 symbols :: Value -> [CurrencySymbol]
 symbols (Value mp) = Map.keys mp
+{-# INLINABLE symbols #-}
 
-{-# INLINABLE singleton #-}
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
+{-# INLINABLE singleton #-}
 
-{-# INLINABLE lovelaceValue #-}
 -- | A 'Value' containing the given quantity of Lovelace.
 lovelaceValue :: Lovelace -> Value
 lovelaceValue = singleton adaSymbol adaToken . getLovelace
+{-# INLINABLE lovelaceValue #-}
 
-{-# INLINABLE lovelaceValueOf #-}
 -- | Get the quantity of Lovelace in the 'Value'.
 lovelaceValueOf :: Value -> Lovelace
 lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
+{-# INLINABLE lovelaceValueOf #-}
 
-{-# INLINABLE assetClassValue #-}
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value
 assetClassValue (AssetClass (c, t)) = singleton c t
+{-# INLINABLE assetClassValue #-}
 
-{-# INLINABLE assetClassValueOf #-}
 -- | Get the quantity of the given 'AssetClass' class in the 'Value'.
 assetClassValueOf :: Value -> AssetClass -> Integer
 assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
+{-# INLINABLE assetClassValueOf #-}
 
-{-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps, assumes the well-definedness of the two maps.
 unionVal :: Value -> Value -> Map CurrencySymbol (Map TokenName (These Integer Integer))
 unionVal (Value l) (Value r) =
@@ -423,8 +410,8 @@ unionVal (Value l) (Value r) =
             That b    -> That <$> b
             These a b -> Map.union a b
     in unThese <$> combined
+{-# INLINABLE unionVal #-}
 
-{-# INLINABLE unionWith #-}
 -- | Combine two 'Value' maps with the argument function.
 -- Assumes the well-definedness of the two maps.
 unionWith :: (Integer -> Integer -> Integer) -> Value -> Value -> Value
@@ -436,8 +423,8 @@ unionWith f ls rs =
             That b    -> f 0 b
             These a b -> f a b
     in Value (fmap (fmap unThese) combined)
+{-# INLINABLE unionWith #-}
 
-{-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
 -- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 -- @flattenValue v1 == flattenValue v2@.
@@ -452,15 +439,15 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
     goInner cs acc ((tn, a) : tl)
         | a /= 0    = goInner cs ((cs, tn, a) : acc) tl
         | otherwise = goInner cs acc tl
+{-# INLINABLE flattenValue #-}
 
 -- Num operations
 
-{-# INLINABLE isZero #-}
 -- | Check whether a 'Value' is zero.
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
+{-# INLINABLE isZero #-}
 
-{-# INLINABLE checkPred #-}
 -- | Checks whether a predicate holds for all the values in a 'Value'
 -- union. Assumes the well-definedness of the two underlying 'Map's.
 checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
@@ -470,8 +457,8 @@ checkPred f l r =
       inner = Map.all f
     in
       Map.all inner (unionVal l r)
+{-# INLINABLE checkPred #-}
 
-{-# INLINABLE checkBinRel #-}
 -- | Check whether a binary relation holds for value pairs of two 'Value' maps,
 --   supplying 0 where a key is only present in one of them.
 checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
@@ -482,32 +469,33 @@ checkBinRel f l r =
             That b    -> f 0 b
             These a b -> f a b
     in checkPred unThese l r
+{-# INLINABLE checkBinRel #-}
 
-{-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel (>=)
+{-# INLINABLE geq #-}
 
-{-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
 -- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel (<=)
+{-# INLINABLE leq #-}
 
-{-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another.
 -- This is *not* a pointwise operation. @gt l r@ means @geq l r && not (eq l r)@.
 gt :: Value -> Value -> Bool
 gt l r = geq l r && not (eq l r)
+{-# INLINABLE gt #-}
 
-{-# INLINABLE lt #-}
 -- | Check whether one 'Value' is strictly less than another.
 -- This is *not* a pointwise operation. @lt l r@ means @leq l r && not (eq l r)@.
 lt :: Value -> Value -> Bool
 lt l r = leq l r && not (eq l r)
+{-# INLINABLE lt #-}
 
 -- | Split a 'Value' into its positive and negative parts. The first element of
 --   the tuple contains the negative parts of the 'Value', the second element
@@ -515,7 +503,6 @@ lt l r = leq l r && not (eq l r)
 --
 --   @negate (fst (split a)) `plus` (snd (split a)) == a@
 --
-{-# INLINABLE split #-}
 split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
@@ -523,8 +510,8 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map TokenName Integer -> These (Map TokenName Integer) (Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+{-# INLINABLE split #-}
 
-{-# INLINABLE unordEqWith #-}
 {- | Check equality of two lists of distinct key-value pairs, each value being uniquely
 identified by a key, given a function checking whether a 'Value' is zero and a function
 checking equality of values. Note that the caller must ensure that the two lists are
@@ -591,21 +578,22 @@ unordEqWith is0 eqV = goBoth where
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
                 | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
                 | otherwise = goRight (kvR : acc) kvsR'
+{-# INLINABLE unordEqWith #-}
 
-{-# INLINABLE eqMapWith #-}
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
 -- checking equality of values.
 eqMapWith ::
     forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map k v -> Map k v -> Bool
 eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
+{-# INLINABLE eqMapWith #-}
 
-{-# INLINABLE eq #-}
 -- | Check equality of two 'Value's. Does not assume orderness of lists within a 'Value' or a lack
 -- of empty values (such as a token whose quantity is zero or a currency that has a bunch of such
 -- tokens or no tokens at all), but does assume that no currencies or tokens within a single
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
+{-# INLINABLE eq #-}
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic, Typeable)

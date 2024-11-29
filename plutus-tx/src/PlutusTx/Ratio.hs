@@ -193,7 +193,6 @@ instance FromJSON Rational where
 --
 -- If given a zero denominator, this function will error. If you don't mind a
 -- size increase, and care about safety, use 'ratio' instead.
-{-# INLINABLE unsafeRatio #-}
 unsafeRatio :: Integer -> Integer -> Rational
 unsafeRatio n d
   | d P.== P.zero = P.traceError P.ratioHasZeroDenominatorError
@@ -202,10 +201,10 @@ unsafeRatio n d
     let gcd' = euclid n d
      in Rational (n `Builtins.quotientInteger` gcd')
                  (d `Builtins.quotientInteger` gcd')
+{-# INLINABLE unsafeRatio #-}
 
 -- | Safely constructs a 'Rational' from a numerator and a denominator. Returns
 -- 'Nothing' if given a zero denominator.
-{-# INLINABLE ratio #-}
 ratio :: Integer -> Integer -> P.Maybe Rational
 ratio n d
   | d P.== P.zero = P.Nothing
@@ -215,6 +214,7 @@ ratio n d
      in P.Just P.$
           Rational (n `Builtins.quotientInteger` gcd')
                    (d `Builtins.quotientInteger` gcd')
+{-# INLINABLE ratio #-}
 
 -- | Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
 -- work on-chain.
@@ -228,9 +228,9 @@ toGHC (Rational n d) = n Ratio.% d
 -- It is /not/ true in general that @'numerator' '<$>' 'ratio' x y = x@; this
 -- will only hold if @x@ and @y@ are coprime. This is due to 'Rational'
 -- normalizing the numerator and denominator.
-{-# INLINABLE numerator #-}
 numerator :: Rational -> Integer
 numerator (Rational n _) = n
+{-# INLINABLE numerator #-}
 
 -- | Returns the denominator of its argument. This will always be greater than,
 -- or equal to, 1, although the type does not describe this.
@@ -240,19 +240,19 @@ numerator (Rational n _) = n
 -- It is /not/ true in general that @'denominator' '<$>' 'ratio' x y = y@; this
 -- will only hold if @x@ and @y@ are coprime. This is due to 'Rational'
 -- normalizing the numerator and denominator.
-{-# INLINABLE denominator #-}
 denominator :: Rational -> Integer
 denominator (Rational _ d) = d
+{-# INLINABLE denominator #-}
 
 -- | 0.5
-{-# INLINABLE half #-}
 half :: Rational
 half = Rational 1 2
+{-# INLINABLE half #-}
 
 -- | Converts an 'Integer' into the equivalent 'Rational'.
-{-# INLINABLE fromInteger #-}
 fromInteger :: Integer -> Rational
 fromInteger num = Rational num P.one
+{-# INLINABLE fromInteger #-}
 
 -- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
 fromGHC :: Ratio.Rational -> Rational
@@ -264,9 +264,9 @@ fromGHC r = unsafeRatio (Ratio.numerator r) (Ratio.denominator r)
 --
 -- This is specialized for 'Rational'; use this instead of the generic version
 -- of this function, as it is significantly smaller on-chain.
-{-# INLINABLE negate #-}
 negate :: Rational -> Rational
 negate (Rational n d) = Rational (P.negate n) d
+{-# INLINABLE negate #-}
 
 -- | Returns the absolute value of its argument.
 --
@@ -275,11 +275,11 @@ negate (Rational n d) = Rational (P.negate n) d
 -- This is specialized for 'Rational'; use this instead of the generic version
 -- in @PlutusTx.Numeric@, as said generic version produces much larger on-chain
 -- code than the specialized version here.
-{-# INLINABLE abs #-}
 abs :: Rational -> Rational
 abs rat@(Rational n d)
   | n P.< P.zero = Rational (P.negate n) d
   | P.True = rat
+{-# INLINABLE abs #-}
 
 -- | @'properFraction' r@ returns the pair @(n, f)@, such that all of the
 -- following hold:
@@ -287,11 +287,11 @@ abs rat@(Rational n d)
 -- * @'fromInteger' n 'P.+' f = r@;
 -- * @n@ and @f@ both have the same sign as @r@; and
 -- * @'abs' f 'P.<' 'P.one'@.
-{-# INLINABLE properFraction #-}
 properFraction :: Rational -> (Integer, Rational)
 properFraction (Rational n d) =
   (n `Builtins.quotientInteger` d,
    Rational (n `Builtins.remainderInteger` d) d)
+{-# INLINABLE properFraction #-}
 
 -- | Gives the reciprocal of the argument; specifically, for @r 'P./='
 -- 'P.zero'@, @r 'P.*' 'recip' r = 'P.one'@.
@@ -300,23 +300,22 @@ properFraction (Rational n d) =
 --
 -- The reciprocal of zero is mathematically undefined; thus, @'recip' 'P.zero'@
 -- will error. Use with care.
-{-# INLINABLE recip #-}
 recip :: Rational -> Rational
 recip (Rational n d)
   | n P.== P.zero = P.traceError P.reciprocalOfZeroError
   | n P.< P.zero = Rational (P.negate d) (P.negate n)
   | P.True = Rational d n
+{-# INLINABLE recip #-}
 
 -- | Returns the whole-number part of its argument, dropping any leftover
 -- fractional part. More precisely, @'truncate' r = n@ where @(n, _) =
 -- 'properFraction' r@, but is much more efficient.
-{-# INLINABLE truncate #-}
 truncate :: Rational -> Integer
 truncate (Rational n d) = n `Builtins.quotientInteger` d
+{-# INLINABLE truncate #-}
 
 -- | @'round' r@ returns the nearest 'Integer' value to @r@. If @r@ is
 -- equidistant between two values, the even value will be given.
-{-# INLINABLE round #-}
 round :: Rational -> Integer
 round x =
   let (n, r) = properFraction x
@@ -328,26 +327,27 @@ round x =
                                 then n
                                 else m
           | P.True -> m
+{-# INLINABLE round #-}
 
 -- From GHC.Real
 -- | @'gcd' x y@ is the non-negative factor of both @x@ and @y@ of which
 -- every common factor of @x@ and @y@ is also a factor; for example
 -- @'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@.
-{-# INLINABLE gcd #-}
 gcd :: Integer -> Integer -> Integer
 gcd a b = gcd' (P.abs a) (P.abs b) where
     gcd' a' b'
         | b' P.== P.zero = a'
         | P.True         = gcd' b' (a' `Builtins.remainderInteger` b')
+{-# INLINABLE gcd #-}
 
 -- Helpers
 
 -- Euclid's algorithm
-{-# INLINABLE euclid #-}
 euclid :: Integer -> Integer -> Integer
 euclid x y
   | y P.== P.zero = x
   | P.True = euclid y (x `Builtins.modInteger` y)
+{-# INLINABLE euclid #-}
 
 $(makeLift ''Rational)
 

@@ -131,10 +131,10 @@ data RAList a = BHead
 instance Eq a => Eq (RAList a) where
     l == l' = toList l == toList l'
 
-{-# INLINABLE null #-}
 null :: RAList a -> Bool
 null Nil = True
 null _   = False
+{-# INLINABLE null #-}
 
 {-# complete Cons, Nil #-}
 {-# complete BHead, Nil #-}
@@ -154,14 +154,14 @@ consValues x l = case l of
     ts -> BHead 1 (Leaf x) ts
 
 -- O(1) worst-case
-{-# INLINE cons #-}
 cons :: a -> RAList a -> RAList a
 cons x = consValues (One x)
+{-# INLINE cons #-}
 
 -- O(1) worst-case
-{-# INLINE consSlab #-}
 consSlab :: NEV.NonEmptyVector a -> RAList a -> RAList a
 consSlab x = consValues (Many x)
+{-# INLINE consSlab #-}
 
 -- /O(1)/
 -- 'uncons' is a bit funny: if we uncons a vector of values

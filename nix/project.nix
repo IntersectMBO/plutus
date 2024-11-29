@@ -64,9 +64,9 @@ let
             plutus-metatheory.components.tests.test-NEAT.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
 
             plutus-executables.components.exes.uplc.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
-            plutus-executables.components.exes.uplc.postInstall = ''
-              wrapProgram $out/bin/uplc ${repoRoot.nix.agda.wrap-program-args}
-            '';
+            # plutus-executables.components.exes.uplc.postInstall = ''
+            #   wrapProgram $out/bin/uplc ${repoRoot.nix.agda.wrap-program-args}
+            # '';
 
             plutus-executables.components.tests.test-simple.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
             plutus-executables.components.tests.test-detailed.build-tools = [ repoRoot.nix.agda.agda-with-stdlib ];
@@ -132,7 +132,6 @@ let
             #plutus-metatheory.package.ghcOptions = "-Werror";
             plutus-tx.ghcOptions = [ "-Werror" ];
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-            prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           };
         })
       ];

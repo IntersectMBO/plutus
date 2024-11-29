@@ -65,6 +65,7 @@ module PlutusTx.Prelude (
     indexByteString,
     emptyByteString,
     decodeUtf8,
+    BuiltinByteStringUtf8 (..),
     Builtins.andByteString,
     Builtins.orByteString,
     Builtins.xorByteString,
@@ -134,9 +135,9 @@ import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
 import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinData, BuiltinString,
-                          Integer, appendByteString, appendString, blake2b_224, blake2b_256,
-                          bls12_381_G1_add, bls12_381_G1_compress,
+                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinByteStringUtf8 (..),
+                          BuiltinData, BuiltinString, Integer, appendByteString, appendString,
+                          blake2b_224, blake2b_256, bls12_381_G1_add, bls12_381_G1_compress,
                           bls12_381_G1_compressed_generator, bls12_381_G1_compressed_zero,
                           bls12_381_G1_equals, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
                           bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G2_add,
@@ -186,12 +187,11 @@ import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 --     import PlutusTx.Prelude
 -- @
 
-{-# INLINABLE check #-}
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> BI.BuiltinUnit
 check b = if b then BI.unitval else traceError checkHasFailedError
+{-# INLINABLE check #-}
 
-{-# INLINABLE divide #-}
 -- | Integer division, rounding downwards
 --
 --   >>> divide (-41) 5
@@ -199,8 +199,8 @@ check b = if b then BI.unitval else traceError checkHasFailedError
 --
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
+{-# INLINABLE divide #-}
 
-{-# INLINABLE modulo #-}
 -- | Integer remainder, always positive for a positive divisor
 --
 --   >>> modulo (-41) 5
@@ -208,24 +208,24 @@ divide = Builtins.divideInteger
 --
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
+{-# INLINABLE modulo #-}
 
 
-{-# INLINABLE expMod #-}
 -- | FIXME
 expMod :: Integer -> Integer -> Integer -> Integer
 expMod = Builtins.expModInteger
+{-# INLINABLE expMod #-}
 
-{-# INLINABLE quotient #-}
 -- | Integer division, rouding towards zero
 --
 --   >>> quotient (-41) 5
 --   -8
 --
+{-# INLINABLE quotient #-}
 
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
 
-{-# INLINABLE remainder #-}
 -- | Integer remainder, same sign as dividend
 --
 --   >>> remainder (-41) 5
@@ -233,24 +233,25 @@ quotient = Builtins.quotientInteger
 --
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
+{-# INLINABLE remainder #-}
 
-{-# INLINABLE even #-}
 even :: Integer -> Bool
 even n = if modulo n 2 == 0 then True else False
+{-# INLINABLE even #-}
 
-{-# INLINABLE odd #-}
 odd :: Integer -> Bool
 odd n = if even n then False else True
+{-# INLINABLE odd #-}
 
-{-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 takeByteString n bs = Builtins.sliceByteString 0 n bs
+{-# INLINABLE takeByteString #-}
 
-{-# INLINABLE dropByteString #-}
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 dropByteString n bs = Builtins.sliceByteString n (Builtins.lengthOfByteString bs - n) bs
+{-# INLINABLE dropByteString #-}
 
 {- Note [-fno-full-laziness in Plutus Tx]
 GHC's full-laziness optimization moves computations inside a lambda that don't depend on

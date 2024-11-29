@@ -52,7 +52,6 @@ termUniques f = \case
     Var ann n      -> theUnique f n <&> Var ann
     x              -> pure x
 
-{-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
 termSubterms :: Traversal' (Term name uni fun ann) (Term name uni fun ann)
 termSubterms f = \case
@@ -66,6 +65,7 @@ termSubterms f = \case
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
     b@Builtin {}      -> pure b
+{-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
 termConstantsDeep :: Fold (Term name uni fun ann) (Some (ValueOf uni))

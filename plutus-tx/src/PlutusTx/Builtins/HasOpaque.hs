@@ -6,21 +6,32 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
-
-{-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# LANGUAGE DerivingStrategies       #-}
 
 module PlutusTx.Builtins.HasOpaque where
 
+import Control.DeepSeq (NFData (..))
+import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Base (id, ($))
 import PlutusTx.Bool (Bool (..))
-import PlutusTx.Builtins.Internal
+import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
+                                   BuiltinBLS12_381_MlResult, BuiltinBool, BuiltinByteString (..),
+                                   BuiltinData, BuiltinInteger, BuiltinList (..), BuiltinPair,
+                                   BuiltinString (..), BuiltinUnit, caseList', chooseUnit, false,
+                                   fst, ifThenElse, mkCons, mkPairData, snd, true, unitval)
 
+import Codec.Serialise (Serialise)
+import Data.ByteArray qualified as BA
+import Data.ByteString.Base16 qualified as Base16
+import Data.Hashable (Hashable (..))
 import Data.Kind qualified as GHC
 import Data.String (IsString (..))
 import Data.Text qualified as Text
-import Prelude qualified as Haskell (String)
+import Data.Text.Encoding qualified as Text
+import Prelude qualified as Haskell
 #if MIN_VERSION_base(4,20,0)
 import Prelude (type (~))
 #endif
@@ -38,18 +49,87 @@ stringToBuiltinString str = BuiltinString (Text.pack str)
 {-# OPAQUE stringToBuiltinString #-}
 
 instance IsString BuiltinByteString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinByteString'
-    fromString = stringToBuiltinByteString
-    {-# INLINE fromString #-}
+  -- Try and make sure the dictionary selector goes away, it's simpler to match on
+  -- the application of 'stringToBuiltinByteString'
+  fromString = stringToBuiltinByteString
+  {-# INLINE fromString #-}
 
 -- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
 -- the unfoldings from going in. So we just stick it here. Fiddly.
 instance IsString BuiltinString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinString'
-    fromString = stringToBuiltinString
-    {-# INLINE fromString #-}
+  -- Try and make sure the dictionary selector goes away, it's simpler to match on
+  -- the application of 'stringToBuiltinString'
+  fromString = stringToBuiltinString
+  {-# INLINE fromString #-}
+
+{- Note [IsString instances and UTF-8 encoded string literals]
+
+GHC Core encodes string literals in UTF-8 by default.
+Plugin handles GHC Core expressions representing such literals specially:
+in compile type it undoes the UTF-8 encoding when string literal is used to construct
+a value of type 'BuiltinByteString' and preserves the UTF-8 encoding to construct 'BuiltinString'.
+
+Sometimes we need to construct 'BuiltinByteString' values preserving the UTF-8 encoding, e.g. when
+constructing a 'TokenName' value from a 'BuiltinByteString' value. In such cases we can use
+'BuiltinByteStringUtf8' newtype:
+
+  TokenName (unBuiltinByteStringUtf8 "привет")
+
+-}
+newtype BuiltinByteStringUtf8 = BuiltinByteStringUtf8
+  { unBuiltinByteStringUtf8 :: BuiltinByteString
+  }
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Haskell.Semigroup
+    , Haskell.Monoid
+    , Hashable
+    , Serialise
+    , NFData
+    , BA.ByteArrayAccess
+    , BA.ByteArray
+    , Pretty
+    )
+
+instance IsString BuiltinByteStringUtf8 where
+  fromString s = BuiltinByteStringUtf8 (stringToBuiltinByteStringUtf8 s)
+  {-# INLINE fromString #-}
+
+-- plutus-tx-plugin has a special case for this function,
+-- replacing its unfolding with something else.
+stringToBuiltinByteStringUtf8 :: Haskell.String -> BuiltinByteString
+stringToBuiltinByteStringUtf8 str = BuiltinByteString (Text.encodeUtf8 (Text.pack str))
+{-# OPAQUE stringToBuiltinByteStringUtf8 #-}
+
+newtype BuiltinByteStringHex = BuiltinByteStringHex
+  { unBuiltinByteStringHex :: BuiltinByteString
+  }
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Haskell.Semigroup
+    , Haskell.Monoid
+    , Hashable
+    , Serialise
+    , NFData
+    , BA.ByteArrayAccess
+    , BA.ByteArray
+    , Pretty
+    )
+
+instance IsString BuiltinByteStringHex where
+  fromString s = BuiltinByteStringHex (stringToBuiltinByteStringHex s)
+  {-# INLINE fromString #-}
+
+-- plutus-tx-plugin has a special case for this function,
+-- replacing its unfolding with something else.
+stringToBuiltinByteStringHex :: Haskell.String -> BuiltinByteString
+stringToBuiltinByteStringHex str =
+  BuiltinByteString (Base16.decodeLenient (fromString str))
+{-# OPAQUE stringToBuiltinByteStringHex #-}
 
 {- Note [Built-in types and their Haskell counterparts]
 'HasToBuiltin' allows us to convert a value of a built-in type such as 'ByteString' to its Plutus
@@ -117,28 +197,32 @@ type application on a type variable. So fundeps are much nicer here.
 -- See Note [Built-in types and their Haskell counterparts].
 -- See Note [HasFromOpaque/HasToOpaque instances for polymorphic builtin types].
 -- See Note [Fundeps versus type families in HasFromOpaque/HasToOpaque].
--- | A class for converting values of transparent Haskell-defined built-in types (such as '()',
--- 'Bool', '[]' etc) to their opaque Plutus Tx counterparts. Instances for built-in types that are
--- not transparent are provided as well, simply as identities, since those types are already opaque.
+
+{-| A class for converting values of transparent Haskell-defined built-in types (such as '()',
+'Bool', '[]' etc) to their opaque Plutus Tx counterparts. Instances for built-in types that are
+not transparent are provided as well, simply as identities, since those types are already opaque.
+-}
 type HasToOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasToOpaque a arep | a -> arep where
-    toOpaque :: a -> arep
-    default toOpaque :: a ~ arep => a -> arep
-    toOpaque = id
-    {-# INLINABLE toOpaque #-}
+  toOpaque :: a -> arep
+  default toOpaque :: (a ~ arep) => a -> arep
+  toOpaque = id
+  {-# INLINEABLE toOpaque #-}
 
 -- See Note [Built-in types and their Haskell counterparts].
 -- See Note [HasFromOpaque/HasToOpaque instances for polymorphic builtin types].
 -- See Note [Fundeps versus type families in HasFromOpaque/HasToOpaque].
--- | A class for converting values of opaque Plutus Tx types to their transparent Haskell-defined
--- counterparts (a.k.a. pattern-matchable) built-in types (such as '()', 'Bool', '[]' etc). If no
--- transparent counterpart exists, then the implementation is identity.
+
+{-| A class for converting values of opaque Plutus Tx types to their transparent Haskell-defined
+counterparts (a.k.a. pattern-matchable) built-in types (such as '()', 'Bool', '[]' etc). If no
+transparent counterpart exists, then the implementation is identity.
+-}
 type HasFromOpaque :: GHC.Type -> GHC.Type -> GHC.Constraint
 class HasFromOpaque arep a | arep -> a where
-    fromOpaque :: arep -> a
-    default fromOpaque :: a ~ arep => arep -> a
-    fromOpaque = id
-    {-# INLINABLE fromOpaque #-}
+  fromOpaque :: arep -> a
+  default fromOpaque :: (a ~ arep) => arep -> a
+  fromOpaque = id
+  {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque BuiltinInteger BuiltinInteger
 instance HasFromOpaque BuiltinInteger BuiltinInteger
@@ -151,7 +235,7 @@ instance HasFromOpaque BuiltinString BuiltinString
 
 {- Note [Strict conversions to/from unit]
 Converting to/from unit *should* be straightforward: just `const ()`.
-*But* GHC is very good at optimizing this, and we sometimes use unit
+\*But* GHC is very good at optimizing this, and we sometimes use unit
 where side effects matter, e.g. as the result of `trace`. So GHC will
 tend to turn `fromOpaque (trace s)` into `()`, which is wrong.
 
@@ -162,59 +246,63 @@ case on unit (`chooseUnit`) as a builtin. But then it all works okay.
 
 -- See Note [Strict conversions to/from unit].
 instance HasToOpaque () BuiltinUnit where
-    toOpaque x = case x of () -> unitval
-    {-# INLINABLE toOpaque #-}
+  toOpaque x = case x of () -> unitval
+  {-# INLINEABLE toOpaque #-}
 instance HasFromOpaque BuiltinUnit () where
-    fromOpaque u = chooseUnit u ()
-    {-# INLINABLE fromOpaque #-}
+  fromOpaque u = chooseUnit u ()
+  {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque Bool BuiltinBool where
-    toOpaque b = if b then true else false
-    {-# INLINABLE toOpaque #-}
+  toOpaque b = if b then true else false
+  {-# INLINEABLE toOpaque #-}
 instance HasFromOpaque BuiltinBool Bool where
-    fromOpaque b = ifThenElse b True False
-    {-# INLINABLE fromOpaque #-}
+  fromOpaque b = ifThenElse b True False
+  {-# INLINEABLE fromOpaque #-}
 
--- | The empty list of elements of the given type that gets spotted by the plugin (grep for
--- 'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
--- are supported (a subset of built-in types).
+{-| The empty list of elements of the given type that gets spotted by the plugin (grep for
+'mkNilOpaque' in the plugin code) and replaced by the actual empty list constant for types that
+are supported (a subset of built-in types).
+-}
 mkNilOpaque :: BuiltinList a
 mkNilOpaque = BuiltinList []
 {-# OPAQUE mkNilOpaque #-}
 
 class MkNil arep where
-    mkNil :: BuiltinList arep
-    mkNil = mkNilOpaque
-    {-# INLINABLE mkNil #-}
+  mkNil :: BuiltinList arep
+  mkNil = mkNilOpaque
+  {-# INLINEABLE mkNil #-}
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData
 instance MkNil (BuiltinPair BuiltinData BuiltinData)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
-    toOpaque = goList where
-        goList :: [a] -> BuiltinList arep
-        goList []     = mkNil
-        goList (d:ds) = mkCons (toOpaque d) (goList ds)
-    {-# INLINABLE toOpaque #-}
-instance HasFromOpaque arep a => HasFromOpaque (BuiltinList arep) [a] where
-    fromOpaque = go
-      where
-          -- The combination of both INLINABLE and a type signature seems to stop this getting
-          -- lifted to the top level, which means it gets a proper unfolding, which means that
-          -- specialization can work, which can actually help quite a bit here.
-          go :: BuiltinList arep -> [a]
-          go = caseList' [] (\x xs -> fromOpaque x : go xs)
-          {-# INLINABLE go #-}
-    {-# INLINABLE fromOpaque #-}
+  toOpaque = goList
+   where
+    goList :: [a] -> BuiltinList arep
+    goList []       = mkNil
+    goList (d : ds) = mkCons (toOpaque d) (goList ds)
+  {-# INLINEABLE toOpaque #-}
+instance (HasFromOpaque arep a) => HasFromOpaque (BuiltinList arep) [a] where
+  fromOpaque = go
+   where
+    -- The combination of both INLINABLE and a type signature seems to stop this getting
+    -- lifted to the top level, which means it gets a proper unfolding, which means that
+    -- specialization can work, which can actually help quite a bit here.
+    go :: BuiltinList arep -> [a]
+    go = caseList' [] (\x xs -> fromOpaque x : go xs)
+    {-# INLINEABLE go #-}
+  {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque (BuiltinData, BuiltinData) (BuiltinPair BuiltinData BuiltinData) where
-    toOpaque (d1, d2) = mkPairData (toOpaque d1) (toOpaque d2)
-    {-# INLINABLE toOpaque #-}
-instance (HasFromOpaque arep a, HasFromOpaque brep b) =>
-        HasFromOpaque (BuiltinPair arep brep) (a, b) where
-    fromOpaque p = (fromOpaque $ fst p, fromOpaque $ snd p)
-    {-# INLINABLE fromOpaque #-}
+  toOpaque (d1, d2) = mkPairData (toOpaque d1) (toOpaque d2)
+  {-# INLINEABLE toOpaque #-}
+instance
+  (HasFromOpaque arep a, HasFromOpaque brep b)
+  => HasFromOpaque (BuiltinPair arep brep) (a, b)
+  where
+  fromOpaque p = (fromOpaque $ fst p, fromOpaque $ snd p)
+  {-# INLINEABLE fromOpaque #-}
 
 instance HasToOpaque BuiltinData BuiltinData
 instance HasFromOpaque BuiltinData BuiltinData

@@ -43,23 +43,22 @@ indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
 OPAQUE suffices, but that's perhaps a bit too fragile).
 -}
 
-{-# OPAQUE incInteger #-}
 incInteger :: Integer -> Integer
 incInteger n = n+1
+{-# OPAQUE incInteger #-}
 
-{-# OPAQUE decInteger #-}
 decInteger :: Integer -> Integer
 decInteger n = n-1
+{-# OPAQUE decInteger #-}
 
-{-# OPAQUE copyInteger #-}
 copyInteger :: Integer -> Integer
 copyInteger = decInteger . incInteger
+{-# OPAQUE copyInteger #-}
 
-{-# OPAQUE copyByteString #-}
 copyByteString :: BS.ByteString -> BS.ByteString
 copyByteString = BS.copy
+{-# OPAQUE copyByteString #-}
 
-{-# OPAQUE copyData #-}
 copyData :: Data -> Data
 copyData =
     \case
@@ -68,6 +67,7 @@ copyData =
      List l     -> List (map copyData l)
      I n        -> I $ copyInteger n
      B b        -> B $ copyByteString b
+{-# OPAQUE copyData #-}
 
 pairWith :: (a -> b) -> [a] -> [(a,b)]
 pairWith f = fmap (\a -> (a, f a))

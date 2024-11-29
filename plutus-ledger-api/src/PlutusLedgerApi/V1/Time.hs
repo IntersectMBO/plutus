@@ -90,9 +90,9 @@ instance Pretty POSIXTime where
 type POSIXTimeRange = Interval POSIXTime
 
 -- | Simple conversion from 'DiffMilliSeconds' to 'POSIXTime'.
-{-# INLINEABLE fromMilliSeconds #-}
 fromMilliSeconds :: DiffMilliSeconds -> POSIXTime
 fromMilliSeconds (DiffMilliSeconds s) = POSIXTime s
+{-# INLINEABLE fromMilliSeconds #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
