@@ -1,1 +1,3 @@
-(program 1.0.0 [(builtin unMapData) (con data { Map [ (Integer 0, Integer 1) ] })])
+(program 1.0.0
+ [(builtin unMapData) (con data (Map [(I 0, I 1)]))]
+)
