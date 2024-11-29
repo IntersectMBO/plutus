@@ -1225,7 +1225,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE costingFun #-}
             consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
-                    consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                    consByteStringDenotation n = BS.cons (fromIntegral n)
                     -- Earlier instructions say never to use `fromIntegral` in the definition of a
                     -- builtin; however in this case it reduces its argument modulo 256 to get a
                     -- `Word8`, which is exactly what we want.
@@ -1979,8 +1979,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> ListCostedByLength Integer
               -> Bool
               -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength ixs) bit =
-               Bitwise.writeBits s ixs bit
+            writeBitsDenotation s (ListCostedByLength ixs) = Bitwise.writeBits s ixs
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
@@ -1988,7 +1987,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
-            replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
+            replicateByteDenotation (NumBytesCostedAsNumWords n) = Bitwise.replicateByte n
             {-# INLINE replicateByteDenotation #-}
         in makeBuiltinMeaning
             replicateByteDenotation
