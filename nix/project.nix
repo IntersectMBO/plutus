@@ -33,7 +33,7 @@ let
           enableLibraryProfiling = true;
         }];
         ghc810.compiler-nix-name = "ghc810";
-        ghc98.compiler-nix-name = "ghc98";
+        ghc98.compiler-nix-name = "ghc983";
         ghc910.compiler-nix-name = "ghc910";
       };
 

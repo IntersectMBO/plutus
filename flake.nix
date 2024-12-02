@@ -12,8 +12,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixpkgs-2405.follows = "haskell-nix/nixpkgs-2405";
     nixpkgs.follows = "haskell-nix/nixpkgs-unstable";
+    nixpkgs-2405.follows = "haskell-nix/nixpkgs-2405";
 
     hackage = {
       url = "github:input-output-hk/hackage.nix";
