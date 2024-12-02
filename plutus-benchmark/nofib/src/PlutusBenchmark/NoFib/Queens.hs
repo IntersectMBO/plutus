@@ -13,6 +13,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing      #-}
 {-# OPTIONS_GHC -fno-warn-orphans             #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches      #-}
+{-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module PlutusBenchmark.NoFib.Queens where
 
@@ -203,7 +204,6 @@ instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign
     where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
-          (a := b) <= (a' := b') = (a<a') || (a==a' && b <= b')
 
 type Relation = Assign -> Assign -> Bool
 
