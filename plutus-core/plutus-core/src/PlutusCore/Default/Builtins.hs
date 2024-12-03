@@ -45,6 +45,8 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
@@ -181,6 +183,10 @@ data DefaultFun
     | CaseList
     | CaseData
     | DropList
+    -- Arrays
+    | LengthArray
+    | ListToArray
+    | IndexArray
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1555,7 +1561,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _argUni -> pure $ null xs
+                    DefaultUniList _uniA -> pure $ null xs
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
@@ -2028,25 +2034,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
 
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
     toBuiltinMeaning _ver CaseData =
         let caseDataDenotation
                 :: Opaque val (Integer -> [Data] -> b)
@@ -2090,6 +2077,40 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             dropListDenotation
             (runCostingFunTwoArguments . paramDropList)
+
+    toBuiltinMeaning _semvar LengthArray =
+      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+            case uni of
+              DefaultUniArray _uniA -> pure $ Vector.length vec
+              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE lengthArrayDenotation #-}
+        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ListToArray =
+      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
+          listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+            case uniListA of
+              DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
+          {-# INLINE listToArrayDenotation #-}
+        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar IndexArray =
+      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+          indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+            case uni of
+              DefaultUniArray arg -> do
+                case vec Vector.!? n of
+                  Nothing -> fail "Array index out of bounds"
+                  Just el -> pure $ fromValueOf arg el
+              _ ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    -- The arguments are going to be printed in the "cause" part of the error
+                    -- message, so we don't need to repeat them here.
+                throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE indexArrayDenotation #-}
+        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
@@ -2238,6 +2259,10 @@ instance Flat DefaultFun where
 
               DropList                        -> 90
 
+              LengthArray                     -> 91
+              ListToArray                     -> 92
+              IndexArray                      -> 93
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2330,6 +2355,9 @@ instance Flat DefaultFun where
               go 88 = pure CaseList
               go 89 = pure CaseData
               go 90 = pure DropList
+              go 91 = pure LengthArray
+              go 92 = pure ListToArray
+              go 93 = pure IndexArray
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
