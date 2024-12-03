@@ -10,16 +10,19 @@ This suite tests the latest version of Plutus. Testing of older versions may be 
 
 The tests currently cover or will cover the Haskell and Agda implementation of:
 
-- UPLC evaluation
-- Typechecking for TPLC, including checking of alpha equivalence. (`tplc-typecheck-test`)
+- Untyped Plutus Core (UPLC) evaluation
+- Typechecking for Typed Plutus Core (TPLC), including checking of alpha equivalence. (`tplc-typecheck-test`)
 - TPLC evaluation
 - Erasure of TPLC to UPLC
 - Coverage test
-<!-- - Costing conformance? -->
+- CPU/memory costing of scripts
 
-## Adding/updating test outputs
+## Organisation of tests
+The tests mostly take the form of golden tests of fairly simple UPLC programs.  The input files for the tests are organised in a tree of directories under the [test-cases](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases) directory.  If a directory in this tree contains one or more subdirectories then any other files in the directory are ignored and the subdirectories are recursively searched for test cases.  If a directory `<name>` has no subdirectories then it is expected to contain a file called `<name>.uplc` and no other files with the `.uplc` extension. The file `<name>.uplc` should contain textual source code for a  UPLC program, and the directory should also contain a file called `<name>.uplc.expected` containing the expected output of the program and a file called `<name>.uplc.budget.expected`containing the expected CPU and memory budgets.  Any other files (for example `README` files) in the directory are ignored.  See the [addInteger-01](https://github.com/IntersectMBO/plutus/tree/master/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-01) for an example of the expected format.  To avoid difficulties with case-insensitive filesystems no two subdirectories of a test directory should have names which differ only by case (eg `True` and `true`).
 
-To update or add test outputs, use the accept test option of the tests. E.g., to have the test results overwriting the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
+### Adding/updating test outputs
+
+To update or add test outputs, use the accept test option of the tests. E.g., to have the test results overwrite the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
 
 `cabal test haskell-conformance --test-options=--accept`
 
@@ -60,16 +63,16 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
-runUplcEvalTests :: (UplcProg -> Maybe UplcProg) -> IO ()
+type UplcEvaluatorFun res = UplcProg -> Maybe res
+
+data UplcEvaluator =
+  UplcEvaluatorWithoutCosting (UplcEvaluatorFun UplcProg)
+  | UplcEvaluatorWithCosting (CostModelParams -> UplcEvaluatorFun (UplcProg, ExBudget))
+
+runUplcEvalTests :: UplcEvaluator -> (FilePath -> Bool) -> (FilePath -> Bool) -> IO ()
 ```
 
-Users can call this function with their own `runners` with the signature:
-
-```haskell
-runner :: (UplcProg -> Maybe UplcProg)
-```
-
-The runner should evaluate a UPLC program and return a `Maybe UplcProg`. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.
+Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return a `Maybe UplcProg`, or a `Maybe (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired. 
 
 <!-- 
 ### Type checker
