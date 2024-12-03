@@ -35,12 +35,14 @@ import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayo
 import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
 import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
                                      makeRedeemerMap)
-import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
-                           Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
+import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), CurrencySymbol (..),
+                           ExBudget (ExBudget), Extended (NegInf, PosInf), Interval (Interval),
+                           LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
                            ScriptHash, ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
                            TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
+import PlutusLedgerApi.V1.Value (TokenName (TokenName))
 import PlutusTx.AssocMap qualified as AM (empty)
 
 
@@ -98,10 +100,9 @@ exampleBenchmark =
       , makeInput
           "6ca85e35c485181d54b4092a49ed9fec93a3f21b603c68cbca741ec27de318cf" 1
           (PubKeyCredential "5411f58036fcd19b79cc51539233698dd9b86c2e53d132675b152ce8")
-          (
-             singleton "d768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d8" "Seller" 1
-               <> lovelace 1034400
-          )
+          (singleton
+            (CurrencySymbol "d768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d8")
+            (TokenName "Seller") 1 <> lovelace 1034400)
           Nothing
           Nothing
       , makeInput
@@ -129,10 +130,9 @@ exampleBenchmark =
           Nothing
       , makeOutput
           (PubKeyCredential "5411f58036fcd19b79cc51539233698dd9b86c2e53d132675b152ce8")
-          (
-            singleton "d768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d8" "Seller" 1
-              <> lovelace 1034400
-          )
+          (singleton
+            (CurrencySymbol "d768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d8")
+            (TokenName "Seller") 1 <> lovelace 1034400)
           Nothing
           Nothing
       ]

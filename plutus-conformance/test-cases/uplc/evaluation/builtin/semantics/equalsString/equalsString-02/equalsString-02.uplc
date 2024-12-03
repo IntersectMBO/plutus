@@ -1,1 +1,1 @@
-(program 0.0.0 [ [ (builtin equalsString) (con string "Ola")] (con string "Ola") ])
+(program 1.0.0 [ [ (builtin equalsString) (con string "Ola")] (con string "Ola") ])

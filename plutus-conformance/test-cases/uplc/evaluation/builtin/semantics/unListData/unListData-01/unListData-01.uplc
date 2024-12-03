@@ -1,1 +1,3 @@
-(program 0.0.0 [(builtin unListData) (con data { List [ Integer 0, Integer 1 ] })])
+(program 1.0.0
+ [(builtin unListData) (con data (List [I 0, I 1]))]
+)

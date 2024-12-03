@@ -67,7 +67,6 @@ import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data (Data, Typeable)
 import Data.Function ((&))
-import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
@@ -114,9 +113,7 @@ newtype CurrencySymbol = CurrencySymbol {unCurrencySymbol :: PlutusTx.BuiltinByt
     , PlutusTx.UnsafeFromData
     )
   deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
+    ( -- | using hex encoding
       Haskell.Show
     , -- | using hex encoding
       Pretty
@@ -157,10 +154,6 @@ newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow TokenName)
 
--- | UTF-8 encoding. Doesn't verify length.
-instance IsString TokenName where
-    fromString = fromText . Text.pack
-
 instance HasBlueprintSchema TokenName referencedTypes where
   {-# INLINABLE schema #-}
   schema = schema @PlutusTx.BuiltinByteString
@@ -171,9 +164,6 @@ instance HasBlueprintSchema TokenName referencedTypes where
 tokenName :: BS.ByteString -> TokenName
 tokenName = TokenName . PlutusTx.toBuiltin
 {-# INLINABLE tokenName #-}
-
-fromText :: Text -> TokenName
-fromText = tokenName . E.encodeUtf8
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
 fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)

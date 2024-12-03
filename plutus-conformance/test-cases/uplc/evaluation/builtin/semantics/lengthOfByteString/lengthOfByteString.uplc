@@ -1,1 +1,1 @@
-(program 0.0.0 [ (builtin lengthOfByteString) (con bytestring #00ffaa) ])
+(program 1.0.0 [ (builtin lengthOfByteString) (con bytestring #00ffaa) ])

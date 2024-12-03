@@ -1,1 +1,1 @@
-parse error
+(program 1.0.0 (con (list (pair data data)) [(I 0, I 1)]))
