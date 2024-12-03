@@ -43,6 +43,8 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
@@ -104,6 +106,10 @@ data DefaultFun
     | HeadList
     | TailList
     | NullList
+    -- Arrays
+    | LengthArray
+    | ListToArray
+    | IndexArray
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
@@ -1547,12 +1553,46 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _argUni -> pure $ null xs
+                    DefaultUniList _uniA -> pure $ null xs
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
             (runCostingFunOneArgument . paramNullList)
+
+    toBuiltinMeaning _semvar LengthArray =
+      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+            case uni of
+              DefaultUniArray _uniA -> pure $ Vector.length vec
+              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE lengthArrayDenotation #-}
+        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . paramLengthArray)
+
+    toBuiltinMeaning _semvar ListToArray =
+      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
+          listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+            case uniListA of
+              DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
+          {-# INLINE listToArrayDenotation #-}
+        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
+
+    toBuiltinMeaning _semvar IndexArray =
+      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+          indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+            case uni of
+              DefaultUniArray arg -> do
+                case vec Vector.!? n of
+                  Nothing -> fail "Array index out of bounds"
+                  Just el -> pure $ fromValueOf arg el
+              _ ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    -- The arguments are going to be printed in the "cause" part of the error
+                    -- message, so we don't need to repeat them here.
+                throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE indexArrayDenotation #-}
+        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
     -- Data
     toBuiltinMeaning _semvar ChooseData =
@@ -2183,6 +2223,10 @@ instance Flat DefaultFun where
               CaseList                        -> 88
               CaseData                        -> 89
 
+              LengthArray                     -> 90
+              ListToArray                     -> 91
+              IndexArray                      -> 92
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2274,6 +2318,9 @@ instance Flat DefaultFun where
               go 87 = pure ExpModInteger
               go 88 = pure CaseList
               go 89 = pure CaseData
+              go 90 = pure LengthArray
+              go 91 = pure ListToArray
+              go 92 = pure IndexArray
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

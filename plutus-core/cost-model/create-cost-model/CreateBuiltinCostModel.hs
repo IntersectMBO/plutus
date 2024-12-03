@@ -75,6 +75,9 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramHeadList                        = "headListModel"
   , paramTailList                        = "tailListModel"
   , paramNullList                        = "nullListModel"
+  , paramLengthArray                     = "lengthArrayModel"
+  , paramListToArray                     = "listToArrayModel"
+  , paramIndexArray                      = "indexArrayModel"
   , paramChooseData                      = "chooseDataModel"
   , paramConstrData                      = "constrDataModel"
   , paramMapData                         = "mapDataModel"
@@ -209,6 +212,10 @@ createBuiltinCostModel bmfile rfile = do
   paramHeadList                        <- getParams readCF1 paramHeadList
   paramTailList                        <- getParams readCF1 paramTailList
   paramNullList                        <- getParams readCF1 paramNullList
+  -- Arrays
+  paramLengthArray                     <- getParams readCF1 paramLengthArray
+  paramListToArray                     <- getParams readCF1 paramListToArray
+  paramIndexArray                      <- getParams readCF2 paramIndexArray
   -- Data
   paramChooseData                      <- getParams readCF6 paramChooseData
   paramConstrData                      <- getParams readCF2 paramConstrData
