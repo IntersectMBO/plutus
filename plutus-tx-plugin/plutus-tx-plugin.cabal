@@ -75,6 +75,7 @@ library
   build-depends:
     , array
     , base                   >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , containers
     , either
