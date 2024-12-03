@@ -68,7 +68,7 @@ memptyTxInfo = TxInfo
         , txInfoReferenceInputs       = mempty
         , txInfoOutputs               = mempty
         , txInfoFee                   = zero
-        , txInfoMint                  = mempty
+        , txInfoMint                  = emptyMintValue
         , txInfoTxCerts               = mempty
         , txInfoWdrl                  = AssocMap.unsafeFromList mempty
         , txInfoValidRange            = always
@@ -89,7 +89,7 @@ emptyRedeemer = Redeemer (toBuiltinData ())
 
 arbitraryScriptInfo :: Gen ScriptInfo
 arbitraryScriptInfo = frequency
-     [(1, Haskell.pure (MintingScript "")) -- negative testing
+     [(1, Haskell.pure (MintingScript (V3.CurrencySymbol ""))) -- negative testing
      ,(5, ProposingScript zero Haskell.<$> arbitraryProposalProcedure )
      ]
 

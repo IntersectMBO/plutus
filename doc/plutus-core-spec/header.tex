@@ -1,5 +1,5 @@
 %% Stuff for index of notation
-%% FYI, the nomencl package seems to discard entries containing '@' 
+%% FYI, the nomencl package seems to discard entries containing '@'
 \usepackage[intoc,refpage]{nomencl}
 \renewcommand{\nomname}{Index of Notation}
 \renewcommand{\pagedeclaration}[1]{,\ \ \hyperlink{page.#1}{\nobreakspace#1}}
@@ -232,8 +232,8 @@
 \newcommand{\unload}[1]{\mathcal{U}(#1)}
 \newcommand{\Unload}[2]{{#2}@{#1}}
 
-\newcommand{\bcompute}{\color{blue}\compute}  
-\newcommand{\breturn}{\color{blue}\return}  
+\newcommand{\bcompute}{\color{blue}\compute}
+\newcommand{\breturn}{\color{blue}\return}
 \newcommand{\bmapsto}{\color{blue}\mapsto}
 % This is to get blue symbols after an '&' inside an alignat
 % environment.  It seems to mess up the spacing if you do anything
@@ -317,7 +317,7 @@
 %% NOTE!!!  Probably \byte and \Z are only used in V1-builtins
 
 \newcommand{\kindstar}[1]{#1::\text{\textasteriskcentered}}  % "v::*"  (The ordinary * is a bit above the centreline)
-\newcommand{\kindhash}[1]{#1::\text{\#}}                     % "v::#" 
+\newcommand{\kindhash}[1]{#1::\text{\#}}                     % "v::#"
 
 \newcommand\errorX{\textbf{\texttimes}}
 \newcommand\ValueOrError{\Inputs\disj\{\errorX\}}
@@ -336,10 +336,10 @@
 \DeclareMathOperator{\type}{\mathbf{\mathsf{type}}}
 \DeclareMathOperator{\length}{\ell}
 \DeclareMathOperator{\nextArg}{\mathsf{next}}
-\DeclareMathOperator{\divfn}{div}
-\DeclareMathOperator{\modfn}{mod}
-\DeclareMathOperator{\quotfn}{quot}
-\DeclareMathOperator{\remfn}{rem}
+\DeclareMathOperator{\divfn}{\mathsf{div}}
+\DeclareMathOperator{\modfn}{\mathsf{mod}}
+\DeclareMathOperator{\quotfn}{\mathsf{quot}}
+\DeclareMathOperator{\remfn}{\mathsf{rem}}
 \DeclareMathOperator{\inj}{inj}
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\is}{is}
@@ -365,9 +365,9 @@
 
 %% Macros for CBOR encoders and decoders
 
-\newcommand\e{\mathcal{E}} 
+\newcommand\e{\mathcal{E}}
 \renewcommand\d{\mathcal{D}}    %% This usually puts a dot under its argument
-  
+
 \newcommand\eHead{\e_{\mathsf{head}}}
 \newcommand\dHead{\d_{\mathsf{head}}}
 

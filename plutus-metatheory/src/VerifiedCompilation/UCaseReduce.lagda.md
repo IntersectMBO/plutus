@@ -14,7 +14,7 @@ module VerifiedCompilation.UCaseReduce where
 open import VerifiedCompilation.Equality using (DecEq; _≟_;decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; isVar?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay; isvar)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
-open import Relation.Nullary.Product using (_×-dec_)
+open import Relation.Nullary using (_×-dec_)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; toWellScoped)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
@@ -70,7 +70,7 @@ isCaseReduce? = translation? isCR?
 ## An Example:
 
 (program 1.1.0
-	 (case (constr 1 (con integer 12) (con integer 42)) (lam x (lam y x)) (lam x (lam y (case (constr 0 (con integer 99)) y))) )
+  (case (constr 1 (con integer 12) (con integer 42)) (lam x (lam y x)) (lam x (lam y (case (constr 0 (con integer 99)) y))) )
 )
 
 becomes:

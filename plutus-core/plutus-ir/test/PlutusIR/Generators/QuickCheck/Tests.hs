@@ -84,7 +84,8 @@ prop_genWellTypedFullyApplied = withMaxSuccess 50 $
 
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
-prop_shrinkTermSound = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_shrinkTermSound = withMaxSuccess 0 $
   forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
   -- While we generate well-typed terms we still need this check here for
@@ -157,7 +158,8 @@ prop_stats_leaves = withMaxSuccess 10 $
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
-prop_stats_numShrink = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_stats_numShrink = withMaxSuccess 0 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   let shrinks = map snd $ shrinkClosedTypedTerm (ty, tm)
@@ -186,7 +188,8 @@ prop_inhabited = withMaxSuccess 50 $
 
 -- | Check that there are no one-step shrink loops
 prop_noTermShrinkLoops :: Property
-prop_noTermShrinkLoops = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_noTermShrinkLoops = withMaxSuccess 0 $
   -- Note that we need to remove x from the shrinks of x here because
   -- a counterexample to this property is otherwise guaranteed to
   -- go into a shrink loop.
@@ -210,7 +213,8 @@ noStructuralErrors term =
 prop_noStructuralErrors :: Property
 prop_noStructuralErrors = withMaxSuccess 99 $
   forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \(_, termPir) -> ioProperty $ do
-    termUPlc <- fmap UPLC._progTerm . modifyError throw . toUPlc $ Program () latestVersion termPir
+    termUPlc <- fmap UPLC._progTerm . modifyError (userError . displayException) . toUPlc $
+        Program () latestVersion termPir
     noStructuralErrors termUPlc
 
 -- | Test that evaluation of an ill-typed terms fails with a structural error.

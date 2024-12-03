@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.36.0.0
+version:         1.37.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -74,17 +74,19 @@ library
 
   build-depends:
     , array
-    , base                                  >=4.9   && <5
+    , base                   >=4.9   && <5
+    , base16-bytestring
     , bytestring
     , containers
     , either
     , extra
-    , flat                                  ^>=0.6
+    , flat                   ^>=0.6
     , ghc
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.36
-    , plutus-tx                             ^>=1.36
+    , plutus-core            ^>=1.37
+    , plutus-core:plutus-ir
+    , plutus-tx              ^>=1.37
     , prettyprinter
     , template-haskell
     , text
@@ -100,7 +102,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.36
+    , plutus-tx-plugin      ^>=1.37
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -123,6 +125,7 @@ test-suite plutus-tx-plugin-tests
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
+    ByteStringLiterals.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IntegerLiterals.Strict.NegativeLiterals.Spec
@@ -130,6 +133,7 @@ test-suite plutus-tx-plugin-tests
     IsData.Spec
     Lib
     Lift.Spec
+    List.Spec
     Optimization.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
@@ -162,20 +166,22 @@ test-suite plutus-tx-plugin-tests
     Unicode.Spec
 
   build-depends:
-    , base                                            >=4.9   && <5
+    , base                             >=4.9   && <5
     , base16-bytestring
     , bytestring
     , containers
     , deepseq
     , filepath
-    , flat                                            ^>=0.6
+    , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
+    , plutus-core                      ^>=1.37
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.37
+    , plutus-tx-plugin                 ^>=1.37
     , plutus-tx-test-util
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , plutus-tx:plutus-tx-testlib
     , serialise
     , tasty
     , tasty-golden
@@ -203,10 +209,12 @@ test-suite size
   main-is:            Main.hs
   hs-source-dirs:     test/size
   build-depends:
-    , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.36
-    , plutus-tx-plugin                                ^>=1.36
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.36
+    , base                             >=4.9   && <5.0
+    , plutus-core                      ^>=1.37
+    , plutus-core:plutus-core-testlib
+    , plutus-tx                        ^>=1.37
+    , plutus-tx-plugin                 ^>=1.37
+    , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty
 

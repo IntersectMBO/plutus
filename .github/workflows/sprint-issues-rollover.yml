@@ -1,9 +1,10 @@
 # This workflows moves issues and pull requests to the next sprint iteration of 
-# the Plutus Backlog project. In practice, all open backlog items in the Last
-# iteration (the one that has just finished) the will be moved to the Current 
-# iteration (the one that has just started) 
+# the Plutus Backlog project. In practice, all open backlog items in the Current
+# Iteration (the one that is still in progress) will be moved to the Next 
+# Iteration (the one that will start next).
 # This workflow must be run manually from the GitHub Actions page.
-# Make sure that the Current iteration has started before running this workflow.
+# In practice you want to run this on the last day of the current sprint, the 
+# day before the next sprint begins.
 
 name: "🛼 Sprint Issues Rollover"
 

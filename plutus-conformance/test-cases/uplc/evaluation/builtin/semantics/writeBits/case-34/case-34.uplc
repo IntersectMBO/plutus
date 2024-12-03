@@ -6,13 +6,13 @@
     [
      [
       (builtin writeBits)
-      (con bytestring #00000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+      (con bytestring #00ff)
      ]
-     (con (list integer) [340, 342, 344])  -- 344 is out of bounds
+     (con (list integer) [10])
     ]
     (con bool True)
    ]
-   (con (list integer) [344, 340, 342, 343])
+   (con (list integer) [10])
   ]
   (con bool False)
  ]

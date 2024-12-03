@@ -1,6 +1,18 @@
+let
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+in
 letrec
-  !go : list (pair data data) -> integer
-    = caseList
+  ~go : list (pair data data) -> integer
+    = caseList'
         {pair data data}
         {integer}
         0
@@ -15,7 +27,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
 in
-\(ds :
+\(value :
     (\k a -> list (pair data data))
       bytestring
       ((\k a -> list (pair data data)) bytestring integer))
@@ -26,8 +38,8 @@ in
       !k : data = bData cur
     in
     letrec
-      !go : list (pair data data) -> Maybe data
-        = caseList
+      ~go : list (pair data data) -> Maybe data
+        = caseList'
             {pair data data}
             {Maybe data}
             (Nothing {data})
@@ -45,7 +57,7 @@ in
                  (/\dead -> go)
                  {all dead. dead})
     in
-    go ds)
+    go value)
     {integer}
     (\(a : data) ->
        let

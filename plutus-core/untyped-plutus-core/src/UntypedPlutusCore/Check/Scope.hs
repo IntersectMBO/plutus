@@ -26,7 +26,6 @@ Inlining this function makes a big difference,
 since it will usually be called in a context where all the type variables are known.
 That then means that GHC can optimize go locally in a completely monomorphic setting, which helps a lot.
 -}
-{-# INLINE checkScope #-}
 checkScope :: forall e m name uni fun a.
              (HasIndex name, MonadError e m, AsFreeVariableError e)
            => UPLC.Term name uni fun a
@@ -52,3 +51,4 @@ checkScope = go 0
         Force _ t     -> go lvl t
         Delay _ t     -> go lvl t
         _             -> pure ()
+{-# INLINE checkScope #-}

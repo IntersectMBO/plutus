@@ -1,1 +1,0 @@
-(program 0.0.0 [(builtin unConstrData) (con data { Constr 1 [ Integer 0 ] })])

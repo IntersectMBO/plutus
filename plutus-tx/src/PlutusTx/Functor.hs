@@ -23,21 +23,21 @@ class Functor f where
 
 infixl 4 <$>
 -- | Plutus Tx version of '(Data.Functor.<$>)'.
-{-# INLINABLE (<$>) #-}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) = fmap
+{-# INLINABLE (<$>) #-}
 
 infixl 1 <&>
 -- | Plutus Tx version of '(Data.Functor.<&>)'.
-{-# INLINABLE (<&>) #-}
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
+{-# INLINABLE (<&>) #-}
 
 infixl 4 <$
-{-# INLINABLE (<$) #-}
 -- | Plutus Tx version of '(Data.Functor.<$)'.
 (<$) :: Functor f => a -> f b -> f a
 (<$) a = fmap (const a)
+{-# INLINABLE (<$) #-}
 
 instance Functor [] where
     {-# INLINABLE fmap #-}

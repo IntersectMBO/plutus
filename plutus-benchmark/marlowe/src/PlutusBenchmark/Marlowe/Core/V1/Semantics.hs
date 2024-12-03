@@ -722,7 +722,6 @@ instance Eq ReduceEffect where
 
 -- Functions that used in Plutus Core must be inlineable,
 -- so their code is available for PlutusTx compiler.
-{-# INLINABLE fixInterval #-}
 {-# INLINABLE evalValue #-}
 {-# INLINABLE evalObservation #-}
 {-# INLINABLE refundOne #-}
@@ -743,6 +742,7 @@ instance Eq ReduceEffect where
 {-# INLINABLE computeTransaction #-}
 {-# INLINABLE contractLifespanUpperBound #-}
 {-# INLINABLE totalBalance #-}
+{-# INLINABLE fixInterval #-}
 
 
 -- Lifting data types to Plutus Core

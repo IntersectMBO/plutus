@@ -16,6 +16,9 @@
 # fetch/build this each time since we want to run this in a clean environment.
 # The `jq` invocation below is necessary because we have to POST the PR comment as JSON data 
 # (see the curl command) meaning the script output has to be escaped first before we can insert it.
+# Also note the use of the envvar CAPABILITY_NUM and `taskset -c` to limit 
+# the benchmark to a single core. Experiments have shown that this can lead to more stable results.
+# This is only available on linux.
 
 set -e
 
@@ -34,6 +37,13 @@ else
    echo "[ci-plutus-benchmark]: 'PR_BRANCH' set to $PR_BRANCH, fetching origin ..."
    git fetch origin 
    git checkout "$PR_BRANCH"
+fi
+
+if [ -z "$CAPABILITY_NUM" ] ; then
+   echo "[ci-plutus-benchmark]: 'CAPABILITY_NUM' is not set, will default to 2"
+   CAPABILITY_NUM=2
+else 
+   echo "[ci-plutus-benchmark]: 'CAPABILITY_NUM' set to $CAPABILITY_NUM"
 fi
 
 PR_BRANCH_REF="$(git rev-parse --short HEAD)"
@@ -55,8 +65,14 @@ cabal update
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
+if [[ -z $(which taskset) ]]; then
+   TASKSET=""
+else
+   TASKSET="taskset -c $CAPABILITY_NUM"
+fi
+
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
+2>&1 $TASKSET cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
@@ -66,7 +82,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
-2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-base.log 
+2>&1 $TASKSET cabal bench "$BENCHMARK_NAME" | tee bench-base.log 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."

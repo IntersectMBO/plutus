@@ -129,7 +129,6 @@ nopCostParameters =
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
 -- appears to be a little slower than this.
-{-# INLINE (>:) #-}
 infixr >:
 (>:) :: uni ~ DefaultUni
      => SomeConstant uni Integer
@@ -139,6 +138,7 @@ n >: k =
     case n of
       SomeConstant (Some (ValueOf DefaultUniInteger _)) -> k
       _                                                 -> evaluationFailure
+{-# INLINE (>:) #-}
 
 {- | The meanings of the builtins.  Each one takes a number of arguments and
    returns a result without doing any other work.  A builtin can process its

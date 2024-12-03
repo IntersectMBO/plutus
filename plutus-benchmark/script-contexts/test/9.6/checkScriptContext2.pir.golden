@@ -26,6 +26,16 @@
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {GovernanceActionId} "PT1")
             {all dead. dead}
+    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+      = /\a r ->
+          \(z : r) (f : a -> list a -> r) (xs : list a) ->
+            chooseList
+              {a}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {a} xs) (tailList {a} xs))
+              {r}
   in
   letrec
     data (List :: * -> *) a | List_match where
@@ -38,8 +48,8 @@
       = /\a ->
           \(`$dUnsafeFromData` : (\a -> data -> a) a) ->
             letrec
-              !go : list data -> List a
-                = caseList
+              ~go : list data -> List a
+                = caseList'
                     {data}
                     {List a}
                     (Nil {a})
@@ -106,8 +116,8 @@
           \(`$dUnsafeFromData` : (\a -> data -> a) k)
            (`$dUnsafeFromData` : (\a -> data -> a) v) ->
             letrec
-              !go : list (pair data data) -> List (Tuple2 k v)
-                = caseList
+              ~go : list (pair data data) -> List (Tuple2 k v)
+                = caseList'
                     {pair data data}
                     {List (Tuple2 k v)}
                     (Nil {Tuple2 k v})
@@ -447,8 +457,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List ProposalProcedure
-      = caseList
+    ~go : list data -> List ProposalProcedure
+      = caseList'
           {data}
           {List ProposalProcedure}
           (Nil {ProposalProcedure})
@@ -735,8 +745,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxCert
-      = caseList
+    ~go : list data -> List TxCert
+      = caseList'
           {data}
           {List TxCert}
           (Nil {TxCert})
@@ -747,13 +757,6 @@
                (go xs))
   in
   let
-    ~`$fUnsafeFromDataValue` :
-       data -> (\k v -> List (Tuple2 k v)) bytestring integer
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-          {bytestring}
-          {integer}
-          unBData
-          unIData
     data StakingCredential | StakingCredential_match where
       StakingHash : Credential -> StakingCredential
       StakingPtr : integer -> integer -> integer -> StakingCredential
@@ -853,7 +856,11 @@
                     {bytestring}
                     {(\k v -> List (Tuple2 k v)) bytestring integer}
                     unBData
-                    `$fUnsafeFromDataValue`
+                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                       {bytestring}
+                       {integer}
+                       unBData
+                       unIData)
                     (headList {data} l))
                  (let
                    !tup : pair integer (list data)
@@ -892,8 +899,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxOut
-      = caseList
+    ~go : list data -> List TxOut
+      = caseList'
           {data}
           {List TxOut}
           (Nil {TxOut})
@@ -944,8 +951,8 @@
             {all dead. dead}
   in
   letrec
-    !go : list data -> List TxInInfo
-      = caseList
+    ~go : list data -> List TxInInfo
+      = caseList'
           {data}
           {List TxInInfo}
           (Nil {TxInInfo})
@@ -956,8 +963,8 @@
                (go xs))
   in
   letrec
-    !go : list data -> List TxInInfo
-      = caseList
+    ~go : list data -> List TxInInfo
+      = caseList'
           {data}
           {List TxInInfo}
           (Nil {TxInInfo})
@@ -1168,7 +1175,11 @@
                          {bytestring}
                          {(\k v -> List (Tuple2 k v)) bytestring integer}
                          unBData
-                         `$fUnsafeFromDataValue`
+                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                            {bytestring}
+                            {integer}
+                            unBData
+                            unIData)
                          (headList {data} l))
                       (let
                         !d : data = headList {data} l
