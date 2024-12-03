@@ -179,12 +179,12 @@ getTestedValue ::
     -> IO (Either T.Text res)
 getTestedValue eval file = do
   input <- T.readFile file
-  case parseTxt input of
-    Left _ -> pure $ Left shownParseError
+  pure $ case parseTxt input of
+    Left _ -> Left shownParseError
     Right p ->
       case eval (void p) of
-        Nothing   -> pure $ Left shownEvaluationFailure
-        Just prog -> pure $ Right prog
+        Nothing   -> Left shownEvaluationFailure
+        Just prog -> Right prog
 
 -- | The comparison function used for the golden test.
 -- This function checks alpha-equivalence of programs when the output is a program.
