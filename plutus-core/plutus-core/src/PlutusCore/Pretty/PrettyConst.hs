@@ -19,11 +19,11 @@ import PlutusCore.Pretty.Readable
 import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
 import Data.Coerce
-import Data.Foldable (fold)
 import Data.List.NonEmpty
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Typeable
+import Data.Vector.Strict (Vector)
 import Data.Word (Word8)
 import Numeric (showHex)
 import Prettyprinter
@@ -122,6 +122,8 @@ instance PrettyConst a => PrettyBy ConstConfig (NoParens a) where
 
 instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a] where
     nonDefaultPrettyBy config = defaultPrettyBy @_ @[NoParens a] config . coerce
+instance PrettyConst a => NonDefaultPrettyBy ConstConfig (Vector a) where
+    nonDefaultPrettyBy config = defaultPrettyBy @_ @(Vector (NoParens a)) config . coerce
 instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b) where
     nonDefaultPrettyBy config = defaultPrettyBy @_ @(NoParens a, NoParens b) config . coerce
 
@@ -134,7 +136,7 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | otherwise = id
 
 toBytes :: BS.ByteString -> Doc ann
-toBytes b = fold (asBytes <$> BS.unpack b)
+toBytes  = foldMap asBytes . BS.unpack
 
 instance PrettyBy ConstConfig Data where
     prettyBy = inContextM $ \d0 -> iterAppDocM $ \_ prettyArg -> case d0 of
