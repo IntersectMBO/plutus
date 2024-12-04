@@ -1,1 +1,1 @@
-(program 0.0.0 [(builtin encodeUtf8) (con string "Ola")])
+(program 1.0.0 [(builtin encodeUtf8) (con string "Ola")])
