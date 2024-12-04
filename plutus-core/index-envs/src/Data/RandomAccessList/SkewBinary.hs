@@ -17,7 +17,7 @@ module Data.RandomAccessList.SkewBinary
     , uncons
     ) where
 
-import Data.Bits (unsafeShiftR)
+import Data.Bits (setBit, unsafeShiftL, unsafeShiftR)
 import Data.Word
 import GHC.Exts
 
@@ -51,8 +51,8 @@ null Nil = True
 null _   = False
 {-# INLINE null #-}
 
-{-# complete Cons, Nil #-}
-{-# complete BHead, Nil #-}
+{-# COMPLETE Cons, Nil #-}
+{-# COMPLETE BHead, Nil #-}
 
 -- /O(1)/
 pattern Cons :: a -> RAList a -> RAList a
@@ -62,8 +62,9 @@ pattern Cons x xs <- (uncons -> Just (x, xs)) where
 -- O(1) worst-case
 cons :: a -> RAList a -> RAList a
 cons x = \case
-    (BHead w1 t1 (BHead w2 t2 ts')) | w1 == w2 -> BHead (2*w1+1) (Node x t1 t2) ts'
-    ts                                         -> BHead 1 (Leaf x) ts
+    (BHead w1 t1 (BHead w2 t2 ts')) | w1 == w2 ->
+        BHead (unsafeShiftL w1 1 `setBit` 0) (Node x t1 t2) ts'
+    ts -> BHead 1 (Leaf x) ts
 {-# INLINE cons #-}
 
 -- /O(1)/
