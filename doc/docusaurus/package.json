@@ -30,7 +30,8 @@
     "typescript": "~5.2.2"
   },
   "resolutions": {
-    "cheerio": "1.0.0-rc.12"
+    "cheerio": "1.0.0-rc.12",
+    "cross-spawn": "7.0.5"
   },
   "browserslist": {
     "production": [

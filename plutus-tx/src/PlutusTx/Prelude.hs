@@ -65,6 +65,7 @@ module PlutusTx.Prelude (
     indexByteString,
     emptyByteString,
     decodeUtf8,
+    BuiltinByteStringUtf8 (..),
     Builtins.andByteString,
     Builtins.orByteString,
     Builtins.xorByteString,
@@ -134,9 +135,9 @@ import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
 import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
-                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinData, BuiltinString,
-                          Integer, appendByteString, appendString, blake2b_224, blake2b_256,
-                          bls12_381_G1_add, bls12_381_G1_compress,
+                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinByteStringUtf8 (..),
+                          BuiltinData, BuiltinString, Integer, appendByteString, appendString,
+                          blake2b_224, blake2b_256, bls12_381_G1_add, bls12_381_G1_compress,
                           bls12_381_G1_compressed_generator, bls12_381_G1_compressed_zero,
                           bls12_381_G1_equals, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
                           bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G2_add,

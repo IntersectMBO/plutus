@@ -1,4 +1,15 @@
 
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-11-25
+
+## Added
+
+- In #6530 added support for pattern matching builtins: `CaseList` and `CaseData`.
+
+## Changed
+
+- In #6663 made variable lookup significantly faster increasing overall performance of the evaluator by 10+%.
+
 <a id='changelog-1.36.0.0'></a>
 # 1.36.0.0 — 2024-10-09
 
