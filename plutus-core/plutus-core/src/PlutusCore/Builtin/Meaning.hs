@@ -305,7 +305,7 @@ instance
         --
         -- The disadvantage of this approach is that @addInteger 42@ will always unlift @42@ upon
         -- full saturation even if this partial application is saved to a variable. But the way
-        -- costing calibration benchmarks are setup, we always evaluate a single application, so
+        -- costing calibration benchmarks are set up, we always evaluate a single application, so
         -- the cost of unlifting is included in the cost of the builtin regardless of whether
         -- there's caching of unlifting or not. Hence the user pays for unlifting anyway and we can
         -- prioritize safety over performance here.
