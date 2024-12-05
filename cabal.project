@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2024-11-27T00:00:00Z
+  , hackage.haskell.org 2024-12-04T23:45:50Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2024-11-27T00:00:00Z
+  , cardano-haskell-packages 2024-11-27T20:49:28Z
 
 packages: cardano-constitution
           plutus-benchmark
@@ -93,7 +93,105 @@ allow-newer:
 -- -------------------------------------------------------------------------------------------------
 -- Following currently required for building with ghc-9.10.
 
-constraints:
-  -- The API has changed for version 2.2, ledger depends on the old version and ledger will not
-  -- be updated until after the Conway release.
-  , cardano-crypto-class ^>= 2.1
+if impl (ghc >= 9.12)
+
+  source-repository-package
+    type: git
+    location: https://github.com/IntersectMBO/cardano-crypto
+    tag: 790a3027a210ed3684ea9ffa1da504873d96b7de
+    --sha256: 1wlyvqgaf4gwzp80gpf334dwpcq2vbgywv2r31mk0iy469n1slbi
+
+  source-repository-package
+    type: git
+    location: https://github.com/IntersectMBO/cardano-base
+    tag: 9c48b9126f412a1a0c926e22769830170484c95e
+    --sha256: 0ssgg71ab2rdc3sp8fipbjipxhwg4195p2r5y5c6rv2jc9625mxc
+    subdir:
+      cardano-crypto-class
+      cardano-crypto-tests
+      cardano-mempool
+
+  allow-newer:
+    , Agda:base
+    , aeson:ghc-prim
+    , aeson:template-haskell
+    , assoc:base
+    , attoparsec:ghc-prim
+    , bin:base
+    , binary-orphans:base
+    , bifunctors:template-haskell
+    , boring:base
+    , brick:base
+    , cborg:base
+    , cborg:ghc-prim
+    , constraints-extras:base
+    , constraints-extras:template-haskell
+    , data-fix:base
+    , dec:base
+    , deriving-compat:template-haskell
+    , directory:time
+    , fin:base
+    , free:template-haskell
+    , hashable:base
+    , hedgehog:template-haskell
+    , hex-text:base
+    , indexed-traversable:base
+    , indexed-traversable-instances:base
+    , integer-conversion:base
+    , integer-gmp:base
+    , integer-logarithms:base
+    , integer-logarithms:ghc-prim
+    , io-classes:base
+    , io-classes:time
+    , lens:template-haskell
+    , microlens-th:template-haskell
+    , microstache:base
+    , monoidal-containers:base
+    , monoidal-containers:hashable
+    , nonempty-vector:base
+    , nothunks:time
+    , OneTuple:base
+    , pqueue:base
+    , QuickCheck:base
+    , quickcheck-instances:base
+    , quickcheck-instances:time
+    , ral:base
+    , recursion-schemes:template-haskell
+    , scientific:base
+    , scientific:template-haskell
+    , semialign:base
+    , serialise:base
+    , serialise:ghc-prim
+    , splitmix:base
+    , singletons:base
+    , singletons-th:base
+    , singletons-th:template-haskell
+    , size-based:template-haskell
+    , some:base
+    , tasty-hedgehog:base
+    , text:base
+    , text:template-haskell
+    , text-short:base
+    , text-short:ghc-prim
+    , text-short:template-haskell
+    , these:base
+    , th-abstraction:template-haskell
+    , th-compat:template-haskell
+    , th-desugar:template-haskell
+    , th-expand-syns:template-haskell
+    , th-lift:template-haskell
+    , th-orphans:template-haskell
+    , time-compat:base
+    , time-compat:time
+    , tree-diff:base
+    , tree-diff:time
+    , universe-base:base
+    , unordered-containers:template-haskell
+    , uuid-types:template-haskell
+    , vector-stream:ghc-prim
+    , vector-th-unbox:base
+    , vector-th-unbox:template-haskell
+    , zlib:base
+
+    -- Need this until cardano-crypto-class@HEAD is released to CHaP.
+    , plutus-core:cardano-crypto-class
