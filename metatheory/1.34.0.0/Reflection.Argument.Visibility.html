@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Reflection.Argument.Visibility</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Argument visibility used in the reflection machinery</a>
+<a id="162" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="236" class="Symbol">{-#</a> <a id="240" class="Keyword">OPTIONS</a> <a id="248" class="Pragma">--cubical-compatible</a> <a id="269" class="Pragma">--safe</a> <a id="276" class="Symbol">#-}</a>
+
+<a id="281" class="Keyword">module</a> <a id="288" href="Reflection.Argument.Visibility.html" class="Module">Reflection.Argument.Visibility</a> <a id="319" class="Keyword">where</a>
+
+<a id="326" class="Keyword">open</a> <a id="331" class="Keyword">import</a> <a id="338" href="Data.String.html" class="Module">Data.String</a> <a id="350" class="Symbol">as</a> <a id="353" class="Module">String</a> <a id="360" class="Keyword">using</a> <a id="366" class="Symbol">(</a><a id="367" href="Agda.Builtin.String.html#335" class="Postulate">String</a><a id="373" class="Symbol">)</a>
+<a id="375" class="Keyword">open</a> <a id="380" class="Keyword">import</a> <a id="387" href="Relation.Nullary.html" class="Module">Relation.Nullary</a>
+<a id="404" class="Keyword">open</a> <a id="409" class="Keyword">import</a> <a id="416" href="Relation.Binary.html" class="Module">Relation.Binary</a>
+<a id="432" class="Keyword">open</a> <a id="437" class="Keyword">import</a> <a id="444" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a>
+
+<a id="483" class="Comment">------------------------------------------------------------------------</a>
+<a id="556" class="Comment">-- Re-exporting the builtins publicly</a>
+
+<a id="595" class="Keyword">open</a> <a id="600" class="Keyword">import</a> <a id="607" href="Agda.Builtin.Reflection.html" class="Module">Agda.Builtin.Reflection</a> <a id="631" class="Keyword">public</a> <a id="638" class="Keyword">using</a> <a id="644" class="Symbol">(</a><a id="645" href="Agda.Builtin.Reflection.html#2737" class="Datatype">Visibility</a><a id="655" class="Symbol">)</a>
+<a id="657" class="Keyword">open</a> <a id="662" href="Agda.Builtin.Reflection.html#2737" class="Module">Visibility</a> <a id="673" class="Keyword">public</a>
+
+<a id="681" class="Comment">------------------------------------------------------------------------</a>
+<a id="754" class="Comment">-- Decidable equality</a>
+
+<a id="_≟_"></a><a id="777" href="Reflection.Argument.Visibility.html#777" class="Function Operator">_≟_</a> <a id="781" class="Symbol">:</a> <a id="783" href="Relation.Binary.Definitions.html#4892" class="Function">DecidableEquality</a> <a id="801" href="Agda.Builtin.Reflection.html#2737" class="Datatype">Visibility</a>
+<a id="812" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="822" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="824" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="834" class="Symbol">=</a> <a id="836" href="Relation.Nullary.html#1657" class="InductiveConstructor">yes</a> <a id="840" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+<a id="845" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="855" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="857" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="867" class="Symbol">=</a> <a id="869" href="Relation.Nullary.html#1657" class="InductiveConstructor">yes</a> <a id="873" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+<a id="878" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="888" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="890" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="900" class="Symbol">=</a> <a id="902" href="Relation.Nullary.html#1657" class="InductiveConstructor">yes</a> <a id="906" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a>
+<a id="911" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="921" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="923" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="933" class="Symbol">=</a> <a id="935" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="938" class="Symbol">λ()</a>
+<a id="942" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="952" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="954" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="964" class="Symbol">=</a> <a id="966" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="969" class="Symbol">λ()</a>
+<a id="973" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="983" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="985" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="995" class="Symbol">=</a> <a id="997" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="1000" class="Symbol">λ()</a>
+<a id="1004" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="1014" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="1016" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="1026" class="Symbol">=</a> <a id="1028" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="1031" class="Symbol">λ()</a>
+<a id="1035" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="1045" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="1047" href="Agda.Builtin.Reflection.html#2762" class="InductiveConstructor">visible</a>   <a id="1057" class="Symbol">=</a> <a id="1059" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="1062" class="Symbol">λ()</a>
+<a id="1066" href="Agda.Builtin.Reflection.html#2777" class="InductiveConstructor">instance′</a> <a id="1076" href="Reflection.Argument.Visibility.html#777" class="Function Operator">≟</a> <a id="1078" href="Agda.Builtin.Reflection.html#2770" class="InductiveConstructor">hidden</a>    <a id="1088" class="Symbol">=</a> <a id="1090" href="Relation.Nullary.html#1694" class="InductiveConstructor">no</a> <a id="1093" class="Symbol">λ()</a>
+</pre></body></html>
