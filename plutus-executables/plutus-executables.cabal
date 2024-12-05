@@ -157,3 +157,18 @@ test-suite test-detailed
   build-tool-depends:
     , plutus-executables:plc
     , plutus-executables:uplc
+
+test-suite test-certifier
+  import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/certifier
+  build-depends:
+    , base
+    , directory
+    , filepath
+    , process
+    , tasty
+    , tasty-golden
+
+  build-tool-depends: plutus-executables:uplc
