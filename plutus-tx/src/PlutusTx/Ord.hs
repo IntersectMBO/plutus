@@ -52,6 +52,7 @@ class Eq a => Ord a where
     max x y = if x <= y then y else x
     {-# INLINABLE min #-}
     min x y = if x <= y then x else y
+    {-# MINIMAL compare | (<=) #-}
 
 instance Eq Ordering where
     {-# INLINABLE (==) #-}
