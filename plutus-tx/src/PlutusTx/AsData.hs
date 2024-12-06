@@ -70,12 +70,17 @@ asData decQ = do
   outputDecs <- for decs asDataFor
   pure $ concat outputDecs
 
+f :: TH.Con -> TH.Name
+f (TH.NormalC name _) = name
+f (TH.RecC name _)    = name
+f _                   = error "f: not a normal or record constructor"
+
 asDataFor :: TH.Dec -> TH.Q [TH.Dec]
 asDataFor dec = do
   -- th-abstraction doesn't include deriving clauses, so we have to handle that here
   let derivs = case dec of
-        TH.DataD _ _ _ _ _ deriv -> deriv
-        _                        -> []
+        TH.DataD _ decName _ _ decCons deriv -> deriv
+        _                                    -> []
 
   di@(
     TH.DatatypeInfo
@@ -143,5 +148,10 @@ asDataFor dec = do
 
     sequence [patSynSigD, patSynD]
   -- A complete pragma, to top it off
-  let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
+  let decCons = case dec of
+        TH.DataD _ _ _ _ decCons deriv -> decCons
+      compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
+      inlineable =
+        (\con -> TH.PragmaD (TH.InlineP (f con) TH.Inlinable TH.FunLike TH.AllPhases))
+        <$> decCons
   pure $ ntD : compl : concat pats

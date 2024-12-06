@@ -12,6 +12,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+-- {-# OPTIONS_GHC -ddump-simpl #-}
+{-# OPTIONS_GHC -O0 #-}
+-- {-# OPTIONS_GHC -v #-}
 
 module PlutusLedgerApi.V3.Data.Contexts
   ( ColdCommitteeCredential (..)
@@ -32,9 +36,29 @@ module PlutusLedgerApi.V3.Data.Contexts
   , ScriptPurpose (..)
   , ScriptInfo (..)
   , TxInInfo (..)
-  , TxInfo (..)
+  , TxInfo
+  , pattern TxInfo
+  , txInfoInputs
+  , txInfoReferenceInputs
+  , txInfoOutputs
+  , txInfoFee
+  , txInfoMint
+  , txInfoTxCerts
+  , txInfoWdrl
+  , txInfoValidRange
+  , txInfoSignatories
+  , txInfoRedeemers
+  , txInfoData
+  , txInfoId
+  , txInfoVotes
+  , txInfoProposalProcedures
+  , txInfoCurrentTreasuryAmount
+  , txInfoTreasuryDonation
   , ScriptContext
   , pattern ScriptContext
+  , scriptContextTxInfo
+  , scriptContextRedeemer
+  , scriptContextScriptInfo
   , findOwnInput
   , findDatum
   , findDatumHash
@@ -63,6 +87,7 @@ import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.IsData (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -499,32 +524,53 @@ instance Pretty TxInInfo where
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | TxInfo for PlutusV3
-data TxInfo = TxInfo
-  { txInfoInputs                :: List TxInInfo
-  , txInfoReferenceInputs       :: List TxInInfo
-  , txInfoOutputs               :: List V2.TxOut
-  , txInfoFee                   :: V2.Lovelace
-  , txInfoMint                  :: V2.Value
-  -- ^ The 'Value' minted by this transaction.
-  --
-  -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
-  -- their namesakes in Plutus V1 and V2's ScriptContexts.
-  , txInfoTxCerts               :: List TxCert
-  , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
-  , txInfoValidRange            :: V2.POSIXTimeRange
-  , txInfoSignatories           :: List V2.PubKeyHash
-  , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
-  , txInfoData                  :: Map V2.DatumHash V2.Datum
-  , txInfoId                    :: V3.TxId
-  , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
-  , txInfoProposalProcedures    :: List ProposalProcedure
-  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
-  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data TxInfo = TxInfo
+      { txInfoInputs                :: List TxInInfo
+      , txInfoReferenceInputs       :: List TxInInfo
+      , txInfoOutputs               :: List V2.TxOut
+      , txInfoFee                   :: V2.Lovelace
+      , txInfoMint                  :: V2.Value
+      -- ^ The 'Value' minted by this transaction.
+      --
+      -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
+      -- their namesakes in Plutus V1 and V2's ScriptContexts.
+      , txInfoTxCerts               :: List TxCert
+      , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
+      , txInfoValidRange            :: V2.POSIXTimeRange
+      , txInfoSignatories           :: List V2.PubKeyHash
+      , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
+      , txInfoData                  :: Map V2.DatumHash V2.Datum
+      , txInfoId                    :: V3.TxId
+      , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
+      , txInfoProposalProcedures    :: List ProposalProcedure
+      , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+      , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
+
+{-# INLINEABLE TxInfo #-}
+{-# INLINEABLE txInfoInputs #-}
+{-# INLINEABLE txInfoReferenceInputs #-}
+{-# INLINEABLE txInfoOutputs #-}
+{-# INLINEABLE txInfoFee #-}
+{-# INLINEABLE txInfoMint #-}
+{-# INLINEABLE txInfoTxCerts #-}
+{-# INLINEABLE txInfoWdrl #-}
+{-# INLINEABLE txInfoValidRange #-}
+{-# INLINEABLE txInfoSignatories #-}
+{-# INLINEABLE txInfoRedeemers #-}
+{-# INLINEABLE txInfoData #-}
+{-# INLINEABLE txInfoId #-}
+{-# INLINEABLE txInfoVotes #-}
+{-# INLINEABLE txInfoProposalProcedures #-}
+{-# INLINEABLE txInfoCurrentTreasuryAmount #-}
+{-# INLINEABLE txInfoTreasuryDonation #-}
 
 PlutusTx.makeLift ''TxInfo
-PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 -- | The context that the currently-executing script can access.
 PlutusTx.asData
@@ -539,8 +585,25 @@ PlutusTx.asData
       -- with the purpose
       }
       deriving stock (Generic, Haskell.Show)
-      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving anyclass (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
   |]
+
+{-# INLINEABLE ScriptContext #-}
+{-# INLINEABLE scriptContextTxInfo #-}
+{-# INLINEABLE scriptContextRedeemer #-}
+{-# INLINEABLE scriptContextScriptInfo #-}
+
+-- instance FromData ScriptContext where
+--   {-# INLINEABLE fromBuiltinData #-}
+--   fromBuiltinData = PlutusTx.Just PlutusTx.. PlutusTx.coerce
+--
+-- instance UnsafeFromData ScriptContext where
+--   {-# INLINEABLE unsafeFromBuiltinData #-}
+--   unsafeFromBuiltinData =
+--
+-- instance ToData ScriptContext where
+--   {-# INLINEABLE toBuiltinData #-}
+--   toBuiltinData =
 
 PlutusTx.makeLift ''ScriptContext
 
@@ -677,8 +740,6 @@ spendsOutput txInfo txId i =
          in txId PlutusTx.== V3.txOutRefId outRef
               PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
-
-
 
 instance Pretty TxInfo where
   pretty TxInfo{..} =
