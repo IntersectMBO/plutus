@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- | The interface to Plutus V3 for the ledger.
 module PlutusLedgerApi.Data.V3 (
   -- * Scripts
@@ -54,7 +56,8 @@ module PlutusLedgerApi.Data.V3 (
   EvaluationContext.assertWellFormedCostModelParams,
 
   -- * Context types
-  Contexts.ScriptContext (..),
+  Contexts.ScriptContext,
+  pattern Contexts.ScriptContext,
   Contexts.ScriptPurpose (..),
   Contexts.ScriptInfo (..),
 
@@ -93,7 +96,24 @@ module PlutusLedgerApi.Data.V3 (
   V2.Address (..),
   V2.PubKeyHash (..),
   Tx.TxId (..),
-  Contexts.TxInfo (..),
+  Contexts.TxInfo,
+  pattern Contexts.TxInfo,
+  Contexts.txInfoInputs,
+  Contexts.txInfoReferenceInputs,
+  Contexts.txInfoOutputs,
+  Contexts.txInfoFee,
+  Contexts.txInfoMint,
+  Contexts.txInfoTxCerts,
+  Contexts.txInfoWdrl,
+  Contexts.txInfoValidRange,
+  Contexts.txInfoSignatories,
+  Contexts.txInfoRedeemers,
+  Contexts.txInfoData,
+  Contexts.txInfoId,
+  Contexts.txInfoVotes,
+  Contexts.txInfoProposalProcedures,
+  Contexts.txInfoCurrentTreasuryAmount,
+  Contexts.txInfoTreasuryDonation,
   V2.TxOut (..),
   Tx.TxOutRef (..),
   Contexts.TxInInfo (..),
