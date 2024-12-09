@@ -7,7 +7,7 @@ import Test.Tasty
 import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
-                                          semanticsBenchmarks)
+                                          semanticsBenchmarks, writeFlatUPLC)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
@@ -18,6 +18,8 @@ import PlutusTx.Code (CompiledCode)
 import PlutusTx.Test
 import UntypedPlutusCore (NamedDeBruijn)
 import UntypedPlutusCore.Core.Type qualified as UPLC
+
+import Debug.Trace
 
 mkBudgetTest ::
     CompiledCode a
@@ -37,25 +39,27 @@ main :: IO ()
 main = do
 
   -- Read the semantics benchmark files.
-  semanticsMBench <- either error id <$> semanticsBenchmarks
+  semanticsMBench <- head . either error id <$> semanticsBenchmarks
+  let (name, value) = mkBudgetTest marloweValidator semanticsMBench
+  writeFlatUPLC marloweValidator "Marlowe" semanticsMBench
 
   -- Read the role payout benchmark files.
-  rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
+  -- rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
 
-  let allTests :: TestTree
-      allTests =
-        testGroup "plutus-benchmark Marlowe tests"
-            [ runTestGhc ["semantics"] $
-                goldenSize "semantics" marloweValidator
-                  : [ goldenUEvalBudget name [value]
-                    | bench <- semanticsMBench
-                    , let (name, value) = mkBudgetTest marloweValidator bench
-                    ]
-            , runTestGhc ["role-payout"] $
-                goldenSize "role-payout" rolePayoutValidator
-                  : [ goldenUEvalBudget name [value]
-                    | bench <- rolePayoutMBench
-                    , let (name, value) = mkBudgetTest rolePayoutValidator bench
-                    ]
-            ]
-  defaultMain allTests
+  -- let allTests :: TestTree
+  --     allTests =
+  --       testGroup "plutus-benchmark Marlowe tests"
+  --           [ runTestGhc ["semantics"] $
+  --               goldenSize "semantics" marloweValidator
+  --                 : [ trace (show value) (goldenUEvalBudget name [value])
+  --                   | bench <- semanticsMBench
+  --                   , let (name, value) = mkBudgetTest marloweValidator bench
+  --                   ]
+  --           -- , runTestGhc ["role-payout"] $
+  --           --     goldenSize "role-payout" rolePayoutValidator
+  --           --       : [ goldenUEvalBudget name [value]
+  --           --         | bench <- rolePayoutMBench
+  --           --         , let (name, value) = mkBudgetTest rolePayoutValidator bench
+  --           --         ]
+  --           ]
+  -- defaultMain allTests

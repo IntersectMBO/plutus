@@ -53,8 +53,8 @@ import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
-import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
-                                    PrintMode (Readable), UplcProg)
+import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat, Textual),
+                                    Output (FileOutput), PrintMode (Classic, Readable), UplcProg)
 import PlutusCore.MkPlc (mkConstant)
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
@@ -277,7 +277,7 @@ writeFlatUPLC validator filename Benchmark{..} =
       foldl1 (unsafeFromEither .* applyProgram)
         $ void prog : [datum, redeemer, context]
   in
-    writeProgram (FileOutput filename) (Flat NamedDeBruijn) Readable applied
+    writeProgram (FileOutput filename) Textual Classic applied
 
 
 -- | Run a benchmark case.
