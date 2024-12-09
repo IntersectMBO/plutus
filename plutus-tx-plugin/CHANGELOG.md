@@ -1,4 +1,18 @@
 
+<a id='changelog-1.38.0.0'></a>
+# 1.38.0.0 — 2024-12-09
+
+## Removed
+
+- `instance IsString TokenName` as it wasn't compilable by the plutus-tx-plugin anyway.
+- `instance IsString CurrencySymbol` as it wasn't compilable by the plutus-tx-plugin anyway.
+
+## Added
+
+- `instance IsString BuiltinByteStringUtf8` allows using string literals to construct UTF8-encoded `BuiltinByteString` values.
+
+- `instance IsString BuiltinByteStringHex` allows using string literals to construct Base16-encoded (aka HEX) `BuiltinByteString` values.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 

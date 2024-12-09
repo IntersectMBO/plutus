@@ -1,4 +1,13 @@
 
+<a id='changelog-1.38.0.0'></a>
+# 1.38.0.0 — 2024-12-09
+
+## Changed
+
+- In #6702 made variable lookup faster increasing overall performance of the evaluator by 1%.
+
+- In #6705 made the local `spend` function faster increasing overall performance of the evaluator by 1.8%.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 
