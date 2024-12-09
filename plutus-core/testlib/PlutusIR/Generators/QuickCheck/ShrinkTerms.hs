@@ -36,6 +36,7 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
+import Data.Vector.Strict qualified as Vector
 import GHC.Stack
 import Test.QuickCheck (shrink, shrinkList)
 
@@ -119,6 +120,7 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go DefaultUniByteString                                             = ""
     go DefaultUniData                                                   = I 0
     go (DefaultUniProtoList `DefaultUniApply` _)                        = []
+    go (DefaultUniProtoArray `DefaultUniApply` _)                       = Vector.empty
     go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)
     go (f  `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
     go DefaultUniBLS12_381_G1_Element                                   = BLS12_381.G1.offchain_zero
