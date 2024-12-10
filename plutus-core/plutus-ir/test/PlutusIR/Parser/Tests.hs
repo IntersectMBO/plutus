@@ -89,8 +89,8 @@ isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0 where
     go PLC.DefaultUniString text = T.all (\c -> not (separator c) && c /= '`') text
     go PLC.DefaultUniUnit _ = True
     go PLC.DefaultUniBool _ = True
-    go (PLC.DefaultUniProtoList `PLC.DefaultUniApply` uniA) xs =
-        all (go uniA) xs
+    go (PLC.DefaultUniProtoList `PLC.DefaultUniApply` uniA) xs = all (go uniA) xs
+    go (PLC.DefaultUniProtoArray `PLC.DefaultUniApply` uniA) xs = all (go uniA) xs
     go (PLC.DefaultUniProtoPair `PLC.DefaultUniApply` uniA `PLC.DefaultUniApply` uniB) (x, y) =
         go uniA x && go uniB y
     go (f `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _ `PLC.DefaultUniApply` _) _  =

@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE InstanceSigs      #-}
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
@@ -29,8 +30,11 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Vector (Vector)
+import Data.Vector.Strict qualified as Strict
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
+import Test.QuickCheck.Instances.Vector ()
 import Universe
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
@@ -293,6 +297,20 @@ instance ArbitraryBuiltin a => ArbitraryBuiltin [a] where
             -- exponential size (and thus time).
             scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
     shrinkBuiltin = coerce $ shrink @[AsArbitraryBuiltin a]
+
+instance ArbitraryBuiltin a => ArbitraryBuiltin (Strict.Vector a) where
+  arbitraryBuiltin = do
+    spine <- Strict.fromLazy <$> arbitrary
+    let len = length spine
+    for spine $ \() ->
+      -- Scale the elements, so that generating a list of vectors of lists doesn't take
+      -- exponential size (and thus time).
+      scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
+  shrinkBuiltin =
+    map (coerce . Strict.fromLazy)
+    . shrink @(Vector (AsArbitraryBuiltin a))
+    . Strict.toLazy
+    . coerce @(Strict.Vector a) @(Strict.Vector (AsArbitraryBuiltin a))
 
 instance (ArbitraryBuiltin a, ArbitraryBuiltin b) => ArbitraryBuiltin (a, b) where
     arbitraryBuiltin = do

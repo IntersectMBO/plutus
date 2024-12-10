@@ -27,6 +27,7 @@ import UntypedPlutusCore.Transform.Simplifier
 import Control.Monad
 import Data.List as List (foldl')
 import Data.Typeable
+import Data.Vector.Orphans ()
 
 simplifyProgram ::
     forall name uni fun m a.
