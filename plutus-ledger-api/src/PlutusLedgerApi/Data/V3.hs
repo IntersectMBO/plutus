@@ -59,7 +59,13 @@ module PlutusLedgerApi.Data.V3 (
   Contexts.ScriptContext,
   pattern Contexts.ScriptContext,
   Contexts.ScriptPurpose (..),
-  Contexts.ScriptInfo (..),
+  Contexts.ScriptInfo,
+  pattern Contexts.MintingScript,
+  pattern Contexts.SpendingScript,
+  pattern Contexts.RewardingScript,
+  pattern Contexts.CertifyingScript,
+  pattern Contexts.VotingScript,
+  pattern Contexts.ProposingScript,
 
   -- ** Supporting types used in the context types
 

@@ -33,7 +33,13 @@ module PlutusLedgerApi.V3.Data.Contexts
   , GovernanceAction (..)
   , ProposalProcedure (..)
   , ScriptPurpose (..)
-  , ScriptInfo (..)
+  , ScriptInfo
+  , pattern MintingScript
+  , pattern SpendingScript
+  , pattern RewardingScript
+  , pattern CertifyingScript
+  , pattern VotingScript
+  , pattern ProposingScript
   , TxInInfo (..)
   , TxInfo
   , pattern TxInfo
@@ -476,32 +482,27 @@ PlutusTx.makeIsDataIndexed
   ]
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
-data ScriptInfo
-  = MintingScript V2.CurrencySymbol
-  | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
-  | RewardingScript V2.Credential
-  | CertifyingScript
-      Haskell.Integer
-      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
-      TxCert
-  | VotingScript Voter
-  | ProposingScript
-      Haskell.Integer
-      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
-      ProposalProcedure
-  deriving stock (Generic, Haskell.Show)
-  deriving (Pretty) via (PrettyShow ScriptInfo)
+PlutusTx.asData
+  [d|
+    data ScriptInfo
+      = MintingScript V2.CurrencySymbol
+      | SpendingScript V3.TxOutRef (Haskell.Maybe V2.Datum)
+      | RewardingScript V2.Credential
+      | CertifyingScript
+          Haskell.Integer
+          -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+          TxCert
+      | VotingScript Voter
+      | ProposingScript
+          Haskell.Integer
+          -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+          ProposalProcedure
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow ScriptInfo)
+  |]
 
 PlutusTx.makeLift ''ScriptInfo
-PlutusTx.makeIsDataIndexed
-  ''ScriptInfo
-  [ ('MintingScript, 0)
-  , ('SpendingScript, 1)
-  , ('RewardingScript, 2)
-  , ('CertifyingScript, 3)
-  , ('VotingScript, 4)
-  , ('ProposingScript, 5)
-  ]
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
