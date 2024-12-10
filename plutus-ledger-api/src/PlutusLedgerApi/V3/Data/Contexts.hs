@@ -20,8 +20,14 @@ module PlutusLedgerApi.V3.Data.Contexts
   ( ColdCommitteeCredential (..)
   , HotCommitteeCredential (..)
   , DRepCredential (..)
-  , DRep (..)
-  , Delegatee (..)
+  , DRep
+  , pattern DRep
+  , pattern DRepAlwaysAbstain
+  , pattern DRepAlwaysNoConfidence
+  , Delegatee
+  , pattern DelegStake
+  , pattern DelegVote
+  , pattern DelegStakeVote
   , TxCert
   , pattern TxCertRegStaking
   , pattern TxCertUnRegStaking
@@ -179,20 +185,18 @@ newtype DRepCredential = DRepCredential V2.Credential
 
 PlutusTx.makeLift ''DRepCredential
 
-data DRep
-  = DRep DRepCredential
-  | DRepAlwaysAbstain
-  | DRepAlwaysNoConfidence
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow DRep)
+PlutusTx.asData
+  [d|
+    data DRep
+      = DRep DRepCredential
+      | DRepAlwaysAbstain
+      | DRepAlwaysNoConfidence
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow DRep)
+  |]
 
 PlutusTx.makeLift ''DRep
-PlutusTx.makeIsDataIndexed
-  ''DRep
-  [ ('DRep, 0)
-  , ('DRepAlwaysAbstain, 1)
-  , ('DRepAlwaysNoConfidence, 2)
-  ]
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
@@ -201,20 +205,18 @@ instance PlutusTx.Eq DRep where
   DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
   _ == _                                           = Haskell.False
 
-data Delegatee
-  = DelegStake V2.PubKeyHash
-  | DelegVote DRep
-  | DelegStakeVote V2.PubKeyHash DRep
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow Delegatee)
+PlutusTx.asData
+  [d|
+    data Delegatee
+      = DelegStake V2.PubKeyHash
+      | DelegVote DRep
+      | DelegStakeVote V2.PubKeyHash DRep
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow Delegatee)
+  |]
 
 PlutusTx.makeLift ''Delegatee
-PlutusTx.makeIsDataIndexed
-  ''Delegatee
-  [ ('DelegStake, 0)
-  , ('DelegVote, 1)
-  , ('DelegStakeVote, 2)
-  ]
 
 instance PlutusTx.Eq Delegatee where
   {-# INLINEABLE (==) #-}
