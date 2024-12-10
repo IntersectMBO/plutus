@@ -42,7 +42,11 @@ module PlutusLedgerApi.Data.V3 (
   Contexts.ProtocolVersion (..),
   Contexts.GovernanceAction (..),
   Contexts.ChangedParameters (..),
-  Contexts.ProposalProcedure (..),
+  Contexts.ProposalProcedure,
+  pattern Contexts.ProposalProcedure,
+  Contexts.ppDeposit,
+  Contexts.ppReturnAddr,
+  Contexts.ppGovernanceAction,
 
   -- ** Protocol version
   Common.MajorProtocolVersion (..),

@@ -42,7 +42,11 @@ module PlutusLedgerApi.V3.Data.Contexts
   , ProtocolVersion (..)
   , ChangedParameters (..)
   , GovernanceAction (..)
-  , ProposalProcedure (..)
+  , ProposalProcedure
+  , pattern ProposalProcedure
+  , ppDeposit
+  , ppReturnAddr
+  , ppGovernanceAction
   , ScriptPurpose
   , pattern Minting
   , pattern Spending
@@ -445,15 +449,18 @@ PlutusTx.makeIsDataIndexed
   ]
 
 -- | A proposal procedure. The optional anchor is omitted.
-data ProposalProcedure = ProposalProcedure
-  { ppDeposit          :: V2.Lovelace
-  , ppReturnAddr       :: V2.Credential
-  , ppGovernanceAction :: GovernanceAction
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data ProposalProcedure = ProposalProcedure
+      { ppDeposit          :: V2.Lovelace
+      , ppReturnAddr       :: V2.Credential
+      , ppGovernanceAction :: GovernanceAction
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''ProposalProcedure
-PlutusTx.makeIsDataIndexed ''ProposalProcedure [('ProposalProcedure, 0)]
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure{..} =

@@ -113,7 +113,6 @@
     Vote = all a. a -> a
     TxOut = all a. a -> a
     GovernanceActionId = all a. a -> a
-    ProposalProcedure = all a. a -> a
   in
   \(d : data) ->
     Solo_match
@@ -190,7 +189,7 @@
                                   ((\k a -> list (pair data data))
                                      GovernanceActionId
                                      Vote) ->
-                                (\a -> list data) ProposalProcedure ->
+                                (\a -> list data) data ->
                                 Maybe integer ->
                                 Maybe integer ->
                                 r)
@@ -384,7 +383,7 @@
                                    ((\k a -> list (pair data data))
                                       GovernanceActionId
                                       Vote))
-                              (ds : (\a -> list data) ProposalProcedure)
+                              (ds : (\a -> list data) data)
                               (ds : Maybe integer)
                               (ds : Maybe integer) ->
                                ds)
