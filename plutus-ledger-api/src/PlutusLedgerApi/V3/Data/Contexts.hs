@@ -14,7 +14,6 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 -- {-# OPTIONS_GHC -ddump-simpl #-}
-{-# OPTIONS_GHC -O0 #-}
 -- {-# OPTIONS_GHC -v #-}
 
 module PlutusLedgerApi.V3.Data.Contexts
@@ -87,7 +86,6 @@ import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
-import PlutusTx.IsData (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -585,25 +583,13 @@ PlutusTx.asData
       -- with the purpose
       }
       deriving stock (Generic, Haskell.Show)
-      deriving anyclass (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
   |]
 
 {-# INLINEABLE ScriptContext #-}
 {-# INLINEABLE scriptContextTxInfo #-}
 {-# INLINEABLE scriptContextRedeemer #-}
 {-# INLINEABLE scriptContextScriptInfo #-}
-
--- instance FromData ScriptContext where
---   {-# INLINEABLE fromBuiltinData #-}
---   fromBuiltinData = PlutusTx.Just PlutusTx.. PlutusTx.coerce
---
--- instance UnsafeFromData ScriptContext where
---   {-# INLINEABLE unsafeFromBuiltinData #-}
---   unsafeFromBuiltinData =
---
--- instance ToData ScriptContext where
---   {-# INLINEABLE toBuiltinData #-}
---   toBuiltinData =
 
 PlutusTx.makeLift ''ScriptContext
 

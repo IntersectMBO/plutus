@@ -9,8 +9,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE FlexibleContexts     #-}
 module PlutusTx.IsData.Class where
 
 import Prelude qualified as Haskell (Int, error)
@@ -29,7 +27,6 @@ import PlutusTx.Trace
 import Data.Kind
 import Data.Void
 
-import Data.Coerce (Coercible, coerce)
 import GHC.TypeLits (ErrorMessage (..), TypeError)
 
 
@@ -39,17 +36,11 @@ import GHC.TypeLits (ErrorMessage (..), TypeError)
 class ToData (a :: Type) where
     -- | Convert a value to 'BuiltinData'.
     toBuiltinData :: a -> BuiltinData
-    default toBuiltinData :: Coercible a BuiltinData => a -> BuiltinData
-    toBuiltinData = coerce
-    {-# INLINABLE toBuiltinData #-}
 
 class FromData (a :: Type) where
     -- TODO: this should probably provide some kind of diagnostics
     -- | Convert a value from 'BuiltinData', returning 'Nothing' if this fails.
     fromBuiltinData :: BuiltinData -> Maybe a
-    default fromBuiltinData :: Coercible a BuiltinData => BuiltinData -> Maybe a
-    fromBuiltinData = Just . coerce
-    {-# INLINABLE fromBuiltinData #-}
 
 class UnsafeFromData (a :: Type) where
     -- | Convert a value from 'BuiltinData', calling 'error' if this fails.
@@ -60,9 +51,6 @@ class UnsafeFromData (a :: Type) where
     --
     -- This is a simple type without any validation, __use with caution__.
     unsafeFromBuiltinData :: BuiltinData -> a
-    default unsafeFromBuiltinData :: Coercible a BuiltinData => BuiltinData -> a
-    unsafeFromBuiltinData = coerce
-    {-# INLINABLE unsafeFromBuiltinData #-}
 
 instance ToData BuiltinData where
     {-# INLINABLE toBuiltinData #-}
