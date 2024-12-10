@@ -41,27 +41,15 @@ import Flat (unflat)
 import Options.Applicative
 import Prettyprinter ((<+>))
 import System.Exit (exitFailure)
-import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
-import Agda.Interaction.Base (ComputeMode (DefaultCompute))
-import Agda.Interaction.FindFile qualified as HAgda.File
-import Agda.Interaction.Imports qualified as HAgda.Imp
-import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
-import Agda.Syntax.Parser qualified as HAgda.Parser
-
-import Agda.Compiler.Backend (crInterface, iInsideScope, setCommandLineOptions, setScope)
-import Agda.Interaction.BasicOps (evalInCurrent)
-import Agda.Main (runTCMPrettyErrors)
-import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
-import Agda.TypeChecking.Pretty (PrettyTCM (..))
-import Agda.Utils.FileName qualified as HAgda.File
 import AgdaUnparse (agdaUnparse)
-import System.Environment (getEnv)
+
+import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -298,44 +286,36 @@ runCertifier (Just certName) (SimplifierTrace simplTrace) = do
             (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
             (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
       rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-  runAgda certName rawAgdaTrace
+  runCertifierMain rawAgdaTrace
+  writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
 runCertifier Nothing _ = pure ()
 
--- | Run the Agda compiler on the metatheory and evaluate the 'runCertifier' function
--- on the given trace.
-runAgda
-  :: String
-  -- ^ The name of the certificate file to write
-  -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))]
-  -- ^ The trace produced by the simplification process
-  -> IO ()
-runAgda certName rawTrace = do
-  let program = "runCertifier (" ++ agdaUnparse rawTrace ++ ")"
-  (parseTraceResult, _) <- HAgda.Parser.runPMIO $ HAgda.Parser.parse HAgda.Parser.exprParser program
-  let parsedTrace =
-        case parseTraceResult of
-          Right (res, _) -> res
-          Left err       -> error $ show err
-  stdlibPath <- getEnv "AGDA_STDLIB_SRC"
-  metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  inputFile <- HAgda.File.absolute (metatheoryPath </> "Certifier.agda")
-  runTCMPrettyErrors $ do
-    let opts =
-          defaultOptions
-            { optIncludePaths =
-                [ metatheoryPath
-                , stdlibPath
-                ]
-            }
-    setCommandLineOptions opts
-    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    let interface = crInterface result
-        insideScope = iInsideScope interface
-    setScope insideScope
-    internalisedTrace <- toAbstract parsedTrace
-    decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
-    final <- prettyTCM decisionProcedureResult
-    liftIO $ writeFile (certName ++ ".agda") (show final)
+rawCertificate :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> String
+rawCertificate certName rawTrace =
+  "module " <> certName <> " where\
+  \\n\
+  \\nopen import VerifiedCompilation\
+  \\nopen import Untyped\
+  \\nopen import RawU\
+  \\nopen import Builtin\
+  \\nopen import Data.Unit\
+  \\nopen import Data.Nat\
+  \\nopen import Data.Integer\
+  \\nopen import Utils\
+  \\nimport Agda.Builtin.Bool\
+  \\nimport Relation.Nullary\
+  \\nimport VerifiedCompilation.UntypedTranslation\
+  \\nopen import Agda.Builtin.Maybe\
+  \\nopen import Data.Empty using (⊥)\
+  \\nopen import Data.Bool.Base using (Bool; false; true)\
+  \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
+  \\n\
+  \\nasts : List (SimplifierTag × Untyped × Untyped)\
+  \\nasts = " <> agdaUnparse rawTrace <>
+  "\n\
+  \\ncertificate : passed? (runCertifier asts) ≡ true\
+  \\ncertificate = refl\
+  \\n"
 
 ---------------- Script application ----------------
 
