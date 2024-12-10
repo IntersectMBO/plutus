@@ -111,7 +111,6 @@
     Vote = all a. a -> a
     Credential = all a. a -> a
     TxOut = all a. a -> a
-    GovernanceActionId = all a. a -> a
   in
   \(d : data) ->
     Solo_match
@@ -185,9 +184,7 @@
                                 bytestring ->
                                 (\k a -> list (pair data data))
                                   data
-                                  ((\k a -> list (pair data data))
-                                     GovernanceActionId
-                                     Vote) ->
+                                  ((\k a -> list (pair data data)) data Vote) ->
                                 (\a -> list data) data ->
                                 Maybe integer ->
                                 Maybe integer ->
@@ -379,9 +376,7 @@
                               (ds :
                                  (\k a -> list (pair data data))
                                    data
-                                   ((\k a -> list (pair data data))
-                                      GovernanceActionId
-                                      Vote))
+                                   ((\k a -> list (pair data data)) data Vote))
                               (ds : (\a -> list data) data)
                               (ds : Maybe integer)
                               (ds : Maybe integer) ->

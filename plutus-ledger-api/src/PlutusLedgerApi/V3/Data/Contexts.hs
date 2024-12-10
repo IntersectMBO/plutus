@@ -39,7 +39,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern DRepVoter
   , pattern StakePoolVoter
   , Vote (..)
-  , GovernanceActionId (..)
+  , GovernanceActionId
+  , pattern GovernanceActionId
+  , gaidTxId
+  , gaidGovActionIx
   , Committee (..)
   , Constitution (..)
   , ProtocolVersion (..)
@@ -323,14 +326,17 @@ instance PlutusTx.Eq Vote where
   _ == _             = Haskell.False
 
 -- | Similar to TxOutRef, but for GovActions
-data GovernanceActionId = GovernanceActionId
-  { gaidTxId        :: V3.TxId
-  , gaidGovActionIx :: Haskell.Integer
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data GovernanceActionId = GovernanceActionId
+      { gaidTxId        :: V3.TxId
+      , gaidGovActionIx :: Haskell.Integer
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''GovernanceActionId
-PlutusTx.makeIsDataIndexed ''GovernanceActionId [('GovernanceActionId, 0)]
 
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId{..} =
