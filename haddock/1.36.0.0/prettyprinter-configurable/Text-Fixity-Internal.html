@@ -1,0 +1,1144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Text.Fixity.Internal</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >prettyprinter-configurable-1.36.0.0: Configurable pretty-printing</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Text.Fixity.Internal.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Text.Fixity.Internal</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Precedence-general machinery for deciding whether an expression needs to be wrapped in
+ parentheses or not. Source code has comments on the approach used and how it compares to some
+ other known approaches.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Associativity"
+	      >Associativity</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:LeftAssociative"
+		  >LeftAssociative</a
+		  ></li
+		><li
+		>| <a href="#v:RightAssociative"
+		  >RightAssociative</a
+		  ></li
+		><li
+		>| <a href="#v:NonAssociative"
+		  >NonAssociative</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:FixityOver"
+	      >FixityOver</a
+	      > prec = <a href="#v:Fixity"
+	      >Fixity</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_fixityAssociativity"
+		  >_fixityAssociativity</a
+		  > &#8759; !<a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+		  >Associativity</a
+		  ></li
+		><li
+		><a href="#v:_fixityPrecedence"
+		  >_fixityPrecedence</a
+		  > &#8759; !prec</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Direction"
+	      >Direction</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ToTheLeft"
+		  >ToTheLeft</a
+		  ></li
+		><li
+		>| <a href="#v:ToTheRight"
+		  >ToTheRight</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:RenderContextOver"
+	      >RenderContextOver</a
+	      > prec = <a href="#v:RenderContext"
+	      >RenderContext</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_renderContextDirection"
+		  >_renderContextDirection</a
+		  > &#8759; !<a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+		  >Direction</a
+		  ></li
+		><li
+		><a href="#v:_renderContextFixity"
+		  >_renderContextFixity</a
+		  > &#8759; !(<a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+		  >FixityOver</a
+		  > prec)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:encloseIn"
+	      >encloseIn</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > prec &#8658; (a &#8594; a) &#8594; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+	      >RenderContextOver</a
+	      > prec &#8594; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+	      >FixityOver</a
+	      > prec &#8594; a &#8594; a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Associativity" class="def"
+	    >Associativity</a
+	    > <a href="src/Text.Fixity.Internal.html#Associativity" class="link"
+	    >Source</a
+	    > <a href="#t:Associativity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Associativity of an operator.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:LeftAssociative" class="def"
+		  >LeftAssociative</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:RightAssociative" class="def"
+		  >RightAssociative</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:NonAssociative" class="def"
+		  >NonAssociative</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Associativity"
+	    >Instances</h4
+	    ><details id="i:Associativity" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Associativity:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+		      >Associativity</a
+		      ></span
+		    > <a href="src/Text.Fixity.Internal.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:Associativity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Associativity:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Associativity:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+		      >Associativity</a
+		      ></span
+		    > <a href="src/Text.Fixity.Internal.html#line-213" class="link"
+		    >Source</a
+		    > <a href="#t:Associativity" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Associativity:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:FixityOver" class="def"
+	    >FixityOver</a
+	    > prec <a href="src/Text.Fixity.Internal.html#FixityOver" class="link"
+	    >Source</a
+	    > <a href="#t:FixityOver" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fixity of an operator.</p
+	    ><p
+	    >We allow unary operators to have associativity, because it's useful to distinguish
+ between an expression like <code
+	      >-(-x)</code
+	      > (unary minus, left-associative) and <code
+	      >~~b</code
+	      >
+ (boolean NOT, right-associative).</p
+	    ><p
+	    >Associativity of unary operators also matters when pretty-printing expressions like <code
+	      >(-x) + y</code
+	      >,
+ which is pretty-printed as <code
+	      >-x + y</code
+	      >, assuming unary minus has the same fixity as <code
+	      >+</code
+	      > (and both
+ the operators are left-associative). I.e. unary minus is handled just like the binary one:
+ <code
+	      >(0 - x) + y</code
+	      > is pretty-printed as <code
+	      >0 - x + y</code
+	      >.</p
+	    ><p
+	    >Postfix operators are handled similarly. E.g. if <code
+	      >!</code
+	      > is left-associative, then <code
+	      >(x!)!</code
+	      > is
+ pretty-printed as <code
+	      >x!!</code
+	      > and if it's right-associative -- <code
+	      >(x!)!</code
+	      >.</p
+	    ><p
+	    >The data type is parameterized, so that the user can choose precedence to be integer/fractional,
+ bounded/unbounded, etc (we could also allows operators to be partially or totally ordered, but
+ at the moment <code
+	      >prec</code
+	      > is required to implement <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		>Ord</a
+		></code
+	      >, i.e. it has to be totally ordered).
+ By default we go with bounded fractional precedence, see the main <a href="Text-Fixity.html"
+	      >Text.Fixity</a
+	      > module.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Fixity" class="def"
+		  >Fixity</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_fixityAssociativity" class="def"
+			  >_fixityAssociativity</a
+			  > &#8759; !<a href="Text-Fixity-Internal.html#t:Associativity" title="Text.Fixity.Internal"
+			  >Associativity</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_fixityPrecedence" class="def"
+			  >_fixityPrecedence</a
+			  > &#8759; !prec</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:FixityOver"
+	    >Instances</h4
+	    ><details id="i:FixityOver" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:FixityOver:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > prec &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+		      >FixityOver</a
+		      > prec)</span
+		    > <a href="src/Text.Fixity.Internal.html#line-237" class="link"
+		    >Source</a
+		    > <a href="#t:FixityOver" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:FixityOver:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:FixityOver:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > prec &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+		      >FixityOver</a
+		      > prec)</span
+		    > <a href="src/Text.Fixity.Internal.html#line-237" class="link"
+		    >Source</a
+		    > <a href="#t:FixityOver" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:FixityOver:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Direction" class="def"
+	    >Direction</a
+	    > <a href="src/Text.Fixity.Internal.html#Direction" class="link"
+	    >Source</a
+	    > <a href="#t:Direction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Direction in which pretty-printing goes. For example in <code
+	      >x + y</code
+	      > <code
+	      >x</code
+	      > is pretty-printed to the
+ left of <code
+	      >+</code
+	      > and <code
+	      >y</code
+	      > is pretty-printed to the right of <code
+	      >+</code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ToTheLeft" class="def"
+		  >ToTheLeft</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ToTheRight" class="def"
+		  >ToTheRight</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Direction"
+	    >Instances</h4
+	    ><details id="i:Direction" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Direction:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+		      >Direction</a
+		      ></span
+		    > <a href="src/Text.Fixity.Internal.html#line-244" class="link"
+		    >Source</a
+		    > <a href="#t:Direction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Direction:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Direction:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+		      >Direction</a
+		      ></span
+		    > <a href="src/Text.Fixity.Internal.html#line-244" class="link"
+		    >Source</a
+		    > <a href="#t:Direction" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Direction:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:RenderContextOver" class="def"
+	    >RenderContextOver</a
+	    > prec <a href="src/Text.Fixity.Internal.html#RenderContextOver" class="link"
+	    >Source</a
+	    > <a href="#t:RenderContextOver" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A context that an expression is being rendered in.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:RenderContext" class="def"
+		  >RenderContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_renderContextDirection" class="def"
+			  >_renderContextDirection</a
+			  > &#8759; !<a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+			  >Direction</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_renderContextFixity" class="def"
+			  >_renderContextFixity</a
+			  > &#8759; !(<a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+			  >FixityOver</a
+			  > prec)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:RenderContextOver"
+	    >Instances</h4
+	    ><details id="i:RenderContextOver" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RenderContextOver:HasRenderContext:1"
+		      ></span
+		      > <a href="Text-PrettyBy-Fixity.html#t:HasRenderContext" title="Text.PrettyBy.Fixity"
+		      >HasRenderContext</a
+		      > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+		      >RenderContext</a
+		      ></span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:HasRenderContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RenderContextOver:HasRenderContext:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:renderContext"
+			  >renderContext</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+			  >Lens'</a
+			  > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+			  >RenderContext</a
+			  > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+			  >RenderContext</a
+			  > <a href="src/Text.PrettyBy.Fixity.html#renderContext" class="link"
+			  >Source</a
+			  > <a href="#v:renderContext" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RenderContextOver:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > prec &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+		      >RenderContextOver</a
+		      > prec)</span
+		    > <a href="src/Text.Fixity.Internal.html#line-250" class="link"
+		    >Source</a
+		    > <a href="#t:RenderContextOver" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RenderContextOver:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:RenderContextOver:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > prec &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+		      >RenderContextOver</a
+		      > prec)</span
+		    > <a href="src/Text.Fixity.Internal.html#line-250" class="link"
+		    >Source</a
+		    > <a href="#t:RenderContextOver" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:RenderContextOver:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-Fixity-Internal.html"
+			>Text.Fixity.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+			  >RenderContextOver</a
+			  > prec &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encloseIn" class="def"
+	    >encloseIn</a
+	    > <a href="src/Text.Fixity.Internal.html#encloseIn" class="link"
+	    >Source</a
+	    > <a href="#v:encloseIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		  >Ord</a
+		  > prec</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; (a &#8594; a)</td
+		><td class="doc"
+		><p
+		  >Enclose a value of type <code
+		    >a</code
+		    > in parens.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Text-Fixity-Internal.html#t:RenderContextOver" title="Text.Fixity.Internal"
+		  >RenderContextOver</a
+		  > prec</td
+		><td class="doc"
+		><p
+		  >An outer context.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="Text-Fixity-Internal.html#t:FixityOver" title="Text.Fixity.Internal"
+		  >FixityOver</a
+		  > prec</td
+		><td class="doc"
+		><p
+		  >An inner fixity.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Enclose an <code
+	      >a</code
+	      > (using the provided function) if required or leave it as is.
+ The need for enclosing is determined from an outer <code
+	      ><a href="Text-Fixity-Internal.html#v:RenderContext" title="Text.Fixity.Internal"
+		>RenderContext</a
+		></code
+	      > and the inner fixity.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
