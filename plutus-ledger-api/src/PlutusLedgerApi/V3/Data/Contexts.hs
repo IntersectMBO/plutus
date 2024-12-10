@@ -38,7 +38,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern CommitteeVoter
   , pattern DRepVoter
   , pattern StakePoolVoter
-  , Vote (..)
+  , Vote
+  , pattern VoteNo
+  , pattern VoteYes
+  , pattern Abstain
   , GovernanceActionId
   , pattern GovernanceActionId
   , gaidTxId
@@ -303,20 +306,18 @@ instance PlutusTx.Eq Voter where
   _ == _ = Haskell.False
 
 -- | A vote. The optional anchor is omitted.
-data Vote
-  = VoteNo
-  | VoteYes
-  | Abstain
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow Vote)
+PlutusTx.asData
+  [d|
+    data Vote
+      = VoteNo
+      | VoteYes
+      | Abstain
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow Vote)
+  |]
 
 PlutusTx.makeLift ''Vote
-PlutusTx.makeIsDataIndexed
-  ''Vote
-  [ ('VoteNo, 0)
-  , ('VoteYes, 1)
-  , ('Abstain, 2)
-  ]
 
 instance PlutusTx.Eq Vote where
   {-# INLINEABLE (==) #-}
