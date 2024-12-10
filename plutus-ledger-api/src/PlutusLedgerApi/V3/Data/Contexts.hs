@@ -41,7 +41,14 @@ module PlutusLedgerApi.V3.Data.Contexts
   , Constitution (..)
   , ProtocolVersion (..)
   , ChangedParameters (..)
-  , GovernanceAction (..)
+  , GovernanceAction
+  , pattern ParameterChange
+  , pattern HardForkInitiation
+  , pattern TreasuryWithdrawals
+  , pattern NoConfidence
+  , pattern UpdateCommittee
+  , pattern NewConstitution
+  , pattern InfoAction
   , ProposalProcedure
   , pattern ProposalProcedure
   , ppDeposit
@@ -415,38 +422,32 @@ newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.
 
 PlutusTx.makeLift ''ChangedParameters
 
-data GovernanceAction
-  = ParameterChange
-      (Haskell.Maybe GovernanceActionId)
-      ChangedParameters
-      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
-  | -- | proposal to update protocol version
-    HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
-  | TreasuryWithdrawals
-      (Map V2.Credential V2.Lovelace)
-      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
-  | NoConfidence (Haskell.Maybe GovernanceActionId)
-  | UpdateCommittee
-      (Haskell.Maybe GovernanceActionId)
-      (List ColdCommitteeCredential) -- ^ Committee members to be removed
-      (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
-      Rational -- ^ New quorum
-  | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
-  | InfoAction
-  deriving stock (Generic, Haskell.Show)
-  deriving (Pretty) via (PrettyShow GovernanceAction)
+PlutusTx.asData
+  [d|
+    data GovernanceAction
+      = ParameterChange
+          (Haskell.Maybe GovernanceActionId)
+          ChangedParameters
+          (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
+      | -- | proposal to update protocol version
+        HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
+      | TreasuryWithdrawals
+          (Map V2.Credential V2.Lovelace)
+          (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
+      | NoConfidence (Haskell.Maybe GovernanceActionId)
+      | UpdateCommittee
+          (Haskell.Maybe GovernanceActionId)
+          (List ColdCommitteeCredential) -- ^ Committee members to be removed
+          (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
+          Rational -- ^ New quorum
+      | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
+      | InfoAction
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow GovernanceAction)
+  |]
 
 PlutusTx.makeLift ''GovernanceAction
-PlutusTx.makeIsDataIndexed
-  ''GovernanceAction
-  [ ('ParameterChange, 0)
-  , ('HardForkInitiation, 1)
-  , ('TreasuryWithdrawals, 2)
-  , ('NoConfidence, 3)
-  , ('UpdateCommittee, 4)
-  , ('NewConstitution, 5)
-  , ('InfoAction, 6)
-  ]
 
 -- | A proposal procedure. The optional anchor is omitted.
 PlutusTx.asData
