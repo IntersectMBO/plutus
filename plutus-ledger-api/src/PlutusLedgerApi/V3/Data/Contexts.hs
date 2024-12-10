@@ -34,7 +34,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern TxCertPoolRetire
   , pattern TxCertAuthHotCommittee
   , pattern TxCertResignColdCommittee
-  , Voter (..)
+  , Voter
+  , pattern CommitteeVoter
+  , pattern DRepVoter
+  , pattern StakePoolVoter
   , Vote (..)
   , GovernanceActionId (..)
   , Committee (..)
@@ -273,20 +276,18 @@ instance PlutusTx.Eq TxCert where
     a PlutusTx.== a'
   _ == _ = Haskell.False
 
-data Voter
-  = CommitteeVoter HotCommitteeCredential
-  | DRepVoter DRepCredential
-  | StakePoolVoter V2.PubKeyHash
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow Voter)
+PlutusTx.asData
+  [d|
+    data Voter
+      = CommitteeVoter HotCommitteeCredential
+      | DRepVoter DRepCredential
+      | StakePoolVoter V2.PubKeyHash
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow Voter)
+  |]
 
 PlutusTx.makeLift ''Voter
-PlutusTx.makeIsDataIndexed
-  ''Voter
-  [ ('CommitteeVoter, 0)
-  , ('DRepVoter, 1)
-  , ('StakePoolVoter, 2)
-  ]
 
 instance PlutusTx.Eq Voter where
   {-# INLINEABLE (==) #-}

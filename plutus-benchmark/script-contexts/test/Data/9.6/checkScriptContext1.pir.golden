@@ -108,9 +108,8 @@
       UpperBound : Extended a -> Bool -> UpperBound a
     data (Interval :: * -> *) a | Interval_match where
       Interval : LowerBound a -> UpperBound a -> Interval a
-    Credential = all a. a -> a
-    Voter = all a. a -> a
     Vote = all a. a -> a
+    Credential = all a. a -> a
     TxOut = all a. a -> a
     GovernanceActionId = all a. a -> a
   in
@@ -185,7 +184,7 @@
                                   data ->
                                 bytestring ->
                                 (\k a -> list (pair data data))
-                                  Voter
+                                  data
                                   ((\k a -> list (pair data data))
                                      GovernanceActionId
                                      Vote) ->
@@ -379,7 +378,7 @@
                               (ds : bytestring)
                               (ds :
                                  (\k a -> list (pair data data))
-                                   Voter
+                                   data
                                    ((\k a -> list (pair data data))
                                       GovernanceActionId
                                       Vote))
