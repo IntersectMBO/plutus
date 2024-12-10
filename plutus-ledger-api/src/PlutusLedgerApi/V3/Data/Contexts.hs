@@ -51,7 +51,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern CertifyingScript
   , pattern VotingScript
   , pattern ProposingScript
-  , TxInInfo (..)
+  , TxInInfo
+  , pattern TxInInfo
+  , txInInfoOutRef
+  , txInInfoResolved
   , TxInfo
   , pattern TxInfo
   , txInfoInputs
@@ -506,14 +509,17 @@ PlutusTx.asData
 PlutusTx.makeLift ''ScriptInfo
 
 -- | An input of a pending transaction.
-data TxInInfo = TxInInfo
-  { txInInfoOutRef   :: V3.TxOutRef
-  , txInInfoResolved :: V2.TxOut
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data TxInInfo = TxInInfo
+      { txInInfoOutRef   :: V3.TxOutRef
+      , txInInfoResolved :: V2.TxOut
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''TxInInfo
-PlutusTx.makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
 
 instance PlutusTx.Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' =

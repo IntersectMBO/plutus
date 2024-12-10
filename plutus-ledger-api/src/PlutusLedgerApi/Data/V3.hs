@@ -133,7 +133,10 @@ module PlutusLedgerApi.Data.V3 (
   Contexts.txInfoTreasuryDonation,
   V2.TxOut (..),
   Tx.TxOutRef (..),
-  Contexts.TxInInfo (..),
+  Contexts.TxInInfo,
+  pattern Contexts.TxInInfo,
+  Contexts.txInInfoOutRef,
+  Contexts.txInInfoResolved,
   V2.OutputDatum (..),
 
   -- *** Intervals

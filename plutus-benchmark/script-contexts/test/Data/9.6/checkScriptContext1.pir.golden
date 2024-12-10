@@ -112,7 +112,6 @@
     Voter = all a. a -> a
     Vote = all a. a -> a
     TxOut = all a. a -> a
-    TxInInfo = all a. a -> a
     GovernanceActionId = all a. a -> a
     ProposalProcedure = all a. a -> a
     ScriptPurpose = all a. a -> a
@@ -167,8 +166,8 @@
                             in
                             \(scrut : data)
                              (cont :
-                                (\a -> list data) TxInInfo ->
-                                (\a -> list data) TxInInfo ->
+                                (\a -> list data) data ->
+                                (\a -> list data) data ->
                                 (\a -> list data) TxOut ->
                                 integer ->
                                 (\k a -> list (pair data data))
@@ -359,8 +358,8 @@
                                 (/\dead -> fail ())
                                 {all dead. dead})
                             ipv
-                            (\(ds : (\a -> list data) TxInInfo)
-                              (ds : (\a -> list data) TxInInfo)
+                            (\(ds : (\a -> list data) data)
+                              (ds : (\a -> list data) data)
                               (ds : (\a -> list data) TxOut)
                               (ds : integer)
                               (ds :
