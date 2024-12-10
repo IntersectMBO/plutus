@@ -43,7 +43,13 @@ module PlutusLedgerApi.V3.Data.Contexts
   , ChangedParameters (..)
   , GovernanceAction (..)
   , ProposalProcedure (..)
-  , ScriptPurpose (..)
+  , ScriptPurpose
+  , pattern Minting
+  , pattern Spending
+  , pattern Rewarding
+  , pattern Certifying
+  , pattern Voting
+  , pattern Proposing
   , ScriptInfo
   , pattern MintingScript
   , pattern SpendingScript
@@ -458,32 +464,27 @@ instance Pretty ProposalProcedure where
       ]
 
 -- | A `ScriptPurpose` uniquely identifies a Plutus script within a transaction.
-data ScriptPurpose
-  = Minting V2.CurrencySymbol
-  | Spending V3.TxOutRef
-  | Rewarding V2.Credential
-  | Certifying
-      Haskell.Integer
-      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
-      TxCert
-  | Voting Voter
-  | Proposing
-      Haskell.Integer
-      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
-      ProposalProcedure
-  deriving stock (Generic, Haskell.Show)
-  deriving (Pretty) via (PrettyShow ScriptPurpose)
+PlutusTx.asData
+  [d|
+    data ScriptPurpose
+      = Minting V2.CurrencySymbol
+      | Spending V3.TxOutRef
+      | Rewarding V2.Credential
+      | Certifying
+          Haskell.Integer
+          -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+          TxCert
+      | Voting Voter
+      | Proposing
+          Haskell.Integer
+          -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+          ProposalProcedure
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow ScriptPurpose)
+    |]
 
 PlutusTx.makeLift ''ScriptPurpose
-PlutusTx.makeIsDataIndexed
-  ''ScriptPurpose
-  [ ('Minting, 0)
-  , ('Spending, 1)
-  , ('Rewarding, 2)
-  , ('Certifying, 3)
-  , ('Voting, 4)
-  , ('Proposing, 5)
-  ]
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
 PlutusTx.asData
