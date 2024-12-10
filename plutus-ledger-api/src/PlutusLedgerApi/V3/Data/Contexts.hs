@@ -22,7 +22,18 @@ module PlutusLedgerApi.V3.Data.Contexts
   , DRepCredential (..)
   , DRep (..)
   , Delegatee (..)
-  , TxCert (..)
+  , TxCert
+  , pattern TxCertRegStaking
+  , pattern TxCertUnRegStaking
+  , pattern TxCertDelegStaking
+  , pattern TxCertRegDeleg
+  , pattern TxCertRegDRep
+  , pattern TxCertUpdateDRep
+  , pattern TxCertUnRegDRep
+  , pattern TxCertPoolRegister
+  , pattern TxCertPoolRetire
+  , pattern TxCertAuthHotCommittee
+  , pattern TxCertResignColdCommittee
   , Voter (..)
   , Vote (..)
   , GovernanceActionId (..)
@@ -184,51 +195,41 @@ instance PlutusTx.Eq Delegatee where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
-data TxCert
-  = -- | Register staking credential with an optional deposit amount
-    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
-  | -- | Un-Register staking credential with an optional refund amount
-    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
-  | -- | Delegate staking credential to a Delegatee
-    TxCertDelegStaking V2.Credential Delegatee
-  | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
-    -- deposit is mandatory.
-    TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
-  | -- | Register a DRep with a deposit value. The optional anchor is omitted.
-    TxCertRegDRep DRepCredential V2.Lovelace
-  | -- | Update a DRep. The optional anchor is omitted.
-    TxCertUpdateDRep DRepCredential
-  | -- | UnRegister a DRep with mandatory refund value
-    TxCertUnRegDRep DRepCredential V2.Lovelace
-  | -- | A digest of the PoolParams
-    TxCertPoolRegister
-      V2.PubKeyHash
-      -- ^ poolId
-      V2.PubKeyHash
-      -- ^ pool VFR
-  | -- | The retirement certificate and the Epoch in which the retirement will take place
-    TxCertPoolRetire V2.PubKeyHash Haskell.Integer
-  | -- | Authorize a Hot credential for a specific Committee member's cold credential
-    TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
-  | TxCertResignColdCommittee ColdCommitteeCredential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow TxCert)
+PlutusTx.asData
+  [d|
+    data TxCert
+      = -- | Register staking credential with an optional deposit amount
+        TxCertRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
+      | -- | Un-Register staking credential with an optional refund amount
+        TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
+      | -- | Delegate staking credential to a Delegatee
+        TxCertDelegStaking V2.Credential Delegatee
+      | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
+        -- deposit is mandatory.
+        TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
+      | -- | Register a DRep with a deposit value. The optional anchor is omitted.
+        TxCertRegDRep DRepCredential V2.Lovelace
+      | -- | Update a DRep. The optional anchor is omitted.
+        TxCertUpdateDRep DRepCredential
+      | -- | UnRegister a DRep with mandatory refund value
+        TxCertUnRegDRep DRepCredential V2.Lovelace
+      | -- | A digest of the PoolParams
+        TxCertPoolRegister
+          V2.PubKeyHash
+          -- ^ poolId
+          V2.PubKeyHash
+          -- ^ pool VFR
+      | -- | The retirement certificate and the Epoch in which the retirement will take place
+        TxCertPoolRetire V2.PubKeyHash Haskell.Integer
+      | -- | Authorize a Hot credential for a specific Committee member's cold credential
+        TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
+      | TxCertResignColdCommittee ColdCommitteeCredential
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving (Pretty) via (PrettyShow TxCert)
+  |]
 
 PlutusTx.makeLift ''TxCert
-PlutusTx.makeIsDataIndexed
-  ''TxCert
-  [ ('TxCertRegStaking, 0)
-  , ('TxCertUnRegStaking, 1)
-  , ('TxCertDelegStaking, 2)
-  , ('TxCertRegDeleg, 3)
-  , ('TxCertRegDRep, 4)
-  , ('TxCertUpdateDRep, 5)
-  , ('TxCertUnRegDRep, 6)
-  , ('TxCertPoolRegister, 7)
-  , ('TxCertPoolRetire, 8)
-  , ('TxCertAuthHotCommittee, 9)
-  , ('TxCertResignColdCommittee, 10)
-  ]
 
 instance PlutusTx.Eq TxCert where
   {-# INLINEABLE (==) #-}
