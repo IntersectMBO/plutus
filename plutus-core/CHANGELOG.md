@@ -88,7 +88,7 @@
 
 ## Added
 
-- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Chang+1 HF.
+- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Plomin HF.
 
 - Support for `Natural` numbers in the default universe, backed by `Integer`.
 
