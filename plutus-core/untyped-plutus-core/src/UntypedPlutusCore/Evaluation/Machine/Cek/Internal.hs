@@ -878,7 +878,7 @@ enterComputeCek = computeCek
     -- | Look up a variable name in the environment.
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-        Env.safeIndexOneCont
+        Env.contIndexOne
             (throwingWithCause _MachineError OpenTermEvaluatedMachineError . Just $ Var () varName)
             pure
             varEnv
