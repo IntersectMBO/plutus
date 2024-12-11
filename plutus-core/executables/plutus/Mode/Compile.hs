@@ -36,7 +36,7 @@ runCompile afterCompile = case ?opts of
                   then compile sngT sngT astT
                   else pure astT
 
-        writeProgram sngT optAstT fileT
+        writeProgram sngT optAstT fileT afterCompile
 
         case afterCompile of
             Exit{}  -> exitSuccess -- nothing left to do
