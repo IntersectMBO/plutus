@@ -25,6 +25,7 @@ let
   papi-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
     # Needed to fix the frequency and governor of the CPU running the benchmarks
     pkgs.cpufrequtils
+    pkgs.sudo
     # Underlying benchmarking library used by plutus-benchmark and tasty-papi
     pkgs.papi
   ];

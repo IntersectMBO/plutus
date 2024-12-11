@@ -70,8 +70,8 @@ if [[ -z $(which taskset) ]]; then
 else
    echo "[ci-plutus-benchmark]: Setting CPU $CAPABILITY_NUM frequency governor to 'userspace' and frequency to 4.21GHz"
    # This makes the benchmark reliable on a single core and addresses the issue of large variance in the results.
-   cpufreq-set --cpu $CAPABILITY_NUM --governor userspace
-   cpufreq-set --cpu $CAPABILITY_NUM --related --freq 4.21GHz
+   sudo cpufreq-set --cpu $CAPABILITY_NUM --governor userspace
+   sudo cpufreq-set --cpu $CAPABILITY_NUM --related --freq 4.21GHz
    TASKSET="taskset -c $CAPABILITY_NUM"
 fi
 
