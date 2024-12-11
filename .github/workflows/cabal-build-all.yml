@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Cold Build On ${{ matrix.ghc }}
+      - name: Cold Build / ${{ matrix.ghc }} / x86_64-linux
         run: | 
           nix develop --no-warn-dirty --accept-flake-config .#${{ matrix.ghc }} \
             --command bash -c 'cabal clean && cabal update && cabal build all' 
