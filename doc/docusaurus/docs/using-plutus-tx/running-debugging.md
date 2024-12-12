@@ -13,7 +13,7 @@ is hosted on the [Releases] page. Alternatively, you can build the tool specific
 for your platform using Nix:
 
 ``` shell
-nix build FIXME
+$ nix build .#cabalProject.x86_64-linux.hsPkgs.plutus-core.components.exes.plutus
 ```
 
 To consult the tool's usage you can invoke `plutus --help` in a command line:
@@ -43,6 +43,7 @@ USAGE: plutus [FILES...] [--stdin] [-o FILE | --stdout] [--run|--bench|--debug].
                  --debug-dir[=DIR]    When `--debug`, try to search for PlutusTx source files in given DIR (default: .)
                  --budget=INT,INT     Set CPU,MEM budget limit. The default is no limit. Only if --run, --bench, or --debug is given
 ```
+Two interesting sub-commands which can aid during Plutus-based script development (e.g. Aiken, Plutus Tx, Plutarch) are `--print-builtins` and `--print-cost-model` which as their name suggest print detailed lists of currently recognized builtin functions and cost model parameters, respectively.
 
 ## Compiling with the `plutus` CLI
 
@@ -64,15 +65,20 @@ Program passed all static checks. If you want the output result, use -o FILE or 
 Or as a single step:
 
 ``` shell
-echo "(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))" | plutus -x pir --stdin
+$ echo "(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))" | plutus -x pir --stdin
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 ```
 
 In the command above, the `-x pir` option is necessary for letting the CLI tool know
 the format/language of the supplied input. If the `-x` option is not passed, the CLI tool will try to guess the input's format/language
-by looking at its filename suffix `.extension` --- and will default to `plc` for `--stdin` or no suffix.
+by looking at its filename extension `.SUFFIX` --- and will default to `plc` for `--stdin` or no suffix.
+What the `-x SUFFIX` option does is instructing the CLI tool to treat subsequent filenames
+as if they had a `.SUFFIX` file extension.
+The following table lists the recognized suffixes and corresponding `-x` values:
 
-The following table lists all the possible values the `-x` option may take:
+|Filename Suffix|-x Value|Format Type|Description|
+|---|---|---|---|
+
 
 FIXME table
 
@@ -86,7 +92,7 @@ there are multiple input filenames, multiple calls to these options can be used
 to override previous occurrences so that you can combine code of different formats. For example:
 
 ``` shell
-plutus -x pir FILE_PIR FILE_ALSO_PIR -x tplc FILE_NOW_TPLC -a SrcSpans FILE_TPLC_BUT_WITH_ANNOTATIONS
+$ plutus -x pir FILE_PIR FILE_ALSO_PIR -x tplc FILE_NOW_TPLC -a SrcSpans FILE_TPLC_BUT_WITH_ANNOTATIONS
 ```
 
 Positionining the input files one after the other (juxtaposing) as such, acts
@@ -96,9 +102,9 @@ their compilation result with plutus' function application. Both inputs and fina
 
 ``` shell
 # plutus FUNC_FILE ARG1_FILE ARG2_FILE ...
-echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" > func.uplc
-echo "(program 1.1.0 (con integer 2))" > arg2.uplc
-echo "(program 1.1.0 (con integer 1))" | plutus func.uplc --stdin arg2.uplc
+$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" > func.uplc
+$ echo "(program 1.1.0 (con integer 2))" > arg2.uplc
+$ echo "(program 1.1.0 (con integer 1))" | plutus func.uplc --stdin arg2.uplc
 ```
 
 To override the output's target format the `-x`,`-n`,`-a` options are again used;
@@ -117,13 +123,34 @@ $ plutus -x tplc const.pir -x plc -n debruijn --stdout
 (program 1.1.0 (lam !0 (lam !0 !2)))
 ```
 
+If the output's format type is *textual* (see table above) the compiled code
+will be printed to the designated output (file or stdout) in a "pretty" format.
+You can change how this output looks by specifying a different `--pretty=STYLE` style (defaults to `classic`).
+Note that *textual output* with pretty style other than the default may not be recognized
+back again as *textual input* to the CLI.
+
+``` shell
+$ plutus sub.pir -x pir --stdout
+(program
+  1.1.0
+  (lam
+    x-0
+    (con integer)
+    (lam y-1 (con integer) [ [ (builtin subtractInteger) x-0 ] y-1 ])
+  )
+)
+$ plutus sub.pir -x pir --stdout --pretty=readable-simple
+program 1.1.0 (\(x : integer) (y : integer) -> subtractInteger x y)
+```
+
+
 ## Checking with `plutus` CLI
 
 Depending on the input and output formats, certain checks will be run by the tool (syntax check, typechecking).
 Any errors during these checks will be reported to `stderr`:
 
 ``` shell
-echo "(program 1.1.0 (lam x (con integer) [(builtin addIntege) x (con integer 1)]))" | plutus -x tplc --stdin
+$ echo "(program 1.1.0 (lam x (con integer) [(builtin addIntege) x (con integer 1)]))" | plutus -x tplc --stdin
 <stdin>:1:56:
   |
 1 | (program 1.1.0 (lam x (con integer) [(builtin addIntege) x (con integer 1)]))
@@ -131,14 +158,15 @@ echo "(program 1.1.0 (lam x (con integer) [(builtin addIntege) x (con integer 1)
 Unknown built-in function 'addIntege' at <stdin>:1:56.
 Parsable functions are  [ addInteger, ...]
 ```
+
 The tool can be made more `--verbose` about the checking/compilation process, or
 more `--quiet` if you prefer to rely solely on the tool's exit status.
 
 Fixing the typo in the example above, then applying it to an argument using the CLI's juxtaposition:
 
 ``` shell
-echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -x plc -o inc.plc
-echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --stdout
+$ echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -x plc -o inc.plc
+$ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --stdout
 (program
   1.1.0
   [
@@ -156,8 +184,8 @@ which means no type-checking will be done statically. We could however change th
 raise the type error:
 
 ``` shell
-echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -o inc.tplc
-echo "(program 1.1.0 (con bool True))" | plutus -x tplc inc.tplc --stdin --stdout
+$ echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -o inc.tplc
+$ echo "(program 1.1.0 (con bool True))" | plutus -x tplc inc.tplc --stdin --stdout
 Failed to typecheck fully-applied program. The error was:
 Error from the PLC compiler:
 Type mismatch at ()
@@ -178,7 +206,7 @@ Running the program locally using the CLI tool is simply an extra step which is 
 after [checking]() and [compilation]() have been completed, simply by adding the `--run` option:
 
 ``` shell
-echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --run
+$ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --run
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 Running the program: An error has occurred:
 Could not unlift a value:
@@ -190,7 +218,7 @@ Other times catching such "type errors" at runtime is not even possible; conside
 
 ``` shell
 # if True then "" else 5
-echo '(program 1.1.0 [(force (builtin ifThenElse)) (con bool True) (con string "") (con integer 5)])' | plutus --stdin --run
+$ echo '(program 1.1.0 [(force (builtin ifThenElse)) (con bool True) (con string "") (con integer 5)])' | plutus --stdin --run
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 Running the program: Execution succeeded. Final Term:
 (con string "")
@@ -211,7 +239,7 @@ You can pass a maximum CPU and/or MEMory budget that is allowed to be spent with
 If there is no CPU and/or MEM limit given, the budget is practically unlimited.
 
 ``` shell
-echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=229307,903
+$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=229307,903
 Program passed all checks. No output file was written, use -o or --stdout.
 An error has occurred:
 The machine terminated part way through evaluation due to overspending the budget.
@@ -219,8 +247,7 @@ The budget when the machine terminated was:
 ({cpu: -1
 | mem: 1})
 Negative numbers indicate the overspent budget; note that this only indicates the budget that was needed for the next step, not to run the program to completion.
-
-echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=,903
+$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=,903
 Program passed all checks. No output file was written, use -o or --stdout.
 Execution succeeded. Final Term:
 (con integer 2)
@@ -240,7 +267,7 @@ Program passed all static checks. No output file was written, use -o or --stdout
 Same as above but using instead the `--stdin` option:
 
 ``` shell
-echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin
+$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin
 Program passed all static checks. No output file was written, use -o or --stdout.
 ```
 
@@ -248,7 +275,7 @@ Fixing the syntax error above makes the evaluator succeed, returning the final v
 as the result of the evaluation (a function in our example):
 
 ``` shell
-echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin --stdout
+$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin --stdout
 (program 1.1.0 (lam x-0 (lam y-1 [ [ (builtin subtractInteger) x-0 ] y-1 ])))
 ```
 
@@ -272,7 +299,7 @@ to execute compiled plutus code. The `--debug` option
 starts a TUI (Terminal User Interface) in your console:
 
 ``` shell
-plutus inc.plc --debug
+$ plutus inc.plc --debug
 ```
 
 The debugger will load the program, display its text code on a window,
