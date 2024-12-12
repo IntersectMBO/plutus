@@ -2,14 +2,15 @@ set -euo pipefail
 
 
 tell() {
-  echo "-------- RELEASE: $1"
+  echo "---------- RELEASE ---------- $1"
 }
 
 
 create-release-pr() {
   if [[ -d "release-$VERSION" ]]; then
     tell "Found worktree named 'release-$VERSION' in the current directory, I will delete it and start anew"
-    rm -r "release-$VERSION"
+    git worktree remove --force release-$VERSION
+    git branch -D release/$VERSION 
   fi
 
   tell "Creating worketree and branch for $VERSION"
@@ -36,15 +37,16 @@ create-release-pr() {
 
     tell "Assembling changelog for $PACKAGE"
     pushd $PACKAGE > /dev/null
-    scriv collect --version "$VERSION"
+    scriv collect --version "$VERSION" || true
     popd > /dev/null
   done
 
   tell "Committing changes and creating PR on GitHub"
   git add . 
+  pre-commit run cabal-fmt
   git commit -m "Release $VERSION"
-  git push 
-  gh pr create --title "Release $VERSION" --label "No Changelog Required"
+  git push --force
+  # gh pr create --title "Release $VERSION" --body "Release $VERSION" --label "No Changelog Required"
 
   tell "The release PR has been created "
   tell "PR_URL"
