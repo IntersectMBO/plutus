@@ -3,6 +3,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -44,9 +45,9 @@ import PlutusTx.Prelude
 import Prettyprinter
 import Prettyprinter.Extras
 
-import PlutusLedgerApi.V1.Address (Address (..))
-import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
+import PlutusLedgerApi.V1.Data.Address (pattern Address)
+import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
 import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut (..), TxOutRef (..))
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
 import PlutusLedgerApi.V1.DCert (DCert (..))

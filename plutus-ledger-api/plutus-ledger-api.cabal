@@ -67,7 +67,9 @@ library
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Address
     PlutusLedgerApi.V1.Data.Contexts
+    PlutusLedgerApi.V1.Data.Credential
     PlutusLedgerApi.V1.Data.Tx
     PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert

@@ -129,8 +129,12 @@ module PlutusLedgerApi.Data.V3 (
   V2.fromBytes,
 
   -- *** Credentials
-  V2.StakingCredential (..),
-  V2.Credential (..),
+  V2.StakingCredential,
+  pattern V2.StakingHash,
+  pattern V2.StakingPtr,
+  V2.Credential,
+  pattern V2.PubKeyCredential,
+  pattern V2.ScriptCredential,
 
   -- *** Value
   V2.Value (..),
@@ -147,7 +151,10 @@ module PlutusLedgerApi.Data.V3 (
   V2.POSIXTimeRange,
 
   -- *** Types for representing transactions
-  V2.Address (..),
+  V2.Address,
+  pattern V2.Address,
+  V2.addressCredential,
+  V2.addressStakingCredential,
   V2.PubKeyHash (..),
   Tx.TxId (..),
   Contexts.TxInfo,
@@ -168,13 +175,21 @@ module PlutusLedgerApi.Data.V3 (
   Contexts.txInfoProposalProcedures,
   Contexts.txInfoCurrentTreasuryAmount,
   Contexts.txInfoTreasuryDonation,
-  V2.TxOut (..),
+  V2.TxOut,
+  pattern V2.TxOut,
+  V2.txOutAddress,
+  V2.txOutValue,
+  V2.txOutDatum,
+  V2.txOutReferenceScript,
   Tx.TxOutRef (..),
   Contexts.TxInInfo,
   pattern Contexts.TxInInfo,
   Contexts.txInInfoOutRef,
   Contexts.txInInfoResolved,
-  V2.OutputDatum (..),
+  V2.OutputDatum,
+  pattern V2.NoOutputDatum,
+  pattern V2.OutputDatum,
+  pattern V2.OutputDatumHash,
 
   -- *** Intervals
   V2.Interval (..),

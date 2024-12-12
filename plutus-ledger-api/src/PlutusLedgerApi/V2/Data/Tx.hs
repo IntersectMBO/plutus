@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -19,9 +20,17 @@ module PlutusLedgerApi.V2.Data.Tx
     , RedeemerPtr (..)
     , Redeemers
     -- * Transaction outputs
-    , TxOut(..)
+    , TxOut
+    , pattern TxOut
+    , txOutAddress
+    , txOutValue
+    , txOutDatum
+    , txOutReferenceScript
     , TxOutRef(..)
-    , OutputDatum (..)
+    , OutputDatum
+    , pattern NoOutputDatum
+    , pattern OutputDatumHash
+    , pattern OutputDatum
     , isPubKeyOut
     , isPayToScriptOut
     , outAddress
@@ -39,20 +48,25 @@ import GHC.Generics (Generic)
 import Prettyprinter
 
 import PlutusTx qualified
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 
-import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Crypto
+import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress,
                                    outValue, pubKeyHashTxOut, txOutDatum, txOutPubKey)
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V1.Scripts
 
 -- | The datum attached to an output: either nothing; a datum hash; or the datum itself (an "inline datum").
-data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum
-    deriving stock (Show, Eq, Generic)
-    deriving anyclass (NFData)
+PlutusTx.asData
+    [d|
+        data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum
+            deriving stock (Show, Eq, Generic)
+            deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+            deriving anyclass (NFData)
+    |]
 
 instance PlutusTx.Eq OutputDatum where
     {-# INLINABLE (==) #-}
@@ -68,13 +82,17 @@ instance Pretty OutputDatum where
 
 -- | A transaction output, consisting of a target address, a value,
 -- optionally a datum/datum hash, and optionally a reference script.
-data TxOut = TxOut {
-    txOutAddress         :: Address,
-    txOutValue           :: Value,
-    txOutDatum           :: OutputDatum,
-    txOutReferenceScript :: Maybe ScriptHash
-    }
-    deriving stock (Show, Eq, Generic)
+PlutusTx.asData
+    [d|
+        data TxOut = TxOut {
+            txOutAddress         :: Address,
+            txOutValue           :: Value,
+            txOutDatum           :: OutputDatum,
+            txOutReferenceScript :: Maybe ScriptHash
+            }
+            deriving stock (Show, Eq, Generic)
+            deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+    |]
 
 instance Pretty TxOut where
     pretty TxOut{txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
@@ -129,7 +147,5 @@ isPayToScriptOut = isJust . txOutScriptHash
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
 pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v NoOutputDatum Nothing
 
-PlutusTx.makeIsDataIndexed ''OutputDatum [('NoOutputDatum,0), ('OutputDatumHash,1), ('OutputDatum,2)]
 PlutusTx.makeLift ''OutputDatum
-PlutusTx.makeIsDataIndexed ''TxOut [('TxOut,0)]
 PlutusTx.makeLift ''TxOut

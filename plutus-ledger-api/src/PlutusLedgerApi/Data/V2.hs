@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | The interface to Plutus V2 for the ledger.
 module PlutusLedgerApi.Data.V2 (
@@ -59,8 +60,12 @@ module PlutusLedgerApi.Data.V2 (
   V1.DCert (..),
 
   -- *** Credentials
-  V1.StakingCredential (..),
-  V1.Credential (..),
+  V1.StakingCredential,
+  pattern V1.StakingHash,
+  pattern V1.StakingPtr,
+  V1.Credential,
+  pattern V1.PubKeyCredential,
+  pattern V1.ScriptCredential,
 
   -- *** Value
   V1.Value (..),
@@ -77,14 +82,25 @@ module PlutusLedgerApi.Data.V2 (
   V1.POSIXTimeRange,
 
   -- *** Types for representing transactions
-  V1.Address (..),
+  V1.Address,
+  pattern V1.Address,
+  V1.addressCredential,
+  V1.addressStakingCredential,
   V1.PubKeyHash (..),
   Tx.TxId (..),
   Contexts.TxInfo (..),
-  Tx.TxOut (..),
+  Tx.TxOut,
+  pattern Tx.TxOut,
+  Tx.txOutAddress,
+  Tx.txOutValue,
+  Tx.txOutDatum,
+  Tx.txOutReferenceScript,
   Tx.TxOutRef (..),
   Contexts.TxInInfo (..),
-  Tx.OutputDatum (..),
+  Tx.OutputDatum,
+  pattern Tx.NoOutputDatum,
+  pattern Tx.OutputDatum,
+  pattern Tx.OutputDatumHash,
 
   -- *** Intervals
   V1.Interval (..),

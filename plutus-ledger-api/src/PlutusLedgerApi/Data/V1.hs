@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | The interface to Plutus V1 for the ledger.
 module PlutusLedgerApi.Data.V1 (
@@ -57,8 +58,12 @@ module PlutusLedgerApi.Data.V1 (
   DCert (..),
 
   -- *** Credentials
-  StakingCredential (..),
-  Credential (..),
+  StakingCredential,
+  pattern StakingHash,
+  pattern StakingPtr,
+  Credential,
+  pattern PubKeyCredential,
+  pattern ScriptCredential,
 
   -- *** Value
   Value (..),
@@ -75,7 +80,10 @@ module PlutusLedgerApi.Data.V1 (
   POSIXTimeRange,
 
   -- *** Types for representing transactions
-  Address (..),
+  Address,
+  pattern Address,
+  addressCredential,
+  addressStakingCredential,
   PubKeyHash (..),
   TxId (..),
   TxInfo (..),
@@ -127,11 +135,11 @@ import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScrip
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
-import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Bytes
-import PlutusLedgerApi.V1.Credential
 import PlutusLedgerApi.V1.Crypto
+import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Contexts
+import PlutusLedgerApi.V1.Data.Credential
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V1.DCert
 import PlutusLedgerApi.V1.EvaluationContext
