@@ -5,7 +5,14 @@ VERSION=""
 
 
 tell() {
-  echo "RELEASE 🚀🚀🚀 $1"
+  echo "🚀🚀🚀 $1"
+}
+
+
+ask() {
+  local MSG="$1"
+  read -p "🚀🚀🚀 $MSG" RESPONSE
+  echo "$RESPONSE"
 }
 
 
@@ -154,28 +161,24 @@ publish-gh-release() {
 tell "Starting the interactive release process"
 
 while true; do 
-  read -p "Enter the version number for this release, for example 1.42.0.0: " VERSION
+  VERSION=$(ask "Enter the version number for this release, for example 1.42.0.0: ")
   if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
   else 
-    tell "Will release version '$VERSION'"
     break
   fi 
 done 
 
 
-tell "Checking if a PR for release/$VERSION already exists"
-PR_NUMBER="$(gh pr list --head release/$VERSION --json number --jq ".[0].number"
+PR_NUMBER="$(gh pr list --head release/$VERSION --json number --jq ".[0].number")"
 if [[ -n "$PR_NUMBER" ]]; then
   PR_URL="https://github.com/IntersectMBO/plutus/pull/$PR_NUMBER"
-  tell "Found PR for release/$VERSION at $PR_URL"
-  tell "Checking the state of that PR"
   PR_STATE="$(gh pr view $PR_NUMBER --json state --jq ".state")"
   if [[ "$PR_STATE" == "OPEN" ]]; then
-    tell "It is still open, please wait for it to be merged before running this command again."
+    tell "Found open PR for release/$VERSION at $PR_URL, please wait for it to be merged before running this command again."
     exit 1
-  else if [[ "$PR_STATE" == "MERGED" ]]; then
-    tell "It is merged, I will now look for release $VERSION"
+  elif [[ "$PR_STATE" == "MERGED" ]]; then
+    tell "Found merged PR for release/$VERSION at $PR_URL, I will now look for a release tagged '$VERSION'"
     RELEASE_URL="$(gh release view $VERSION --json url --jq ".url")"
     if [[ "$RELEASE_URL" == "release not found" ]]; then
       tell "No release found for $VERSION, I will publish it now"
@@ -185,11 +188,11 @@ if [[ -n "$PR_NUMBER" ]]; then
       tell "I will now proceed to check the CHaP and Metatheory PRs"
       exit 1
     fi 
-  else if [[ "$PR_STATE" == "CLOSED" ]]; then
-    tell "It is closed, you might want to re-open it"
+  elif [[ "$PR_STATE" == "CLOSED" ]]; then
+    tell "Found closed PR for release/$VERSION at $PR_UR, you might want to re-open it"
     exit 1 
   else 
-    tell "Unknown state '$PR_STATE', please check the PR at $PR_URL"
+    tell "Found PR for release/$VERSION at $PR_UR with unknown state '$PR_STATE', please double check"
     exit 1
   fi 
 else
