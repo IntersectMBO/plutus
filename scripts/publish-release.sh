@@ -7,19 +7,14 @@ tell() {
 
 
 create-release-pr() {
-  if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
-    exit 1
-  fi
-
   if [[ -d "release-$VERSION" ]]; then
-    tell "Found worktree named 'tmp-release-$VERSION' in the current directory, I will delete it and start anew"
-    rm -r "tmp-release-$VERSION"
+    tell "Found worktree named 'release-$VERSION' in the current directory, I will delete it and start anew"
+    rm -r "release-$VERSION"
   fi
 
   tell "Creating worketree and branch for $VERSION"
-  git worktree add tmp-release-$VERSION master
-  cd tmp-release-$VERSION
+  git worktree add release-$VERSION master
+  cd release-$VERSION
   git pull --rebase origin master
   git checkout -b release/$VERSION
 
@@ -134,7 +129,13 @@ fi
 VERSION="$1"
 
 
-if ! git ls-remote --heads origin "release/$VERSION" &>/dev/null; then 
+if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
+  exit 1
+fi
+
+
+if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
   tell "I could not find the origin branch named 'release/$VERSION' so I will begin a new release process for $VERSION"
   create-release-pr
 else
