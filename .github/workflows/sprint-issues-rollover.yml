@@ -1,4 +1,4 @@
-# This workflows moves issues and pull requests to the next sprint iteration of 
+# This job moves issues and pull requests to the next sprint iteration of 
 # the Plutus Backlog project. In practice, all open backlog items in the Current
 # Iteration (the one that is still in progress) will be moved to the Next 
 # Iteration (the one that will start next).
