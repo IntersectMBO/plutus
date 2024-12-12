@@ -82,7 +82,7 @@ PlutusTx.asData
   |]
 
 instance Pretty TxOutRef where
-  pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
+  pretty TxOutRef{txOutRefId=id', txOutRefIdx=idx} = pretty id' <> "!" <> pretty idx
 
 instance PlutusTx.Eq TxOutRef where
   {-# INLINEABLE (==) #-}
