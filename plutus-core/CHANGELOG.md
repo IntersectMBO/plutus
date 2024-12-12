@@ -1,4 +1,13 @@
 
+<a id='changelog-1.38.0.0'></a>
+# 1.38.0.0 — 2024-12-09
+
+## Changed
+
+- In #6702 made variable lookup faster increasing overall performance of the evaluator by 1%.
+
+- In #6705 made the local `spend` function faster increasing overall performance of the evaluator by 1.8%.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 
@@ -79,7 +88,7 @@
 
 ## Added
 
-- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Chang+1 HF.
+- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Plomin HF.
 
 - Support for `Natural` numbers in the default universe, backed by `Integer`.
 
