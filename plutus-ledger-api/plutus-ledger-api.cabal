@@ -90,6 +90,7 @@ library
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.Data.Contexts
+    PlutusLedgerApi.V3.Data.Tx
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.MintValue
     PlutusLedgerApi.V3.ParamName

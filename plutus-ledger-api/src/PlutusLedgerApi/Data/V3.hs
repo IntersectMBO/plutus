@@ -181,7 +181,10 @@ module PlutusLedgerApi.Data.V3 (
   V2.txOutValue,
   V2.txOutDatum,
   V2.txOutReferenceScript,
-  Tx.TxOutRef (..),
+  Tx.TxOutRef,
+  pattern Tx.TxOutRef,
+  Tx.txOutRefId,
+  Tx.txOutRefIdx,
   Contexts.TxInInfo,
   pattern Contexts.TxInInfo,
   Contexts.txInInfoOutRef,
@@ -243,9 +246,9 @@ module PlutusLedgerApi.Data.V3 (
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V3.Data.Tx qualified as Tx
 import PlutusLedgerApi.V3.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V3.ParamName qualified as ParamName
-import PlutusLedgerApi.V3.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
 
 {- | An alias to the Plutus ledger language this module exposes at runtime.

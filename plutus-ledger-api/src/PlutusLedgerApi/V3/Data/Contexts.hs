@@ -138,7 +138,7 @@ import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
 
 import PlutusLedgerApi.Data.V2 qualified as V2
-import PlutusLedgerApi.V3.Tx qualified as V3
+import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap

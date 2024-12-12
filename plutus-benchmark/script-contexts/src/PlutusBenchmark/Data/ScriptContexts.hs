@@ -9,10 +9,10 @@ module PlutusBenchmark.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,
-                                TxOut, TxOutRef (..), always, pattern NoOutputDatum,
-                                pattern ScriptContext, pattern SpendingScript, pattern TxInfo,
-                                pattern TxOut, txInfoCurrentTreasuryAmount, txInfoData, txInfoFee,
-                                txInfoId, txInfoInputs, txInfoMint, txInfoOutputs,
+                                TxOut, always, pattern NoOutputDatum, pattern ScriptContext,
+                                pattern SpendingScript, pattern TxInfo, pattern TxOut,
+                                pattern TxOutRef, txInfoCurrentTreasuryAmount, txInfoData,
+                                txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs,
                                 txInfoProposalProcedures, txInfoRedeemers, txInfoReferenceInputs,
                                 txInfoSignatories, txInfoTreasuryDonation, txInfoTxCerts,
                                 txInfoValidRange, txInfoVotes, txInfoWdrl, txOutAddress, txOutDatum,
