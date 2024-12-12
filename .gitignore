@@ -113,4 +113,4 @@ plutus-pab/test-node/alonzo-purple/db
 *.timelog
 *.stacks
 .nvimrc
-tmp-release-*
+release-*
