@@ -1,8 +1,11 @@
-# This workflow runs `cabal build all` on Linux with all supported GHC versions.
+# This job runs `cabal build all` on Linux with all supported GHC versions.
 # Normally, if Nix can build the shell and the packages via haskell.nix, we can be confident that 
 # Cabal can build the project inside the Nix shell.
 # However, this workflow is implemented to catch edge cases, such as the one described in 
 # https://github.com/IntersectMBO/plutus/issues/6625.
+#
+# This job runs on all pull requests and on push to master, and it can also be triggered manually.
+
 
 name: "👷 Cabal Build All"
 

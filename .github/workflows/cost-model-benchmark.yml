@@ -1,12 +1,14 @@
-# This workflow runs the cost model benchmark and uploads the results as a 
-# GitHub artifact.
+# This job runs the cost model benchmark and uploads the results as a GitHub artifact.
+#
+# This job must be triggered manually via workflow dispatch.
+
 
 name: "💰 Cost Model Benchmark" 
 
 on:
   workflow_dispatch:
     inputs:
-      entra-bench-args:
+      extra-bench-args:
         description: 'extra argument(s) to pass to the cost-model-budgeting-bench command'
         default: ''
         type: string
@@ -21,7 +23,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Run Benchmark
-        run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv ${{ inputs.entra-bench-args }}
+        run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv ${{ inputs.extra-bench-args }}
 
       - name: Upload Results
         uses: actions/upload-artifact@main
