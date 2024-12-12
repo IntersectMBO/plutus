@@ -28,10 +28,9 @@ import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Schema (withSchemaInfo)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
-import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins.Internal qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
