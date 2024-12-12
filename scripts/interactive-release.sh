@@ -1,8 +1,11 @@
 set -euo pipefail
 
 
+VERSION=""
+
+
 tell() {
-  echo "---------- RELEASE ---------- $1"
+  echo "RELEASE 🚀🚀🚀 $1"
 }
 
 
@@ -28,14 +31,13 @@ create-release-pr() {
 
   local MAJOR_VERSION="$(echo "$VERSION" | cut -d'.' -f1,2)"
 
+  tell "Updating ./$PACKAGE/$PACKAGE.cabal to ==$VERSION and ^>=$MAJOR_VERSION"
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
-    tell "Updating ./$PACKAGE/$PACKAGE.cabal to ==$VERSION and ^>=$MAJOR_VERSION"
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
       -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$MAJOR_VERSION/" {} \; \
       -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE$\)/\1 ^>=$MAJOR_VERSION/" {} \;
 
-    tell "Assembling changelog for $PACKAGE"
     pushd $PACKAGE > /dev/null
     scriv collect --version "$VERSION" || true
     popd > /dev/null
@@ -57,17 +59,11 @@ create-release-pr() {
 
   tell ""
   tell "The release PR has been created, see URL above."
-  tell "Once approved and merged, run './scripts/publish-release.sh $VERSION' again"
+  tell "Once approved and merged, run './scripts/interactive-release.sh' again"
 }
 
 
-publish-release() {
-  PR_NUMBER="$1"
-  if git ls-remote --exit-code --quiet --refs "origin/pull/$PR_NUMBER/merge"; then
-    tell "PR #$PR_NUMBER is still open, please wait for it to be merged."
-    exit 1
-  fi
-
+publish-gh-release() {
   tell "Building and compressing static binaries"
   for EXEC in "uplc pir plc"; do 
     nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
@@ -129,27 +125,77 @@ publish-release() {
 # - If they were created, delete any release candidate `-rc*` tags locally and on GitHub
 
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <version>"
-  exit 1
-fi
+# if [ "$#" -ne 1 ]; then
+#   echo "Usage: $0 <version>"
+#   exit 1
+# fi
 
 
-VERSION="$1"
+# VERSION="$1"
 
 
-if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
-  exit 1
-fi
+# if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+#   tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
+#   exit 1
+# fi
 
 
-if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
-  tell "I could not find the origin branch named 'release/$VERSION' so I will begin a new release process for $VERSION"
-  create-release-pr
+# if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
+#   tell "I could not find the origin branch named 'release/$VERSION' so I will begin a new release process for $VERSION"
+#   create-release-pr
+# else
+#   tell "I found the origin branch named 'release/$VERSION' so I will continue the release process for $VERSION"
+#   # publish-release
+#   create-release-pr
+
+# fi
+
+
+tell "Starting the interactive release process"
+
+while true; do 
+  read -p "Enter the version number for this release, for example 1.42.0.0: " VERSION
+  if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
+  else 
+    tell "Will release version '$VERSION'"
+    break
+  fi 
+done 
+
+
+tell "Checking if a PR for release/$VERSION already exists"
+PR_NUMBER="$(gh pr list --head release/$VERSION --json number --jq ".[0].number"
+if [[ -n "$PR_NUMBER" ]]; then
+  PR_URL="https://github.com/IntersectMBO/plutus/pull/$PR_NUMBER"
+  tell "Found PR for release/$VERSION at $PR_URL"
+  tell "Checking the state of that PR"
+  PR_STATE="$(gh pr view $PR_NUMBER --json state --jq ".state")"
+  if [[ "$PR_STATE" == "OPEN" ]]; then
+    tell "It is still open, please wait for it to be merged before running this command again."
+    exit 1
+  else if [[ "$PR_STATE" == "MERGED" ]]; then
+    tell "It is merged, I will now look for release $VERSION"
+    RELEASE_URL="$(gh release view $VERSION --json url --jq ".url")"
+    if [[ "$RELEASE_URL" == "release not found" ]]; then
+      tell "No release found for $VERSION, I will publish it now"
+      publish-gh-release
+    else
+      tell "I already found a release for version $VERSION at $RELEASE_URL"
+      tell "I will now proceed to check the CHaP and Metatheory PRs"
+      exit 1
+    fi 
+  else if [[ "$PR_STATE" == "CLOSED" ]]; then
+    tell "It is closed, you might want to re-open it"
+    exit 1 
+  else 
+    tell "Unknown state '$PR_STATE', please check the PR at $PR_URL"
+    exit 1
+  fi 
 else
-  tell "I found the origin branch named 'release/$VERSION' so I will continue the release process for $VERSION"
-  # publish-release
+  tell "No PR found for release/$VERSION, I will start the release process"
   create-release-pr
-
 fi
+
+# if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
+
