@@ -13,8 +13,6 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
--- {-# OPTIONS_GHC -ddump-simpl #-}
--- {-# OPTIONS_GHC -v #-}
 
 module PlutusLedgerApi.V3.Data.Contexts
   ( ColdCommitteeCredential (..)

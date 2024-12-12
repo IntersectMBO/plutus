@@ -32,7 +32,7 @@ import PlutusLedgerApi.V1.Data.Credential (Credential, StakingCredential, patter
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
+import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), parens, (<+>))

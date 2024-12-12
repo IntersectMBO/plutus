@@ -29,7 +29,7 @@ import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
+import PlutusTx.Blueprint (HasBlueprintDefinition)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Show (deriveShow)
