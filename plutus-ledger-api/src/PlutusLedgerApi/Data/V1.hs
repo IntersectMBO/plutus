@@ -92,11 +92,19 @@ module PlutusLedgerApi.Data.V1 (
   TxInInfo (..),
 
   -- *** Intervals
-  Interval (..),
-  Extended (..),
+  Interval,
+  pattern Interval,
+  ivFrom,
+  ivTo,
+  Extended,
+  pattern NegInf,
+  pattern PosInf,
+  pattern Finite,
   Closure,
-  UpperBound (..),
-  LowerBound (..),
+  UpperBound,
+  pattern UpperBound,
+  LowerBound,
+  pattern LowerBound,
   always,
   from,
   to,
@@ -140,13 +148,13 @@ import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Contexts
 import PlutusLedgerApi.V1.Data.Credential
+import PlutusLedgerApi.V1.Data.Interval hiding (singleton)
+import PlutusLedgerApi.V1.Data.Time
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V1.DCert
 import PlutusLedgerApi.V1.EvaluationContext
-import PlutusLedgerApi.V1.Interval hiding (singleton)
 import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
-import PlutusLedgerApi.V1.Time
 
 {- | An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
