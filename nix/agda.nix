@@ -26,6 +26,35 @@ rec {
     '';
   });
 
+  agda-stdlib-classes = agda-packages.mkDerivation {
+    pname = "agda-stdlib-classes";
+    version = "2.0";
+    src = pkgs.fetchFromGitHub {
+      repo = "agda-stdlib-classes";
+      owner = "omelkonian";
+      rev = "28df278381c94a25c54f6819524cd9f8cb99f092";
+      sha256 = "sha256-TdPJ3K4jyAIQgX1sUrqd0QeA72n2mkBVzlg8WfrqWWY=";
+    };
+    meta = { };
+    libraryFile = "agda-stdlib-classes.agda-lib";
+    everythingFile = "standard-library-classes.agda";
+    buildInputs = [ agda-stdlib ];
+  };
+
+  agda-stdlib-meta = agda-packages.mkDerivation {
+    pname = "agda-stdlib-meta";
+    version = "2.1.1";
+    src = pkgs.fetchFromGitHub {
+      repo = "stdlib-meta";
+      owner = "omelkonian";
+      rev = "v2.1.1";
+      sha256 = "qOoThYMG0dzjKvwmzzVZmGcerfb++MApbaGRzLEq3/4=";
+    };
+    meta = { };
+    libraryFile = "agda-stdlib-meta.agda-lib";
+    everythingFile = "Main.agda";
+    buildInputs = [ agda-stdlib agda-stdlib-classes ];
+  };
 
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
@@ -119,7 +148,8 @@ rec {
   };
 
 
-  agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
+  agda-with-stdlib =
+    agda-packages.agda.withPackages [ agda-stdlib agda-stdlib-classes agda-stdlib-meta ];
 
 
   agda-project = pkgs.haskell-nix.hackage-project {
