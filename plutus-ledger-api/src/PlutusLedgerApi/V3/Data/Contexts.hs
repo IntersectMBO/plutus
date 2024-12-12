@@ -52,7 +52,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , pattern GovernanceActionId
   , gaidTxId
   , gaidGovActionIx
-  , Committee (..)
+  , Committee
+  , pattern Committee
+  , committeeMembers
+  , committeeQuorum
   , Constitution (..)
   , ProtocolVersion (..)
   , ChangedParameters (..)
@@ -353,16 +356,19 @@ instance PlutusTx.Eq GovernanceActionId where
   GovernanceActionId a b == GovernanceActionId a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-data Committee = Committee
-  { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
-  -- ^ Committee members with epoch number when each of them expires
-  , committeeQuorum  :: PlutusTx.Rational
-  -- ^ Quorum of the committee that is necessary for a successful vote
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data Committee = Committee
+      { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
+      -- ^ Committee members with epoch number when each of them expires
+      , committeeQuorum  :: PlutusTx.Rational
+      -- ^ Quorum of the committee that is necessary for a successful vote
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''Committee
-PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
 
 instance Pretty Committee where
   pretty Committee{..} =
