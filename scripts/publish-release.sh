@@ -42,14 +42,21 @@ create-release-pr() {
   done
 
   tell "Committing changes and creating PR on GitHub"
+  cp ../.pre-commit-config.yaml .pre-commit-config.yaml
   git add . 
-  pre-commit run cabal-fmt
-  git commit -m "Release $VERSION"
+  pre-commit run cabal-fmt || true 
+  git add . 
+  git commit -m "Release $VERSION" || true 
   git push --force
-  # gh pr create --title "Release $VERSION" --body "Release $VERSION" --label "No Changelog Required"
+  gh pr create \
+    --title "Release $VERSION" \
+    --body "Release $VERSION" \
+    --label "No Changelog Required" \
+    --head release/$VERSION \
+    --base master
 
-  tell "The release PR has been created "
-  tell "PR_URL"
+  tell ""
+  tell "The release PR has been created, see URL above."
   tell "Once approved and merged, run './scripts/publish-release.sh $VERSION' again"
 }
 
@@ -143,4 +150,6 @@ if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then
 else
   tell "I found the origin branch named 'release/$VERSION' so I will continue the release process for $VERSION"
   # publish-release
+  create-release-pr
+
 fi
