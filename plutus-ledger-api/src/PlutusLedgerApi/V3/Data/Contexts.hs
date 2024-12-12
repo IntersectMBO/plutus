@@ -57,7 +57,10 @@ module PlutusLedgerApi.V3.Data.Contexts
   , committeeMembers
   , committeeQuorum
   , Constitution (..)
-  , ProtocolVersion (..)
+  , ProtocolVersion
+  , pattern ProtocolVersion
+  , pvMajor
+  , pvMinor
   , ChangedParameters (..)
   , GovernanceAction
   , pattern ParameterChange
@@ -394,14 +397,17 @@ instance PlutusTx.Eq Constitution where
   {-# INLINEABLE (==) #-}
   Constitution a == Constitution a' = a PlutusTx.== a'
 
-data ProtocolVersion = ProtocolVersion
-  { pvMajor :: Haskell.Integer
-  , pvMinor :: Haskell.Integer
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data ProtocolVersion = ProtocolVersion
+      { pvMajor :: Haskell.Integer
+      , pvMinor :: Haskell.Integer
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 PlutusTx.makeLift ''ProtocolVersion
-PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
 
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion{..} =
