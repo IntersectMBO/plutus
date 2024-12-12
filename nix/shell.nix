@@ -106,7 +106,7 @@ in {
     cabal-fmt.enable = true;
     shellcheck.enable = false;
     editorconfig-checker.enable = true;
-    nixfmt.enable = true;
+    nixfmt-classic.enable = true;
     optipng.enable = true;
     # fourmolu.enable = true;
     hlint.enable = false;
