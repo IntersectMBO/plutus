@@ -165,7 +165,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
 
 -- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> List Integer
-findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = Data.List.findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=addr}} <- findOwnInput ctx = Data.List.findIndices (f addr) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
@@ -173,7 +173,7 @@ findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 -- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> List TxOut
-getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = Data.List.filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
+getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=addr}} <- findOwnInput ctx = Data.List.filter (f addr) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 getContinuingOutputs _ = traceError "Lf" -- "Can't get any continuing outputs"
@@ -189,7 +189,7 @@ txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((==) k) txInfoSign
 -- | Get the values paid to a public key address by a pending transaction.
 pubKeyOutputsAt :: PubKeyHash -> TxInfo -> List Value
 pubKeyOutputsAt pk p =
-    let flt TxOut{txOutAddress = Address (PubKeyCredential pk') _, txOutValue} | pk == pk' = Just txOutValue
+    let flt TxOut{txOutAddress = Address (PubKeyCredential pk') _, txOutValue=txOutVal} | pk == pk' = Just txOutVal
         flt _                             = Nothing
     in Data.List.mapMaybe flt (txInfoOutputs p)
 {-# INLINABLE pubKeyOutputsAt #-}

@@ -100,19 +100,19 @@ instance Pretty TxOut where
 
 instance PlutusTx.Eq TxOut where
     {-# INLINABLE (==) #-}
-    (TxOut txOutAddress txOutValue txOutDatum txOutRefScript) == (TxOut txOutAddress' txOutValue' txOutDatum' txOutRefScript') =
-        txOutAddress PlutusTx.== txOutAddress'
-        PlutusTx.&& txOutValue PlutusTx.== txOutValue'
-        PlutusTx.&& txOutDatum PlutusTx.== txOutDatum'
-        PlutusTx.&& txOutRefScript PlutusTx.== txOutRefScript'
+    (TxOut txOutAddress1 txOutValue1 txOutDatum1 txOutRefScript1) == (TxOut txOutAddress2 txOutValue2 txOutDatum2 txOutRefScript2) =
+        txOutAddress1 PlutusTx.== txOutAddress2
+        PlutusTx.&& txOutValue1 PlutusTx.== txOutValue2
+        PlutusTx.&& txOutDatum1 PlutusTx.== txOutDatum2
+        PlutusTx.&& txOutRefScript1 PlutusTx.== txOutRefScript2
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash
-txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
+txOutPubKey = toPubKeyHash . txOutAddress
 
 -- | The validator hash attached to a 'TxOut', if there is one.
 txOutScriptHash :: TxOut -> Maybe ScriptHash
-txOutScriptHash TxOut{txOutAddress} = toScriptHash txOutAddress
+txOutScriptHash = toScriptHash . txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
