@@ -128,7 +128,8 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV3, futurePV), Set.fromList [
           ExpModInteger,
-          CaseList, CaseData
+          CaseList, CaseData,
+          ListToArray, IndexArray, LengthArray
           ])
   ]
 

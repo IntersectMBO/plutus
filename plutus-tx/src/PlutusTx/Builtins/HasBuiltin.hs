@@ -18,7 +18,7 @@ import PlutusTx.Builtins.Internal
 import Data.ByteString (ByteString)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
-import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Strict
 
 {- Note [useToOpaque and useFromOpaque]
 It used to be possible to use 'toBuiltin'/'fromBuiltin' within a smart contract, but this is no
@@ -92,9 +92,12 @@ instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
     type FromBuiltin (BuiltinList a) = [FromBuiltin a]
     fromBuiltin (BuiltinList xs) = map fromBuiltin xs
 
-instance HasToBuiltin a => HasToBuiltin (Vector a) where
-    type ToBuiltin (Vector a) = BuiltinArray (ToBuiltin a)
-    toBuiltin = useToOpaque (BuiltinArray . map toBuiltin)
+instance HasToBuiltin a => HasToBuiltin (Strict.Vector a) where
+    type ToBuiltin (Strict.Vector a) = BuiltinArray (ToBuiltin a)
+    toBuiltin = useToOpaque (BuiltinArray . fmap toBuiltin)
+instance HasFromBuiltin a => HasFromBuiltin (BuiltinArray a) where
+    type FromBuiltin (BuiltinArray a) = Strict.Vector (FromBuiltin a)
+    fromBuiltin (BuiltinArray xs) = fmap fromBuiltin xs
 
 instance (HasToBuiltin a, HasToBuiltin b) => HasToBuiltin (a, b) where
     type ToBuiltin (a, b) = BuiltinPair (ToBuiltin a) (ToBuiltin b)
