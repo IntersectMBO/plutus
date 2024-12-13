@@ -390,7 +390,7 @@ test_BuiltinArray =
       let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
       let index = mkConstant @Integer @DefaultUni () 5
           expectedValue = mkConstant @Integer @DefaultUni () 6
-          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [index, arrayOfInts]
+          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [arrayOfInts, index]
       typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
           Right (EvaluationSuccess expectedValue)
   ]

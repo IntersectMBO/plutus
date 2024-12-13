@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Array.Spec qualified as Array
 import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
@@ -49,4 +50,5 @@ tests =
     , embed Unicode.tests
     , embed AssocMap.propertyTests
     , embed List.propertyTests
+    , Array.smokeTests
     ]

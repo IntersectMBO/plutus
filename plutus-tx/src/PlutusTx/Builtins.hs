@@ -86,6 +86,11 @@ module PlutusTx.Builtins (
                          , BI.tail
                          , uncons
                          , unsafeUncons
+                         -- * Arrays
+                         , BI.BuiltinArray
+                         , BI.listToArray
+                         , BI.lengthOfArray
+                         , BI.indexArray
                          -- * Tracing
                          , trace
                          -- * BLS12_381
