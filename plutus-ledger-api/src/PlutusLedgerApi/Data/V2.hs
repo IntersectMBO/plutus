@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE PatternSynonyms #-}
 
 -- | The interface to Plutus V2 for the ledger.
@@ -162,64 +161,64 @@ import PlutusLedgerApi.V2.ParamName qualified as ParamName
 
 import PlutusTx.Data.AssocMap (Map, unsafeFromList)
 
-{- | An alias to the Plutus ledger language this module exposes at runtime.
+{-| An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
 -}
 thisLedgerLanguage :: Common.PlutusLedgerLanguage
 thisLedgerLanguage = Common.PlutusV2
 
-{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
 Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
 -}
-deserialiseScript ::
-  forall m.
-  (Common.MonadError Common.ScriptDecodeError m) =>
-  -- | which major protocol version the script was submitted in.
-  Common.MajorProtocolVersion ->
-  -- | the script to deserialise.
-  Common.SerialisedScript ->
-  m Common.ScriptForEvaluation
+deserialiseScript
+  :: forall m
+   . (Common.MonadError Common.ScriptDecodeError m)
+  => Common.MajorProtocolVersion
+  -- ^ which major protocol version the script was submitted in.
+  -> Common.SerialisedScript
+  -- ^ the script to deserialise.
+  -> m Common.ScriptForEvaluation
 deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 
-{- | Evaluates a script, returning the minimum budget that the script would need
+{-| Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. This will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 also returns the used budget.
 -}
-evaluateScriptCounting ::
-  -- | Which major protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  Common.EvaluationContext ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The arguments to the script
-  [Common.Data] ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptCounting
+  :: Common.MajorProtocolVersion
+  -- ^ Which major protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> Common.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> [Common.Data]
+  -- ^ The arguments to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
-{- | Evaluates a script, with a cost model and a budget that restricts how many
+{-| Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
 a limit to guard against scripts that run for a long time or loop.
 -}
-evaluateScriptRestricting ::
-  -- | Which major protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  Common.EvaluationContext ->
-  -- | The resource budget which must not be exceeded during evaluation
-  Common.ExBudget ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The arguments to the script
-  [Common.Data] ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptRestricting
+  :: Common.MajorProtocolVersion
+  -- ^ Which major protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> Common.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ExBudget
+  -- ^ The resource budget which must not be exceeded during evaluation
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> [Common.Data]
+  -- ^ The arguments to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

@@ -114,7 +114,7 @@ in
 
 
   preCommit = {
-    stylish-haskell.enable = true;
+    stylish-haskell.enable = false;
     cabal-fmt.enable = true;
     shellcheck.enable = false;
     editorconfig-checker.enable = true;

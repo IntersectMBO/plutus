@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE NamedFieldPuns    #-}
@@ -9,127 +8,127 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
-module PlutusLedgerApi.V3.Data.Contexts
-  ( ColdCommitteeCredential (..)
-  , HotCommitteeCredential (..)
-  , DRepCredential (..)
-  , DRep
-  , pattern DRep
-  , pattern DRepAlwaysAbstain
-  , pattern DRepAlwaysNoConfidence
-  , Delegatee
-  , pattern DelegStake
-  , pattern DelegVote
-  , pattern DelegStakeVote
-  , TxCert
-  , pattern TxCertRegStaking
-  , pattern TxCertUnRegStaking
-  , pattern TxCertDelegStaking
-  , pattern TxCertRegDeleg
-  , pattern TxCertRegDRep
-  , pattern TxCertUpdateDRep
-  , pattern TxCertUnRegDRep
-  , pattern TxCertPoolRegister
-  , pattern TxCertPoolRetire
-  , pattern TxCertAuthHotCommittee
-  , pattern TxCertResignColdCommittee
-  , Voter
-  , pattern CommitteeVoter
-  , pattern DRepVoter
-  , pattern StakePoolVoter
-  , Vote
-  , pattern VoteNo
-  , pattern VoteYes
-  , pattern Abstain
-  , GovernanceActionId
-  , pattern GovernanceActionId
-  , gaidTxId
-  , gaidGovActionIx
-  , Committee
-  , pattern Committee
-  , committeeMembers
-  , committeeQuorum
-  , Constitution (..)
-  , ProtocolVersion
-  , pattern ProtocolVersion
-  , pvMajor
-  , pvMinor
-  , ChangedParameters (..)
-  , GovernanceAction
-  , pattern ParameterChange
-  , pattern HardForkInitiation
-  , pattern TreasuryWithdrawals
-  , pattern NoConfidence
-  , pattern UpdateCommittee
-  , pattern NewConstitution
-  , pattern InfoAction
-  , ProposalProcedure
-  , pattern ProposalProcedure
-  , ppDeposit
-  , ppReturnAddr
-  , ppGovernanceAction
-  , ScriptPurpose
-  , pattern Minting
-  , pattern Spending
-  , pattern Rewarding
-  , pattern Certifying
-  , pattern Voting
-  , pattern Proposing
-  , ScriptInfo
-  , pattern MintingScript
-  , pattern SpendingScript
-  , pattern RewardingScript
-  , pattern CertifyingScript
-  , pattern VotingScript
-  , pattern ProposingScript
-  , TxInInfo
-  , pattern TxInInfo
-  , txInInfoOutRef
-  , txInInfoResolved
-  , TxInfo
-  , pattern TxInfo
-  , txInfoInputs
-  , txInfoReferenceInputs
-  , txInfoOutputs
-  , txInfoFee
-  , txInfoMint
-  , txInfoTxCerts
-  , txInfoWdrl
-  , txInfoValidRange
-  , txInfoSignatories
-  , txInfoRedeemers
-  , txInfoData
-  , txInfoId
-  , txInfoVotes
-  , txInfoProposalProcedures
-  , txInfoCurrentTreasuryAmount
-  , txInfoTreasuryDonation
-  , ScriptContext
-  , pattern ScriptContext
-  , scriptContextTxInfo
-  , scriptContextRedeemer
-  , scriptContextScriptInfo
-  , findOwnInput
-  , findDatum
-  , findDatumHash
-  , findTxInByTxOutRef
-  , findContinuingOutputs
-  , getContinuingOutputs
-  , txSignedBy
+module PlutusLedgerApi.V3.Data.Contexts (
+  ColdCommitteeCredential (..),
+  HotCommitteeCredential (..),
+  DRepCredential (..),
+  DRep,
+  pattern DRep,
+  pattern DRepAlwaysAbstain,
+  pattern DRepAlwaysNoConfidence,
+  Delegatee,
+  pattern DelegStake,
+  pattern DelegVote,
+  pattern DelegStakeVote,
+  TxCert,
+  pattern TxCertRegStaking,
+  pattern TxCertUnRegStaking,
+  pattern TxCertDelegStaking,
+  pattern TxCertRegDeleg,
+  pattern TxCertRegDRep,
+  pattern TxCertUpdateDRep,
+  pattern TxCertUnRegDRep,
+  pattern TxCertPoolRegister,
+  pattern TxCertPoolRetire,
+  pattern TxCertAuthHotCommittee,
+  pattern TxCertResignColdCommittee,
+  Voter,
+  pattern CommitteeVoter,
+  pattern DRepVoter,
+  pattern StakePoolVoter,
+  Vote,
+  pattern VoteNo,
+  pattern VoteYes,
+  pattern Abstain,
+  GovernanceActionId,
+  pattern GovernanceActionId,
+  gaidTxId,
+  gaidGovActionIx,
+  Committee,
+  pattern Committee,
+  committeeMembers,
+  committeeQuorum,
+  Constitution (..),
+  ProtocolVersion,
+  pattern ProtocolVersion,
+  pvMajor,
+  pvMinor,
+  ChangedParameters (..),
+  GovernanceAction,
+  pattern ParameterChange,
+  pattern HardForkInitiation,
+  pattern TreasuryWithdrawals,
+  pattern NoConfidence,
+  pattern UpdateCommittee,
+  pattern NewConstitution,
+  pattern InfoAction,
+  ProposalProcedure,
+  pattern ProposalProcedure,
+  ppDeposit,
+  ppReturnAddr,
+  ppGovernanceAction,
+  ScriptPurpose,
+  pattern Minting,
+  pattern Spending,
+  pattern Rewarding,
+  pattern Certifying,
+  pattern Voting,
+  pattern Proposing,
+  ScriptInfo,
+  pattern MintingScript,
+  pattern SpendingScript,
+  pattern RewardingScript,
+  pattern CertifyingScript,
+  pattern VotingScript,
+  pattern ProposingScript,
+  TxInInfo,
+  pattern TxInInfo,
+  txInInfoOutRef,
+  txInInfoResolved,
+  TxInfo,
+  pattern TxInfo,
+  txInfoInputs,
+  txInfoReferenceInputs,
+  txInfoOutputs,
+  txInfoFee,
+  txInfoMint,
+  txInfoTxCerts,
+  txInfoWdrl,
+  txInfoValidRange,
+  txInfoSignatories,
+  txInfoRedeemers,
+  txInfoData,
+  txInfoId,
+  txInfoVotes,
+  txInfoProposalProcedures,
+  txInfoCurrentTreasuryAmount,
+  txInfoTreasuryDonation,
+  ScriptContext,
+  pattern ScriptContext,
+  scriptContextTxInfo,
+  scriptContextRedeemer,
+  scriptContextScriptInfo,
+  findOwnInput,
+  findDatum,
+  findDatumHash,
+  findTxInByTxOutRef,
+  findContinuingOutputs,
+  getContinuingOutputs,
+  txSignedBy,
 
-    -- * Validator functions
-  , pubKeyOutputsAt
-  , valuePaidTo
-  , valueSpent
-  , valueProduced
-  , ownCurrencySymbol
-  , spendsOutput
-  ) where
+  -- * Validator functions
+  pubKeyOutputsAt,
+  valuePaidTo,
+  valueSpent,
+  valueProduced,
+  ownCurrencySymbol,
+  spendsOutput,
+) where
 
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
@@ -198,7 +197,7 @@ PlutusTx.asData
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow DRep)
-  |]
+    |]
 
 PlutusTx.makeLift ''DRep
 
@@ -218,7 +217,7 @@ PlutusTx.asData
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow Delegatee)
-  |]
+    |]
 
 PlutusTx.makeLift ''Delegatee
 
@@ -233,36 +232,36 @@ instance PlutusTx.Eq Delegatee where
 PlutusTx.asData
   [d|
     data TxCert
-      = -- | Register staking credential with an optional deposit amount
+      = -- \| Register staking credential with an optional deposit amount
         TxCertRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
-      | -- | Un-Register staking credential with an optional refund amount
+      | -- \| Un-Register staking credential with an optional refund amount
         TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
-      | -- | Delegate staking credential to a Delegatee
+      | -- \| Delegate staking credential to a Delegatee
         TxCertDelegStaking V2.Credential Delegatee
-      | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
+      | -- \| Register and delegate staking credential to a Delegatee in one certificate. Noter that
         -- deposit is mandatory.
         TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
-      | -- | Register a DRep with a deposit value. The optional anchor is omitted.
+      | -- \| Register a DRep with a deposit value. The optional anchor is omitted.
         TxCertRegDRep DRepCredential V2.Lovelace
-      | -- | Update a DRep. The optional anchor is omitted.
+      | -- \| Update a DRep. The optional anchor is omitted.
         TxCertUpdateDRep DRepCredential
-      | -- | UnRegister a DRep with mandatory refund value
+      | -- \| UnRegister a DRep with mandatory refund value
         TxCertUnRegDRep DRepCredential V2.Lovelace
-      | -- | A digest of the PoolParams
+      | -- \| A digest of the PoolParams
         TxCertPoolRegister
           V2.PubKeyHash
-          -- ^ poolId
+          -- \^ poolId
           V2.PubKeyHash
-          -- ^ pool VFR
-      | -- | The retirement certificate and the Epoch in which the retirement will take place
+      | -- \^ pool VFR
+        -- \| The retirement certificate and the Epoch in which the retirement will take place
         TxCertPoolRetire V2.PubKeyHash Haskell.Integer
-      | -- | Authorize a Hot credential for a specific Committee member's cold credential
+      | -- \| Authorize a Hot credential for a specific Committee member's cold credential
         TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
       | TxCertResignColdCommittee ColdCommitteeCredential
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow TxCert)
-  |]
+    |]
 
 PlutusTx.makeLift ''TxCert
 
@@ -297,7 +296,7 @@ PlutusTx.asData
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow Voter)
-  |]
+    |]
 
 PlutusTx.makeLift ''Voter
 
@@ -321,7 +320,7 @@ PlutusTx.asData
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow Vote)
-  |]
+    |]
 
 PlutusTx.makeLift ''Vote
 
@@ -336,12 +335,12 @@ instance PlutusTx.Eq Vote where
 PlutusTx.asData
   [d|
     data GovernanceActionId = GovernanceActionId
-      { gaidTxId        :: V3.TxId
+      { gaidTxId :: V3.TxId
       , gaidGovActionIx :: Haskell.Integer
       }
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 PlutusTx.makeLift ''GovernanceActionId
 
@@ -361,13 +360,14 @@ PlutusTx.asData
   [d|
     data Committee = Committee
       { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
-      -- ^ Committee members with epoch number when each of them expires
-      , committeeQuorum  :: PlutusTx.Rational
-      -- ^ Quorum of the committee that is necessary for a successful vote
+      , -- \^ Committee members with epoch number when each of them expires
+        committeeQuorum :: PlutusTx.Rational
       }
+      -- \^ Quorum of the committee that is necessary for a successful vote
+
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 PlutusTx.makeLift ''Committee
 
@@ -403,7 +403,7 @@ PlutusTx.asData
       }
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 PlutusTx.makeLift ''ProtocolVersion
 
@@ -419,12 +419,12 @@ instance PlutusTx.Eq ProtocolVersion where
   ProtocolVersion a b == ProtocolVersion a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-{- | A Plutus Data object containing proposed parameter changes. The Data object contains
+{-| A Plutus Data object containing proposed parameter changes. The Data object contains
 a @Map@ with one entry per changed parameter, from the parameter ID to the new value.
 Unchanged parameters are not included.
 
 The mapping from parameter IDs to parameters can be found in
-[conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl).
+[conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl). -- editorconfig-checker-disable-file
 
 /Invariant:/ This map is non-empty, and the keys are stored in ascending order.
 -}
@@ -448,24 +448,29 @@ PlutusTx.asData
       = ParameterChange
           (Haskell.Maybe GovernanceActionId)
           ChangedParameters
-          (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
-      | -- | proposal to update protocol version
+          (Haskell.Maybe V2.ScriptHash)
+      | -- \^ Hash of the constitution script
+        -- \| proposal to update protocol version
         HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
       | TreasuryWithdrawals
           (Map V2.Credential V2.Lovelace)
-          (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
-      | NoConfidence (Haskell.Maybe GovernanceActionId)
+          (Haskell.Maybe V2.ScriptHash)
+      | -- \^ Hash of the constitution script
+        NoConfidence (Haskell.Maybe GovernanceActionId)
       | UpdateCommittee
           (Haskell.Maybe GovernanceActionId)
-          (List ColdCommitteeCredential) -- ^ Committee members to be removed
-          (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
-          Rational -- ^ New quorum
-      | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
+          (List ColdCommitteeCredential)
+          -- \^ Committee members to be removed
+          (Map ColdCommitteeCredential Haskell.Integer)
+          -- \^ Committee members to be added
+          Rational
+      | -- \^ New quorum
+        NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
       | InfoAction
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow GovernanceAction)
-  |]
+    |]
 
 PlutusTx.makeLift ''GovernanceAction
 
@@ -473,13 +478,13 @@ PlutusTx.makeLift ''GovernanceAction
 PlutusTx.asData
   [d|
     data ProposalProcedure = ProposalProcedure
-      { ppDeposit          :: V2.Lovelace
-      , ppReturnAddr       :: V2.Credential
+      { ppDeposit :: V2.Lovelace
+      , ppReturnAddr :: V2.Credential
       , ppGovernanceAction :: GovernanceAction
       }
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 PlutusTx.makeLift ''ProposalProcedure
 
@@ -500,12 +505,12 @@ PlutusTx.asData
       | Rewarding V2.Credential
       | Certifying
           Haskell.Integer
-          -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+          -- \^ 0-based index of the given `TxCert` in `txInfoTxCerts`
           TxCert
       | Voting Voter
       | Proposing
           Haskell.Integer
-          -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+          -- \^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
           ProposalProcedure
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -523,17 +528,17 @@ PlutusTx.asData
       | RewardingScript V2.Credential
       | CertifyingScript
           Haskell.Integer
-          -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+          -- \^ 0-based index of the given `TxCert` in `txInfoTxCerts`
           TxCert
       | VotingScript Voter
       | ProposingScript
           Haskell.Integer
-          -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+          -- \^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
           ProposalProcedure
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving (Pretty) via (PrettyShow ScriptInfo)
-  |]
+    |]
 
 PlutusTx.makeLift ''ScriptInfo
 
@@ -541,12 +546,12 @@ PlutusTx.makeLift ''ScriptInfo
 PlutusTx.asData
   [d|
     data TxInInfo = TxInInfo
-      { txInInfoOutRef   :: V3.TxOutRef
+      { txInInfoOutRef :: V3.TxOutRef
       , txInInfoResolved :: V2.TxOut
       }
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 PlutusTx.makeLift ''TxInInfo
 
@@ -562,26 +567,26 @@ instance Pretty TxInInfo where
 PlutusTx.asData
   [d|
     data TxInfo = TxInfo
-      { txInfoInputs                :: List TxInInfo
-      , txInfoReferenceInputs       :: List TxInInfo
-      , txInfoOutputs               :: List V2.TxOut
-      , txInfoFee                   :: V2.Lovelace
-      , txInfoMint                  :: V2.Value
-      -- ^ The 'Value' minted by this transaction.
-      --
-      -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
-      -- their namesakes in Plutus V1 and V2's ScriptContexts.
-      , txInfoTxCerts               :: List TxCert
-      , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
-      , txInfoValidRange            :: V2.POSIXTimeRange
-      , txInfoSignatories           :: List V2.PubKeyHash
-      , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
-      , txInfoData                  :: Map V2.DatumHash V2.Datum
-      , txInfoId                    :: V3.TxId
-      , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
-      , txInfoProposalProcedures    :: List ProposalProcedure
+      { txInfoInputs :: List TxInInfo
+      , txInfoReferenceInputs :: List TxInInfo
+      , txInfoOutputs :: List V2.TxOut
+      , txInfoFee :: V2.Lovelace
+      , txInfoMint :: V2.Value
+      , -- \^ The 'Value' minted by this transaction.
+        --
+        -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
+        -- their namesakes in Plutus V1 and V2's ScriptContexts.
+        txInfoTxCerts :: List TxCert
+      , txInfoWdrl :: Map V2.Credential V2.Lovelace
+      , txInfoValidRange :: V2.POSIXTimeRange
+      , txInfoSignatories :: List V2.PubKeyHash
+      , txInfoRedeemers :: Map ScriptPurpose V2.Redeemer
+      , txInfoData :: Map V2.DatumHash V2.Datum
+      , txInfoId :: V3.TxId
+      , txInfoVotes :: Map Voter (Map GovernanceActionId Vote)
+      , txInfoProposalProcedures :: List ProposalProcedure
       , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
-      , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
+      , txInfoTreasuryDonation :: Haskell.Maybe V2.Lovelace
       }
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -611,17 +616,18 @@ PlutusTx.makeLift ''TxInfo
 PlutusTx.asData
   [d|
     data ScriptContext = ScriptContext
-      { scriptContextTxInfo     :: TxInfo
-      -- ^ information about the transaction the currently-executing script is included in
-      , scriptContextRedeemer   :: V2.Redeemer
-      -- ^ Redeemer for the currently-executing script
-      , scriptContextScriptInfo :: ScriptInfo
-      -- ^ the purpose of the currently-executing script, along with information associated
-      -- with the purpose
+      { scriptContextTxInfo :: TxInfo
+      , -- \^ information about the transaction the currently-executing script is included in
+        scriptContextRedeemer :: V2.Redeemer
+      , -- \^ Redeemer for the currently-executing script
+        scriptContextScriptInfo :: ScriptInfo
       }
+      -- \^ the purpose of the currently-executing script, along with information associated
+      -- with the purpose
+
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 {-# INLINEABLE ScriptContext #-}
 {-# INLINEABLE scriptContextTxInfo #-}
@@ -652,18 +658,18 @@ findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
 
 {-# INLINEABLE findDatumHash #-}
 
-{- | Find the hash of a datum, if it is part of the pending transaction's
+{-| Find the hash of a datum, if it is part of the pending transaction's
 hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
   PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
-  where
-    f (_, ds') = ds' PlutusTx.== ds
+ where
+  f (_, ds') = ds' PlutusTx.== ds
 
 {-# INLINEABLE findTxInByTxOutRef #-}
 
-{- | Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the
+{-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the
 transaction's inputs (`TxInInfo`).
 
 Note: this only searches the true transaction inputs and not the referenced transaction inputs.
@@ -676,7 +682,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
 
 {-# INLINEABLE findContinuingOutputs #-}
 
-{- | Find the indices of all the outputs that pay to the same script address we are
+{-| Find the indices of all the outputs that pay to the same script address we are
 currently spending from, if any.
 -}
 findContinuingOutputs :: ScriptContext -> List Haskell.Integer
@@ -686,13 +692,13 @@ findContinuingOutputs ctx
       Data.List.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
-  where
-    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+ where
+  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 findContinuingOutputs _ = PlutusTx.traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINEABLE getContinuingOutputs #-}
 
-{- | Get all the outputs that pay to the same script address we are currently spending
+{-| Get all the outputs that pay to the same script address we are currently spending
 from, if any.
 -}
 getContinuingOutputs :: ScriptContext -> List V2.TxOut
@@ -700,8 +706,8 @@ getContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
       Data.List.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
-  where
-    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+ where
+  f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
 
 {-# INLINEABLE txSignedBy #-}
@@ -752,7 +758,7 @@ ownCurrencySymbol _ =
 
 {-# INLINEABLE spendsOutput #-}
 
-{- | Check if the pending transaction spends a specific transaction output
+{-| Check if the pending transaction spends a specific transaction output
 (identified by the hash of a transaction and an index into that
 transactions' outputs)
 -}
@@ -760,8 +766,10 @@ spendsOutput :: TxInfo -> V3.TxId -> Haskell.Integer -> Haskell.Bool
 spendsOutput txInfo txId i =
   let spendsOutRef inp =
         let outRef = txInInfoOutRef inp
-         in txId PlutusTx.== V3.txOutRefId outRef
-              PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
+         in txId
+              PlutusTx.== V3.txOutRefId outRef
+              PlutusTx.&& i
+              PlutusTx.== V3.txOutRefIdx outRef
    in Data.List.any spendsOutRef (txInfoInputs txInfo)
 
 instance Pretty TxInfo where

@@ -11,17 +11,17 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusLedgerApi.V1.Data.Address
-  ( Address
-  , pattern Address
-  , addressCredential
-  , addressStakingCredential
-  , pubKeyHashAddress
-  , toPubKeyHash
-  , toScriptHash
-  , scriptHashAddress
-  , stakingCredential
-  ) where
+module PlutusLedgerApi.V1.Data.Address (
+  Address,
+  pattern Address,
+  addressCredential,
+  addressStakingCredential,
+  pubKeyHashAddress,
+  toPubKeyHash,
+  toScriptHash,
+  scriptHashAddress,
+  stakingCredential,
+) where
 
 import Control.DeepSeq (NFData)
 import Data.Typeable (Typeable)
@@ -37,20 +37,22 @@ import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), parens, (<+>))
 
--- | An address may contain two credentials,
--- the payment credential and optionally a 'StakingCredential'.
+{-| An address may contain two credentials,
+the payment credential and optionally a 'StakingCredential'.
+-}
 PlutusTx.asData
   [d|
     data Address = Address
-      { addressCredential        :: Credential
-      -- ^ the payment credential
-      , addressStakingCredential :: Maybe StakingCredential
-      -- ^ the staking credential
+      { addressCredential :: Credential
+      , -- \^ the payment credential
+        addressStakingCredential :: Maybe StakingCredential
       }
+      -- \^ the staking credential
+
       deriving stock (Eq, Ord, Show, Generic, Typeable)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving anyclass (NFData, HasBlueprintDefinition)
-  |]
+    |]
 
 instance Pretty Address where
   pretty (Address cred stakingCred) =
@@ -67,8 +69,9 @@ instance PlutusTx.Eq Address where
 
 {-# INLINEABLE pubKeyHashAddress #-}
 
--- | The address that should be targeted by a transaction output
--- locked by the public key with the given hash.
+{-| The address that should be targeted by a transaction output
+locked by the public key with the given hash.
+-}
 pubKeyHashAddress :: PubKeyHash -> Address
 pubKeyHashAddress pkh = Address (PubKeyCredential pkh) Nothing
 
@@ -88,8 +91,9 @@ toScriptHash _                                = Nothing
 
 {-# INLINEABLE scriptHashAddress #-}
 
--- | The address that should be used by a transaction output
--- locked by the given validator script hash.
+{-| The address that should be used by a transaction output
+locked by the given validator script hash.
+-}
 scriptHashAddress :: ScriptHash -> Address
 scriptHashAddress vh = Address (ScriptCredential vh) Nothing
 

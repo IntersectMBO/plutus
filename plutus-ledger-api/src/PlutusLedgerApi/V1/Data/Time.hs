@@ -1,5 +1,4 @@
 {-# LANGUAGE BlockArguments       #-}
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
@@ -58,7 +57,7 @@ newtype DiffMilliSeconds = DiffMilliSeconds Integer
 instance HasBlueprintSchema DiffMilliSeconds referencedTypes where
   schema = SchemaInteger emptySchemaInfo{title = Just "DiffMilliSeconds"} emptyIntegerSchema
 
-{- | POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
+{-| POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
 This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime`
 -}
 newtype POSIXTime = POSIXTime {getPOSIXTime :: Integer}

@@ -26,8 +26,9 @@ import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
--- | A very crude deterministic generator for 'ScriptContext's with size
--- approximately proportional to the input integer.
+{-| A very crude deterministic generator for 'ScriptContext's with size
+approximately proportional to the input integer.
+-}
 mkScriptContext :: Integer -> ScriptContext
 mkScriptContext i =
   ScriptContext
@@ -35,34 +36,35 @@ mkScriptContext i =
     (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
     (SpendingScript (TxOutRef (TxId "") 0) Nothing)
 
-
 mkTxInfo :: Integer -> TxInfo
-mkTxInfo i = TxInfo {
-  txInfoInputs=mempty,
-  txInfoReferenceInputs=mempty,
-  txInfoOutputs=Data.List.map mkTxOut (Data.List.fromSOP ([1..i] :: [Integer])),
-  txInfoFee=10000,
-  txInfoMint=mempty,
-  txInfoTxCerts=mempty,
-  txInfoWdrl=Map.empty,
-  txInfoValidRange=always,
-  txInfoSignatories=mempty,
-  txInfoRedeemers=Map.empty,
-  txInfoData=Map.empty,
-  txInfoId=TxId "",
-  txInfoVotes=Map.empty,
-  txInfoProposalProcedures=mempty,
-  txInfoCurrentTreasuryAmount=Nothing,
-  txInfoTreasuryDonation=Nothing
-  }
+mkTxInfo i =
+  TxInfo
+    { txInfoInputs = mempty
+    , txInfoReferenceInputs = mempty
+    , txInfoOutputs = Data.List.map mkTxOut (Data.List.fromSOP ([1 .. i] :: [Integer]))
+    , txInfoFee = 10000
+    , txInfoMint = mempty
+    , txInfoTxCerts = mempty
+    , txInfoWdrl = Map.empty
+    , txInfoValidRange = always
+    , txInfoSignatories = mempty
+    , txInfoRedeemers = Map.empty
+    , txInfoData = Map.empty
+    , txInfoId = TxId ""
+    , txInfoVotes = Map.empty
+    , txInfoProposalProcedures = mempty
+    , txInfoCurrentTreasuryAmount = Nothing
+    , txInfoTreasuryDonation = Nothing
+    }
 
 mkTxOut :: Integer -> TxOut
-mkTxOut i = TxOut {
-  txOutAddress=pubKeyHashAddress (PubKeyHash ""),
-  txOutValue=mkValue i,
-  txOutDatum=NoOutputDatum,
-  txOutReferenceScript=Nothing
-  }
+mkTxOut i =
+  TxOut
+    { txOutAddress = pubKeyHashAddress (PubKeyHash "")
+    , txOutValue = mkValue i
+    , txOutDatum = NoOutputDatum
+    , txOutReferenceScript = Nothing
+    }
 
 mkValue :: Integer -> Value
 mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
@@ -77,19 +79,16 @@ checkScriptContext1 d =
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ _ = sc
-  in
-  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
-  then ()
-  else PlutusTx.traceError "Odd number of outputs"
-{-# INLINABLE checkScriptContext1 #-}
+   in if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+        then ()
+        else PlutusTx.traceError "Odd number of outputs"
+{-# INLINEABLE checkScriptContext1 #-}
 
 mkCheckScriptContext1Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext1Code sc =
   let d = PlutusTx.toBuiltinData sc
-  in
-    $$(PlutusTx.compile [|| checkScriptContext1 ||])
-    `PlutusTx.unsafeApplyCode`
-    PlutusTx.liftCodeDef d
+   in $$(PlutusTx.compile [||checkScriptContext1||])
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example aims to *force* the decoding of the script context and then ignore it entirely.
 -- This corresponds to the unfortunate case where the decoding "wrapper" around a script forces
@@ -97,23 +96,21 @@ mkCheckScriptContext1Code sc =
 checkScriptContext2 :: PlutusTx.BuiltinData -> ()
 checkScriptContext2 d =
   let (sc :: ScriptContext) = PlutusTx.unsafeFromBuiltinData d
-  -- Just using a bang pattern was not enough to stop GHC from getting
-  -- rid of the dead binding before we even hit the plugin, this works
-  -- for now!
-  in case sc of
-    !_ ->
-      if 48 PlutusTx.* 9900 PlutusTx.== (475200 :: Integer)
-      then ()
-      else PlutusTx.traceError "Got my sums wrong"
-{-# INLINABLE checkScriptContext2 #-}
+   in -- Just using a bang pattern was not enough to stop GHC from getting
+      -- rid of the dead binding before we even hit the plugin, this works
+      -- for now!
+      case sc of
+        !_ ->
+          if 48 PlutusTx.* 9900 PlutusTx.== (475200 :: Integer)
+            then ()
+            else PlutusTx.traceError "Got my sums wrong"
+{-# INLINEABLE checkScriptContext2 #-}
 
 mkCheckScriptContext2Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext2Code sc =
   let d = PlutusTx.toBuiltinData sc
-  in
-    $$(PlutusTx.compile [|| checkScriptContext2 ||])
-    `PlutusTx.unsafeApplyCode`
-    PlutusTx.liftCodeDef d
+   in $$(PlutusTx.compile [||checkScriptContext2||])
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 {- Note [Redundant arguments to equality benchmarks]
 The arguments for the benchmarks are passed as terms created with `liftCodeDef`.
@@ -133,26 +130,26 @@ scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
-  then ()
-  else PlutusTx.traceError "The argument is not equal to itself"
-{-# INLINABLE scriptContextEqualityData #-}
+    then ()
+    else PlutusTx.traceError "The argument is not equal to itself"
+{-# INLINEABLE scriptContextEqualityData #-}
 
 mkScriptContextEqualityDataCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityDataCode sc =
   let d = PlutusTx.toBuiltinData sc
-  in $$(PlutusTx.compile [|| scriptContextEqualityData ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+   in $$(PlutusTx.compile [||scriptContextEqualityData||])
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example is just the overhead from the previous two
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityOverhead :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityOverhead _ _ = ()
-{-# INLINABLE scriptContextEqualityOverhead #-}
+{-# INLINEABLE scriptContextEqualityOverhead #-}
 
 mkScriptContextEqualityOverheadCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityOverheadCode sc =
   let d = PlutusTx.toBuiltinData sc
-  in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+   in $$(PlutusTx.compile [||scriptContextEqualityOverhead||])
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
