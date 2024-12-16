@@ -108,8 +108,7 @@ in {
     editorconfig-checker.enable = true;
     nixfmt-classic.enable = true;
     optipng.enable = true;
-    # TODO: enable fourmolu once migration from stylish-haskell is almost done
-    # fourmolu.enable = true;
+    fourmolu.enable = true;
     hlint.enable = false;
   };
 }
