@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -203,10 +203,10 @@ PlutusTx.makeLift ''DRep
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
-  DRep a == DRep a'                                = a PlutusTx.== a'
-  DRepAlwaysAbstain == DRepAlwaysAbstain           = Haskell.True
+  DRep a == DRep a' = a PlutusTx.== a'
+  DRepAlwaysAbstain == DRepAlwaysAbstain = Haskell.True
   DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
-  _ == _                                           = Haskell.False
+  _ == _ = Haskell.False
 
 PlutusTx.asData
   [d|
@@ -326,10 +326,10 @@ PlutusTx.makeLift ''Vote
 
 instance PlutusTx.Eq Vote where
   {-# INLINEABLE (==) #-}
-  VoteNo == VoteNo   = Haskell.True
+  VoteNo == VoteNo = Haskell.True
   VoteYes == VoteYes = Haskell.True
   Abstain == Abstain = Haskell.True
-  _ == _             = Haskell.False
+  _ == _ = Haskell.False
 
 -- | Similar to TxOutRef, but for GovActions
 PlutusTx.asData
@@ -592,24 +592,6 @@ PlutusTx.asData
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
-{-# INLINEABLE TxInfo #-}
-{-# INLINEABLE txInfoInputs #-}
-{-# INLINEABLE txInfoReferenceInputs #-}
-{-# INLINEABLE txInfoOutputs #-}
-{-# INLINEABLE txInfoFee #-}
-{-# INLINEABLE txInfoMint #-}
-{-# INLINEABLE txInfoTxCerts #-}
-{-# INLINEABLE txInfoWdrl #-}
-{-# INLINEABLE txInfoValidRange #-}
-{-# INLINEABLE txInfoSignatories #-}
-{-# INLINEABLE txInfoRedeemers #-}
-{-# INLINEABLE txInfoData #-}
-{-# INLINEABLE txInfoId #-}
-{-# INLINEABLE txInfoVotes #-}
-{-# INLINEABLE txInfoProposalProcedures #-}
-{-# INLINEABLE txInfoCurrentTreasuryAmount #-}
-{-# INLINEABLE txInfoTreasuryDonation #-}
-
 PlutusTx.makeLift ''TxInfo
 
 -- | The context that the currently-executing script can access.
@@ -628,11 +610,6 @@ PlutusTx.asData
       deriving stock (Generic, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
-
-{-# INLINEABLE ScriptContext #-}
-{-# INLINEABLE scriptContextTxInfo #-}
-{-# INLINEABLE scriptContextRedeemer #-}
-{-# INLINEABLE scriptContextScriptInfo #-}
 
 PlutusTx.makeLift ''ScriptContext
 
@@ -715,7 +692,7 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing o
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
 txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) txInfoSignatories of
-  Haskell.Just _  -> Haskell.True
+  Haskell.Just _ -> Haskell.True
   Haskell.Nothing -> Haskell.False
 
 {-# INLINEABLE pubKeyOutputsAt #-}

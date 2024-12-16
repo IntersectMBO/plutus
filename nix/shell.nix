@@ -108,7 +108,7 @@ in {
     editorconfig-checker.enable = true;
     nixfmt-classic.enable = true;
     optipng.enable = true;
-    fourmolu.enable = true;
+    # fourmolu.enable = true;
     hlint.enable = false;
   };
 }
