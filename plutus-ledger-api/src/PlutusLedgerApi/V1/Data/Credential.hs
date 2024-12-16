@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -33,16 +33,21 @@ import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Show (deriveShow)
 import Prettyprinter (Pretty (..), (<+>))
 
--- | Credentials required to unlock a transaction output.
+{-| Credentials required to unlock a transaction output.
+
+The 'PubKeyCredential' constructor represents the transaction that
+spends this output and must be signed by the private key.
+See `Crypto.PubKeyHash`.
+
+The 'ScriptCredential' constructor represents the transaction that spends
+this output must include the validator script and
+be accepted by the validator. See `ScriptHash`.
+-}
 PlutusTx.asData
   [d|
     data Credential
-      = -- \| The transaction that spends this output must be signed by the private key.
-        -- See `Crypto.PubKeyHash`.
-        PubKeyCredential PubKeyHash
-      | -- \| The transaction that spends this output must include the validator script and
-        -- be accepted by the validator. See `ScriptHash`.
-        ScriptCredential ScriptHash
+      = PubKeyCredential PubKeyHash
+      | ScriptCredential ScriptHash
       deriving stock (Eq, Ord, Show, Generic, Typeable)
       deriving anyclass (NFData, HasBlueprintDefinition)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
@@ -54,23 +59,26 @@ instance Pretty Credential where
 
 instance PlutusTx.Eq Credential where
   {-# INLINEABLE (==) #-}
-  PubKeyCredential l == PubKeyCredential r  = l PlutusTx.== r
+  PubKeyCredential l == PubKeyCredential r = l PlutusTx.== r
   ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
-  _ == _                                    = False
+  _ == _ = False
 
--- | Staking credential used to assign rewards.
+{-| Staking credential used to assign rewards.
+
+The staking hash constructor is the `Credential` required to unlock a
+transaction output. Either a public key credential (`Crypto.PubKeyHash`) or
+a script credential (`ScriptHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
+
+The 'StakingPtr' constructor is the certificate pointer, constructed by the given
+slot number, transaction and certificate indices.
+NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
+but 'Integer' is our only integral type so we need to use it instead.
+-}
 PlutusTx.asData
   [d|
     data StakingCredential
-      = -- \| The staking hash is the `Credential` required to unlock a transaction output. Either
-        -- a public key credential (`Crypto.PubKeyHash`) or
-        -- a script credential (`ScriptHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
-        StakingHash Credential
-      | -- \| The certificate pointer, constructed by the given
-        -- slot number, transaction and certificate indices.
-        -- NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
-        -- but 'Integer' is our only integral type so we need to use it instead.
-        StakingPtr
+      = StakingHash Credential
+      | StakingPtr
           Integer
           -- \^ the slot number
           Integer
@@ -83,7 +91,7 @@ PlutusTx.asData
     |]
 
 instance Pretty StakingCredential where
-  pretty (StakingHash h)    = "StakingHash" <+> pretty h
+  pretty (StakingHash h) = "StakingHash" <+> pretty h
   pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
 instance PlutusTx.Eq StakingCredential where
