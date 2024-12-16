@@ -120,7 +120,7 @@ in
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
     optipng.enable = true;
-    # fourmolu.enable = true;
+    fourmolu.enable = true;
     hlint.enable = false;
   };
 }
