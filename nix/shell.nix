@@ -9,26 +9,23 @@ let
   # Devshell doesn't run setup hooks from other packages, so just extract
   # the correct values of the environment variables from the haskell.nix
   # shell and use those.
-  certEnv = pkgs.runCommand "cert-env"
-    {
-      nativeBuildInputs = cabalProject.shell.nativeBuildInputs;
-      buildInputs = cabalProject.shell.buildInputs;
-    }
-    ''
-      echo "export COQPATH=$COQPATH" >> $out
-      echo "export OCAMLPATH=$OCAMLPATH" >> $out
-      echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
-      echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
-    '';
+  certEnv = pkgs.runCommand "cert-env" {
+    nativeBuildInputs = cabalProject.shell.nativeBuildInputs;
+    buildInputs = cabalProject.shell.buildInputs;
+  } ''
+    echo "export COQPATH=$COQPATH" >> $out
+    echo "export OCAMLPATH=$OCAMLPATH" >> $out
+    echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
+    echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
+  '';
 
-
-  papi-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
+  linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
     # Needed to fix the frequency and governor of the CPU running the benchmarks
     pkgs.cpufrequtils
+    pkgs.sudo
     # Underlying benchmarking library used by plutus-benchmark and tasty-papi
     pkgs.papi
   ];
-
 
   all-pkgs = [
     repoRoot.nix.agda.agda-with-stdlib
@@ -74,17 +71,12 @@ let
     pkgs.nodejs_20
   ];
 
-in
-
-{
+in {
   name = "plutus";
-
 
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
-
-  packages = lib.concatLists [ all-pkgs papi-pkgs ];
-
+  packages = lib.concatLists [ all-pkgs linux-pkgs ];
 
   scripts.assemble-changelog = {
     description = "Assembles the changelog for PACKAGE at VERSION";
@@ -92,13 +84,11 @@ in
     group = "changelog";
   };
 
-
   scripts.prepare-release = {
     description = "Prepares to release PACKAGEs at VERSION";
     exec = repoRoot.scripts."prepare-release.sh";
     group = "changelog";
   };
-
 
   scripts.update-version = {
     description = "Updates the version for PACKAGE to VERSION";
@@ -106,19 +96,17 @@ in
     group = "changelog";
   };
 
-
   shellHook = ''
     ${builtins.readFile certEnv}
     ${repoRoot.nix.agda.shell-hook-exports}
   '';
-
 
   preCommit = {
     stylish-haskell.enable = false;
     cabal-fmt.enable = true;
     shellcheck.enable = false;
     editorconfig-checker.enable = true;
-    nixpkgs-fmt.enable = true;
+    nixfmt-classic.enable = true;
     optipng.enable = true;
     fourmolu.enable = true;
     hlint.enable = false;
