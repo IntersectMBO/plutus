@@ -1,19 +1,17 @@
 ---
-sidebar_position: X
+sidebar_position: 40
 ---
 
-# Running and Debugging Compiled Code
+# CLI tool for plutus
 
-You can run compiled code locally (without the need of a Cardano Node)
-using the `plutus` CLI tool. Besides running the code to completion, you can step through the
-execution interactively much like a debugger, again using the same tool.
-
-A pre-built version of the `plutus` CLI executable
-is hosted on the [Releases] page. Alternatively, you can build the tool specifically
-for your platform using Nix:
+You can locally (without starting a Cardano Node) [run](#running) or [debug](#debugging) compiled code
+by using the `plutus` CLI tool. This tool allows you also to [optimise](#converting) compiled code, [convert](#converting) between code formats,
+and [check](#checking) code for common issues. A pre-built version of the `plutus` CLI executable
+can be found on the [Latest release](https://github.com/IntersectMBO/plutus/releases/latest) page in the repository. Alternatively, you can build the tool
+using Nix, specifically for your platform:
 
 ``` shell
-$ nix build .#cabalProject.x86_64-linux.hsPkgs.plutus-core.components.exes.plutus
+$ nix build .#cabalProject.$(nix eval nixpkgs#stdenv.buildPlatform.system).hsPkgs.plutus-core.components.exes.plutus
 ```
 
 To consult the tool's usage you can invoke `plutus --help` in a command line:
@@ -43,13 +41,14 @@ USAGE: plutus [FILES...] [--stdin] [-o FILE | --stdout] [--run|--bench|--debug].
                  --debug-dir[=DIR]    When `--debug`, try to search for PlutusTx source files in given DIR (default: .)
                  --budget=INT,INT     Set CPU,MEM budget limit. The default is no limit. Only if --run, --bench, or --debug is given
 ```
-Two interesting sub-commands which can aid during Plutus-based script development (e.g. Aiken, Plutus Tx, Plutarch) are `--print-builtins` and `--print-cost-model` which as their name suggest print detailed lists of currently recognized builtin functions and cost model parameters, respectively.
 
-## Compiling with the `plutus` CLI
+Two interesting sub-commands which can aid during Plutus-based script development (e.g. Aiken, Plutarch, Plutus Tx) are `--print-builtins` and `--print-cost-model` which as their name suggest print detailed lists of currently recognized builtin functions and cost model parameters, respectively.
+
+## Converting compiled code with the CLI {#converting}
 
 Before you can even run or debug your code, you first need to compile and extract the plutus code from the high-level source code.
 The steps for extracting plutus code vary depending on the source language you are using (Plutus Tx, Aiken, ...);
-if your are using Plutus Tx as source, you can follow the instructions on [how to extract compiled code].
+if your are using Plutus Tx as source, you can follow the instructions on [how to inspect compiled code](./inspecting.md#inspecting-the-compiled-code).
 
 Although the CLI tool cannot help with compiling high-level code (e.g. Plutus Tx), it can aid with compiling and converting
 between different formats and intermediate representations of plutus code.
@@ -71,21 +70,34 @@ Program passed all static checks. If you want the output result, use -o FILE or 
 
 In the command above, the `-x pir` option is necessary for letting the CLI tool know
 the format/language of the supplied input. If the `-x` option is not passed, the CLI tool will try to guess the input's format/language
-by looking at its filename extension `.SUFFIX` --- and will default to `plc` for `--stdin` or no suffix.
+by looking at its filename extension `.SUFFIX` &mdash; will default to `plc` for `--stdin` or no suffix.
 What the `-x SUFFIX` option does is instructing the CLI tool to treat subsequent filenames
 as if they had a `.SUFFIX` file extension.
-The following table lists the recognized suffixes and corresponding `-x` values:
+The following table lists some recognized suffixes and corresponding `-x` values:
 
-|Filename Suffix|-x Value|Format Type|Description|
+|Filename Suffix|-x Option|Format Type|Description|
 |---|---|---|---|
-
-
-FIXME table
+|.uplc|-x uplc|Textual|Untyped Plutus Core with Names|
+|.tplc|-x tplc|Textual|Typed Plutus Core with Names|
+|.pir|-x pir|Textual|PIR with Names|
+|.data|-x data|Binary|Values of `Data` serialised in CBOR|
+|.data-txt|-x data-txt|Textual|Values of `Data` in Haskell's `Show` format|
+|.uplc-flat|-x uplc-flat|Binary|Untyped PlutusCore with NamedDeBruijn serialised in Flat|
+|.uplc-cbor|-x uplc-cbor|Binary|Untyped PlutusCore with DeBruijn serialised in CBOR|
 
 In case the input format is more complex (contains a non-default variable-naming scheme or annotations),
 the `-n NAMING` and `-a ANNOTATION` options can be used respectively to override the defaults.
 
-FIXME naming and annotation table
+|-n Short Option|-n Long Option|Description|
+|---|---|---|
+|-n n|-n name|Use descriptive textual names for variables|
+|-n d|-n debruijn|Use debruijn indices for variables|
+|-n nd|-n named-debruijn|Use name with debruijn index for variables: "name-index"|
+
+|-a Option|Description|
+|---|---|
+|-a unit|Code does not contain any annotations (default)|
+|-a srcspan|Code is annotated with source spans|
 
 Note that the `-x`,`-n`,`-a` options are *positional*: if
 there are multiple input filenames, multiple calls to these options can be used
@@ -95,7 +107,7 @@ to override previous occurrences so that you can combine code of different forma
 $ plutus -x pir FILE_PIR FILE_ALSO_PIR -x tplc FILE_NOW_TPLC -a SrcSpans FILE_TPLC_BUT_WITH_ANNOTATIONS
 ```
 
-Positionining the input files one after the other (juxtaposing) as such, acts
+Positioning the input files one after the other (juxtaposing) as such, acts
 like Haskell's function application:
 it compiles individually each plutus snippet to a common *output target* and combines left-to-right
 their compilation result with plutus' function application. Both inputs and final compiled output are (type)checked.
@@ -114,7 +126,7 @@ note that the *last occurrence* of `-x`,`-n`,`-a` will be the one that dictates 
 # Checks and compiles PIR to PLC (the default)
 $ plutus const.pir --stdout
 (program 1.1.0 (lam x-256 (lam y-257 x-256)))
-# Overrides to pir for both input&output. Can be used for prettyprinting or self-optimising (--whole-opt).
+# Overrides to pir for both input&output. Can be used for pretty-printing or self-optimising (--whole-opt).
 $ plutus -x pir const.pir --stdout
 (program 1.1.0 (lam x-0 (con integer) (lam y-1 (con integer) x-0)))
 # Overrides input to be tplc instead of guessed pir (example still works because pir is superset of plc)
@@ -125,7 +137,7 @@ $ plutus -x tplc const.pir -x plc -n debruijn --stdout
 
 If the output's format type is *textual* (see table above) the compiled code
 will be printed to the designated output (file or stdout) in a "pretty" format.
-You can change how this output looks by specifying a different `--pretty=STYLE` style (defaults to `classic`).
+You can change how this output looks by specifying a different `-p STYLE` style (defaults to `classic`).
 Note that *textual output* with pretty style other than the default may not be recognized
 back again as *textual input* to the CLI.
 
@@ -143,10 +155,16 @@ $ plutus sub.pir -x pir --stdout --pretty=readable-simple
 program 1.1.0 (\(x : integer) (y : integer) -> subtractInteger x y)
 ```
 
+|-p Option|Description|
+|---|---|
+|-p classic|Lisp-like syntax with unique variable names  (default)|
+|-p classic-simple|Lisp-like syntax with ambiguous (no unique) variable names|
+|-p readable|Succinct syntax with unique variable names|
+|-p readable-simple|Succinct syntax with ambiguous (no unique) variable names|
 
-## Checking with `plutus` CLI
+## Checking with the CLI {#checking}
 
-Depending on the input and output formats, certain checks will be run by the tool (syntax check, typechecking).
+Depending on the input and output formats, certain checks will be run by the tool (syntax check, type checking).
 Any errors during these checks will be reported to `stderr`:
 
 ``` shell
@@ -197,13 +215,13 @@ Namely,
   '(con bool True)'
 ```
 
-## Running Compiled Code with the `plutus` CLI
+## Running Compiled Code with the CLI {#running}
 
 We saw earlier that certain type errors cannot be caught statically for `plc`
 since the language is untyped. We do have the option, however, to run
 the compiled code using the interpreter and look for runtime type errors.
 Running the program locally using the CLI tool is simply an extra step which is executed
-after [checking]() and [compilation]() have been completed, simply by adding the `--run` option:
+after [checking](#checking) and [compilation](#converting) have been completed, simply by adding the `--run` option:
 
 ``` shell
 $ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --run
@@ -225,17 +243,17 @@ Running the program: Execution succeeded. Final Term:
 Used budget: ExBudget {exBudgetCPU = ExCPU 204149, exBudgetMemory = ExMemory 901}
 ```
 
-note :pin: FIXME
-The above example shows that `plc` -- the language which actually *runs on the chain* --
-is lower-level and more akin to assembly. Users that are concerned about the safety of their smart contracts
-are advised instead to use a higher-level typed language (e.g. Plutus Tx) which compiles down to `plc`.
+> :pushpin: **NOTE**
+> The above example shows that `plc` -- the language which actually *runs on the chain* --
+> is lower-level and more akin to assembly. Users that are concerned about the safety of their smart contracts
+> are advised instead to use a higher-level typed language (e.g. Plutus Tx) which compiles down to `plc`.
 
-After plutus program's execution is completed (succeeded or failed), the final used budget will be printed to 'stderr'.
+After plutus program's execution is completed (succeeded or failed), the final used budget will be printed to `stderr`.
 Because the CLI tool employs the same `plc` interpreter as the one that the Cardano node runs, we can be sure
 that the program's execution result & budget match precisely those computed on the chain (assuming same program
 and same cost model).
 
-You can pass a maximum CPU and/or MEMory budget that is allowed to be spent with the `--budget=CPU` or `-budget=,MEM` or `--budget=CPU,MEM` options; if given budget runs outs, the execution will fail and stop earlier.
+You can pass a maximum CPU and/or Memory budget that is allowed to be spent with the `--budget=CPU` or `-budget=,MEM` or `--budget=CPU,MEM` options; if given budget runs out, the execution will fail and stop earlier.
 If there is no CPU and/or MEM limit given, the budget is practically unlimited.
 
 ``` shell
@@ -255,7 +273,7 @@ Remaining budget: ExBudget {exBudgetCPU = ExCPU 9223372036854546499, exBudgetMem
 Used budget: ExBudget {exBudgetCPU = ExCPU 229308, exBudgetMemory = ExMemory 902}
 ```
 
-The executable takes as input-arguments the paths containing the plutus code to run. For example, consider the plutus code
+The tool's input arguments are paths to the plutus code to execute. For example, consider the plutus code
 that expects two integers and adds them together:
 
 ``` shell
@@ -264,7 +282,7 @@ $ plutus add.uplc
 Program passed all static checks. No output file was written, use -o or --stdout.
 ```
 
-Same as above but using instead the `--stdin` option:
+Same as above but using instead with the `--stdin` option:
 
 ``` shell
 $ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin
@@ -279,24 +297,24 @@ $ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutu
 (program 1.1.0 (lam x-0 (lam y-1 [ [ (builtin subtractInteger) x-0 ] y-1 ])))
 ```
 
-note :: pin FIXME
-
-As shown in [compilation](FIXME) section, you are free to mix and match
+As shown in [compilation](#converting) section, you are free to mix and match
 different input languages (pir/tplc/plc); as long as the output target at the CLI
 is set to `plc`, their compiled output will be `--run` through the
-the local `plc` interpreter (same interpreter as on-chain). Alternatively, you can
-target `tplc` which changes to a different, `tplc` interpreter. Although
-the `tplc` interpreter behaves the same as the default `plc` interpreter for *type correct* programs,
-it is not advised to use it because it comes with caveats: cannot execute `plc` code,
-cannot have budget accounting and budget limits, runs way slower and your program must be fully type correct.
-The last point is not necessarily a caveat, but it diverges from the on-chain behaviour:
-the `tplc` interpreter accepts less programs than the default `plc` interpreter.
+the local `plc` interpreter (same interpreter as on-chain).
 
-## Debugging Compiled Code
+> :pushpin: **NOTE**
+> Attempting to run a `tplc` target will use a `tplc` interpreter. Although
+> the `tplc` interpreter behaves the same as the default `plc` interpreter (for *type correct* programs),
+> it comes with caveats: cannot execute `plc` code,
+> cannot have budget accounting and budget limits, runs way slower and your program must be fully type correct.
+> The last point is not necessarily a caveat, but it diverges from the on-chain behavior:
+> the `tplc` interpreter accepts less programs than the chain (and the default `plc` interpreter) would accept.
 
-The `plutus` tool's built-in debugger provides another way to
-to execute compiled plutus code. The `--debug` option
-starts a TUI (Terminal User Interface) in your console:
+## Debugging Compiled Code with the CLI *(Experimental)*
+
+The `plutus` tool's built-in debugger provides a different way to
+to execute compiled plutus code (only if you are targeting untyped plutus core, a.k.a `plc`).
+The `--debug` option starts a TUI (Terminal User Interface) in your console:
 
 ``` shell
 $ plutus inc.plc --debug
@@ -315,13 +333,13 @@ The commands available to the user are:
 |s|Step once the interpreter|
 
 Unlike the `--run` option, the `step` command does not execute the program
-to completion. Instead, the interpreter is moved one "budgeting" step forward ---
-the smallest step possible that is accounted for and subtracted from the current budget ---
+to completion. Instead, the `plc` interpreter is moved one "budgeting" step forward &mdash;
+the smallest step possible that is accounted for and subtracted from the current budget &mdash;
 and the lower window will be updated to show the remaining budget.
 You can still combine `--debug` with the `--budget=CPU,MEM` option to limit the initial total budget given.
 
 Every time an interactive step is taken, the debugger
-highlights the code region (subterm) that the `plc` interpreter
+highlights the code region (sub-term) that the `plc` interpreter
 is about to "step into" (execute) next, in the program's text window. A separate
 "Logs" window is kept up-to-date with any printed plutus' `trace`s and debugger's messages.
 
