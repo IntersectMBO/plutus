@@ -102,12 +102,13 @@ in {
   '';
 
   preCommit = {
-    stylish-haskell.enable = true;
+    stylish-haskell.enable = false;
     cabal-fmt.enable = true;
     shellcheck.enable = false;
     editorconfig-checker.enable = true;
     nixfmt-classic.enable = true;
     optipng.enable = true;
+    # TODO: enable fourmolu once migration from stylish-haskell is almost done
     # fourmolu.enable = true;
     hlint.enable = false;
   };
