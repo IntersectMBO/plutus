@@ -89,6 +89,7 @@ module PlutusTx.Builtins (
                          -- * Arrays
                          , BI.BuiltinArray
                          , BI.listToArray
+                         , sopListToArray
                          , BI.lengthOfArray
                          , BI.indexArray
                          -- * Tracing
@@ -458,6 +459,10 @@ unsafeUncons l = (BI.head l, BI.tail l)
 pairToPair :: BI.BuiltinPair a b -> (a, b)
 pairToPair tup = (BI.fst tup, BI.snd tup)
 {-# INLINE pairToPair #-}
+
+sopListToArray :: (HasToOpaque a arep, MkNil arep) =>  [a] -> BI.BuiltinArray arep
+sopListToArray l = BI.listToArray (toOpaque l)
+{-# INLINABLE sopListToArray #-}
 
 -- | Given five values for the five different constructors of 'BuiltinData', selects
 -- one depending on which corresponds to the actual constructor of the given value.
