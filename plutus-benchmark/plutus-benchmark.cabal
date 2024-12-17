@@ -440,6 +440,8 @@ library script-contexts-internal
   exposed-modules:
     PlutusBenchmark.V1.Data.ScriptContexts
     PlutusBenchmark.V1.ScriptContexts
+    PlutusBenchmark.V2.Data.ScriptContexts
+    PlutusBenchmark.V2.ScriptContexts
     PlutusBenchmark.V3.Data.ScriptContexts
     PlutusBenchmark.V3.ScriptContexts
 
@@ -457,6 +459,7 @@ test-suite plutus-benchmark-script-contexts-tests
   hs-source-dirs: script-contexts/test
   other-modules:
     V1.Spec
+    V2.Spec
     V3.Spec
 
   build-depends:
