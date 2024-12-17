@@ -59,7 +59,14 @@ module PlutusLedgerApi.Data.V2 (
   V1.fromBytes,
 
   -- *** Certificates
-  V1.DCert (..),
+  V1.DCert,
+  pattern V1.DCertDelegRegKey,
+  pattern V1.DCertDelegDeRegKey,
+  pattern V1.DCertDelegDelegate,
+  pattern V1.DCertPoolRegister,
+  pattern V1.DCertPoolRetire,
+  pattern V1.DCertGenesis,
+  pattern V1.DCertMir,
 
   -- *** Credentials
   V1.StakingCredential,

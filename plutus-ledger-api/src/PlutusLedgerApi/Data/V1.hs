@@ -54,7 +54,14 @@ module PlutusLedgerApi.Data.V1 (
   fromBytes,
 
   -- *** Certificates
-  DCert (..),
+  DCert,
+  pattern DCertDelegRegKey,
+  pattern DCertDelegDeRegKey,
+  pattern DCertDelegDelegate,
+  pattern DCertPoolRegister,
+  pattern DCertPoolRetire,
+  pattern DCertGenesis,
+  pattern DCertMir,
 
   -- *** Credentials
   StakingCredential,
@@ -154,10 +161,10 @@ import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Contexts
 import PlutusLedgerApi.V1.Data.Credential
+import PlutusLedgerApi.V1.Data.DCert
 import PlutusLedgerApi.V1.Data.Interval hiding (singleton)
 import PlutusLedgerApi.V1.Data.Time
 import PlutusLedgerApi.V1.Data.Value
-import PlutusLedgerApi.V1.DCert
 import PlutusLedgerApi.V1.EvaluationContext
 import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts

@@ -76,8 +76,8 @@ import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.Data.Address (pattern Address)
 import PlutusLedgerApi.V1.Data.Contexts (ScriptPurpose (..))
 import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
+import PlutusLedgerApi.V1.Data.DCert (DCert)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol, Value)
-import PlutusLedgerApi.V1.DCert (DCert (..))
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V2.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
