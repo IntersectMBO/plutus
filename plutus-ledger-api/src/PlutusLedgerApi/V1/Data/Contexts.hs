@@ -6,6 +6,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
@@ -76,12 +77,12 @@ import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.Data.Address (pattern Address)
 import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
 import PlutusLedgerApi.V1.Data.DCert (DCert)
+import PlutusLedgerApi.V1.Data.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
                                    txOutAddress, txOutDatumHash, txOutRefId, txOutRefIdx,
                                    txOutValue)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
 import PlutusLedgerApi.V1.Scripts
-import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import Prelude qualified as Haskell
 
 {- Note [Script types in pending transactions]

@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-module PlutusBenchmark.Data.ScriptContexts where
+module PlutusBenchmark.V3.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,

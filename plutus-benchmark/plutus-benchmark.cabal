@@ -438,8 +438,10 @@ library script-contexts-internal
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  script-contexts/src
   exposed-modules:
-    PlutusBenchmark.Data.ScriptContexts
-    PlutusBenchmark.ScriptContexts
+    PlutusBenchmark.V1.Data.ScriptContexts
+    PlutusBenchmark.V1.ScriptContexts
+    PlutusBenchmark.V3.Data.ScriptContexts
+    PlutusBenchmark.V3.ScriptContexts
 
   build-depends:
     , base               >=4.9   && <5
@@ -453,7 +455,7 @@ test-suite plutus-benchmark-script-contexts-tests
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: script-contexts/test
-  other-modules:
+  other-modules:  V3.Spec
   build-depends:
     , base                             >=4.9   && <5
     , plutus-benchmark-common

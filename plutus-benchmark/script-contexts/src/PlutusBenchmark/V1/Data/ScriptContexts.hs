@@ -3,59 +3,49 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module PlutusBenchmark.ScriptContexts where
+module PlutusBenchmark.V1.Data.ScriptContexts where
 
-import PlutusLedgerApi.V1.Address
-import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), Redeemer (..),
-                           ScriptContext (..), ScriptInfo (SpendingScript), TxId (..), TxInfo (..),
-                           TxOut (..), TxOutRef (..), always, emptyMintValue)
+import PlutusLedgerApi.Data.V1
+import PlutusLedgerApi.V1.Data.Address
+import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
-import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
-mkScriptContext :: Int -> ScriptContext
+mkScriptContext :: Integer -> ScriptContext
 mkScriptContext i =
   ScriptContext
     (mkTxInfo i)
-    (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
-    (SpendingScript (TxOutRef (TxId "") 0) Nothing)
+    (Spending (TxOutRef (TxId "") 0))
 
 
-mkTxInfo :: Int -> TxInfo
+mkTxInfo :: Integer -> TxInfo
 mkTxInfo i = TxInfo {
   txInfoInputs=mempty,
-  txInfoReferenceInputs=mempty,
-  txInfoOutputs=fmap mkTxOut [1..i],
-  txInfoFee=10000,
-  txInfoMint=emptyMintValue,
-  txInfoTxCerts=mempty,
-  txInfoWdrl=Map.empty,
+  txInfoOutputs = Data.List.map mkTxOut (Data.List.fromSOP ([1 .. i] :: [Integer])),
+  txInfoFee=mempty,
+  txInfoMint=mempty,
+  txInfoDCert=mempty,
+  txInfoWdrl=mempty,
   txInfoValidRange=always,
   txInfoSignatories=mempty,
-  txInfoRedeemers=Map.empty,
-  txInfoData=Map.empty,
-  txInfoId=TxId "",
-  txInfoVotes=Map.empty,
-  txInfoProposalProcedures=mempty,
-  txInfoCurrentTreasuryAmount=Nothing,
-  txInfoTreasuryDonation=Nothing
+  txInfoData=mempty,
+  txInfoId=TxId ""
   }
 
-mkTxOut :: Int -> TxOut
+mkTxOut :: Integer -> TxOut
 mkTxOut i = TxOut {
   txOutAddress=pubKeyHashAddress (PubKeyHash ""),
   txOutValue=mkValue i,
-  txOutDatum=NoOutputDatum,
-  txOutReferenceScript=Nothing
+  txOutDatumHash=Nothing
   }
 
-mkValue :: Int -> Value
-mkValue i = assetClassValue (assetClass adaSymbol adaToken) (fromIntegral i)
+mkValue :: Integer -> Value
+mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 
 -- This example decodes the script context (which is O(size-of-context) work), and then also
 -- does some work that's roughly proportional to the size of the script context (counting the
@@ -66,9 +56,9 @@ checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
-      ScriptContext txi _ _ = sc
+      ScriptContext txi _  = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
