@@ -455,7 +455,10 @@ test-suite plutus-benchmark-script-contexts-tests
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: script-contexts/test
-  other-modules:  V3.Spec
+  other-modules:
+    V1.Spec
+    V3.Spec
+
   build-depends:
     , base                             >=4.9   && <5
     , plutus-benchmark-common

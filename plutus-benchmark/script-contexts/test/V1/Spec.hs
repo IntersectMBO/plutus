@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module V3.Spec (allTests) where
+module V1.Spec (allTests) where
 
 import Data.Text qualified as Text
 
@@ -9,8 +9,8 @@ import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
-import PlutusBenchmark.V3.Data.ScriptContexts qualified as Data.SC
-import PlutusBenchmark.V3.ScriptContexts qualified as SOP.SC
+import PlutusBenchmark.V1.Data.ScriptContexts qualified as Data.SC
+import PlutusBenchmark.V1.ScriptContexts qualified as SOP.SC
 
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
@@ -19,10 +19,10 @@ import PlutusTx.Test qualified as Tx
 -- Make a set of golden tests with results stored in subdirectories determined
 -- by the GHC version.
 runTestGhcSOP :: [TestNested] -> TestTree
-runTestGhcSOP = runTestNested ["script-contexts", "test", "V3"] . pure . testNestedGhc
+runTestGhcSOP = runTestNested ["script-contexts", "test", "V1"] . pure . testNestedGhc
 
 runTestGhcData :: [TestNested] -> TestTree
-runTestGhcData = runTestNested ["script-contexts", "test", "V3", "Data"] . pure . testNestedGhc
+runTestGhcData = runTestNested ["script-contexts", "test", "V1", "Data"] . pure . testNestedGhc
 
 assertSucceeded :: Term -> Assertion
 assertSucceeded t =
@@ -153,7 +153,7 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
 
 allTests :: TestTree
 allTests =
-  testGroup "V3"
+  testGroup "plutus-benchmark script-contexts tests"
     [ testCheckSOPSc1
     , testCheckDataSc1
     , testCheckSOPSc2
