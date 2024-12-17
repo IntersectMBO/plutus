@@ -11,8 +11,22 @@
 
 module PlutusLedgerApi.V1.Data.Contexts (
   -- * Pending transactions and related types
-  TxInfo (..),
-  ScriptContext (..),
+  TxInfo,
+  pattern TxInfo,
+  txInfoInputs,
+  txInfoOutputs,
+  txInfoFee,
+  txInfoMint,
+  txInfoDCert,
+  txInfoWdrl,
+  txInfoValidRange,
+  txInfoSignatories,
+  txInfoData,
+  txInfoId,
+  ScriptContext,
+  pattern ScriptContext,
+  scriptContextTxInfo,
+  scriptContextPurpose,
   ScriptPurpose,
   pattern Minting,
   pattern Spending,
@@ -28,7 +42,10 @@ module PlutusLedgerApi.V1.Data.Contexts (
   pattern TxOutRef,
   txOutRefId,
   txOutRefIdx,
-  TxInInfo (..),
+  TxInInfo,
+  pattern TxInInfo,
+  txInInfoOutRef,
+  txInInfoResolved,
   findOwnInput,
   findDatum,
   findDatumHash,
@@ -79,14 +96,17 @@ redeemer and data scripts of all of its inputs and outputs.
 -}
 
 -- | An input of a pending transaction.
-data TxInInfo = TxInInfo
-  { txInInfoOutRef   :: TxOutRef
-  , txInInfoResolved :: TxOut
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data TxInInfo = TxInInfo
+      { txInInfoOutRef   :: TxOutRef
+      , txInInfoResolved :: TxOut
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
 
 instance Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
@@ -121,34 +141,37 @@ instance Eq ScriptPurpose where
 {-| A pending transaction. This is the view as seen by validator scripts,
 so some details are stripped out.
 -}
-data TxInfo = TxInfo
-  { txInfoInputs      :: List TxInInfo
-  -- ^ Transaction inputs; cannot be an empty list
-  , txInfoOutputs     :: List TxOut
-  -- ^ Transaction outputs
-  , txInfoFee         :: Value
-  -- ^ The fee paid by this transaction.
-  , txInfoMint        :: Value
-  -- ^ The 'Value' minted by this transaction.
-  , txInfoDCert       :: List DCert
-  -- ^ Digests of certificates included in this transaction
-  -- TODO: is this a map? is this a list?
-  , txInfoWdrl        :: [(StakingCredential, Integer)]
-  -- ^ Withdrawals
-  , txInfoValidRange  :: POSIXTimeRange
-  -- ^ The valid range for the transaction.
-  , txInfoSignatories :: List PubKeyHash
-  -- ^ Signatures provided with the transaction, attested that they all signed the tx
-  -- TODO: is this a map? is this a list?
-  , txInfoData        :: [(DatumHash, Datum)]
-  -- ^ The lookup table of datums attached to the transaction
-  , txInfoId          :: TxId
-  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data TxInfo = TxInfo
+      { txInfoInputs      :: List TxInInfo
+      -- ^ Transaction inputs; cannot be an empty list
+      , txInfoOutputs     :: List TxOut
+      -- ^ Transaction outputs
+      , txInfoFee         :: Value
+      -- ^ The fee paid by this transaction.
+      , txInfoMint        :: Value
+      -- ^ The 'Value' minted by this transaction.
+      , txInfoDCert       :: List DCert
+      -- ^ Digests of certificates included in this transaction
+      -- TODO: is this a map? is this a list?
+      , txInfoWdrl        :: [(StakingCredential, Integer)]
+      -- ^ Withdrawals
+      , txInfoValidRange  :: POSIXTimeRange
+      -- ^ The valid range for the transaction.
+      , txInfoSignatories :: List PubKeyHash
+      -- ^ Signatures provided with the transaction, attested that they all signed the tx
+      -- TODO: is this a map? is this a list?
+      , txInfoData        :: [(DatumHash, Datum)]
+      -- ^ The lookup table of datums attached to the transaction
+      , txInfoId          :: TxId
+      -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 instance Eq TxInfo where
   {-# INLINEABLE (==) #-}
@@ -202,16 +225,19 @@ instance Pretty TxInfo where
         ]
 
 -- | The context that the currently-executing script can access.
-data ScriptContext = ScriptContext
-  { scriptContextTxInfo  :: TxInfo
-  -- ^ information about the transaction the currently-executing script is included in
-  , scriptContextPurpose :: ScriptPurpose
-  -- ^ the purpose of the currently-executing script
-  }
-  deriving stock (Generic, Haskell.Eq, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data ScriptContext = ScriptContext
+      { scriptContextTxInfo  :: TxInfo
+      -- ^ information about the transaction the currently-executing script is included in
+      , scriptContextPurpose :: ScriptPurpose
+      -- ^ the purpose of the currently-executing script
+      }
+      deriving stock (Generic, Haskell.Eq, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
 
 instance Eq ScriptContext where
   {-# INLINEABLE (==) #-}
