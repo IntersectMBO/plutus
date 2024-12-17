@@ -40,7 +40,11 @@ module PlutusLedgerApi.Data.V1 (
 
   -- * Context types
   ScriptContext (..),
-  ScriptPurpose (..),
+  ScriptPurpose,
+  pattern Minting,
+  pattern Spending,
+  pattern Rewarding,
+  pattern Certifying,
 
   -- ** Supporting types used in the context types
 

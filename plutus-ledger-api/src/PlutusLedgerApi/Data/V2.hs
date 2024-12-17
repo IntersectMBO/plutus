@@ -43,7 +43,11 @@ module PlutusLedgerApi.Data.V2 (
   pattern Contexts.ScriptContext,
   Contexts.scriptContextTxInfo,
   Contexts.scriptContextPurpose,
-  Contexts.ScriptPurpose (..),
+  Contexts.ScriptPurpose,
+  pattern Contexts.Minting,
+  pattern Contexts.Spending,
+  pattern Contexts.Rewarding,
+  pattern Contexts.Certifying,
 
   -- ** Supporting types used in the context types
 

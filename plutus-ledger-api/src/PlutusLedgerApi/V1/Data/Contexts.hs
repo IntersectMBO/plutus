@@ -13,7 +13,11 @@ module PlutusLedgerApi.V1.Data.Contexts (
   -- * Pending transactions and related types
   TxInfo (..),
   ScriptContext (..),
-  ScriptPurpose (..),
+  ScriptPurpose,
+  pattern Minting,
+  pattern Spending,
+  pattern Rewarding,
+  pattern Certifying,
   TxId (..),
   TxOut,
   pattern TxOut,
@@ -44,6 +48,7 @@ module PlutusLedgerApi.V1.Data.Contexts (
 
 import GHC.Generics (Generic)
 import PlutusTx
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Prelude
@@ -53,11 +58,11 @@ import Prettyprinter.Extras
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.Data.Address (pattern Address)
 import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
+import PlutusLedgerApi.V1.Data.DCert (DCert)
 import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
                                    txOutAddress, txOutDatumHash, txOutRefId, txOutRefIdx,
                                    txOutValue)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
-import PlutusLedgerApi.V1.DCert (DCert (..))
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import Prelude qualified as Haskell
@@ -91,22 +96,19 @@ instance Pretty TxInInfo where
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | Purpose of the script that is currently running
-data ScriptPurpose
-  = Minting CurrencySymbol
-  | Spending TxOutRef
-  | Rewarding StakingCredential
-  | Certifying DCert
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving Pretty via (PrettyShow ScriptPurpose)
+PlutusTx.asData
+  [d|
+    data ScriptPurpose
+      = Minting CurrencySymbol
+      | Spending TxOutRef
+      | Rewarding StakingCredential
+      | Certifying DCert
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving Pretty via (PrettyShow ScriptPurpose)
+  |]
 
 makeLift ''ScriptPurpose
-makeIsDataIndexed
-  ''ScriptPurpose
-  [ ('Minting, 0)
-  , ('Spending, 1)
-  , ('Rewarding, 2)
-  , ('Certifying, 3)
-  ]
 
 instance Eq ScriptPurpose where
   {-# INLINEABLE (==) #-}
