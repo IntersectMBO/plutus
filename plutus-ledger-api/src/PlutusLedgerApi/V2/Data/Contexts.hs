@@ -12,8 +12,24 @@
 
 module PlutusLedgerApi.V2.Data.Contexts (
   -- * Pending transactions and related types
-  TxInfo (..),
-  ScriptContext (..),
+  TxInfo,
+  pattern TxInfo,
+  txInfoInputs,
+  txInfoReferenceInputs,
+  txInfoOutputs,
+  txInfoFee,
+  txInfoMint,
+  txInfoDCert,
+  txInfoWdrl,
+  txInfoValidRange,
+  txInfoSignatories,
+  txInfoRedeemers,
+  txInfoData,
+  txInfoId,
+  ScriptContext,
+  pattern ScriptContext,
+  scriptContextTxInfo,
+  scriptContextPurpose,
   ScriptPurpose (..),
   TxId (..),
   TxOut,
@@ -22,8 +38,14 @@ module PlutusLedgerApi.V2.Data.Contexts (
   txOutValue,
   txOutDatum,
   txOutReferenceScript,
-  TxOutRef (..),
-  TxInInfo (..),
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
+  TxInInfo,
+  pattern TxInInfo,
+  txInInfoOutRef,
+  txInInfoResolved,
   findOwnInput,
   findDatum,
   findDatumHash,
@@ -43,6 +65,7 @@ module PlutusLedgerApi.V2.Data.Contexts (
 
 import GHC.Generics (Generic)
 import PlutusTx
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap hiding (any)
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
@@ -57,20 +80,24 @@ import PlutusLedgerApi.V1.Data.Value (CurrencySymbol, Value)
 import PlutusLedgerApi.V1.DCert (DCert (..))
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
-import PlutusLedgerApi.V2.Data.Tx (TxId (..), TxOut, TxOutRef (..), pattern TxOut, txOutAddress,
-                                   txOutDatum, txOutReferenceScript, txOutValue)
+import PlutusLedgerApi.V2.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
+                                   txOutAddress, txOutDatum, txOutRefId, txOutRefIdx,
+                                   txOutReferenceScript, txOutValue)
 
 import Prelude qualified as Haskell
 
 -- | An input of a pending transaction.
-data TxInInfo = TxInInfo
-  { txInInfoOutRef   :: TxOutRef
-  , txInInfoResolved :: TxOut
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+PlutusTx.asData
+  [d|
+    data TxInInfo = TxInInfo
+      { txInInfoOutRef   :: TxOutRef
+      , txInInfoResolved :: TxOut
+      }
+      deriving stock (Generic, Haskell.Show, Haskell.Eq)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''TxInInfo
-makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
 
 instance Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
@@ -82,38 +109,41 @@ instance Pretty TxInInfo where
 {-| A pending transaction. This is the view as seen by validator scripts,
 so some details are stripped out.
 -}
-data TxInfo = TxInfo
-  { txInfoInputs          :: List TxInInfo
-  -- ^ Transaction inputs; cannot be an empty list
-  , txInfoReferenceInputs :: List TxInInfo
-  -- ^ /Added in V2:/ Transaction reference inputs
-  , txInfoOutputs         :: List TxOut
-  -- ^ Transaction outputs
-  , txInfoFee             :: Value
-  -- ^ The fee paid by this transaction.
-  , txInfoMint            :: Value
-  -- ^ The 'Value' minted by this transaction.
-  , txInfoDCert           :: List DCert
-  -- ^ Digests of certificates included in this transaction
-  , txInfoWdrl            :: Map StakingCredential Integer
-  -- ^ Withdrawals
-  -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
-  , txInfoValidRange      :: POSIXTimeRange
-  -- ^ The valid range for the transaction.
-  , txInfoSignatories     :: List PubKeyHash
-  -- ^ Signatures provided with the transaction, attested that they all signed the tx
-  , txInfoRedeemers       :: Map ScriptPurpose Redeemer
-  -- ^ /Added in V2:/ a table of redeemers attached to the transaction
-  , txInfoData            :: Map DatumHash Datum
-  -- ^ The lookup table of datums attached to the transaction
-  -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
-  , txInfoId              :: TxId
-  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data TxInfo = TxInfo
+      { txInfoInputs          :: List TxInInfo
+      -- ^ Transaction inputs; cannot be an empty list
+      , txInfoReferenceInputs :: List TxInInfo
+      -- ^ /Added in V2:/ Transaction reference inputs
+      , txInfoOutputs         :: List TxOut
+      -- ^ Transaction outputs
+      , txInfoFee             :: Value
+      -- ^ The fee paid by this transaction.
+      , txInfoMint            :: Value
+      -- ^ The 'Value' minted by this transaction.
+      , txInfoDCert           :: List DCert
+      -- ^ Digests of certificates included in this transaction
+      , txInfoWdrl            :: Map StakingCredential Integer
+      -- ^ Withdrawals
+      -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
+      , txInfoValidRange      :: POSIXTimeRange
+      -- ^ The valid range for the transaction.
+      , txInfoSignatories     :: List PubKeyHash
+      -- ^ Signatures provided with the transaction, attested that they all signed the tx
+      , txInfoRedeemers       :: Map ScriptPurpose Redeemer
+      -- ^ /Added in V2:/ a table of redeemers attached to the transaction
+      , txInfoData            :: Map DatumHash Datum
+      -- ^ The lookup table of datums attached to the transaction
+      -- /V1->V2/: changed from assoc list to a 'PlutusTx.AssocMap'
+      , txInfoId              :: TxId
+      -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''TxInfo
-makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
 
 instance Pretty TxInfo where
   pretty
@@ -147,16 +177,19 @@ instance Pretty TxInfo where
         ]
 
 -- | The context that the currently-executing script can access.
-data ScriptContext = ScriptContext
-  { scriptContextTxInfo  :: TxInfo
-  -- ^ information about the transaction the currently-executing script is included in
-  , scriptContextPurpose :: ScriptPurpose
-  -- ^ the purpose of the currently-executing script
-  }
-  deriving stock (Generic, Haskell.Show)
+PlutusTx.asData
+  [d|
+    data ScriptContext = ScriptContext
+      { scriptContextTxInfo  :: TxInfo
+      -- ^ information about the transaction the currently-executing script is included in
+      , scriptContextPurpose :: ScriptPurpose
+      -- ^ the purpose of the currently-executing script
+      }
+      deriving stock (Generic, Haskell.Show)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 makeLift ''ScriptContext
-makeIsDataIndexed ''ScriptContext [('ScriptContext, 0)]
 
 instance Pretty ScriptContext where
   pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =

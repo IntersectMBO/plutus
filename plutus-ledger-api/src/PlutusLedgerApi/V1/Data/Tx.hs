@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -17,8 +18,15 @@ module PlutusLedgerApi.V1.Data.Tx (
   Redeemers,
 
   -- * Transaction outputs
-  TxOut (..),
-  TxOutRef (..),
+  TxOut,
+  pattern TxOut,
+  txOutAddress,
+  txOutValue,
+  txOutDatumHash,
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
   isPubKeyOut,
   isPayToScriptOut,
   outAddress,
@@ -37,6 +45,7 @@ import GHC.Generics (Generic)
 import Prettyprinter
 
 import PlutusTx qualified
+import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
@@ -68,6 +77,9 @@ newtype TxId = TxId {getTxId :: PlutusTx.BuiltinByteString}
     )
     via LedgerBytes
 
+PlutusTx.makeLift ''TxId
+PlutusTx.makeIsDataIndexed ''TxId [('TxId, 0)]
+
 {-| A tag indicating the type of script that we are pointing to.
 
 See also 'PlutusLedgerApi.V1.ScriptPurpose'
@@ -90,14 +102,18 @@ type Redeemers = Map RedeemerPtr Redeemer
 pair of a transaction ID (`TxId`), and an index indicating which of the outputs
 of that transaction we are referring to.
 -}
-data TxOutRef = TxOutRef
-  { txOutRefId  :: TxId
-  -- ^ The transaction ID.
-  , txOutRefIdx :: Integer
-  -- ^ Index into the referenced transaction's outputs
-  }
-  deriving stock (Show, Eq, Ord, Generic)
-  deriving anyclass (NFData)
+PlutusTx.asData
+  [d|
+    data TxOutRef = TxOutRef
+      { txOutRefId  :: TxId
+      -- ^ The transaction ID.
+      , txOutRefIdx :: Integer
+      -- ^ Index into the referenced transaction's outputs
+      }
+      deriving stock (Show, Eq, Ord, Generic)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving anyclass (NFData)
+  |]
 
 instance Pretty TxOutRef where
   pretty TxOutRef{txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
@@ -113,12 +129,16 @@ instance PlutusTx.Eq TxOutRef where
 {-| A transaction output, consisting of a target address ('Address'), a value ('Value'),
 and optionally a datum hash ('DatumHash').
 -}
-data TxOut = TxOut
-  { txOutAddress   :: Address
-  , txOutValue     :: Value
-  , txOutDatumHash :: Maybe DatumHash
-  }
-  deriving stock (Show, Eq, Generic)
+PlutusTx.asData
+  [d|
+    data TxOut = TxOut
+      { txOutAddress   :: Address
+      , txOutValue     :: Value
+      , txOutDatumHash :: Maybe DatumHash
+      }
+      deriving stock (Show, Eq, Generic)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
 
 instance Pretty TxOut where
   pretty TxOut{txOutAddress, txOutValue} =
@@ -172,11 +192,7 @@ isPayToScriptOut = isJust . txOutScriptHash
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut
 pubKeyHashTxOut v pkh = TxOut (pubKeyHashAddress pkh) v Nothing
 
-PlutusTx.makeLift ''TxId
-PlutusTx.makeIsDataIndexed ''TxId [('TxId, 0)]
 
-PlutusTx.makeIsDataIndexed ''TxOut [('TxOut, 0)]
 PlutusTx.makeLift ''TxOut
 
-PlutusTx.makeIsDataIndexed ''TxOutRef [('TxOutRef, 0)]
 PlutusTx.makeLift ''TxOutRef

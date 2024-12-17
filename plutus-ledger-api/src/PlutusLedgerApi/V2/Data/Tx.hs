@@ -24,7 +24,10 @@ module PlutusLedgerApi.V2.Data.Tx (
   txOutValue,
   txOutDatum,
   txOutReferenceScript,
-  TxOutRef (..),
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
   OutputDatum,
   pattern NoOutputDatum,
   pattern OutputDatumHash,
@@ -52,8 +55,9 @@ import PlutusTx.Eq qualified as PlutusTx
 
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
-import PlutusLedgerApi.V1.Data.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress,
-                                   outValue, pubKeyHashTxOut, txOutDatum, txOutPubKey)
+import PlutusLedgerApi.V1.Data.Tx hiding (TxOut, isPayToScriptOut, isPubKeyOut, outAddress,
+                                   outValue, pattern TxOut, pubKeyHashTxOut, txOutAddress,
+                                   txOutDatum, txOutDatumHash, txOutPubKey, txOutValue)
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V1.Scripts
 

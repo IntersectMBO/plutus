@@ -15,8 +15,15 @@ module PlutusLedgerApi.V1.Data.Contexts (
   ScriptContext (..),
   ScriptPurpose (..),
   TxId (..),
-  TxOut (..),
-  TxOutRef (..),
+  TxOut,
+  pattern TxOut,
+  txOutAddress,
+  txOutValue,
+  txOutDatumHash,
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
   TxInInfo (..),
   findOwnInput,
   findDatum,
@@ -46,7 +53,9 @@ import Prettyprinter.Extras
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.Data.Address (pattern Address)
 import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
-import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut (..), TxOutRef (..))
+import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
+                                   txOutAddress, txOutDatumHash, txOutRefId, txOutRefIdx,
+                                   txOutValue)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
 import PlutusLedgerApi.V1.DCert (DCert (..))
 import PlutusLedgerApi.V1.Scripts

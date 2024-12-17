@@ -86,8 +86,15 @@ module PlutusLedgerApi.Data.V1 (
   PubKeyHash (..),
   TxId (..),
   TxInfo (..),
-  TxOut (..),
-  TxOutRef (..),
+  TxOut,
+  pattern TxOut,
+  txOutAddress,
+  txOutValue,
+  txOutDatumHash,
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
   TxInInfo (..),
 
   -- *** Intervals
