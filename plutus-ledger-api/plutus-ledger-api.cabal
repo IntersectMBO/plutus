@@ -167,7 +167,6 @@ test-suite plutus-ledger-api-test
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams
-    Spec.Data.ContextDecoding
     Spec.Data.CostModelParams
     Spec.Data.Eval
     Spec.Data.Versions
