@@ -1,9 +1,9 @@
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Test.Tasty.Extras
     ( Layer (..)
@@ -24,6 +24,7 @@ module Test.Tasty.Extras
     , goldenVsDoc
     , goldenVsDocM
     , nestedGoldenVsText
+    , nestedGoldenVsTextPredM
     , nestedGoldenVsTextM
     , nestedGoldenVsDoc
     , nestedGoldenVsDocM
@@ -33,16 +34,18 @@ module Test.Tasty.Extras
 import PlutusPrelude hiding (toList)
 
 import Control.Monad.Free.Church (F (runF), MonadFree, liftF)
-import Control.Monad.Reader
+import Control.Monad.Reader (MonadReader (ask, local), ReaderT (..), asks, mapReaderT)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Version
-import GHC.Exts
+import Data.Text.IO qualified as TIO
+import Data.Version (showVersion)
+import GHC.Exts (IsList (Item, fromList, toList))
 import System.FilePath (joinPath, (</>))
-import System.Info
-import Test.Tasty
-import Test.Tasty.Golden
+import System.Info (compilerVersion)
+import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty.Golden (createDirectoriesAndWriteFile, goldenVsStringDiff)
+import Test.Tasty.Golden.Advanced (goldenTest)
 
 -- | We use the GHC version number to create directories with names like `9.2`
 -- and `9.6` containing golden files whose contents depend on the GHC version.
@@ -206,6 +209,28 @@ goldenVsDocM name ref val = goldenVsTextM name ref $ render <$> val
 nestedGoldenVsText :: TestName -> FilePath -> Text -> TestNested
 nestedGoldenVsText name ext = nestedGoldenVsTextM name ext . pure
 
+{-| Compare the contents of a file under a name prefix against a 'Text'
+using a predicate.
+-}
+nestedGoldenVsTextPredM
+  :: TestName
+  -- ^ The name of the test
+  -> FilePath
+  -- ^ The file extension
+  -> IO Text
+  -- ^ The text-producing action to execute
+  -> (Text -> Text -> Bool)
+  -- ^ How to compare golden file contents with the produced text
+  -> TestNested
+nestedGoldenVsTextPredM name ext action predicate = do
+  filePath <- asks $ foldr (</>) (name ++ ext ++ ".golden")
+  embed $ goldenTest name (TIO.readFile filePath) action
+    do \golden actual -> pure
+        if predicate golden actual
+          then Nothing
+          else Just "Predicate failed on golden file"
+    do createDirectoriesAndWriteFile filePath . BSL.fromStrict . encodeUtf8
+
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
 nestedGoldenVsTextM name ext text = do
@@ -219,3 +244,4 @@ nestedGoldenVsDoc name ext = nestedGoldenVsDocM name ext . pure
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestNested
 nestedGoldenVsDocM name ext val = nestedGoldenVsTextM name ext $ render <$> val
+

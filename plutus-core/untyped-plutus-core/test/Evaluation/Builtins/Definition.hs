@@ -104,7 +104,7 @@ test_IntegerDistribution =
         \(AsArbitraryBuiltin (i :: Integer)) ->
             let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
                 (low, high) =
-                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                    maybe (error "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
                       find ((>= abs i) . snd) magnitudes
                 bounds = map snd magnitudes
                 isInteresting = i `elem` concat
@@ -390,7 +390,7 @@ test_BuiltinArray =
       let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
       let index = mkConstant @Integer @DefaultUni () 5
           expectedValue = mkConstant @Integer @DefaultUni () 6
-          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [index, arrayOfInts]
+          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [arrayOfInts, index]
       typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
           Right (EvaluationSuccess expectedValue)
   ]

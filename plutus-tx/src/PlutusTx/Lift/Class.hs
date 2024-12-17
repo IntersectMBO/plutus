@@ -40,6 +40,7 @@ import Data.ByteString qualified as BS
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Text qualified as T
+import Data.Vector.Strict qualified as Strict
 import GHC.TypeLits (ErrorMessage (..), TypeError)
 
 -- We do not use qualified import because the whole module contains off-chain code
@@ -178,6 +179,16 @@ instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
 -- See Note [Lift and Typeable instances for builtins]
 instance (HasFromBuiltin arep, uni `PLC.HasTermLevel` [FromBuiltin arep]) =>
         Lift uni (BuiltinList arep) where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` Strict.Vector => Typeable uni BuiltinArray where
+    typeRep _ = typeRepBuiltin (Proxy @Strict.Vector)
+
+-- See Note [Lift and Typeable instances for builtins]
+instance ( HasFromBuiltin arep
+         , uni `PLC.HasTermLevel` Strict.Vector (FromBuiltin arep)
+         ) => Lift uni (BuiltinArray arep) where
     lift = liftBuiltin . fromBuiltin
 
 instance uni `PLC.HasTypeLevel` (,) => Typeable uni BuiltinPair where
