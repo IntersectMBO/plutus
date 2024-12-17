@@ -33,35 +33,32 @@ let
     '';
   };
 
-  plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site"
-    {
-      buildInputs = [
-        pkgs.jekyll
-        # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
-        # pkgs.linkchecker
-        inputs.nixpkgs-2405.legacyPackages.linkchecker
-      ];
-    }
-    ''
-      mkdir "$out"
+  plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site" {
+    buildInputs = [
+      pkgs.jekyll
+      # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
+      # pkgs.linkchecker
+      inputs.nixpkgs-2405.legacyPackages.linkchecker
+    ];
+  } ''
+    mkdir "$out"
 
-      # Prevent Jekyll from writing to the source directory by disabling its disk cache
-      jekyll build \
-        --disable-disk-cache \
-        -s ${plutus-metatheory-agda-html} \
-        -d "$out"
+    # Prevent Jekyll from writing to the source directory by disabling its disk cache
+    jekyll build \
+      --disable-disk-cache \
+      -s ${plutus-metatheory-agda-html} \
+      -d "$out"
 
-      # Agda generates HTML files with href attributes containing absolute
-      # file:///nix/store/* URLs. All HTML files are located in the top-level
-      # build directory. The following command fixes all broken URLs.
-      find "$out" -name "*.html" | xargs sed -i -E \
-        's|href=\"file:///nix/store/.{32}-plutus-metatheory-site/([^\"]+)\"|href=\"\1\"|g'
+    # Agda generates HTML files with href attributes containing absolute
+    # file:///nix/store/* URLs. All HTML files are located in the top-level
+    # build directory. The following command fixes all broken URLs.
+    find "$out" -name "*.html" | xargs sed -i -E \
+      's|href=\"file:///nix/store/.{32}-plutus-metatheory-site/([^\"]+)\"|href=\"\1\"|g'
 
-      if ! linkchecker "$out/index.html" --output failures; then
-        echo "Broken links found and printed above"
-        exit 1
-      fi
-    '';
-in
+    if ! linkchecker "$out/index.html" --output failures; then
+      echo "Broken links found and printed above"
+      exit 1
+    fi
+  '';
 
-plutus-metatheory-site
+in plutus-metatheory-site

@@ -26,7 +26,6 @@ rec {
     '';
   });
 
-
   # We want to keep control of which version of Agda we use, so we supply our own and override
   # the one from nixpkgs.
   #
@@ -42,39 +41,30 @@ rec {
   # another GHC from nixpkgs! Sadly, this one is harder to override, and we just hack
   # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
   # we have a few extra packages that it uses in our Haskell package set.
-  agda-packages =
-    let
-      Agda = agda-project.hsPkgs.Agda;
+  agda-packages = let
+    Agda = agda-project.hsPkgs.Agda;
 
-      frankenAgdaBin = pkgs.symlinkJoin {
-        name = "agda";
-        version = Agda.identifier.version;
-        paths = [
-          Agda.components.exes.agda
-          Agda.components.exes.agda-mode
-        ];
-      };
-
-      frankenAgda = frankenAgdaBin // {
-        # Newer Agda is built with enableSeparateBinOutput, hence this hacky workaround.
-        # https://github.com/NixOS/nixpkgs/commit/294245f7501e0a8e69b83346a4fa5afd4ed33ab3
-        bin = frankenAgdaBin;
-      };
-
-      frankenPkgs =
-        pkgs //
-        {
-          haskellPackages = pkgs.haskellPackages //
-          {
-            inherit (agda-project) ghcWithPackages;
-          };
-        };
-    in
-    pkgs.agdaPackages.override {
-      Agda = frankenAgda;
-      pkgs = frankenPkgs;
+    frankenAgdaBin = pkgs.symlinkJoin {
+      name = "agda";
+      version = Agda.identifier.version;
+      paths = [ Agda.components.exes.agda Agda.components.exes.agda-mode ];
     };
 
+    frankenAgda = frankenAgdaBin // {
+      # Newer Agda is built with enableSeparateBinOutput, hence this hacky workaround.
+      # https://github.com/NixOS/nixpkgs/commit/294245f7501e0a8e69b83346a4fa5afd4ed33ab3
+      bin = frankenAgdaBin;
+    };
+
+    frankenPkgs = pkgs // {
+      haskellPackages = pkgs.haskellPackages // {
+        inherit (agda-project) ghcWithPackages;
+      };
+    };
+  in pkgs.agdaPackages.override {
+    Agda = frankenAgda;
+    pkgs = frankenPkgs;
+  };
 
   # Agda is a huge pain. They have a special custom setup that compiles the
   # interface files for the Agda that ships with the compiler. These go in
@@ -91,7 +81,8 @@ rec {
   # to pass it in.
   agda-project-module-patch = { compiler-nix-name }: {
     packages.Agda.package.buildType = lib.mkForce "Simple";
-    packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
+    packages.Agda.components.library.enableSeparateDataOutput =
+      lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library
@@ -108,19 +99,14 @@ rec {
     '';
   };
 
-
-  agda-project-module-patch-default = agda-project-module-patch {
-    compiler-nix-name = "ghc";
-  };
-
+  agda-project-module-patch-default =
+    agda-project-module-patch { compiler-nix-name = "ghc"; };
 
   agda-project-module-patch-musl64 = agda-project-module-patch {
     compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
   };
 
-
   agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
-
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
@@ -130,14 +116,12 @@ rec {
     modules = [ agda-project-module-patch-default ];
   };
 
-
   # TODO this is a bit of a hack, but it's the only way to get the uplc
   # executable to find the metatheory and the stdandard library.
   shell-hook-exports = ''
     export AGDA_STDLIB_SRC="${agda-stdlib}/src"
     export PLUTUS_METHATHEORY_SRC="./plutus-metatheory/src"
   '';
-
 
   wrap-program-args = ''
     --set AGDA_STDLIB_SRC "${agda-stdlib}/src" \
