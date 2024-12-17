@@ -2,7 +2,7 @@
 sidebar_position: 40
 ---
 
-# CLI tool for plutus
+# CLI tool for Plutus
 
 You can locally (without starting a Cardano Node) [run](#running) or [debug](#debugging) compiled code
 by using the `plutus` CLI tool. This tool allows you also to [optimise](#converting) compiled code, [convert](#converting) between code formats,
@@ -44,33 +44,33 @@ USAGE: plutus [FILES...] [--stdin] [-o FILE | --stdout] [--run|--bench|--debug].
 
 Two interesting sub-commands which can aid during Plutus-based script development (e.g. Aiken, Plutarch, Plutus Tx) are `--print-builtins` and `--print-cost-model` which as their name suggest print detailed lists of currently recognized builtin functions and cost model parameters, respectively.
 
-## Converting compiled code with the CLI {#converting}
+## Converting Code with the CLI {#converting}
 
 Before you can even run or debug your code, you first need to compile and extract the plutus code from the high-level source code.
 The steps for extracting plutus code vary depending on the source language you are using (Plutus Tx, Aiken, ...);
 if your are using Plutus Tx as source, you can follow the instructions on [how to inspect compiled code](./inspecting.md#inspecting-the-compiled-code).
 
 Although the CLI tool cannot help with compiling high-level code (e.g. Plutus Tx), it can aid with compiling and converting
-between different formats and intermediate representations of plutus code.
+between formats and intermediate representations of lower-level plutus code (PIR, TPLC, UPLC).
 
 In the following example we check a program written in the PIR (Plutus Intermediate Representation) language:
 
 ``` shell
-$ echo "(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))" > const.pir
+$ echo '(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))' > const.pir
 $ plutus const.pir
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 ```
 
-Or as a single step:
+Or as a single command:
 
 ``` shell
-$ echo "(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))" | plutus -x pir --stdin
+$ echo '(program 1.1.0 (lam x (con integer) (lam y (con integer) x)))' | plutus -x pir --stdin
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 ```
 
 In the command above, the `-x pir` option is necessary for letting the CLI tool know
 the format/language of the supplied input. If the `-x` option is not passed, the CLI tool will try to guess the input's format/language
-by looking at its filename extension `.SUFFIX` &mdash; will default to `plc` for `--stdin` or no suffix.
+by looking at its filename extension `.SUFFIX` &mdash; will default to `uplc` for `--stdin` or missing/other suffix.
 What the `-x SUFFIX` option does is instructing the CLI tool to treat subsequent filenames
 as if they had a `.SUFFIX` file extension.
 The following table lists some recognized suffixes and corresponding `-x` values:
@@ -104,34 +104,58 @@ there are multiple input filenames, multiple calls to these options can be used
 to override previous occurrences so that you can combine code of different formats. For example:
 
 ``` shell
-$ plutus -x pir FILE_PIR FILE_ALSO_PIR -x tplc FILE_NOW_TPLC -a SrcSpans FILE_TPLC_BUT_WITH_ANNOTATIONS
+# plutus -x pir FILE_PIR FILE_ALSO_PIR -x tplc FILE_NOW_TPLC -a srcspan FILE_TPLC_BUT_WITH_ANNOTATIONS
 ```
 
 Positioning the input files one after the other (juxtaposing) as such, acts
 like Haskell's function application:
 it compiles individually each plutus snippet to a common *output target* and combines left-to-right
-their compilation result with plutus' function application. Both inputs and final compiled output are (type)checked.
+their compilation result with plutus' function application. Both inputs and final compiled output are (type-)checked.
 
 ``` shell
-# plutus FUNC_FILE ARG1_FILE ARG2_FILE ...
-$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" > func.uplc
-$ echo "(program 1.1.0 (con integer 2))" > arg2.uplc
-$ echo "(program 1.1.0 (con integer 1))" | plutus func.uplc --stdin arg2.uplc
+# plutus FUNC_FILE ARG1 ARG2 ...
+$ echo '(program 1.1.0 (lam x (lam y [(builtin appendString) x y])))' > append.uplc
+$ echo '(program 1.1.0 (con string "Hello, "))' > hello.uplc
+
+# "Hello, world"
+$ echo '(program 1.1.0 (con string "world"))' | plutus append.uplc hello.uplc --stdin --stdout
+(program
+  1.1.0
+  [
+    [
+      (lam x-0 (lam y-1 [ [ (builtin appendString) x-0 ] y-1 ]))
+      (con string "Hello, ")
+    ]
+    (con string "world")
+  ]
+)
+# "worldHello, " Note the flip of stdin and hello arguments
+$ echo '(program 1.1.0 (con string "world"))' | plutus append.uplc --stdin hello.uplc --stdout
+(program
+  1.1.0
+  [
+    [
+      (lam x-0 (lam y-1 [ [ (builtin appendString) x-0 ] y-1 ]))
+      (con string "world")
+    ]
+    (con string "Hello, ")
+  ]
+)
 ```
 
 To override the output's target format the `-x`,`-n`,`-a` options are again used;
 note that the *last occurrence* of `-x`,`-n`,`-a` will be the one that dictates the output format.
 
 ``` shell
-# Checks and compiles PIR to PLC (the default)
+# Checks and compiles PIR to UPLC (the default)
 $ plutus const.pir --stdout
 (program 1.1.0 (lam x-256 (lam y-257 x-256)))
 # Overrides to pir for both input&output. Can be used for pretty-printing or self-optimising (--whole-opt).
 $ plutus -x pir const.pir --stdout
 (program 1.1.0 (lam x-0 (con integer) (lam y-1 (con integer) x-0)))
-# Overrides input to be tplc instead of guessed pir (example still works because pir is superset of plc)
-# Overrides output to plc with debruijn naming
-$ plutus -x tplc const.pir -x plc -n debruijn --stdout
+# Overrides input to be tplc instead of guessed pir (example still works because pir is superset of tplc)
+# Overrides output to uplc with debruijn naming
+$ plutus -x tplc const.pir -x uplc -n debruijn --stdout
 (program 1.1.0 (lam !0 (lam !0 !2)))
 ```
 
@@ -162,7 +186,7 @@ program 1.1.0 (\(x : integer) (y : integer) -> subtractInteger x y)
 |-p readable|Succinct syntax with unique variable names|
 |-p readable-simple|Succinct syntax with ambiguous (no unique) variable names|
 
-## Checking with the CLI {#checking}
+## Checking Code with the CLI {#checking}
 
 Depending on the input and output formats, certain checks will be run by the tool (syntax check, type checking).
 Any errors during these checks will be reported to `stderr`:
@@ -183,8 +207,8 @@ more `--quiet` if you prefer to rely solely on the tool's exit status.
 Fixing the typo in the example above, then applying it to an argument using the CLI's juxtaposition:
 
 ``` shell
-$ echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -x plc -o inc.plc
-$ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --stdout
+$ echo "(program 1.1.0 (lam x (con integer) [(builtin addInteger) x (con integer 1)]))" | plutus -x tplc --stdin -x uplc -o inc.uplc
+$ echo "(program 1.1.0 (con bool True))" | plutus inc.uplc --stdin --stdout
 (program
   1.1.0
   [
@@ -195,10 +219,10 @@ $ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --stdout
 
 There is a type error above (expected type: integer, actual type: bool),
 however all static checks pass and the compiled code is successfully returned. This is
-because our compilation target (output format) is `plc`, a.k.a. untyped plutus core.
+because our compilation target (output format) is `uplc`, a.k.a. untyped plutus core.
 Although the 2 input snippets are written in `tplc` (a.k.a. typed plutus core) and thus type-checked by the tool,
-they are only typechecked *separately*; their combined, compiled output is in `plc`, a.k.a untyped plutus core,
-which means no type-checking will be done statically. We could however change the output format to be plc, which would
+they are only typechecked *separately*; their combined, compiled output is in `uplc`, a.k.a untyped plutus core,
+which means no type-checking will be done statically. We could however change the output format to be tplc, which would
 raise the type error:
 
 ``` shell
@@ -215,16 +239,16 @@ Namely,
   '(con bool True)'
 ```
 
-## Running Compiled Code with the CLI {#running}
+## Running Code with the CLI {#running}
 
-We saw earlier that certain type errors cannot be caught statically for `plc`
+We saw earlier that certain type errors cannot be caught statically for `uplc`
 since the language is untyped. We do have the option, however, to run
 the compiled code using the interpreter and look for runtime type errors.
 Running the program locally using the CLI tool is simply an extra step which is executed
 after [checking](#checking) and [compilation](#converting) have been completed, simply by adding the `--run` option:
 
 ``` shell
-$ echo "(program 1.1.0 (con bool True))" | plutus inc.plc --stdin --run
+$ echo "(program 1.1.0 (con bool True))" | plutus inc.uplc --stdin --run
 Program passed all static checks. If you want the output result, use -o FILE or --stdout.
 Running the program: An error has occurred:
 Could not unlift a value:
@@ -244,20 +268,20 @@ Used budget: ExBudget {exBudgetCPU = ExCPU 204149, exBudgetMemory = ExMemory 901
 ```
 
 > :pushpin: **NOTE**
-> The above example shows that `plc` -- the language which actually *runs on the chain* --
+> The above example shows that `uplc` -- the language which actually *runs on the chain* --
 > is lower-level and more akin to assembly. Users that are concerned about the safety of their smart contracts
-> are advised instead to use a higher-level typed language (e.g. Plutus Tx) which compiles down to `plc`.
+> are advised instead to develop in a higher-level typed language (e.g. Plutus Tx) which compiles down to `uplc`.
 
 After plutus program's execution is completed (succeeded or failed), the final used budget will be printed to `stderr`.
-Because the CLI tool employs the same `plc` interpreter as the one that the Cardano node runs, we can be sure
-that the program's execution result & budget match precisely those computed on the chain (assuming same program
-and same cost model).
+Because the CLI tool employs the same `uplc` interpreter as the one that the Cardano node runs, we can be sure
+that the program's execution result&budget match *precisely* &mdash; assuming same program
+and cost model &mdash; the result&budget computed by the chain.
 
 You can pass a maximum CPU and/or Memory budget that is allowed to be spent with the `--budget=CPU` or `-budget=,MEM` or `--budget=CPU,MEM` options; if given budget runs out, the execution will fail and stop earlier.
 If there is no CPU and/or MEM limit given, the budget is practically unlimited.
 
 ``` shell
-$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=229307,903
+$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.uplc --stdin --run --budget=229307,903
 Program passed all checks. No output file was written, use -o or --stdout.
 An error has occurred:
 The machine terminated part way through evaluation due to overspending the budget.
@@ -265,7 +289,8 @@ The budget when the machine terminated was:
 ({cpu: -1
 | mem: 1})
 Negative numbers indicate the overspent budget; note that this only indicates the budget that was needed for the next step, not to run the program to completion.
-$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.plc --stdin --run --budget=,903
+
+$ echo "(program 1.1.0 (con integer 1))" | $plutus inc.uplc --stdin --run --budget=,903
 Program passed all checks. No output file was written, use -o or --stdout.
 Execution succeeded. Final Term:
 (con integer 2)
@@ -273,55 +298,31 @@ Remaining budget: ExBudget {exBudgetCPU = ExCPU 9223372036854546499, exBudgetMem
 Used budget: ExBudget {exBudgetCPU = ExCPU 229308, exBudgetMemory = ExMemory 902}
 ```
 
-The tool's input arguments are paths to the plutus code to execute. For example, consider the plutus code
-that expects two integers and adds them together:
-
-``` shell
-$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" > add.uplc
-$ plutus add.uplc
-Program passed all static checks. No output file was written, use -o or --stdout.
-```
-
-Same as above but using instead with the `--stdin` option:
-
-``` shell
-$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin
-Program passed all static checks. No output file was written, use -o or --stdout.
-```
-
-Fixing the syntax error above makes the evaluator succeed, returning the final value
-as the result of the evaluation (a function in our example):
-
-``` shell
-$ echo "(program 1.1.0 (lam x (lam y [(builtin subtractInteger) x y])))" | plutus --stdin --stdout
-(program 1.1.0 (lam x-0 (lam y-1 [ [ (builtin subtractInteger) x-0 ] y-1 ])))
-```
-
 As shown in [compilation](#converting) section, you are free to mix and match
-different input languages (pir/tplc/plc); as long as the output target at the CLI
-is set to `plc`, their compiled output will be `--run` through the
-the local `plc` interpreter (same interpreter as on-chain).
+different input languages (pir/tplc/uplc); as long as the output target at the CLI
+is set to `uplc`, their compiled output will be `--run` through the
+the local `uplc` interpreter (same interpreter as that on chain).
 
 > :pushpin: **NOTE**
 > Attempting to run a `tplc` target will use a `tplc` interpreter. Although
-> the `tplc` interpreter behaves the same as the default `plc` interpreter (for *type correct* programs),
-> it comes with caveats: cannot execute `plc` code,
+> the `tplc` interpreter behaves the same as the default `uplc` interpreter (for *type correct* programs),
+> it comes with caveats: cannot execute `uplc` code,
 > cannot have budget accounting and budget limits, runs way slower and your program must be fully type correct.
 > The last point is not necessarily a caveat, but it diverges from the on-chain behavior:
-> the `tplc` interpreter accepts less programs than the chain (and the default `plc` interpreter) would accept.
+> the `tplc` interpreter accepts less programs than the chain (and the default `uplc` interpreter) would accept.
 
-## Debugging Compiled Code with the CLI *(Experimental)*
+## Debugging Code with the CLI *(Experimental)*
 
 The `plutus` tool's built-in debugger provides a different way to
-to execute compiled plutus code (only if you are targeting untyped plutus core, a.k.a `plc`).
+to execute compiled plutus code (only if you are targeting untyped plutus core, a.k.a `uplc`).
 The `--debug` option starts a TUI (Terminal User Interface) in your console:
 
 ``` shell
-$ plutus inc.plc --debug
+$ plutus inc.uplc --debug
 ```
 
 The debugger will load the program, display its text code on a window,
-and wait for a user command to start executing it using the `plc` interpreter.
+and wait for a user command to start executing it using the `uplc` interpreter.
 The commands available to the user are:
 
 |Keyboard Shortcut|Command|
@@ -333,13 +334,13 @@ The commands available to the user are:
 |s|Step once the interpreter|
 
 Unlike the `--run` option, the `step` command does not execute the program
-to completion. Instead, the `plc` interpreter is moved one "budgeting" step forward &mdash;
-the smallest step possible that is accounted for and subtracted from the current budget &mdash;
-and the lower window will be updated to show the remaining budget.
+to completion. Instead, the `uplc` interpreter is moved one "budgeting" step forward &mdash;
+the smallest step possible that gets accounted for and subtracted from the current budget &mdash;
+and the screen will be updated to show the remaining budget.
 You can still combine `--debug` with the `--budget=CPU,MEM` option to limit the initial total budget given.
 
 Every time an interactive step is taken, the debugger
-highlights the code region (sub-term) that the `plc` interpreter
+highlights the code region (sub-term) that the `uplc` interpreter
 is about to "step into" (execute) next, in the program's text window. A separate
 "Logs" window is kept up-to-date with any printed plutus' `trace`s and debugger's messages.
 
