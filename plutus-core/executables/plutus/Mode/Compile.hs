@@ -31,18 +31,20 @@ runCompile afterCompile = case ?opts of
         -- compile the tail targetting sngT, and fold-apply the results together with the head
         astT <- foldlM (readCompileApply sngT) hdT tlS
 
-        optAstT <- if _wholeOpt ?opts
-                     -- self-compile one last time for optimisation
-                  then compile sngT sngT astT
-                  else pure astT
+        appliedAstT <-
+                if _wholeOpt ?opts
+                then -- self-compile one last time for optimisation (also runs the checks)
+                     compile sngT sngT astT
+                else -- The checks should run also at the whole (applied) program
+                     check sngT astT
 
-        writeProgram sngT optAstT fileT afterCompile
+        writeProgram sngT appliedAstT fileT afterCompile
 
         case afterCompile of
             Exit{}  -> exitSuccess -- nothing left to do
-            Run{}   -> runRun sngT optAstT
-            Bench{} -> runBench sngT optAstT
-            Debug{} -> runDebug sngT optAstT
+            Run{}   -> runRun sngT appliedAstT
+            Bench{} -> runBench sngT appliedAstT
+            Debug{} -> runDebug sngT appliedAstT
 
 readCompileApply :: (?opts :: Opts)
                  => SLang t -> FromLang t -> SomeFile -> IO (FromLang t)
@@ -70,3 +72,16 @@ compile sngS sngT astS =
         Left err  -> withA @Pretty (_sann sngS) $ failE $ show err
         Right res -> pure res
 
+check :: (?opts :: Opts)
+      => SLang t -> FromLang t -> IO (FromLang t)
+check sngT astT =
+    if length (_inputs ?opts) == 1
+    -- optimization: no need to do more checks if there was no application involved
+    then pure astT
+    else case checkProgram sngT astT of
+            -- compilation errors use the annotation type of the sources
+            Left err  -> do
+                    printE "Failed to typecheck fully-applied program. The error was:"
+                    withA @Pretty (_sann sngT) $ failE $ show err
+            -- passed the checks, return it
+            _ -> pure astT
