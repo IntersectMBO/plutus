@@ -156,14 +156,14 @@ PlutusTx.asData
       , txInfoDCert       :: List DCert
       -- ^ Digests of certificates included in this transaction
       -- TODO: is this a map? is this a list?
-      , txInfoWdrl        :: [(StakingCredential, Integer)]
+      , txInfoWdrl        :: List (StakingCredential, Integer)
       -- ^ Withdrawals
       , txInfoValidRange  :: POSIXTimeRange
       -- ^ The valid range for the transaction.
       , txInfoSignatories :: List PubKeyHash
       -- ^ Signatures provided with the transaction, attested that they all signed the tx
       -- TODO: is this a map? is this a list?
-      , txInfoData        :: [(DatumHash, Datum)]
+      , txInfoData        :: List (DatumHash, Datum)
       -- ^ The lookup table of datums attached to the transaction
       , txInfoId          :: TxId
       -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
@@ -266,7 +266,8 @@ findOwnInput _ = Nothing
 
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
-findDatum dsh TxInfo{txInfoData} = snd <$> find f txInfoData
+findDatum dsh TxInfo{txInfoData} =
+  snd <$> Data.List.find f txInfoData
  where
   f (dsh', _) = dsh' == dsh
 {-# INLINEABLE findDatum #-}
@@ -275,7 +276,8 @@ findDatum dsh TxInfo{txInfoData} = snd <$> find f txInfoData
   hashes
 -}
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
-findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
+findDatumHash ds TxInfo{txInfoData} =
+  fst <$> Data.List.find f txInfoData
  where
   f (_, ds') = ds' == ds
 {-# INLINEABLE findDatumHash #-}

@@ -1,107 +1,29 @@
-(let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-    data Unit | Unit_match where
-      Unit : Unit
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-    !`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
-       all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
-      = /\a b ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) a)
-           (`$dUnsafeFromData` : (\a -> data -> a) b)
-           (d : data) ->
-            let
-              !tup : pair integer (list data) = unConstrData d
-              !index : integer = fstPair {integer} {list data} tup
-              !args : list data = sndPair {integer} {list data} tup
-            in
-            Bool_match
-              (ifThenElse {Bool} (equalsInteger 0 index) True False)
-              {all dead. Tuple2 a b}
-              (/\dead ->
-                 Tuple2
-                   {a}
-                   {b}
-                   (`$dUnsafeFromData` (headList {data} args))
-                   (`$dUnsafeFromData`
-                      (headList {data} (tailList {data} args))))
-              (/\dead -> traceError {Tuple2 a b} "PT1")
-              {all dead. dead}
-    !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
-      = \(d : data) -> d
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
-    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-      = /\a r ->
-          \(z : r) (f : a -> list a -> r) (xs : list a) ->
+(letrec
+    ~go : list data -> integer -> integer
+      = (let
+            r = integer -> integer
+          in
+          \(z : r) (f : data -> list data -> r) (xs : list data) ->
             chooseList
-              {a}
+              {data}
               {all dead. r}
               xs
               (/\dead -> z)
-              (/\dead -> f (headList {a} xs) (tailList {a} xs))
-              {r}
-  in
-  letrec
-    !`$mTxInfo` : data -> list data -> List (Tuple2 bytestring data)
-      = \(x : data) (xs : list data) ->
-          Cons
-            {Tuple2 bytestring data}
-            (`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
-               {bytestring}
-               {data}
-               unBData
-               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-               x)
-            (`$mTxInfo_go` xs)
-    ~`$mTxInfo_go` : list data -> List (Tuple2 bytestring data)
-      = caseList'
-          {data}
-          {List (Tuple2 bytestring data)}
-          (Nil {Tuple2 bytestring data})
-          `$mTxInfo`
-  in
-  letrec
-    !`$mTxInfo` : data -> list data -> List (Tuple2 data integer)
-      = \(x : data) (xs : list data) ->
-          Cons
-            {Tuple2 data integer}
-            (`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
-               {data}
-               {integer}
-               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-               unIData
-               x)
-            (`$mTxInfo_go` xs)
-    ~`$mTxInfo_go` : list data -> List (Tuple2 data integer)
-      = caseList'
-          {data}
-          {List (Tuple2 data integer)}
-          (Nil {Tuple2 data integer})
-          `$mTxInfo`
-  in
-  letrec
-    ~go : list data -> integer -> integer
-      = caseList'
-          {data}
-          {integer -> integer}
+              (/\dead -> f (headList {data} xs) (tailList {data} xs))
+              {r})
           (\(x : integer) -> x)
           (\(ds : data) (t : list data) (eta : integer) ->
              addInteger 1 (go t eta))
   in
   let
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
+    data Unit | Unit_match where
+      Unit : Unit
+    Tuple2 :: * -> * -> * = \a a -> all a. a -> a
   in
   \(d : data) ->
     Solo_match
@@ -159,10 +81,10 @@
                                      bytestring
                                      integer) ->
                                 (\a -> list data) data ->
-                                List (Tuple2 data integer) ->
+                                (\a -> list data) (Tuple2 data integer) ->
                                 (\a -> data) integer ->
                                 (\a -> list data) bytestring ->
-                                List (Tuple2 bytestring data) ->
+                                (\a -> list data) (Tuple2 bytestring data) ->
                                 bytestring ->
                                 r)
                              (fail : unit -> r) ->
@@ -198,16 +120,10 @@
                                      (unMapData (headList {data} l))
                                      (unMapData (headList {data} l))
                                      (unListData (headList {data} l))
-                                     (let
-                                       !d : data = headList {data} l
-                                     in
-                                     `$mTxInfo_go` (unListData d))
+                                     (unListData (headList {data} l))
                                      (headList {data} l)
                                      (unListData (headList {data} l))
-                                     (let
-                                       !d : data = headList {data} l
-                                     in
-                                     `$mTxInfo_go` (unListData d))
+                                     (unListData (headList {data} l))
                                      (let
                                        !tup : pair integer (list data)
                                          = unConstrData
@@ -228,7 +144,7 @@
                                        {all dead. bytestring}
                                        (/\dead ->
                                           unBData (headList {data} args))
-                                       (/\dead -> traceError {bytestring} "PT1")
+                                       (/\dead -> error {bytestring})
                                        {all dead. dead}))
                                 (/\dead -> fail ())
                                 {all dead. dead})
@@ -248,10 +164,10 @@
                                       bytestring
                                       integer))
                               (ds : (\a -> list data) data)
-                              (ds : List (Tuple2 data integer))
+                              (ds : (\a -> list data) (Tuple2 data integer))
                               (ds : (\a -> data) integer)
                               (ds : (\a -> list data) bytestring)
-                              (ds : List (Tuple2 bytestring data))
+                              (ds : (\a -> list data) (Tuple2 bytestring data))
                               (ds : bytestring) ->
                                ds)
                             (\(void : unit) -> error {(\a -> list data) data})
