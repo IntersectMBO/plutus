@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE PatternSynonyms      #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -59,9 +59,9 @@ instance Pretty Credential where
 
 instance PlutusTx.Eq Credential where
   {-# INLINEABLE (==) #-}
-  PubKeyCredential l == PubKeyCredential r = l PlutusTx.== r
+  PubKeyCredential l == PubKeyCredential r  = l PlutusTx.== r
   ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
-  _ == _ = False
+  _ == _                                    = False
 
 {-| Staking credential used to assign rewards.
 
@@ -91,7 +91,7 @@ PlutusTx.asData
     |]
 
 instance Pretty StakingCredential where
-  pretty (StakingHash h) = "StakingHash" <+> pretty h
+  pretty (StakingHash h)    = "StakingHash" <+> pretty h
   pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
 instance PlutusTx.Eq StakingCredential where

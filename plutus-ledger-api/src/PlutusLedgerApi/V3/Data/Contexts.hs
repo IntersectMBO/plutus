@@ -1,12 +1,12 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DerivingVia #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -203,10 +203,10 @@ PlutusTx.makeLift ''DRep
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
-  DRep a == DRep a' = a PlutusTx.== a'
-  DRepAlwaysAbstain == DRepAlwaysAbstain = Haskell.True
+  DRep a == DRep a'                                = a PlutusTx.== a'
+  DRepAlwaysAbstain == DRepAlwaysAbstain           = Haskell.True
   DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
-  _ == _ = Haskell.False
+  _ == _                                           = Haskell.False
 
 PlutusTx.asData
   [d|
@@ -326,10 +326,10 @@ PlutusTx.makeLift ''Vote
 
 instance PlutusTx.Eq Vote where
   {-# INLINEABLE (==) #-}
-  VoteNo == VoteNo = Haskell.True
+  VoteNo == VoteNo   = Haskell.True
   VoteYes == VoteYes = Haskell.True
   Abstain == Abstain = Haskell.True
-  _ == _ = Haskell.False
+  _ == _             = Haskell.False
 
 -- | Similar to TxOutRef, but for GovActions
 PlutusTx.asData
@@ -692,7 +692,7 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing o
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
 txSignedBy TxInfo{txInfoSignatories} k = case Data.List.find ((PlutusTx.==) k) txInfoSignatories of
-  Haskell.Just _ -> Haskell.True
+  Haskell.Just _  -> Haskell.True
   Haskell.Nothing -> Haskell.False
 
 {-# INLINEABLE pubKeyOutputsAt #-}
