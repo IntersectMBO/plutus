@@ -97,12 +97,6 @@ data ParamName =
   | FstPair'memory'arguments
   | HeadList'cpu'arguments
   | HeadList'memory'arguments
-  | LengthArray'cpu'arguments
-  | LengthArray'memory'arguments
-  | ListToArray'cpu'arguments
-  | ListToArray'memory'arguments
-  | IndexArray'cpu'arguments
-  | IndexArray'memory'arguments
   | IData'cpu'arguments
   | IData'memory'arguments
   | IfThenElse'cpu'arguments
@@ -319,7 +313,12 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
-
+  | LengthArray'cpu'arguments
+  | LengthArray'memory'arguments
+  | ListToArray'cpu'arguments
+  | ListToArray'memory'arguments
+  | IndexArray'cpu'arguments
+  | IndexArray'memory'arguments
 --  not enabled yet:
 --    ExpModInteger'cpu'arguments
 --    ExpModInteger'memory'arguments
