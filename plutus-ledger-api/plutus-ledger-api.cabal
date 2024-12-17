@@ -67,7 +67,11 @@ library
     PlutusLedgerApi.V1.Contexts
     PlutusLedgerApi.V1.Credential
     PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.Data.Address
     PlutusLedgerApi.V1.Data.Contexts
+    PlutusLedgerApi.V1.Data.Credential
+    PlutusLedgerApi.V1.Data.Interval
+    PlutusLedgerApi.V1.Data.Time
     PlutusLedgerApi.V1.Data.Tx
     PlutusLedgerApi.V1.Data.Value
     PlutusLedgerApi.V1.DCert
@@ -88,6 +92,7 @@ library
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.Data.Contexts
+    PlutusLedgerApi.V3.Data.Tx
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.MintValue
     PlutusLedgerApi.V3.ParamName
@@ -162,7 +167,6 @@ test-suite plutus-ledger-api-test
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
     Spec.CostModelParams
-    Spec.Data.ContextDecoding
     Spec.Data.CostModelParams
     Spec.Data.Eval
     Spec.Data.Versions

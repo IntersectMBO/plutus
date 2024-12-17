@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- | The interface to Plutus V3 for the ledger.
 module PlutusLedgerApi.Data.V3 (
   -- * Scripts
@@ -18,18 +20,60 @@ module PlutusLedgerApi.Data.V3 (
   Contexts.ColdCommitteeCredential (..),
   Contexts.HotCommitteeCredential (..),
   Contexts.DRepCredential (..),
-  Contexts.DRep (..),
-  Contexts.Delegatee (..),
-  Contexts.TxCert (..),
-  Contexts.Voter (..),
-  Contexts.Vote (..),
-  Contexts.GovernanceActionId (..),
-  Contexts.Committee (..),
+  Contexts.DRep,
+  pattern Contexts.DRep,
+  pattern Contexts.DRepAlwaysAbstain,
+  pattern Contexts.DRepAlwaysNoConfidence,
+  Contexts.Delegatee,
+  pattern Contexts.DelegStake,
+  pattern Contexts.DelegVote,
+  pattern Contexts.DelegStakeVote,
+  Contexts.TxCert,
+  pattern Contexts.TxCertRegStaking,
+  pattern Contexts.TxCertUnRegStaking,
+  pattern Contexts.TxCertDelegStaking,
+  pattern Contexts.TxCertRegDeleg,
+  pattern Contexts.TxCertRegDRep,
+  pattern Contexts.TxCertUpdateDRep,
+  pattern Contexts.TxCertUnRegDRep,
+  pattern Contexts.TxCertPoolRegister,
+  pattern Contexts.TxCertPoolRetire,
+  pattern Contexts.TxCertAuthHotCommittee,
+  pattern Contexts.TxCertResignColdCommittee,
+  Contexts.Voter,
+  pattern Contexts.CommitteeVoter,
+  pattern Contexts.DRepVoter,
+  pattern Contexts.StakePoolVoter,
+  Contexts.Vote,
+  pattern Contexts.VoteNo,
+  pattern Contexts.VoteYes,
+  pattern Contexts.Abstain,
+  Contexts.GovernanceActionId,
+  Contexts.gaidTxId,
+  Contexts.gaidGovActionIx,
+  Contexts.Committee,
+  pattern Contexts.Committee,
+  Contexts.committeeMembers,
+  Contexts.committeeQuorum,
   Contexts.Constitution (..),
-  Contexts.ProtocolVersion (..),
-  Contexts.GovernanceAction (..),
+  Contexts.ProtocolVersion,
+  pattern Contexts.ProtocolVersion,
+  Contexts.pvMajor,
+  Contexts.pvMinor,
+  Contexts.GovernanceAction,
+  pattern Contexts.ParameterChange,
+  pattern Contexts.HardForkInitiation,
+  pattern Contexts.TreasuryWithdrawals,
+  pattern Contexts.NoConfidence,
+  pattern Contexts.UpdateCommittee,
+  pattern Contexts.NewConstitution,
+  pattern Contexts.InfoAction,
   Contexts.ChangedParameters (..),
-  Contexts.ProposalProcedure (..),
+  Contexts.ProposalProcedure,
+  pattern Contexts.ProposalProcedure,
+  Contexts.ppDeposit,
+  Contexts.ppReturnAddr,
+  Contexts.ppGovernanceAction,
 
   -- ** Protocol version
   Common.MajorProtocolVersion (..),
@@ -54,9 +98,22 @@ module PlutusLedgerApi.Data.V3 (
   EvaluationContext.assertWellFormedCostModelParams,
 
   -- * Context types
-  Contexts.ScriptContext (..),
-  Contexts.ScriptPurpose (..),
-  Contexts.ScriptInfo (..),
+  Contexts.ScriptContext,
+  pattern Contexts.ScriptContext,
+  Contexts.ScriptPurpose,
+  pattern Contexts.Minting,
+  pattern Contexts.Spending,
+  pattern Contexts.Rewarding,
+  pattern Contexts.Certifying,
+  pattern Contexts.Voting,
+  pattern Contexts.Proposing,
+  Contexts.ScriptInfo,
+  pattern Contexts.MintingScript,
+  pattern Contexts.SpendingScript,
+  pattern Contexts.RewardingScript,
+  pattern Contexts.CertifyingScript,
+  pattern Contexts.VotingScript,
+  pattern Contexts.ProposingScript,
 
   -- ** Supporting types used in the context types
 
@@ -72,8 +129,12 @@ module PlutusLedgerApi.Data.V3 (
   V2.fromBytes,
 
   -- *** Credentials
-  V2.StakingCredential (..),
-  V2.Credential (..),
+  V2.StakingCredential,
+  pattern V2.StakingHash,
+  pattern V2.StakingPtr,
+  V2.Credential,
+  pattern V2.PubKeyCredential,
+  pattern V2.ScriptCredential,
 
   -- *** Value
   V2.Value (..),
@@ -90,21 +151,63 @@ module PlutusLedgerApi.Data.V3 (
   V2.POSIXTimeRange,
 
   -- *** Types for representing transactions
-  V2.Address (..),
+  V2.Address,
+  pattern V2.Address,
+  V2.addressCredential,
+  V2.addressStakingCredential,
   V2.PubKeyHash (..),
   Tx.TxId (..),
-  Contexts.TxInfo (..),
-  V2.TxOut (..),
-  Tx.TxOutRef (..),
-  Contexts.TxInInfo (..),
-  V2.OutputDatum (..),
+  Contexts.TxInfo,
+  pattern Contexts.TxInfo,
+  Contexts.txInfoInputs,
+  Contexts.txInfoReferenceInputs,
+  Contexts.txInfoOutputs,
+  Contexts.txInfoFee,
+  Contexts.txInfoMint,
+  Contexts.txInfoTxCerts,
+  Contexts.txInfoWdrl,
+  Contexts.txInfoValidRange,
+  Contexts.txInfoSignatories,
+  Contexts.txInfoRedeemers,
+  Contexts.txInfoData,
+  Contexts.txInfoId,
+  Contexts.txInfoVotes,
+  Contexts.txInfoProposalProcedures,
+  Contexts.txInfoCurrentTreasuryAmount,
+  Contexts.txInfoTreasuryDonation,
+  V2.TxOut,
+  pattern V2.TxOut,
+  V2.txOutAddress,
+  V2.txOutValue,
+  V2.txOutDatum,
+  V2.txOutReferenceScript,
+  Tx.TxOutRef,
+  pattern Tx.TxOutRef,
+  Tx.txOutRefId,
+  Tx.txOutRefIdx,
+  Contexts.TxInInfo,
+  pattern Contexts.TxInInfo,
+  Contexts.txInInfoOutRef,
+  Contexts.txInInfoResolved,
+  V2.OutputDatum,
+  pattern V2.NoOutputDatum,
+  pattern V2.OutputDatum,
+  pattern V2.OutputDatumHash,
 
   -- *** Intervals
-  V2.Interval (..),
-  V2.Extended (..),
+  V2.Interval,
+  pattern V2.Interval,
+  V2.ivFrom,
+  V2.ivTo,
+  V2.Extended,
+  pattern V2.NegInf,
+  pattern V2.PosInf,
+  pattern V2.Finite,
   V2.Closure,
-  V2.UpperBound (..),
-  V2.LowerBound (..),
+  V2.UpperBound,
+  pattern V2.UpperBound,
+  V2.LowerBound,
+  pattern V2.LowerBound,
   V2.always,
   V2.from,
   V2.to,
@@ -151,71 +254,71 @@ module PlutusLedgerApi.Data.V3 (
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V3.Data.Tx qualified as Tx
 import PlutusLedgerApi.V3.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V3.ParamName qualified as ParamName
-import PlutusLedgerApi.V3.Tx qualified as Tx
 import PlutusTx.Ratio qualified as Ratio
 
-{- | An alias to the Plutus ledger language this module exposes at runtime.
+{-| An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.
 -}
 thisLedgerLanguage :: Common.PlutusLedgerLanguage
 thisLedgerLanguage = Common.PlutusV3
 
-{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
 Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
 -}
-deserialiseScript ::
-  forall m.
-  (Common.MonadError Common.ScriptDecodeError m) =>
-  -- | which major protocol version the script was submitted in.
-  Common.MajorProtocolVersion ->
-  -- | the script to deserialise.
-  Common.SerialisedScript ->
-  m Common.ScriptForEvaluation
+deserialiseScript
+  :: forall m
+   . (Common.MonadError Common.ScriptDecodeError m)
+  => Common.MajorProtocolVersion
+  -- ^ which major protocol version the script was submitted in.
+  -> Common.SerialisedScript
+  -- ^ the script to deserialise.
+  -> m Common.ScriptForEvaluation
 deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 
-{- | Evaluates a script, returning the minimum budget that the script would need
+{-| Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. This will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 also returns the used budget.
 -}
-evaluateScriptCounting ::
-  -- | Which protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The @ScriptContext@ argument to the script
-  Common.Data ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptCounting
+  :: Common.MajorProtocolVersion
+  -- ^ Which protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> Common.Data
+  -- ^ The @ScriptContext@ argument to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptCounting mpv verbose ec s arg =
   Common.evaluateScriptCounting thisLedgerLanguage mpv verbose ec s [arg]
 
-{- | Evaluates a script, with a cost model and a budget that restricts how many
+{-| Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
 a limit to guard against scripts that run for a long time or loop.
 -}
-evaluateScriptRestricting ::
-  -- | Which protocol version to run the operation in
-  Common.MajorProtocolVersion ->
-  -- | Whether to produce log output
-  Common.VerboseMode ->
-  -- | Includes the cost model to use for tallying up the execution costs
-  EvaluationContext.EvaluationContext ->
-  -- | The resource budget which must not be exceeded during evaluation
-  Common.ExBudget ->
-  -- | The script to evaluate
-  Common.ScriptForEvaluation ->
-  -- | The @ScriptContext@ argument to the script
-  Common.Data ->
-  (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
+evaluateScriptRestricting
+  :: Common.MajorProtocolVersion
+  -- ^ Which protocol version to run the operation in
+  -> Common.VerboseMode
+  -- ^ Whether to produce log output
+  -> EvaluationContext.EvaluationContext
+  -- ^ Includes the cost model to use for tallying up the execution costs
+  -> Common.ExBudget
+  -- ^ The resource budget which must not be exceeded during evaluation
+  -> Common.ScriptForEvaluation
+  -- ^ The script to evaluate
+  -> Common.Data
+  -- ^ The @ScriptContext@ argument to the script
+  -> (Common.LogOutput, Either Common.EvaluationError Common.ExBudget)
 evaluateScriptRestricting mpv verbose ec budget s arg =
   Common.evaluateScriptRestricting thisLedgerLanguage mpv verbose ec budget s [arg]
