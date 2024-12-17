@@ -104,7 +104,7 @@ test_IntegerDistribution =
         \(AsArbitraryBuiltin (i :: Integer)) ->
             let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
                 (low, high) =
-                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                    maybe (error "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
                       find ((>= abs i) . snd) magnitudes
                 bounds = map snd magnitudes
                 isInteresting = i `elem` concat
