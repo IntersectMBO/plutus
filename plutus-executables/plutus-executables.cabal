@@ -107,7 +107,6 @@ executable uplc
     , bytestring
     , criterion
     , deepseq
-    , filepath
     , flat                             ^>=0.6
     , haskeline
     , mtl
