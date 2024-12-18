@@ -1,6 +1,8 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE BangPatterns           #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE ViewPatterns           #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
@@ -20,6 +22,7 @@ module PlutusBenchmark.Common
     , mkMostRecentEvalCtx
     , evaluateCekLikeInProd
     , benchTermCek
+    , BenchmarkClass(..)
     , TestSize (..)
     , printHeader
     , printSizeStatistics
@@ -47,8 +50,10 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import Control.DeepSeq (force)
-import Criterion.Main
+import Control.DeepSeq (NFData, force)
+import Control.Exception (evaluate)
+import Criterion.Main qualified as Crit
+import Criterion.Main.Options (Mode)
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
@@ -62,6 +67,29 @@ import Test.Tasty
 import Test.Tasty.Golden
 import Text.Printf (hPrintf, printf)
 
+-- | Abstract interface for benchmarks
+--   We need the typeclass because tasty-papi defines a different Benchmarkable type
+class BenchmarkClass a where
+  whnf  :: (b -> c) -> b -> a
+
+  type Benchmark a = r | r -> a
+  env   :: NFData env => IO env -> (env -> Benchmark a) -> Benchmark a
+  bench :: String -> a -> Benchmark a
+
+  type Options a = r | r -> a
+  runWithOptions :: Options a -> [Benchmark a] -> IO ()
+
+-- | Instance for criterion benchmarks
+instance BenchmarkClass Crit.Benchmarkable where
+  whnf = Crit.whnf
+
+  type Benchmark Crit.Benchmarkable = Crit.Benchmark
+  env   = Crit.env
+  bench = Crit.bench
+
+  type Options Crit.Benchmarkable = Mode
+  runWithOptions = Crit.runMode
+
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report
    to be generated.  If run via stack/cabal this will be written to the
    `plutus-benchmark` directory by default.  The -o option can be used to change
@@ -71,7 +99,7 @@ getConfig limit = do
   templateDir <- getDataFileName ("common" </> "templates")
   -- Include number of iterations in HTML report
   let templateFile = templateDir </> "with-iterations" <.> "tpl"
-  pure $ defaultConfig {
+  pure $ Crit.defaultConfig {
                 template = templateFile,
                 reportFile = Just "report.html",
                 timeLimit = limit
@@ -135,12 +163,12 @@ evaluateCekForBench
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
-benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
+benchTermCek :: BenchmarkClass a => LedgerApi.EvaluationContext -> Term -> a
 benchTermCek evalCtx term =
     let !term' = force term
     in whnf (evaluateCekForBench evalCtx) term'
 
-benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
+benchProgramCek :: BenchmarkClass a => LedgerApi.EvaluationContext -> Program -> a
 benchProgramCek evalCtx (UPLC.Program _ _ term) =
   benchTermCek evalCtx term
 
