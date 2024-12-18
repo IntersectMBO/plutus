@@ -85,7 +85,7 @@ multiple of 8; if $s$ is a sequence such that $\length(s)$ is already a multiple
 then $\pad$ still adds an extra byte of padding; $\pad$ is used both for
 internal alignment (for example, to make sure that the contents of a bytestring
 are aligned on byte boundaries) and at the end of a complete encoding of a
-Plutus Core program to to make the length a multiple of 8 bits.
+Plutus Core program to make the length a multiple of 8 bits.
 Symbolically,
 $$
 \pad(s)  = s \cdot \pp{k} \quad \text{if $\length(s) = 8n+k$ with $n,k \in \N$ and $0 \leq k \leq 7$}
