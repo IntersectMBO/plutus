@@ -1,9 +1,11 @@
  -- editorconfig-checker-disable
 
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
 
+import Control.Exception qualified as E
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (SrcSpan)
 import PlutusCore.Data (Data)
@@ -19,6 +21,8 @@ import PlutusPrelude
 
 import Untyped qualified as AgdaFFI
 
+import Data.FileEmbed qualified as FileEmbed
+import Debug.Trace (traceM)
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
@@ -28,14 +32,17 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Transform.Simplifier
 
 import Control.DeepSeq (force)
-import Control.Monad.Except (runExcept)
+import Control.Monad.Except (catchError, runExcept, throwError)
 import Control.Monad.IO.Class (liftIO)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
+import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy as BSL (readFile)
 import Data.Foldable
 import Data.List.Split (splitOn)
+import Data.Maybe (fromJust)
+import Data.Strict.Maybe qualified as Maybe.Strict
 import Data.Text qualified as T
 import Flat (unflat)
 import Options.Applicative
@@ -45,6 +52,14 @@ import System.FilePath ((</>))
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
+-- import Data.ByteString qualified as BS
+-- import Data.ByteString.Lazy qualified as BSL
+-- import Data.ByteString.Char8 qualified as BSL8
+
+import Data.ByteString qualified as BS
+import Data.ByteString.Char8 qualified as BS8
+import Data.ByteString.Lazy qualified as BSL
+
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
@@ -52,16 +67,35 @@ import Agda.Interaction.Base (ComputeMode (DefaultCompute))
 import Agda.Interaction.FindFile qualified as HAgda.File
 import Agda.Interaction.Imports qualified as HAgda.Imp
 import Agda.Interaction.Options (CommandLineOptions (optIncludePaths), defaultOptions)
+import Agda.Interaction.Options qualified as HAgda.Options
 import Agda.Syntax.Parser qualified as HAgda.Parser
+import Agda.TypeChecking.Serialise qualified as HAgda.Serialise
+import Agda.Utils.Trie qualified as HAgda.Trie
 
-import Agda.Compiler.Backend (crInterface, iInsideScope, setCommandLineOptions, setScope)
+import Agda.Benchmarking (Phase (Deserialization), billToPure)
+import Agda.Compiler.Backend (Interface, TCErr (..), TCM, crInterface, iInsideScope, iScope,
+                              setCommandLineOptions, setScope)
 import Agda.Interaction.BasicOps (evalInCurrent)
 import Agda.Main (runTCMPrettyErrors)
+import Agda.Syntax.Scope.Base (publicModules)
 import Agda.Syntax.Translation.ConcreteToAbstract (ToAbstract (toAbstract))
 import Agda.TypeChecking.Pretty (PrettyTCM (..))
+import Agda.TypeChecking.Serialise.Base
+import Agda.TypeChecking.Serialise.Base (runGetState)
+import Agda.TypeChecking.Serialise.Instances ()
 import Agda.Utils.FileName qualified as HAgda.File
+import Agda.Utils.IO.Binary (readBinaryFile')
+import Agda.Utils.Null qualified as Agda.Null
 import AgdaUnparse (agdaUnparse)
+import Codec.Compression.Zlib.Internal qualified as Z
+import Data.Binary qualified as B
+import Data.Binary.Get qualified as B
+import Data.Binary.Put qualified as B
+import Data.ByteString.Builder (byteString, toLazyByteString)
+import Data.Word
+import Debug.Trace (traceShowM)
 import System.Environment (getEnv)
+
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -136,7 +170,7 @@ benchmarkOpts =
           (  long "time-limit"
           <> short 'T'
           <> metavar "TIME LIMIT"
-          <> value 5.0
+          <> Options.Applicative.value 5.0
           <> showDefault
           <> help "Time limit (in seconds) for benchmarking.")
 
@@ -318,24 +352,113 @@ runAgda certName rawTrace = do
           Left err       -> error $ show err
   stdlibPath <- getEnv "AGDA_STDLIB_SRC"
   metatheoryPath <- getEnv "PLUTUS_METHATHEORY_SRC"
-  inputFile <- HAgda.File.absolute (metatheoryPath </> "Certifier.agda")
+  -- let ifacePath = "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src"
+  inputFile <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/agda-interfaces/src/Certifier.agdai")
+  interfaceDir <- HAgda.File.absolute ("/home/ana/Workspace/IOG/plutus/agda-interfaces/src")
+  Just ifaceFile <- HAgda.File.mkInterfaceFile inputFile
+  -- let ifaceFile = HAgda.File.InterfaceFile "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai"
+  -- let embeddedInterfaceFile :: BS.ByteString
+  -- let embeddedInterfaceFile = BS8.fromStrict $(FileEmbed.embedFile "/home/ana/Workspace/IOG/plutus/plutus-metatheory/_build/2.7.0.1/agda/src/Certifier.agdai")
   runTCMPrettyErrors $ do
     let opts =
+          -- defaultOptions
+          --   { HAgda.Options.optTraceImports = 42
+          --   , HAgda.Options.optPragmaOptions = HAgda.Options.defaultPragmaOptions
+          --       { HAgda.Options._optVerbose = Maybe.Strict.Just (HAgda.Trie.singleton [] 0)
+          --       }
+          --   }
           defaultOptions
-            { optIncludePaths =
-                [ metatheoryPath
-                , stdlibPath
-                ]
+            { HAgda.Options.optAbsoluteIncludePaths = [interfaceDir]
+             -- [ metatheoryPath </> "_build/2.7.0.1/agda/src"
+             --  , stdlibPath </> "../_build/2.7.0.1/agda/src"
+             -- ]
             }
+    -- traceShowM opts
     setCommandLineOptions opts
-    result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck =<< HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
-    let interface = crInterface result
-        insideScope = iInsideScope interface
+    -- aaaa <- HAgda.Imp.parseSource (HAgda.File.SourceFile inputFile)
+    -- traceM "asasdads"
+    -- result <- HAgda.Imp.typeCheckMain HAgda.Imp.TypeCheck aaaa
+    -- let interface = crInterface result
+    Just interface <- readInterface ifaceFile
+    -- interface <- HAgda.Serialise.decodeInterface embeddedInterfaceFile
+    -- traceShowM interface
+    let insideScope = iInsideScope interface
+    -- let insideScope = iInsideScope (fromJust interface)
     setScope insideScope
     internalisedTrace <- toAbstract parsedTrace
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
     final <- prettyTCM decisionProcedureResult
     liftIO $ writeFile (certName ++ ".agda") (show final)
+
+readInterface :: HAgda.File.InterfaceFile -> TCM (Maybe Agda.Compiler.Backend.Interface)
+readInterface file = do
+    let ifp = HAgda.File.filePath $ HAgda.File.intFilePath file
+    -- Decode the interface file
+    (s, close) <- liftIO $ readBinaryFile' ifp
+    do  mi <- liftIO . E.evaluate =<< decodeInterface s
+
+        -- Close the file. Note
+        -- ⑴ that evaluate ensures that i is evaluated to WHNF (before
+        --   the next IO operation is executed), and
+        -- ⑵ that decode returns Nothing if an error is encountered,
+        -- so it is safe to close the file here.
+        liftIO close
+
+        res <- return $ constructIScope <$> mi
+        return res
+      -- Catch exceptions and close
+      `catchError` \e -> liftIO close >> handler e
+  -- Catch exceptions
+  `catchError` handler
+  where
+    handler = \case
+      IOException _ _ e -> do
+        -- alwaysReportSLn "" 0 $ "IO exception: " ++ show e
+        return Nothing   -- Work-around for file locking bug.
+                         -- TODO: What does this refer to? Please
+                         -- document.
+      e -> throwError e
+
+constructIScope :: Interface -> Interface
+constructIScope i = billToPure [ Deserialization ] $
+  i{ iScope = publicModules $ iInsideScope i }
+
+currentInterfaceVersion :: B.Word64
+currentInterfaceVersion = 20240629 * 10 + 0
+
+decodeInterface :: ByteString -> TCM (Maybe Interface)
+decodeInterface s = do
+
+  -- Note that runGetState and the decompression code below can raise
+  -- errors if the input is malformed. The decoder is (intended to be)
+  -- strict enough to ensure that all such errors can be caught by the
+  -- handler here or the one in decode.
+
+  s <- liftIO $
+       E.handle (\(E.ErrorCall s) -> return (Left s)) $
+       E.evaluate $
+       let (ver, s', _) = runGetState B.get (BSL.drop 16 s) 0 in
+       if ver /= currentInterfaceVersion
+       then Left "Wrong interface version."
+       else Right $
+            toLazyByteString $
+            Z.foldDecompressStreamWithInput
+              (\s -> (byteString s <>))
+              (\s -> if Agda.Null.null s
+                     then mempty
+                     else error "Garbage at end.")
+              (\err -> error (show err))
+              (Z.decompressST Z.gzipFormat Z.defaultDecompressParams)
+              s'
+
+  case s of
+    Right s  -> do
+      traceM "hello"
+      HAgda.Serialise.decode s
+    Left err -> do
+      -- reportSLn "import.iface" 5 $
+      --   "Error when decoding interface file: " ++ err
+      return Nothing
 
 ---------------- Script application ----------------
 
