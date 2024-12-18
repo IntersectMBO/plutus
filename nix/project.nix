@@ -48,13 +48,6 @@ let
       };
 
       modules = [
-
-        (lib.mkIf (!isCompilingMingwW64 && !isCompilingMusl64)
-          repoRoot.nix.agda.agda-project-module-patch-default)
-
-        (lib.mkIf isCompilingMusl64
-          repoRoot.nix.agda.agda-project-module-patch-musl64)
-
         # Common
         {
           packages = {
@@ -70,9 +63,6 @@ let
 
             plutus-executables.components.exes.uplc.build-tools =
               [ repoRoot.nix.agda.agda-with-stdlib ];
-            # plutus-executables.components.exes.uplc.postInstall = ''
-            #   wrapProgram $out/bin/uplc ${repoRoot.nix.agda.wrap-program-args}
-            # '';
 
             plutus-executables.components.tests.test-simple.build-tools =
               [ repoRoot.nix.agda.agda-with-stdlib ];
