@@ -335,7 +335,7 @@ runAgda certName rawTrace = do
     internalisedTrace <- toAbstract parsedTrace
     decisionProcedureResult <- evalInCurrent DefaultCompute internalisedTrace
     final <- prettyTCM decisionProcedureResult
-    liftIO $ writeFile (certName ++ ".agda") (show final)
+    liftIO $ writeFile certName (show final)
 
 ---------------- Script application ----------------
 
