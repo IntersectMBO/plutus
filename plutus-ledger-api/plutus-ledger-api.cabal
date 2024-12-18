@@ -70,6 +70,7 @@ library
     PlutusLedgerApi.V1.Data.Address
     PlutusLedgerApi.V1.Data.Contexts
     PlutusLedgerApi.V1.Data.Credential
+    PlutusLedgerApi.V1.Data.DCert
     PlutusLedgerApi.V1.Data.Interval
     PlutusLedgerApi.V1.Data.Time
     PlutusLedgerApi.V1.Data.Tx

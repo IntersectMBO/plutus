@@ -39,8 +39,15 @@ module PlutusLedgerApi.Data.V1 (
   assertWellFormedCostModelParams,
 
   -- * Context types
-  ScriptContext (..),
-  ScriptPurpose (..),
+  ScriptContext,
+  pattern ScriptContext,
+  scriptContextTxInfo,
+  scriptContextPurpose,
+  ScriptPurpose,
+  pattern Minting,
+  pattern Spending,
+  pattern Rewarding,
+  pattern Certifying,
 
   -- ** Supporting types used in the context types
 
@@ -54,7 +61,14 @@ module PlutusLedgerApi.Data.V1 (
   fromBytes,
 
   -- *** Certificates
-  DCert (..),
+  DCert,
+  pattern DCertDelegRegKey,
+  pattern DCertDelegDeRegKey,
+  pattern DCertDelegDelegate,
+  pattern DCertPoolRegister,
+  pattern DCertPoolRetire,
+  pattern DCertGenesis,
+  pattern DCertMir,
 
   -- *** Credentials
   StakingCredential,
@@ -85,10 +99,31 @@ module PlutusLedgerApi.Data.V1 (
   addressStakingCredential,
   PubKeyHash (..),
   TxId (..),
-  TxInfo (..),
-  TxOut (..),
-  TxOutRef (..),
-  TxInInfo (..),
+  TxInfo,
+  pattern TxInfo,
+  txInfoInputs,
+  txInfoOutputs,
+  txInfoFee,
+  txInfoMint,
+  txInfoDCert,
+  txInfoWdrl,
+  txInfoValidRange,
+  txInfoSignatories,
+  txInfoData,
+  txInfoId,
+  TxOut,
+  pattern TxOut,
+  txOutAddress,
+  txOutValue,
+  txOutDatumHash,
+  TxOutRef,
+  pattern TxOutRef,
+  txOutRefId,
+  txOutRefIdx,
+  TxInInfo,
+  pattern TxInInfo,
+  txInInfoOutRef,
+  txInInfoResolved,
 
   -- *** Intervals
   Interval,
@@ -147,10 +182,10 @@ import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Contexts
 import PlutusLedgerApi.V1.Data.Credential
+import PlutusLedgerApi.V1.Data.DCert
 import PlutusLedgerApi.V1.Data.Interval hiding (singleton)
 import PlutusLedgerApi.V1.Data.Time
 import PlutusLedgerApi.V1.Data.Value
-import PlutusLedgerApi.V1.DCert
 import PlutusLedgerApi.V1.EvaluationContext
 import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
