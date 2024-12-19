@@ -1,0 +1,814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Emitter</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	><span class="hs-identifier"
+	  >Emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#runEmitter"
+	><span class="hs-identifier"
+	  >runEmitter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#MonadEmitter"
+	><span class="hs-identifier"
+	  >MonadEmitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Monad.Trans.Writer.Strict</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Writer</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>runWriter</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>tell</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.DList</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>DList</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Text</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A monad for logging.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Emitter"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	  ><span class="hs-identifier hs-var"
+	    >Emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681541670"
+      ><span class="annot"
+	><a href="#local-6989586621681541670"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Emitter"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	  ><span class="hs-identifier hs-var"
+	    >Emitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Emitter a -&gt; Writer (DList Text) a
+</span
+	  ><a href="PlutusCore.Builtin.Emitter.html#unEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Writer</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>DList</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Text</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681541670"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681541746"
+      ><span id="local-6989586621681541752"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; Emitter a -&gt; Emitter b)
+-&gt; (forall a b. a -&gt; Emitter b -&gt; Emitter a) -&gt; Functor Emitter
+forall a b. a -&gt; Emitter b -&gt; Emitter a
+forall a b. (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+fmap :: forall a b. (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+$c&lt;$ :: forall a b. a -&gt; Emitter b -&gt; Emitter a
+&lt;$ :: forall a b. a -&gt; Emitter b -&gt; Emitter a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681541762"
+      ><span id="local-6989586621681541769"
+	><span id="local-6989586621681541775"
+	  ><span id="local-6989586621681541781"
+	    ><span id="local-6989586621681541787"
+	      ><span class="annot"
+		><span class="annottext"
+		  >Functor Emitter
+Functor Emitter =&gt;
+(forall a. a -&gt; Emitter a)
+-&gt; (forall a b. Emitter (a -&gt; b) -&gt; Emitter a -&gt; Emitter b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c) -&gt; Emitter a -&gt; Emitter b -&gt; Emitter c)
+-&gt; (forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b)
+-&gt; (forall a b. Emitter a -&gt; Emitter b -&gt; Emitter a)
+-&gt; Applicative Emitter
+forall a. a -&gt; Emitter a
+forall a b. Emitter a -&gt; Emitter b -&gt; Emitter a
+forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+forall a b. Emitter (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+forall a b c. (a -&gt; b -&gt; c) -&gt; Emitter a -&gt; Emitter b -&gt; Emitter c
+forall (f :: * -&gt; *).
+Functor f =&gt;
+(forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+$cpure :: forall a. a -&gt; Emitter a
+pure :: forall a. a -&gt; Emitter a
+$c&lt;*&gt; :: forall a b. Emitter (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+&lt;*&gt; :: forall a b. Emitter (a -&gt; b) -&gt; Emitter a -&gt; Emitter b
+$cliftA2 :: forall a b c. (a -&gt; b -&gt; c) -&gt; Emitter a -&gt; Emitter b -&gt; Emitter c
+liftA2 :: forall a b c. (a -&gt; b -&gt; c) -&gt; Emitter a -&gt; Emitter b -&gt; Emitter c
+$c*&gt; :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+*&gt; :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+$c&lt;* :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter a
+&lt;* :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter a
+</span
+		  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Applicative"
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		    >Applicative</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681541799"
+      ><span id="local-6989586621681541806"
+	><span id="local-6989586621681541812"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Applicative Emitter
+Applicative Emitter =&gt;
+(forall a b. Emitter a -&gt; (a -&gt; Emitter b) -&gt; Emitter b)
+-&gt; (forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b)
+-&gt; (forall a. a -&gt; Emitter a)
+-&gt; Monad Emitter
+forall a. a -&gt; Emitter a
+forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+forall a b. Emitter a -&gt; (a -&gt; Emitter b) -&gt; Emitter b
+forall (m :: * -&gt; *).
+Applicative m =&gt;
+(forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+$c&gt;&gt;= :: forall a b. Emitter a -&gt; (a -&gt; Emitter b) -&gt; Emitter b
+&gt;&gt;= :: forall a b. Emitter a -&gt; (a -&gt; Emitter b) -&gt; Emitter b
+$c&gt;&gt; :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+&gt;&gt; :: forall a b. Emitter a -&gt; Emitter b -&gt; Emitter b
+$creturn :: forall a. a -&gt; Emitter a
+return :: forall a. a -&gt; Emitter a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Monad"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monad</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span id="local-6989586621681541729"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#runEmitter"
+	  ><span class="hs-identifier hs-type"
+	    >runEmitter</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	  ><span class="hs-identifier hs-type"
+	    >Emitter</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681541729"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621681541729"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >DList</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="runEmitter"
+      ><span class="annot"
+	><span class="annottext"
+	  >runEmitter :: forall a. Emitter a -&gt; (a, DList Text)
+</span
+	  ><a href="PlutusCore.Builtin.Emitter.html#runEmitter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Writer (DList Text) a -&gt; (a, DList Text)
+forall w a. Writer w a -&gt; (a, w)
+</span
+	><span class="hs-identifier hs-var"
+	>runWriter</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Writer (DList Text) a -&gt; (a, DList Text))
+-&gt; (Emitter a -&gt; Writer (DList Text) a)
+-&gt; Emitter a
+-&gt; (a, DList Text)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Emitter a -&gt; Writer (DList Text) a
+forall a. Emitter a -&gt; Writer (DList Text) a
+</span
+	><a href="PlutusCore.Builtin.Emitter.html#unEmitter"
+	><span class="hs-identifier hs-var"
+	  >unEmitter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#runEmitter"
+	><span class="hs-pragma hs-type"
+	  >runEmitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A type class for \&quot;this monad supports logging\&quot;.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="MonadEmitter"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#MonadEmitter"
+	  ><span class="hs-identifier hs-var"
+	    >MonadEmitter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681541737"
+      ><span class="annot"
+	><a href="#local-6989586621681541737"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span id="emit"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Emitter.html#emit"
+	  ><span class="hs-identifier hs-type"
+	    >emit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Text</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681541737"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#MonadEmitter"
+	><span class="hs-identifier hs-type"
+	  >MonadEmitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	><span class="hs-identifier hs-type"
+	  >Emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681541828"
+      ><span class="annot"
+	><span class="annottext"
+	  >emit :: Text -&gt; Emitter ()
+</span
+	  ><a href="PlutusCore.Builtin.Emitter.html#emit"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >emit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Writer (DList Text) () -&gt; Emitter ()
+forall a. Writer (DList Text) a -&gt; Emitter a
+</span
+	><a href="PlutusCore.Builtin.Emitter.html#Emitter"
+	><span class="hs-identifier hs-var"
+	  >Emitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Writer (DList Text) () -&gt; Emitter ())
+-&gt; (Text -&gt; Writer (DList Text) ()) -&gt; Text -&gt; Emitter ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; Writer (DList Text) ()
+forall (m :: * -&gt; *) w. Monad m =&gt; w -&gt; WriterT w m ()
+</span
+	><span class="hs-identifier hs-var"
+	>tell</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DList Text -&gt; Writer (DList Text) ())
+-&gt; (Text -&gt; DList Text) -&gt; Text -&gt; Writer (DList Text) ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DList Text
+forall a. a -&gt; DList a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Emitter.html#emit"
+	><span class="hs-pragma hs-type"
+	  >emit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,5103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Error</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#CompileError"
+	><span class="hs-identifier"
+	  >CompileError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#Error"
+	><span class="hs-identifier"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	><span class="hs-identifier"
+	  >WithContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#withContext"
+	><span class="hs-identifier"
+	  >withContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#withContextM"
+	><span class="hs-identifier"
+	  >withContextM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#throwPlain"
+	><span class="hs-identifier"
+	  >throwPlain</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#pruneContext"
+	><span class="hs-identifier"
+	  >pruneContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PP</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- | An error with some (nested) context. The integer argument to 'WithContextC' represents</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- the priority of the context when displaying it. Lower numbers are more prioritised.</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="WithContext"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#WithContext"
+	  ><span class="hs-identifier hs-var"
+	    >WithContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679457719"
+      ><span class="annot"
+	><a href="#local-6989586621679457719"
+	  ><span class="hs-identifier hs-type"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679457720"
+      ><span class="annot"
+	><a href="#local-6989586621679457720"
+	  ><span class="hs-identifier hs-type"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="NoContext"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#NoContext"
+	  ><span class="hs-identifier hs-var"
+	    >NoContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457720"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="WithContextC"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	  ><span class="hs-identifier hs-var"
+	    >WithContextC</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457719"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	><span class="hs-identifier hs-type"
+	  >WithContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457719"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457720"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458026"
+      ><span id="local-6989586621679458030"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b. (a -&gt; b) -&gt; WithContext c a -&gt; WithContext c b)
+-&gt; (forall a b. a -&gt; WithContext c b -&gt; WithContext c a)
+-&gt; Functor (WithContext c)
+forall a b. a -&gt; WithContext c b -&gt; WithContext c a
+forall a b. (a -&gt; b) -&gt; WithContext c a -&gt; WithContext c b
+forall c a b. a -&gt; WithContext c b -&gt; WithContext c a
+forall c a b. (a -&gt; b) -&gt; WithContext c a -&gt; WithContext c b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall c a b. (a -&gt; b) -&gt; WithContext c a -&gt; WithContext c b
+fmap :: forall a b. (a -&gt; b) -&gt; WithContext c a -&gt; WithContext c b
+$c&lt;$ :: forall c a b. a -&gt; WithContext c b -&gt; WithContext c a
+&lt;$ :: forall a b. a -&gt; WithContext c b -&gt; WithContext c a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span id="AsWithContext"
+      ><span id="local-6989586621679457718"
+	><span id="local-6989586621679457719"
+	  ><span id="local-6989586621679457720"
+	    ><span id="local-6989586621679458034"
+	      ><span id="local-6989586621679458044"
+		><span id="local-6989586621679458054"
+		  ><span id="local-6989586621679458058"
+		    ><span id="local-6989586621679458064"
+		      ><span id="_WithContext"
+			><span id="_NoContext"
+			  ><span id="_WithContextC"
+			    ><span class="hs-identifier"
+			      >makeClassyPrisms</span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >''</span
+			      ><span class="hs-identifier"
+			      >WithContext</span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CompileError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#CompileError"
+	  ><span class="hs-identifier hs-var"
+	    >CompileError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458086"
+      ><span class="annot"
+	><a href="#local-6989586621679458086"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458087"
+      ><span class="annot"
+	><a href="#local-6989586621679458087"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458088"
+      ><span class="annot"
+	><a href="#local-6989586621679458088"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	><span class="hs-identifier hs-type"
+	  >WithContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679458086"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679458087"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679458088"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="local-6989586621679457743"
+      ><span id="local-6989586621679457744"
+	><span id="local-6989586621679457745"
+	  ><span id="local-6989586621679457747"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#withContext"
+		><span class="hs-identifier hs-type"
+		  >withContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+		><span class="hs-identifier hs-type"
+		  >WithContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457743"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457744"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457745"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+		><span class="hs-identifier hs-type"
+		  >Int</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457743"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457745"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457747"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457745"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457747"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="withContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >withContext :: forall c e (m :: * -&gt; *) a.
+MonadError (WithContext c e) m =&gt;
+Int -&gt; c -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Error.html#withContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458092"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679458092"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458093"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621679458093"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458094"
+      ><span class="annot"
+	><span class="annottext"
+	  >m a
+</span
+	  ><a href="#local-6989586621679458094"
+	  ><span class="hs-identifier hs-var"
+	    >act</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a -&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall a. m a -&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall e (m :: * -&gt; *) a.
+MonadError e m =&gt;
+m a -&gt; (e -&gt; m a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#catchError"
+	><span class="hs-identifier hs-var"
+	  >catchError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a
+</span
+	><a href="#local-6989586621679458094"
+	><span class="hs-identifier hs-var"
+	  >act</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((WithContext c e -&gt; m a) -&gt; m a)
+-&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679458096"
+      ><span class="annot"
+	><span class="annottext"
+	  >WithContext c e
+</span
+	  ><a href="#local-6989586621679458096"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e -&gt; m a
+forall a. WithContext c e -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+forall c e. Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	><span class="hs-identifier hs-var"
+	  >WithContextC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458092"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621679458093"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458096"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621679457759"
+      ><span id="local-6989586621679457760"
+	><span id="local-6989586621679457761"
+	  ><span id="local-6989586621679457762"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#withContextM"
+		><span class="hs-identifier hs-type"
+		  >withContextM</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+		><span class="hs-identifier hs-type"
+		  >WithContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457759"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457760"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457761"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+		><span class="hs-identifier hs-type"
+		  >Int</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457761"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457759"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457761"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457762"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457761"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457762"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="withContextM"
+      ><span class="annot"
+	><span class="annottext"
+	  >withContextM :: forall c e (m :: * -&gt; *) a.
+MonadError (WithContext c e) m =&gt;
+Int -&gt; m c -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Error.html#withContextM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458104"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679458104"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458105"
+      ><span class="annot"
+	><span class="annottext"
+	  >m c
+</span
+	  ><a href="#local-6989586621679458105"
+	  ><span class="hs-identifier hs-var"
+	    >mc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458106"
+      ><span class="annot"
+	><span class="annottext"
+	  >m a
+</span
+	  ><a href="#local-6989586621679458106"
+	  ><span class="hs-identifier hs-var"
+	    >act</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458107"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621679458107"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m c
+</span
+	><a href="#local-6989586621679458105"
+	><span class="hs-identifier hs-var"
+	  >mc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a -&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall a. m a -&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall e (m :: * -&gt; *) a.
+MonadError e m =&gt;
+m a -&gt; (e -&gt; m a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#catchError"
+	><span class="hs-identifier hs-var"
+	  >catchError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m a
+</span
+	><a href="#local-6989586621679458106"
+	><span class="hs-identifier hs-var"
+	  >act</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((WithContext c e -&gt; m a) -&gt; m a)
+-&gt; (WithContext c e -&gt; m a) -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679458108"
+      ><span class="annot"
+	><span class="annottext"
+	  >WithContext c e
+</span
+	  ><a href="#local-6989586621679458108"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e -&gt; m a
+forall a. WithContext c e -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+forall c e. Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	><span class="hs-identifier hs-var"
+	  >WithContextC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458104"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621679458107"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458108"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="local-6989586621679457767"
+      ><span id="local-6989586621679457768"
+	><span id="local-6989586621679457769"
+	  ><span id="local-6989586621679457770"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#throwPlain"
+		><span class="hs-identifier hs-type"
+		  >throwPlain</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#WithContext"
+		><span class="hs-identifier hs-type"
+		  >WithContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457767"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457768"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457769"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457768"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457769"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457770"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="throwPlain"
+      ><span class="annot"
+	><span class="annottext"
+	  >throwPlain :: forall c e (m :: * -&gt; *) a.
+MonadError (WithContext c e) m =&gt;
+e -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Error.html#throwPlain"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >throwPlain</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e -&gt; m a
+forall a. WithContext c e -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(WithContext c e -&gt; m a) -&gt; (e -&gt; WithContext c e) -&gt; e -&gt; m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e -&gt; WithContext c e
+forall c e. e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#NoContext"
+	><span class="hs-identifier hs-var"
+	  >NoContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="local-6989586621679457775"
+      ><span id="local-6989586621679457776"
+	><span class="annot"
+	  ><a href="PlutusTx.Compiler.Error.html#pruneContext"
+	    ><span class="hs-identifier hs-type"
+	      >pruneContext</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	    ><span class="hs-identifier hs-type"
+	      >Int</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	    ><span class="hs-identifier hs-type"
+	      >WithContext</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679457775"
+	    ><span class="hs-identifier hs-type"
+	      >c</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679457776"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	    ><span class="hs-identifier hs-type"
+	      >WithContext</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679457775"
+	    ><span class="hs-identifier hs-type"
+	      >c</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679457776"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="pruneContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >pruneContext :: forall c e. Int -&gt; WithContext c e -&gt; WithContext c e
+</span
+	  ><a href="PlutusTx.Compiler.Error.html#pruneContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >pruneContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458113"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679458113"
+	  ><span class="hs-identifier hs-var"
+	    >prio</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#NoContext"
+	><span class="hs-identifier hs-type"
+	  >NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458114"
+      ><span class="annot"
+	><span class="annottext"
+	  >e
+</span
+	  ><a href="#local-6989586621679458114"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e -&gt; WithContext c e
+forall c e. e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#NoContext"
+	><span class="hs-identifier hs-var"
+	  >NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e
+</span
+	><a href="#local-6989586621679458114"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	><span class="hs-identifier hs-type"
+	  >WithContextC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458115"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679458115"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458116"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621679458116"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458117"
+      ><span class="annot"
+	><span class="annottext"
+	  >WithContext c e
+</span
+	  ><a href="#local-6989586621679458117"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679458118"
+      ><span class="annot"
+	><span class="annottext"
+	  >inner :: WithContext c e
+</span
+	  ><a href="#local-6989586621679458118"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inner</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; WithContext c e -&gt; WithContext c e
+forall c e. Int -&gt; WithContext c e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#pruneContext"
+	><span class="hs-identifier hs-var"
+	  >pruneContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458113"
+	><span class="hs-identifier hs-var"
+	  >prio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458117"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458115"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458113"
+	><span class="hs-identifier hs-var"
+	  >prio</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458118"
+	><span class="hs-identifier hs-var"
+	  >inner</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+forall c e. Int -&gt; c -&gt; WithContext c e -&gt; WithContext c e
+</span
+	><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	><span class="hs-identifier hs-var"
+	  >WithContextC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679458115"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621679458116"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458118"
+	><span class="hs-identifier hs-var"
+	  >inner</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679457787"
+      ><span id="local-6989586621679457788"
+	><span id="local-6989586621679458124"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>PP.Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679457787"
+	      ><span class="hs-identifier hs-type"
+		>c</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>PP.Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679457788"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>PP.Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Compiler.Error.html#WithContext"
+	      ><span class="hs-identifier hs-type"
+		>WithContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679457787"
+	      ><span class="hs-identifier hs-type"
+		>c</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679457788"
+	      ><span class="hs-identifier hs-type"
+		>e</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458134"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. WithContext c e -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679458134"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#NoContext"
+	><span class="hs-identifier hs-type"
+	  >NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458136"
+      ><span class="annot"
+	><span class="annottext"
+	  >e
+</span
+	  ><a href="#local-6989586621679458136"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Error:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#align"
+	><span class="hs-identifier hs-var"
+	  >PP.align</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; Doc ann) -&gt; Doc ann -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e -&gt; Doc ann
+forall ann. e -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e
+</span
+	><a href="#local-6989586621679458136"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#WithContextC"
+	><span class="hs-identifier hs-type"
+	  >WithContextC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458139"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621679458139"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458140"
+      ><span class="annot"
+	><span class="annottext"
+	  >WithContext c e
+</span
+	  ><a href="#local-6989586621679458140"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#vsep"
+	><span class="hs-identifier hs-var"
+	  >PP.vsep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. WithContext c e -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WithContext c e
+</span
+	><a href="#local-6989586621679458140"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Context:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#align"
+	><span class="hs-identifier hs-var"
+	  >PP.align</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; Doc ann) -&gt; Doc ann -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; Doc ann
+forall ann. c -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621679458139"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Error"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#Error"
+	  ><span class="hs-identifier hs-var"
+	    >Error</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679457804"
+      ><span class="annot"
+	><a href="#local-6989586621679457804"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679457805"
+      ><span class="annot"
+	><a href="#local-6989586621679457805"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679457806"
+      ><span class="annot"
+	><a href="#local-6989586621679457806"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="PLCError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#PLCError"
+	  ><span class="hs-identifier hs-var"
+	    >PLCError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+	><span class="hs-identifier hs-type"
+	  >PLC.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457804"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457805"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457806"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="PIRError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#PIRError"
+	  ><span class="hs-identifier hs-var"
+	    >PIRError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Error.html#Error"
+	><span class="hs-identifier hs-type"
+	  >PIR.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457804"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457805"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >PIR.Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679457806"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CompilationError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#CompilationError"
+	  ><span class="hs-identifier hs-var"
+	    >CompilationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="UnsupportedError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#UnsupportedError"
+	  ><span class="hs-identifier hs-var"
+	    >UnsupportedError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="FreeVariableError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#FreeVariableError"
+	  ><span class="hs-identifier hs-var"
+	    >FreeVariableError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="InvalidMarkerError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#InvalidMarkerError"
+	  ><span class="hs-identifier hs-var"
+	    >InvalidMarkerError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CoreNameLookupError"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Error.html#CoreNameLookupError"
+	  ><span class="hs-identifier hs-var"
+	    >CoreNameLookupError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier hs-type"
+	  >TH.Name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span id="AsError"
+      ><span id="local-6989586621679457803"
+	><span id="local-6989586621679457804"
+	  ><span id="local-6989586621679457805"
+	    ><span id="local-6989586621679457806"
+	      ><span id="local-6989586621679458150"
+		><span id="local-6989586621679458160"
+		  ><span id="local-6989586621679458169"
+		    ><span id="local-6989586621679458178"
+		      ><span id="local-6989586621679458187"
+			><span id="local-6989586621679458196"
+			  ><span id="local-6989586621679458205"
+			    ><span id="local-6989586621679458215"
+			      ><span id="local-6989586621679458219"
+				><span id="local-6989586621679458225"
+				  ><span id="local-6989586621679458231"
+				    ><span id="local-6989586621679458237"
+				      ><span id="local-6989586621679458243"
+					><span id="local-6989586621679458249"
+					  ><span id="local-6989586621679458255"
+					    ><span id="_Error"
+					      ><span id="_PLCError"
+						><span id="_PIRError"
+						  ><span id="_CompilationError"
+						    ><span id="_UnsupportedError"
+						      ><span id="_FreeVariableError"
+							><span id="_InvalidMarkerError"
+							  ><span id="_CoreNameLookupError"
+							    ><span class="hs-identifier"
+							      >makeClassyPrisms</span
+							      ><span
+							      > </span
+							      ><span class="hs-special"
+							      >''</span
+							      ><span class="hs-identifier"
+							      >Error</span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679457841"
+      ><span id="local-6989586621679457842"
+	><span id="local-6989586621679457843"
+	  ><span id="local-6989586621679458295"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyUni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457841"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457842"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457843"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457841"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457842"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457843"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458300"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Error uni fun a -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun a -&gt; Doc ann
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcClassicSimple"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyPlcClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679457890"
+      ><span id="local-6989586621679457891"
+	><span id="local-6989586621679457892"
+	  ><span id="local-6989586621679457893"
+	    ><span id="local-6989586621679457894"
+	      ><span id="local-6989586621679458306"
+		><span id="local-6989586621679458316"
+		  ><span id="local-6989586621679458324"
+		    ><span id="local-6989586621679458332"
+		      ><span id="local-6989586621679458340"
+			><span id="local-6989586621679458348"
+			  ><span id="local-6989586621679458356"
+			    ><span class="hs-special"
+			      >(</span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457890"
+				><span class="hs-identifier hs-type"
+				  >uni1</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+				><span class="hs-operator hs-type"
+				  >~</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457891"
+				><span class="hs-identifier hs-type"
+				  >uni2</span
+				  ></a
+				></span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457892"
+				><span class="hs-identifier hs-type"
+				  >b</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+				><span class="hs-operator hs-type"
+				  >~</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="../../plutus-core/src/PlutusIR.Compiler.Provenance.html#Provenance"
+				><span class="hs-identifier hs-type"
+				  >PIR.Provenance</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457893"
+				><span class="hs-identifier hs-type"
+				  >a</span
+				  ></a
+				></span
+			      ><span class="hs-special"
+			      >)</span
+			      ><span
+			      > </span
+			      ><span class="hs-glyph"
+			      >=&gt;</span
+			      ><span
+			      >
+</span
+			      ><span id="line-81"
+			      ></span
+			      ><span
+			      >    </span
+			      ><span class="annot"
+			      ><a href="../../plutus-core/src/PlutusCore.Error.html#AsTypeError"
+				><span class="hs-identifier hs-type"
+				  >PLC.AsTypeError</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >(</span
+			      ><span class="annot"
+			      ><a href="PlutusTx.Compiler.Error.html#CompileError"
+				><span class="hs-identifier hs-type"
+				  >CompileError</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457890"
+				><span class="hs-identifier hs-type"
+				  >uni1</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457894"
+				><span class="hs-identifier hs-type"
+				  >fun</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457893"
+				><span class="hs-identifier hs-type"
+				  >a</span
+				  ></a
+				></span
+			      ><span class="hs-special"
+			      >)</span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >(</span
+			      ><span class="annot"
+			      ><a href="../../plutus-core/src/PlutusIR.Core.Type.html#Term"
+				><span class="hs-identifier hs-type"
+				  >PIR.Term</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+				><span class="hs-identifier hs-type"
+				  >PIR.TyName</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+				><span class="hs-identifier hs-type"
+				  >PIR.Name</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457891"
+				><span class="hs-identifier hs-type"
+				  >uni2</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457894"
+				><span class="hs-identifier hs-type"
+				  >fun</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >(</span
+			      ><span class="hs-special"
+			      >)</span
+			      ><span class="hs-special"
+			      >)</span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457891"
+				><span class="hs-identifier hs-type"
+				  >uni2</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457894"
+				><span class="hs-identifier hs-type"
+				  >fun</span
+				  ></a
+				></span
+			      ><span
+			      > </span
+			      ><span class="annot"
+			      ><a href="#local-6989586621679457892"
+				><span class="hs-identifier hs-type"
+				  >b</span
+				  ></a
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458381"
+      ><span class="annot"
+	><span class="annottext"
+	  >_TypeError :: Prism'
+  (CompileError uni1 fun a)
+  (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+</span
+	  ><a href="#local-6989586621679458381"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_TypeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun a) (f (Error uni2 fun a))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall r c e. AsWithContext r c e =&gt; Prism' r e
+Prism' (CompileError uni1 fun a) (Error uni2 fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_NoContext"
+	><span class="hs-identifier hs-var"
+	  >_NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun a) (f (Error uni2 fun a))
+ -&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a)))
+-&gt; (p (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+      (f (TypeError (Term TyName Name uni2 fun ()) uni2 fun b))
+    -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; p (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+     (f (TypeError (Term TyName Name uni2 fun ()) uni2 fun b))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun (Provenance a))
+  (f (Error uni2 fun (Provenance a)))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall r (uni :: * -&gt; *) fun a.
+AsError r uni fun a =&gt;
+Prism' r (Error uni fun (Provenance a))
+Prism' (Error uni2 fun a) (Error uni2 fun (Provenance a))
+</span
+	><a href="PlutusTx.Compiler.Error.html#_PIRError"
+	><span class="hs-identifier hs-var"
+	  >_PIRError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun (Provenance a))
+   (f (Error uni2 fun (Provenance a)))
+ -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; (p (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+      (f (TypeError (Term TyName Name uni2 fun ()) uni2 fun b))
+    -&gt; p (Error uni2 fun (Provenance a))
+         (f (Error uni2 fun (Provenance a))))
+-&gt; p (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+     (f (TypeError (Term TyName Name uni2 fun ()) uni2 fun b))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+  (f (TypeError (Term TyName Name uni2 fun ()) uni2 fun b))
+-&gt; p (Error uni2 fun (Provenance a))
+     (f (Error uni2 fun (Provenance a)))
+forall r term (uni :: * -&gt; *) fun ann.
+AsTypeError r term uni fun ann =&gt;
+Prism' r (TypeError term uni fun ann)
+Prism'
+  (Error uni2 fun (Provenance a))
+  (TypeError (Term TyName Name uni2 fun ()) uni2 fun b)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Error.html#_TypeError"
+	><span class="hs-identifier hs-var"
+	  >PIR._TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679457912"
+      ><span id="local-6989586621679457913"
+	><span id="local-6989586621679457914"
+	  ><span id="local-6989586621679457915"
+	    ><span id="local-6989586621679457916"
+	      ><span id="local-6989586621679458387"
+		><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457912"
+		    ><span class="hs-identifier hs-type"
+		      >uni1</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457913"
+		    ><span class="hs-identifier hs-type"
+		      >uni2</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457914"
+		    ><span class="hs-identifier hs-type"
+		      >b</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusIR.Compiler.Provenance.html#Provenance"
+		    ><span class="hs-identifier hs-type"
+		      >PIR.Provenance</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457915"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  >
+</span
+		  ><span id="line-87"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusIR.Error.html#AsTypeErrorExt"
+		    ><span class="hs-identifier hs-type"
+		      >PIR.AsTypeErrorExt</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusTx.Compiler.Error.html#CompileError"
+		    ><span class="hs-identifier hs-type"
+		      >CompileError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457912"
+		    ><span class="hs-identifier hs-type"
+		      >uni1</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457916"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457915"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457913"
+		    ><span class="hs-identifier hs-type"
+		      >uni2</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457914"
+		    ><span class="hs-identifier hs-type"
+		      >b</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458414"
+      ><span class="annot"
+	><span class="annottext"
+	  >_TypeErrorExt :: Prism' (CompileError uni1 fun a) (TypeErrorExt uni2 b)
+</span
+	  ><a href="#local-6989586621679458414"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_TypeErrorExt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun a) (f (Error uni2 fun a))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall r c e. AsWithContext r c e =&gt; Prism' r e
+Prism' (CompileError uni1 fun a) (Error uni2 fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_NoContext"
+	><span class="hs-identifier hs-var"
+	  >_NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun a) (f (Error uni2 fun a))
+ -&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a)))
+-&gt; (p (TypeErrorExt uni2 b) (f (TypeErrorExt uni2 b))
+    -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; p (TypeErrorExt uni2 b) (f (TypeErrorExt uni2 b))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun (Provenance a))
+  (f (Error uni2 fun (Provenance a)))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall r (uni :: * -&gt; *) fun a.
+AsError r uni fun a =&gt;
+Prism' r (Error uni fun (Provenance a))
+Prism' (Error uni2 fun a) (Error uni2 fun (Provenance a))
+</span
+	><a href="PlutusTx.Compiler.Error.html#_PIRError"
+	><span class="hs-identifier hs-var"
+	  >_PIRError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun (Provenance a))
+   (f (Error uni2 fun (Provenance a)))
+ -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; (p (TypeErrorExt uni2 b) (f (TypeErrorExt uni2 b))
+    -&gt; p (Error uni2 fun (Provenance a))
+         (f (Error uni2 fun (Provenance a))))
+-&gt; p (TypeErrorExt uni2 b) (f (TypeErrorExt uni2 b))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (TypeErrorExt uni2 b) (f (TypeErrorExt uni2 b))
+-&gt; p (Error uni2 fun (Provenance a))
+     (f (Error uni2 fun (Provenance a)))
+forall r (uni :: * -&gt; *) ann.
+AsTypeErrorExt r uni ann =&gt;
+Prism' r (TypeErrorExt uni ann)
+Prism' (Error uni2 fun (Provenance a)) (TypeErrorExt uni2 b)
+</span
+	><a href="../../plutus-core/src/PlutusIR.Error.html#_TypeErrorExt"
+	><span class="hs-identifier hs-var"
+	  >PIR._TypeErrorExt</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679457939"
+      ><span id="local-6989586621679457940"
+	><span id="local-6989586621679457941"
+	  ><span id="local-6989586621679457942"
+	    ><span id="local-6989586621679458419"
+	      ><span id="local-6989586621679458428"
+		><span class="annot"
+		  ><a href="#local-6989586621679457939"
+		    ><span class="hs-identifier hs-type"
+		      >uni1</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		    ><span class="hs-operator hs-type"
+		      >~</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457940"
+		    ><span class="hs-identifier hs-type"
+		      >uni2</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Error.html#AsNormCheckError"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.AsNormCheckError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusTx.Compiler.Error.html#CompileError"
+		    ><span class="hs-identifier hs-type"
+		      >CompileError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457939"
+		    ><span class="hs-identifier hs-type"
+		      >uni1</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457941"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457942"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.TyName</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.Name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457940"
+		    ><span class="hs-identifier hs-type"
+		      >uni2</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457941"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457942"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458453"
+      ><span class="annot"
+	><span class="annottext"
+	  >_NormCheckError :: Prism'
+  (CompileError uni1 fun a) (NormCheckError TyName Name uni2 fun a)
+</span
+	  ><a href="#local-6989586621679458453"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_NormCheckError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun a) (f (Error uni2 fun a))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall r c e. AsWithContext r c e =&gt; Prism' r e
+Prism' (CompileError uni1 fun a) (Error uni2 fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_NoContext"
+	><span class="hs-identifier hs-var"
+	  >_NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun a) (f (Error uni2 fun a))
+ -&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a)))
+-&gt; (p (NormCheckError TyName Name uni2 fun a)
+      (f (NormCheckError TyName Name uni2 fun a))
+    -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; p (NormCheckError TyName Name uni2 fun a)
+     (f (NormCheckError TyName Name uni2 fun a))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun a) (f (Error uni2 fun a))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall r (uni :: * -&gt; *) fun a.
+AsError r uni fun a =&gt;
+Prism' r (Error uni fun a)
+Prism' (Error uni2 fun a) (Error uni2 fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_PLCError"
+	><span class="hs-identifier hs-var"
+	  >_PLCError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun a) (f (Error uni2 fun a))
+ -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; (p (NormCheckError TyName Name uni2 fun a)
+      (f (NormCheckError TyName Name uni2 fun a))
+    -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; p (NormCheckError TyName Name uni2 fun a)
+     (f (NormCheckError TyName Name uni2 fun a))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (NormCheckError TyName Name uni2 fun a)
+  (f (NormCheckError TyName Name uni2 fun a))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall r tyname name (uni :: * -&gt; *) fun ann.
+AsNormCheckError r tyname name uni fun ann =&gt;
+Prism' r (NormCheckError tyname name uni fun ann)
+Prism' (Error uni2 fun a) (NormCheckError TyName Name uni2 fun a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Error.html#_NormCheckError"
+	><span class="hs-identifier hs-var"
+	  >PLC._NormCheckError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679457964"
+      ><span id="local-6989586621679457965"
+	><span id="local-6989586621679457966"
+	  ><span id="local-6989586621679458457"
+	    ><span id="local-6989586621679458465"
+	      ><span id="local-6989586621679458472"
+		><span class="annot"
+		  ><a href="../../plutus-core/src/PlutusCore.Error.html#AsUniqueError"
+		    ><span class="hs-identifier hs-type"
+		      >PLC.AsUniqueError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusTx.Compiler.Error.html#CompileError"
+		    ><span class="hs-identifier hs-type"
+		      >CompileError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457964"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457965"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457966"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679457966"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458491"
+      ><span class="annot"
+	><span class="annottext"
+	  >_UniqueError :: Prism' (CompileError uni fun a) (UniqueError a)
+</span
+	  ><a href="#local-6989586621679458491"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_UniqueError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni fun a) (f (Error uni fun a))
+-&gt; p (CompileError uni fun a) (f (CompileError uni fun a))
+forall r c e. AsWithContext r c e =&gt; Prism' r e
+Prism' (CompileError uni fun a) (Error uni fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_NoContext"
+	><span class="hs-identifier hs-var"
+	  >_NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni fun a) (f (Error uni fun a))
+ -&gt; p (CompileError uni fun a) (f (CompileError uni fun a)))
+-&gt; (p (UniqueError a) (f (UniqueError a))
+    -&gt; p (Error uni fun a) (f (Error uni fun a)))
+-&gt; p (UniqueError a) (f (UniqueError a))
+-&gt; p (CompileError uni fun a) (f (CompileError uni fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni fun a) (f (Error uni fun a))
+-&gt; p (Error uni fun a) (f (Error uni fun a))
+forall r (uni :: * -&gt; *) fun a.
+AsError r uni fun a =&gt;
+Prism' r (Error uni fun a)
+Prism' (Error uni fun a) (Error uni fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_PLCError"
+	><span class="hs-identifier hs-var"
+	  >_PLCError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni fun a) (f (Error uni fun a))
+ -&gt; p (Error uni fun a) (f (Error uni fun a)))
+-&gt; (p (UniqueError a) (f (UniqueError a))
+    -&gt; p (Error uni fun a) (f (Error uni fun a)))
+-&gt; p (UniqueError a) (f (UniqueError a))
+-&gt; p (Error uni fun a) (f (Error uni fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (UniqueError a) (f (UniqueError a))
+-&gt; p (Error uni fun a) (f (Error uni fun a))
+forall r ann. AsUniqueError r ann =&gt; Prism' r (UniqueError ann)
+Prism' (Error uni fun a) (UniqueError a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Error.html#_UniqueError"
+	><span class="hs-identifier hs-var"
+	  >PLC._UniqueError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679457994"
+      ><span id="local-6989586621679457995"
+	><span id="local-6989586621679457996"
+	  ><span id="local-6989586621679457997"
+	    ><span id="local-6989586621679457998"
+	      ><span id="local-6989586621679458497"
+		><span id="local-6989586621679458507"
+		  ><span id="local-6989586621679458515"
+		    ><span id="local-6989586621679458523"
+		      ><span id="local-6989586621679458531"
+			><span id="local-6989586621679458539"
+			  ><span class="hs-special"
+			    >(</span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457994"
+			      ><span class="hs-identifier hs-type"
+				>uni1</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+			      ><span class="hs-operator hs-type"
+				>~</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457995"
+			      ><span class="hs-identifier hs-type"
+				>uni2</span
+				></a
+			      ></span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457996"
+			      ><span class="hs-identifier hs-type"
+				>b</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+			      ><span class="hs-operator hs-type"
+				>~</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="../../plutus-core/src/PlutusIR.Compiler.Provenance.html#Provenance"
+			      ><span class="hs-identifier hs-type"
+				>PIR.Provenance</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457997"
+			      ><span class="hs-identifier hs-type"
+				>a</span
+				></a
+			      ></span
+			    ><span class="hs-special"
+			    >)</span
+			    ><span
+			    > </span
+			    ><span class="hs-glyph"
+			    >=&gt;</span
+			    ><span
+			    >
+</span
+			    ><span id="line-99"
+			    ></span
+			    ><span
+			    >    </span
+			    ><span class="annot"
+			    ><a href="../../plutus-core/src/PlutusIR.Error.html#AsError"
+			      ><span class="hs-identifier hs-type"
+				>PIR.AsError</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="hs-special"
+			    >(</span
+			    ><span class="annot"
+			    ><a href="PlutusTx.Compiler.Error.html#CompileError"
+			      ><span class="hs-identifier hs-type"
+				>CompileError</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457994"
+			      ><span class="hs-identifier hs-type"
+				>uni1</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457998"
+			      ><span class="hs-identifier hs-type"
+				>fun</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457997"
+			      ><span class="hs-identifier hs-type"
+				>a</span
+				></a
+			      ></span
+			    ><span class="hs-special"
+			    >)</span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457995"
+			      ><span class="hs-identifier hs-type"
+				>uni2</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457998"
+			      ><span class="hs-identifier hs-type"
+				>fun</span
+				></a
+			      ></span
+			    ><span
+			    > </span
+			    ><span class="annot"
+			    ><a href="#local-6989586621679457996"
+			      ><span class="hs-identifier hs-type"
+				>b</span
+				></a
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458559"
+      ><span class="annot"
+	><span class="annottext"
+	  >_Error :: Prism' (CompileError uni1 fun a) (Error uni2 fun b)
+</span
+	  ><a href="#local-6989586621679458559"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_Error</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun a) (f (Error uni2 fun a))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall r c e. AsWithContext r c e =&gt; Prism' r e
+Prism' (CompileError uni1 fun a) (Error uni2 fun a)
+</span
+	><a href="PlutusTx.Compiler.Error.html#_NoContext"
+	><span class="hs-identifier hs-var"
+	  >_NoContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni2 fun a) (f (Error uni2 fun a))
+ -&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a)))
+-&gt; (p (Error uni2 fun b) (f (Error uni2 fun b))
+    -&gt; p (Error uni2 fun a) (f (Error uni2 fun a)))
+-&gt; p (Error uni2 fun b) (f (Error uni2 fun b))
+-&gt; p (CompileError uni1 fun a) (f (CompileError uni1 fun a))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni2 fun b) (f (Error uni2 fun b))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+p (Error uni2 fun (Provenance a))
+  (f (Error uni2 fun (Provenance a)))
+-&gt; p (Error uni2 fun a) (f (Error uni2 fun a))
+forall r (uni :: * -&gt; *) fun a.
+AsError r uni fun a =&gt;
+Prism' r (Error uni fun (Provenance a))
+Prism' (Error uni2 fun a) (Error uni2 fun (Provenance a))
+</span
+	><a href="PlutusTx.Compiler.Error.html#_PIRError"
+	><span class="hs-identifier hs-var"
+	  >_PIRError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679457846"
+      ><span id="local-6989586621679457847"
+	><span id="local-6989586621679457848"
+	  ><span id="local-6989586621679458566"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyUni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457846"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457847"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457848"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-104"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyConfigPlc"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyConfigPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457846"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457847"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679457848"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679458592"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. PrettyConfigPlc -&gt; Error uni fun a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679458592"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458594"
+      ><span class="annot"
+	><span class="annottext"
+	  >PrettyConfigPlc
+</span
+	  ><a href="#local-6989586621679458594"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#PLCError"
+	><span class="hs-identifier hs-type"
+	  >PLCError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458595"
+      ><span class="annot"
+	><span class="annottext"
+	  >Error uni fun a
+</span
+	  ><a href="#local-6989586621679458595"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#vsep"
+	><span class="hs-identifier hs-var"
+	  >PP.vsep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Error from the PLC compiler:&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc -&gt; Error uni fun a -&gt; Doc ann
+forall ann. PrettyConfigPlc -&gt; Error uni fun a -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc
+</span
+	><a href="#local-6989586621679458594"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun a
+</span
+	><a href="#local-6989586621679458595"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#PIRError"
+	><span class="hs-identifier hs-type"
+	  >PIRError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458596"
+      ><span class="annot"
+	><span class="annottext"
+	  >Error uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679458596"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#vsep"
+	><span class="hs-identifier hs-var"
+	  >PP.vsep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Error from the PIR compiler:&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc -&gt; Error uni fun (Provenance a) -&gt; Doc ann
+forall ann.
+PrettyConfigPlc -&gt; Error uni fun (Provenance a) -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc
+</span
+	><a href="#local-6989586621679458594"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679458596"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#CompilationError"
+	><span class="hs-identifier hs-type"
+	  >CompilationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458597"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679458597"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Unexpected error during compilation, please report this to the Plutus team:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679458597"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#UnsupportedError"
+	><span class="hs-identifier hs-type"
+	  >UnsupportedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458598"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679458598"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Unsupported feature:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679458598"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#FreeVariableError"
+	><span class="hs-identifier hs-type"
+	  >FreeVariableError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458599"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679458599"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Reference to a name which is not a local, a builtin, or an external INLINABLE function:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679458599"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#InvalidMarkerError"
+	><span class="hs-identifier hs-type"
+	  >InvalidMarkerError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458600"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679458600"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Found invalid marker, not applied correctly in expression&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679458600"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#CoreNameLookupError"
+	><span class="hs-identifier hs-type"
+	  >CoreNameLookupError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679458601"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679458601"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Unable to get Core name needed for the plugin to function: &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >PP.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Doc ann
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >PP.viaShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679458601"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

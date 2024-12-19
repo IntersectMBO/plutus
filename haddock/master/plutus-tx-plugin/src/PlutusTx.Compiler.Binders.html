@@ -1,0 +1,5832 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convenient functions for compiling binders.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Binders</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Names</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.PIRTypes.html"
+	><span class="hs-identifier"
+	  >PlutusTx.PIRTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Traversable.html"
+	><span class="hs-identifier"
+	  >Data.Traversable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- Binder helpers</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Iterated abstraction and application]
+PLC doesn't expose iterated abstraction and application.
+
+We typically build these with a fold.
+- Iterated application uses a *left* fold, since we want to apply the first variable
+first.
+- Iterated abstraction uses a *right* fold, since we want to bind the first
+variable *last* (so it is on the outside, so will be first when applying).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621679479691"
+      ><span id="local-6989586621679479692"
+	><span id="local-6989586621679479693"
+	  ><span id="local-6989586621679479694"
+	    ><span id="local-6989586621679479701"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Binders.html#withVarScoped"
+		  ><span class="hs-identifier hs-type"
+		    >withVarScoped</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-34"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+		  ><span class="hs-identifier hs-type"
+		    >CompilingDefault</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479691"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479692"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479693"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479694"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-35"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.Var</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-36"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.VarDecl</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479691"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+		  ><span class="hs-identifier hs-type"
+		    >Ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479693"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479701"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-37"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="#local-6989586621679479693"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479701"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="withVarScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >withVarScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+CompilingDefault uni fun m ann =&gt;
+Var -&gt; (VarDecl TyName Name uni Ann -&gt; m a) -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#withVarScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withVarScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479916"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679479916"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479917"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl TyName Name uni Ann -&gt; m a
+</span
+	  ><a href="#local-6989586621679479917"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679479918"
+      ><span class="annot"
+	><span class="annottext"
+	  >ghcName :: Name
+</span
+	  ><a href="#local-6989586621679479918"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ghcName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679479916"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679479920"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl TyName Name uni Ann
+</span
+	  ><a href="#local-6989586621679479920"
+	  ><span class="hs-identifier hs-var"
+	    >var</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; Var -&gt; m (VarDecl TyName Name uni Ann)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+Ann -&gt; Var -&gt; m (PLCVar uni)
+</span
+	><a href="PlutusTx.Compiler.Names.html#compileVarFresh"
+	><span class="hs-identifier hs-var"
+	  >compileVarFresh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679479916"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall a.
+(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679479924"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni DefaultFun
+</span
+	  ><a href="#local-6989586621679479924"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni DefaultFun
+</span
+	><a href="#local-6989586621679479924"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html#pushName"
+	><span class="hs-identifier hs-type"
+	  >pushName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479918"
+	><span class="hs-identifier hs-type"
+	  >ghcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479920"
+	><span class="hs-identifier hs-type"
+	  >var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479924"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni Ann -&gt; m a
+</span
+	><a href="#local-6989586621679479917"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni Ann
+</span
+	><a href="#local-6989586621679479920"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- | Like `withVarScoped`, but takes a `PIRType`, and uses it for the type</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >-- of the compiled `GHC.Var`.</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621679479745"
+      ><span id="local-6989586621679479746"
+	><span id="local-6989586621679479747"
+	  ><span id="local-6989586621679479748"
+	    ><span id="local-6989586621679479750"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Binders.html#withVarTyScoped"
+		  ><span class="hs-identifier hs-type"
+		    >withVarTyScoped</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-46"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+		  ><span class="hs-identifier hs-type"
+		    >CompilingDefault</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479745"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479746"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479747"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479748"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-47"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.Var</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-48"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.PIRTypes.html#PIRType"
+		  ><span class="hs-identifier hs-type"
+		    >PIRType</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479745"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-49"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.VarDecl</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479745"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+		  ><span class="hs-identifier hs-type"
+		    >Ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479747"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479750"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-50"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="#local-6989586621679479747"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479750"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="withVarTyScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >withVarTyScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+CompilingDefault uni fun m ann =&gt;
+Var -&gt; PIRType uni -&gt; (VarDecl TyName Name uni Ann -&gt; m a) -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#withVarTyScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withVarTyScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479955"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679479955"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479956"
+      ><span class="annot"
+	><span class="annottext"
+	  >PIRType uni
+</span
+	  ><a href="#local-6989586621679479956"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479957"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl TyName Name uni Ann -&gt; m a
+</span
+	  ><a href="#local-6989586621679479957"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679479958"
+      ><span class="annot"
+	><span class="annottext"
+	  >ghcName :: Name
+</span
+	  ><a href="#local-6989586621679479958"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ghcName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679479955"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679479959"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl TyName Name uni Ann
+</span
+	  ><a href="#local-6989586621679479959"
+	  ><span class="hs-identifier hs-var"
+	    >var</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; Var -&gt; PIRType uni -&gt; m (VarDecl TyName Name uni Ann)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+Ann -&gt; Var -&gt; PIRType uni -&gt; m (PLCVar uni)
+</span
+	><a href="PlutusTx.Compiler.Names.html#compileVarWithTyFresh"
+	><span class="hs-identifier hs-var"
+	  >compileVarWithTyFresh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679479955"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PIRType uni
+</span
+	><a href="#local-6989586621679479956"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall a.
+(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679479961"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni DefaultFun
+</span
+	  ><a href="#local-6989586621679479961"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni DefaultFun
+</span
+	><a href="#local-6989586621679479961"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html#pushName"
+	><span class="hs-identifier hs-type"
+	  >pushName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479958"
+	><span class="hs-identifier hs-type"
+	  >ghcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479959"
+	><span class="hs-identifier hs-type"
+	  >var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679479961"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni Ann -&gt; m a
+</span
+	><a href="#local-6989586621679479957"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni Ann
+</span
+	><a href="#local-6989586621679479959"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621679479760"
+      ><span id="local-6989586621679479761"
+	><span id="local-6989586621679479762"
+	  ><span id="local-6989586621679479763"
+	    ><span id="local-6989586621679479764"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Binders.html#withVarsScoped"
+		  ><span class="hs-identifier hs-type"
+		    >withVarsScoped</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-57"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+		  ><span class="hs-identifier hs-type"
+		    >CompilingDefault</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479760"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479761"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479762"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479763"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-58"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.Var</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-59"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.VarDecl</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479760"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+		  ><span class="hs-identifier hs-type"
+		    >Ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479762"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479764"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-60"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="#local-6989586621679479762"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479764"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="withVarsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >withVarsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+CompilingDefault uni fun m ann =&gt;
+[Var] -&gt; ([VarDecl TyName Name uni Ann] -&gt; m a) -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#withVarsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withVarsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479998"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679479998"
+	  ><span class="hs-identifier hs-var"
+	    >vs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679479999"
+      ><span class="annot"
+	><span class="annottext"
+	  >[VarDecl TyName Name uni Ann] -&gt; m a
+</span
+	  ><a href="#local-6989586621679479999"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480000"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Name, VarDecl TyName Name uni Ann)]
+</span
+	  ><a href="#local-6989586621679480000"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+-&gt; (Var -&gt; m (Name, VarDecl TyName Name uni Ann))
+-&gt; m [(Name, VarDecl TyName Name uni Ann)]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f (t b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Traversable.html#for"
+	><span class="hs-identifier hs-var"
+	  >for</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679479998"
+	><span class="hs-identifier hs-var"
+	  >vs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Var -&gt; m (Name, VarDecl TyName Name uni Ann))
+ -&gt; m [(Name, VarDecl TyName Name uni Ann)])
+-&gt; (Var -&gt; m (Name, VarDecl TyName Name uni Ann))
+-&gt; m [(Name, VarDecl TyName Name uni Ann)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480002"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480002"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480003"
+      ><span class="annot"
+	><span class="annottext"
+	  >name :: Name
+</span
+	  ><a href="#local-6989586621679480003"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480002"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679480004"
+      ><span class="annot"
+	><span class="annottext"
+	  >VarDecl TyName Name uni Ann
+</span
+	  ><a href="#local-6989586621679480004"
+	  ><span class="hs-identifier hs-var"
+	    >var'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; Var -&gt; m (VarDecl TyName Name uni Ann)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+Ann -&gt; Var -&gt; m (PLCVar uni)
+</span
+	><a href="PlutusTx.Compiler.Names.html#compileVarFresh"
+	><span class="hs-identifier hs-var"
+	  >compileVarFresh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480002"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name, VarDecl TyName Name uni Ann)
+-&gt; m (Name, VarDecl TyName Name uni Ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480003"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni Ann
+</span
+	><a href="#local-6989586621679480004"
+	><span class="hs-identifier hs-var"
+	  >var'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall a.
+(CompileContext uni DefaultFun -&gt; CompileContext uni DefaultFun)
+-&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480005"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni DefaultFun
+</span
+	  ><a href="#local-6989586621679480005"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni DefaultFun
+</span
+	><a href="#local-6989586621679480005"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html#pushNames"
+	><span class="hs-identifier hs-type"
+	  >pushNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480000"
+	><span class="hs-identifier hs-type"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480005"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[VarDecl TyName Name uni Ann] -&gt; m a
+</span
+	><a href="#local-6989586621679479999"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Name, VarDecl TyName Name uni Ann)
+ -&gt; VarDecl TyName Name uni Ann)
+-&gt; [(Name, VarDecl TyName Name uni Ann)]
+-&gt; [VarDecl TyName Name uni Ann]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name, VarDecl TyName Name uni Ann) -&gt; VarDecl TyName Name uni Ann
+forall a b. (a, b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Tuple.html#snd"
+	><span class="hs-identifier hs-var"
+	  >snd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Name, VarDecl TyName Name uni Ann)]
+</span
+	><a href="#local-6989586621679480000"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="local-6989586621679479786"
+      ><span id="local-6989586621679479787"
+	><span id="local-6989586621679479788"
+	  ><span id="local-6989586621679479789"
+	    ><span id="local-6989586621679479791"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Binders.html#withTyVarScoped"
+		  ><span class="hs-identifier hs-type"
+		    >withTyVarScoped</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-69"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#Compiling"
+		  ><span class="hs-identifier hs-type"
+		    >Compiling</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479786"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479787"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479788"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479789"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-70"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.Var</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-71"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyVarDecl</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+		  ><span class="hs-identifier hs-type"
+		    >Ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479788"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479791"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-72"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="#local-6989586621679479788"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479791"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="withTyVarScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >withTyVarScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+Var -&gt; (TyVarDecl TyName Ann -&gt; m a) -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#withTyVarScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withTyVarScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480024"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480024"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480025"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl TyName Ann -&gt; m a
+</span
+	  ><a href="#local-6989586621679480025"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480026"
+      ><span class="annot"
+	><span class="annottext"
+	  >ghcName :: Name
+</span
+	  ><a href="#local-6989586621679480026"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ghcName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480024"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480027"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl TyName Ann
+</span
+	  ><a href="#local-6989586621679480027"
+	  ><span class="hs-identifier hs-var"
+	    >var</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (TyVarDecl TyName Ann)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (TyVarDecl TyName Ann)
+</span
+	><a href="PlutusTx.Compiler.Names.html#compileTyVarFresh"
+	><span class="hs-identifier hs-var"
+	  >compileTyVarFresh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480024"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall a.
+(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480029"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni fun
+</span
+	  ><a href="#local-6989586621679480029"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun
+</span
+	><a href="#local-6989586621679480029"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html#pushTyName"
+	><span class="hs-identifier hs-type"
+	  >pushTyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480026"
+	><span class="hs-identifier hs-type"
+	  >ghcName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480027"
+	><span class="hs-identifier hs-type"
+	  >var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480029"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName Ann -&gt; m a
+</span
+	><a href="#local-6989586621679480025"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName Ann
+</span
+	><a href="#local-6989586621679480027"
+	><span class="hs-identifier hs-var"
+	  >var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="local-6989586621679479802"
+      ><span id="local-6989586621679479803"
+	><span id="local-6989586621679479804"
+	  ><span id="local-6989586621679479805"
+	    ><span id="local-6989586621679479806"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Binders.html#withTyVarsScoped"
+		  ><span class="hs-identifier hs-type"
+		    >withTyVarsScoped</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-79"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#Compiling"
+		  ><span class="hs-identifier hs-type"
+		    >Compiling</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479802"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479803"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479804"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479805"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		>
+</span
+		><span id="line-80"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		  ><span class="hs-identifier hs-type"
+		    >GHC.Var</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-81"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyVarDecl</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >PIR.TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+		  ><span class="hs-identifier hs-type"
+		    >Ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479804"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479806"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-82"
+		></span
+		><span
+		>    </span
+		><span class="annot"
+		><a href="#local-6989586621679479804"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679479806"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span id="withTyVarsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >withTyVarsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+[Var] -&gt; ([TyVarDecl TyName Ann] -&gt; m a) -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#withTyVarsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withTyVarsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480053"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679480053"
+	  ><span class="hs-identifier hs-var"
+	    >vs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480054"
+      ><span class="annot"
+	><span class="annottext"
+	  >[TyVarDecl TyName Ann] -&gt; m a
+</span
+	  ><a href="#local-6989586621679480054"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480055"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(Name, TyVarDecl TyName Ann)]
+</span
+	  ><a href="#local-6989586621679480055"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+-&gt; (Var -&gt; m (Name, TyVarDecl TyName Ann))
+-&gt; m [(Name, TyVarDecl TyName Ann)]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f (t b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Traversable.html#for"
+	><span class="hs-identifier hs-var"
+	  >for</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679480053"
+	><span class="hs-identifier hs-var"
+	  >vs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Var -&gt; m (Name, TyVarDecl TyName Ann))
+ -&gt; m [(Name, TyVarDecl TyName Ann)])
+-&gt; (Var -&gt; m (Name, TyVarDecl TyName Ann))
+-&gt; m [(Name, TyVarDecl TyName Ann)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480056"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480056"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480057"
+      ><span class="annot"
+	><span class="annottext"
+	  >name :: Name
+</span
+	  ><a href="#local-6989586621679480057"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; Name
+forall a. NamedThing a =&gt; a -&gt; Name
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Name.html#getName"
+	><span class="hs-identifier hs-var"
+	  >GHC.getName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480056"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679480058"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyVarDecl TyName Ann
+</span
+	  ><a href="#local-6989586621679480058"
+	  ><span class="hs-identifier hs-var"
+	    >var'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (TyVarDecl TyName Ann)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (TyVarDecl TyName Ann)
+</span
+	><a href="PlutusTx.Compiler.Names.html#compileTyVarFresh"
+	><span class="hs-identifier hs-var"
+	  >compileTyVarFresh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480056"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name, TyVarDecl TyName Ann) -&gt; m (Name, TyVarDecl TyName Ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480057"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyVarDecl TyName Ann
+</span
+	><a href="#local-6989586621679480058"
+	><span class="hs-identifier hs-var"
+	  >var'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall a.
+(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480059"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni fun
+</span
+	  ><a href="#local-6989586621679480059"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun
+</span
+	><a href="#local-6989586621679480059"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >=</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Names.html#pushTyNames"
+	><span class="hs-identifier hs-type"
+	  >pushTyNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480055"
+	><span class="hs-identifier hs-type"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	><span class="hs-identifier hs-var"
+	  >ccScope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480059"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[TyVarDecl TyName Ann] -&gt; m a
+</span
+	><a href="#local-6989586621679480054"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Name, TyVarDecl TyName Ann) -&gt; TyVarDecl TyName Ann)
+-&gt; [(Name, TyVarDecl TyName Ann)] -&gt; [TyVarDecl TyName Ann]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Name, TyVarDecl TyName Ann) -&gt; TyVarDecl TyName Ann
+forall a b. (a, b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Tuple.html#snd"
+	><span class="hs-identifier hs-var"
+	  >snd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Name, TyVarDecl TyName Ann)]
+</span
+	><a href="#local-6989586621679480055"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-comment"
+      >-- | Builds a lambda, binding the given variable to a name that</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-comment"
+      >-- will be in scope when running the second argument.</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="local-6989586621679479813"
+      ><span id="local-6989586621679479814"
+	><span id="local-6989586621679479815"
+	  ><span id="local-6989586621679479816"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkLamAbsScoped"
+		><span class="hs-identifier hs-type"
+		  >mkLamAbsScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      >
+</span
+	      ><span id="line-93"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+		><span class="hs-identifier hs-type"
+		  >CompilingDefault</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479813"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479814"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479815"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479816"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-94"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-95"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479815"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479813"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479814"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-96"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479815"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479813"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479814"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="mkLamAbsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkLamAbsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkLamAbsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkLamAbsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480088"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480088"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480089"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480089"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+-&gt; (VarDecl TyName Name uni Ann -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+CompilingDefault uni fun m ann =&gt;
+Var -&gt; (VarDecl TyName Name uni Ann -&gt; m a) -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Binders.html#withVarScoped"
+	><span class="hs-identifier hs-var"
+	  >withVarScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480088"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((VarDecl TyName Name uni Ann -&gt; m (PIRTerm uni fun))
+ -&gt; m (PIRTerm uni fun))
+-&gt; (VarDecl TyName Name uni Ann -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >PIR.VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480091"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679480091"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480092"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni Ann
+</span
+	  ><a href="#local-6989586621679480092"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+-&gt; Name
+-&gt; Type TyName uni Ann
+-&gt; PIRTerm uni fun
+-&gt; PIRTerm uni fun
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; name
+-&gt; Type tyname uni a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="../../plutus-core/src/PlutusIR.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-var"
+	  >PIR.LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480091"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni Ann
+</span
+	><a href="#local-6989586621679480092"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PIRTerm uni fun -&gt; PIRTerm uni fun)
+-&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480089"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span id="local-6989586621679479832"
+      ><span id="local-6989586621679479833"
+	><span id="local-6989586621679479834"
+	  ><span id="local-6989586621679479835"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkIterLamAbsScoped"
+		><span class="hs-identifier hs-type"
+		  >mkIterLamAbsScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+		><span class="hs-identifier hs-type"
+		  >CompilingDefault</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479832"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479833"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479834"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479835"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479834"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479832"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479833"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479834"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479832"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479833"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="mkIterLamAbsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkIterLamAbsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+[Var] -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkIterLamAbsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkIterLamAbsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480119"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679480119"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480120"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480120"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun) -&gt; [Var] -&gt; m (PIRTerm uni fun)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480122"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480122"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480123"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480123"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+CompilingDefault uni fun m ann =&gt;
+Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	><a href="PlutusTx.Compiler.Binders.html#mkLamAbsScoped"
+	><span class="hs-identifier hs-var"
+	  >mkLamAbsScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480122"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480123"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480120"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679480119"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-comment"
+      >-- | Builds a type abstraction, binding the given variable to a name that</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >-- will be in scope when running the second argument.</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621679479843"
+      ><span id="local-6989586621679479844"
+	><span id="local-6989586621679479845"
+	  ><span id="local-6989586621679479846"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkTyAbsScoped"
+		><span class="hs-identifier hs-type"
+		  >mkTyAbsScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479843"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479844"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479845"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479846"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479845"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479843"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479844"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479845"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479843"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479844"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="mkTyAbsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkTyAbsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkTyAbsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkTyAbsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480140"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480140"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480141"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480141"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+-&gt; (TyVarDecl TyName Ann -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+Var -&gt; (TyVarDecl TyName Ann -&gt; m a) -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Binders.html#withTyVarScoped"
+	><span class="hs-identifier hs-var"
+	  >withTyVarScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480140"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TyVarDecl TyName Ann -&gt; m (PIRTerm uni fun))
+ -&gt; m (PIRTerm uni fun))
+-&gt; (TyVarDecl TyName Ann -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >PIR.TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480143"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679480143"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480144"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind Ann
+</span
+	  ><a href="#local-6989586621679480144"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; TyName -&gt; Kind Ann -&gt; PIRTerm uni fun -&gt; PIRTerm uni fun
+forall tyname name (uni :: * -&gt; *) fun a.
+a
+-&gt; tyname
+-&gt; Kind a
+-&gt; Term tyname name uni fun a
+-&gt; Term tyname name uni fun a
+</span
+	><a href="../../plutus-core/src/PlutusIR.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-var"
+	  >PIR.TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679480143"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind Ann
+</span
+	><a href="#local-6989586621679480144"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PIRTerm uni fun -&gt; PIRTerm uni fun)
+-&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480141"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span id="local-6989586621679479852"
+      ><span id="local-6989586621679479853"
+	><span id="local-6989586621679479854"
+	  ><span id="local-6989586621679479855"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkIterTyAbsScoped"
+		><span class="hs-identifier hs-type"
+		  >mkIterTyAbsScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479852"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479853"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479854"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479855"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479854"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479852"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479853"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479854"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479852"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479853"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="mkIterTyAbsScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkIterTyAbsScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+[Var] -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkIterTyAbsScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkIterTyAbsScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480157"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679480157"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480158"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480158"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun))
+-&gt; m (PIRTerm uni fun) -&gt; [Var] -&gt; m (PIRTerm uni fun)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480159"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480159"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480160"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRTerm uni fun)
+</span
+	  ><a href="#local-6989586621679480160"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRTerm uni fun) -&gt; m (PIRTerm uni fun)
+</span
+	><a href="PlutusTx.Compiler.Binders.html#mkTyAbsScoped"
+	><span class="hs-identifier hs-var"
+	  >mkTyAbsScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480159"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480160"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRTerm uni fun)
+</span
+	><a href="#local-6989586621679480158"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679480157"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- | Builds a forall, binding the given variable to a name that</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-comment"
+      >-- will be in scope when running the second argument.</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="local-6989586621679479860"
+      ><span id="local-6989586621679479861"
+	><span id="local-6989586621679479862"
+	  ><span id="local-6989586621679479863"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkTyForallScoped"
+		><span class="hs-identifier hs-type"
+		  >mkTyForallScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479860"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479861"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479862"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479863"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479862"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479860"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479862"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479860"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="mkTyForallScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkTyForallScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkTyForallScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkTyForallScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480177"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480177"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480178"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480178"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; (TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+Var -&gt; (TyVarDecl TyName Ann -&gt; m a) -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Binders.html#withTyVarScoped"
+	><span class="hs-identifier hs-var"
+	  >withTyVarScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480177"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni))
+-&gt; (TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >PIR.TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480179"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679480179"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480180"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind Ann
+</span
+	  ><a href="#local-6989586621679480180"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; TyName -&gt; Kind Ann -&gt; PIRType uni -&gt; PIRType uni
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-var"
+	  >PIR.TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679480179"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind Ann
+</span
+	><a href="#local-6989586621679480180"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PIRType uni -&gt; PIRType uni) -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480178"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="local-6989586621679479871"
+      ><span id="local-6989586621679479872"
+	><span id="local-6989586621679479873"
+	  ><span id="local-6989586621679479874"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkIterTyForallScoped"
+		><span class="hs-identifier hs-type"
+		  >mkIterTyForallScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479871"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479872"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479873"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479874"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479873"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479871"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479873"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679479871"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="mkIterTyForallScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkIterTyForallScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+[Var] -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkIterTyForallScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkIterTyForallScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480195"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679480195"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480196"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480196"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Var -&gt; m (PIRType uni) -&gt; m (PIRType uni))
+-&gt; m (PIRType uni) -&gt; [Var] -&gt; m (PIRType uni)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480197"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480197"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480198"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480198"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	><a href="PlutusTx.Compiler.Binders.html#mkTyForallScoped"
+	><span class="hs-identifier hs-var"
+	  >mkTyForallScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480197"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480198"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480196"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679480195"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- | Builds a type lambda, binding the given variable to a name that</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- will be in scope when running the second argument.</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span id="local-6989586621679480199"
+      ><span id="local-6989586621679480200"
+	><span id="local-6989586621679480201"
+	  ><span id="local-6989586621679480202"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkTyLamScoped"
+		><span class="hs-identifier hs-type"
+		  >mkTyLamScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480199"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480200"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480201"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480202"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480201"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480199"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480201"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480199"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="mkTyLamScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkTyLamScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkTyLamScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkTyLamScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480219"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480219"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480220"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480220"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; (TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+Var -&gt; (TyVarDecl TyName Ann -&gt; m a) -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Binders.html#withTyVarScoped"
+	><span class="hs-identifier hs-var"
+	  >withTyVarScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480219"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni))
+-&gt; (TyVarDecl TyName Ann -&gt; m (PIRType uni)) -&gt; m (PIRType uni)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyVarDecl"
+	><span class="hs-identifier hs-type"
+	  >PIR.TyVarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480221"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyName
+</span
+	  ><a href="#local-6989586621679480221"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480222"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind Ann
+</span
+	  ><a href="#local-6989586621679480222"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann -&gt; TyName -&gt; Kind Ann -&gt; PIRType uni -&gt; PIRType uni
+forall tyname (uni :: * -&gt; *) ann.
+ann
+-&gt; tyname -&gt; Kind ann -&gt; Type tyname uni ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-var"
+	  >PIR.TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyName
+</span
+	><a href="#local-6989586621679480221"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind Ann
+</span
+	><a href="#local-6989586621679480222"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PIRType uni -&gt; PIRType uni) -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480220"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span id="local-6989586621679480224"
+      ><span id="local-6989586621679480225"
+	><span id="local-6989586621679480226"
+	  ><span id="local-6989586621679480227"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Binders.html#mkIterTyLamScoped"
+		><span class="hs-identifier hs-type"
+		  >mkIterTyLamScoped</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480224"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480225"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480226"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480227"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.6/docs/src/GHC.Types.Var.html#Var"
+		><span class="hs-identifier hs-type"
+		  >GHC.Var</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480226"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480224"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480226"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.PIRTypes.html#PIRType"
+		><span class="hs-identifier hs-type"
+		  >PIRType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480224"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span id="mkIterTyLamScoped"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkIterTyLamScoped :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+[Var] -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	  ><a href="PlutusTx.Compiler.Binders.html#mkIterTyLamScoped"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkIterTyLamScoped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480241"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Var]
+</span
+	  ><a href="#local-6989586621679480241"
+	  ><span class="hs-identifier hs-var"
+	    >vars</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480242"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480242"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Var -&gt; m (PIRType uni) -&gt; m (PIRType uni))
+-&gt; m (PIRType uni) -&gt; [Var] -&gt; m (PIRType uni)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679480243"
+      ><span class="annot"
+	><span class="annottext"
+	  >Var
+</span
+	  ><a href="#local-6989586621679480243"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480244"
+      ><span class="annot"
+	><span class="annottext"
+	  >m (PIRType uni)
+</span
+	  ><a href="#local-6989586621679480244"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Var -&gt; m (PIRType uni) -&gt; m (PIRType uni)
+</span
+	><a href="PlutusTx.Compiler.Binders.html#mkTyLamScoped"
+	><span class="hs-identifier hs-var"
+	  >mkTyLamScoped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Var
+</span
+	><a href="#local-6989586621679480243"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480244"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (PIRType uni)
+</span
+	><a href="#local-6989586621679480242"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Var]
+</span
+	><a href="#local-6989586621679480241"
+	><span class="hs-identifier hs-var"
+	  >vars</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

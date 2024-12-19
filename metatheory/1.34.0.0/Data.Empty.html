@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Empty</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Empty type</a>
+<a id="120" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="194" class="Symbol">{-#</a> <a id="198" class="Keyword">OPTIONS</a> <a id="206" class="Pragma">--cubical-compatible</a> <a id="227" class="Pragma">--safe</a> <a id="234" class="Symbol">#-}</a>
+
+<a id="239" class="Keyword">module</a> <a id="246" href="Data.Empty.html" class="Module">Data.Empty</a> <a id="257" class="Keyword">where</a>
+
+<a id="264" class="Comment">------------------------------------------------------------------------</a>
+<a id="337" class="Comment">-- Definition</a>
+
+<a id="352" class="Comment">-- Note that by default the empty type is not universe polymorphic as it</a>
+<a id="425" class="Comment">-- often results in unsolved metas. See `Data.Empty.Polymorphic` for a</a>
+<a id="496" class="Comment">-- universe polymorphic variant.</a>
+
+<a id="530" class="Keyword">data</a> <a id="⊥"></a><a id="535" href="Data.Empty.html#535" class="Datatype">⊥</a> <a id="537" class="Symbol">:</a> <a id="539" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="543" class="Keyword">where</a>
+
+<a id="550" class="Comment">------------------------------------------------------------------------</a>
+<a id="623" class="Comment">-- Functions</a>
+
+<a id="⊥-elim"></a><a id="637" href="Data.Empty.html#637" class="Function">⊥-elim</a> <a id="644" class="Symbol">:</a> <a id="646" class="Symbol">∀</a> <a id="648" class="Symbol">{</a><a id="649" href="Data.Empty.html#649" class="Bound">w</a><a id="650" class="Symbol">}</a> <a id="652" class="Symbol">{</a><a id="653" href="Data.Empty.html#653" class="Bound">Whatever</a> <a id="662" class="Symbol">:</a> <a id="664" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="668" href="Data.Empty.html#649" class="Bound">w</a><a id="669" class="Symbol">}</a> <a id="671" class="Symbol">→</a> <a id="673" href="Data.Empty.html#535" class="Datatype">⊥</a> <a id="675" class="Symbol">→</a> <a id="677" href="Data.Empty.html#653" class="Bound">Whatever</a>
+<a id="686" href="Data.Empty.html#637" class="Function">⊥-elim</a> <a id="693" class="Symbol">()</a>
+</pre></body></html>
