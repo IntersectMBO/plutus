@@ -38,7 +38,7 @@ create-release-pr() {
 
   local MAJOR_VERSION="$(echo "$VERSION" | cut -d'.' -f1,2)"
 
-  tell "Updating ./$PACKAGE/$PACKAGE.cabal to ==$VERSION and ^>=$MAJOR_VERSION"
+  tell "Updating cabal packages to ==$VERSION and ^>=$MAJOR_VERSION"
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
@@ -57,15 +57,16 @@ create-release-pr() {
   git add . 
   git commit -m "Release $VERSION" || true 
   git push --force
-  gh pr create \
+
+  PR_URL=$(gh pr create \
     --title "Release $VERSION" \
     --body "Release $VERSION" \
     --label "No Changelog Required" \
     --head release/$VERSION \
-    --base master
+    --base master \
+    | grep "https://")
 
-  tell ""
-  tell "The release PR has been created, see URL above."
+  tell "The release PR has been created at $PR_URL"
   tell "Once approved and merged, run './scripts/interactive-release.sh' again"
 }
 
@@ -90,75 +91,43 @@ publish-gh-release() {
   git add .
   git commit -m "Plutus Release $VERSION"
   git push
-  gh pr create --repo IntersectMBO/cardano-haskell-packages --title "Release $VERSION" --label
+  PR_URL=$(gh pr create \
+    --repo IntersectMBO/cardano-haskell-packages \
+    --title "Release $VERSION" \
+    --body "Release $VERSION" \
+    | grep "https://")
   cd -
-  tell "CHaP PR created at"
+  tell "CHaP PR created at $PR_URL"
 
-  tell "Updating plutus-tx-template"
-  gh workflow run --repo IntersectMBO/plutus-tx-template --workflow=update-flake-inputs.yml bump-plutus-version --ref master --inputs version="$VERSION"
+  tell "Bumping plutus version in plutus-tx-template"
+  gh workflow run \
+    --repo IntersectMBO/plutus-tx-template \
+    --workflow bump-plutus-version.yml \
+    --inputs version=$VERSION \
     
   tell "Publishing the updated Metatheory site"
   gh workflow run \
     --repo IntersectMBO/plutus \
     --workflow metatheory-site.yml \
-    --ref master \
-    --inputs version="$VERSION"
+    --inputs ref=$VERSION \
+    --inputs destination="$VERSION" \
+    --inputs latest=true
   
   tell "Publishing the updated haddock site"
   gh workflow run \
     --repo IntersectMBO/plutus \
     --workflow haddock-site.yml \
-    --inputs destination="$VERSION" \
     --inputs ref="$VERSION" \
-    --inputs latest=true \
+    --inputs destination="$VERSION" \
+    --inputs latest=true 
 
   tell "Deleting unused tags"
   git tag -d "release/$VERSION" 
 }
 
-# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
-
-# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
-# - Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
-# - Ensure that the action completes successfully
-
-# 10. Publish the updated Haddock site
-# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
-# - Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
-# - Ensure that the action completes successfully
-
-# 11. Delete unused branches and tags
-# - If it was created, delete the `release/*` branch locally and on GitHub
-# - If they were created, delete any release candidate `-rc*` tags locally and on GitHub
-
-
-# if [ "$#" -ne 1 ]; then
-#   echo "Usage: $0 <version>"
-#   exit 1
-# fi
-
-
-# VERSION="$1"
-
-
-# if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-#   tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
-#   exit 1
-# fi
-
-
-# if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
-#   tell "I could not find the origin branch named 'release/$VERSION' so I will begin a new release process for $VERSION"
-#   create-release-pr
-# else
-#   tell "I found the origin branch named 'release/$VERSION' so I will continue the release process for $VERSION"
-#   # publish-release
-#   create-release-pr
-
-# fi
-
 
 tell "Starting the interactive release process"
+
 
 while true; do 
   VERSION=$(ask "Enter the version number for this release, for example 1.42.0.0: ")
@@ -202,3 +171,44 @@ fi
 
 # if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
 
+
+# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
+
+# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
+# - Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
+# - Ensure that the action completes successfully
+
+# 10. Publish the updated Haddock site
+# - Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
+# - Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
+# - Ensure that the action completes successfully
+
+# 11. Delete unused branches and tags
+# - If it was created, delete the `release/*` branch locally and on GitHub
+# - If they were created, delete any release candidate `-rc*` tags locally and on GitHub
+
+
+# if [ "$#" -ne 1 ]; then
+#   echo "Usage: $0 <version>"
+#   exit 1
+# fi
+
+
+# VERSION="$1"
+
+
+# if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+#   tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
+#   exit 1
+# fi
+
+
+# if [[ $(git ls-remote --heads origin "release/$VERSION") == "" ]]; then 
+#   tell "I could not find the origin branch named 'release/$VERSION' so I will begin a new release process for $VERSION"
+#   create-release-pr
+# else
+#   tell "I found the origin branch named 'release/$VERSION' so I will continue the release process for $VERSION"
+#   # publish-release
+#   create-release-pr
+
+# fi
