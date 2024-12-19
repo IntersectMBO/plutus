@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.38.0.0
+version:         99.99.99.99
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -133,7 +133,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.38
+    , plutus-core            ^>=99.99
     , plutus-core:plutus-ir
     , prettyprinter
     , serialise
@@ -162,15 +162,15 @@ library plutus-tx-testlib
     PlutusTx.Test
 
   build-depends:
-    , base                             >=4.9   && <5
+    , base                             >=4.9    && <5
     , flat                             ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=99.99
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.38
+    , plutus-tx                        ^>=99.99
     , prettyprinter
     , tagged
     , tasty
@@ -207,7 +207,7 @@ test-suite plutus-tx-test
   hs-source-dirs: test
   build-depends:
     , aeson
-    , base                             >=4.9   && <5
+    , base                             >=4.9    && <5
     , base16-bytestring
     , bytestring
     , cborg
@@ -217,9 +217,9 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=99.99
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.38
+    , plutus-tx                        ^>=99.99
     , pretty-show
     , serialise
     , tasty

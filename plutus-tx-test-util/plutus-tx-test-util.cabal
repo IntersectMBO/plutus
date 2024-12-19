@@ -70,9 +70,9 @@ library
   -- other-modules:
   -- other-extensions:
   build-depends:
-    , base         >=4.9   && <5
-    , plutus-core  ^>=1.38
-    , plutus-tx    ^>=1.38
+    , base         >=4.9    && <5
+    , plutus-core  ^>=99.99
+    , plutus-tx    ^>=99.99
     , text
 
   hs-source-dirs:   testlib

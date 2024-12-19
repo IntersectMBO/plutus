@@ -62,9 +62,9 @@ library lib
   hs-source-dirs:  src
   exposed-modules: AgdaUnparse
   build-depends:
-    , base               >=4.9   && <5
+    , base               >=4.9    && <5
     , bytestring
-    , plutus-core        ^>=1.38
+    , plutus-core        ^>=99.99
     , plutus-metatheory
     , text
 
@@ -73,14 +73,14 @@ executable pir
   main-is:        pir/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , base                             >=4.9    && <5
     , bytestring
     , cassava
     , containers
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=99.99
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -91,11 +91,11 @@ executable plc
   main-is:        plc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                             >=4.9   && <5
+    , base                             >=4.9    && <5
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=99.99
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -104,7 +104,7 @@ executable uplc
   hs-source-dirs: executables
   build-depends:
     , Agda                             ==2.7.0
-    , base                             >=4.9   && <5
+    , base                             >=4.9    && <5
     , bytestring
     , criterion
     , deepseq
@@ -113,7 +113,7 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=99.99
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
     , plutus-metatheory
@@ -147,7 +147,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.38
+    , plutus-core        ^>=99.99
     , plutus-metatheory
     , process
     , tasty

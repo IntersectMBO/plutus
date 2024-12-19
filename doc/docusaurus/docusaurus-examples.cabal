@@ -38,10 +38,10 @@ library docusaurus-code
     BasicValidators
 
   build-depends:
-    , base               >=4.9   && <5
-    , plutus-core        ^>=1.38
-    , plutus-ledger-api  ^>=1.38
-    , plutus-tx          ^>=1.38
+    , base               >=4.9    && <5
+    , plutus-core        ^>=99.99
+    , plutus-ledger-api  ^>=99.99
+    , plutus-tx          ^>=99.99
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
@@ -55,5 +55,5 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.38
-    , plutus-tx          ^>=1.38
+    , plutus-ledger-api  ^>=99.99
+    , plutus-tx          ^>=99.99
