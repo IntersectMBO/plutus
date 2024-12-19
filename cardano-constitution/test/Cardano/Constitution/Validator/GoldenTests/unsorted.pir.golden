@@ -423,26 +423,30 @@ program
       Nothing : Maybe a
   in
   letrec
-    !go : list (pair data data) -> List (Tuple2 data data)
-      = \(l : list (pair data data)) ->
-          chooseList
-            {pair data data}
-            {unit -> List (Tuple2 data data)}
-            l
-            (\(ds : unit) -> Nil {Tuple2 data data})
-            (\(ds : unit) ->
-               Cons
-                 {Tuple2 data data}
-                 (let
-                   !p : pair data data = headList {pair data data} l
-                 in
-                 Tuple2
-                   {data}
-                   {data}
-                   (fstPair {data} {data} p)
-                   (sndPair {data} {data} p))
-                 (go (tailList {pair data data} l)))
-            ()
+    ~caseData_go : list (pair data data) -> List (Tuple2 data data)
+      = (let
+            a = pair data data
+          in
+          /\r ->
+            \(z : r) (f : a -> list a -> r) (xs : list a) ->
+              chooseList
+                {a}
+                {all dead. r}
+                xs
+                (/\dead -> z)
+                (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                {r})
+          {List (Tuple2 data data)}
+          (Nil {Tuple2 data data})
+          (\(x : pair data data) (xs : list (pair data data)) ->
+             Cons
+               {Tuple2 data data}
+               (Tuple2
+                  {data}
+                  {data}
+                  (fstPair {data} {data} x)
+                  (sndPair {data} {data} x))
+               (caseData_go xs))
   in
   let
     !cfg : List (Tuple2 integer ParamValue)
@@ -5263,11 +5267,13 @@ program
         (/\dead ->
            Just
              {List (Tuple2 data data)}
-             (go
-                (unMapData
-                   (headList
-                      {data}
-                      (tailList {data} (sndPair {integer} {list data} ds))))))
+             (let
+               !d : data
+                 = headList
+                     {data}
+                     (tailList {data} (sndPair {integer} {list data} ds))
+             in
+             caseData_go (unMapData d)))
         (/\dead ->
            Bool_match
              (ifThenElse {Bool} (equalsInteger 2 x) True False)
