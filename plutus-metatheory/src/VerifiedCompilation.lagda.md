@@ -156,10 +156,12 @@ postulate
   writeFile : String → String → IO ⊤
   stderr : FileHandle
   hPutStrLn : FileHandle → String → IO ⊤
+  putStrLn : String → IO ⊤
 
 {-# COMPILE GHC writeFile = \f -> TextIO.writeFile (Text.unpack f) #-}
 {-# COMPILE GHC stderr = IO.stderr #-}
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
+{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
 
 buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
 buildPairs [] = []
@@ -186,3 +188,21 @@ runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
+
+open import Data.Bool.Base using (Bool; false; true)
+open import Agda.Builtin.Equality using (_≡_; refl)
+
+passed? : Maybe Proof → Bool
+passed? (just (proof (no ¬a))) = false
+passed? (just (proof (yes a))) = true
+passed? nothing = false
+
+runCertifierMain : List (SimplifierTag × Untyped × Untyped) → IO ⊤
+runCertifierMain asts with runCertifier asts
+... | just (proof (yes a)) = 
+  putStrLn "The compilation was successfully certified."
+... | just (proof (no ¬a)) = 
+  putStrLn "The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate."
+... | nothing =
+  putStrLn "The certifier was unable to check the compilation. Please open a bug report at https://www.github.com/IntersectMBO/plutus."
+{-# COMPILE GHC runCertifierMain as runCertifierMain #-}
