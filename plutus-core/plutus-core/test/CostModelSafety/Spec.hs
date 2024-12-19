@@ -48,6 +48,8 @@ import Data.Functor.Identity (Identity (..))
 import Data.Kind qualified as GHC (Type)
 import Data.List.Extra (enumerate)
 import Data.Text (Text)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Data.Word (Word8)
 import GHC.Natural
 import Test.Tasty (TestTree, testGroup)
@@ -137,6 +139,10 @@ smallConstant tr
     , Just HRefl <- eqTypeRep trList' (typeRep @ListCostedByLength) =
         case smallConstant trElem of
           SomeConst c -> SomeConst ([] `asTypeOf` [c])
+    | trArray `App` trElem <- tr
+    , Just HRefl <- eqTypeRep trArray (typeRep @Vector) =
+        case smallConstant trElem of
+          SomeConst c -> SomeConst (Vector.fromList ([] `asTypeOf` [c]))
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         smallConstant trEl
