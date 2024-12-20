@@ -50,6 +50,7 @@ let
     pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
+    pkgs.github-cli
 
     # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
     # it's not available on macOS.
