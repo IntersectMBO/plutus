@@ -119,3 +119,23 @@ There are a number of tradeoffs to consider:
 Which approach is better is an empirical question and may vary in different cases.
 A single script may wish to use different approaches in different places.
 For example, your datum might contain a large state object which is usually only inspected in part (a good candidate for `asData`), whereas your redeemer might be a small object which is inspected frequently to determine what to do (a good candidate for a native Plutus Tx datatype).
+
+## Data-backed `ScriptContext`
+
+The [ScriptContext](ledger-language-version.md#scriptcontext) is one type which can massively benefit from the `asData` approach.
+
+Plutus Tx scripts receive information from the ledger in the form of a `BuiltinData` argument. This argument can be very large, especially in the case of [V3](ledger-language-version.md#plutus-v3) scripts. Therefore, upfront parsing of this `BuiltinData` object into a native Plutus Tx datatype may sometimes constitute wasted effort if the script does not make use of most of the information inside the script context. This effort translates into high evaluation fees which could be avoided if the script would parse only what it needs from the script context.
+
+For this use-case, we provide a version of the ledger API in which the `ScriptContext` types are data-backed, i.e. they are defined using this `asData` approach, and so are all the types on which the script contexts depend on as fields. 
+
+The module naming scheme is as follows:
+- the `PlutusLedgerApi/Data/` directory contains the data-backed versions of the top-level `V1`, `V2` and `V3` modules
+- inside each of the `PlutusLedgerApi/Vn` directories, where `n` represents the language version number, there is a `Data/` directory with the data-backed versions of modules specific to each language version. 
+
+Using this version of the ledger API can be as simple as modifying the relevant imports; for example, importing [PlutusLedgerApi.Data.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-Data-V3.html) instead of [PlutusLedgerApi.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V3.html), and so on.
+
+If your script is slightly more complex, and it operates on those fields of the script context which are represented as lists or maps, then you will need to also import the respective data-backed collection type from the Plutus Tx standard library:
+- [PlutusTx.Data.AssocMap.Map](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-tx/PlutusTx-Data-AssocMap.html#t:Map) is the data-backed version of `PlutusTx.AssocMap.Map`
+- [PlutusTx.Data.List.List](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-tx/PlutusTx-Data-List.html#t:List) is the data-backed version of `[]`
+
+The data-backed `List` and data-backed `Map` types provide similar APIs to their regular Plutus Tx counterparts. There are also conversion functions between the two representations, and it is up to the developer to decide when or whether to convert to the regular representation or to use the data-backed API. It depends on a case-by-case basis whether the data-backed or the regular versions perform the best.
