@@ -85,7 +85,7 @@ runForBudget :: (ToData ctx)
              -> ExBudget
 runForBudget v ctx =
         let vPs = UPLC._progTerm $ getPlcNoAnn $ v
-                  `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
+                  `unsafeApplyCode` liftCode110 (unsafeFromBuiltinData $ toBuiltinData ctx)
         in case UPLC.runCekDeBruijn defaultCekParametersForTesting counting noEmitter vPs of
                 -- Here, we guard against the case that a ConstitutionValidator **FAILS EARLY** (for some reason),
                 -- resulting in misleading low budget costs.

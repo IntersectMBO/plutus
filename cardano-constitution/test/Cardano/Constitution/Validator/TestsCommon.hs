@@ -28,7 +28,7 @@ applyOnData :: (ToData ctx)
              => ConstitutionValidator
              -> ctx
              -> BuiltinUnit
-applyOnData v ctx = v (Tx.toBuiltinData ctx)
+applyOnData v ctx = v (unsafeFromBuiltinData . Tx.toBuiltinData $ ctx)
 
 -- | Here we try to catch the calls to `Tx.error`.
 tryApplyOnData :: (ToData ctx)

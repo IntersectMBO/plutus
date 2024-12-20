@@ -23,8 +23,11 @@ hsAgreesWithTxBool :: (ConstitutionValidator, CompiledCode ConstitutionValidator
                            -> V3.FakeProposedContext -> IO Bool
 hsAgreesWithTxBool (vHs, vCode) ctx = do
     resHs <- tryApplyOnData vHs ctx
-    let vPs = _progTerm $ getPlcNoAnn $ vCode
-                                      `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
+    let vPs =
+            _progTerm
+            $ getPlcNoAnn
+            $ vCode
+            `unsafeApplyCode` liftCode110 (unsafeFromBuiltinData $ toBuiltinData ctx)
         resPs = runCekRes vPs
 
     pure $ case (resHs, resPs) of
@@ -36,8 +39,11 @@ hsValidatorsAgreesAndErr :: (ConstitutionValidator, CompiledCode ConstitutionVal
                           -> V3.FakeProposedContext -> Property
 hsValidatorsAgreesAndErr (vHs, vCode) ctx = ioProperty $ do
     resHs <- tryApplyOnData vHs ctx
-    let vPs = _progTerm $ getPlcNoAnn $ vCode
-                                      `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
+    let vPs =
+            _progTerm
+            $ getPlcNoAnn
+            $ vCode
+            `unsafeApplyCode` liftCode110 (unsafeFromBuiltinData $ toBuiltinData ctx)
         resPs = runCekRes vPs
 
     pure $ case (resHs, resPs) of
@@ -48,8 +54,11 @@ hsValidatorsAgreesAndPass :: (ConstitutionValidator, CompiledCode ConstitutionVa
                            -> V3.FakeProposedContext -> Property
 hsValidatorsAgreesAndPass (vHs, vCode) ctx = ioProperty $ do
     resHs <- tryApplyOnData vHs ctx
-    let vPs = _progTerm $ getPlcNoAnn $ vCode
-                                      `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
+    let vPs =
+            _progTerm
+            $ getPlcNoAnn
+            $ vCode
+            `unsafeApplyCode` liftCode110 (unsafeFromBuiltinData $ toBuiltinData ctx)
         resPs = runCekRes vPs
 
     pure $ case (resHs, resPs) of
