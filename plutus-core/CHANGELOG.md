@@ -1,4 +1,11 @@
 
+<a id='changelog-1.39.0.0'></a>
+# 1.39.0.0 — 2024-12-20
+
+## Changed
+
+- Relaxed upper bound for the `cardano-crypto-class` dependency (< 2.3)
+
 <a id='changelog-1.38.0.0'></a>
 # 1.38.0.0 — 2024-12-09
 

@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.38.0.0
+version:         1.39.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -116,8 +116,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.38
-    , plutus-tx          ^>=1.38
+    , plutus-core        ^>=1.39
+    , plutus-tx          ^>=1.39
     , prettyprinter
     , serialise
     , tagged
@@ -149,10 +149,10 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=1.39
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                ^>=1.38
-    , plutus-tx                        ^>=1.38
+    , plutus-ledger-api                ^>=1.39
+    , plutus-tx                        ^>=1.39
     , prettyprinter
     , QuickCheck
     , serialise
@@ -188,11 +188,11 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                                  ^>=1.38
+    , plutus-core                                  ^>=1.39
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.38
+    , plutus-ledger-api                            ^>=1.39
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.38
+    , plutus-tx                                    ^>=1.39
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , serialise
@@ -232,12 +232,12 @@ test-suite plutus-ledger-api-plugin-test
     , containers
     , lens
     , mtl
-    , plutus-core                                  ^>=1.38
+    , plutus-core                                  ^>=1.39
     , plutus-core:plutus-core-testlib
-    , plutus-ledger-api                            ^>=1.38
+    , plutus-ledger-api                            ^>=1.39
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.38
-    , plutus-tx-plugin                             ^>=1.38
+    , plutus-tx                                    ^>=1.39
+    , plutus-tx-plugin                             ^>=1.39
     , plutus-tx-test-util
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
@@ -260,8 +260,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                  ^>=1.38
-    , plutus-ledger-api                            ^>=1.38
+    , plutus-core                                  ^>=1.39
+    , plutus-ledger-api                            ^>=1.39
     , plutus-ledger-api:plutus-ledger-api-testlib
     , serialise
     , tasty
@@ -281,10 +281,10 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                  ^>=1.38
-    , plutus-ledger-api                            ^>=1.38
+    , plutus-core                                  ^>=1.39
+    , plutus-ledger-api                            ^>=1.39
     , plutus-ledger-api:plutus-ledger-api-testlib
-    , plutus-tx                                    ^>=1.38
+    , plutus-tx                                    ^>=1.39
     , primitive
     , serialise
 
