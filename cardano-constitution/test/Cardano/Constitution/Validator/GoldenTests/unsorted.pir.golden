@@ -421,28 +421,54 @@ program
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
+    !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
+       all a. (\a -> data -> a) a -> data -> Maybe a
+      = /\a ->
+          \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
+            let
+              !tup : pair integer (list data) = unConstrData d
+              !index : integer = fstPair {integer} {list data} tup
+              !args : list data = sndPair {integer} {list data} tup
+            in
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger 1 index) True False)
+              {all dead. Maybe a}
+              (/\dead -> Nothing {a})
+              (/\dead ->
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   {all dead. Maybe a}
+                   (/\dead ->
+                      Just {a} (`$dUnsafeFromData` (headList {data} args)))
+                   (/\dead -> error {Maybe a})
+                   {all dead. dead})
+              {all dead. dead}
   in
   letrec
-    !go : list (pair data data) -> List (Tuple2 data data)
-      = \(l : list (pair data data)) ->
-          chooseList
-            {pair data data}
-            {unit -> List (Tuple2 data data)}
-            l
-            (\(ds : unit) -> Nil {Tuple2 data data})
-            (\(ds : unit) ->
-               Cons
-                 {Tuple2 data data}
-                 (let
-                   !p : pair data data = headList {pair data data} l
-                 in
-                 Tuple2
-                   {data}
-                   {data}
-                   (fstPair {data} {data} p)
-                   (sndPair {data} {data} p))
-                 (go (tailList {pair data data} l)))
-            ()
+    ~caseData_go : list (pair data data) -> List (Tuple2 data data)
+      = (let
+            a = pair data data
+          in
+          /\r ->
+            \(z : r) (f : a -> list a -> r) (xs : list a) ->
+              chooseList
+                {a}
+                {all dead. r}
+                xs
+                (/\dead -> z)
+                (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                {r})
+          {List (Tuple2 data data)}
+          (Nil {Tuple2 data data})
+          (\(x : pair data data) (xs : list (pair data data)) ->
+             Cons
+               {Tuple2 data data}
+               (Tuple2
+                  {data}
+                  {data}
+                  (fstPair {data} {data} x)
+                  (sndPair {data} {data} x))
+               (caseData_go xs))
   in
   let
     !cfg : List (Tuple2 integer ParamValue)
@@ -5211,71 +5237,184 @@ program
   \(ds : data) ->
     Maybe_match
       {List (Tuple2 data data)}
-      (let
-        !ds : data
-          = headList
-              {data}
-              (tailList
-                 {data}
-                 (tailList
-                    {data}
-                    (sndPair
-                       {integer}
-                       {list data}
-                       (unConstrData
-                          (let
-                            !ds : data
-                              = headList
-                                  {data}
-                                  (tailList
-                                     {data}
-                                     (tailList
-                                        {data}
-                                        (sndPair
-                                           {integer}
-                                           {list data}
-                                           (unConstrData ds))))
-                            ~si : pair integer (list data) = unConstrData ds
+      ((let
+           r = Maybe (List (Tuple2 data data))
+         in
+         \(scrut : data)
+          (cont : data -> data -> data -> r)
+          (fail : unit -> r) ->
+           let
+             !tup : pair integer (list data) = unConstrData scrut
+           in
+           Bool_match
+             (ifThenElse
+                {Bool}
+                (equalsInteger 0 (fstPair {integer} {list data} tup))
+                True
+                False)
+             {all dead. r}
+             (/\dead ->
+                let
+                  !l : list data = sndPair {integer} {list data} tup
+                  !l : list data = tailList {data} l
+                in
+                cont
+                  (headList {data} l)
+                  (headList {data} l)
+                  (headList {data} (tailList {data} l)))
+             (/\dead -> fail ())
+             {all dead. dead})
+         ds
+         (\(ds : data) (ds : data) (ds : data) ->
+            (let
+                r = Maybe (List (Tuple2 data data))
+              in
+              \(scrut : data)
+               (cont : integer -> data -> r)
+               (fail : unit -> r) ->
+                let
+                  !tup : pair integer (list data) = unConstrData scrut
+                in
+                Bool_match
+                  (ifThenElse
+                     {Bool}
+                     (equalsInteger 5 (fstPair {integer} {list data} tup))
+                     True
+                     False)
+                  {all dead. r}
+                  (/\dead ->
+                     let
+                       !l : list data = sndPair {integer} {list data} tup
+                     in
+                     cont
+                       (unIData (headList {data} l))
+                       (headList {data} (tailList {data} l)))
+                  (/\dead -> fail ())
+                  {all dead. dead})
+              ds
+              (\(ds : integer) (ds : data) ->
+                 (let
+                     r = Maybe (List (Tuple2 data data))
+                   in
+                   \(scrut : data)
+                    (cont : integer -> data -> data -> r)
+                    (fail : unit -> r) ->
+                     let
+                       !tup : pair integer (list data) = unConstrData scrut
+                     in
+                     Bool_match
+                       (ifThenElse
+                          {Bool}
+                          (equalsInteger 0 (fstPair {integer} {list data} tup))
+                          True
+                          False)
+                       {all dead. r}
+                       (/\dead ->
+                          let
+                            !l : list data = sndPair {integer} {list data} tup
+                            !l : list data = tailList {data} l
+                          in
+                          cont
+                            (unIData (headList {data} l))
+                            (headList {data} l)
+                            (headList {data} (tailList {data} l)))
+                       (/\dead -> fail ())
+                       {all dead. dead})
+                   ds
+                   (\(ds : integer) (ds : data) (ds : data) ->
+                      (let
+                          r = Maybe (List (Tuple2 data data))
+                        in
+                        \(scrut : data)
+                         (cont : Maybe data -> data -> Maybe bytestring -> r)
+                         (fail : unit -> r) ->
+                          let
+                            !tup : pair integer (list data) = unConstrData scrut
                           in
                           Bool_match
                             (ifThenElse
                                {Bool}
                                (equalsInteger
-                                  5
-                                  (fstPair {integer} {list data} si))
+                                  0
+                                  (fstPair {integer} {list data} tup))
                                True
                                False)
-                            {all dead. data}
+                            {all dead. r}
                             (/\dead ->
-                               headList
-                                 {data}
-                                 (tailList
+                               let
+                                 !l : list data
+                                   = sndPair {integer} {list data} tup
+                                 !l : list data = tailList {data} l
+                               in
+                               cont
+                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                     {data}
-                                    (sndPair {integer} {list data} si)))
-                            (/\dead -> error {data})
-                            {all dead. dead})))))
-        ~ds : pair integer (list data) = unConstrData ds
-        !x : integer = fstPair {integer} {list data} ds
-      in
-      Bool_match
-        (ifThenElse {Bool} (equalsInteger 0 x) True False)
-        {all dead. Maybe (List (Tuple2 data data))}
-        (/\dead ->
-           Just
-             {List (Tuple2 data data)}
-             (go
-                (unMapData
-                   (headList
-                      {data}
-                      (tailList {data} (sndPair {integer} {list data} ds))))))
-        (/\dead ->
-           Bool_match
-             (ifThenElse {Bool} (equalsInteger 2 x) True False)
-             {all dead. Maybe (List (Tuple2 data data))}
-             (/\dead -> Nothing {List (Tuple2 data data)})
-             (/\dead -> error {Maybe (List (Tuple2 data data))})
-             {all dead. dead})
-        {all dead. dead})
+                                    (\(d : data) -> d)
+                                    (headList {data} l))
+                                 (headList {data} l)
+                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                    {bytestring}
+                                    unBData
+                                    (headList {data} (tailList {data} l))))
+                            (/\dead -> fail ())
+                            {all dead. dead})
+                        ds
+                        (\(ds : Maybe data)
+                          (cparams : data)
+                          (ds : Maybe bytestring) ->
+                           Just
+                             {List (Tuple2 data data)}
+                             (caseData_go (unMapData cparams)))
+                        (\(void : unit) ->
+                           (let
+                               r = Maybe (List (Tuple2 data data))
+                             in
+                             \(scrut : data)
+                              (cont :
+                                 (\k a -> list (pair data data)) data integer ->
+                                 Maybe bytestring ->
+                                 r)
+                              (fail : unit -> r) ->
+                               let
+                                 !tup : pair integer (list data)
+                                   = unConstrData scrut
+                               in
+                               Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger
+                                       2
+                                       (fstPair {integer} {list data} tup))
+                                    True
+                                    False)
+                                 {all dead. r}
+                                 (/\dead ->
+                                    let
+                                      !l : list data
+                                        = sndPair {integer} {list data} tup
+                                    in
+                                    cont
+                                      (unMapData (headList {data} l))
+                                      (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                         {bytestring}
+                                         unBData
+                                         (headList {data} (tailList {data} l))))
+                                 (/\dead -> fail ())
+                                 {all dead. dead})
+                             ds
+                             (\(ds :
+                                  (\k a -> list (pair data data)) data integer)
+                               (ds : Maybe bytestring) ->
+                                Nothing {List (Tuple2 data data)})
+                             (\(void : unit) ->
+                                error {Maybe (List (Tuple2 data data))})))
+                   (\(void : unit) -> Nothing {List (Tuple2 data data)}))
+              (\(void : unit) -> Nothing {List (Tuple2 data data)}))
+         (\(void : unit) ->
+            Unit_match
+              (error {Unit})
+              {Maybe (List (Tuple2 data data))}
+              (error {Maybe (List (Tuple2 data data))})))
       {all dead. unit}
       (\(cparams : List (Tuple2 data data)) ->
          /\dead ->
