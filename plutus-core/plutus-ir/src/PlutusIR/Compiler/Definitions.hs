@@ -167,7 +167,7 @@ wrapWithDefs ::
 wrapWithDefs x tds body =
   let toValue k = fst <$> Map.lookup k tds
       wrapDefScc acc scc =
-        let bs = catMaybes $ toValue <$> Graph.vertexList scc
+        let bs = mapMaybe toValue (Graph.vertexList scc)
          in mkLet x (if Graph.isAcyclic scc then NonRec else Rec) bs acc
    in -- process from the inside out
       Foldable.foldl' wrapDefScc body (defSccs tds)
