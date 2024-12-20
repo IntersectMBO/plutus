@@ -58,7 +58,7 @@ create-release-pr() {
   pre-commit run cabal-fmt || true 
   git add . 
   git commit -m "Release $VERSION" || true 
-  git push --force
+  git push --force --set-upstream origin release/$VERSION
 
   PR_URL=$(gh pr create \
     --title "Release $VERSION" \
