@@ -4,18 +4,12 @@
 
 ## Added
 
-- New data-backed versions of multiple types in the ledger-api. These can be found in the `.../Data/` directories.
-
 - New data-backed versions of multiple modules in the ledger-api. These can be found in the `.../Data/` directories.
 
 ## Changed
 
-- The `ScriptContext` type from `PlutusLedgerApi.Data.V3` is now fully data-backed.
-- All types contained in the data-backed version of the `ScriptContext` are also now data-backed, except `Maybe` and `Bool`.
-
-- The `ScriptContext` type from `PlutusLedgerApi.Data.V2` is now fully data-backed.
-- The `ScriptContext` type from `PlutusLedgerApi.Data.V1` is now fully data-backed.
-- All types contained in the data-backed versions of the `ScriptContext` are also now data-backed, except `Maybe` and `Bool`, and for `V1` `(,)`.
+- The `ScriptContext` types (`V1`, `V2` and `V3`) are now fully data-backed, meaning that all types contained in the data-backed version of the `ScriptContext` are also data-backed, except `Maybe` and `Bool`.
+- In the case of the `V1` script context, in addition to `Maybe` and `Bool`, the pair type `(,)` is also kept as a SoP.
 
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
