@@ -67,7 +67,7 @@ $\bar{\bitone} = \bitzero$.
     \TT{countSetBits} & $[\ty{bytestring}] \to \ty{integer}$
     & $b_{n-1}{\cdots}b_0 $ \text{$\mapsto \left|\{i: b_i =1\}\right|$} & No & \\[2mm]
     \TT{findFirstSetBit} & $[\ty{bytestring}] \to \ty{integer}$ & $\mathsf{ffs}$ & No & \ref{note:ffs}\\[2mm]
-    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bytestring}$}
+    \TT{readBit} & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{bool}$}
                                         & $(b_{n-1}{\cdots}b_0, i) $ \text{$\mapsto \begin{cases}
                                         b_i & \text{if $0 \leq i \leq n-1$}\\
                                         \errorX & \text{otherwise}
