@@ -1,0 +1,5289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | This module defines types and functions related to &quot;type-eval checking&quot;.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds              #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Generators.Hedgehog.TypeEvalCheck</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+	><span class="hs-identifier"
+	  >TypeEvalCheckError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult"
+	><span class="hs-identifier"
+	  >TypeEvalCheckResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckM"
+	><span class="hs-identifier"
+	  >TypeEvalCheckM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#typeEvalCheckBy"
+	><span class="hs-identifier"
+	  >typeEvalCheckBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#unsafeTypeEvalCheck"
+	><span class="hs-identifier"
+	  >unsafeTypeEvalCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.Hedgehog.TypedBuiltinGen</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.Hedgehog.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Ck.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.Ck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.Exception</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Normalize.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Normalize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens.TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Monad.Except</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html"
+	><span class="hs-identifier"
+	  >Data.String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Prettyprinter</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Type-eval checking]
+We generate terms along with values they are supposed to evaluate to. Before evaluating a term,
+we type check it. Then we evaluate the term and check whether the expected result matches with
+the actual one. Thus &quot;type-eval checking&quot;.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The type of errors that can occur during type-eval checking.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckError"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679248814"
+      ><span class="annot"
+	><a href="#local-6989586621679248814"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679248815"
+      ><span class="annot"
+	><a href="#local-6989586621679248815"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckErrorIllFormed"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllFormed"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckErrorIllFormed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+	><span class="hs-identifier hs-type"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248814"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248815"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckErrorIllTyped"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllTyped"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckErrorIllTyped</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+	><span class="hs-identifier hs-type"
+	  >Normalized</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248814"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+	><span class="hs-identifier hs-type"
+	  >Normalized</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248814"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckErrorException"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorException"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckErrorException</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckErrorIllEvaled"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllEvaled"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckErrorIllEvaled</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	><span class="hs-identifier hs-type"
+	  >EvaluationResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248814"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248815"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	><span class="hs-identifier hs-type"
+	  >EvaluationResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248814"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248815"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The former is an expected result of evaluation, the latter -- is an actual one.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="AsTypeEvalCheckError"
+      ><span id="local-6989586621679248813"
+	><span id="local-6989586621679248814"
+	  ><span id="local-6989586621679248815"
+	    ><span id="local-6989586621679249180"
+	      ><span id="local-6989586621679249190"
+		><span id="local-6989586621679249199"
+		  ><span id="local-6989586621679249208"
+		    ><span id="local-6989586621679249218"
+		      ><span id="local-6989586621679249222"
+			><span id="local-6989586621679249228"
+			  ><span id="local-6989586621679249234"
+			    ><span id="local-6989586621679249240"
+			      ><span id="_TypeEvalCheckError"
+				><span id="_TypeEvalCheckErrorIllFormed"
+				  ><span id="_TypeEvalCheckErrorIllTyped"
+				    ><span id="_TypeEvalCheckErrorException"
+				      ><span id="_TypeEvalCheckErrorIllEvaled"
+					><span class="hs-identifier"
+					  >makeClassyPrisms</span
+					  ><span
+					  > </span
+					  ><span class="hs-special"
+					  >''</span
+					  ><span class="hs-identifier"
+					  >TypeEvalCheckError</span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679248872"
+      ><span id="local-6989586621679248873"
+	><span id="local-6989586621679248874"
+	  ><span id="local-6989586621679249273"
+	    ><span id="local-6989586621679249282"
+	      ><span id="local-6989586621679249290"
+		><span id="local-6989586621679249298"
+		  ><span id="local-6989586621679249306"
+		    ><span class="annot"
+		      ><a href="#local-6989586621679248872"
+			><span class="hs-identifier hs-type"
+			  >ann</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+			><span class="hs-operator hs-type"
+			  >~</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span
+		      > </span
+		      ><span class="hs-glyph"
+		      >=&gt;</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="../../plutus-core/src/PlutusCore.Error.html#AsError"
+			><span class="hs-identifier hs-type"
+			  >AsError</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+			><span class="hs-identifier hs-type"
+			  >TypeEvalCheckError</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679248873"
+			><span class="hs-identifier hs-type"
+			  >uni</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679248874"
+			><span class="hs-identifier hs-type"
+			  >fun</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679248873"
+			><span class="hs-identifier hs-type"
+			  >uni</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679248874"
+			><span class="hs-identifier hs-type"
+			  >fun</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679248872"
+			><span class="hs-identifier hs-type"
+			  >ann</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679249326"
+      ><span class="annot"
+	><span class="annottext"
+	  >_Error :: Prism' (TypeEvalCheckError uni fun) (Error uni fun ann)
+</span
+	  ><a href="#local-6989586621679249326"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_Error</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni fun ()) (f (Error uni fun ()))
+-&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun))
+forall r (uni :: * -&gt; *) fun.
+AsTypeEvalCheckError r uni fun =&gt;
+Prism' r (Error uni fun ())
+Prism' (TypeEvalCheckError uni fun) (Error uni fun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#_TypeEvalCheckErrorIllFormed"
+	><span class="hs-identifier hs-var"
+	  >_TypeEvalCheckErrorIllFormed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni fun ()) (f (Error uni fun ()))
+ -&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun)))
+-&gt; (p (Error uni fun ann) (f (Error uni fun ann))
+    -&gt; p (Error uni fun ()) (f (Error uni fun ())))
+-&gt; p (Error uni fun ann) (f (Error uni fun ann))
+-&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni fun ann) (f (Error uni fun ann))
+-&gt; p (Error uni fun ()) (f (Error uni fun ()))
+forall r (uni :: * -&gt; *) fun ann.
+AsError r uni fun ann =&gt;
+Prism' r (Error uni fun ann)
+Prism' (Error uni fun ()) (Error uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Error.html#_Error"
+	><span class="hs-identifier hs-var"
+	  >_Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679248905"
+      ><span id="local-6989586621679248906"
+	><span id="local-6989586621679248907"
+	  ><span id="local-6989586621679249331"
+	    ><span id="local-6989586621679249340"
+	      ><span id="local-6989586621679249348"
+		><span id="local-6989586621679249356"
+		  ><span id="local-6989586621679249364"
+		    ><span id="local-6989586621679249372"
+		      ><span id="local-6989586621679249380"
+			><span class="annot"
+			  ><a href="#local-6989586621679248905"
+			    ><span class="hs-identifier hs-type"
+			      >ann</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+			    ><span class="hs-operator hs-type"
+			      >~</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="hs-special"
+			  >(</span
+			  ><span class="hs-special"
+			  >)</span
+			  ><span
+			  > </span
+			  ><span class="hs-glyph"
+			  >=&gt;</span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="../../plutus-core/src/PlutusCore.Error.html#AsTypeError"
+			    ><span class="hs-identifier hs-type"
+			      >AsTypeError</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="hs-special"
+			  >(</span
+			  ><span class="annot"
+			  ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+			    ><span class="hs-identifier hs-type"
+			      >TypeEvalCheckError</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248906"
+			    ><span class="hs-identifier hs-type"
+			      >uni</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248907"
+			    ><span class="hs-identifier hs-type"
+			      >fun</span
+			      ></a
+			    ></span
+			  ><span class="hs-special"
+			  >)</span
+			  ><span
+			  > </span
+			  ><span class="hs-special"
+			  >(</span
+			  ><span class="annot"
+			  ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+			    ><span class="hs-identifier hs-type"
+			      >Term</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+			    ><span class="hs-identifier hs-type"
+			      >TyName</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+			    ><span class="hs-identifier hs-type"
+			      >Name</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248906"
+			    ><span class="hs-identifier hs-type"
+			      >uni</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248907"
+			    ><span class="hs-identifier hs-type"
+			      >fun</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248905"
+			    ><span class="hs-identifier hs-type"
+			      >ann</span
+			      ></a
+			    ></span
+			  ><span class="hs-special"
+			  >)</span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248906"
+			    ><span class="hs-identifier hs-type"
+			      >uni</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248907"
+			    ><span class="hs-identifier hs-type"
+			      >fun</span
+			      ></a
+			    ></span
+			  ><span
+			  > </span
+			  ><span class="annot"
+			  ><a href="#local-6989586621679248905"
+			    ><span class="hs-identifier hs-type"
+			      >ann</span
+			      ></a
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679249400"
+      ><span class="annot"
+	><span class="annottext"
+	  >_TypeError :: Prism'
+  (TypeEvalCheckError uni fun)
+  (TypeError (Term TyName Name uni fun ann) uni fun ann)
+</span
+	  ><a href="#local-6989586621679249400"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >_TypeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (Error uni fun ()) (f (Error uni fun ()))
+-&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun))
+forall r (uni :: * -&gt; *) fun.
+AsTypeEvalCheckError r uni fun =&gt;
+Prism' r (Error uni fun ())
+Prism' (TypeEvalCheckError uni fun) (Error uni fun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#_TypeEvalCheckErrorIllFormed"
+	><span class="hs-identifier hs-var"
+	  >_TypeEvalCheckErrorIllFormed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(p (Error uni fun ()) (f (Error uni fun ()))
+ -&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun)))
+-&gt; (p (TypeError (Term TyName Name uni fun ann) uni fun ann)
+      (f (TypeError (Term TyName Name uni fun ann) uni fun ann))
+    -&gt; p (Error uni fun ()) (f (Error uni fun ())))
+-&gt; p (TypeError (Term TyName Name uni fun ann) uni fun ann)
+     (f (TypeError (Term TyName Name uni fun ann) uni fun ann))
+-&gt; p (TypeEvalCheckError uni fun) (f (TypeEvalCheckError uni fun))
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p (TypeError (Term TyName Name uni fun ann) uni fun ann)
+  (f (TypeError (Term TyName Name uni fun ann) uni fun ann))
+-&gt; p (Error uni fun ()) (f (Error uni fun ()))
+forall r term (uni :: * -&gt; *) fun ann.
+AsTypeError r term uni fun ann =&gt;
+Prism' r (TypeError term uni fun ann)
+Prism'
+  (Error uni fun ())
+  (TypeError (Term TyName Name uni fun ann) uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Error.html#_TypeError"
+	><span class="hs-identifier hs-var"
+	  >_TypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type-eval checking of a term results in a value of this type.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckResult"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679248913"
+      ><span class="annot"
+	><a href="#local-6989586621679248913"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679248914"
+      ><span class="annot"
+	><a href="#local-6989586621679248914"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckResult"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_termCheckResultType"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+TypeEvalCheckResult uni fun -&gt; Normalized (Type TyName uni ())
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#_termCheckResultType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_termCheckResultType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Normalized"
+	><span class="hs-identifier hs-type"
+	  >Normalized</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248913"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The type of the term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_termCheckResultValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+TypeEvalCheckResult uni fun
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#_termCheckResultValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_termCheckResultValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	><span class="hs-identifier hs-type"
+	  >EvaluationResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248913"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679248914"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The result of evaluation of the term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679248929"
+      ><span id="local-6989586621679248930"
+	><span id="local-6989586621679248931"
+	  ><span id="local-6989586621679249410"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248929"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248930"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-75"
+	      ></span
+	      ><span
+	      >         </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248929"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248930"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248931"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-76"
+	      ></span
+	      ><span
+	      >         </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248929"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248930"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248931"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-77"
+	      ></span
+	      ><span
+	      >         </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248929"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+		><span class="hs-identifier hs-type"
+		  >TypeEvalCheckError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248930"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679248931"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679249434"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. config -&gt; TypeEvalCheckError uni fun -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679249434"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249436"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679249436"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllFormed"
+	><span class="hs-identifier hs-type"
+	  >TypeEvalCheckErrorIllFormed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249437"
+      ><span class="annot"
+	><span class="annottext"
+	  >Error uni fun ()
+</span
+	  ><a href="#local-6989586621679249437"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;The term is ill-formed:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; Error uni fun () -&gt; Doc ann
+forall ann. config -&gt; Error uni fun () -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679249436"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun ()
+</span
+	><a href="#local-6989586621679249437"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249439"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679249439"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllTyped"
+	><span class="hs-identifier hs-type"
+	  >TypeEvalCheckErrorIllTyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249440"
+      ><span class="annot"
+	><span class="annottext"
+	  >Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621679249440"
+	  ><span class="hs-identifier hs-var"
+	    >expected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249441"
+      ><span class="annot"
+	><span class="annottext"
+	  >Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621679249441"
+	  ><span class="hs-identifier hs-var"
+	    >actual</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;The expected type:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; Normalized (Type TyName uni ()) -&gt; Doc ann
+forall ann. config -&gt; Normalized (Type TyName uni ()) -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679249439"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249440"
+	><span class="hs-identifier hs-var"
+	  >expected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><span class="hs-identifier hs-var"
+	>hardline</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;doesn't match with the actual type:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; Normalized (Type TyName uni ()) -&gt; Doc ann
+forall ann. config -&gt; Normalized (Type TyName uni ()) -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679249439"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249441"
+	><span class="hs-identifier hs-var"
+	  >actual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorException"
+	><span class="hs-identifier hs-type"
+	  >TypeEvalCheckErrorException</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249443"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621679249443"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;An exception occurred:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall a. IsString a =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html#fromString"
+	><span class="hs-identifier hs-var"
+	  >fromString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621679249443"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249444"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679249444"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllEvaled"
+	><span class="hs-identifier hs-type"
+	  >TypeEvalCheckErrorIllEvaled</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249445"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvaluationResult (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249445"
+	  ><span class="hs-identifier hs-var"
+	    >expected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249446"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvaluationResult (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249446"
+	  ><span class="hs-identifier hs-var"
+	    >actual</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;The expected value:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; EvaluationResult (Term TyName Name uni fun ()) -&gt; Doc ann
+forall ann.
+config -&gt; EvaluationResult (Term TyName Name uni fun ()) -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679249444"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249445"
+	><span class="hs-identifier hs-var"
+	  >expected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><span class="hs-identifier hs-var"
+	>hardline</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;doesn't match with the actual value:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><span class="hs-operator hs-var"
+	>&lt;+&gt;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; EvaluationResult (Term TyName Name uni fun ()) -&gt; Doc ann
+forall ann.
+config -&gt; EvaluationResult (Term TyName Name uni fun ()) -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679249444"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249446"
+	><span class="hs-identifier hs-var"
+	  >actual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The monad type-eval checking runs in.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="TypeEvalCheckM"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckM"
+	  ><span class="hs-identifier hs-var"
+	    >TypeEvalCheckM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249447"
+      ><span class="annot"
+	><a href="#local-6989586621679249447"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249448"
+      ><span class="annot"
+	><a href="#local-6989586621679249448"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckError"
+	><span class="hs-identifier hs-type"
+	  >TypeEvalCheckError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679249447"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679249448"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Type-eval checking].</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type check and evaluate a term and check that the expected result is equal to the actual one.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span id="local-6989586621679248943"
+      ><span id="local-6989586621679248945"
+	><span id="local-6989586621679248947"
+	  ><span id="local-6989586621679248950"
+	    ><span id="local-6989586621679248952"
+	      ><span class="annot"
+		><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#typeEvalCheckBy"
+		  ><span class="hs-identifier hs-type"
+		    >typeEvalCheckBy</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-95"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		  ><span class="hs-operator hs-type"
+		    >~</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+		  ><span class="hs-identifier hs-type"
+		    >DefaultUni</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		  ><span class="hs-operator hs-type"
+		    >~</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+		  ><span class="hs-identifier hs-type"
+		    >DefaultFun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-96"
+		></span
+		><span
+		>       </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#KnownTypeAst"
+		  ><span class="hs-identifier hs-type"
+		    >KnownTypeAst</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248947"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Builtin.KnownType.html#MakeKnown"
+		  ><span class="hs-identifier hs-type"
+		    >MakeKnown</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248947"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-97"
+		></span
+		><span
+		>       </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyPlc"
+		  ><span class="hs-identifier hs-type"
+		    >PrettyPlc</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248950"
+		  ><span class="hs-identifier hs-type"
+		    >structural</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-98"
+		></span
+		><span
+		>       </span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-99"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		>
+</span
+		><span id="line-100"
+		></span
+		><span
+		>           </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+		  ><span class="hs-identifier hs-type"
+		    >Either</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-101"
+		></span
+		><span
+		>               </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#EvaluationException"
+		  ><span class="hs-identifier hs-type"
+		    >EvaluationException</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248952"
+		  ><span class="hs-identifier hs-type"
+		    >operational</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248950"
+		  ><span class="hs-identifier hs-type"
+		    >structural</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-102"
+		></span
+		><span
+		>               </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-103"
+		></span
+		><span
+		>       </span
+		><span class="annot"
+		><span class="hs-comment"
+		  >-- ^ An evaluator.</span
+		  ></span
+		><span
+		>
+</span
+		><span id="line-104"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+		  ><span class="hs-identifier hs-type"
+		    >TermOf</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248947"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-105"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckM"
+		  ><span class="hs-identifier hs-type"
+		    >TypeEvalCheckM</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+		  ><span class="hs-identifier hs-type"
+		    >TermOf</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		  ><span class="hs-identifier hs-type"
+		    >Term</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		  ><span class="hs-identifier hs-type"
+		    >TyName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		  ><span class="hs-identifier hs-type"
+		    >Name</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult"
+		  ><span class="hs-identifier hs-type"
+		    >TypeEvalCheckResult</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248943"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679248945"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span id="typeEvalCheckBy"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeEvalCheckBy :: forall (uni :: * -&gt; *) fun a structural operational.
+(uni ~ DefaultUni, fun ~ DefaultFun, KnownTypeAst TyName uni a,
+ MakeKnown (Term TyName Name uni fun ()) a, PrettyPlc structural) =&gt;
+(Term TyName Name uni fun ()
+ -&gt; Either
+      (EvaluationException
+         operational structural (Term TyName Name uni fun ()))
+      (Term TyName Name uni fun ()))
+-&gt; TermOf (Term TyName Name uni fun ()) a
+-&gt; TypeEvalCheckM
+     uni
+     fun
+     (TermOf
+        (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#typeEvalCheckBy"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeEvalCheckBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249654"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+-&gt; Either
+     (EvaluationException
+        operational structural (Term TyName Name uni fun ()))
+     (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249654"
+	  ><span class="hs-identifier hs-var"
+	    >eval</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+	><span class="hs-identifier hs-type"
+	  >TermOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249656"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+</span
+	  ><a href="#local-6989586621679249656"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679249657"
+      ><span id="local-6989586621679249658"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679249658"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679249657"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+-&gt; TypeEvalCheckResult uni fun
+-&gt; TermOf
+     (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun)
+forall term a. term -&gt; a -&gt; TermOf term a
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+	><span class="hs-identifier hs-var"
+	  >TermOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679249656"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckResult uni fun
+ -&gt; TermOf
+      (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+-&gt; Either
+     (TypeEvalCheckError uni fun)
+     (TermOf
+        (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679249660"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyExpected :: Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621679249660"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >tyExpected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote (Normalized (Type TyName uni ()))
+-&gt; Normalized (Type TyName uni ())
+forall a. Quote a -&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuote"
+	><span class="hs-identifier hs-var"
+	  >runQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote (Normalized (Type TyName uni ()))
+ -&gt; Normalized (Type TyName uni ()))
+-&gt; (Type TyName uni () -&gt; Quote (Normalized (Type TyName uni ())))
+-&gt; Type TyName uni ()
+-&gt; Normalized (Type TyName uni ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni () -&gt; Quote (Normalized (Type TyName uni ()))
+forall tyname (uni :: * -&gt; *) (m :: * -&gt; *) ann.
+(HasUnique tyname TypeUnique, MonadNormalizeType uni m) =&gt;
+Type tyname uni ann -&gt; m (Normalized (Type tyname uni ann))
+</span
+	><a href="../../plutus-core/src/PlutusCore.Normalize.html#normalizeType"
+	><span class="hs-identifier hs-var"
+	  >normalizeType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName uni () -&gt; Normalized (Type TyName uni ()))
+-&gt; Type TyName uni () -&gt; Normalized (Type TyName uni ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy a -&gt; Type TyName uni ()
+forall a tyname (uni :: * -&gt; *) (x :: a) (proxy :: a -&gt; *).
+KnownTypeAst tyname uni x =&gt;
+proxy x -&gt; Type tyname uni ()
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#toTypeAst"
+	><span class="hs-identifier hs-var"
+	  >toTypeAst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t. Proxy t
+forall {k} (t :: k). Proxy t
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-var"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679249657"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679249665"
+      ><span class="annot"
+	><span class="annottext"
+	  >valExpected :: EvaluationResult (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249665"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >valExpected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; EvaluationResult (Term TyName Name uni fun ())
+forall (uni :: * -&gt; *) val a.
+MakeKnownIn uni val a =&gt;
+a -&gt; EvaluationResult val
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.KnownType.html#makeKnownOrFail"
+	><span class="hs-identifier hs-var"
+	  >makeKnownOrFail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679249658"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679249667"
+      ><span class="annot"
+	><span class="annottext"
+	  >Normalized (Type TyName uni ())
+</span
+	  ><a href="#local-6989586621679249667"
+	  ><span class="hs-identifier hs-var"
+	    >tyActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QuoteT
+  (Either (TypeEvalCheckError uni fun))
+  (Normalized (Type TyName uni ()))
+-&gt; Either
+     (TypeEvalCheckError uni fun) (Normalized (Type TyName uni ()))
+forall (m :: * -&gt; *) a. Monad m =&gt; QuoteT m a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuoteT"
+	><span class="hs-identifier hs-var"
+	  >runQuoteT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(QuoteT
+   (Either (TypeEvalCheckError uni fun))
+   (Normalized (Type TyName uni ()))
+ -&gt; Either
+      (TypeEvalCheckError uni fun) (Normalized (Type TyName uni ())))
+-&gt; QuoteT
+     (Either (TypeEvalCheckError uni fun))
+     (Normalized (Type TyName uni ()))
+-&gt; Either
+     (TypeEvalCheckError uni fun) (Normalized (Type TyName uni ()))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679249669"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621679249669"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; QuoteT
+     (Either (TypeEvalCheckError uni fun)) (TypeCheckConfig uni fun)
+forall err term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck err term uni fun ann m, Typecheckable uni fun) =&gt;
+ann -&gt; m (TypeCheckConfig uni fun)
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#getDefTypeCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >getDefTypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; QuoteT
+     (Either (TypeEvalCheckError uni fun))
+     (Normalized (Type TyName uni ()))
+forall err (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc err uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#inferType"
+	><span class="hs-identifier hs-var"
+	  >inferType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621679249669"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679249656"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249660"
+	><span class="hs-identifier hs-var"
+	  >tyExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+-&gt; Normalized (Type TyName uni ()) -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249667"
+	><span class="hs-identifier hs-var"
+	  >tyActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     operational structural (Term TyName Name uni fun ()))
+  (Term TyName Name uni fun ())
+-&gt; Either
+     (ErrorWithCause structural (Term TyName Name uni fun ()))
+     (EvaluationResult (Term TyName Name uni fun ()))
+forall operational structural term a.
+Either (EvaluationException operational structural term) a
+-&gt; Either (ErrorWithCause structural term) (EvaluationResult a)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#extractEvaluationResult"
+	><span class="hs-identifier hs-var"
+	  >extractEvaluationResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   (EvaluationException
+      operational structural (Term TyName Name uni fun ()))
+   (Term TyName Name uni fun ())
+ -&gt; Either
+      (ErrorWithCause structural (Term TyName Name uni fun ()))
+      (EvaluationResult (Term TyName Name uni fun ())))
+-&gt; Either
+     (EvaluationException
+        operational structural (Term TyName Name uni fun ()))
+     (Term TyName Name uni fun ())
+-&gt; Either
+     (ErrorWithCause structural (Term TyName Name uni fun ()))
+     (EvaluationResult (Term TyName Name uni fun ()))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+-&gt; Either
+     (EvaluationException
+        operational structural (Term TyName Name uni fun ()))
+     (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249654"
+	><span class="hs-identifier hs-var"
+	  >eval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679249656"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249673"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvaluationResult (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249673"
+	  ><span class="hs-identifier hs-var"
+	    >valActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249665"
+	><span class="hs-identifier hs-var"
+	  >valExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+-&gt; EvaluationResult (Term TyName Name uni fun ()) -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249673"
+	><span class="hs-identifier hs-var"
+	  >valActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckResult uni fun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a. a -&gt; Either (TypeEvalCheckError uni fun) a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckResult uni fun
+ -&gt; Either
+      (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun))
+-&gt; TypeEvalCheckResult uni fun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+-&gt; TypeEvalCheckResult uni fun
+forall (uni :: * -&gt; *) fun.
+Normalized (Type TyName uni ())
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+-&gt; TypeEvalCheckResult uni fun
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckResult"
+	><span class="hs-identifier hs-var"
+	  >TypeEvalCheckResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249660"
+	><span class="hs-identifier hs-var"
+	  >tyExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249673"
+	><span class="hs-identifier hs-var"
+	  >valActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckError uni fun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a.
+TypeEvalCheckError uni fun -&gt; Either (TypeEvalCheckError uni fun) a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>throwError</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckError uni fun
+ -&gt; Either
+      (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun))
+-&gt; TypeEvalCheckError uni fun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+-&gt; TypeEvalCheckError uni fun
+forall (uni :: * -&gt; *) fun.
+EvaluationResult (Term TyName Name uni fun ())
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+-&gt; TypeEvalCheckError uni fun
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllEvaled"
+	><span class="hs-identifier hs-var"
+	  >TypeEvalCheckErrorIllEvaled</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249665"
+	><span class="hs-identifier hs-var"
+	  >valExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249673"
+	><span class="hs-identifier hs-var"
+	  >valActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249675"
+      ><span class="annot"
+	><span class="annottext"
+	  >ErrorWithCause structural (Term TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679249675"
+	  ><span class="hs-identifier hs-var"
+	    >exc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckError DefaultUni DefaultFun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a.
+TypeEvalCheckError DefaultUni DefaultFun
+-&gt; Either (TypeEvalCheckError uni fun) a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>throwError</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckError DefaultUni DefaultFun
+ -&gt; Either
+      (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun))
+-&gt; TypeEvalCheckError DefaultUni DefaultFun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; TypeEvalCheckError DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. String -&gt; TypeEvalCheckError uni fun
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorException"
+	><span class="hs-identifier hs-var"
+	  >TypeEvalCheckErrorException</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String -&gt; TypeEvalCheckError DefaultUni DefaultFun)
+-&gt; String -&gt; TypeEvalCheckError DefaultUni DefaultFun
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ErrorWithCause structural (Term TyName Name uni fun ()) -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ErrorWithCause structural (Term TyName Name uni fun ())
+</span
+	><a href="#local-6989586621679249675"
+	><span class="hs-identifier hs-var"
+	  >exc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckError uni DefaultFun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a.
+TypeEvalCheckError uni DefaultFun
+-&gt; Either (TypeEvalCheckError uni fun) a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>throwError</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckError uni DefaultFun
+ -&gt; Either
+      (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun))
+-&gt; TypeEvalCheckError uni DefaultFun
+-&gt; Either
+     (TypeEvalCheckError uni fun) (TypeEvalCheckResult uni fun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+-&gt; Normalized (Type TyName uni ())
+-&gt; TypeEvalCheckError uni DefaultFun
+forall (uni :: * -&gt; *) fun.
+Normalized (Type TyName uni ())
+-&gt; Normalized (Type TyName uni ()) -&gt; TypeEvalCheckError uni fun
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#TypeEvalCheckErrorIllTyped"
+	><span class="hs-identifier hs-var"
+	  >TypeEvalCheckErrorIllTyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249660"
+	><span class="hs-identifier hs-var"
+	  >tyExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><a href="#local-6989586621679249667"
+	><span class="hs-identifier hs-var"
+	  >tyActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- | Type check and evaluate a term and check that the expected result is equal to the actual one.</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="hs-comment"
+      >-- Throw an error in case something goes wrong.</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="local-6989586621679249120"
+      ><span id="local-6989586621679249121"
+	><span id="local-6989586621679249122"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#unsafeTypeEvalCheck"
+	      ><span class="hs-identifier hs-type"
+		>unsafeTypeEvalCheck</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-124"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	      ><span class="hs-operator hs-type"
+		>~</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	      ><span class="hs-identifier hs-type"
+		>DefaultUni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249121"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	      ><span class="hs-operator hs-type"
+		>~</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	      ><span class="hs-identifier hs-type"
+		>DefaultFun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-125"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#KnownTypeAst"
+	      ><span class="hs-identifier hs-type"
+		>KnownTypeAst</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249122"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownType.html#MakeKnown"
+	      ><span class="hs-identifier hs-type"
+		>MakeKnown</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249121"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249122"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-126"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-127"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+	      ><span class="hs-identifier hs-type"
+		>TermOf</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249121"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249122"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-128"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#TermOf"
+	      ><span class="hs-identifier hs-type"
+		>TermOf</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249121"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	      ><span class="hs-identifier hs-type"
+		>EvaluationResult</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249120"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679249121"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span id="unsafeTypeEvalCheck"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeTypeEvalCheck :: forall (uni :: * -&gt; *) fun a.
+(uni ~ DefaultUni, fun ~ DefaultFun, KnownTypeAst TyName uni a,
+ MakeKnown (Term TyName Name uni fun ()) a) =&gt;
+TermOf (Term TyName Name uni fun ()) a
+-&gt; TermOf
+     (Term TyName Name uni fun ())
+     (EvaluationResult (Term TyName Name uni fun ()))
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#unsafeTypeEvalCheck"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsafeTypeEvalCheck</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249795"
+      ><span class="annot"
+	><span class="annottext"
+	  >TermOf (Term TyName Name uni fun ()) a
+</span
+	  ><a href="#local-6989586621679249795"
+	  ><span class="hs-identifier hs-var"
+	    >termOfTbv</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679249796"
+      ><span class="annot"
+	><span class="annottext"
+	  >errOrRes :: TypeEvalCheckM
+  uni
+  DefaultFun
+  (TermOf
+     (Term TyName Name uni DefaultFun ())
+     (TypeEvalCheckResult uni DefaultFun))
+</span
+	  ><a href="#local-6989586621679249796"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >errOrRes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni DefaultFun ()
+ -&gt; Either
+      (EvaluationException
+         CkUserError
+         (MachineError DefaultFun)
+         (Term TyName Name uni DefaultFun ()))
+      (Term TyName Name uni DefaultFun ()))
+-&gt; TermOf (Term TyName Name uni DefaultFun ()) a
+-&gt; TypeEvalCheckM
+     uni
+     DefaultFun
+     (TermOf
+        (Term TyName Name uni DefaultFun ())
+        (TypeEvalCheckResult uni DefaultFun))
+forall (uni :: * -&gt; *) fun a structural operational.
+(uni ~ DefaultUni, fun ~ DefaultFun, KnownTypeAst TyName uni a,
+ MakeKnown (Term TyName Name uni fun ()) a, PrettyPlc structural) =&gt;
+(Term TyName Name uni fun ()
+ -&gt; Either
+      (EvaluationException
+         operational structural (Term TyName Name uni fun ()))
+      (Term TyName Name uni fun ()))
+-&gt; TermOf (Term TyName Name uni fun ()) a
+-&gt; TypeEvalCheckM
+     uni
+     fun
+     (TermOf
+        (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#typeEvalCheckBy"
+	><span class="hs-identifier hs-var"
+	  >typeEvalCheckBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsRuntime DefaultFun (CkValue uni DefaultFun)
+-&gt; Term TyName Name uni DefaultFun ()
+-&gt; Either
+     (EvaluationException
+        CkUserError
+        (MachineError DefaultFun)
+        (Term TyName Name uni DefaultFun ()))
+     (Term TyName Name uni DefaultFun ())
+forall fun (uni :: * -&gt; *).
+BuiltinsRuntime fun (CkValue uni fun)
+-&gt; Term TyName Name uni fun ()
+-&gt; Either
+     (CkEvaluationException uni fun) (Term TyName Name uni fun ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Ck.html#evaluateCkNoEmit"
+	><span class="hs-identifier hs-var"
+	  >evaluateCkNoEmit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsRuntime DefaultFun (CkValue uni DefaultFun)
+forall term.
+HasMeaningIn DefaultUni term =&gt;
+BuiltinsRuntime DefaultFun term
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultBuiltinsRuntimeForTesting"
+	><span class="hs-identifier hs-var"
+	  >defaultBuiltinsRuntimeForTesting</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TermOf (Term TyName Name uni fun ()) a
+TermOf (Term TyName Name uni DefaultFun ()) a
+</span
+	><a href="#local-6989586621679249795"
+	><span class="hs-identifier hs-var"
+	  >termOfTbv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckM
+  uni
+  DefaultFun
+  (TermOf
+     (Term TyName Name uni DefaultFun ())
+     (TypeEvalCheckResult uni DefaultFun))
+</span
+	><a href="#local-6989586621679249796"
+	><span class="hs-identifier hs-var"
+	  >errOrRes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249799"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeEvalCheckError uni DefaultFun
+</span
+	  ><a href="#local-6989586621679249799"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; TermOf
+     (Term TyName Name uni fun ())
+     (EvaluationResult (Term TyName Name uni fun ()))
+forall a. HasCallStack =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(String
+ -&gt; TermOf
+      (Term TyName Name uni fun ())
+      (EvaluationResult (Term TyName Name uni fun ())))
+-&gt; String
+-&gt; TermOf
+     (Term TyName Name uni fun ())
+     (EvaluationResult (Term TyName Name uni fun ()))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#concat"
+	><span class="hs-identifier hs-var"
+	  >concat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckError uni DefaultFun -&gt; String
+forall err. PrettyPlc err =&gt; err -&gt; String
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Utils.html#prettyPlcErrorString"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcErrorString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckError uni DefaultFun
+</span
+	><a href="#local-6989586621679249799"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;\nin\n&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; String
+forall str ann. Render str =&gt; Doc ann -&gt; str
+forall ann. Doc ann -&gt; String
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; String)
+-&gt; (Term TyName Name uni fun () -&gt; Doc Any)
+-&gt; Term TyName Name uni fun ()
+-&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun () -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcClassicDebug"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicDebug</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun () -&gt; String)
+-&gt; Term TyName Name uni fun () -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TermOf (Term TyName Name uni fun ()) a
+-&gt; Term TyName Name uni fun ()
+forall term a. TermOf term a -&gt; term
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypedBuiltinGen.html#_termOfTerm"
+	><span class="hs-identifier hs-var"
+	  >_termOfTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TermOf (Term TyName Name uni fun ()) a
+</span
+	><a href="#local-6989586621679249795"
+	><span class="hs-identifier hs-var"
+	  >termOfTbv</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679249806"
+      ><span class="annot"
+	><span class="annottext"
+	  >TermOf
+  (Term TyName Name uni DefaultFun ())
+  (TypeEvalCheckResult uni DefaultFun)
+</span
+	  ><a href="#local-6989586621679249806"
+	  ><span class="hs-identifier hs-var"
+	    >termOfTecr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeEvalCheckResult uni fun
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+forall (uni :: * -&gt; *) fun.
+TypeEvalCheckResult uni fun
+-&gt; EvaluationResult (Term TyName Name uni fun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.TypeEvalCheck.html#_termCheckResultValue"
+	><span class="hs-identifier hs-var"
+	  >_termCheckResultValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TypeEvalCheckResult uni fun
+ -&gt; EvaluationResult (Term TyName Name uni fun ()))
+-&gt; TermOf
+     (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun)
+-&gt; TermOf
+     (Term TyName Name uni fun ())
+     (EvaluationResult (Term TyName Name uni fun ()))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun)
+TermOf
+  (Term TyName Name uni DefaultFun ())
+  (TypeEvalCheckResult uni DefaultFun)
+</span
+	><a href="#local-6989586621679249806"
+	><span class="hs-identifier hs-var"
+	  >termOfTecr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
