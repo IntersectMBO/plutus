@@ -1,35 +1,111 @@
 #! /usr/bin/env bash
 
+# The release process is interactive and consists of the following steps:
+#
+# 1. Open a new Release PR in plutus
+# 2. Review and approve the Release PR in plutus, do not merge it yet
+# 3. Open and merge a new Plutus Release PR in CHaP 
+# 4. Open and merge a new Plutus Update PR in plutus-tx-template
+# 5. Merge the original Release PR in plutus 
+# 6. Publish the release on GitHub 
+# 7. Deploy the Haddock site for the new release 
+# 8. Deploy the Metatheory site for the new release
+#
+# Each of these steps depend on the previous one, so it's important to follow them in order.
+# Each step is idempotent, so you can run the script multiple times if needed.
+#
+# Usage: ./scripts/interactive-release.sh VERSION
+
+
 set -euo pipefail
 
 
-VERSION=""
-
-
 tell() {
-  echo "🚀🚀🚀 $1"
+  echo -e "🚀 $1"
 }
 
 
 ask() {
-  local MSG="$1"
-  read -p "🚀🚀🚀 $MSG" RESPONSE
+  local MESSAGE="$1"
+  read -p "🚀 $MESSAGE" RESPONSE
   echo "$RESPONSE"
 }
 
 
-create-release-pr() {
-  if [[ -d "release-$VERSION" ]]; then
-    tell "Found worktree named 'release-$VERSION' in the current directory, I will delete it and start anew"
-    git worktree remove --force release-$VERSION
-    git branch -D release/$VERSION 
-  fi
+get-pr-number() { 
+  local REPO=$1
+  local BRANCH=$2
+  gh pr list --repo $REPO --state all --head $BRANCH --json number --jq ".[0].number"
+}
 
-  tell "Creating worketree and branch for $VERSION"
-  git worktree add release-$VERSION master
-  cd release-$VERSION
+
+get-pr-url() {
+  local REPO=$1
+  local BRANCH=$2
+  echo "https://github.com/$REPO/pull/$(get-pr-number $REPO $BRANCH)"
+}
+
+
+get-pr-state() {
+  local REPO=$1
+  local BRANCH=$2
+  local PR_NUMBER=$(get-pr-number $REPO $BRANCH)
+  if [[ -z $PR_NUMBER ]]; then
+    echo MISSING
+  else 
+    gh pr view $PR_NUMBER --repo $REPO --json state --jq ".state"
+  fi 
+}
+
+
+maybe-open-pr() {
+  local REPO=$1
+  local BRANCH=$2
+  local COMMAND=$3
+
+  local PR_NUMBER=$(get-pr-number $REPO $BRANCH)
+  local PR_URL=$(get-pr-url $REPO $BRANCH)
+  local PR_STATE=$(get-pr-state $REPO $BRANCH)
+  
+  if [[ -z $PR_NUMBER ]]; then
+    tell "No PR found with in $REPO with branch $BRANCH, I will create the PR"
+    $COMMAND
+  else
+    case $PR_STATE in
+      "MERGED")
+        tell "Found merged PR in $REPO for $BRANCH at $PR_URL"
+        ;;
+      "OPEN")
+        tell "Found open PR in $REPO for $BRANCH at $PR_URL"
+        ;;
+      "CLOSED")
+        tell "Found closed PR in $REPO for $BRANCH at $PR_URL"
+        tell "This is odd, please re-open the PR and try again"
+        ;;
+      *)
+        tell "Found PR in $REPO for $BRANCH at $PR_URL with invalid state $PR_STATE"
+        ;;
+    esac
+  fi 
+}
+
+
+check-and-open-plutus-pr() {
+  maybe-open-pr IntersectMBO/plutus "release/$VERSION" open-plutus-pr
+}
+
+
+open-plutus-pr() {
+  local PR_BRANCH="release/$VERSION"
+  local PR_WORKTREE="release-$VERSION"
+
+  git worktree remove --force $PR_WORKTREE || true
+  git branch -D $PR_BRANCH || true 
+
+  git worktree add $PR_WORKTREE master
+  cd $PR_WORKTREE
   git pull --rebase origin master
-  git checkout -b release/$VERSION
+  git checkout -b $PR_BRANCH
 
   local RELEASE_PACKAGES=(
     "plutus-core"
@@ -38,9 +114,8 @@ create-release-pr() {
     "plutus-tx-plugin"
   )
 
-  local MAJOR_VERSION="$(echo "$VERSION" | cut -d'.' -f1,2)"
+  local MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
 
-  tell "Updating cabal packages to ==$VERSION and ^>=$MAJOR_VERSION"
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
@@ -48,125 +123,229 @@ create-release-pr() {
       -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE$\)/\1 ^>=$MAJOR_VERSION/" {} \;
 
     pushd $PACKAGE > /dev/null
-    scriv collect --version "$VERSION" || true
+    scriv collect --version $VERSION || true
     popd > /dev/null
   done
 
-  tell "Committing changes and creating PR on GitHub"
   cp ../.pre-commit-config.yaml .pre-commit-config.yaml
   git add . 
   pre-commit run cabal-fmt || true 
   git add . 
   git commit -m "Release $VERSION" || true 
-  git push --force --set-upstream origin release/$VERSION
+  git push --force --set-upstream origin $PR_BRANCH
 
-  PR_URL=$(gh pr create \
+  local PR_URL=$(gh pr create \
     --title "Release $VERSION" \
     --body "Release $VERSION" \
     --label "No Changelog Required" \
-    --head release/$VERSION \
+    --head $PR_BRANCH \
     --base master \
     | grep "https://")
 
+  git worktree remove --force $PR_WORKTREE
+  git branch -D $PR_BRANCH 
+
   tell "The release PR has been created at $PR_URL"
-  tell "Once approved and merged, run './scripts/interactive-release.sh' again"
+}
+
+
+check-and-open-chap-pr() {
+  maybe-open-pr IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION" open-chap-pr
+}
+
+
+check-plutus-pr-review-status() {
+  tell "Ensure that CI passes and the PR is approved before running step 3"
+}
+
+
+open-chap-pr() {
+  local PR_BRANCH="plutus-release/$VERSION"
+  rm -rf cardano-haskell-packages || true
+  git fetch --tags
+  local COMMIT_SHA=$(git rev-parse --verify --quiet $VERSION)
+  gh repo clone IntersectMBO/cardano-haskell-packages -- --single-branch --branch main
+  cd cardano-haskell-packages
+  git checkout -b $PR_BRANCH
+  ./scripts/add-from-github.sh https://github.com/IntersectMBO/plutus $COMMIT_SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin
+  git push --force --set-upstream origin $PR_BRANCH
+  local PR_URL=$(gh pr create \
+    --repo IntersectMBO/cardano-haskell-packages \
+    --title "Plutus Release $VERSION" \
+    --body "Plutus Release $VERSION" \
+    --head $PR_BRANCH \
+    --base main \
+    | grep "https://")
+  cd -
+  rm -rf cardano-haskell-packages || true
+  tell "The release PR has been created at $PR_URL"
+}
+
+
+check-and-publish-gh-release() {
+  local RELEASE_URL="$(gh release view 1.38.0.0 --json url --jq ".url" 2>&1)"
+  if [[ $RELEASE_URL == "release not found" ]]; then
+    tell "No release found for $VERSION, I will publish it now"
+    publish-gh-release
+  else  
+    tell "Found a release for version $VERSION at $RELEASE_URL"
+  fi
 }
 
 
 publish-gh-release() {
-  tell "Building and compressing static binaries"
-  for EXEC in "uplc pir plc"; do 
+  for EXEC in uplc pir plc; do 
     nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
-    upx -9 ./result/bin/$EXEC -o "$EXEC-x86_64-linux-ghc96" --force-overwrite
+    upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
-
-  tell "Tagging and publishing the release"
-  local TAG="$VERSION"
-  gh release create $TAG --title "$TAG" --generate-notes --latest
-  gh release upload $TAG pir-x86_64-linux-ghc96 uplc-x86_64-linux-ghc96 --clobber
-
-  tell "Cloning CHaP and making PR"
-  local COMMIT_SHA="$(git rev-parse --verify --quiet "$TAG")"
-  gh repo clone IntersectMBO/cardano-haskell-packages
-  cd cardano-haskell-packages
-  ./scripts-add-from-github "https://github.com/IntersectMBO/plutus" "$PLUTUS_COMMIT_SHA" plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin
-  git add .
-  git commit -m "Plutus Release $VERSION"
-  git push
-  PR_URL=$(gh pr create \
-    --repo IntersectMBO/cardano-haskell-packages \
-    --title "Release $VERSION" \
-    --body "Release $VERSION" \
-    | grep "https://")
-  cd -
-  tell "CHaP PR created at $PR_URL"
-
-  tell "Bumping plutus version in plutus-tx-template"
-  gh workflow run \
-    --repo IntersectMBO/plutus-tx-template \
-    --workflow bump-plutus-version.yml \
-    --inputs version=$VERSION \
-    
-  tell "Publishing the updated Metatheory site"
-  gh workflow run \
-    --repo IntersectMBO/plutus \
-    --workflow metatheory-site.yml \
-    --inputs ref=$VERSION \
-    --inputs destination="$VERSION" \
-    --inputs latest=true
-  
-  tell "Publishing the updated haddock site"
-  gh workflow run \
-    --repo IntersectMBO/plutus \
-    --workflow haddock-site.yml \
-    --inputs ref="$VERSION" \
-    --inputs destination="$VERSION" \
-    --inputs latest=true 
-
-  tell "Deleting unused tags"
-  git tag -d "release/$VERSION" 
+  gh release create $VERSION --title $VERSION --generate-notes --latest
+  gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
+  tell "Published the release"
 }
 
 
-tell "Starting the interactive release process"
+check-and-open-plutus-tx-pr() {
+  maybe-open-pr IntersectMBO/plutus-tx-template "bump-plutus-$VERSION" open-plutus-tx-pr
+}
 
 
-while true; do 
-  VERSION=$(ask "Enter the version number for this release, for example 1.42.0.0: ")
-  if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    tell "Invalid version '$VERSION', expecting something like 1.42.0.0"
+merge-plutus-pr() {
+  local A=1
+}
+
+
+open-plutus-tx-pr() {
+  gh workflow run bump-plutus-version.yml \
+    --repo IntersectMBO/plutus-tx-template \
+    --field version=$VERSION 
+}
+    
+
+deploy-metatheory-site() {
+  gh workflow run metatheory-site.yml \
+    --repo IntersectMBO/plutus \
+    --field ref=$VERSION \
+    --field destination=$VERSION \
+    --field latest=true
+}
+
+
+deploy-haddock-site() {
+  gh workflow run haddock-site.yml \
+    --repo IntersectMBO/plutus \
+    --field ref=$VERSION \
+    --field destination=$VERSION \
+    --field latest=true 
+}
+
+
+print-usage() {
+  echo "Usage: $0 VERSION"
+  echo 
+  echo "  VERSION is required and should be a version number like 1.42.0.0"
+}
+
+
+print-status() {
+  echo "1  Open a new Release PR in plutus"
+  local PR_URL=$(get-pr-url IntersectMBO/plutus "release/$VERSION") 
+  local PR_STATE=$(get-pr-state IntersectMBO/plutus "release/$VERSION") 
+  if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
+    echo -e "✅ PR $PR_STATE at $PR_URL"
   else 
-    break
+    echo "❌ PR $PR_STATE"
+  fi   
+
+  echo "2  Wait for CI checks, review and approve the Release PR in plutus, do not merge it yet"
+  if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
+    echo "✅ PR $PR_STATE at $PR_URL"
+  else 
+    echo "❌ PR $PR_STATE"
+  fi
+
+  echo "3  Open and merge a new Plutus Release PR in CHaP"
+  PR_URL=$(get-pr-url IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION") 
+  PR_STATE=$(get-pr-state IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION") 
+  if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
+    echo "✅ PR $PR_STATE at $PR_URL"
+  else 
+    echo "❌ PR $PR_STATE"
   fi 
+
+  echo "4  Open and merge a new Plutus Update PR in plutus-tx-template"
+  PR_URL=$(get-pr-url IntersectMBO/plutus-tx-template "bump-plutus-$VERSION") 
+  PR_STATE=$(get-pr-state "IntersectMBO/plutus-tx-template" "bump-plutus-$VERSION") 
+  if [[ $PR_STATE == "MERGED" ]]; then 
+    echo "✅ PR $PR_STATE at $PR_URL"
+  else 
+    echo "❌ PR $PR_STATE"
+  fi   
+  
+  echo "5  Merge the original Release PR in plutus"
+  PR_URL=$(get-pr-url IntersectMBO/plutus "release/$VERSION") 
+  PR_STATE=$(get-pr-state IntersectMBO/plutus "release/$VERSION") 
+  if [[ $PR_STATE == "MERGED" ]]; then 
+    echo "✅ PR $PR_STATE at $PR_URL"
+  else 
+    echo "❌ PR $PR_STATE"
+  fi
+
+  echo "6  Publish the release on GitHub"
+  local RELEASE_URL=$(gh release view $VERSION --json url --jq ".url" 2>&1)
+  if [[ $RELEASE_URL == "release not found" ]]; then  
+    echo "❌ Release not found"
+  else 
+    echo "✅ Release found at $RELEASE_URL"
+  fi 
+
+  echo "7  Deploy the Haddock site for the new release"
+  local HADDOCK_URL="https://plutus.cardano.intersectmbo.org/haddock/$VERSION/"
+  local CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
+  if [[ $CURL_STATE == "404" ]]; then  
+    echo "❌ Haddock site not found at $HADDOCK_URL"
+  else
+    echo "✅ Haddock site found at $HADDOCK_URL" 
+  fi 
+
+  echo "8  Deploy the Metatheory site for the new release"
+  local METATHEORY_URL="https://plutus.cardano.intersectmbo.org/metatheory/$VERSION/"
+  CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
+  if [[ $CURL_STATE == "404" ]]; then  
+    echo "❌ Metatheory site not found at $METATHEORY_URL"
+  else
+    echo "✅ Metatheory site found at $METATHEORY_URL" 
+  fi  
+
+  echo
+}
+
+
+if [ $# -lt 1 ]; then
+  print-usage
+  exit 1
+elif ! [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  tell "Invalid version '$1', expecting something like 1.42.0.0"
+  exit 1
+fi 
+
+
+VERSION=$1
+
+
+while true; do
+  STEP="$(ask "Type [1-8] to run the given step or press enter to see status: ")"
+  case $STEP in
+    "1") check-and-open-plutus-pr ;;
+    "2") check-plutus-pr-review-status ;;
+    "3") check-and-open-chap-pr ;;
+    "4") check-and-open-plutus-tx-pr ;;
+    "5") merge-plutus-pr ;;
+    "6") check-and-publish-gh-release ;;
+    "7") deploy-haddock-site ;;
+    "8") deploy-metatheory-site ;;
+    *) 
+      echo 
+      print-status
+      ;;  
+  esac
 done 
-
-
-PR_NUMBER="$(gh pr list --head release/$VERSION --json number --jq ".[0].number")"
-if [[ -n "$PR_NUMBER" ]]; then
-  PR_URL="https://github.com/IntersectMBO/plutus/pull/$PR_NUMBER"
-  PR_STATE="$(gh pr view $PR_NUMBER --json state --jq ".state")"
-  if [[ "$PR_STATE" == "OPEN" ]]; then
-    tell "Found open PR for release/$VERSION at $PR_URL, please wait for it to be merged before running this command again."
-    exit 1
-  elif [[ "$PR_STATE" == "MERGED" ]]; then
-    tell "Found merged PR for release/$VERSION at $PR_URL, I will now look for a release tagged '$VERSION'"
-    RELEASE_URL="$(gh release view $VERSION --json url --jq ".url")"
-    if [[ "$RELEASE_URL" == "release not found" ]]; then
-      tell "No release found for $VERSION, I will publish it now"
-      publish-gh-release
-    else
-      tell "I already found a release for version $VERSION at $RELEASE_URL"
-      tell "I will now proceed to check the CHaP and Metatheory PRs"
-      exit 1
-    fi 
-  elif [[ "$PR_STATE" == "CLOSED" ]]; then
-    tell "Found closed PR for release/$VERSION at $PR_UR, you might want to re-open it"
-    exit 1 
-  else 
-    tell "Found PR for release/$VERSION at $PR_UR with unknown state '$PR_STATE', please double check"
-    exit 1
-  fi 
-else
-  tell "No PR found for release/$VERSION, I will start the release process"
-  create-release-pr
-fi
