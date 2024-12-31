@@ -21,6 +21,7 @@ module PlutusTx.Data.AssocMap (
   unsafeFromBuiltinList,
   noDuplicateKeys,
   all,
+  allKeyVal,
   any,
   union,
   unionWith,
@@ -251,6 +252,26 @@ all p (Map m) = go m
              in if p a then go else \_ -> False
         )
 {-# INLINEABLE all #-}
+
+--- | Check if all keys and values in the `Map` satisfy the predicate.
+allKeyVal
+  :: forall k a
+  . ( P.UnsafeFromData a
+    , P.UnsafeFromData k
+    )
+  => (k -> a -> Bool) -> Map k a -> Bool
+allKeyVal p (Map m) = go m
+  where
+    go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
+    go =
+      P.caseList'
+        True
+        ( \hd ->
+            let a = P.unsafeFromBuiltinData (BI.snd hd)
+                k = P.unsafeFromBuiltinData (BI.fst hd)
+             in if p k a then go else \_ -> False
+        )
+{-# INLINEABLE allKeyVal #-}
 
 -- | Check if any value in the `Map` satisfies the predicate.
 any :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
