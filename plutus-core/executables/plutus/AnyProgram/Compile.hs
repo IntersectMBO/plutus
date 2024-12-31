@@ -5,6 +5,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 module AnyProgram.Compile
     ( compileProgram
+    , checkProgram
     , toOutAnn
     , plcToOutName
     , uplcToOutName
@@ -95,6 +96,7 @@ compileProgram = curry $ \case
             compileProgram sng1 (SPlc n2 a1)
         >=> pure . embedProgram
         -- here we also run the pir typechecker, and pir optimiser
+        -- MAYBE: we shouldn't do the above?
         >=> compileProgram (SPir n2 a1) (SPir n2 a2)
 
     -- pir to uplc
@@ -301,3 +303,15 @@ uplcToOutName' _ _ = error "this is complete, but i don't want to use -fno-warn-
 throwingPIR :: (PIR.AsError e uni fun a, MonadError e m)
             => Text -> b -> m c
 throwingPIR = const . throwing PIR._Error . PIR.OptionsError
+
+checkProgram :: (e ~ PIR.Provenance (FromAnn (US_ann s)),
+                  MonadError (PIR.Error DefaultUni DefaultFun e) m)
+             => SLang s
+             -> FromLang s
+             -> m ()
+checkProgram sng p = modifyError (fmap PIR.Original) $ case sng of
+        SPlc n a     -> modifyError PIR.PLCError $ plcTypecheck n a p
+        SUplc n a    -> uplcTypecheck n a p
+        SPir SName a -> pirTypecheck a p
+        SData        -> pure () -- data is type correct by construction
+        SPir{}       -> throwingPIR "PIR: Cannot typecheck non-names" ()
