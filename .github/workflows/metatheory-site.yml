@@ -5,6 +5,18 @@
 # On push to master, this workflows publishes to:
 # https://plutus.cardano.intersectmbo.org/metatheory/master
 
+# This job builds and deploys the Metatheory site.
+# 
+# When this job is triggered manually via workflow dispatch, it builds and then 
+# publishes the site according to the 'ref' input:
+# https://plutus.cardano.intersectmbo.org/metatheory/$version
+# And optionally (if the 'latest' flag is set) to: 
+# https://plutus.cardano.intersectmbo.org/metatheory/latest
+#
+# This job also builds and publishes the site on push to master to:
+# https://plutus.cardano.intersectmbo.org/metatheory/master
+
+
 name: "🔮 Metatheory Site"
 
 on:
