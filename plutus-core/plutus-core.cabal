@@ -195,6 +195,7 @@ library
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
     UntypedPlutusCore.Core
+    UntypedPlutusCore.Core.Instance.Scoping
     UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Core.Type
     UntypedPlutusCore.Core.Zip
@@ -206,12 +207,19 @@ library
     UntypedPlutusCore.Evaluation.Machine.SteppableCek
     UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
+    UntypedPlutusCore.Mark
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
+    UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Size
     UntypedPlutusCore.Transform.CaseOfCase
+    UntypedPlutusCore.Transform.CaseReduce
+    UntypedPlutusCore.Transform.Cse
+    UntypedPlutusCore.Transform.FloatDelay
+    UntypedPlutusCore.Transform.ForceDelay
+    UntypedPlutusCore.Transform.Inline
     UntypedPlutusCore.Transform.Simplifier
 
   other-modules:
@@ -264,16 +272,9 @@ library
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     UntypedPlutusCore.Evaluation.Machine.CommonAPI
-    UntypedPlutusCore.Mark
-    UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Simplify.Opts
     UntypedPlutusCore.Subst
-    UntypedPlutusCore.Transform.CaseReduce
-    UntypedPlutusCore.Transform.Cse
-    UntypedPlutusCore.Transform.FloatDelay
-    UntypedPlutusCore.Transform.ForceDelay
-    UntypedPlutusCore.Transform.Inline
 
   reexported-modules: Data.SatInt
   hs-source-dirs:
@@ -438,6 +439,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Regressions
     Flat.Spec
     Generators
+    Scoping.Spec
     Transform.CaseOfCase.Test
     Transform.Simplify
     Transform.Simplify.Lib

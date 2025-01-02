@@ -15,6 +15,7 @@ import Evaluation.Machines (test_budget, test_machines, test_tallying)
 import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
 import Generators (test_parsing)
+import Scoping.Spec (test_names)
 import Transform.CaseOfCase.Test (test_caseOfCase)
 import Transform.Simplify (test_simplify)
 
@@ -40,4 +41,5 @@ main = do
       , test_flat
       , schnorrVerifyRegressions
       , evalOrder
+      , test_names
       ]

@@ -6,6 +6,8 @@
 
 module PlutusCore.Core.Instance.Scoping () where
 
+import PlutusPrelude
+
 import PlutusCore.Check.Scoping
 import PlutusCore.Core.Type
 import PlutusCore.Name.Unique
@@ -51,6 +53,10 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     establishScoping (TySOP _ tyls) =
         TySOP NotAName <$> (traverse . traverse) establishScoping tyls
 
+firstBound :: Term tyname name uni fun ann -> [name]
+firstBound (Apply _ (LamAbs _ name _ body) _) = name : firstBound body
+firstBound _                                  = []
+
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
         name <- freshenName nameDup
@@ -58,7 +64,7 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
     establishScoping (TyAbs _ nameDup kind body) = do
         name <- freshenTyName nameDup
         establishScopingBinder TyAbs name kind body
-    establishScoping (IWrap _ pat arg term)   =
+    establishScoping (IWrap _ pat arg term) =
         IWrap NotAName <$> establishScoping pat <*> establishScoping arg <*> establishScoping term
     establishScoping (Apply _ fun arg) =
         Apply NotAName <$> establishScoping fun <*> establishScoping arg
@@ -73,8 +79,18 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
     establishScoping (Constr _ ty i es) =
       Constr NotAName <$> establishScoping ty <*> pure i <*> traverse establishScoping es
-    establishScoping (Case _ ty a es) =
-      Case NotAName <$> establishScoping ty <*> establishScoping a <*> traverse establishScoping es
+    establishScoping (Case _ ty a es) = do
+        esScoped <- traverse establishScoping es
+        let esScopedPoked = addTheRest $ map (\e -> (e, firstBound e)) esScoped
+            branchBounds = map (snd . fst) esScopedPoked
+            referenceInBranch ((branch, _), others) = referenceOutOfScope (map snd others) branch
+        tyScoped <- establishScoping ty
+        aScoped <- establishScoping a
+        -- For each of the branches reference (as out-of-scope) the variables bound in that branch
+        -- in all the other ones, as well as outside of the whole case-expression. This is to check
+        -- that none of the transformations leak variables outside of the branch they're bound in.
+        pure . referenceOutOfScope branchBounds $
+            Case NotAName tyScoped aScoped $ map referenceInBranch esScopedPoked
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =

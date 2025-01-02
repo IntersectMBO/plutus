@@ -10,7 +10,7 @@ import PlutusPrelude (display, fold, on, void, zipExact, (&&&))
 
 import PlutusCore (Name, _nameText)
 import PlutusCore.Annotation
-import PlutusCore.Compiler.Erase (eraseProgram)
+import PlutusCore.Compiler.Erase (eraseProgram, eraseTerm)
 import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators.Hedgehog (forAllPretty)
@@ -69,6 +69,9 @@ compareProgram
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
     => Program Name uni fun a -> Program Name uni fun a -> Bool
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
+
+genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term Name DefaultUni fun ())
+genTerm = fmap eraseTerm AST.genTerm
 
 genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program Name DefaultUni fun ())
 genProgram = fmap eraseProgram AST.genProgram
