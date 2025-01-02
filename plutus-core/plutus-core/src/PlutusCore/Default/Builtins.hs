@@ -106,10 +106,6 @@ data DefaultFun
     | HeadList
     | TailList
     | NullList
-    -- Arrays
-    | LengthArray
-    | ListToArray
-    | IndexArray
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
@@ -179,6 +175,10 @@ data DefaultFun
     -- Ripemd_160
     | Ripemd_160
     | ExpModInteger
+    -- Arrays
+    | LengthArray
+    | ListToArray
+    | IndexArray
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1560,40 +1560,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation
             (runCostingFunOneArgument . paramNullList)
 
-    toBuiltinMeaning _semvar LengthArray =
-      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
-          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
-            case uni of
-              DefaultUniArray _uniA -> pure $ Vector.length vec
-              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
-          {-# INLINE lengthArrayDenotation #-}
-        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . paramLengthArray)
-
-    toBuiltinMeaning _semvar ListToArray =
-      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
-          listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
-            case uniListA of
-              DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
-              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
-          {-# INLINE listToArrayDenotation #-}
-        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
-
-    toBuiltinMeaning _semvar IndexArray =
-      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
-          indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
-            case uni of
-              DefaultUniArray arg -> do
-                case vec Vector.!? n of
-                  Nothing -> fail "Array index out of bounds"
-                  Just el -> pure $ fromValueOf arg el
-              _ ->
-                    -- See Note [Structural vs operational errors within builtins].
-                    -- The arguments are going to be printed in the "cause" part of the error
-                    -- message, so we don't need to repeat them here.
-                throwing _StructuralUnliftingError "Expected an array but got something else"
-          {-# INLINE indexArrayDenotation #-}
-        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
-
     -- Data
     toBuiltinMeaning _semvar ChooseData =
         let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
@@ -2077,6 +2043,41 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
+
+
+    toBuiltinMeaning _semvar LengthArray =
+      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+            case uni of
+              DefaultUniArray _uniA -> pure $ Vector.length vec
+              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE lengthArrayDenotation #-}
+        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ListToArray =
+      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
+          listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+            case uniListA of
+              DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
+          {-# INLINE listToArrayDenotation #-}
+        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar IndexArray =
+      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+          indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+            case uni of
+              DefaultUniArray arg -> do
+                case vec Vector.!? n of
+                  Nothing -> fail "Array index out of bounds"
+                  Just el -> pure $ fromValueOf arg el
+              _ ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    -- The arguments are going to be printed in the "cause" part of the error
+                    -- message, so we don't need to repeat them here.
+                throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE indexArrayDenotation #-}
+        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
