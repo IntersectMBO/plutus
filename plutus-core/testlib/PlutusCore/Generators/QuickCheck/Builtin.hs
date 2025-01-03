@@ -418,8 +418,11 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_MlResult
                ]
            SingType `SingKindArrow` SingType ->
-               [genDefaultUniApply | size > 10] ++
-               [pure $ JustSomeType DefaultUniProtoList]
+                [ genDefaultUniApply | size > 10 ] 
+                  ++ map pure 
+                    [ JustSomeType DefaultUniProtoList
+                    , JustSomeType DefaultUniProtoArray
+                    ]
            SingType `SingKindArrow` SingType `SingKindArrow` SingType ->
                -- No 'genDefaultUniApply', because we don't have any built-in type constructors
                -- taking three or more arguments.
