@@ -1,0 +1,1 @@
+import{MeshWallet as e,deserializeAddress as r}from"@meshsdk/core";import s from"node:fs";const o=e.brew(!0),t=new e({networkId:0,key:{type:"root",bech32:o}}),i=(await t.getUnusedAddresses())[0],d=r(i).pubKeyHash,n=process.argv[2];s.writeFileSync(`${n}.skey`,o),s.writeFileSync(`${n}.addr`,i),s.writeFileSync(`${n}.pkh`,d);
