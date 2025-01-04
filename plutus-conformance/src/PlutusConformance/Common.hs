@@ -25,7 +25,7 @@ import Data.Text.IO qualified as T
 import System.Directory
 import System.FilePath (takeBaseName, takeFileName, (<.>), (</>))
 import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.ExpectedFailure (expectFail)
+import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.Extras (goldenVsDocM)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
@@ -154,7 +154,12 @@ discoverTests eval modelParams evaluationFailureExpected budgetFailureExpected =
     possiblyFailingTest :: Bool -> TestTree -> TestTree
     possiblyFailingTest failureExpected test =
         if failureExpected
-        then expectFail test
+        then ignoreTest test
+        -- TODO: ^ this should really be `expectFail`, but that behaves strangely with `--accept`
+        -- (the golden files for the failing tests get updated: see
+        -- https://github.com/IntersectMBO/plutus/issues/6714 and
+        -- https://github.com/nomeata/tasty-expected-failure/issues/27.  If/when that gets fixed
+        -- `ignoreTest` should be changed to `expectFail`.
         else test
 
 -- | Turn the expected file content in text to a `UplcProg` unless the expected result
