@@ -124,6 +124,32 @@ Whether or not this is a problem depends on the precise situation, but in genera
 
 Therefore `asData` tends to work best when you use it for a type and also for all the types of its fields.
 
+### Writing optimal code using `asData`
+
+Consider the following type encoded using `asData`, and two functions which produce equivalent results:
+```
+PlutusTx.asData
+    [d|
+        data Point =
+            Point
+                { x :: Int
+                , y :: Int
+                , z :: Int
+                }
+    |]
+
+foo1 :: Point -> Int
+foo1 point = x point + y point
+
+foo2 :: Point -> Int
+foo2 Point {x, y} = x + y 
+```
+
+The second function, `foo2`, matches on the `Point` argument using record patterns.
+This ensures that both fields are extracted at the same time from the underlying `Data` object.
+In `foo1`, which uses field accessors instead, this will only be the case if the compiler detects that `x point` and `y point` both contain a common subexpression which can be factored out.
+Depending on this compiler optimisation is unreliable, therefore the approach illustrated in `foo2` is preferred.
+
 ## Choosing an approach
 
 There are a number of tradeoffs to consider:
@@ -155,3 +181,6 @@ The module naming scheme is as follows:
 Using this version of the ledger API can be as simple as modifying the relevant imports; for example, importing [PlutusLedgerApi.Data.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-Data-V3.html) instead of [PlutusLedgerApi.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V3.html), and so on.
 
 If your script is slightly more complex, and it operates on those fields of the script context which are represented as lists or maps, then you will need to also import the respective data-backed collection type from the Plutus Tx standard library.
+
+It is recommended to use record patterns to extract all necessary fields of the `ScriptContext` at the beginning of a function.
+The reasoning behind this is briefly explained [above](#writing-optimal-code-using-asdata).
