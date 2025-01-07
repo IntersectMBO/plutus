@@ -329,7 +329,7 @@ $$
 \nomenclature[Azz]{$\quotfn$, $\remfn$}{Integer division operations}
 
 \noindent The $\divfn$ and $\modfn$ functions form a pair, as do $\quotfn$ and $\remfn$;
-$\divfn$ should not be used in combination with $\modfn$, not should $\quotfn$ be used
+$\divfn$ should not be used in combination with $\remfn$, nor should $\quotfn$ be used
 with $\modfn$.
 
 For positive divisors $b$, $\divfn$ truncates downwards and $\modfn$ always
@@ -346,7 +346,7 @@ all of these functions return the error value $\errorX$.
         \hline
         $+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\
         $-$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
-        $+$ & $-$ & $-$ & $+$ & $+$ & $+$ \\
+        $+$ & $-$ & $-$ & $-$ & $-$ & $+$ \\
         $-$ & $-$ & $+$ & $-$ & $+$ & $-$ \\
         \hline
         \end{tabular}
