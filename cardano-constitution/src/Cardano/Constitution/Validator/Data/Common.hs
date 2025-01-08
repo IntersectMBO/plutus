@@ -5,7 +5,7 @@
 {-# LANGUAGE Strict            #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
-module Cardano.Constitution.Validator.Common
+module Cardano.Constitution.Validator.Data.Common
     ( withChangedParams
     , ChangedParams
     , ConstitutionValidator
@@ -16,13 +16,14 @@ import Control.Category hiding ((.))
 
 import Cardano.Constitution.Config
 import Data.Coerce
-import PlutusLedgerApi.V3 as V3
+import PlutusLedgerApi.Data.V3
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Data.AssocMap
 import PlutusTx.NonCanonicalRational as NCRatio
 import PlutusTx.Prelude as Tx hiding (toList)
 
-type ConstitutionValidator = BuiltinData -- ^ ScriptContext, deep inside is the changed-parameters proposal
+type ConstitutionValidator = ScriptContext -- ^ ScriptContext, deep inside is the changed-parameters proposal
                            -> BuiltinUnit -- ^ No-error means the proposal conforms to the constitution
 
 -- OPTIMIZE: operate on BuiltinList<BuiltinPair> directly, needs major refactoring of sorted&unsorted Validators
@@ -70,37 +71,13 @@ validateParamValue = \case
           meaningWithActual = (`meaning` actualValue)
 {-# INLINABLE validateParamValue #-}
 
-scriptContextToValidGovAction :: BuiltinData -> Maybe ChangedParams
-scriptContextToValidGovAction = scriptContextToScriptInfo
-                           >>> scriptInfoToProposalProcedure
-                           >>> proposalProcedureToGovernanceAction
-                           >>> governanceActionToValidGovAction
-  where
-    scriptContextToScriptInfo :: BuiltinData -> BuiltinData -- aka ScriptContext -> ScriptInfo
-    scriptContextToScriptInfo = BI.unsafeDataAsConstr
-                               >>> BI.snd
-                               >>> BI.tail
-                               >>> BI.tail
-                               >>> BI.head
-
-    scriptInfoToProposalProcedure :: BuiltinData -> BuiltinData
-    scriptInfoToProposalProcedure (BI.unsafeDataAsConstr -> si) =
-        if BI.fst si `B.equalsInteger` 5 -- Constructor Index of `ProposingScript`
-        then BI.head (BI.tail (BI.snd si))
-        else traceError "Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it."
-
-    proposalProcedureToGovernanceAction :: BuiltinData -> BuiltinData
-    proposalProcedureToGovernanceAction = BI.unsafeDataAsConstr
-                                      >>> BI.snd
-                                      >>> BI.tail
-                                      >>> BI.tail
-                                      >>> BI.head
-
-    governanceActionToValidGovAction :: BuiltinData -> Maybe ChangedParams
-    governanceActionToValidGovAction (BI.unsafeDataAsConstr -> govAction@(BI.fst -> govActionConstr))
-        -- Constructor Index of `ChangedParams` is 0
-        | govActionConstr `B.equalsInteger` 0 = Just (B.unsafeDataAsMap (BI.head (BI.tail (BI.snd govAction))))
-        -- Constructor Index of `TreasuryWithdrawals` is 2
-        | govActionConstr `B.equalsInteger` 2 = Nothing -- means treasurywithdrawal
-        | otherwise = traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
+scriptContextToValidGovAction :: ScriptContext -> Maybe ChangedParams
+scriptContextToValidGovAction ScriptContext {scriptContextScriptInfo = scriptInfo} =
+    case scriptInfo of
+        ProposingScript _ ProposalProcedure { ppGovernanceAction = ppGovAct } ->
+            case ppGovAct of
+                ParameterChange _ cparams _ -> Just (B.unsafeDataAsMap . toBuiltinData $ cparams)
+                TreasuryWithdrawals _ _ -> Nothing
+                _ -> traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
+        _ -> Nothing
 {-# INLINABLE scriptContextToValidGovAction #-}
