@@ -68,7 +68,7 @@ maybe-open-pr() {
   local PR_STATE=$(get-pr-state $REPO $BRANCH)
   
   if [[ -z $PR_NUMBER ]]; then
-    tell "No PR found with in $REPO with branch $BRANCH, I will create the PR"
+    tell "No PR found in $REPO with branch $BRANCH, I will create the PR"
     $COMMAND
   else
     case $PR_STATE in
@@ -91,7 +91,7 @@ maybe-open-pr() {
 
 
 check-and-open-plutus-pr() {
-  maybe-open-pr IntersectMBO/plutus "release/$VERSION" open-plutus-pr
+  maybe-open-pr IntersectMBO/plutus release/$VERSION open-plutus-pr
 }
 
 
@@ -127,9 +127,9 @@ open-plutus-pr() {
     popd > /dev/null
   done
 
-  cp ../.pre-commit-config.yaml .pre-commit-config.yaml
+  cp ../.pre-commit-config.yaml .pre-commit-config.yaml # this file is not in git so we need to copy it or pre-commit will complain
   git add . 
-  pre-commit run cabal-fmt || true 
+  pre-commit run cabal-fmt || true # pre-commit will fail but will modify the files in place, hence the second git add . below
   git add . 
   git commit -m "Release $VERSION" || true 
   git push --force --set-upstream origin $PR_BRANCH
@@ -150,7 +150,7 @@ open-plutus-pr() {
 
 
 check-and-open-chap-pr() {
-  maybe-open-pr IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION" open-chap-pr
+  maybe-open-pr IntersectMBO/cardano-haskell-packages plutus-release/$VERSION open-chap-pr
 }
 
 
