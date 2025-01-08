@@ -2,4 +2,4 @@ builds:
   # TODO once we have fully migrated from hydra to garnix, refactor nix/output.nix 
   # by removing all references to hydraJobs and populating this `include` section.
   include:
-  - 'hydraJobs.x86_64-linux.pre-commit-check'
+  - 'packages.x86_64-linux.pre-commit-check'
