@@ -247,75 +247,79 @@ print-usage() {
 
 
 print-status() {
-  echo "1  Open a new Release PR in plutus"
   local PR_URL=$(get-pr-url IntersectMBO/plutus "release/$VERSION") 
-  local PR_STATE=$(get-pr-state IntersectMBO/plutus "release/$VERSION") 
+  local PR_STATE=$(get-pr-state IntersectMBO/plutus "release/$VERSION")
   if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
-    echo -e "✅ PR $PR_STATE at $PR_URL"
+    echo -e "[1] ✅ Open a new Release PR in plutus\n       PR $PR_STATE at $PR_URL"
   else 
-    echo "❌ PR $PR_STATE"
-  fi   
+    echo -e "[1] ❌ Open a new Release PR in plutus\n       PR $PR_STATE"
+  fi 
+  echo 
 
-  echo "2  Wait for CI checks, review and approve the Release PR in plutus, do not merge it yet"
   if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
-    echo "✅ PR $PR_STATE at $PR_URL"
+    echo -e "[2] ✅ Approve the Release PR in plutus, do not merge yet\n       PR $PR_STATE at $PR_URL"
   else 
-    echo "❌ PR $PR_STATE"
+    echo -e "[2] ❌ Approve the Release PR in plutus, do not merge yet\n       PR $PR_STATE"
   fi
+  echo 
 
-  echo "3  Open and merge a new Plutus Release PR in CHaP"
   PR_URL=$(get-pr-url IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION") 
   PR_STATE=$(get-pr-state IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION") 
-  if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
-    echo "✅ PR $PR_STATE at $PR_URL"
+  if [[ $PR_STATE == "MERGED" ]]; then 
+    echo -e "[3] ✅ Open and merge a new Plutus Release PR in CHaP\n       PR $PR_STATE at $PR_URL"
+  elif [[ $PR_STATE == "OPEN" ]]; then 
+    echo -e "[3] ❌ Open and merge a new Plutus Release PR in CHaP\n       PR $PR_STATE but not MERGED at $PR_URL"
   else 
-    echo "❌ PR $PR_STATE"
+    echo -e "[3] ❌ Open and merge a new Plutus Release PR in CHaP\n       PR $PR_STATE"
   fi 
+  echo 
 
-  echo "4  Open and merge a new Plutus Update PR in plutus-tx-template"
   PR_URL=$(get-pr-url IntersectMBO/plutus-tx-template "bump-plutus-$VERSION") 
   PR_STATE=$(get-pr-state "IntersectMBO/plutus-tx-template" "bump-plutus-$VERSION") 
   if [[ $PR_STATE == "MERGED" ]]; then 
-    echo "✅ PR $PR_STATE at $PR_URL"
+    echo -e "[4] ✅ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE at $PR_URL"
+  elif [[ $PR_STATE == "OPEN" ]]; then 
+    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE but not MERGED at $PR_URL"
   else 
-    echo "❌ PR $PR_STATE"
+    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE"
   fi   
+  echo 
   
-  echo "5  Merge the original Release PR in plutus"
   PR_URL=$(get-pr-url IntersectMBO/plutus "release/$VERSION") 
   PR_STATE=$(get-pr-state IntersectMBO/plutus "release/$VERSION") 
   if [[ $PR_STATE == "MERGED" ]]; then 
-    echo "✅ PR $PR_STATE at $PR_URL"
+    echo -e "[5] ✅ Merge the original Release PR in plutus\n       PR $PR_STATE at $PR_URL"
+  elif [[ $PR_STATE == "OPEN" ]]; then 
+    echo -e "[5] ❌ Merge the original Release PR in plutus\n       PR $PR_STATE but not MERGED at $PR_URL"
   else 
-    echo "❌ PR $PR_STATE"
+    echo -e "[5] ❌ Merge the original Release PR in plutus\n       PR $PR_STATE at $PR_URL"
   fi
+  echo 
 
-  echo "6  Publish the release on GitHub"
   local RELEASE_URL=$(gh release view $VERSION --json url --jq ".url" 2>&1)
   if [[ $RELEASE_URL == "release not found" ]]; then  
-    echo "❌ Release not found"
+    echo -e "[6] ❌ Publish the release on GitHub\n       Release not found"
   else 
-    echo "✅ Release found at $RELEASE_URL"
+    echo -e "[6] ✅ Publish the release on GitHub\n       Release found at $RELEASE_URL"
   fi 
+  echo 
 
-  echo "7  Deploy the Haddock site for the new release"
   local HADDOCK_URL="https://plutus.cardano.intersectmbo.org/haddock/$VERSION/"
   local CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
   if [[ $CURL_STATE == "404" ]]; then  
-    echo "❌ Haddock site not found at $HADDOCK_URL"
+    echo -e "[7] ❌ Deploy the Haddock site for the new release\n       Haddock site not found at $HADDOCK_URL"
   else
-    echo "✅ Haddock site found at $HADDOCK_URL" 
+    echo -e "[7] ✅ Deploy the Haddock site for the new release\n       Haddock site found at $HADDOCK_URL"
   fi 
+  echo 
 
-  echo "8  Deploy the Metatheory site for the new release"
   local METATHEORY_URL="https://plutus.cardano.intersectmbo.org/metatheory/$VERSION/"
   CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
   if [[ $CURL_STATE == "404" ]]; then  
-    echo "❌ Metatheory site not found at $METATHEORY_URL"
+    echo -e "[8] ❌ Deploy the Metatheory site for the new release\n       Metatheory site not found at $METATHEORY_URL" 
   else
-    echo "✅ Metatheory site found at $METATHEORY_URL" 
+    echo -e "[8] ✅ Deploy the Metatheory site for the new release\n       Metatheory site found at $METATHEORY_URL" 
   fi  
-
   echo
 }
 
