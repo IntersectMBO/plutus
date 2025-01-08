@@ -28,6 +28,8 @@
       url = "github:input-output-hk/haskell.nix";
       inputs.hackage.follows = "hackage";
     };
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = inputs:
