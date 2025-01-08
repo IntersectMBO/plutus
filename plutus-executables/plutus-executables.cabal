@@ -64,7 +64,7 @@ library lib
   build-depends:
     , base               >=4.9   && <5
     , bytestring
-    , plutus-core        ^>=1.38
+    , plutus-core        ^>=1.39
     , plutus-metatheory
     , text
 
@@ -80,7 +80,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=1.39
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -95,7 +95,7 @@ executable plc
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=1.39
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -103,17 +103,15 @@ executable uplc
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , Agda                             ==2.7.0
     , base                             >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
-    , filepath
     , flat                             ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.38
+    , plutus-core                      ^>=1.39
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
     , plutus-metatheory
@@ -147,7 +145,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.38
+    , plutus-core        ^>=1.39
     , plutus-metatheory
     , process
     , tasty

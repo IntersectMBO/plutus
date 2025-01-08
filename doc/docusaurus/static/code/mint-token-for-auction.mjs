@@ -65,7 +65,7 @@ const token = {
   }
 }
 
-const walletAddress = wallet.getUsedAddresses()[0]
+const walletAddress = (await wallet.getUsedAddresses())[0]
 
 // The redeemer for the minting policy, corresponding to `()`.
 const redeemer = {
