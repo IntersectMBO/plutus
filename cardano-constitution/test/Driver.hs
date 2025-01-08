@@ -2,6 +2,9 @@
 module Main where
 
 import Cardano.Constitution.Config.Tests qualified as ConfigTests
+import Cardano.Constitution.Validator.Data.GoldenTests qualified as Data.GoldenTests
+import Cardano.Constitution.Validator.Data.PropTests qualified as Data.PropTests
+import Cardano.Constitution.Validator.Data.UnitTests qualified as Data.UnitTests
 import Cardano.Constitution.Validator.GoldenTests qualified as GoldenTests
 import Cardano.Constitution.Validator.PropTests qualified as PropTests
 import Cardano.Constitution.Validator.UnitTests qualified as UnitTests
@@ -40,6 +43,11 @@ main = do
         ConfigTests.tests,
         GoldenTests.tests,
         UnitTests.singleParamTests,
+        Data.UnitTests.unitTests,
+        Data.PropTests.tests,
+        Data.ConfigTests.tests,
+        Data.GoldenTests.tests,
+        Data.UnitTests.singleParamTests,
         testGroup' "Multiple Parameter Changes"
         [
           testProperty' "Proposal with all parameters at their current (or default value if new)" $

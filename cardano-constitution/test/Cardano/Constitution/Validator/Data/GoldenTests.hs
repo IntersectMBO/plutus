@@ -6,12 +6,12 @@ module Cardano.Constitution.Validator.Data.GoldenTests
 import Cardano.Constitution.Config
 import Cardano.Constitution.Data.Validator
 import Cardano.Constitution.Validator.Data.TestsCommon
-import Helpers.TestBuilders
+import Helpers.Data.TestBuilders
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty (prettyPlcReadableSimple)
 import PlutusLedgerApi.Data.V3 as V3
-import PlutusLedgerApi.V3.ArbitraryContexts as V3
+import PlutusLedgerApi.V3.Data.ArbitraryContexts as V3
 import PlutusTx.Code as Tx
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as UPLC

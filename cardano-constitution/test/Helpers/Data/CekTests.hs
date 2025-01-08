@@ -1,12 +1,12 @@
-module Helpers.CekTests
+module Helpers.Data.CekTests
     ( hsValidatorsAgreesAndPassAll
     , hsValidatorsAgreesAndErrAll
     , hsAgreesWithTxBool
     ) where
 
-import Cardano.Constitution.Validator
-import Cardano.Constitution.Validator.TestsCommon
-import PlutusLedgerApi.V3.ArbitraryContexts qualified as V3
+import Cardano.Constitution.Data.Validator
+import Cardano.Constitution.Validator.Data.TestsCommon
+import PlutusLedgerApi.V3.Data.ArbitraryContexts qualified as V3
 import PlutusTx as Tx
 import Test.Tasty.QuickCheck
 import UntypedPlutusCore as UPLC

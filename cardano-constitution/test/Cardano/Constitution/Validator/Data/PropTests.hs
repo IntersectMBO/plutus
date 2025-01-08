@@ -1,14 +1,14 @@
 -- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Cardano.Constitution.Validator.PropTests
+module Cardano.Constitution.Validator.Data.PropTests
     ( tests
     ) where
 
-import Cardano.Constitution.Validator
-import Cardano.Constitution.Validator.TestsCommon
+import Cardano.Constitution.Data.Validator
+import Cardano.Constitution.Validator.Data.TestsCommon
 import Data.Map.Strict qualified as M
-import Helpers.TestBuilders
-import PlutusLedgerApi.V3.ArbitraryContexts qualified as V3
+import Helpers.Data.TestBuilders
+import PlutusLedgerApi.V3.Data.ArbitraryContexts qualified as V3
 import PlutusTx as Tx
 import PlutusTx.Builtins.Internal as BI (BuiltinUnit (..))
 import UntypedPlutusCore as UPLC

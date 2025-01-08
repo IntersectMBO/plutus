@@ -107,12 +107,19 @@ test-suite cardano-constitution-test
   other-modules:
     Cardano.Constitution.Config.Tests
     Cardano.Constitution.Validator.Data.GoldenTests
+    Cardano.Constitution.Validator.Data.PropTests
     Cardano.Constitution.Validator.Data.TestsCommon
+    Cardano.Constitution.Validator.Data.UnitTests
     Cardano.Constitution.Validator.GoldenTests
     Cardano.Constitution.Validator.PropTests
     Cardano.Constitution.Validator.TestsCommon
     Cardano.Constitution.Validator.UnitTests
     Helpers.CekTests
+    Helpers.Data.CekTests
+    Helpers.Data.Guardrail
+    Helpers.Data.Intervals
+    Helpers.Data.MultiParam
+    Helpers.Data.TestBuilders
     Helpers.Farey
     Helpers.Guardrail
     Helpers.Intervals
@@ -121,6 +128,7 @@ test-suite cardano-constitution-test
     Helpers.Spec.IntervalSpec
     Helpers.TestBuilders
     PlutusLedgerApi.V3.ArbitraryContexts
+    PlutusLedgerApi.V3.Data.ArbitraryContexts
 
   build-depends:
     , aeson
