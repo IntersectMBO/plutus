@@ -39,9 +39,11 @@
     };
 
   nixConfig = {
-    extra-substituters = [ "https://cache.iog.io" ];
-    extra-trusted-public-keys =
-      [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+    extra-substituters = [ "https://cache.iog.io" "https://cache.garnix.io" ];
+    extra-trusted-public-keys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
     allow-import-from-derivation = true;
   };
 }
