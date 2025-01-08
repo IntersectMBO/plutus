@@ -483,6 +483,7 @@ library marlowe-internal
     PlutusBenchmark.Marlowe.Core.V1.Semantics
     PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
     PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address
+    PlutusBenchmark.Marlowe.Scripts.Data.RolePayout
     PlutusBenchmark.Marlowe.Scripts.RolePayout
     PlutusBenchmark.Marlowe.Scripts.Semantics
     PlutusBenchmark.Marlowe.Types
