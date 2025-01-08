@@ -2,10 +2,18 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TypeApplications  #-}
 module PlutusLedgerApi.V3.Data.ArbitraryContexts
     ( ArbitraryContext (..)
-    , GovernanceAction (..)
+    , GovernanceAction
+    , pattern ParameterChange
+    , pattern HardForkInitiation
+    , pattern TreasuryWithdrawals
+    , pattern NoConfidence
+    , pattern UpdateCommittee
+    , pattern NewConstitution
+    , pattern InfoAction
     , FakeProposedContext (..)
     , mkFakeParameterChangeContext
     , mkFakeContextFromGovAction
@@ -68,7 +76,7 @@ memptyTxInfo = TxInfo
         , txInfoReferenceInputs       = mempty
         , txInfoOutputs               = mempty
         , txInfoFee                   = zero
-        , txInfoMint                  = emptyMintValue
+        , txInfoMint                  = mempty
         , txInfoTxCerts               = mempty
         , txInfoWdrl                  = AssocMap.unsafeFromList mempty
         , txInfoValidRange            = always

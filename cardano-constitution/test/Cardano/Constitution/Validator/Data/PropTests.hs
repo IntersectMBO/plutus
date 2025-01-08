@@ -49,7 +49,7 @@ hsAgreesWithTx :: (ConstitutionValidator, CompiledCode ConstitutionValidator)
 hsAgreesWithTx (vHs, vCode) ctx = ioProperty $ do
     resHs <- tryApplyOnData vHs ctx
     let vPs = _progTerm $ getPlcNoAnn $ vCode
-                                      `unsafeApplyCode` liftCode110 (toBuiltinData ctx)
+                                      `unsafeApplyCode` liftCode110 (unsafeFromBuiltinData $ toBuiltinData ctx)
         resPs = runCekRes vPs
 
     pure $ case (resHs, resPs) of

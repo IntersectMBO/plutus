@@ -24,7 +24,7 @@ module Helpers.Data.MultiParam
 import Cardano.Constitution.Data.Validator
 import Cardano.Constitution.Validator.Data.TestsCommon
 import Data.List (nub, sortOn)
-import PlutusLedgerApi.V3.ArbitraryContexts qualified as V3
+import PlutusLedgerApi.V3.Data.ArbitraryContexts qualified as V3
 
 import Control.Monad (foldM, unless, when)
 import Control.Monad.IO.Class

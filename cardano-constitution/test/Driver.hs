@@ -39,14 +39,13 @@ main = do
   -- tests to be run
   let mainTest = testGroup' "Testing Campaign" [
         UnitTests.unitTests,
+        Data.UnitTests.unitTests,
         PropTests.tests,
+        Data.PropTests.tests,
         ConfigTests.tests,
         GoldenTests.tests,
-        UnitTests.singleParamTests,
-        Data.UnitTests.unitTests,
-        Data.PropTests.tests,
-        Data.ConfigTests.tests,
         Data.GoldenTests.tests,
+        UnitTests.singleParamTests,
         Data.UnitTests.singleParamTests,
         testGroup' "Multiple Parameter Changes"
         [
