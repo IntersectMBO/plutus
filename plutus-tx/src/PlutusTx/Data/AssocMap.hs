@@ -28,6 +28,7 @@ module PlutusTx.Data.AssocMap (
   map,
   mapThese,
   foldr,
+  foldMap,
   ) where
 
 import PlutusTx.Builtins qualified as P
@@ -35,7 +36,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List qualified as List
-import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
+import PlutusTx.Prelude hiding (all, any, foldMap, foldr, map, null, toList, uncons)
 import PlutusTx.Prelude qualified
 import PlutusTx.These
 import Prettyprinter (Pretty (..))
@@ -488,5 +489,17 @@ foldr f z (Map m) = go m
              in f (P.unsafeFromBuiltinData v) (go tl)
         )
 {-# INLINEABLE foldr #-}
+
+foldMap :: forall a k m. (P.UnsafeFromData a, Monoid m) => (a -> m) -> Map k a -> m
+foldMap f (Map m) = go m
+  where
+    go =
+      P.caseList'
+        mempty
+        ( \hd tl ->
+            let v = BI.snd hd
+             in f (P.unsafeFromBuiltinData v) <> go tl
+        )
+{-# INLINEABLE foldMap #-}
 
 makeLift ''Map

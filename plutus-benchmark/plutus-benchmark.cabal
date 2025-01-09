@@ -480,10 +480,13 @@ library marlowe-internal
   hs-source-dirs:  marlowe/src
   exposed-modules:
     PlutusBenchmark.Marlowe.BenchUtil
+    PlutusBenchmark.Marlowe.Core.V1.Data.Semantics
     PlutusBenchmark.Marlowe.Core.V1.Semantics
+    PlutusBenchmark.Marlowe.Core.V1.Semantics.Data.Types
     PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
     PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address
     PlutusBenchmark.Marlowe.Scripts.Data.RolePayout
+    PlutusBenchmark.Marlowe.Scripts.Data.Semantics
     PlutusBenchmark.Marlowe.Scripts.RolePayout
     PlutusBenchmark.Marlowe.Scripts.Semantics
     PlutusBenchmark.Marlowe.Types

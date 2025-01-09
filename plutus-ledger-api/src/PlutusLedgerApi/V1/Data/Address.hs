@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module PlutusLedgerApi.V1.Data.Address (
-  Address,
+  Address (..),
   pattern Address,
   addressCredential,
   addressStakingCredential,

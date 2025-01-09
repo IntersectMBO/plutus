@@ -73,10 +73,10 @@ module PlutusLedgerApi.Data.V2 (
   pattern V1.DCertMir,
 
   -- *** Credentials
-  V1.StakingCredential,
+  V1.StakingCredential (..),
   pattern V1.StakingHash,
   pattern V1.StakingPtr,
-  V1.Credential,
+  V1.Credential (..),
   pattern V1.PubKeyCredential,
   pattern V1.ScriptCredential,
 
@@ -95,7 +95,7 @@ module PlutusLedgerApi.Data.V2 (
   V1.POSIXTimeRange,
 
   -- *** Types for representing transactions
-  V1.Address,
+  V1.Address (..),
   pattern V1.Address,
   V1.addressCredential,
   V1.addressStakingCredential,

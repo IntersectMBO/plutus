@@ -12,10 +12,10 @@
 
 -- | Address and staking address credentials for outputs.
 module PlutusLedgerApi.V1.Data.Credential (
-  StakingCredential,
+  StakingCredential (..),
   pattern StakingHash,
   pattern StakingPtr,
-  Credential,
+  Credential (..),
   pattern PubKeyCredential,
   pattern ScriptCredential,
 ) where
