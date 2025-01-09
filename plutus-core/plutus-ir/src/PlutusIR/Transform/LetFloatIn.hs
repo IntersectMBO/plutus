@@ -247,6 +247,10 @@ floatTerm binfo relaxed t0 =
             let ty = goType ty0
                 body = go body0
              in LamAbs (a, typeUniqs ty <> termUniqs body) n ty body
+          Fix a n ty0 body0 ->
+            let ty = goType ty0
+                body = go body0
+             in Fix (a, typeUniqs ty <> termUniqs body) n ty body
           TyAbs a n k body0 ->
             let body = go body0
              in TyAbs (a, termUniqs body) n (noUniq k) body

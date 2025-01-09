@@ -75,6 +75,7 @@ testMachineCostModel (
     cekBuiltinBudget
     cekConstrBudget
     cekCaseBudget
+    cekFixBudget
   ) = do
     checkBudget cekStartupBudget
     checkBudget cekVarBudget
@@ -86,6 +87,7 @@ testMachineCostModel (
     checkBudget cekBuiltinBudget
     checkBudget cekConstrBudget
     checkBudget cekCaseBudget
+    checkBudget cekFixBudget
 
 -- Builtin costs
 

@@ -123,7 +123,7 @@ eqTypeM TyIFix{}    _ = empty
 eqTypeM TyApp{}     _ = empty
 eqTypeM TyFun{}     _ = empty
 eqTypeM TyBuiltin{} _ = empty
-eqTypeM TySOP{} _ = empty
+eqTypeM TySOP{}     _ = empty
 
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]
@@ -134,6 +134,10 @@ eqTermM
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann)
     => EqRenameOf ScopedRenaming (Term tyname name uni fun ann)
 eqTermM (LamAbs ann1 name1 ty1 body1) (LamAbs ann2 name2 ty2 body2) = do
+    eqM ann1 ann2
+    eqTypeM ty1 ty2
+    withTwinBindings name1 name2 $ eqTermM body1 body2
+eqTermM (Fix ann1 name1 ty1 body1) (Fix ann2 name2 ty2 body2) = do
     eqM ann1 ann2
     eqTypeM ty1 ty2
     withTwinBindings name1 name2 $ eqTermM body1 body2
@@ -193,5 +197,6 @@ eqTermM TyInst{}   _ = empty
 eqTermM Var{}      _ = empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
-eqTermM Constr{}  _ = empty
-eqTermM Case{}  _ = empty
+eqTermM Constr{}   _ = empty
+eqTermM Case{}     _ = empty
+eqTermM Fix{}      _ = empty

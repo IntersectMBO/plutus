@@ -49,6 +49,7 @@ data CekMachineCostsBase f =
     -- happen if calling 'Error' caused the budget to be exceeded?
     , cekConstrCost  :: f ExBudget
     , cekCaseCost    :: f ExBudget
+    , cekFixCost     :: f ExBudget
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
@@ -85,6 +86,7 @@ unitCekMachineCosts =
     , cekBuiltinCost = unitCost
     , cekConstrCost  = unitCost
     , cekCaseCost    = unitCost
+    , cekFixCost     = unitCost
     }
   where
     zeroCost = Identity $ ExBudget 0 0

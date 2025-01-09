@@ -87,6 +87,7 @@ data Term name uni fun ann
     -- See Note [Constr tag type]
     | Constr !ann !Word64 ![Term name uni fun ann]
     | Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+    | Fix !ann !name !(Term name uni fun ann)
     deriving stock (Functor, Generic)
 
 deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -154,6 +155,7 @@ termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 termAnn (Constr ann _ _) = ann
 termAnn (Case ann _ _)   = ann
+termAnn (Fix ann _ _)    = ann
 
 bindFunM
     :: Monad m
@@ -171,6 +173,7 @@ bindFunM f = go where
     go (Error ann)            = pure $ Error ann
     go (Constr ann i args)    = Constr ann i <$> traverse go args
     go (Case ann arg cs)      = Case ann <$> go arg <*> traverse go cs
+    go (Fix ann name fun)     = Fix ann name <$> go fun
 
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)

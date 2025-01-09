@@ -170,6 +170,7 @@ data StepKind
     | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
     | BConstr
     | BCase
+    | BFix
     deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
     deriving anyclass (NFData, Hashable)
 
@@ -184,6 +185,7 @@ cekStepCost costs = runIdentity . \case
     BBuiltin -> cekBuiltinCost costs
     BConstr  -> cekConstrCost costs
     BCase    -> cekCaseCost costs
+    BFix     -> cekFixCost costs
 
 data ExBudgetCategory fun
     = BStep StepKind
@@ -569,6 +571,7 @@ data Context uni fun ann
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
+    | FrameFix !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -700,6 +703,9 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
         computeCek (FrameCases env cs ctx) env scrut
+    computeCek !ctx !env (Fix _ _ body) = do
+        stepAndMaybeSpend BFix
+        computeCek (FrameFix ctx) env body
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwing_ _EvaluationFailure
@@ -753,6 +759,13 @@ enterComputeCek = computeCek
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
+    returnCek (FrameFix ctx) bodyV =
+        case bodyV of
+            VLamAbs nameArg bodyLam env ->
+                let env' = Env.cons bodyV' env
+                    bodyV' = VLamAbs nameArg bodyLam env'
+                in returnCek ctx bodyV'
+            _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyV
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.

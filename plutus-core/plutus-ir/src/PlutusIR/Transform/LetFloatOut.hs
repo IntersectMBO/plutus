@@ -206,6 +206,7 @@ mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo
   where
     go :: Term tyname name uni fun a -> ReaderT (MarkCtx tyname name uni fun a) (Writer Marks) ()
     go = breakNonRec >>> \case
+        -- TODO: handle Fix?
         -- lam/Lam are treated the same.
         LamAbs _ n _ tBody  -> withLam n $ go tBody
         TyAbs _ n _ tBody   -> withAbs n $ go tBody
@@ -304,6 +305,7 @@ removeLets marks term = runWriter $ go term
         TyInst a t ty -> TyInst a <$> go t <*> pure ty
         TyAbs a tyname k t -> TyAbs a tyname k <$> go t
         LamAbs a name ty t -> LamAbs a name ty <$> go t
+        Fix a name ty t -> Fix a name ty <$> go t
         IWrap a ty1 ty2 t -> IWrap a ty1 ty2 <$> go t
         Unwrap a t -> Unwrap a <$> go t
         Constr a ty i es -> Constr a ty i <$> traverse go es
@@ -335,6 +337,7 @@ floatBackLets term fTable =
     goTop = floatLam topUnique <=< go
 
     go = \case
+        -- TODO: handle fix?
         -- lam anchor, increase depth & try to float inside the lam's body
         LamAbs a n ty tBody -> local (+1) $
             LamAbs a n ty <$> (floatLam (n^.PLC.theUnique) =<< go tBody)

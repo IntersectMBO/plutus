@@ -1,28 +1,7 @@
 (/\r ->
    \(f : r -> r) ->
      (/\a b ->
-        \(f : (a -> b) -> a -> b) ->
-          (/\a ->
-             \(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) a) ->
-               unwrap s s)
-            {a -> b}
-            (iwrap
-               (\(self :: * -> *) a -> self a -> a)
-               (a -> b)
-               (\(s :
-                    (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-                      (a -> b)) ->
-                  f
-                    (\(x : a) ->
-                       (/\a ->
-                          \(s :
-                              (\a ->
-                                 ifix (\(self :: * -> *) a -> self a -> a) a)
-                                a) ->
-                            unwrap s s)
-                         {a -> b}
-                         s
-                         x))))
+        \(f : (a -> b) -> a -> b) -> fix (rec : a -> b). \(x : a) -> f rec x)
        {r}
        {ifix
           (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))

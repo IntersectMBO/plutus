@@ -71,6 +71,7 @@ module PlutusCore.Pretty
     , iterAppDocM
     , iterInterAppPrettyM
     , iterAppPrettyM
+    , fixPrettyM
     -- * Utils
     , prettyBytes
     , ConstConfig (..)

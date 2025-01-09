@@ -4,10 +4,10 @@
        (\f ->
           (\z ->
              (\go eta -> go eta)
-               ((\s -> s s)
-                  (\s ds ->
-                     force
-                       (case ds [(delay z), (\x xs -> delay (f x (s s xs)))]))))
+               (fix rec.
+                  \x ->
+                    force
+                      (case x [(delay z), (\x xs -> delay (f x (rec xs)))])))
             (case `$dAdditiveMonoid` [(\v v -> v)]))
          (case `$dAdditiveMonoid` [(\v v -> v)])
          (constr 1

@@ -26,6 +26,8 @@ renameTermM
     => Term name uni fun ann -> m (Term name uni fun ann)
 renameTermM (LamAbs ann name body)  =
      withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTermM body
+renameTermM (Fix ann name body)        =
+    withFreshenedName name $ \nameFr -> Fix ann nameFr <$> renameTermM body
 renameTermM (Apply ann fun arg)        = Apply ann <$> renameTermM fun <*> renameTermM arg
 renameTermM err@Error{}                = pure err
 renameTermM (Var ann name)             = Var ann <$> renameNameM name

@@ -62,6 +62,7 @@ data MachineError fun
       -- ^ A builtin received a term argument when something else was expected
     | NonConstrScrutinized
     | MissingCaseBranch Word64
+    | NonLambdaFixedMachineError
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -133,3 +134,5 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A non-constructor value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranch i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
+    prettyBy _      NonLambdaFixedMachineError =
+        "Attempted to take the fixed-point of a non-lambda term"

@@ -88,41 +88,33 @@ factorial = runQuote $ do
 
 -- | The naive exponential fibonacci function as a PLC term.
 --
--- > \(i0 : integer) ->
--- >     fix {integer} {integer}
--- >         (\(rec : integer -> integer) (i : integer) ->
--- >                 ifThenElse {integer}
--- >                     (lessThanEqInteger i 1)
--- >                     (\(u : unit) -> i)
--- >                     (\(u : unit) -> addInteger
--- >                         (rec (subtractInteger i 1))
--- >                         (rec (subtractInteger i 2)))
--- >         i0
+-- > fix [integer] rec (\(i : integer) ->
+-- >     ifThenElse {integer}
+-- >         (lessThanEqInteger i 1)
+-- >         (\(u : unit) -> i)
+-- >         (\(u : unit) -> addInteger
+-- >             (rec (subtractInteger i 1))
+-- >             (rec (subtractInteger i 2))))
 naiveFib :: Integer -> Term TyName Name DefaultUni DefaultFun ()
 naiveFib iv = runQuote $ do
-    i0  <- freshName "i0"
     rec <- freshName "rec"
     i   <- freshName "i"
     u   <- freshName "u"
     let
       intS = mkTyBuiltin @_ @Integer ()
-      fib = LamAbs () i0 intS
-        $ mkIterAppNoAnn (mkIterInstNoAnn fix [intS, intS])
-            [   LamAbs () rec (TyFun () intS intS)
-              . LamAbs () i intS
-              $ mkIterAppNoAnn (TyInst () ifThenElse intS)
-                  [ mkIterAppNoAnn (Builtin () LessThanEqualsInteger)
+      fib = Fix () rec (TyFun () intS intS)
+          . LamAbs () i intS
+          $ mkIterAppNoAnn (TyInst () ifThenElse intS)
+              [ mkIterAppNoAnn (Builtin () LessThanEqualsInteger)
+                  [Var () i, mkConstant @Integer () 1]
+              , LamAbs () u unit $ Var () i
+              , LamAbs () u unit $ mkIterAppNoAnn (Builtin () AddInteger)
+                  [ Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
                       [Var () i, mkConstant @Integer () 1]
-                  , LamAbs () u unit $ Var () i
-                  , LamAbs () u unit $ mkIterAppNoAnn (Builtin () AddInteger)
-                      [ Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
-                          [Var () i, mkConstant @Integer () 1]
-                      , Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
-                          [Var () i, mkConstant @Integer () 2]
-                      ]
+                  , Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
+                      [Var () i, mkConstant @Integer () 2]
                   ]
-            , Var () i0
-            ]
+              ]
     pure . Apply () fib $ mkConstant @Integer () iv
 
 -- | Generate a term that computes the factorial of an @integer@ and return it

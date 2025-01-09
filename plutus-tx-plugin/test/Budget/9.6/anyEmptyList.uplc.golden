@@ -1,10 +1,10 @@
 (program
    1.1.0
-   ((\s -> s s)
-      (\s ds ->
+   ((fix rec.
+       \x ->
          force
            (case
-              ds
+              x
               [ (delay (constr 1 []))
               , (\x xs ->
                    delay
@@ -12,6 +12,6 @@
                         (force
                            (force ifThenElse
                               (lessThanEqualsInteger 1 x)
-                              (delay (delay (s s xs)))
+                              (delay (delay (rec xs)))
                               (delay (delay (constr 0 []))))))) ]))
       (constr 0 [])))

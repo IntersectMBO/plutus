@@ -212,6 +212,8 @@ data ParamName =
   | CekConstrCost'exBudgetMemory
   | CekCaseCost'exBudgetCPU
   | CekCaseCost'exBudgetMemory
+  | CekFixCost'exBudgetCPU
+  | CekFixCost'exBudgetMemory
   | Bls12_381_G1_add'cpu'arguments
   | Bls12_381_G1_add'memory'arguments
   | Bls12_381_G1_compress'cpu'arguments

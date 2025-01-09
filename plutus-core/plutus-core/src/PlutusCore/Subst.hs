@@ -164,6 +164,7 @@ termSubstClosedTerm varFor new = go where
     go = \case
          Var    a var         -> if var == varFor then new else Var a var
          LamAbs a var ty body -> LamAbs a var ty (goUnder var body)
+         Fix    a rec ty body -> Fix a rec ty (goUnder rec body)
          t                    -> t & over termSubterms go
     goUnder var term = if var == varFor then term else go term
 
@@ -200,6 +201,7 @@ termMapNames f g = go
         go :: Term tyname name uni fun ann -> Term tyname' name' uni fun ann
         go = \case
             LamAbs ann name ty body -> LamAbs ann (g name) (typeMapNames f ty) (go body)
+            Fix ann name ty body    -> Fix ann (g name) (typeMapNames f ty) (go body)
             TyAbs ann tyname k body -> TyAbs ann (f tyname) k (go body)
             Var ann name            -> Var ann (g name)
             Apply ann t1 t2         -> Apply ann (go t1) (go t2)
@@ -232,6 +234,7 @@ fvTermCtx
 fvTermCtx bound f = \case
     Var a n         -> Var a <$> (if USet.memberByName n bound then pure n else f n)
     LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
+    Fix a n ty t    -> Fix a n ty <$> fvTermCtx (USet.insertByName n bound) f t
     t               -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a term.

@@ -124,6 +124,7 @@ encodeTerm = \case
     Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
     Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
     Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+    Fix      ann n t    -> encodeTermTag 10 <> encode ann <> encode (Binder n) <> encodeTerm t
 
 decodeTerm
     :: forall name uni fun ann
@@ -161,6 +162,7 @@ decodeTerm version builtinPred = go
         handleTerm 9 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
             Case     <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+        handleTerm 10 = Fix <$> decode <*> (unBinder <$> decode) <*> go
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -182,6 +184,7 @@ sizeTerm tm sz =
     Var      ann n      -> size ann $ size n sz'
     Delay    ann t      -> size ann $ sizeTerm t sz'
     LamAbs   ann n t    -> size ann $ size n $ sizeTerm t sz'
+    Fix      ann n t    -> size ann $ size n $ sizeTerm t sz'
     Apply    ann t t'   -> size ann $ sizeTerm t $ sizeTerm t' sz'
     Constant ann c      -> size ann $ size c sz'
     Force    ann t      -> size ann $ sizeTerm t sz'

@@ -101,6 +101,7 @@ data Context uni fun ann
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    | FrameFix ann !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -164,6 +165,9 @@ computeCek !ctx !env (Constr ann i es) = do
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
     pure $ Computing (FrameCases ann env cs ctx) env scrut
+computeCek !ctx !env (Fix ann _ bodyOuter) = do
+    stepAndMaybeSpend BFix
+    pure $ Computing (FrameFix ann ctx) env bodyOuter
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure
@@ -212,6 +216,13 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               in computeCek ctx' env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
     _ -> throwingDischarged _MachineError NonConstrScrutinized e
+returnCek (FrameFix _ ctx) bodyOuter =
+    case bodyOuter of
+        VLamAbs nameArg bodyInner env ->
+            let env' = Env.cons bodyOuter' env
+                bodyOuter' = VLamAbs nameArg bodyInner env'
+            in pure $ Returning ctx bodyOuter'
+        _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyOuter
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;
@@ -383,6 +394,7 @@ contextAnn = \case
     FrameForce ann _            -> pure ann
     FrameConstr ann _ _ _ _ _   -> pure ann
     FrameCases ann _ _ _        -> pure ann
+    FrameFix ann _              -> pure ann
     NoFrame                     -> empty
 
 lenContext :: Context uni fun ann -> Word
@@ -396,6 +408,7 @@ lenContext = go 0
               FrameForce _ k            -> go (n+1) k
               FrameConstr _ _ _ _ _ k   -> go (n+1) k
               FrameCases _ _ _ k        -> go (n+1) k
+              FrameFix _ k              -> go (n+1) k
               NoFrame                   -> 0
 
 
@@ -414,6 +427,7 @@ cekStepCost costs = runIdentity . \case
     BBuiltin -> cekBuiltinCost costs
     BConstr  -> cekConstrCost costs
     BCase    -> cekCaseCost costs
+    BFix     -> cekFixCost costs
 
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.

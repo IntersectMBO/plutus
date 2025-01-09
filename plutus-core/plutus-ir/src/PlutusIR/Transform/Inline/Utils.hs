@@ -343,6 +343,7 @@ costIsAcceptable = \case
   -- This will mean that we create closures at each use site instead of
   -- once, but that's a very low cost which we're okay rounding to 0.
   LamAbs{}   -> True
+  Fix{}      -> True
   TyAbs{}    -> True
 
   -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
@@ -371,6 +372,7 @@ sizeIsAcceptable inlineConstants = \case
   Var{}      -> True
   Error{}    -> True
   LamAbs {}  -> False
+  Fix {}     -> False
   TyAbs {}   -> False
 
   -- Inlining constructors of size 1 or 0 seems okay

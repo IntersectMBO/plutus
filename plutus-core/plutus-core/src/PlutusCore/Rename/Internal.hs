@@ -92,6 +92,8 @@ renameTermM
     => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
 renameTermM (LamAbs ann name ty body)  =
     withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTypeM ty <*> renameTermM body
+renameTermM (Fix ann name ty body)        =
+    withFreshenedName name $ \nameFr -> Fix ann nameFr <$> renameTypeM ty <*> renameTermM body
 renameTermM (TyAbs ann name kind body) =
     withFreshenedName name $ \nameFr -> TyAbs ann nameFr kind <$> renameTermM body
 renameTermM (IWrap ann pat arg term)   =

@@ -63,6 +63,7 @@ termMapNames f = go
         go :: Term name uni fun ann -> Term name' uni fun ann
         go = \case
             LamAbs ann name body -> LamAbs ann (f name) (go body)
+            Fix ann name body    -> Fix ann (f name) (go body)
             Var ann name         -> Var ann (f name)
 
             Apply ann t1 t2      -> Apply ann (go t1) (go t2)

@@ -256,6 +256,10 @@ annotate = flip evalState 0 . flip runReaderT [] . go
           freshId <- (+ 1) <$> lift get
           lift $ put freshId
           LamAbs (path, ann) n <$> local (freshId :) (go body)
+        Fix ann n body -> do
+          freshId <- (+ 1) <$> lift get
+          lift $ put freshId
+          Fix (path, ann) n <$> local (freshId :) (go body)
         Delay ann body -> do
           freshId <- (+ 1) <$> lift get
           lift $ put freshId
@@ -381,6 +385,7 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
       | currPath `isAncestorOrSelf` candidatePath = case t of
           Var ann name            -> Var ann name
           LamAbs ann name body    -> LamAbs ann name (mkLamApp body)
+          Fix ann name body       -> Fix ann name (mkLamApp body)
           Apply ann fun arg       -> Apply ann (mkLamApp fun) (mkLamApp arg)
           Force ann body          -> Force ann (mkLamApp body)
           Delay ann body          -> Delay ann (mkLamApp body)

@@ -362,6 +362,9 @@ renameTermM = \case
     LamAbs x name ty body ->
         PLC.withFreshenedName name $ \nameFr ->
             LamAbs x nameFr <$> PLC.renameTypeM ty <*> renameTermM body
+    Fix x rec ty body ->
+        PLC.withFreshenedName rec $ \recFr ->
+            Fix x recFr <$> PLC.renameTypeM ty <*> renameTermM body
     Apply x fun arg ->
         Apply x <$> renameTermM fun <*> renameTermM arg
     Constant x con ->

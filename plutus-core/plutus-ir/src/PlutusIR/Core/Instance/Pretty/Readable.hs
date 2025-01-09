@@ -105,6 +105,7 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
             iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
         Case _ ty arg cs ->
             iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg ty, prettyArg arg, prettyArg cs]
+        Fix ann name ty body -> fixPrettyM (VarDecl ann name ty) body
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where

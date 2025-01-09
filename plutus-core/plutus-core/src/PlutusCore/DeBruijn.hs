@@ -177,6 +177,9 @@ deBruijnTermWithM h = go
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
+        Fix ann n ty t -> declareUnique n $ do
+            n' <- nameToDeBruijn h n
+            withScope $ Fix ann n' <$> goT ty <*> go t
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTyWithM
@@ -246,3 +249,8 @@ unDeBruijnTermWithM h = go
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
+        Fix ann n ty t ->
+            -- See Note [DeBruijn indices of Binders]
+            declareBinder $ do
+              n' <- deBruijnToName h $ set index deBruijnInitIndex n
+              withScope $ Fix ann n' <$> goT ty <*> go t

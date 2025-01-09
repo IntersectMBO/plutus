@@ -84,6 +84,9 @@ deBruijnTermWithM h = go
        LamAbs ann n t -> declareUnique n $ do
            n' <- nameToDeBruijn h n
            withScope $ LamAbs ann n' <$> go t
+       Fix ann n b -> declareUnique n $ do
+           n' <- nameToDeBruijn h n
+           withScope $ Fix ann n' <$> go b
        -- boring recursive cases
        Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
        Delay ann t -> Delay ann <$> go t
@@ -112,6 +115,11 @@ unDeBruijnTermWithM h = go
             declareBinder $ do
               n' <- deBruijnToName h $ set index deBruijnInitIndex n
               withScope $ LamAbs ann n' <$> go t
+        Fix ann n b ->
+            -- See Note [DeBruijn indices of Binders]
+            declareBinder $ do
+              n' <- deBruijnToName h $ set index deBruijnInitIndex n
+              withScope $ Fix ann n' <$> go b
         -- boring recursive cases
         Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
         Delay ann t -> Delay ann <$> go t

@@ -143,6 +143,7 @@ data Term tyname name uni fun ann
     | Constant ann (Some (ValueOf uni)) -- ^ constants
     | Builtin ann fun -- ^ builtin functions
     | Error ann (Type tyname uni ann) -- ^ fail with error
+    | Fix ann name (Type tyname uni ann) (Term tyname name uni fun ann)
     deriving stock (Functor, Generic)
 
 deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -253,6 +254,7 @@ termAnn (Error ann _     ) = ann
 termAnn (LamAbs ann _ _ _) = ann
 termAnn (Constr ann _ _ _) = ann
 termAnn (Case ann _ _ _  ) = ann
+termAnn (Fix ann _ _ _   ) = ann
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
@@ -269,6 +271,7 @@ mapFun f = go where
     go (Builtin ann fun)          = Builtin ann (f fun)
     go (Constr ann ty i args)     = Constr ann ty i (map go args)
     go (Case ann ty arg cs)       = Case ann ty (go arg) (map go cs)
+    go (Fix ann name ty body)     = Fix ann name ty (go body)
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).
