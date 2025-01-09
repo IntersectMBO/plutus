@@ -22,7 +22,11 @@ const config: Config = {
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
   onBrokenMarkdownLinks: "throw",
-  trailingSlash: "false",
+  trailingSlash: false,
+
+  // Docusaurus minifies all js and mjs files by default, unless the --no-minify flag is passed.
+  // However this causes the static/code/*.mjs files to be rendered incorrectly (on one line).
+  // in the production build. Therefore we want to disable minification for those mjs files only.
 
   plugins: [
     [
