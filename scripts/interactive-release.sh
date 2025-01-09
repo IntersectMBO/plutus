@@ -335,9 +335,9 @@ fi
 
 VERSION=$1
 
-
+print-status
 while true; do
-  STEP="$(ask "Type [1-8] to run the given step or press enter to see status: ")"
+  STEP="$(ask "Type [1-8] to run the given step or press enter to see updated status: ")"
   case $STEP in
     "1") check-and-open-plutus-pr ;;
     "2") check-plutus-pr-review-status ;;
