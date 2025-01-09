@@ -132,6 +132,7 @@ data Frame uni fun
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
     | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
     | FrameCase [Term TyName Name uni fun ()]
+    | FrameFix Name
 
 deriving stock instance (GShow uni, Closed uni, uni `Everywhere` Show, Show fun) =>
     Show (Frame uni fun)
@@ -185,6 +186,7 @@ stack |> Constr _ ty i es               = case es of
     []     -> stack <| VConstr ty i []
     t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
+stack |> Fix _ recName _ body    = FrameFix recName : stack |> body
 _     |> Error{}                 =
     throwingWithCause _EvaluationError (OperationalEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
@@ -207,7 +209,7 @@ _     |> var@Var{}               =
 (<|)
     :: Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
-FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
+FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
 FrameAwaitFunTerm arg  : stack <| fun = FrameAwaitArg fun : stack |> arg
 FrameAwaitArg fun  : stack <| arg     = applyEvaluate stack fun arg
 FrameAwaitFunValue arg : stack <| fun = applyEvaluate stack fun arg

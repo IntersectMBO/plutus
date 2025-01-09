@@ -1,1 +1,45 @@
-(Right (con bool True))
+(Right (lam
+  x
+  [
+    [
+      (lam
+        rec
+        (lam
+          h
+          (delay
+            (lam
+              fr
+              [
+                (force
+                  [
+                    (lam
+                      k
+                      (delay
+                        (lam
+                          h
+                          [
+                            [
+                              h
+                              (lam
+                                x [ (force k) (lam f_0 (lam f_1 [ f_0 x ])) ]
+                              )
+                            ]
+                            (lam x [ (force k) (lam f_0 (lam f_1 [ f_1 x ])) ])
+                          ]
+                        )
+                      )
+                    )
+                    (delay (lam fq [ (force [ rec h ]) [ (force h) fq ] ]))
+                  ]
+                )
+                fr
+              ]
+            )
+          )
+        )
+      )
+      rec
+    ]
+    x
+  ]
+))

@@ -189,6 +189,7 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   error = Error
   constr = Constr
   kase = Case
+  -- mkFix = Fix
 
   termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
   typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)

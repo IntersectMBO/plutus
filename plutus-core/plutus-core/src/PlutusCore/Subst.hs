@@ -200,6 +200,7 @@ termMapNames f g = go
         go :: Term tyname name uni fun ann -> Term tyname' name' uni fun ann
         go = \case
             LamAbs ann name ty body -> LamAbs ann (g name) (typeMapNames f ty) (go body)
+            Fix ann name ty body    -> Fix ann (g name) (typeMapNames f ty) (go body)
             TyAbs ann tyname k body -> TyAbs ann (f tyname) k (go body)
             Var ann name            -> Var ann (g name)
             Apply ann t1 t2         -> Apply ann (go t1) (go t2)

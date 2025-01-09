@@ -184,6 +184,17 @@ iterLamAbsPrettyM ::
   m (Doc ann)
 iterLamAbsPrettyM = iterBinderPrettyM $ \binds -> "\\" <> binds <+> "->"
 
+-- | Lay out an iterated 'Fix' via 'iterBinderPrettyM'.
+iterFixPrettyM ::
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName arg
+  , PrettyReadableBy configName body
+  ) =>
+  arg ->
+  body ->
+  m (Doc ann)
+iterFixPrettyM = iterBinderPrettyM (\bind -> "fix" <+> bind <> ".") . pure
+
 -- | Lay out an iterated 'TyAbs' via 'iterBinderPrettyM'.
 iterTyAbsPrettyM ::
   ( MonadPrettyReadable configName env m

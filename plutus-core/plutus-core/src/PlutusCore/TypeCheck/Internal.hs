@@ -451,6 +451,11 @@ inferTypeM (LamAbs ann n dom body) = do
     vDom <- normalizeTypeM $ void dom
     TyFun () <<$>> pure vDom <<*>> withVar n vDom (inferTypeM body)
 
+inferTypeM (Fix ann recName ty body) = do
+    vTy <- normalizeTypeM $ void ty
+    withVar recName vTy $ checkTypeM ann body vTy
+    pure vTy
+
 -- [infer| G , n :: nK !- body : vBodyTy]
 -- ---------------------------------------------------
 -- [infer| G !- abs n nK body : all (n :: nK) vBodyTy]
