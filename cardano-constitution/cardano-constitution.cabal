@@ -73,6 +73,7 @@ library
     Cardano.Constitution.DataFilePaths
     Cardano.Constitution.Validator
     Cardano.Constitution.Validator.Common
+    Cardano.Constitution.Validator.Data.Common
     Cardano.Constitution.Validator.Sorted
     Cardano.Constitution.Validator.Unsorted
     PlutusTx.NonCanonicalRational
