@@ -68,8 +68,8 @@ readProgram sngS fileS =
                 Json -> error "FIXME: not implemented yet."
 
 writeProgram :: (?opts :: Opts)
-             => SLang s -> FromLang s -> File s -> IO ()
-writeProgram sng ast file =
+             => SLang s -> FromLang s -> File s -> AfterCompile -> IO ()
+writeProgram sng ast file afterCompile =
     case file^.fName of
         Just fn -> do
             printED $ show $ "Outputting" <+> pretty file
@@ -86,7 +86,10 @@ writeProgram sng ast file =
                         Proved Refl -> serialise ast
                         _           -> withLang @Flat sng $ serialise (SerialiseViaFlat ast)
                 Json -> error "FIXME: not implemented yet"
-        _ -> printE "Program passed all checks. No output file was written, use -o or --stdout."
+        _ -> case afterCompile of
+                Exit -> printE
+                       "Compilation succeeded, but no output file was written; use -o or --stdout."
+                _ -> pure ()
 
 prettyWithStyle :: PP.PrettyPlc a => PrettyStyle -> a -> Doc ann
 prettyWithStyle = \case
