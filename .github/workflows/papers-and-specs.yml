@@ -1,5 +1,7 @@
-# This job builds various papers and deploys them to:
-# https://plutus.cardano.intersectmbo.org/resources
+# This job builds and deploys various papers.
+# 
+# This job runs on all push to master and can also be triggered manually.
+# It deploys the artifacts to: https://plutus.cardano.intersectmbo.org/resources
 
 name: "📝 Papers & Specs"
 
