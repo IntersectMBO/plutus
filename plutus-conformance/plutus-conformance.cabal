@@ -87,7 +87,6 @@ test-suite haskell-steppable-conformance
   other-modules:
   build-depends:
     , base                >=4.9   && <5
-    , lens
     , plutus-conformance
     , plutus-core         ^>=1.39
 
