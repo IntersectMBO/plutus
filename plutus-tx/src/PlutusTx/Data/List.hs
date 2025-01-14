@@ -11,6 +11,7 @@ module PlutusTx.Data.List (
     filter,
     mapMaybe,
     any,
+    all,
     foldMap,
     map,
     length,
@@ -24,7 +25,7 @@ import PlutusTx.Builtins.Internal (BuiltinList)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
+import PlutusTx.Prelude hiding (all, any, filter, find, findIndices, foldMap, length, map, mapMaybe,
                          mconcat, pred)
 import Prettyprinter (Pretty (..))
 
@@ -164,6 +165,18 @@ any pred (List l) = go l
                 in pred h' || go t
             )
 {-# INLINEABLE any #-}
+
+all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
+all pred (List l) = go l
+  where
+    go =
+        B.caseList'
+            True
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in pred h' && go t
+            )
+{-# INLINEABLE all #-}
 
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f (List l) = go l

@@ -71,10 +71,10 @@ module PlutusLedgerApi.Data.V1 (
   pattern DCertMir,
 
   -- *** Credentials
-  StakingCredential,
+  StakingCredential (..), -- constructor exported for testing purposes
   pattern StakingHash,
   pattern StakingPtr,
-  Credential,
+  Credential (..), -- constructor exported for testing purposes
   pattern PubKeyCredential,
   pattern ScriptCredential,
 
@@ -93,7 +93,7 @@ module PlutusLedgerApi.Data.V1 (
   POSIXTimeRange,
 
   -- *** Types for representing transactions
-  Address,
+  Address (..), -- constructor exported for testing purposes
   pattern Address,
   addressCredential,
   addressStakingCredential,

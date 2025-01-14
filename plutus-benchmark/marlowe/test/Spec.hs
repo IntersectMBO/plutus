@@ -9,8 +9,9 @@ import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
 import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as Data (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as Data (marloweValidator)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOP (rolePayoutValidator)
-import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
+import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as SOP (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Test (goldenUEvalBudget)
@@ -47,10 +48,16 @@ main = do
       allTests =
         testGroup "plutus-benchmark Marlowe tests"
             [ runTestGhc ["semantics"] $
-                goldenSize "semantics" marloweValidator
+                goldenSize "semantics" SOP.marloweValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- semanticsMBench
-                    , let (name, value) = mkBudgetTest marloweValidator bench
+                    , let (name, value) = mkBudgetTest SOP.marloweValidator bench
+                    ]
+            , runTestGhc ["data-semantics"] $
+                goldenSize "data-semantics" Data.marloweValidator
+                  : [ goldenUEvalBudget name [value]
+                    | bench <- semanticsMBench
+                    , let (name, value) = mkBudgetTest Data.marloweValidator bench
                     ]
             , runTestGhc ["role-payout"] $
                 goldenSize "role-payout" SOP.rolePayoutValidator
