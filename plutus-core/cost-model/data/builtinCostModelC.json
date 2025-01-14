@@ -707,6 +707,36 @@
             "type": "constant_cost"
         }
     },
+    "lengthArray" : {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "listToArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "indexArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
     "quotientInteger": {
         "cpu": {
             "arguments": {

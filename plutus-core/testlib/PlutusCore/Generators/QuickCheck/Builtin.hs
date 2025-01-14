@@ -29,8 +29,10 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Vector.Strict qualified as Strict
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
+import Test.QuickCheck.Instances.Vector ()
 import Universe
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
@@ -294,6 +296,10 @@ instance ArbitraryBuiltin a => ArbitraryBuiltin [a] where
             scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
     shrinkBuiltin = coerce $ shrink @[AsArbitraryBuiltin a]
 
+instance ArbitraryBuiltin a => ArbitraryBuiltin (Strict.Vector a) where
+  arbitraryBuiltin = Strict.fromList <$> arbitraryBuiltin
+  shrinkBuiltin = map Strict.fromList . shrinkBuiltin . Strict.toList
+
 instance (ArbitraryBuiltin a, ArbitraryBuiltin b) => ArbitraryBuiltin (a, b) where
     arbitraryBuiltin = do
         (,)
@@ -412,8 +418,11 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_MlResult
                ]
            SingType `SingKindArrow` SingType ->
-               [genDefaultUniApply | size > 10] ++
-               [pure $ JustSomeType DefaultUniProtoList]
+                [ genDefaultUniApply | size > 10 ] 
+                  ++ map pure 
+                    [ JustSomeType DefaultUniProtoList
+                    , JustSomeType DefaultUniProtoArray
+                    ]
            SingType `SingKindArrow` SingType `SingKindArrow` SingType ->
                -- No 'genDefaultUniApply', because we don't have any built-in type constructors
                -- taking three or more arguments.
