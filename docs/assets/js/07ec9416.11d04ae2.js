@@ -1,0 +1,11 @@
+"use strict";
+(self["webpackChunkdocusaurus"] = self["webpackChunkdocusaurus"] || []).push([[4550],{
+
+/***/ 7791:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"categoryGeneratedIndex":{"title":"Using Plutus Tx","slug":"/category/using-plutus-tx","permalink":"/docs/category/using-plutus-tx","sidebar":"tutorialSidebar","navigation":{"previous":{"title":"Glossary","permalink":"/docs/glossary"},"next":{"title":"Environment Setup","permalink":"/docs/using-plutus-tx/environment-setup"}}}}');
+
+/***/ })
+
+}]);

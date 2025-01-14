@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Nat.Properties.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- ≤-pred definition so as to not cause dependency problems.</a>
+<a id="167" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="241" class="Symbol">{-#</a> <a id="245" class="Keyword">OPTIONS</a> <a id="253" class="Pragma">--cubical-compatible</a> <a id="274" class="Pragma">--safe</a> <a id="281" class="Symbol">#-}</a>
+
+<a id="286" class="Keyword">module</a> <a id="293" href="Data.Nat.Properties.Core.html" class="Module">Data.Nat.Properties.Core</a> <a id="318" class="Keyword">where</a>
+
+<a id="325" class="Keyword">open</a> <a id="330" class="Keyword">import</a> <a id="337" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a>
+
+<a id="352" class="Comment">------------------------------------------------------------------------</a>
+<a id="425" class="Comment">-- Properties of _≤_</a>
+<a id="446" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="≤-pred"></a><a id="520" href="Data.Nat.Properties.Core.html#520" class="Function">≤-pred</a> <a id="527" class="Symbol">:</a> <a id="529" class="Symbol">∀</a> <a id="531" class="Symbol">{</a><a id="532" href="Data.Nat.Properties.Core.html#532" class="Bound">m</a> <a id="534" href="Data.Nat.Properties.Core.html#534" class="Bound">n</a><a id="535" class="Symbol">}</a> <a id="537" class="Symbol">→</a> <a id="539" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a> <a id="543" href="Data.Nat.Properties.Core.html#532" class="Bound">m</a> <a id="545" href="Data.Nat.Base.html#1544" class="Datatype Operator">≤</a> <a id="547" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a> <a id="551" href="Data.Nat.Properties.Core.html#534" class="Bound">n</a> <a id="553" class="Symbol">→</a> <a id="555" href="Data.Nat.Properties.Core.html#532" class="Bound">m</a> <a id="557" href="Data.Nat.Base.html#1544" class="Datatype Operator">≤</a> <a id="559" href="Data.Nat.Properties.Core.html#534" class="Bound">n</a>
+<a id="561" href="Data.Nat.Properties.Core.html#520" class="Function">≤-pred</a> <a id="568" class="Symbol">(</a><a id="569" href="Data.Nat.Base.html#1609" class="InductiveConstructor">s≤s</a> <a id="573" href="Data.Nat.Properties.Core.html#573" class="Bound">m≤n</a><a id="576" class="Symbol">)</a> <a id="578" class="Symbol">=</a> <a id="580" href="Data.Nat.Properties.Core.html#573" class="Bound">m≤n</a>
+</pre></body></html>
