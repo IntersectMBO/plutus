@@ -98,6 +98,7 @@ module PlutusPrelude
     , distinct
     , unsafeFromRight
     , tryError
+    , addTheRest
     , modifyError
     , lowerInitialChar
     ) where
@@ -265,6 +266,14 @@ timesA = ala Endo . stimes
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 {-# INLINE tryError #-}
+
+-- | Pair each element of the given list with all the other elements.
+--
+-- >>> addTheRest "abcd"
+-- [('a',"bcd"),('b',"acd"),('c',"abd"),('d',"abc")]
+addTheRest :: [a] -> [(a, [a])]
+addTheRest []     = []
+addTheRest (x:xs) = (x, xs) : map (fmap (x :)) (addTheRest xs)
 
 {- A different 'MonadError' analogue to the 'withExceptT' function.
 Modify the value (and possibly the type) of an error in an @ExceptT@-transformed
