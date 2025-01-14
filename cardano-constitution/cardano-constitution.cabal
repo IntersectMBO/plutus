@@ -70,9 +70,13 @@ library
     Cardano.Constitution.Config.Instance.FromJSON
     Cardano.Constitution.Config.Instance.TxLift
     Cardano.Constitution.Config.Types
+    Cardano.Constitution.Data.Validator
     Cardano.Constitution.DataFilePaths
     Cardano.Constitution.Validator
     Cardano.Constitution.Validator.Common
+    Cardano.Constitution.Validator.Data.Common
+    Cardano.Constitution.Validator.Data.Sorted
+    Cardano.Constitution.Validator.Data.Unsorted
     Cardano.Constitution.Validator.Sorted
     Cardano.Constitution.Validator.Unsorted
     PlutusTx.NonCanonicalRational
@@ -102,6 +106,10 @@ test-suite cardano-constitution-test
   main-is:          Driver.hs
   other-modules:
     Cardano.Constitution.Config.Tests
+    Cardano.Constitution.Validator.Data.GoldenTests
+    Cardano.Constitution.Validator.Data.PropTests
+    Cardano.Constitution.Validator.Data.TestsCommon
+    Cardano.Constitution.Validator.Data.UnitTests
     Cardano.Constitution.Validator.GoldenTests
     Cardano.Constitution.Validator.PropTests
     Cardano.Constitution.Validator.TestsCommon

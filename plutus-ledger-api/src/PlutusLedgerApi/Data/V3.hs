@@ -100,6 +100,9 @@ module PlutusLedgerApi.Data.V3 (
   -- * Context types
   Contexts.ScriptContext,
   pattern Contexts.ScriptContext,
+  Contexts.scriptContextTxInfo,
+  Contexts.scriptContextRedeemer,
+  Contexts.scriptContextScriptInfo,
   Contexts.ScriptPurpose,
   pattern Contexts.Minting,
   pattern Contexts.Spending,
