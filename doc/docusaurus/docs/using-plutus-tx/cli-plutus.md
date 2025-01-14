@@ -305,6 +305,10 @@ The following table lists the recognized extensions.
 |.data-txt|Textual|Values of `Data` in Haskell's `Show` format|
 |.uplc-flat|Binary|Untyped PlutusCore with NamedDeBruijn serialised in Flat|
 |.uplc-cbor|Binary|Untyped PlutusCore with DeBruijn serialised in CBOR <br/> (the on-chain format)|
+|.pir-flat|Binary|Pir with Names serialised in Flat|
+|.tplc-flat|Binary|Typed Plutus Core with Names serialised in Flat|
+|.pir-cbor|Binary|PIR with Names serialised in CBOR|
+|.tplc-cbor|Binary|Typed Plutus Core with DeBruijn serialised in CBOR|
 
 > :pushpin: **NOTE** If file has no extension or in case of `--stdin` / `--stdout`, the extension is assumed to be `.uplc`
 
