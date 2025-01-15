@@ -83,7 +83,7 @@ in [
     hydraJobs.ghc910.plan-nix = ghc910.hydraJobs.plan-nix;
   })
   {
-    checks = repoRoot.nix.utils.flattenDerivationTree "garnix" "-"
+    checks = repoRoot.nix.utils.flattenDerivationTree "ci" "-"
       inputs.self.hydraJobs.${system};
   }
 ]
