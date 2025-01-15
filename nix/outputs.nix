@@ -14,6 +14,7 @@ let
 in [
   {
     inherit (project) cabalProject;
+    inherit project repoRoot;
 
     devShells.default = ghc96.devShell;
     devShells.profiled = ghc96-profiled.devShell;
@@ -24,7 +25,7 @@ in [
 
     packages = ghc96.packages;
     apps = ghc96.apps;
-    checks = ghc96.checks;
+    # checks = ghc96.checks;
 
     latex-documents = repoRoot.nix.latex-documents;
 
@@ -37,7 +38,7 @@ in [
   }
 
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin") {
-    hydraJobs.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
+    packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
 
     hydraJobs.ghc96 = ghc96.hydraJobs;
     hydraJobs.ghc810 = ghc810.hydraJobs;
@@ -81,4 +82,8 @@ in [
     hydraJobs.ghc910.roots = ghc910.hydraJobs.roots;
     hydraJobs.ghc910.plan-nix = ghc910.hydraJobs.plan-nix;
   })
+  {
+    checks = repoRoot.nix.utils.flattenDerivationTree "garnix" "-"
+      inputs.self.hydraJobs.${system};
+  }
 ]
