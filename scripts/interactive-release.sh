@@ -14,7 +14,7 @@
 # Each of these steps depend on the previous one, so it's important to follow them in order.
 # Each step is idempotent, so you can run the script multiple times if needed.
 #
-# Usage: ./scripts/interactive-release.sh VERSION
+# Usage: ./scripts/interactive-release.sh [VERSION]
 
 
 set -euo pipefail
@@ -179,6 +179,7 @@ open-chap-pr() {
   gh repo clone IntersectMBO/cardano-haskell-packages -- --single-branch --branch main
   cd cardano-haskell-packages
   git checkout -b $PR_BRANCH
+  tell "Running ./scripts/add-from-github.sh with COMMIT_SHA=$COMMIT_SHA"
   ./scripts/add-from-github.sh https://github.com/IntersectMBO/plutus $COMMIT_SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin
   git push --force --set-upstream origin $PR_BRANCH
   local PR_URL=$(gh pr create \
