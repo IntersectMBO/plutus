@@ -6,23 +6,21 @@ let
       cabal = "latest";
       hlint = "latest";
       haskell-language-server = "latest";
-    } // {
+    }
+  //
+  {
     cabal-fmt = pkgs.haskell-nix.hackage-project {
       name = "cabal-fmt";
       compiler-nix-name = "ghc966";
     };
   };
 
-  stylish-haskell = haskell-tools.haskell-language-server.project.hsPkgs.stylish-haskell.components.exes.stylish-haskell;
+  haskell-language-server = haskell-tools.haskell-language-server.project.hsPkgs.haskell-language-server.components.exes.haskell-language-server; # editorconfig-checker-disable-line
+  stylish-haskell = haskell-tools.haskell-language-server.project.hsPkgs.stylish-haskell.components.exes.stylish-haskell; # editorconfig-checker-disable-line
   fourmolu = haskell-tools.haskell-language-server.project.hsPkgs.fourmolu.components.exes.fourmolu;
   cabal = haskell-tools.cabal.project.hsPkgs.cabal-install.components.exes.cabal;
   hlint = haskell-tools.hlint.project.hsPkgs.hlint.components.exes.hlint;
-  cabal-fmt = haskell-tools.cabal-fmt.project.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
-
-  # pkgs.optipng 
-  # pkgs.nixfmt-classic 
-  # pkgs.shellcheck
-  # pkgs.editorconfig-checker
+  cabal-fmt = haskell-tools.cabal-fmt.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
 
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
     src = ../.;
@@ -34,46 +32,36 @@ let
       cabal-fmt = {
         enable = true;
         package = cabal-fmt;
-        options = "--inplace";
       };
-      #   options = "--inplace";
-      #   include = [ "cabal" ];
-      # };
-
-      # stylish-haskell = {
-      #   options = "--inplace --config .stylish-haskell.yaml";
-      #   include = [ "hs" "lhs" ];
-      # };
-
-      # fourmolu = {
-      #   options = "--mode inplace";
-      #   include = [ "hs" "lhs" ];
-      # };
-
-      # hlint = {
-      #   options = "--hint=.hlint.yaml";
-      #   include = [ "hs" "lhs" ];
-      # };
-
-      # shellcheck = { 
-      #   include = [ "sh" ]; 
-      #   package = pkgs.shellcheck;
-      # };
-
-      # prettier = { include = [ "ts" "js" "css" "html" ]; };
-
-      # editorconfig-checker = { options = "-config .editorconfig"; };
-
-      # nixfmt-classic = { include = [ "nix" ]; };
-
-      # optipng = { include = [ "png" ]; };
-
-      # purs-tidy = {
-      #   options = "format-in-place";
-      #   include = [ "purs" ];
-      # };
-
-      # rustfmt = { include = [ "rs" ]; };
+      stylish-haskell = {
+        enable = true;
+        package = stylish-haskell;
+        args = [ "--config" ".stylish-haskell.yaml" ];
+      };
+      fourmolu = {
+        enable = false;
+        package = fourmolu;
+        args = [ "--mode" "inplace" ];
+      };
+      hlint = {
+        enable = false;
+        package = hlint;
+        args = [ "--hint" ".hlint.yaml" ];
+      };
+      shellcheck = {
+        enable = false;
+        package = pkgs.shellcheck;
+        args = [ "--hint" ".hlint.yaml" ];
+      };
+      prettier = {
+        enable = false;
+        package = pkgs.prettier;
+      };
+      editorconfig-checker = {
+        enable = true;
+        args = [ "-config" ".editorconfig" ];
+        package = pkgs.editorconfig-checker;
+      };
     };
   };
 

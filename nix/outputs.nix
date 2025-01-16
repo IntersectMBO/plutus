@@ -46,7 +46,7 @@ let
   common-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
     plutus-ir-test = project.flake'.packages."plutus-core:test:plutus-ir-test";
-    cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test";
+    cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test"; # editorconfig-checker-disable-line
   };
 
   static-haskell-packages = {
