@@ -801,7 +801,7 @@
         "iohk-nix": "iohk-nix",
         "nixpkgs": [
           "haskell-nix",
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "pre-commit-hooks": "pre-commit-hooks"
       }

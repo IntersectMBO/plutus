@@ -6,9 +6,7 @@ let
       cabal = "latest";
       hlint = "latest";
       haskell-language-server = "latest";
-    }
-  //
-  {
+    } // {
     cabal-fmt = pkgs.haskell-nix.hackage-project {
       name = "cabal-fmt";
       compiler-nix-name = "ghc966";
@@ -95,7 +93,7 @@ let
     pkgs.git
     pkgs.which
     pkgs.nodejs_20
-    # pkgs.linkchecker
+    pkgs.linkchecker
   ];
 
 in
@@ -113,6 +111,5 @@ project.shellFor {
   shellHook = ''
     eval "$(starship init bash)"
     ${pre-commit-check.shellHook}
-    # {builtins.readFile certEnv}
   '';
 }

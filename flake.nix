@@ -2,8 +2,7 @@
   description = "Plutus Core";
 
   inputs = {
-
-    nixpkgs.follows = "haskell-nix/nixpkgs";
+    nixpkgs.follows = "haskell-nix/nixpkgs-unstable";
 
     hackage = {
       url = "github:input-output-hk/hackage.nix";
