@@ -122,10 +122,5 @@ let
     ];
   });
 
-  # project = lib.iogx.mkHaskellProject {
-  #   inherit cabalProject;
-  #   shellArgs = repoRoot.nix.shell;
-  # };
-
 in
 cabalProject

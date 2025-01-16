@@ -134,7 +134,3 @@ in
   inherit checks;
   inherit hydraJobs;
 }
-#     hydraJobs.ghc910.roots = ghc910.hydraJobs.roots;
-#     hydraJobs.ghc910.plan-nix = ghc910.hydraJobs.plan-nix;
-#   })
-# ]
