@@ -39,7 +39,7 @@ let
     { inherit inputs pkgs lib project agda-with-stdlib r-with-packages; };
 
   profiled-shell = import ./shell.nix {
-    inherit pkgs agda-with-stdlib r-with-packages;
+    inherit inputs pkgs agda-with-stdlib r-with-packages;
     project = project.flake'.variants.profiled;
   };
 
