@@ -58,6 +58,18 @@ get-pr-state() {
 }
 
 
+get-pr-merge-state-status() {
+  local REPO=$1
+  local BRANCH=$2
+  local PR_NUMBER=$(get-pr-number $REPO $BRANCH)
+  if [[ -z $PR_NUMBER ]]; then
+    echo MISSING
+  else 
+    gh pr view $PR_NUMBER --repo $REPO --json mergeStateStatus --jq ".mergeStateStatus"
+  fi 
+}
+
+
 maybe-open-pr() {
   local REPO=$1
   local BRANCH=$2
@@ -210,7 +222,8 @@ check-and-open-plutus-tx-pr() {
 
 
 merge-plutus-pr() {
-  local A=1
+  local PR_NUMBER=$(get-pr-number IntersectMBO/plutus "release/$VERSION")
+  gh pr merge $PR_NUMBER
 }
 
 
@@ -256,11 +269,14 @@ print-status() {
   fi 
   echo 
 
-  if [[ $PR_STATE == "OPEN" || $PR_STATE == "MERGED" ]]; then 
-    echo -e "[2] ✅ Approve the Release PR in plutus, do not merge yet\n       PR $PR_STATE at $PR_URL"
+  local PR_MERGE_STATE_STATUS=$(get-pr-merge-state-status IntersectMBO/plutus "release/$VERSION")
+  if [[ $PR_STATE == "OPEN" && $PR_MERGE_STATE_STATUS == "MERGEABLE" || $PR_STATE == "MERGED" ]]; then 
+    echo -e "[2] ✅ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE and merge status $PR_MERGE_STATE_STATUS at $PR_URL"
+  elif [[ $PR_STATE == "MISSING" ]]; then 
+    echo -e "[2] ❌ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE"
   else 
-    echo -e "[2] ❌ Approve the Release PR in plutus, do not merge yet\n       PR $PR_STATE"
-  fi
+    echo -e "[2] ❌ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE and merge status $PR_MERGE_STATE_STATUS at $PR_URL"
+  fi 
   echo 
 
   PR_URL=$(get-pr-url IntersectMBO/cardano-haskell-packages "plutus-release/$VERSION") 
@@ -291,6 +307,8 @@ print-status() {
     echo -e "[5] ✅ Merge the original Release PR in plutus\n       PR $PR_STATE at $PR_URL"
   elif [[ $PR_STATE == "OPEN" ]]; then 
     echo -e "[5] ❌ Merge the original Release PR in plutus\n       PR $PR_STATE but not MERGED at $PR_URL"
+  elif [[ $PR_STATE == "MISSING" ]]; then 
+    echo -e "[5] ❌ Merge the original Release PR in plutus\n       PR $PR_STATE"
   else 
     echo -e "[5] ❌ Merge the original Release PR in plutus\n       PR $PR_STATE at $PR_URL"
   fi
@@ -324,21 +342,40 @@ print-status() {
 }
 
 
+detect-old-version() {
+  local OLD_VERSION=$(grep "^version:" plutus-core/plutus-core.cabal)
+  echo ${OLD_VERSION##* }
+}
+
+
+compute-new-version() {
+  local OLD_VERSION=$1
+  IFS='.' read -r MAJOR MINOR PATCH BUILD <<< $OLD_VERSION
+  MINOR=$((MINOR + 1))
+  echo "$MAJOR.$MINOR.$PATCH.$BUILD"
+}
+
+
+VERSION=
+
+
 if [ $# -lt 1 ]; then
-  print-usage
-  exit 1
+  OLD_VERSION=$(detect-old-version)
+  VERSION=$(compute-new-version $OLD_VERSION)
+  tell "No VERSION argument given, detected old version $OLD_VERSION, releasing new version $VERSION\n"
 elif ! [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   tell "Invalid version '$1', expecting something like 1.42.0.0"
   exit 1
+else  
+  VERSION=$1
 fi 
 
 
-VERSION=$1
-
 print-status
 while true; do
-  STEP="$(ask "Type [1-8] to run the given step or press enter to see updated status: ")"
+  STEP="$(ask "Type [1-8] to run the given step, 0/q/CTRL+C to exit, or press enter to see updated status: ")"
   case $STEP in
+    [0q]) exit 0 ;;
     "1") check-and-open-plutus-pr ;;
     "2") check-plutus-pr-review-status ;;
     "3") check-and-open-chap-pr ;;
