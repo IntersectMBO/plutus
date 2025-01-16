@@ -31,7 +31,11 @@ let
         enable = true;
         package = pkgs.nixpkgs-fmt;
       };
-      # cabal-fmt = {
+      cabal-fmt = {
+        enable = true;
+        package = cabal-fmt;
+        options = "--inplace";
+      };
       #   options = "--inplace";
       #   include = [ "cabal" ];
       # };
