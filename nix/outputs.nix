@@ -100,6 +100,8 @@ let
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
       { devShells.default = shell; };
+    "aarch64-linux" =
+      { };
   };
 
   flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;

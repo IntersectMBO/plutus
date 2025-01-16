@@ -71,6 +71,7 @@ let
     agda-with-stdlib
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
+    haskell-language-server
 
     pkgs.texliveFull
     pkgs.jekyll
