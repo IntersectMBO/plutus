@@ -1,19 +1,17 @@
-{ self, pkgs, lib, build-latex, agda-with-stdlib }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
   artifacts = pkgs.runCommand "FIR-compiler"
     {
       buildInputs = [ pkgs.zip ];
-      src = self + /doc/papers/unraveling-recursion/code;
+      src = inputs.self + /doc/papers/unraveling-recursion/code;
     } ''
     mkdir -p $out
     cd $src
     zip -r $out/compiler.zip .
   '';
-
 in
-
-build-latex {
+repoRoot.nix.build-latex {
   name = "unraveling-recursion-paper";
 
   texFiles = [ "unraveling-recursion.tex" ];
@@ -26,10 +24,10 @@ build-latex {
       collection-mathscience acmart bibtex biblatex;
   };
 
-  buildInputs = [ agda-with-stdlib pkgs.zip ];
+  buildInputs = [ repoRoot.nix.agda.agda-with-stdlib pkgs.zip ];
 
   src =
-    lib.sourceFilesBySuffices (self + /doc/papers/unraveling-recursion) [
+    lib.sourceFilesBySuffices (inputs.self + /doc/papers/unraveling-recursion) [
       ".tex"
       ".bib"
       ".agda"

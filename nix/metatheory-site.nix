@@ -1,7 +1,7 @@
 # This file evaluates to a derivation that builds the AGDA metatheory
 # documentation site using Jekyll. The derivation also checks for broken links
 # in the generated HTML.
-{ repoRoot, inputs, pkgs, system, lib }:
+{ self, pkgs, lib, agda-with-stdlib }:
 
 let
 
@@ -20,27 +20,26 @@ let
   # easier to iterate on the site build.
   plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
-    src = lib.cleanSource (inputs.self + /plutus-metatheory);
-    buildInputs = [ repoRoot.nix.agda.agda-with-stdlib ];
+    src = lib.cleanSource (self + /plutus-metatheory);
+    buildInputs = [ agda-with-stdlib ];
     dontInstall = true;
 
     # Jekyll requires the _layouts folder to be in the same directory as the
     # source folder, so we copy it there to avoid issues.
     buildPhase = ''
       mkdir $out
-      cp -R ${inputs.self + /plutus-metatheory/html/_layouts} $out
+      cp -R ${self + /plutus-metatheory/html/_layouts} $out
       agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
     '';
   };
 
-  plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site" {
-    buildInputs = [
-      pkgs.jekyll
-      # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
-      # pkgs.linkchecker
-      inputs.nixpkgs-2405.legacyPackages.linkchecker
-    ];
-  } ''
+  plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site"
+    {
+      buildInputs = [
+        pkgs.jekyll
+        pkgs.linkchecker
+      ];
+    } ''
     mkdir "$out"
 
     # Prevent Jekyll from writing to the source directory by disabling its disk cache
@@ -61,4 +60,5 @@ let
     fi
   '';
 
-in plutus-metatheory-site
+in
+plutus-metatheory-site

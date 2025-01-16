@@ -1,84 +1,140 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ inputs, system }:
 
 let
-  project = repoRoot.nix.project;
+  inherit (inputs) self;
 
-  ghc96 = project.variants.ghc96;
-  ghc96-mingwW64 = project.variants.ghc96.cross.mingwW64;
-  ghc96-musl64 = project.variants.ghc96.cross.musl64;
-  ghc96-profiled = project.variants.ghc96-profiled;
-  ghc98 = project.variants.ghc98;
-  ghc810 = project.variants.ghc810;
-  ghc910 = project.variants.ghc910;
+  pkgs = import ./pkgs.nix
+    { inherit inputs system; };
 
-in [
-  {
-    inherit (project) cabalProject;
+  inherit (pkgs) lib;
 
-    devShells.default = ghc96.devShell;
-    devShells.profiled = ghc96-profiled.devShell;
-    devShells.ghc96 = ghc96.devShell;
-    devShells.ghc810 = ghc810.devShell;
-    devShells.ghc98 = ghc98.devShell;
-    devShells.ghc910 = ghc910.devShell;
+  utils = import ./utils.nix
+    { inherit lib; };
 
-    packages = ghc96.packages;
-    apps = ghc96.apps;
-    checks = ghc96.checks;
+  build-latex = import ./build-latex.nix
+    { inherit pkgs; };
 
-    latex-documents = repoRoot.nix.latex-documents;
+  r-with-packages = import ./r-with-packages.nix
+    { inherit pkgs; };
 
-    hydraJobs.required = lib.iogx.mkHydraRequiredJob { };
-  }
+  agda-with-stdlib = import ./agda-with-stdlib.nix
+    { inherit pkgs lib; };
 
-  {
-    packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
-    packages.pre-commit-check = ghc96.pre-commit-check;
-  }
+  build-latex-doc = import ./build-latex-doc.nix
+    { inherit pkgs lib agda-with-stdlib build-latex; };
 
-  (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin") {
-    hydraJobs.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
+  unraveling-recursion-paper = import ./unraveling-recursion-paper.nix
+    { inherit self pkgs lib build-latex agda-with-stdlib; };
 
-    hydraJobs.ghc96 = ghc96.hydraJobs;
-    hydraJobs.ghc810 = ghc810.hydraJobs;
-    hydraJobs.ghc98 = ghc98.hydraJobs;
-    hydraJobs.ghc910 = ghc910.hydraJobs;
-  })
+  latex-documents = import ./latex-documents.nix
+    { inherit self build-latex-doc; };
 
-  (lib.optionalAttrs (system == "x86_64-linux") {
-    hydraJobs.latex-documents = repoRoot.nix.latex-documents;
-    hydraJobs.pre-commit-check = ghc96.pre-commit-check;
+  metatheory-site = import ./metatheory-site.nix
+    { inherit self pkgs lib agda-with-stdlib; };
 
-    hydraJobs.mingwW64.ghc96 = ghc96-mingwW64.hydraJobs;
+  project = import ./project.nix
+    { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
 
-    hydraJobs.musl64.ghc96.pir =
-      ghc96-musl64.cabalProject.hsPkgs.plutus-executables.components.exes.pir; # editorconfig-checker-disable-line
-    hydraJobs.musl64.ghc96.plc =
-      ghc96-musl64.cabalProject.hsPkgs.plutus-executables.components.exes.plc; # editorconfig-checker-disable-line
-    hydraJobs.musl64.ghc96.uplc =
-      ghc96-musl64.cabalProject.hsPkgs.plutus-executables.components.exes.uplc; # editorconfig-checker-disable-line
-    hydraJobs.musl64.ghc96.plutus =
-      ghc96-musl64.cabalProject.hsPkgs.plutus-core.components.exes.plutus; # editorconfig-checker-disable-line
-  })
+  shell = import ./shell.nix
+    { inherit inputs pkgs lib project agda-with-stdlib r-with-packages; };
 
-  (lib.optionalAttrs (system == "aarch64-darwin") {
-    # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
-    # Se we only build roots and dev sshells on aarch to avoid overloading the builders.
-    hydraJobs.ghc810.devShell = ghc810.devShell;
-    hydraJobs.ghc96.devShell = ghc96.devShell;
-    hydraJobs.ghc98.devShell = ghc98.devShell;
-    hydraJobs.ghc910.devShell = ghc910.devShell;
+  profiled-shell = import ./shell.nix {
+    inherit pkgs agda-with-stdlib r-with-packages;
+    project = project.flake'.variants.profiled;
+  };
 
-    hydraJobs.ghc810.roots = ghc810.hydraJobs.roots;
-    hydraJobs.ghc810.plan-nix = ghc810.hydraJobs.plan-nix;
+  common-haskell-packages = {
+    plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
+    plutus-ir-test = project.flake'.packages."plutus-core:test:plutus-ir-test";
+    cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test";
+  };
 
-    hydraJobs.ghc96.roots = ghc96.hydraJobs.roots;
-    hydraJobs.ghc96.plan-nix = ghc96.hydraJobs.plan-nix;
+  static-haskell-packages = {
+    musl64-pir = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.pir;
+    musl64-plc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plc;
+    musl64-uplc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.uplc;
+    musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
+  };
 
-    hydraJobs.ghc98.roots = ghc98.hydraJobs.roots;
-    hydraJobs.ghc98.plan-nix = ghc98.hydraJobs.plan-nix;
+  extra-artifacts =
+    { inherit unraveling-recursion-paper; } //
+    { inherit metatheory-site; } //
+    (latex-documents);
 
-    hydraJobs.ghc910.roots = ghc910.hydraJobs.roots;
-    hydraJobs.ghc910.plan-nix = ghc910.hydraJobs.plan-nix;
-  })
-]
+  project-variants-hydra-jobs = {
+    ghc810 = (project.flake { }).hydraJobs.ghc810;
+    ghc96 = (project.flake { }).hydraJobs.ghc96;
+    ghc98 = (project.flake { }).hydraJobs.ghc98;
+    ghc910 = (project.flake { }).hydraJobs.ghc910;
+  };
+
+  project-variants-roots-and-plan-nix = {
+    ghc810.roots = project-variants-hydra-jobs.ghc810.roots;
+    ghc810.plan-nix = project-variants-hydra-jobs.ghc810.plan-nix;
+    ghc96.roots = project-variants-hydra-jobs.ghc96.roots;
+    ghc96.plan-nix = project-variants-hydra-jobs.ghc96.plan-nix;
+    ghc98.roots = project-variants-hydra-jobs.ghc98.roots;
+    ghc98.plan-nix = project-variants-hydra-jobs.ghc98.plan-nix;
+    ghc910.roots = project-variants-hydra-jobs.ghc910.roots;
+    ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
+  };
+
+  packages =
+    common-haskell-packages //
+    static-haskell-packages //
+    extra-artifacts;
+
+  devShells = {
+    default = shell;
+    profiled = profiled-shell;
+  };
+
+  nested-ci-jobs = {
+    "x86_64-linux" =
+      (project-variants-hydra-jobs) //
+      (packages) //
+      { devShells.default = shell; };
+    "x86_64-darwin" =
+      (project-variants-hydra-jobs) //
+      { devShells.default = shell; };
+    "aarch64-darwin" =
+      (project-variants-roots-and-plan-nix) //
+      { devShells.default = shell; };
+  };
+
+  flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;
+
+  ciJobs = utils.flattenDerivationTree ":" nested-ci-jobs.${system};
+
+  checks = ciJobs;
+
+  hydraJobs = ciJobs;
+
+  __internal = {
+    inherit pkgs;
+    inherit project;
+    inherit agda-with-stdlib;
+    inherit r-with-packages;
+    inherit build-latex-doc;
+    inherit build-latex;
+    inherit extra-artifacts;
+    inherit static-haskell-packages;
+    inherit common-haskell-packages;
+    inherit flattened-ci-jobs;
+    inherit nested-ci-jobs;
+  };
+
+in
+
+{
+  inherit __internal;
+
+  inherit packages;
+  inherit devShells;
+  inherit checks;
+  inherit hydraJobs;
+}
+#     hydraJobs.ghc910.roots = ghc910.hydraJobs.roots;
+#     hydraJobs.ghc910.plan-nix = ghc910.hydraJobs.plan-nix;
+#   })
+# ]

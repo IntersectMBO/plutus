@@ -1,8 +1,8 @@
-{ pkgs, lib, agda-with-stdlib, build-latex }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
-build-latex {
+repoRoot.nix.build-latex {
 
   inherit name;
   inherit description;
@@ -22,7 +22,7 @@ build-latex {
     ".lagda"
   ];
 
-  buildInputs = lib.optionals withAgda [ agda-with-stdlib ];
+  buildInputs = lib.optionals withAgda [ repoRoot.nix.agda.agda-with-stdlib ];
 
   texInputs = {
     inherit (pkgs.texlive)

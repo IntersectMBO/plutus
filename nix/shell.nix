@@ -1,43 +1,87 @@
-{ repoRoot, inputs, pkgs, system, lib }:
-
-cabalProject:
+{ inputs, pkgs, lib, project, agda-with-stdlib, r-with-packages }:
 
 let
+  haskell-tools = project.tools
+    {
+      cabal = "latest";
+      hlint = "latest";
+      haskell-language-server = "latest";
+    } // {
+    cabal-fmt = pkgs.haskell-nix.hackage-project {
+      name = "cabal-fmt";
+      compiler-nix-name = "ghc966";
+    };
+  };
 
-  # We need some environment variables from the various ocaml and coq pacakges
-  # that the certifier code needs.
-  # Devshell doesn't run setup hooks from other packages, so just extract
-  # the correct values of the environment variables from the haskell.nix
-  # shell and use those.
-  certEnv = pkgs.runCommand "cert-env" {
-    nativeBuildInputs = cabalProject.shell.nativeBuildInputs;
-    buildInputs = cabalProject.shell.buildInputs;
-  } ''
-    echo "export COQPATH=$COQPATH" >> $out
-    echo "export OCAMLPATH=$OCAMLPATH" >> $out
-    echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
-    echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
-  '';
+  stylish-haskell = haskell-tools.haskell-language-server.project.hsPkgs.stylish-haskell.components.exes.stylish-haskell;
+  fourmolu = haskell-tools.haskell-language-server.project.hsPkgs.fourmolu.components.exes.fourmolu;
+  cabal = haskell-tools.cabal.project.hsPkgs.cabal-install.components.exes.cabal;
+  hlint = haskell-tools.hlint.project.hsPkgs.hlint.components.exes.hlint;
+  cabal-fmt = haskell-tools.cabal-fmt.project.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
+
+  # pkgs.optipng 
+  # pkgs.nixfmt-classic 
+  # pkgs.shellcheck
+  # pkgs.editorconfig-checker
+
+  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
+    src = ../.;
+    hooks = {
+      nixpkgs-fmt = {
+        enable = true;
+        package = pkgs.nixpkgs-fmt;
+      };
+      # cabal-fmt = {
+      #   options = "--inplace";
+      #   include = [ "cabal" ];
+      # };
+
+      # stylish-haskell = {
+      #   options = "--inplace --config .stylish-haskell.yaml";
+      #   include = [ "hs" "lhs" ];
+      # };
+
+      # fourmolu = {
+      #   options = "--mode inplace";
+      #   include = [ "hs" "lhs" ];
+      # };
+
+      # hlint = {
+      #   options = "--hint=.hlint.yaml";
+      #   include = [ "hs" "lhs" ];
+      # };
+
+      # shellcheck = { 
+      #   include = [ "sh" ]; 
+      #   package = pkgs.shellcheck;
+      # };
+
+      # prettier = { include = [ "ts" "js" "css" "html" ]; };
+
+      # editorconfig-checker = { options = "-config .editorconfig"; };
+
+      # nixfmt-classic = { include = [ "nix" ]; };
+
+      # optipng = { include = [ "png" ]; };
+
+      # purs-tidy = {
+      #   options = "format-in-place";
+      #   include = [ "purs" ];
+      # };
+
+      # rustfmt = { include = [ "rs" ]; };
+    };
+  };
 
   linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
-    # Needed to fix the frequency and governor of the CPU running the benchmarks
-    pkgs.cpufrequtils
-    pkgs.sudo
-    # Underlying benchmarking library used by plutus-benchmark and tasty-papi
     pkgs.papi
   ];
 
-  all-pkgs = [
-    repoRoot.nix.agda.agda-with-stdlib
+  common-pkgs = [
+    agda-with-stdlib
+    r-with-packages
 
-    # R environment
-    repoRoot.nix.r-with-packages
-    pkgs.R
-
-    # LaTeX environment
     pkgs.texliveFull
-
-    # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
     pkgs.plantuml
     pkgs.jq
@@ -50,47 +94,33 @@ let
     pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
-    pkgs.github-cli
-
-    # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
-    # it's not available on macOS.
-    pkgs.util-linux
-
-    # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
-    # pkgs.linkchecker
-    inputs.nixpkgs-2405.legacyPackages.linkchecker
-
-    # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
     pkgs.upx
-
-    # Needed for the cabal CLI to download under https
     pkgs.curl
-
-    # Node JS
+    pkgs.starship
+    pkgs.bash
+    pkgs.git
+    pkgs.which
     pkgs.nodejs_20
+    # pkgs.linkchecker
   ];
 
-in {
-  name = "plutus";
+in
 
-  welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
+project.shellFor {
 
-  packages = lib.concatLists [ all-pkgs linux-pkgs ];
+  buildInputs = lib.concatLists [
+    common-pkgs
+    linux-pkgs
+    pre-commit-check.enabledPackages
+  ];
+
+  withHoogle = true;
 
   shellHook = ''
-    ${builtins.readFile certEnv}
+    eval "$(starship init bash)"
+    ${pre-commit-check.shellHook}
+    # {builtins.readFile certEnv}
   '';
-
-  preCommit = {
-    stylish-haskell.enable = true;
-    cabal-fmt.enable = true;
-    shellcheck.enable = false;
-    editorconfig-checker.enable = true;
-    nixfmt-classic.enable = true;
-    optipng.enable = true;
-    # fourmolu.enable = true;
-    hlint.enable = false;
-  };
 }
