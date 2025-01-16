@@ -1,7 +1,7 @@
 # This file evaluates to a derivation that builds the AGDA metatheory
 # documentation site using Jekyll. The derivation also checks for broken links
 # in the generated HTML.
-{ self, pkgs, lib, agda-with-stdlib }:
+{ inputs, self, pkgs, lib, agda-with-stdlib }:
 
 let
 
@@ -37,7 +37,7 @@ let
     {
       buildInputs = [
         pkgs.jekyll
-        pkgs.linkchecker
+        inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
       ];
     } ''
     mkdir "$out"

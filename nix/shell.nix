@@ -70,6 +70,7 @@ let
   common-pkgs = [
     agda-with-stdlib
     r-with-packages
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
 
     pkgs.texliveFull
     pkgs.jekyll
@@ -93,7 +94,7 @@ let
     pkgs.git
     pkgs.which
     pkgs.nodejs_20
-    pkgs.linkchecker
+
   ];
 
 in

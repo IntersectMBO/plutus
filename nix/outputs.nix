@@ -30,7 +30,7 @@ let
     { inherit self build-latex-doc; };
 
   metatheory-site = import ./metatheory-site.nix
-    { inherit self pkgs lib agda-with-stdlib; };
+    { inherit inputs self pkgs lib agda-with-stdlib; };
 
   project = import ./project.nix
     { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
