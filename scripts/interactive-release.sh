@@ -175,7 +175,7 @@ open-chap-pr() {
   local PR_BRANCH="plutus-release/$VERSION"
   rm -rf cardano-haskell-packages || true
   git fetch --tags
-  local COMMIT_SHA=$(git rev-parse --verify --quiet $VERSION)
+  local COMMIT_SHA=$(git rev-parse --verify --quiet "release/$VERSION")
   gh repo clone IntersectMBO/cardano-haskell-packages -- --single-branch --branch main
   cd cardano-haskell-packages
   git checkout -b $PR_BRANCH
