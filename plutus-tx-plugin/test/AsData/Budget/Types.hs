@@ -37,6 +37,45 @@ newtype IntsManual = IntsManual PlutusTx.BuiltinData
     , PlutusTx.ToData
     )
 
+pattern IntsManualPattern :: Integer -> Integer -> Integer -> Integer -> IntsManual
+pattern IntsManualPattern x y z w <- IntsManual (unpackIntsManual -> (x, y, z, w))
+  where
+    IntsManualPattern x y z w = IntsManual (packIntsManual x y z w)
+
+-- Improvements over the TH-generated pattern synonym:
+-- 1. Since this is a product type, there's no need to check `BI.fst tup == 0`
+-- 2. Don't use `pairToPair` or `unsafeUncons`, since they construct non-builtin pairs.
+unpackIntsManual :: PlutusTx.BuiltinData -> (Integer, Integer, Integer, Integer)
+unpackIntsManual d =
+  let tup = BI.unsafeDataAsConstr d
+      ds0 = BI.snd tup
+      ds1 = BI.tail ds0
+      ds2 = BI.tail ds1
+      ds3 = BI.tail ds2
+      x = PlutusTx.unsafeFromBuiltinData (BI.head ds0)
+      y = PlutusTx.unsafeFromBuiltinData (BI.head ds1)
+      z = PlutusTx.unsafeFromBuiltinData (BI.head ds2)
+      w = PlutusTx.unsafeFromBuiltinData (BI.head ds3)
+   in (x, y, z, w)
+
+packIntsManual :: Integer -> Integer -> Integer -> Integer -> PlutusTx.BuiltinData
+packIntsManual x y z w =
+  BI.mkConstr
+    0
+    (BI.mkCons
+      (PlutusTx.toBuiltinData x)
+      (BI.mkCons
+        (PlutusTx.toBuiltinData y)
+        (BI.mkCons
+          (PlutusTx.toBuiltinData z)
+          (BI.mkCons
+            (PlutusTx.toBuiltinData w)
+            (BI.mkNilData BI.unitval)
+          )
+        )
+      )
+    )
+
 int1Manual :: IntsManual -> Integer
 int1Manual (IntsManual d) =
   let tup = BI.unsafeDataAsConstr d

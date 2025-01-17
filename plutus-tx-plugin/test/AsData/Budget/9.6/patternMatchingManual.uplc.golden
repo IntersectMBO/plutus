@@ -1,0 +1,43 @@
+(program
+   1.1.0
+   (\d ->
+      case
+        (case
+           ((\ds ->
+               (\ds ->
+                  (\ds ->
+                     (\w ->
+                        (\z ->
+                           (\y ->
+                              constr 0 [(unIData (force headList ds)), y, z, w])
+                             (unIData (force headList ds)))
+                          (unIData (force headList ds)))
+                       (unIData (force headList (force tailList ds))))
+                    (force tailList ds))
+                 (force tailList ds))
+              (force (force sndPair) (unConstrData d)))
+           [(\x y z w -> constr 0 [x, y, z, w])])
+        [ (\ipv ipv ipv ipv ->
+             (\lessThanInteger ->
+                addInteger
+                  (addInteger
+                     (addInteger (addInteger (addInteger ipv ipv) ipv) ipv)
+                     (force
+                        (case
+                           (lessThanInteger
+                              (addInteger ipv ipv)
+                              (addInteger ipv ipv))
+                           [ (delay (addInteger ipv ipv))
+                           , (delay (addInteger ipv ipv)) ])))
+                  (force
+                     (case
+                        (lessThanInteger
+                           (addInteger ipv ipv)
+                           (addInteger ipv ipv))
+                        [ (delay (addInteger ipv ipv))
+                        , (delay (addInteger ipv ipv)) ])))
+               (\x y ->
+                  force ifThenElse
+                    (lessThanInteger x y)
+                    (constr 0 [])
+                    (constr 1 []))) ]))

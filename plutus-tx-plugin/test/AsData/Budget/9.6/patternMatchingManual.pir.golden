@@ -1,0 +1,77 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  !addInteger : integer -> integer -> integer
+    = \(x : integer) (y : integer) -> addInteger x y
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !lessThanInteger : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        ifThenElse {Bool} (lessThanInteger x y) True False
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
+in
+\(d : data) ->
+  Tuple4_match
+    {integer}
+    {integer}
+    {integer}
+    {integer}
+    ((let
+         r = Tuple4 integer integer integer integer
+       in
+       \(scrut : data)
+        (cont : integer -> integer -> integer -> integer -> r)
+        (fail : unit -> r) ->
+         Tuple4_match
+           {integer}
+           {integer}
+           {integer}
+           {integer}
+           (let
+             !ds : list data
+               = sndPair {integer} {list data} (unConstrData scrut)
+             !ds : list data = tailList {data} ds
+             !ds : list data = tailList {data} ds
+             !w : integer = unIData (headList {data} (tailList {data} ds))
+             !z : integer = unIData (headList {data} ds)
+             !y : integer = unIData (headList {data} ds)
+           in
+           Tuple4
+             {integer}
+             {integer}
+             {integer}
+             {integer}
+             (unIData (headList {data} ds))
+             y
+             z
+             w)
+           {r}
+           (\(x : integer) (y : integer) (z : integer) (w : integer) ->
+              cont x y z w))
+       d
+       (\(x : integer) (y : integer) (z : integer) (w : integer) ->
+          Tuple4 {integer} {integer} {integer} {integer} x y z w)
+       (\(void : unit) ->
+          Unit_match
+            (error {Unit})
+            {Tuple4 integer integer integer integer}
+            (error {Tuple4 integer integer integer integer})))
+    {integer}
+    (\(ipv : integer) (ipv : integer) (ipv : integer) (ipv : integer) ->
+       addInteger
+         (addInteger
+            (addInteger (addInteger (addInteger ipv ipv) ipv) ipv)
+            (Bool_match
+               (lessThanInteger (addInteger ipv ipv) (addInteger ipv ipv))
+               {all dead. integer}
+               (/\dead -> addInteger ipv ipv)
+               (/\dead -> addInteger ipv ipv)
+               {all dead. dead}))
+         (Bool_match
+            (lessThanInteger (addInteger ipv ipv) (addInteger ipv ipv))
+            {all dead. integer}
+            (/\dead -> addInteger ipv ipv)
+            (/\dead -> addInteger ipv ipv)
+            {all dead. dead}))

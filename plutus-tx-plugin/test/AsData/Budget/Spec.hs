@@ -32,6 +32,10 @@ tests =
     , goldenUPlcReadable "patternMatching" patternMatching
     , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
     , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
+    , goldenPirReadable "patternMatchingManual" patternMatchingManual
+    , goldenUPlcReadable "patternMatchingManual" patternMatchingManual
+    , goldenEvalCekCatch "patternMatchingManual" [patternMatchingManual `unsafeApplyCode` inp]
+    , goldenBudget "patternMatchingManual-budget" (patternMatchingManual `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields" recordFields
     , goldenUPlcReadable "recordFields" recordFields
     , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
@@ -58,6 +62,35 @@ patternMatching =
         [||
         \d ->
           let (Ints x y z w) = PlutusTx.unsafeFromBuiltinData d
+           in x
+                `PlutusTx.addInteger` y
+                `PlutusTx.addInteger` z
+                `PlutusTx.addInteger` w
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (y `PlutusTx.addInteger` z)
+                                          (x `PlutusTx.addInteger` w)
+                                          then x `PlutusTx.addInteger` z
+                                          else y `PlutusTx.addInteger` w
+                                      )
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (z `PlutusTx.addInteger` y)
+                                          (w `PlutusTx.addInteger` x)
+                                          then z `PlutusTx.addInteger` x
+                                          else w `PlutusTx.addInteger` y
+                                      )
+        ||]
+    )
+
+patternMatchingManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+patternMatchingManual =
+  $$( compile
+        [||
+        \d ->
+          let (IntsManualPattern x0 y0 z0 w0) = PlutusTx.unsafeFromBuiltinData d
+              x = x0
+              y = y0
+              z = z0
+              w = w0
            in x
                 `PlutusTx.addInteger` y
                 `PlutusTx.addInteger` z
