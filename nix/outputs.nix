@@ -97,11 +97,11 @@ let
     "x86_64-darwin" =
       (project-variants-hydra-jobs) //
       { devShells.default = shell; };
+    "aarch64-linux" =
+      { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
       { devShells.default = shell; };
-    "aarch64-linux" =
-      { };
   };
 
   flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;
