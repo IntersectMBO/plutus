@@ -92,6 +92,7 @@ arity <- function(name) {
         "FstPair" = 1,
         "SndPair" = 1,
         "ChooseList" = 3,
+        "DropList" = 2,
         "MkCons" = 2,
         "HeadList" = 1,
         "TailList" = 1,
@@ -653,7 +654,7 @@ modelFun <- function(path) {
     headListModel   <- constantModel ("HeadList")
     tailListModel   <- constantModel ("TailList")
     nullListModel   <- constantModel ("NullList")
-
+    dropListModel <- linearInX ("DropList")
 
     ##### Data #####
 
@@ -823,6 +824,7 @@ modelFun <- function(path) {
         headListModel                        = headListModel,
         tailListModel                        = tailListModel,
         nullListModel                        = nullListModel,
+        dropListModel                      = dropListModel,
         chooseDataModel                      = chooseDataModel,
         constrDataModel                      = constrDataModel,
         mapDataModel                         = mapDataModel,

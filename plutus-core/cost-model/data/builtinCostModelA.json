@@ -302,6 +302,19 @@
             "type": "constant_cost"
         }
     },
+    "dropList": {
+        "cpu": {
+	    "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 0,
+            "type": "constant_cost"
+        }
+    },
     "chooseUnit": {
         "cpu": {
             "arguments": 46417,

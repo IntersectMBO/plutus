@@ -1586,7 +1586,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning
             dropListDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramDropList)
 
     -- Data
     toBuiltinMeaning _semvar ChooseData =
