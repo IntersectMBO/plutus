@@ -8,7 +8,7 @@ import PlutusCore
 import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
-import System.Random (StdGen)
+import System.Random (StdGen, randomR)
 
 
 
@@ -40,6 +40,12 @@ makeListOfByteStringLists seed ((count, size):rest) =
 
 intLists :: StdGen -> [[Integer]]
 intLists gen = makeListOfIntegerLists gen [(count,size) | count <- [0..7], size <- [1..7]]
+
+-- Make a list of n integers whose value is less than or equal to m
+intMaxList :: Integer -> Integer -> StdGen -> [Integer]
+intMaxList 0 _ _ = []
+intMaxList n m gen = (v : (intMaxList (n-1) m g2))
+  where (v , g2) = randomR ((0::Integer),m) gen
 
 nonEmptyIntLists :: StdGen -> [[Integer]]
 nonEmptyIntLists gen = makeListOfIntegerLists gen [(count,size) | count <- [1..7], size <- [1..7]]
@@ -73,6 +79,21 @@ benchChooseList gen =
                           | x <- inputs ]
     in bgroup (show name) (mkBMs [integer,bytestring] intInputs
                             ++ mkBMs [bytestring,bytestring] bsInputs)
+
+
+-- dropList n ls
+-- We expect this to be linear with the value of n.
+benchDropList :: StdGen -> Benchmark
+benchDropList gen =
+    let name = DropList
+        resultSizes = [100, 500, 1500, 3000, 5000]
+        results1 = makeSizedByteStrings seedA resultSizes
+        intInputs = [ intMaxList 10 (toInteger sz) gen | sz <- resultSizes ]
+        mkBMs tys = [ bgroup (showMemoryUsage r1)
+                            [ benchDefault (show n) $ mkApp2 name tys n r1
+                           | n <- ns ]
+                          | (ns , r1) <- zip intInputs results1 ]
+    in bgroup (show name) (mkBMs [integer,bytestring])
 
 
 benchMkCons :: StdGen -> Benchmark
@@ -111,4 +132,5 @@ makeBenchmarks gen = [ benchChooseList gen
                      , benchNonEmptyList gen HeadList
                      , benchNonEmptyList gen TailList
                      , benchNullList gen
+                     , benchDropList gen
                      ]
