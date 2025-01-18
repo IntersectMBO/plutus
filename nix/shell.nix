@@ -95,7 +95,6 @@ let
     pkgs.git
     pkgs.which
     pkgs.nodejs_20
-
   ];
 
 in
