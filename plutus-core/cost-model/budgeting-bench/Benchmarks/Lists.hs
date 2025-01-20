@@ -8,8 +8,8 @@ import PlutusCore
 import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
 import System.Random (StdGen, randomR)
-
 
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
@@ -89,12 +89,9 @@ benchDropList gen =
         resultSizes = [100, 500, 1500, 3000, 5000]
         results1 = makeSizedByteStrings seedA resultSizes
         intInputs = [ intMaxList 10 (toInteger sz) gen | sz <- resultSizes ]
-        mkBMs tys = [ bgroup (showMemoryUsage r1)
-                            [ benchDefault (show n) $ mkApp2 name tys n r1
-                           | n <- ns ]
-                          | (ns , r1) <- zip intInputs results1 ]
-    in bgroup (show name) (mkBMs [integer,bytestring])
-
+        inputs = concat [[(n , r1) | n <- ns] | (ns, r1) <- zip intInputs results1]
+    in createTwoTermBuiltinBenchElementwiseWithWrappers
+           (IntegerCostedLiterally, id) name [integer,bytestring] inputs
 
 benchMkCons :: StdGen -> Benchmark
 benchMkCons gen =
