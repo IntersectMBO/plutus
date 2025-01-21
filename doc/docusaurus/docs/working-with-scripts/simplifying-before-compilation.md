@@ -73,7 +73,7 @@ tails5 = $$(ntailsTH 5)
 ```
 
 Since this is nothing but standard Template Haskell usage, we'll keep it concise here.
-There are plenty of Template Haskell resources and examples available elsewhere.
+Some good resources to learn more about Template Haskell include the [Template Haskell page on HaskellWiki](https://wiki.haskell.org/Template_Haskell) (which has links to further resources), [Template Haskell tutorial](https://markkarpov.com/tutorial/th) by Mark Karpov, and [Introduction to Template Haskell](https://serokell.io/blog/introduction-to-template-haskell) by Heitor Toledo Lassarote de Paula.
 
 ## GHC Plugins
 
