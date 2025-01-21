@@ -86,12 +86,10 @@ benchChooseList gen =
 benchDropList :: StdGen -> Benchmark
 benchDropList gen =
     let name = DropList
-        resultSizes = [100, 500, 1500, 3000, 5000]
-        results1 = makeSizedByteStrings seedA resultSizes
-        intInputs = [ intMaxList 10 (toInteger sz) gen | sz <- resultSizes ]
-        inputs = concat [[(n , r1) | n <- ns] | (ns, r1) <- zip intInputs results1]
+        indices = [0, 100..10000::Integer]
+        inputs = zip indices [1..10000::Integer]
     in createTwoTermBuiltinBenchElementwiseWithWrappers
-           (IntegerCostedLiterally, id) name [integer,bytestring] inputs
+           (IntegerCostedLiterally, id) name [integer] inputs
 
 benchMkCons :: StdGen -> Benchmark
 benchMkCons gen =

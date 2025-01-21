@@ -110,7 +110,44 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramHeadList                        = Id $ ModelOneArgumentConstantCost    32
   , paramTailList                        = Id $ ModelOneArgumentConstantCost    32
   , paramNullList                        = Id $ ModelOneArgumentConstantCost    32
-  , paramDropList                      = Id $ ModelOneArgumentConstantCost    32
+  , paramChooseData                      = Id $ ModelSixArgumentsConstantCost   32
+  , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost   32
+  , paramMapData                         = Id $ ModelOneArgumentConstantCost    32
+  , paramListData                        = Id $ ModelOneArgumentConstantCost    32
+  , paramIData                           = Id $ ModelOneArgumentConstantCost    32
+  , paramBData                           = Id $ ModelOneArgumentConstantCost    32
+  , paramUnConstrData                    = Id $ ModelOneArgumentConstantCost    32
+  , paramUnMapData                       = Id $ ModelOneArgumentConstantCost    32
+  , paramUnListData                      = Id $ ModelOneArgumentConstantCost    32
+  , paramUnIData                         = Id $ ModelOneArgumentConstantCost    32
+  , paramUnBData                         = Id $ ModelOneArgumentConstantCost    32
+  , paramEqualsData                      = Id $ ModelTwoArgumentsConstantCost    1
+  , paramMkPairData                      = Id $ ModelTwoArgumentsConstantCost   32
+  , paramMkNilData                       = Id $ ModelOneArgumentConstantCost    32
+  , paramMkNilPairData                   = Id $ ModelOneArgumentConstantCost    32
+  , paramSerialiseData                   = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 0 2
+  , paramBls12_381_G1_add                = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G1_neg                = Id $ ModelOneArgumentConstantCost  g1MemSize
+  , paramBls12_381_G1_scalarMul          = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G1_equal              = Id $ boolMemModel
+  , paramBls12_381_G1_compress           = Id $ ModelOneArgumentConstantCost  g1CompressedSize
+  , paramBls12_381_G1_uncompress         = Id $ ModelOneArgumentConstantCost  g1MemSize
+  , paramBls12_381_G1_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g1MemSize
+  , paramBls12_381_G2_add                = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_G2_neg                = Id $ ModelOneArgumentConstantCost  g2MemSize
+  , paramBls12_381_G2_scalarMul          = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_G2_equal              = Id $ boolMemModel
+  , paramBls12_381_G2_compress           = Id $ ModelOneArgumentConstantCost  g2CompressedSize
+  , paramBls12_381_G2_uncompress         = Id $ ModelOneArgumentConstantCost  g2MemSize
+  , paramBls12_381_G2_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g2MemSize
+  , paramBls12_381_millerLoop            = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
+  , paramBls12_381_mulMlResult           = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
+  , paramBls12_381_finalVerify           = Id $ boolMemModel
+  , paramBlake2b_224                     = Id $ hashMemModel Hash.blake2b_224
+  , paramKeccak_256                      = Id $ hashMemModel Hash.keccak_256
+  -- integerToByteString e w n allocates a bytestring of length w if w is
+  -- nonzero and a bytestring just big enough to contain n otherwise, so we need
+  -- a special memory costing function to handle that.
   , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ identityFunction
   , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY identityFunction
   -- andByteString b y z etc. return something whose length is min(length(y),length(z)) if b is
@@ -123,7 +160,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramWriteBits                       = Id $ ModelThreeArgumentsLinearInX identityFunction
   -- The empty bytestring has memory usage 1, so we add an extra memory unit here to make sure that
   -- the memory cost of `replicateByte` is always nonzero. That means that we're charging one unit
-  -- ore than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some
+  -- more than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some
   -- overhead for bytesrings anyway).  Note also that `replicateByte`'s argument is costed as a
   -- literal size.
   , paramReplicateByte                   = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 1 1
@@ -133,5 +170,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramFindFirstSetBit                 = Id $ ModelOneArgumentConstantCost 1
   , paramRipemd_160                      = Id $ hashMemModel Hash.ripemd_160
   , paramExpModInteger                   = Id $ ModelThreeArgumentsConstantCost 100000000000 -- FIXME: stub
+  , paramDropList                        = Id $ ModelTwoArgumentsConstantCost    32
   }
   where identityFunction = OneVariableLinearFunction 0 1

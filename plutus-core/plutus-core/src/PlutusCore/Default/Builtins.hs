@@ -105,19 +105,16 @@ data DefaultFun
     | SndPair
     -- Lists
     | ChooseList
-    | CaseList
     | MkCons
     | HeadList
     | TailList
     | NullList
-    | DropList
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
-    | CaseData
     | ConstrData
     | MapData
     | ListData
@@ -180,6 +177,9 @@ data DefaultFun
     -- Ripemd_160
     | Ripemd_160
     | ExpModInteger
+    | CaseList
+    | CaseData
+    | DropList
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1486,25 +1486,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
 
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
@@ -1602,26 +1583,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             chooseDataDenotation
             (runCostingFunSixArguments . paramChooseData)
-
-    toBuiltinMeaning _ver CaseData =
-        let caseDataDenotation
-                :: Opaque val (Integer -> [Data] -> b)
-                -> Opaque val ([(Data, Data)] -> b)
-                -> Opaque val ([Data] -> b)
-                -> Opaque val (Integer -> b)
-                -> Opaque val (BS.ByteString -> b)
-                -> Data
-                -> Opaque (HeadSpine val) b
-            caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
-            {-# INLINE caseDataDenotation #-}
-        in makeBuiltinMeaning
-            caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
@@ -2072,6 +2033,45 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
+
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val (LastArg a b)
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _ver CaseData =
+        let caseDataDenotation
+                :: Opaque val (Integer -> [Data] -> b)
+                -> Opaque val ([(Data, Data)] -> b)
+                -> Opaque val ([Data] -> b)
+                -> Opaque val (Integer -> b)
+                -> Opaque val (BS.ByteString -> b)
+                -> Data
+                -> Opaque (HeadSpine val) b
+            caseDataDenotation fConstr fMap fList fI fB = \case
+                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpine fMap [fromValue es]
+                List ds     -> headSpine fList [fromValue ds]
+                I i         -> headSpine fI [fromValue i]
+                B b         -> headSpine fB [fromValue b]
+            {-# INLINE caseDataDenotation #-}
+        in makeBuiltinMeaning
+            caseDataDenotation
+            (runCostingFunSixArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

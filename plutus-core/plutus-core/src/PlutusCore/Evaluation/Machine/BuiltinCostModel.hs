@@ -127,7 +127,6 @@ data BuiltinCostModelBase f =
     , paramHeadList                        :: f ModelOneArgument
     , paramTailList                        :: f ModelOneArgument
     , paramNullList                        :: f ModelOneArgument
-    , paramDropList                        :: f ModelTwoArguments
     -- Data
     , paramChooseData                      :: f ModelSixArguments
     , paramConstrData                      :: f ModelTwoArguments
@@ -184,6 +183,7 @@ data BuiltinCostModelBase f =
     -- Ripemd_160
     , paramRipemd_160                      :: f ModelOneArgument
     , paramExpModInteger                   :: f ModelThreeArguments
+    , paramDropList                        :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
