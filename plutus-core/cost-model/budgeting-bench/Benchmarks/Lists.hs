@@ -9,7 +9,7 @@ import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
-import System.Random (StdGen, randomR)
+import System.Random (StdGen)
 
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
@@ -41,11 +41,13 @@ makeListOfByteStringLists seed ((count, size):rest) =
 intLists :: StdGen -> [[Integer]]
 intLists gen = makeListOfIntegerLists gen [(count,size) | count <- [0..7], size <- [1..7]]
 
+{-
 -- Make a list of n integers whose value is less than or equal to m
 intMaxList :: Integer -> Integer -> StdGen -> [Integer]
 intMaxList 0 _ _ = []
 intMaxList n m gen = (v : (intMaxList (n-1) m g2))
   where (v , g2) = randomR ((0::Integer),m) gen
+-}
 
 nonEmptyIntLists :: StdGen -> [[Integer]]
 nonEmptyIntLists gen = makeListOfIntegerLists gen [(count,size) | count <- [1..7], size <- [1..7]]
@@ -84,7 +86,7 @@ benchChooseList gen =
 -- dropList n ls
 -- We expect this to be linear with the value of n.
 benchDropList :: StdGen -> Benchmark
-benchDropList gen =
+benchDropList _gen =
     let name = DropList
         indices = [0, 100..10000::Integer]
         inputs = zip indices [1..10000::Integer]
