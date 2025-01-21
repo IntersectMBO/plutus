@@ -8,7 +8,8 @@ import PlutusCore
 import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..))
 import System.Random (StdGen)
 
 
@@ -89,9 +90,9 @@ benchDropList :: StdGen -> Benchmark
 benchDropList _gen =
     let name = DropList
         indices = [0, 100..10000::Integer]
-        inputs = zip indices [1..10000::Integer]
+        inputs = zip indices (repeat [1..10000::Integer])
     in createTwoTermBuiltinBenchElementwiseWithWrappers
-           (IntegerCostedLiterally, id) name [integer] inputs
+           (IntegerCostedLiterally, ListCostedByLength) name [integer] inputs
 
 benchMkCons :: StdGen -> Benchmark
 benchMkCons gen =
