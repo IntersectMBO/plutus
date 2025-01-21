@@ -110,6 +110,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramHeadList                        = Id $ ModelOneArgumentConstantCost    32
   , paramTailList                        = Id $ ModelOneArgumentConstantCost    32
   , paramNullList                        = Id $ ModelOneArgumentConstantCost    32
+  , paramDropList                      = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 0
   , paramChooseData                      = Id $ ModelSixArgumentsConstantCost   32
   , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost   32
   , paramMapData                         = Id $ ModelOneArgumentConstantCost    32
@@ -172,4 +173,3 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramExpModInteger                   = Id $ ModelThreeArgumentsConstantCost 100000000000 -- FIXME: stub
   }
   where identityFunction = OneVariableLinearFunction 0 1
-
