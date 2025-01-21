@@ -1,14 +1,7 @@
  -- editorconfig-checker-disable
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeSynonymInstances      #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE NamedFieldPuns            #-}
+
 module Main (main) where
 
 import PlutusCore qualified as PLC
@@ -24,7 +17,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
-import MAlonzo.Code.VerifiedCompilation qualified as Agda
 import Untyped qualified as AgdaFFI
 
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
@@ -54,6 +46,10 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
+
+import AgdaUnparse (agdaUnparse)
+
+import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -272,16 +268,54 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
     UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
   runCertifier cert simplificationTrace
-  where
-    runCertifier (Just certName) (SimplifierTrace simplTrace) = do
-      let processAgdaAST Simplification {beforeAST, stage, afterAST} =
-              case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
-                (Right before', Right after')             -> (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
-                (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
-                (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-          rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-      Agda.runCertifier (T.pack certName) rawAgdaTrace
-    runCertifier Nothing _ = pure ()
+
+---------------- Agda certifier ----------------
+
+-- | Run the Agda certifier on the simplification trace, if requested
+runCertifier
+  :: Maybe String
+  -- ^ Should we run the Agda certifier? If so, what should the certificate file be called?
+  -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -- ^ The trace produced by the simplification process
+  -> IO ()
+runCertifier (Just certName) (SimplifierTrace simplTrace) = do
+  let processAgdaAST Simplification {beforeAST, stage, afterAST} =
+          case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
+            (Right before', Right after')             ->
+              (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
+            (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
+            (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
+      rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
+  runCertifierMain rawAgdaTrace
+  writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
+runCertifier Nothing _ = pure ()
+
+rawCertificate :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> String
+rawCertificate certName rawTrace =
+  "module " <> certName <> " where\
+  \\n\
+  \\nopen import VerifiedCompilation\
+  \\nopen import Untyped\
+  \\nopen import RawU\
+  \\nopen import Builtin\
+  \\nopen import Data.Unit\
+  \\nopen import Data.Nat\
+  \\nopen import Data.Integer\
+  \\nopen import Utils\
+  \\nimport Agda.Builtin.Bool\
+  \\nimport Relation.Nullary\
+  \\nimport VerifiedCompilation.UntypedTranslation\
+  \\nopen import Agda.Builtin.Maybe\
+  \\nopen import Data.Empty using (⊥)\
+  \\nopen import Data.Bool.Base using (Bool; false; true)\
+  \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
+  \\n\
+  \\nasts : List (SimplifierTag × Untyped × Untyped)\
+  \\nasts = " <> agdaUnparse rawTrace <>
+  "\n\
+  \\ncertificate : passed? (runCertifier asts) ≡ true\
+  \\ncertificate = refl\
+  \\n"
 
 ---------------- Script application ----------------
 
@@ -399,7 +433,6 @@ runDbg (DbgOptions inp ifmt cekModel semvar) = do
     -- nilSlippage is important so as to get correct live up-to-date budget
     cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
-        -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
 -- TODO: this is just an example of an optional single breakpoint, decide

@@ -241,7 +241,6 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx@(ScriptConte
 
 -- BLOCK8
 -- AuctionValidator.hs
-{-# INLINEABLE auctionUntypedValidator #-}
 auctionUntypedValidator ::
   AuctionParams ->
   BuiltinData ->
@@ -256,6 +255,7 @@ auctionUntypedValidator params datum redeemer ctx =
         (PlutusTx.unsafeFromBuiltinData redeemer)
         (PlutusTx.unsafeFromBuiltinData ctx)
     )
+{-# INLINEABLE auctionUntypedValidator #-}
 
 auctionValidatorScript ::
   AuctionParams ->

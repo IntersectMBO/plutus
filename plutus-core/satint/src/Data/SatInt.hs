@@ -36,16 +36,16 @@ newtype SatInt = SI { unSatInt :: Int }
     deriving Serialise via Int
     deriving anyclass NoThunks
 
-{-# INLINE unsafeToSatInt #-}
 -- | Wrap an 'Int' as a 'SatInt'. This is unsafe because the 'Int' can be a result of an arbitrary
 -- potentially underflowing/overflowing operation.
 unsafeToSatInt :: Int -> SatInt
 unsafeToSatInt = SI
+{-# INLINE unsafeToSatInt #-}
 
-{-# INLINE fromSatInt #-}
 -- | An optimized version of @fromIntegral . unSatInt@.
 fromSatInt :: forall a. Num a => SatInt -> a
 fromSatInt = coerce (fromIntegral :: Int -> a)
+{-# INLINE fromSatInt #-}
 
 -- | In the `Num' instance, we plug in our own addition, multiplication
 -- and subtraction function that perform overflow-checking.
@@ -78,13 +78,13 @@ instance Num SatInt where
     | x < minBoundInteger  = minBound
     | otherwise            = SI (fromInteger x)
 
-{-# INLINABLE maxBoundInteger #-}
 maxBoundInteger :: Integer
 maxBoundInteger = toInteger maxInt
+{-# INLINABLE maxBoundInteger #-}
 
-{-# INLINABLE minBoundInteger #-}
 minBoundInteger :: Integer
 minBoundInteger = toInteger minInt
+{-# INLINABLE minBoundInteger #-}
 
 {-
 'addIntC#', 'subIntC#', and 'mulIntMayOflow#' have tricky returns:
@@ -97,7 +97,6 @@ So we have to case on the result, and then do some logic to work out what
 kind of overflow we're facing, and pick the correct result accordingly.
 -}
 
-{-# INLINE plusSI #-}
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
   case addIntC# x# y#  of
@@ -109,8 +108,8 @@ plusSI (SI (I# x#)) (SI (I# y#)) =
       -- x and y have opposite signs, and yet we've overflowed, should
       -- be impossible
       else overflowError
+{-# INLINE plusSI #-}
 
-{-# INLINE minusSI #-}
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
   case subIntC# x# y# of
@@ -122,8 +121,8 @@ minusSI (SI (I# x#)) (SI (I# y#)) =
       -- x and y have the same sign, and yet we've overflowed, should
       -- be impossible
       else overflowError
+{-# INLINE minusSI #-}
 
-{-# INLINE timesSI #-}
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
   case mulIntMayOflo# x# y# of
@@ -137,6 +136,7 @@ timesSI (SI (I# x#)) (SI (I# y#)) =
           -- Logically unreachable unless x or y is 0, in which case
           -- it should be impossible to overflow
           else overflowError
+{-# INLINE timesSI #-}
 
 -- Specialized versions of several functions. They're specialized for
 -- Int in the GHC base libraries. We try to get the same effect by

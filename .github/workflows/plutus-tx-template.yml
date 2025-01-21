@@ -37,14 +37,12 @@ jobs:
               plutus/plutus-tx-plugin
               plutus/plutus-core
               plutus/plutus-ledger-api
-              plutus/prettyprinter-configurable
 
             allow-newer:
                 plutus-tx
               , plutus-tx-plugin
               , plutus-core
               , plutus-ledger-api
-              , prettyprinter-configurable
 
       - name: Build Project With Docker
         run: |

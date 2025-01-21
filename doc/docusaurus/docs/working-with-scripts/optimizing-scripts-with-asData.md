@@ -40,7 +40,22 @@ not, it will throw an error.
 This work may be repeated depending on how your script is written.
 In some cases, you might do less work, in some cases you might do more work, depending on your specific use case.
 
-The Plutus Tx library provides some helper functions to make this second style easier to do, in the form of the `asData` function.
+The Plutus Tx library provides some helper types and functions to make this second style easier to do, in the form of the "data-backed" standard types and the `asData` function.
+
+## `Data`-backed Plutus Tx standard library
+
+The Plutus Tx standard library provides some common types which are already defined as `Data` objects under the hood.
+We refer to such types as being _data-backed_.
+
+- [PlutusTx.Data.List.List](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-tx/PlutusTx-Data-List.html#t:List), a data-backed version of the regular Plutus Tx `[]` type.
+- [PlutusTx.Data.AssocMap.Map](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-tx/PlutusTx-Data-AssocMap.html#t:Map), which is the data-backed version of `PlutusTx.AssocMap.Map`.
+
+These types provide similar APIs to their regular Plutus Tx counterparts.
+
+There are also conversion functions between the two representations, and it is up to the developer to decide when or whether to convert to the regular representation or to use the data-backed API.
+It depends on a case-by-case basis whether the data-backed or the regular versions perform the best.
+
+It is, however, recommended to use them instead of the regular Plutus Tx types when they are part of other types defined using `asData`.
 
 ## Using `asData`
 
@@ -104,9 +119,36 @@ Whether or not this is a problem depends on the precise situation, but in genera
 
 - If the field is a builtin integer or bytestring or a wrapper around those, it is probably cheap
 - If the field is a datatype which is itself defined with `asData` then it is free (since it's already `Data`)
-- If the field is a complex or large datatype then it is potentially expensive
+- If the field is a list or a map, and are defined using the data-backed versions of list and map, then it is free
+- If the field is any other kind of complex or large datatype, then it is potentially expensive
 
 Therefore `asData` tends to work best when you use it for a type and also for all the types of its fields.
+
+### Writing optimal code using `asData`
+
+Consider the following type encoded using `asData`, and two functions which produce equivalent results:
+```
+PlutusTx.asData
+    [d|
+        data Point =
+            Point
+                { x :: Int
+                , y :: Int
+                , z :: Int
+                }
+    |]
+
+foo1 :: Point -> Int
+foo1 point = x point + y point
+
+foo2 :: Point -> Int
+foo2 Point {x, y} = x + y 
+```
+
+The second function, `foo2`, matches on the `Point` argument using record patterns.
+This ensures that both fields are extracted at the same time from the underlying `Data` object.
+In `foo1`, which uses field accessors instead, this will only be the case if the compiler detects that `x point` and `y point` both contain a common subexpression which can be factored out.
+Depending on this compiler optimisation is unreliable, therefore the approach illustrated in `foo2` is preferred.
 
 ## Choosing an approach
 
@@ -119,3 +161,26 @@ There are a number of tradeoffs to consider:
 Which approach is better is an empirical question and may vary in different cases.
 A single script may wish to use different approaches in different places.
 For example, your datum might contain a large state object which is usually only inspected in part (a good candidate for `asData`), whereas your redeemer might be a small object which is inspected frequently to determine what to do (a good candidate for a native Plutus Tx datatype).
+
+## Data-backed `ScriptContext`
+
+The [ScriptContext](ledger-language-version.md#scriptcontext) is one type which can massively benefit from the `asData` approach.
+
+Plutus Tx scripts receive information from the ledger in the form of a `BuiltinData` argument.
+This argument can be very large, especially in the case of [V3](ledger-language-version.md#plutus-v3) scripts.
+Therefore, upfront parsing of this `BuiltinData` object into a native Plutus Tx datatype may sometimes constitute wasted effort if the script does not make use of most of the information inside the script context.
+This effort translates into high evaluation fees which could be avoided if the script would parse only what it needs from the script context.
+
+For this use-case, we provide a version of the ledger API in which the `ScriptContext` types are data-backed, i.e. they are defined using this `asData` approach, and so are all the types on which the script contexts depend on as fields. 
+
+The module naming scheme is as follows:
+
+- the `PlutusLedgerApi/Data/` directory contains the data-backed versions of the top-level `V1`, `V2` and `V3` modules
+- inside each of the `PlutusLedgerApi/Vn` directories, where `n` represents the language version number, there is a `Data/` directory with the data-backed versions of modules specific to each language version. 
+
+Using this version of the ledger API can be as simple as modifying the relevant imports; for example, importing [PlutusLedgerApi.Data.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-Data-V3.html) instead of [PlutusLedgerApi.V3](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V3.html), and so on.
+
+If your script is slightly more complex, and it operates on those fields of the script context which are represented as lists or maps, then you will need to also import the respective data-backed collection type from the Plutus Tx standard library.
+
+It is recommended to use record patterns to extract all necessary fields of the `ScriptContext` at the beginning of a function.
+The reasoning behind this is briefly explained [above](#writing-optimal-code-using-asdata).

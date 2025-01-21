@@ -30,9 +30,9 @@ theseWithDefault a' b' f = \case
   That b -> f a' b
   These a b -> f a b
 
-{-# INLINEABLE these #-}
 these :: (a -> c) -> (b -> c) -> (a -> b -> c) -> These a b -> c
 these f g h = \case
   This a -> f a
   That b -> g b
   These a b -> h a b
+{-# INLINEABLE these #-}

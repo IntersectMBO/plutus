@@ -1,1 +1,1 @@
-(program 0.0.0 [ [ (builtin appendString) (con string "Ola")] (con string " mundo!") ])
+(program 1.0.0 [ [ (builtin appendString) (con string "Ola")] (con string " mundo!") ])

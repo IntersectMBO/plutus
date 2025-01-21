@@ -26,25 +26,25 @@ class Functor f => Applicative f where
     -- | Plutus Tx version of '(Control.Applicative.<*>)'.
     (<*>) :: f (a -> b) -> f a -> f b
 
-{-# INLINABLE liftA2 #-}
 -- | Plutus Tx version of 'Control.Applicative.liftA2'.
 liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
 liftA2 f x = (<*>) (fmap f x)
+{-# INLINABLE liftA2 #-}
 
-{-# INLINABLE (*>) #-}
 -- | Plutus Tx version of '(Control.Applicative.*>)'.
 (*>) :: Applicative f => f a -> f b -> f b
 a1 *> a2 = (id <$ a1) <*> a2
+{-# INLINABLE (*>) #-}
 
-{-# INLINABLE (<*) #-}
 -- | Plutus Tx version of '(Control.Applicative.<*)'.
 (<*) :: Applicative f => f a -> f b -> f a
 (<*) = liftA2 const
+{-# INLINABLE (<*) #-}
 
-{-# INLINABLE unless #-}
 -- | Plutus Tx version of 'Control.Monad.unless'.
 unless :: (Applicative f) => Bool -> f () -> f ()
 unless p s = if p then pure () else s
+{-# INLINABLE unless #-}
 
 instance Applicative Maybe where
     {-# INLINABLE pure #-}

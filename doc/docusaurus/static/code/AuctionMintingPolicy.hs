@@ -32,7 +32,6 @@ import PlutusTx.Prelude qualified as PlutusTx
 type AuctionMintingParams = PubKeyHash
 type AuctionMintingRedeemer = ()
 
-{-# INLINEABLE auctionTypedMintingPolicy #-}
 auctionTypedMintingPolicy ::
   AuctionMintingParams ->
   AuctionMintingRedeemer ->
@@ -47,6 +46,7 @@ auctionTypedMintingPolicy pkh _redeemer ctx =
         currencySymbol PlutusTx.== ownCurrencySymbol ctx PlutusTx.&& quantity PlutusTx.== 1
       _ -> False
 -- BLOCK2
+{-# INLINEABLE auctionTypedMintingPolicy #-}
 
 auctionUntypedMintingPolicy ::
   AuctionMintingParams ->

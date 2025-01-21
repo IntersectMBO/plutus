@@ -47,9 +47,9 @@ class AdditiveSemigroup a => AdditiveMonoid a where
 class AdditiveMonoid a => AdditiveGroup a where
     (-) :: a -> a -> a
 
-{-# INLINABLE negate #-}
 negate :: AdditiveGroup a => a -> a
 negate x = zero - x
+{-# INLINABLE negate #-}
 
 -- | A newtype wrapper to derive 'Additive' classes via.
 newtype Additive a = Additive a
@@ -150,16 +150,16 @@ instance MultiplicativeMonoid a => Monoid (Product a) where
     mempty = Product one
 
 -- | Simultaneous div and mod.
-{-# INLINABLE divMod #-}
 divMod :: Integer -> Integer -> (Integer, Integer)
 divMod x y = ( x `divideInteger` y, x `modInteger` y)
+{-# INLINABLE divMod #-}
 
 -- | Simultaneous quot and rem.
-{-# INLINABLE quotRem #-}
 quotRem :: Integer -> Integer -> (Integer, Integer)
 quotRem x y = ( x `quotientInteger` y, x `remainderInteger` y)
+{-# INLINABLE quotRem #-}
 
 -- | Absolute value for any 'AdditiveGroup'.
-{-# INLINABLE abs #-}
 abs :: (Ord n, AdditiveGroup n) => n -> n
 abs x = if x < zero then negate x else x
+{-# INLINABLE abs #-}

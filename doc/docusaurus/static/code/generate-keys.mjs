@@ -14,7 +14,7 @@ const wallet = new MeshWallet({
 })
 
 // obtain the address associated with the secret key
-const address = wallet.getUnusedAddresses()[0]
+const address = (await wallet.getUnusedAddresses())[0]
 
 // derive PubKeyHash from the address
 const pubKeyHash = deserializeAddress(address).pubKeyHash

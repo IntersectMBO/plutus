@@ -83,6 +83,4 @@ let
     };
   };
 
-in
-
-latex-documents // { inherit (repoRoot.nix) unraveling-recursion-paper; }
+in latex-documents // { inherit (repoRoot.nix) unraveling-recursion-paper; }

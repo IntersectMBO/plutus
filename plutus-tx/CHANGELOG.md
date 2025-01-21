@@ -1,4 +1,11 @@
 
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-11-25
+
+## Added
+
+- Added a data-backed list type in `PlutusTx.Data.List`.
+
 <a id='changelog-1.36.0.0'></a>
 # 1.36.0.0 — 2024-10-09
 

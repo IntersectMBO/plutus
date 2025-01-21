@@ -52,7 +52,6 @@ instance Show Builtins.Integer where
                 )
                 . acc
 
-{-# INLINEABLE toDigits #-}
 -- | Convert a non-negative integer to individual digits.
 toDigits :: Builtins.Integer -> [Builtins.Integer]
 toDigits = go []
@@ -62,6 +61,7 @@ toDigits = go []
             if q == 0
                 then r : acc
                 else go (r : acc) q
+{-# INLINEABLE toDigits #-}
 
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
@@ -120,7 +120,6 @@ instance Show a => Show [a] where
     {-# INLINEABLE showsPrec #-}
     showsPrec _ = showList (showsPrec 0)
 
-{-# INLINEABLE showList #-}
 showList :: forall a. (a -> ShowS) -> [a] -> ShowS
 showList showElem = \case
     [] -> showString "[]"
@@ -132,6 +131,7 @@ showList showElem = \case
       where
         alg :: a -> ShowS -> ShowS
         alg a acc = showString "," . showElem a . acc
+{-# INLINEABLE showList #-}
 
 deriveShow ''(,)
 deriveShow ''(,,)

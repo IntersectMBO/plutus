@@ -9,7 +9,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , vasilPV
     , valentinePV
     , changPV
-    , changPlus1PV
+    , plominPV
     , knownPVs
     , futurePV
     ) where
@@ -68,10 +68,10 @@ valentinePV = MajorProtocolVersion 8
 changPV :: MajorProtocolVersion
 changPV = MajorProtocolVersion 9
 
--- | The Chang+1 HF will be an intra-era HF where some new builtin functions
+-- | The Plomin HF will be an intra-era HF where some new builtin functions
 -- are introduced in Plutus V2 and V3.
-changPlus1PV :: MajorProtocolVersion
-changPlus1PV = MajorProtocolVersion 10
+plominPV :: MajorProtocolVersion
+plominPV = MajorProtocolVersion 10
 
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
@@ -85,7 +85,7 @@ knownPVs =
     , vasilPV
     , valentinePV
     , changPV
-    , changPlus1PV
+    , plominPV
     ]
 
 -- | This is a placeholder for when we don't yet know what protocol version will

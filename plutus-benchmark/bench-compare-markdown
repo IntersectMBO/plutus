@@ -50,6 +50,7 @@ paste -d " " "$TMP1" "$TMP2" |
           else return (sprintf ("%.1f %s", t, ustr[unit]))
       }
       function percentage_change (t1, t2,    d, sign) {
+          if (t1==0) return ("  -  ")  # Avoid division by zero, just in case
           d = (t2-t1)/t1 * 100
           sign = (d<0) ? "" : ((d==0) ? " " : "+")     # We get the "-" anyway if d<0
           return (sprintf ("%s%.1f%%", sign, d))

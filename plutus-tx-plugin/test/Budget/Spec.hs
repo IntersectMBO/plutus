@@ -421,11 +421,11 @@ compiledGte0 = $$(compile [||
       let ls = PlutusTx.replicate 1000 0 :: [Integer]
        in List.all (PlutusTx.>= 0) ls ||])
 
-{-# INLINABLE recursiveAll #-}
 -- | A version of @all@ that doesn't inline due to being recursive.
 recursiveAll :: forall a. (a -> Bool) -> [a] -> Bool
 recursiveAll _ []     = True
 recursiveAll f (x:xs) = if f x then recursiveAll f xs else False
+{-# INLINABLE recursiveAll #-}
 
 -- | Check @0 <= 0@ a thousand times using @all@ that doesn't inline.
 compiledRecursiveLte0 :: CompiledCode Bool

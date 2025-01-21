@@ -426,7 +426,6 @@ unsafeByteStringToInteger statedByteOrder input = case statedByteOrder of
   -}
 
 -- | Bitwise logical AND, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
-{-# INLINEABLE andByteString #-}
 andByteString :: Bool -> ByteString -> ByteString -> ByteString
 andByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -453,9 +452,9 @@ andByteString shouldPad bs1 bs2 =
               w8_1 <- peekElemOff smallDstPtr i
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ w8_1 Bits..&. w8_2
+{-# INLINEABLE andByteString #-}
 
 -- | Bitwise logical OR, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
-{-# INLINEABLE orByteString #-}
 orByteString :: Bool -> ByteString -> ByteString -> ByteString
 orByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -482,9 +481,9 @@ orByteString shouldPad bs1 bs2 =
               w8_1 <- peekElemOff smallDstPtr i
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ w8_1 Bits..|. w8_2
+{-# INLINEABLE orByteString #-}
 
 -- | Bitwise logical XOR, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
-{-# INLINEABLE xorByteString #-}
 xorByteString :: Bool -> ByteString -> ByteString -> ByteString
 xorByteString shouldPad bs1 bs2 =
   let (shorter, longer) = if BS.length bs1 < BS.length bs2 then (bs1, bs2) else (bs2, bs1)
@@ -511,9 +510,9 @@ xorByteString shouldPad bs1 bs2 =
               w8_1 <- peekElemOff smallDstPtr i
               w8_2 <- peekElemOff smallTraversePtr i
               pokeElemOff smallDstPtr i $ Bits.xor w8_1 w8_2
+{-# INLINEABLE xorByteString #-}
 
 -- | Bitwise logical complement, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122).
-{-# INLINEABLE complementByteString #-}
 complementByteString :: ByteString -> ByteString
 complementByteString bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(srcPtr, len) -> do
   -- We use loop sectioning here; see Note [Loop sectioning] as to why we do this
@@ -530,9 +529,9 @@ complementByteString bs = unsafeDupablePerformIO . BS.useAsCStringLen bs $ \(src
     for_ [0 .. littleStrides - 1] $ \i -> do
       w8 <- peekElemOff smallSrcPtr i
       pokeElemOff smallDstPtr i . Bits.complement $ w8
+{-# INLINEABLE complementByteString #-}
 
 -- | Bit read at index, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
-{-# INLINEABLE readBit #-}
 readBit :: ByteString -> Int -> BuiltinResult Bool
 readBit bs ix
   | ix < 0 = do
@@ -550,9 +549,9 @@ readBit bs ix
   where
     len :: Int
     len = BS.length bs
+{-# INLINEABLE readBit #-}
 
 -- | Bulk bit write, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
-{-# INLINEABLE writeBits #-}
 writeBits :: ByteString -> [Integer] -> Bool -> BuiltinResult ByteString
 writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
@@ -589,6 +588,7 @@ writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
                         else Bits.clearBit w8 . fromIntegral $ littleIx
           pokeByteOff ptr flipIx toWrite
     {-# INLINEABLE setOrClearAtIx #-}
+{-# INLINEABLE writeBits #-}
 
 -- | Byte replication, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
 -- We want to cautious about the allocation of huge amounts of memory so we

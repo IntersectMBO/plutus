@@ -289,37 +289,33 @@ instance (Enum a, Ord a) => Ord (LowerBound a) where
 instance (Enum a, Ord a) => Haskell.Ord (LowerBound a) where
     compare = PlutusTx.compare
 
-{-# INLINABLE strictUpperBound #-}
 {- | Construct a strict upper bound from a value.
-
 The resulting bound includes all values that are (strictly) smaller than the input value.
 -}
 strictUpperBound :: a -> UpperBound a
 strictUpperBound a = UpperBound (Finite a) False
+{-# INLINABLE strictUpperBound #-}
 
-{-# INLINABLE strictLowerBound #-}
 {- | Construct a strict lower bound from a value.
-
 The resulting bound includes all values that are (strictly) greater than the input value.
 -}
 strictLowerBound :: a -> LowerBound a
 strictLowerBound a = LowerBound (Finite a) False
+{-# INLINABLE strictLowerBound #-}
 
-{-# INLINABLE lowerBound #-}
 {- | Construct a lower bound from a value.
-
 The resulting bound includes all values that are equal or greater than the input value.
 -}
 lowerBound :: a -> LowerBound a
 lowerBound a = LowerBound (Finite a) True
+{-# INLINABLE lowerBound #-}
 
-{-# INLINABLE upperBound #-}
 {- |  Construct an upper bound from a value.
-
 The resulting bound includes all values that are equal or smaller than the input value.
 -}
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
+{-# INLINABLE upperBound #-}
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => JoinSemiLattice (Interval a) where
@@ -354,67 +350,65 @@ instance (Enum a, Ord a) => Haskell.Eq (Interval a) where
     {-# INLINABLE (==) #-}
     (==) = (PlutusTx.==)
 
-{-# INLINABLE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal to @a@
 -- and smaller than or equal to @b@. Therefore it includes @a@ and @b@. In math. notation: [a,b]
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
+{-# INLINABLE interval #-}
 
-{-# INLINABLE singleton #-}
 -- | Create an interval that includes just a single concrete point @a@,
 -- i.e. having the same non-strict lower and upper bounds. In math.notation: [a,a]
 singleton :: a -> Interval a
 singleton s = interval s s
+{-# INLINABLE singleton #-}
 
-{-# INLINABLE from #-}
 -- | @from a@ is an 'Interval' that includes all values that are
 --  greater than or equal to @a@. In math. notation: [a,+∞]
 from :: a -> Interval a
 from s = Interval (lowerBound s) (UpperBound PosInf True)
+{-# INLINABLE from #-}
 
-{-# INLINABLE to #-}
 -- | @to a@ is an 'Interval' that includes all values that are
 --  smaller than or equal to @a@. In math. notation: [-∞,a]
 to :: a -> Interval a
 to s = Interval (LowerBound NegInf True) (upperBound s)
+{-# INLINABLE to #-}
 
-{-# INLINABLE always #-}
 -- | An 'Interval' that covers every slot. In math. notation [-∞,+∞]
 always :: Interval a
 always = Interval (LowerBound NegInf True) (UpperBound PosInf True)
+{-# INLINABLE always #-}
 
-{-# INLINABLE never #-}
 {- | An 'Interval' that is empty.
-
 There can be many empty intervals, see `isEmpty`.
 The empty interval `never` is arbitrarily set to [+∞,-∞].
 -}
 never :: Interval a
 never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
+{-# INLINABLE never #-}
 
-{-# INLINABLE member #-}
 -- | Check whether a value is in an interval.
 member :: (Enum a, Ord a) => a -> Interval a -> Bool
 member a i = i `contains` singleton a
+{-# INLINABLE member #-}
 
-{-# INLINABLE overlaps #-}
 -- | Check whether two intervals overlap, that is, whether there is a value that
 --   is a member of both intervals.
 overlaps :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
 overlaps l r = not $ isEmpty (l `intersection` r)
+{-# INLINABLE overlaps #-}
 
-{-# INLINABLE intersection #-}
 -- | 'intersection a b' is the largest interval that is contained in 'a' and in
 --   'b', if it exists.
 intersection :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 intersection (Interval l1 h1) (Interval l2 h2) = Interval (max l1 l2) (min h1 h2)
+{-# INLINABLE intersection #-}
 
-{-# INLINABLE hull #-}
 -- | 'hull a b' is the smallest interval containing 'a' and 'b'.
 hull :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
+{-# INLINABLE hull #-}
 
-{-# INLINABLE contains #-}
 {- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
 @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
 @member s a@.
@@ -428,8 +422,8 @@ contains i1 _ | isEmpty i1 = False
 -- Otherwise we check the endpoints. This doesn't work for empty intervals,
 -- hence the cases above.
 contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
+{-# INLINABLE contains #-}
 
-{-# INLINABLE isEmpty #-}
 {- | Check if an 'Interval' is empty. -}
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 isEmpty (Interval lb ub) = case inclusiveLowerBound lb `compare` inclusiveUpperBound ub of
@@ -439,16 +433,17 @@ isEmpty (Interval lb ub) = case inclusiveLowerBound lb `compare` inclusiveUpperB
     EQ -> False
     -- We have no possible values
     GT -> True
+{-# INLINABLE isEmpty #-}
 
-{-# INLINABLE before #-}
 -- | Check if a value is earlier than the beginning of an 'Interval'.
 before :: (Enum a, Ord a) => a -> Interval a -> Bool
 before h (Interval f _) = lowerBound h < f
+{-# INLINABLE before #-}
 
-{-# INLINABLE after #-}
 -- | Check if a value is later than the end of an 'Interval'.
 after :: (Enum a , Ord a) => a -> Interval a -> Bool
 after h (Interval _ t) = upperBound h > t
+{-# INLINABLE after #-}
 
 {- Note [Enumerable Intervals]
 The 'Interval' type is set up to handle open intervals, where we have non-inclusive

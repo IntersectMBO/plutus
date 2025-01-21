@@ -46,36 +46,36 @@ instance Tx.Eq ChessSet where
 instance Tx.Ord ChessSet where
     _ <= _ = True
 
-{-# INLINABLE createBoard #-}
 createBoard :: Integer -> Tile -> ChessSet
 createBoard x t = Board x 1 (Just t) [t]
+{-# INLINABLE createBoard #-}
 
-{-# INLINABLE sizeBoard #-}
 sizeBoard :: ChessSet -> Integer
 sizeBoard (Board s _ _ _) = s
+{-# INLINABLE sizeBoard #-}
 
-{-# INLINABLE noPieces #-}
 noPieces :: ChessSet -> Integer
 noPieces (Board _ n _ _) = n
+{-# INLINABLE noPieces #-}
 
-{-# INLINABLE addPiece #-}
 addPiece :: Tile -> ChessSet -> ChessSet
 addPiece t (Board s n f ts) = Board s (n+1) f (t:ts)
+{-# INLINABLE addPiece #-}
 
 -- % Remove the last element from a list
-{-# INLINABLE init #-}
 init :: [a] -> [a]
 init l = case reverse l of
            _:as -> reverse as
            []   -> Tx.error ()
+{-# INLINABLE init #-}
 
-{-# INLINABLE secondLast #-}
 secondLast :: [a] -> Maybe a
 secondLast l =
     case reverse l of
       []    -> Tx.error ()
       [_]   -> Nothing
       _:a:_ -> Just a
+{-# INLINABLE secondLast #-}
 
 
 {-%  Note (deleteFirst).
@@ -90,29 +90,28 @@ secondLast l =
     look at it.
 %-}
 
-{-# INLINABLE deleteFirst #-}
 deleteFirst :: ChessSet -> ChessSet
 deleteFirst (Board s n _ ts) =
     Board s (n-1) f' ts'
         where ts' = init ts
               f' = secondLast ts
+{-# INLINABLE deleteFirst #-}
 
-{-# INLINABLE positionPiece #-}
 positionPiece :: Integer -> ChessSet -> Tile
 positionPiece x (Board _ n _ ts) = ts Tx.!! (n - x)
+{-# INLINABLE positionPiece #-}
 
-{-# INLINABLE lastPiece #-}
 lastPiece :: ChessSet -> Tile
 lastPiece (Board _ _ _ (t:_)) = t
 lastPiece _                   = Tx.error ()
+{-# INLINABLE lastPiece #-}
 
-{-# INLINABLE firstPiece #-}
 firstPiece :: ChessSet -> Tile
 firstPiece (Board _ _ f _) =
     case f of Just tile -> tile
               Nothing   -> Tx.error ()
+{-# INLINABLE firstPiece #-}
 
-{-# INLINABLE pieceAtTile #-}
 pieceAtTile :: Tile -> ChessSet -> Integer
 pieceAtTile x0 (Board _ _ _ ts)
    = findPiece x0 ts
@@ -121,16 +120,17 @@ pieceAtTile x0 (Board _ _ _ ts)
         findPiece x (y:xs)
            | x == y    = 1 + Tx.length xs
            | otherwise = findPiece x xs
+{-# INLINABLE pieceAtTile #-}
 
 
-{-# INLINABLE notIn #-}
 notIn :: Eq a => a  -> [a] -> Bool
 notIn _ []     = True
 notIn x (a:as) = (x /= a) && (notIn x as)
+{-# INLINABLE notIn #-}
 
-{-# INLINABLE isSquareFree #-}
 isSquareFree :: Tile -> ChessSet -> Bool
 isSquareFree x (Board _ _ _ ts) = notIn x ts
+{-# INLINABLE isSquareFree #-}
 
 
 -- % Everything below here is only needed for printing boards.

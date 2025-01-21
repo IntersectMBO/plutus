@@ -34,13 +34,15 @@ import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator, marloweValid
 import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
 import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
                                      makeRedeemerMap)
-import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
-                           Extended (..), Interval (Interval), LowerBound (LowerBound),
+import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), CurrencySymbol (..),
+                           ExBudget (ExBudget), Extended (..), Interval (Interval),
+                           LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
                            ScriptHash, ScriptPurpose (Spending), SerialisedScript,
                            TxInfo (TxInfo, txInfoDCert, txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs, txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange, txInfoWdrl),
                            TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
+import PlutusLedgerApi.V1.Value (TokenName (TokenName))
 import PlutusTx.AssocMap qualified as AM (empty, unionWith)
 
 
@@ -83,7 +85,9 @@ exampleBenchmark =
       , makeInput
           "db85a19c081d0beca1a63399c88fe96e64f1782699461f64e52d4cb2e26a2050" 1
           (PubKeyCredential "0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07")
-          (singleton "8bb3b343d8e404472337966a722150048c768d0a92a9813596c5338d" "Globe" 1 <> lovelace 2000000)
+          (singleton
+            (CurrencySymbol "8bb3b343d8e404472337966a722150048c768d0a92a9813596c5338d")
+            (TokenName "Globe") 1 <> lovelace 2000000)
           Nothing
           Nothing
       ]
@@ -102,7 +106,9 @@ exampleBenchmark =
           Nothing
       , makeOutput
           (PubKeyCredential "0a11b0c7e25dc5d9c63171bdf39d9741b901dc903e12b4e162348e07")
-          (singleton "8bb3b343d8e404472337966a722150048c768d0a92a9813596c5338d" "Globe" 1 <> lovelace 1030090)
+          (singleton
+            (CurrencySymbol "8bb3b343d8e404472337966a722150048c768d0a92a9813596c5338d")
+            (TokenName "Globe") 1 <> lovelace 1030090)
           Nothing
           Nothing
       ]

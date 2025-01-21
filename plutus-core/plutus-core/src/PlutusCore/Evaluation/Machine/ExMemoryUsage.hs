@@ -338,25 +338,25 @@ we make sure by defining a top level function for each of the size measures and
 getting the memoryUsage instances to call those.
 -}
 
-{-# OPAQUE g1ElementCost #-}
 g1ElementCost :: CostRose
 g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
+{-# OPAQUE g1ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G1.Element where
     memoryUsage _ = g1ElementCost
     -- Should be 18
 
-{-# OPAQUE g2ElementCost #-}
 g2ElementCost :: CostRose
 g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
+{-# OPAQUE g2ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G2.Element where
     memoryUsage _ = g2ElementCost
     -- Should be 36
 
-{-# OPAQUE mlResultElementCost #-}
 mlResultElementCost :: CostRose
 mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+{-# OPAQUE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
     memoryUsage _ = mlResultElementCost

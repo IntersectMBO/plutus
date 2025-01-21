@@ -11,7 +11,6 @@ import Prelude (Bool (..), otherwise)
 -- `(&&)` and `(||)` are handled specially in the plugin to make sure they can short-circuit.
 -- See Note [Lazy boolean operators] in the plugin.
 
-{-# OPAQUE (&&) #-}
 -- | Logical AND. Short-circuits if the first argument evaluates to `False`.
 --
 --   >>> True && False
@@ -20,8 +19,8 @@ import Prelude (Bool (..), otherwise)
 infixr 3 &&
 (&&) :: Bool -> Bool -> Bool
 (&&) l r = if l then r else False
+{-# OPAQUE (&&) #-}
 
-{-# OPAQUE (||) #-}
 -- | Logical OR. Short-circuits if the first argument evaluates to `True`.
 --
 --   >>> True || False
@@ -30,8 +29,8 @@ infixr 3 &&
 infixr 2 ||
 (||) :: Bool -> Bool -> Bool
 (||) l r = if l then True else r
+{-# OPAQUE (||) #-}
 
-{-# INLINABLE not #-}
 -- | Logical negation
 --
 --   >>> not True
@@ -39,3 +38,4 @@ infixr 2 ||
 --
 not :: Bool -> Bool
 not a = if a then False else True
+{-# INLINABLE not #-}

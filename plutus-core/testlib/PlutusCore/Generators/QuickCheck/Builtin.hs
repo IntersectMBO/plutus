@@ -89,8 +89,8 @@ chooseIntegerPreferEnds :: (Integer, Integer) -> Gen Integer
 chooseIntegerPreferEnds (lo, hi)
     | hi - lo < 20 = chooseInteger (lo, hi)
     | otherwise    = frequency $ concat
-        [ zip (80 : [9, 8.. 1]) $ map pure [lo..]
-        , zip (80 : [9, 8.. 1]) $ map pure [hi, hi - 1]
+        [ zip (50 : [9, 8.. 1]) $ map pure [lo..]
+        , zip (50 : [9, 8.. 1]) $ map pure [hi, hi - 1]
         , [(200, chooseInteger (lo + 10, hi - 10))]
         ]
 

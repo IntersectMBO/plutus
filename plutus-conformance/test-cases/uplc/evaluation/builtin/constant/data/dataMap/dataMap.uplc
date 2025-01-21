@@ -1,4 +1,4 @@
-(program 0.0.0 (con data (
+(program 1.0.0 (con data (
     Map [ (B #0123, I 12345),
           (I 789453, B #456789),
           (List [I -12364689486], Constr 7 [])

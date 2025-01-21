@@ -16,8 +16,6 @@ The following packages are versioned and released:
 * The main library `plutus-tx:plutus-tx`
 - `plutus-tx-plugin`
 * The main library `plutus-tx-plugin:plutus-tx-plugin`
-- `prettyprinter-configurable`
-* The main library `prettyprinter-configurable:prettyprinter-configurable`
 
 == Version Scheme
 
@@ -79,7 +77,7 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 - Click `Publish release`.
 7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. +
 If you are making PR from your own fork then don't forget to sync your fork with the upstream first. +
-Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin prettyprinter-configurable` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764.
+Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.

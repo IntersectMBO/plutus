@@ -66,16 +66,16 @@ unstableMakeIsData ''Inputs
 haskellHash :: HashFun
 haskellHash = Hash.sha2_256
 
-{-# INLINEABLE builtinHash #-}
 builtinHash :: BuiltinHashFun
 builtinHash = Tx.sha2_256
+{-# INLINEABLE builtinHash #-}
 
 -- Create a list containing n bytestrings of length l.  This could be better.
-{-# OPAQUE listOfByteStringsOfLength #-}
 listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
 listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
+{-# OPAQUE listOfByteStringsOfLength #-}
 
 {- | Create a list of valid (verification key, message, signature, data key)
    quadruples.  The DSIGN infrastructure lets us do this in a fairly generic
@@ -118,7 +118,6 @@ mkInputsAsData n hash = Tx.dataToBuiltinData $ toData (mkInputs @Ed25519DSIGN n 
 -- whether verification succeeds or fails.  If the inputs are generated
 -- correctly (which is checked by testHaskell when we run `main`) then
 -- verification always succeeds, but let's be careful just in case.
-{-# INLINEABLE verifyInputs #-}
 verifyInputs :: BuiltinHashFun -> BuiltinData -> Bool
 verifyInputs hash d =
     case Tx.fromBuiltinData d of
@@ -130,6 +129,7 @@ verifyInputs hash d =
                     let dkhash' = hash dk
                         hashesEq = dkhash == dkhash'
                     in Tx.verifyEd25519Signature vk dkhash sg && hashesEq
+{-# INLINEABLE verifyInputs #-}
 
 -- | Create the input data, convert it to BuiltinData, and apply the
 -- verification script to that.

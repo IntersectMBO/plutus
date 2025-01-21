@@ -17,5 +17,5 @@ jobs:
 
       - name: Run Tests
         run: | 
-          pushd plutus-core
+          pushd cardano-constitution
           nix run --no-warn-dirty --accept-flake-config .#cardano-constitution-test

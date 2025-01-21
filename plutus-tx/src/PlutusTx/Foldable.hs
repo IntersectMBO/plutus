@@ -74,38 +74,38 @@ instance Foldable (Const c) where
     foldr _ z _ = z
 
 -- | Plutus Tx version of 'Data.Foldable.fold'.
-{-# INLINABLE fold #-}
 fold :: (Foldable t, Monoid m) => t m -> m
 fold = foldMap id
+{-# INLINABLE fold #-}
 
 -- | Plutus Tx version of 'Data.Foldable.foldMap'.
 foldMap :: (Foldable t, Monoid m) => (a -> m) -> t a -> m
 foldMap f = foldr ((<>) . f) mempty
 
 -- | Plutus Tx version of 'Data.Foldable.foldl'.
-{-# INLINABLE foldl #-}
 foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
 foldl f z t = foldr (\a g b -> g (f b a)) id t z
+{-# INLINABLE foldl #-}
 
 -- | Plutus Tx version of 'Data.Foldable.toList'.
 toList :: Foldable t => t a -> [a]
-{-# INLINE toList #-}
 toList t = build (\ c n -> foldr c n t)
+{-# INLINE toList #-}
 
 -- | Plutus Tx version of 'Data.Foldable.length'.
-{-# INLINABLE length #-}
 length :: Foldable t => t a -> Integer
 length = foldr (\_ acc -> acc + 1) 0
+{-# INLINABLE length #-}
 
 -- | Plutus Tx version of 'Data.Foldable.sum'.
-{-# INLINEABLE sum #-}
 sum :: (Foldable t, AdditiveMonoid a) => t a -> a
 sum = foldr (+) zero
+{-# INLINEABLE sum #-}
 
 -- | Plutus Tx version of 'Data.Foldable.product'.
-{-# INLINABLE product #-}
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = foldr (*) one
+{-# INLINABLE product #-}
 
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
@@ -115,8 +115,8 @@ traverse_ f = foldr c (pure ())
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
 for_ :: (Foldable t, Applicative f) => t a -> (a -> f b) -> f ()
-{-# INLINE for_ #-}
 for_ = flip traverse_
+{-# INLINE for_ #-}
 
 -- | Plutus Tx version of 'Data.Foldable.sequenceA_'.
 sequenceA_ :: (Foldable t, Applicative f) => t (f a) -> f ()
@@ -126,8 +126,8 @@ sequenceA_ = foldr c (pure ())
 
 -- | Plutus Tx version of 'Data.Foldable.asum'.
 asum :: (Foldable t, Alternative f) => t (f a) -> f a
-{-# INLINE asum #-}
 asum = foldr (<|>) empty
+{-# INLINE asum #-}
 
 -- | Plutus Tx version of 'Data.Foldable.concat'.
 concat :: Foldable t => t [a] -> [a]

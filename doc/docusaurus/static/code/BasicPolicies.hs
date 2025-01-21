@@ -31,12 +31,12 @@ oneAtATimePolicy _ ctx =
     -- will assume we've got from elsewhere for now.
     in currencyValueOf minted ownSymbol == singleton ownSymbol tname 1
 
-{-# INLINABLE currencyValueOf #-}
 -- | Get the quantities of just the given 'CurrencySymbol' in the 'Value'.
 currencyValueOf :: Value -> CurrencySymbol -> Value
 currencyValueOf (Value m) c = case Map.lookup c m of
     Nothing -> mempty
     Just t  -> Value (Map.singleton c t)
+{-# INLINABLE currencyValueOf #-}
 -- BLOCK2
 -- The 'plutus-ledger' package from 'plutus-apps' provides helper functions to automate
 -- some of this boilerplate.

@@ -1,1 +1,1 @@
-parse error
+(program 1.0.0 (con (pair data data) (List [I 0, B #ff], Constr 1234 [I 3])))

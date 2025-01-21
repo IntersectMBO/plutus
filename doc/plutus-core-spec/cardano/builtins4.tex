@@ -54,7 +54,7 @@ The fourth batch of built-in types and functions adds support for
                                         \itobsBE(w,n) & \text{if $e=\true$}\\
                                         \end{cases}$}
                                         & Yes & \ref{note:itobs}\strut \\[6mm]
-    \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{bytestring}$}
+    \TT{byteStringToInteger} & $[\ty{bool}, \ty{bytestring}] $ \text{\: $ \to \ty{integer}$}
                                         & $(e, [c_0, \ldots, c_{N-1}]) $ \text{\; $\mapsto \begin{cases}
                                         \sum_{i=0}^{N-1}c_{i}256^i & \text{if $e=\false$}\\
                                         \sum_{i=0}^{N-1}c_{i}256^{N-1-i} & \text{if $e=\true$}\\
@@ -69,7 +69,7 @@ The \texttt{integerToByteString} function converts non-negative integers to byte
 It takes three arguments:
 \begin{itemize}
 \item A boolean endianness flag $e$.
-\item An integer width argument $w$ with $0 \leq w < 8192$.
+\item An integer width argument $w$: it is required that $0 \leq w \leq 8192$.
 \item The integer $n$ to be converted: it is required that $0 \leq n < 256^{8192} = 2^{65536}$.
 \end{itemize}
 
@@ -84,7 +84,7 @@ case and the left in the big-endian case) to make it the correct length.  For
 example, the five-byte little-endian representation of the
 integer \texttt{0x123456} is the bytestring \texttt{[0x56, 0x34, 0x12, 0x00,
 0x00]} and the five-byte big-endian representation is \texttt{[0x00, 0x00, 0x12,
-0x34, 0x56]}.  In all cases an error occurs error if $w$ or $n$ lies outside the
+0x34, 0x56]}.  In all cases an error occurs if $w$ or $n$ lies outside the
 expected range, and in particular if $n$ is negative.
 
 \newpage

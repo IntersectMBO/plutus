@@ -100,7 +100,6 @@ data MarloweTxInput = Input InputContent
   deriving stock (Haskell.Show,Haskell.Eq,Generic)
 
 
-{-# INLINABLE closeInterval #-}
 -- | Convert a Plutus POSIX time range into the closed interval needed by Marlowe semantics.
 closeInterval :: POSIXTimeRange -> Maybe (POSIXTime, POSIXTime)
 closeInterval (Interval (LowerBound (Finite (POSIXTime l)) lc) (UpperBound (Finite (POSIXTime h)) hc)) =
@@ -110,9 +109,9 @@ closeInterval (Interval (LowerBound (Finite (POSIXTime l)) lc) (UpperBound (Fini
     , POSIXTime $ h - 1 + fromEnum hc  -- Subtract one millisecond if the interval was open.
     )
 closeInterval _ = Nothing
+{-# INLINABLE closeInterval #-}
 
 
-{-# INLINABLE mkMarloweValidator #-}
 -- | The Marlowe semantics validator.
 mkMarloweValidator
     :: ScriptHash     -- ^ The hash of the corresponding Marlowe payout validator.
@@ -387,6 +386,7 @@ mkMarloweValidator
     -- Tally the value paid to an address.
     valuePaidToAddress :: Ledger.Address -> Val.Value
     valuePaidToAddress address = foldMap txOutValue $ filter ((== address) . txOutAddress) allOutputs
+{-# INLINABLE mkMarloweValidator #-}
 
 
 -- | Convert semantics input to transaction input.

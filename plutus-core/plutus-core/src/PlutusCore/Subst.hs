@@ -40,7 +40,6 @@ import PlutusCore.Name.UniqueSet qualified as USet
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
 
-{-# INLINE substTyVarA #-}
 -- | Applicatively replace a type variable using the given function.
 substTyVarA
     :: Applicative f
@@ -49,6 +48,7 @@ substTyVarA
     -> f (Type tyname uni ann)
 substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
 substTyVarA _       ty                  = pure ty
+{-# INLINE substTyVarA #-}
 
 -- | Applicatively replace a variable using the given function.
 substVarA
@@ -73,7 +73,6 @@ substVar
     -> Term tyname name uni fun ann
 substVar = purely substVarA
 
-{-# INLINE typeSubstTyNamesM #-}
 -- | Naively monadically substitute type names (i.e. do not substitute binders).
 -- INLINE is important here because the function is too polymorphic (determined from profiling)
 typeSubstTyNamesM
@@ -82,6 +81,7 @@ typeSubstTyNamesM
     -> Type tyname uni ann
     -> m (Type tyname uni ann)
 typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
+{-# INLINE typeSubstTyNamesM #-}
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM

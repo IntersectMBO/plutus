@@ -262,9 +262,9 @@ timesA = ala Endo . stimes
 -- | A 'MonadError' version of 'try'.
 --
 -- TODO: remove when we switch to mtl>=2.3
-{-# INLINE tryError #-}
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
+{-# INLINE tryError #-}
 
 {- A different 'MonadError' analogue to the 'withExceptT' function.
 Modify the value (and possibly the type) of an error in an @ExceptT@-transformed

@@ -43,10 +43,10 @@ kindSubkinds f kind0 = case kind0 of
 kindSubkindsDeep :: Fold (Kind ann) (Kind ann)
 kindSubkindsDeep = cosmosOf kindSubkinds
 
-{-# INLINE tyVarDeclSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'TyVarDecl'.
 tyVarDeclSubkinds :: Traversal' (TyVarDecl tyname a) (Kind a)
 tyVarDeclSubkinds f (TyVarDecl a ty k) = TyVarDecl a ty <$> f k
+{-# INLINE tyVarDeclSubkinds #-}
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from binders.
 typeTyBinds :: Traversal' (Type tyname uni ann) tyname
@@ -84,7 +84,6 @@ typeUniques f ty0 = case ty0 of
     TyBuiltin{}          -> pure ty0
     TySOP{}              -> pure ty0
 
-{-# INLINE typeSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Type'.
 typeSubkinds :: Traversal' (Type tyname uni ann) (Kind ann)
 typeSubkinds f ty0 = case ty0 of
@@ -96,8 +95,8 @@ typeSubkinds f ty0 = case ty0 of
     TyBuiltin{}          -> pure ty0
     TyVar{}              -> pure ty0
     TySOP{}              -> pure ty0
+{-# INLINE typeSubkinds #-}
 
-{-# INLINE typeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Type'.
 typeSubtypes :: Traversal' (Type tyname uni ann) (Type tyname uni ann)
 typeSubtypes f ty0 = case ty0 of
@@ -109,15 +108,16 @@ typeSubtypes f ty0 = case ty0 of
     TySOP ann tyls       -> TySOP ann <$> (traverse . traverse) f tyls
     TyBuiltin{}          -> pure ty0
     TyVar{}              -> pure ty0
+{-# INLINE typeSubtypes #-}
 
 -- | Get all the transitive child 'Type's of the given 'Type'.
 typeSubtypesDeep :: Fold (Type tyname uni ann) (Type tyname uni ann)
 typeSubtypesDeep = cosmosOf typeSubtypes
 
-{-# INLINE varDeclSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
 varDeclSubtypes :: Traversal' (VarDecl tyname name uni a) (Type tyname uni a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
+{-# INLINE varDeclSubtypes #-}
 
 -- | Get all the direct constants of the given 'Term' from 'Constant's.
 termConstants :: Traversal' (Term tyname name uni fun ann) (Some (ValueOf uni))
@@ -199,7 +199,6 @@ termUniques f term0 = case term0 of
     Constr{}          -> pure term0
     Case{}            -> pure term0
 
-{-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
 termSubkinds :: Traversal' (Term tyname name uni fun ann) (Kind ann)
 termSubkinds f term0 = case term0 of
@@ -215,8 +214,8 @@ termSubkinds f term0 = case term0 of
     Builtin{}       -> pure term0
     Constr{}        -> pure term0
     Case{}          -> pure term0
+{-# INLINE termSubkinds #-}
 
-{-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term'.
 termSubtypes :: Traversal' (Term tyname name uni fun ann) (Type tyname uni ann)
 termSubtypes f term0 = case term0 of
@@ -232,6 +231,7 @@ termSubtypes f term0 = case term0 of
     Var{}               -> pure term0
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
+{-# INLINE termSubtypes #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
 termConstantsDeep :: Fold (Term tyname name uni fun ann) (Some (ValueOf uni))
@@ -241,7 +241,6 @@ termConstantsDeep = termSubtermsDeep . termConstants
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)
 termSubtypesDeep = termSubtermsDeep . termSubtypes . typeSubtypesDeep
 
-{-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term'.
 termSubterms :: Traversal' (Term tyname name uni fun ann) (Term tyname name uni fun ann)
 termSubterms f term0 = case term0 of
@@ -257,6 +256,7 @@ termSubterms f term0 = case term0 of
     Var{}               -> pure term0
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
+{-# INLINE termSubterms #-}
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni fun ann) (Term tyname name uni fun ann)

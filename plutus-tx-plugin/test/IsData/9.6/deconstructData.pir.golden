@@ -13,8 +13,40 @@ let
        (bytestring -> r) ->
        data ->
        r
-    = caseData
-  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r = caseList
+    = /\r ->
+        \(fConstr : integer -> list data -> r)
+         (fMap : list (pair data data) -> r)
+         (fList : list data -> r)
+         (fI : integer -> r)
+         (fB : bytestring -> r)
+         (d : data) ->
+          chooseData
+            {all dead. r}
+            d
+            (/\dead ->
+               (/\a b c ->
+                  \(f : a -> b -> c) (p : pair a b) ->
+                    f (fstPair {a} {b} p) (sndPair {a} {b} p))
+                 {integer}
+                 {list data}
+                 {r}
+                 fConstr
+                 (unConstrData d))
+            (/\dead -> fMap (unMapData d))
+            (/\dead -> fList (unListData d))
+            (/\dead -> fI (unIData d))
+            (/\dead -> fB (unBData d))
+            {r}
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   !equalsInteger : integer -> integer -> bool = equalsInteger
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a

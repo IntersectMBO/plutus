@@ -104,7 +104,13 @@ test_IntegerDistribution =
                     maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
                       find ((>= abs i) . snd) magnitudes
                 bounds = map snd magnitudes
-                isInteresting = i `elem` ([-1, 0, 1] ++ bounds ++ map succ bounds)
+                isInteresting = i `elem` concat
+                    [ map (pred . negate) bounds
+                    , map negate bounds
+                    , [-1, 0, 1]
+                    , bounds
+                    , map succ bounds
+                    ]
             in (if i /= 0
                         then QC.label $ "(" ++ show low ++ ", " ++ show high ++ ")"
                         else QC.property)

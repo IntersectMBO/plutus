@@ -45,31 +45,30 @@ class Show a where
 -}
 type ShowS = [BuiltinString] -> [BuiltinString]
 
-{-# INLINEABLE showString #-}
 showString :: BuiltinString -> ShowS
 showString = (:)
+{-# INLINEABLE showString #-}
 
-{-# INLINEABLE showSpace #-}
 showSpace :: ShowS
 showSpace = showString " "
+{-# INLINEABLE showSpace #-}
 
-{-# INLINEABLE showCommaSpace #-}
 showCommaSpace :: ShowS
 showCommaSpace = showString ", "
+{-# INLINEABLE showCommaSpace #-}
 
-{-# INLINEABLE showParen #-}
 showParen :: Bool -> ShowS -> ShowS
 showParen b p = if b then showString "(" . p . showString ")" else p
+{-# INLINEABLE showParen #-}
 
-{-# INLINEABLE appPrec #-}
 appPrec :: Integer
 appPrec = 10
+{-# INLINEABLE appPrec #-}
 
-{-# INLINEABLE appPrec1 #-}
 appPrec1 :: Integer
 appPrec1 = 11
+{-# INLINEABLE appPrec1 #-}
 
-{-# INLINEABLE concatBuiltinStrings #-}
 concatBuiltinStrings :: [BuiltinString] -> BuiltinString
 concatBuiltinStrings = \case
     [] -> ""
@@ -77,6 +76,7 @@ concatBuiltinStrings = \case
     xs ->
         let (ys, zs) = splitAt (length xs `divideInteger` 2) xs
          in concatBuiltinStrings ys `appendString` concatBuiltinStrings zs
+{-# INLINEABLE concatBuiltinStrings #-}
 
 -- | Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
 deriveShow :: TH.Name -> TH.Q [TH.Dec]

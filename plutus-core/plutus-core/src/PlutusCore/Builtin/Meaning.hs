@@ -294,15 +294,35 @@ instance
     -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
     toMonoF getBoth = BuiltinExpectArgument . oneShot $ \arg ->
-        -- Ironically computing the unlifted value strictly is the best way of doing deferred
-        -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
-        -- saturation and any evaluation failure is only registered when the whole builtin
-        -- application is evaluated, a Haskell exception will occur immediately.
-        -- It shouldn't matter though, because a builtin is not supposed to throw an
-        -- exception at any stage, that would be a bug regardless.
-        toMonoF @val @args @res $! do
+        -- The lazy application of 'toMonoF' ensures that unlifting of the argument will happen
+        -- upon full saturation and not before that. This is known as "operationally deferred
+        -- unlifting" (as opposed to "operationally immediate unlifting") or "call-by-name
+        -- unlifting" (as opposed to "call-by-value unlifting"). We do it this way to guarantee that
+        -- the cost of unlifting will be accounted for before unlifting is performed. If we did
+        -- unlifting eagerly here, this would make the node do work that is not accounted for until
+        -- full saturation is reached, which may never happen if the partial application is thrown
+        -- away.
+        --
+        -- The disadvantage of this approach is that @addInteger 42@ will always unlift @42@ upon
+        -- full saturation even if this partial application is saved to a variable. But the way
+        -- costing calibration benchmarks are set up, we always evaluate a single application, so
+        -- the cost of unlifting is included in the cost of the builtin regardless of whether
+        -- there's caching of unlifting or not. Hence the user pays for unlifting anyway and we can
+        -- prioritize safety over performance here.
+        --
+        -- 'oneShot' ensures that GHC doesn't attempt to pull stuff out of the builtin
+        -- implementation to create thunks. This would give us a "call-by-need" behavior, which may
+        -- sound enticing as it would give us both caching and operationally deferred unlifting, but
+        -- this comes at a cost of creating unnecessary thunks in the most common case where there's
+        -- no benefit from having caching as the builtin application is going to be computed only
+        -- once. So we choose the "call-by-name" behavior and 'oneShot' is what enables that.
+        oneShot (toMonoF @val @args @res) $ do
             (f, exF) <- getBoth
-            x <- readKnown arg
+            -- Force the argument that gets passed to the denotation. This seems to help performance
+            -- a bit (possibly due to its impact on strictness analysis), plus this way we ensure
+            -- that if computing the argument throws an exception (isn't supposed to happen), we'll
+            -- catch it in tests.
+            !x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
             let !exY = exF x
             pure (f x, exY)

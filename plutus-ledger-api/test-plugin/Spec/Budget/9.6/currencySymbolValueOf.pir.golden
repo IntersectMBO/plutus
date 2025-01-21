@@ -31,7 +31,7 @@ let
     True : Bool
     False : Bool
 in
-\(ds :
+\(value :
     (\k v -> List (Tuple2 k v))
       bytestring
       ((\k v -> List (Tuple2 k v)) bytestring integer))
@@ -76,4 +76,4 @@ in
                         {all dead. dead}))
             {all dead. dead}
   in
-  go ds
+  go value

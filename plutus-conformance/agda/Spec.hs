@@ -124,8 +124,8 @@ failingBudgetTests =
   -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
   -- do pass, either because evaluation fails or because two different size
   -- measures happen to be the same for small inputs.
-  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-7"
-  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-9"
+  [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-11"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-12"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-13"

@@ -36,7 +36,6 @@ import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm,
                                     unsafeRunTermCek)
@@ -50,26 +49,22 @@ import Test.Tasty.Hedgehog (testProperty)
 map1 ::
   CompiledCode
     ( Integer ->
-      ( Maybe PlutusTx.BuiltinByteString
-      , Maybe PlutusTx.BuiltinByteString
-      , Maybe PlutusTx.BuiltinByteString
-      , Maybe PlutusTx.BuiltinByteString
-      , Maybe PlutusTx.BuiltinByteString
+      ( Maybe Integer
+      , Maybe Integer
+      , Maybe Integer
+      , Maybe Integer
+      , Maybe Integer
       )
     )
 map1 =
   $$( compile
         [||
         \n ->
-          let m :: Data.AssocMap.Map Integer PlutusTx.BuiltinByteString
+          let m :: Data.AssocMap.Map Integer Integer
               m =
                 foldr
-                  (\i ->
-                    Data.AssocMap.insert
-                      (n PlutusTx.+ i)
-                      (PlutusTx.encodeUtf8 (PlutusTx.show i))
-                  )
-                  (Data.AssocMap.singleton n "0")
+                  (\i -> Data.AssocMap.insert (n PlutusTx.+ i) i)
+                  (Data.AssocMap.singleton n 0)
                   (PlutusTx.enumFromTo 1 10)
               m' = Data.AssocMap.delete (n PlutusTx.+ 5) m
            in ( Data.AssocMap.lookup n m
@@ -84,56 +79,57 @@ map1 =
 -- | Test that 'unionWith' is implemented correctly. Due to the nature of 'Map k v',
 -- some type errors are only caught when running the PlutusTx compiler on code which uses
 -- 'unionWith'.
-map2 :: CompiledCode (Integer -> [(Integer, PlutusTx.BuiltinString)])
+map2 :: CompiledCode (Integer -> [(Integer, Integer)])
 map2 =
   $$( compile
         [||
         \n ->
-          let m1 =
+          let m1 :: Data.AssocMap.Map Integer Integer
+              m1 =
                 Data.AssocMap.unsafeFromList
-                  [ (n PlutusTx.+ 1, "one")
-                  , (n PlutusTx.+ 2, "two")
-                  , (n PlutusTx.+ 3, "three")
-                  , (n PlutusTx.+ 4, "four")
-                  , (n PlutusTx.+ 5, "five")
+                  [ (n PlutusTx.+ 1, 1)
+                  , (n PlutusTx.+ 2, 2)
+                  , (n PlutusTx.+ 3, 3)
+                  , (n PlutusTx.+ 4, 4)
+                  , (n PlutusTx.+ 5, 5)
                   ]
               m2 =
                 Data.AssocMap.unsafeFromList
-                  [ (n PlutusTx.+ 3, "THREE")
-                  , (n PlutusTx.+ 4, "FOUR")
-                  , (n PlutusTx.+ 6, "SIX")
-                  , (n PlutusTx.+ 7, "SEVEN")
+                  [ (n PlutusTx.+ 3, 33)
+                  , (n PlutusTx.+ 4, 44)
+                  , (n PlutusTx.+ 6, 66)
+                  , (n PlutusTx.+ 7, 77)
                   ]
-              m = Data.AssocMap.unionWith PlutusTx.appendByteString m1 m2
-           in PlutusTx.fmap (\(k, v) -> (k, PlutusTx.decodeUtf8 v)) (Data.AssocMap.toList m)
+              m = Data.AssocMap.unionWith (PlutusTx.+) m1 m2
+           in Data.AssocMap.toList m
         ||]
     )
 
 -- | Similar to map2, but uses 'union' instead of 'unionWith'. Evaluating 'map3' and 'map2'
 -- should yield the same result.
-map3 :: CompiledCode (Integer -> [(Integer, PlutusTx.BuiltinString)])
+map3 :: CompiledCode (Integer -> [(Integer, Integer)])
 map3 =
   $$( compile
         [||
         \n ->
           let m1 =
                 Data.AssocMap.unsafeFromList
-                  [ (n PlutusTx.+ 1, "one")
-                  , (n PlutusTx.+ 2, "two")
-                  , (n PlutusTx.+ 3, "three")
-                  , (n PlutusTx.+ 4, "four")
-                  , (n PlutusTx.+ 5, "five")
+                  [ (n PlutusTx.+ 1, 1)
+                  , (n PlutusTx.+ 2, 2)
+                  , (n PlutusTx.+ 3, 3)
+                  , (n PlutusTx.+ 4, 4)
+                  , (n PlutusTx.+ 5, 5)
                   ]
               m2 =
                 Data.AssocMap.unsafeFromList
-                  [ (n PlutusTx.+ 3, "THREE")
-                  , (n PlutusTx.+ 4, "FOUR")
-                  , (n PlutusTx.+ 6, "SIX")
-                  , (n PlutusTx.+ 7, "SEVEN")
+                  [ (n PlutusTx.+ 3, 30)
+                  , (n PlutusTx.+ 4, 40)
+                  , (n PlutusTx.+ 6, 60)
+                  , (n PlutusTx.+ 7, 70)
                   ]
               m = Data.AssocMap.union m1 m2
-              f = these id id PlutusTx.appendByteString
-           in PlutusTx.fmap (\(k, v) -> (k, PlutusTx.decodeUtf8 (f v))) (Data.AssocMap.toList m)
+              f = these id id (PlutusTx.+)
+           in PlutusTx.fmap (PlutusTx.fmap f) (Data.AssocMap.toList m)
         ||]
     )
 

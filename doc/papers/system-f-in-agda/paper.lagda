@@ -4267,7 +4267,7 @@ in the course of writing this paper.
 Some additional proofs added after publication and not shown in the paper
 
 \begin{code}
-open import Relation.Nullary
+open import Relation.Nullary hiding (det)
 
 -- a value can make no progress
 

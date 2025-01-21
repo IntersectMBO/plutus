@@ -71,15 +71,15 @@ class RandomAccessList e where
     unsafeIndexOne :: e -> Word64 -> Element e
     unsafeIndexOne e = fromJust . indexOne e
 
-{-# INLINABLE head #-}
 -- O(1) worst-case
 head :: (RandomAccessList e, a ~ Element e) => e -> a
 head = fst . fromMaybe (error "empty list") . uncons
+{-# INLINABLE head #-}
 
-{-# INLINABLE tail #-}
 -- O(1) worst-case
 tail :: (RandomAccessList e) => e -> e
 tail = snd . fromMaybe (error "empty list") . uncons
+{-# INLINABLE tail #-}
 
 instance RandomAccessList [a] where
     type Element [a] = a

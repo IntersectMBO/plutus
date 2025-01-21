@@ -13,7 +13,6 @@ import PlutusTx qualified as Tx
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
-{-# INLINABLE merge #-}
 merge :: [Integer] -> [Integer] -> [Integer]
 merge as@(a:as') bs@(b:bs') =
     if a <= b
@@ -21,8 +20,8 @@ merge as@(a:as') bs@(b:bs') =
     else b:(merge as bs')
 merge [] bs = bs
 merge as [] = as
+{-# INLINABLE merge #-}
 
-{-# INLINABLE mergeSort #-}
 mergeSort :: [Integer] -> [Integer]
 mergeSort xs =
     let n = length xs
@@ -30,6 +29,7 @@ mergeSort xs =
        then let n2 = n `divide` 2
             in merge (mergeSort (take n2 xs)) (mergeSort (drop n2 xs))
        else xs
+{-# INLINABLE mergeSort #-}
 
 {- I think this is approximately the worst case.  A lot of the work happens in
    merge and this should make sure that the maximal amount of interleaving is

@@ -42,7 +42,7 @@ import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError (..), liftEither, runExceptT)
 import Control.Monad.Writer (MonadWriter (..), runWriter)
 import Data.Set as Set
-import Data.Text as Text
+import Data.Text (Text)
 import Data.Tuple
 import NoThunks.Class
 
@@ -80,7 +80,7 @@ data VerboseMode =
 
 It will be an empty list if the `VerboseMode` is set to `Quiet`.
 -}
-type LogOutput = [Text.Text]
+type LogOutput = [Text]
 
 {-| Shared helper for the evaluation functions: 'evaluateScriptCounting' and 'evaluateScriptRestricting',
 

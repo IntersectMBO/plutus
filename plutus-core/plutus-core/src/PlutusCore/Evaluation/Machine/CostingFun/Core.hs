@@ -340,7 +340,6 @@ data OneVariableQuadraticFunction = OneVariableQuadraticFunction
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
-{-# INLINE evaluateOneVariableQuadraticFunction #-}
 evaluateOneVariableQuadraticFunction
   :: OneVariableQuadraticFunction
   -> CostingInteger
@@ -348,6 +347,7 @@ evaluateOneVariableQuadraticFunction
 evaluateOneVariableQuadraticFunction
    (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
        c0 + c1*x + c2*x*x
+{-# INLINE evaluateOneVariableQuadraticFunction #-}
 
 {- Note [Minimum values for two-variable quadratic costing functions] Unlike most
    of our other costing functions our use cases for two-variable quadratic
@@ -369,7 +369,6 @@ data TwoVariableQuadraticFunction = TwoVariableQuadraticFunction
   } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
-{-# INLINE evaluateTwoVariableQuadraticFunction #-}
 evaluateTwoVariableQuadraticFunction
   :: TwoVariableQuadraticFunction
   -> CostingInteger
@@ -382,6 +381,7 @@ evaluateTwoVariableQuadraticFunction
    ) x y = max minVal (c00 + c10*x + c01*y + c20*x*x + c11*x*y + c02*y*y)
   -- We want to be absolutely sure that we don't get back a negative number
   -- here: see Note [Minimum values for two-variable quadratic costing functions]
+{-# INLINE evaluateTwoVariableQuadraticFunction #-}
 
 -- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of

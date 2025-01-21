@@ -20,15 +20,15 @@ class Semigroup a => Monoid a where
     -- mappend and mconcat deliberately omitted, to make this a one-method class which has a
     -- simpler representation
 
-{-# INLINABLE mappend #-}
 -- | Plutus Tx version of 'Data.Monoid.mappend'.
 mappend :: Monoid a => a -> a -> a
 mappend = (<>)
+{-# INLINABLE mappend #-}
 
-{-# INLINABLE mconcat #-}
 -- | Plutus Tx version of 'Data.Monoid.mconcat'.
 mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
+{-# INLINABLE mconcat #-}
 
 instance Monoid Builtins.BuiltinByteString where
     {-# INLINABLE mempty #-}
@@ -69,6 +69,6 @@ instance Monoid (First a) where
 class Monoid a => Group a where
     inv :: a -> a
 
-{-# INLINABLE gsub #-}
 gsub :: Group a => a -> a -> a
 gsub x y = x <> inv y
+{-# INLINABLE gsub #-}

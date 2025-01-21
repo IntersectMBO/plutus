@@ -329,7 +329,7 @@ $$
 \nomenclature[Azz]{$\quotfn$, $\remfn$}{Integer division operations}
 
 \noindent The $\divfn$ and $\modfn$ functions form a pair, as do $\quotfn$ and $\remfn$;
-$\divfn$ should not be used in combination with $\modfn$, not should $\quotfn$ be used
+$\divfn$ should not be used in combination with $\remfn$, nor should $\quotfn$ be used
 with $\modfn$.
 
 For positive divisors $b$, $\divfn$ truncates downwards and $\modfn$ always
@@ -346,7 +346,7 @@ all of these functions return the error value $\errorX$.
         \hline
         $+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\
         $-$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
-        $+$ & $-$ & $-$ & $+$ & $+$ & $+$ \\
+        $+$ & $-$ & $-$ & $-$ & $-$ & $+$ \\
         $-$ & $-$ & $+$ & $-$ & $+$ & $-$ \\
         \hline
         \end{tabular}
@@ -364,9 +364,9 @@ all of these functions return the error value $\errorX$.
 
 \note{The \texttt{consByteString} function.}
 \label{note:consbytestring}
-In built-in semantics varinat 1, the first argument of \texttt{consByteString}
+In built-in semantics variant 1, the first argument of \texttt{consByteString}
 is an arbitrary integer which will be reduced modulo 256 before being prepended
-to the second argument.  In built-in semantics varaint 2 we require that the first
+to the second argument.  In built-in semantics variant 2 we require that the first
 argument lies between 0 and 255 (inclusive): in any other case an error will
 occur.
 

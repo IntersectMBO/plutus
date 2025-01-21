@@ -133,9 +133,9 @@ type ScriptContext = ()
 $(makeIsDataSchemaIndexed ''DatumPayload [('MkDatumPayload, 0)])
 $(makeIsDataSchemaIndexed ''Datum [('DatumLeft, 0), ('DatumRight, 1)])
 
-{-# INLINEABLE typedValidator1 #-}
 typedValidator1 :: Params -> Datum -> Redeemer -> ScriptContext -> Bool
 typedValidator1 _params _datum _redeemer _context = False
+{-# INLINEABLE typedValidator1 #-}
 
 validatorScript1 :: PlutusTx.CompiledCode (Datum -> Redeemer -> ScriptContext -> Bool)
 validatorScript1 =
@@ -171,9 +171,9 @@ $(asData datum2)
 
 type Redeemer2 = Integer
 
-{-# INLINEABLE typedValidator2 #-}
 typedValidator2 :: Param2a -> Param2b -> Datum2 -> Redeemer2 -> ScriptContext -> Bool
 typedValidator2 _p1 _p2 _datum _redeemer _context = True
+{-# INLINEABLE typedValidator2 #-}
 
 validatorScript2 :: PlutusTx.CompiledCode (Datum2 -> Redeemer2 -> ScriptContext -> Bool)
 validatorScript2 =

@@ -34,14 +34,14 @@ laziness = testNested "Laziness" . pure $ testNestedGhc
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())
 joinErrorPir = plc (Proxy @"joinError") joinError
 
-{-# OPAQUE monoId #-}
 monoId :: Builtins.BuiltinByteString -> Builtins.BuiltinByteString
 monoId x = x
+{-# OPAQUE monoId #-}
 
 -- This is a non-value let-binding, so will be delayed, and needs a dependency on Unit
-{-# OPAQUE aByteString #-}
 aByteString :: Builtins.BuiltinByteString
 aByteString = monoId Builtins.emptyByteString
+{-# OPAQUE aByteString #-}
 
 lazyDepUnit :: CompiledCode Builtins.BuiltinByteString
 lazyDepUnit = plc (Proxy @"lazyDepUnit") aByteString

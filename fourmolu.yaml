@@ -1,0 +1,54 @@
+# Number of spaces per indentation step
+indentation: 2
+
+# Max line length for automatic line breaking
+column-limit: 100
+
+# Styling of arrows in type signatures (choices: trailing, leading, or leading-args)
+function-arrows: leading
+
+# How to place commas in multi-line lists, records, etc. (choices: leading or trailing)
+comma-style: leading
+
+# Styling of import/export lists (choices: leading, trailing, or diff-friendly)
+import-export-style: diff-friendly
+
+# Whether to full-indent or half-indent 'where' bindings past the preceding body
+indent-wheres: false
+
+# Whether to leave a space before an opening record brace
+record-brace-space: false
+
+# Number of spaces between top-level declarations
+newlines-between-decls: 1
+
+# How to print Haddock comments (choices: single-line, multi-line, or multi-line-compact)
+haddock-style: multi-line-compact
+
+# How to print module docstring
+haddock-style-module: null
+
+# Styling of let blocks (choices: auto, inline, newline, or mixed)
+let-style: auto
+
+# How to align the 'in' keyword with respect to the 'let' keyword (choices: left-align, right-align, or no-space)
+in-style: right-align
+
+# Whether to put parentheses around a single constraint (choices: auto, always, or never)
+single-constraint-parens: always
+
+# Whether to put parentheses around a single deriving class (choices: auto, always, or never)
+single-deriving-parens: auto
+
+# Output Unicode syntax (choices: detect, always, or never)
+unicode: never
+
+# Give the programmer more choice on where to insert blank lines
+respectful: true
+
+# Fixity information for operators
+fixities: []
+
+# Module reexports Fourmolu should know about
+reexports: []
+

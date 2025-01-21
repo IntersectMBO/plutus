@@ -23,9 +23,6 @@ module PlutusCore.Evaluation.Machine.Ck
     , evaluateCk
     , evaluateCkNoEmit
     , readKnownCk
-    -- Exported to make doctests work.
-    , Frame (..)
-    , transferSpine
     ) where
 
 import PlutusPrelude

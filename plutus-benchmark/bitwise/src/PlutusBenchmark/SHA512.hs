@@ -9,47 +9,46 @@ import PlutusTx.Builtins (replicateByte)
 import PlutusTx.Prelude
 
 -- Based on https://datatracker.ietf.org/doc/html/rfc6234
-{-# INLINEABLE sha512 #-}
 sha512 :: BuiltinByteString -> BuiltinByteString
 sha512 = extract . runSha initialState processBlock . pad
+{-# INLINEABLE sha512 #-}
 
 -- Helpers
 
 newtype UInt64 = UInt64 BuiltinByteString
 
-{-# INLINEABLE uint64ToBS #-}
 uint64ToBS :: UInt64 -> BuiltinByteString
 uint64ToBS (UInt64 x) = x
+{-# INLINEABLE uint64ToBS #-}
 
-{-# INLINEABLE uint64ToInteger #-}
 uint64ToInteger :: UInt64 -> Integer
 uint64ToInteger (UInt64 x) = byteStringToInteger BigEndian x
+{-# INLINEABLE uint64ToInteger #-}
 
-{-# INLINEABLE integerToUInt64 #-}
 integerToUInt64 :: Integer -> UInt64
 integerToUInt64 = UInt64 . integerToByteString BigEndian 8
+{-# INLINEABLE integerToUInt64 #-}
 
-{-# INLINEABLE rot #-}
 rot :: Integer -> UInt64 -> UInt64
 rot rotation (UInt64 x) = UInt64 . flip rotateByteString rotation $ x
+{-# INLINEABLE rot #-}
 
-{-# INLINEABLE xor #-}
 xor :: UInt64 -> UInt64 -> UInt64
 xor (UInt64 x) (UInt64 y) = UInt64 (xorByteString True x y)
+{-# INLINEABLE xor #-}
 
-{-# INLINEABLE shiftU #-}
 shiftU :: Integer -> UInt64 -> UInt64
 shiftU shift (UInt64 x) = UInt64 . flip shiftByteString shift $ x
+{-# INLINEABLE shiftU #-}
 
-{-# INLINEABLE lsig512_0 #-}
 lsig512_0 :: UInt64 -> UInt64
 lsig512_0 x = rot (-1) x `xor` rot (-8) x `xor` shiftU (-7) x
+{-# INLINEABLE lsig512_0 #-}
 
-{-# INLINEABLE lsig512_1 #-}
 lsig512_1 :: UInt64 -> UInt64
 lsig512_1 x = rot (-19) x `xor` rot (-61) x `xor` shiftU (-6) x
+{-# INLINEABLE lsig512_1 #-}
 
-{-# INLINEABLE (#+) #-}
 (#+) :: UInt64 -> UInt64 -> UInt64
 (#+) x y =
   let xI = uint64ToInteger x
@@ -61,22 +60,23 @@ lsig512_1 x = rot (-19) x `xor` rot (-61) x `xor` shiftU (-6) x
   where
     limit :: Integer
     limit = 18_446_744_073_709_551_615
+{-# INLINEABLE (#+) #-}
 
-{-# INLINEABLE complementU #-}
 complementU :: UInt64 -> UInt64
 complementU (UInt64 bs) = UInt64 $ complementByteString bs
+{-# INLINEABLE complementU #-}
 
 infixl 6 #+
 
-{-# INLINEABLE (.&.) #-}
 (.&.) :: UInt64 -> UInt64 -> UInt64
 (UInt64 x) .&. (UInt64 y) = UInt64 (andByteString True x y)
+{-# INLINEABLE (.&.) #-}
 
 infixl 7 .&.
 
-{-# INLINEABLE (.|.) #-}
 (.|.) :: UInt64 -> UInt64 -> UInt64
 (UInt64 x) .|. (UInt64 y) = UInt64 (orByteString True x y)
+{-# INLINEABLE (.|.) #-}
 
 infixl 5 .|.
 
@@ -91,7 +91,6 @@ data SHA512State
       UInt64
       UInt64
 
-{-# INLINEABLE initialState #-}
 initialState :: SHA512State
 initialState = SHA512State (integerToUInt64 0x6a09_e667_f3bc_c908)
                            (integerToUInt64 0xbb67_ae85_84ca_a73b)
@@ -101,8 +100,8 @@ initialState = SHA512State (integerToUInt64 0x6a09_e667_f3bc_c908)
                            (integerToUInt64 0x9b05_688c_2b3e_6c1f)
                            (integerToUInt64 0x1f83_d9ab_fb41_bd6b)
                            (integerToUInt64 0x5be0_cd19_137e_2179)
+{-# INLINEABLE initialState #-}
 
-{-# INLINEABLE extract #-}
 extract :: SHA512State -> BuiltinByteString
 extract (SHA512State x1 x2 x3 x4 x5 x6 x7 x8) =
   uint64ToBS x1 <>
@@ -113,6 +112,7 @@ extract (SHA512State x1 x2 x3 x4 x5 x6 x7 x8) =
   uint64ToBS x6 <>
   uint64ToBS x7 <>
   uint64ToBS x8
+{-# INLINEABLE extract #-}
 
 data SHA512Sched
   = SHA512Sched
@@ -197,7 +197,6 @@ data SHA512Sched
       UInt64
       UInt64 -- 75-79
 
-{-# INLINEABLE getSHA512Sched #-}
 getSHA512Sched :: BuiltinByteString -> (SHA512Sched, BuiltinByteString)
 getSHA512Sched bs =
       let (w00, rest00) = next64 bs
@@ -362,15 +361,15 @@ getSHA512Sched bs =
               w77
               w78
               w79
+{-# INLINEABLE getSHA512Sched #-}
 
-{-# INLINEABLE next64 #-}
 next64 :: BuiltinByteString -> (UInt64, BuiltinByteString)
 next64 bs = (UInt64 . sliceByteString 0 8 $ bs, sliceByteString 8 len bs)
   where
     len :: Integer
     len = lengthOfByteString bs
+{-# INLINEABLE next64 #-}
 
-{-# INLINEABLE pad #-}
 pad :: BuiltinByteString -> BuiltinByteString
 pad bs = bs <> padding
   where
@@ -386,8 +385,8 @@ pad bs = bs <> padding
                   paddingWith1 = consByteString 0x80 paddingZeroes
                   lengthSuffix = integerToByteString BigEndian 16 lenBits
       in paddingWith1 <> lengthSuffix
+{-# INLINEABLE pad #-}
 
-{-# INLINEABLE processBlock #-}
 processBlock :: BuiltinByteString -> SHA512State -> (SHA512State, BuiltinByteString)
 processBlock bs s00@(SHA512State a00 b00 c00 d00 e00 f00 g00 h00) =
   let ( SHA512Sched
@@ -565,8 +564,8 @@ processBlock bs s00@(SHA512State a00 b00 c00 d00 e00 f00 g00 h00) =
           (g00 #+ g80)
           (h00 #+ h80)
         in (newState, cont)
+{-# INLINEABLE processBlock #-}
 
-{-# INLINEABLE step512 #-}
 step512 :: SHA512State -> Integer -> UInt64 -> SHA512State
 step512 (SHA512State x1 x2 x3 x4 x5 x6 x7 x8) k w =
   SHA512State x1' x1 x2 x3 x5' x5 x6 x7
@@ -581,24 +580,24 @@ step512 (SHA512State x1 x2 x3 x4 x5 x6 x7 x8) k w =
     x1' = t1 #+ t2
     x5' :: UInt64
     x5' = x4 #+ t1
+{-# INLINEABLE step512 #-}
 
-{-# INLINEABLE bsig512_0 #-}
 bsig512_0 :: UInt64 -> UInt64
 bsig512_0 x = rot (-28) x `xor` rot (-34) x `xor` rot (-39) x
+{-# INLINEABLE bsig512_0 #-}
 
-{-# INLINEABLE bsig512_1 #-}
 bsig512_1 :: UInt64 -> UInt64
 bsig512_1 x = rot (-14) x `xor` rot (-18) x `xor` rot (-41) x
+{-# INLINEABLE bsig512_1 #-}
 
-{-# INLINEABLE ch #-}
 ch :: UInt64 -> UInt64 -> UInt64 -> UInt64
 ch x y z = (x .&. y) `xor` (complementU x .&. z)
+{-# INLINEABLE ch #-}
 
-{-# INLINEABLE maj #-}
 maj :: UInt64 -> UInt64 -> UInt64 -> UInt64
 maj x y z = (x .&. (y .|. z)) .|. (y .&. z)
+{-# INLINEABLE maj #-}
 
-{-# INLINEABLE runSha #-}
 runSha :: SHA512State ->
   (BuiltinByteString -> SHA512State -> (SHA512State, BuiltinByteString)) ->
   BuiltinByteString ->
@@ -607,3 +606,4 @@ runSha state next input
   | lengthOfByteString input == 0 = state
   | otherwise = let (state', rest) = next input state
                   in runSha state' next rest
+{-# INLINEABLE runSha #-}

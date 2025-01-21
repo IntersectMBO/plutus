@@ -53,32 +53,32 @@ instance Traversable (Const c) where
 
 -- | Plutus Tx version of 'Data.Traversable.sequenceA'.
 sequenceA :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-{-# INLINE sequenceA #-}
 sequenceA = traverse id
+{-# INLINE sequenceA #-}
 
 -- | Plutus Tx version of 'Data.Traversable.sequence'.
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-{-# INLINE sequence #-}
 sequence = sequenceA
+{-# INLINE sequence #-}
 
 -- | Plutus Tx version of 'Data.Traversable.mapM'.
 mapM :: (Traversable t, Applicative f) => (a -> f b) -> t a -> f (t b)
-{-# INLINE mapM #-}
 mapM = traverse
+{-# INLINE mapM #-}
 
 -- | Plutus Tx version of 'Data.Traversable.for'.
 for :: (Traversable t, Applicative f) => t a -> (a -> f b) -> f (t b)
-{-# INLINE for #-}
 for = flip traverse
+{-# INLINE for #-}
 
 -- | Plutus Tx version of 'Data.Traversable.fmapDefault'.
 fmapDefault :: forall t a b . Traversable t
             => (a -> b) -> t a -> t b
-{-# INLINE fmapDefault #-}
 fmapDefault = coerce (traverse :: (a -> Identity b) -> t a -> Identity (t b))
+{-# INLINE fmapDefault #-}
 
 -- | Plutus Tx version of 'Data.Traversable.foldMapDefault'.
 foldMapDefault :: forall t m a . (Traversable t, Monoid m)
                => (a -> m) -> t a -> m
-{-# INLINE foldMapDefault #-}
 foldMapDefault = coerce (traverse :: (a -> Const m ()) -> t a -> Const m (t ()))
+{-# INLINE foldMapDefault #-}

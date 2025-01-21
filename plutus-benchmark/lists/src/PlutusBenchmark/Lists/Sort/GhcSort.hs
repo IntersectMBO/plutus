@@ -16,7 +16,6 @@ import PlutusTx.Prelude as Tx
 {- | GHC's 'sort' algorithm specialised to Integer.
    See https://hackage.haskell.org/package/base-4.15.0.0/docs/src/Data-OldList.html#sortBy
 -}
-{-# INLINABLE ghcSort #-}
 ghcSort :: [Integer] -> [Integer]
 ghcSort = mergeAll . sequences
   where
@@ -55,6 +54,7 @@ ghcSort = mergeAll . sequences
         else b:(merge as bs')
     merge [] bs = bs
     merge as [] = as
+{-# INLINABLE ghcSort #-}
 
 {- I think the worst case input should be about the same as for mergesort.  The
    worst case for 'sequences' is when we start with a list of alternately

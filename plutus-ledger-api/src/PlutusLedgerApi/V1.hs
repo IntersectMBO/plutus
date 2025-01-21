@@ -3,25 +3,32 @@
 -- | The interface to Plutus V1 for the ledger.
 module PlutusLedgerApi.V1 (
   -- * Scripts
-  Common.SerialisedScript,
-  Common.ScriptForEvaluation,
-  Common.serialisedScript,
-  Common.deserialisedScript,
-  Common.serialiseCompiledCode,
-  Common.serialiseUPLC,
-  deserialiseScript,
-  Common.uncheckedDeserialiseUPLC,
+  Scripts.ScriptHash (..),
+  Scripts.Redeemer (..),
+  Scripts.RedeemerHash (..),
+  Scripts.Datum (..),
+  Scripts.DatumHash (..),
+  Scripts.Context (..),
+  Scripts.ScriptError (..),
 
-  -- * Running scripts
+  -- ** Script (de)serialization
+  SerialisedScript.SerialisedScript,
+  SerialisedScript.ScriptForEvaluation,
+  SerialisedScript.ScriptDecodeError (..),
+  SerialisedScript.ScriptNamedDeBruijn (..),
+  SerialisedScript.serialisedScript,
+  SerialisedScript.deserialisedScript,
+  SerialisedScript.serialiseCompiledCode,
+  SerialisedScript.serialiseUPLC,
+  deserialiseScript,
+  SerialisedScript.uncheckedDeserialiseUPLC,
+
+  -- ** Running scripts
   evaluateScriptRestricting,
   evaluateScriptCounting,
 
-  -- ** Protocol version
+  -- * Protocol version
   Common.MajorProtocolVersion (..),
-
-  -- ** Verbose mode and log output
-  Common.VerboseMode (..),
-  Common.LogOutput,
 
   -- * Costing-related types
   Common.ExBudget (..),
@@ -29,68 +36,125 @@ module PlutusLedgerApi.V1 (
   Common.ExMemory (..),
   Common.SatInt (unSatInt),
   Common.fromSatInt,
-
-  -- ** Cost model
-  EvaluationContext.EvaluationContext,
-  EvaluationContext.mkEvaluationContext,
   ParamName.ParamName (..),
-  EvaluationContext.CostModelApplyError (..),
+  ParamName.tagWithParamNames,
+
+  -- * Evaluation
+  Eval.EvaluationError (..),
+  Eval.EvaluationContext,
+  Eval.AsScriptDecodeError (..),
+  Eval.LogOutput,
+  Eval.VerboseMode (..),
+  Eval.evaluateTerm,
+  Eval.mkDynEvaluationContext,
+  Eval.toMachineParameters,
+  Eval.mkTermToEvaluate,
+  Eval.assertWellFormedCostModelParams,
+
+  -- ** Evaluation context
+  EvaluationContext.mkEvaluationContext,
   EvaluationContext.CostModelParams,
-  EvaluationContext.assertWellFormedCostModelParams,
+  EvaluationContext.CostModelApplyError (..),
 
-  -- * Context types
-  Contexts.ScriptContext (..),
-  Contexts.ScriptPurpose (..),
+  -- * Script Context
+  Contexts.TxInfo(..),
+  Contexts.ScriptContext(..),
+  Contexts.ScriptPurpose(..),
+  Contexts.TxId (..),
+  Contexts.TxOut(..),
+  Contexts.TxOutRef(..),
+  Contexts.TxInInfo(..),
+  Contexts.findOwnInput,
+  Contexts.findDatum,
+  Contexts.findDatumHash,
+  Contexts.findTxInByTxOutRef,
+  Contexts.findContinuingOutputs,
+  Contexts.getContinuingOutputs,
+  Contexts.pubKeyOutputsAt,
+  Contexts.valuePaidTo,
+  Contexts.spendsOutput,
+  Contexts.txSignedBy,
+  Contexts.valueSpent,
+  Contexts.valueProduced,
+  Contexts.ownCurrencySymbol,
 
-  -- ** Supporting types used in the context types
-
-  -- *** Builtins
+  -- * Builtins
   Common.BuiltinByteString,
   Common.toBuiltin,
   Common.fromBuiltin,
   Common.toOpaque,
   Common.fromOpaque,
 
-  -- *** Bytes
+  -- * Bytes
   Bytes.LedgerBytes (..),
+  Bytes.LedgerBytesError (..),
   Bytes.fromBytes,
+  Bytes.fromHex,
+  Bytes.bytes,
+  Bytes.encodeByteString,
 
-  -- *** Certificates
+  -- * Certificates
   DCert.DCert (..),
 
-  -- *** Credentials
+  -- * Credentials
   Credential.StakingCredential (..),
   Credential.Credential (..),
 
-  -- *** Value
+  -- * Value
   Value.Value (..),
-  Value.CurrencySymbol (..),
-  Value.TokenName (..),
-  Value.singleton,
-  Value.unionWith,
-  Value.adaSymbol,
-  Value.adaToken,
   Value.Lovelace (..),
+  Value.currencySymbolValueOf,
+  Value.flattenValue,
+  Value.isZero,
+  Value.lovelaceValue,
+  Value.lovelaceValueOf,
+  Value.scale,
+  Value.singleton,
+  Value.split,
+  Value.unionWith,
+  Value.valueOf,
 
-  -- *** Time
+  -- ** Currency symbols
+  Value.CurrencySymbol(..),
+  Value.currencySymbol,
+  Value.adaSymbol,
+  Value.symbols,
+
+  -- ** Token names
+  Value.TokenName (..),
+  Value.tokenName,
+  Value.adaToken,
+
+  -- ** Asset classes
+  Value.AssetClass(..),
+  Value.assetClass,
+  Value.assetClassValue,
+  Value.assetClassValueOf,
+
+  -- * Addresses
+  Address.Address (..),
+  Address.pubKeyHashAddress,
+  Address.toPubKeyHash,
+  Address.toScriptHash,
+  Address.scriptHashAddress,
+  Address.stakingCredential,
+
+  -- * Crypto
+  Crypto.PubKeyHash (..),
+
+  -- * Time
   Time.POSIXTime (..),
   Time.POSIXTimeRange,
+  Time.DiffMilliSeconds (..),
+  Time.fromMilliSeconds,
 
-  -- *** Types for representing transactions
-  Address.Address (..),
-  Crypto.PubKeyHash (..),
-  Contexts.TxId (..),
-  Contexts.TxInfo (..),
-  Contexts.TxOut (..),
-  Contexts.TxOutRef (..),
-  Contexts.TxInInfo (..),
-
-  -- *** Intervals
+  -- ** Intervals
   Interval.Interval (..),
   Interval.Extended (..),
   Interval.Closure,
   Interval.UpperBound (..),
   Interval.LowerBound (..),
+  Interval.never,
   Interval.always,
   Interval.from,
   Interval.to,
@@ -98,13 +162,15 @@ module PlutusLedgerApi.V1 (
   Interval.upperBound,
   Interval.strictLowerBound,
   Interval.strictUpperBound,
-
-  -- *** Newtypes and hash types
-  ScriptHash (..),
-  Redeemer (..),
-  RedeemerHash (..),
-  Datum (..),
-  DatumHash (..),
+  Interval.member,
+  Interval.interval,
+  Interval.hull,
+  Interval.intersection,
+  Interval.overlaps,
+  Interval.contains,
+  Interval.isEmpty,
+  Interval.before,
+  Interval.after,
 
   -- * Data
   Common.Data (..),
@@ -120,11 +186,11 @@ module PlutusLedgerApi.V1 (
 
   -- * Errors
   Common.MonadError,
-  Common.EvaluationError (..),
-  Common.ScriptDecodeError (..),
 ) where
 
 import PlutusLedgerApi.Common qualified as Common
+import PlutusLedgerApi.Common.Eval qualified as Eval
+import PlutusLedgerApi.Common.SerialisedScript qualified as SerialisedScript
 import PlutusLedgerApi.V1.Address qualified as Address
 import PlutusLedgerApi.V1.Bytes qualified as Bytes
 import PlutusLedgerApi.V1.Contexts qualified as Contexts
@@ -172,7 +238,7 @@ deserialiseScript ::
   -- | the script to deserialise.
   Common.SerialisedScript ->
   m Common.ScriptForEvaluation
-deserialiseScript = Common.deserialiseScript thisLedgerLanguage
+deserialiseScript = SerialisedScript.deserialiseScript thisLedgerLanguage
 
 {- | Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. This will take as long as the script takes, if you need to

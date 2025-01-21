@@ -22,7 +22,6 @@ default_packages=(
   "plutus-ledger-api"
   "plutus-tx"
   "plutus-tx-plugin"
-  "prettyprinter-configurable"
 )
 
 release_packages=( "$@" )

@@ -20,6 +20,7 @@ import Data.Bifunctor
 import Data.String
 import PlutusLedgerApi.V1.Value
 import PlutusTx.AssocMap as Map
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test
@@ -56,7 +57,7 @@ toSymbol :: Integer -> CurrencySymbol
 toSymbol = currencySymbol . fromString . show
 
 toToken :: Integer -> TokenName
-toToken = fromString . show
+toToken = TokenName . stringToBuiltinByteString . show
 
 value1 :: Value
 value1 =

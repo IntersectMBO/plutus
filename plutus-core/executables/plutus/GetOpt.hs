@@ -171,7 +171,7 @@ optDescrs =
  , Option ['x'] []
      -- taken from GHC's -x
      -- If that suffix is not known, defaults to def
-     (ReqArg (set lastFileType . Just . read) "SUFFIX") "Causes all files following this option on the command line to be processed as if they had the suffix SUFFIX"
+     (ReqArg (set lastFileType . Just . readMaybeDot) "SUFFIX") "Causes all files following this option on the command line to be processed as if they had the suffix SUFFIX"
    -- FIXME: naming,ann partial for data
  , Option ['n'] ["nam"]
      (ReqArg (overFileTypeDefault (fLang . naming) read) "NAMING") "Change naming to `name` (default), `debruijn` or `named-debruijn`"
@@ -324,3 +324,12 @@ instance Read DebugInterface where
 
 one :: a -> [(a,String)]
 one x = [(x,"")]
+
+
+-- maybe drop a leading dot
+readMaybeDot :: Read a => String -> a
+readMaybeDot =
+        \case
+                ('.': ext) -> read ext
+                ext -> read ext
+

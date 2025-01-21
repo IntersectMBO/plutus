@@ -22,21 +22,22 @@ const config: Config = {
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
   onBrokenMarkdownLinks: "throw",
+  trailingSlash: "false",
 
   plugins: [
     [
       require.resolve("@cmfcmf/docusaurus-search-local"),
       {
-        indexDocs: true,
-      },
+        indexDocs: true
+      }
     ],
     [
       "@docusaurus/plugin-google-gtag",
       {
         trackingID: "G-X6364ZT8L2",
-        anonymizeIP: true,
-      },
-    ],
+        anonymizeIP: true
+      }
+    ]
   ],
 
   // Even if you don't use internationalization, you can use this field to set
@@ -44,10 +45,10 @@ const config: Config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: "en",
-    locales: ["en"],
+    locales: ["en"]
   },
   markdown: {
-    mermaid: true,
+    mermaid: true
   },
   themes: ["@docusaurus/theme-mermaid"],
 
@@ -61,13 +62,13 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/IntersectMBO/plutus/edit/master/doc/docusaurus",
+            "https://github.com/IntersectMBO/plutus/edit/master/doc/docusaurus"
         },
         theme: {
-          customCss: "./src/css/custom.css",
-        },
-      } satisfies Preset.Options,
-    ],
+          customCss: "./src/css/custom.css"
+        }
+      } satisfies Preset.Options
+    ]
   ],
 
   themeConfig: {
@@ -77,34 +78,34 @@ const config: Config = {
       title: "Plutus",
       logo: {
         alt: "Plutus Logo",
-        src: "img/logo.svg",
+        src: "img/logo.svg"
       },
       items: [
         {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
           position: "left",
-          label: "User guide",
+          label: "User guide"
         },
         {
           type: "html",
           position: "right",
           value:
-            '<a href="https://github.com/IntersectMBO/plutus" class="github-link" target="_blank"></a>',
-        },
-      ],
+            '<a href="https://github.com/IntersectMBO/plutus" class="github-link" target="_blank"></a>'
+        }
+      ]
     },
     footer: {
       style: "dark",
       links: [],
-      copyright: `Copyright`,
+      copyright: `Copyright`
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ["haskell"],
-    },
-  } satisfies Preset.ThemeConfig,
+      additionalLanguages: ["haskell"]
+    }
+  } satisfies Preset.ThemeConfig
 };
 
 export default config;
