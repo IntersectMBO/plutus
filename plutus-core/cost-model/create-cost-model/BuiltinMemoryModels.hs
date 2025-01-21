@@ -110,45 +110,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramHeadList                        = Id $ ModelOneArgumentConstantCost    32
   , paramTailList                        = Id $ ModelOneArgumentConstantCost    32
   , paramNullList                        = Id $ ModelOneArgumentConstantCost    32
-  , paramDropList                      = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 0
-  , paramChooseData                      = Id $ ModelSixArgumentsConstantCost   32
-  , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost   32
-  , paramMapData                         = Id $ ModelOneArgumentConstantCost    32
-  , paramListData                        = Id $ ModelOneArgumentConstantCost    32
-  , paramIData                           = Id $ ModelOneArgumentConstantCost    32
-  , paramBData                           = Id $ ModelOneArgumentConstantCost    32
-  , paramUnConstrData                    = Id $ ModelOneArgumentConstantCost    32
-  , paramUnMapData                       = Id $ ModelOneArgumentConstantCost    32
-  , paramUnListData                      = Id $ ModelOneArgumentConstantCost    32
-  , paramUnIData                         = Id $ ModelOneArgumentConstantCost    32
-  , paramUnBData                         = Id $ ModelOneArgumentConstantCost    32
-  , paramEqualsData                      = Id $ ModelTwoArgumentsConstantCost    1
-  , paramMkPairData                      = Id $ ModelTwoArgumentsConstantCost   32
-  , paramMkNilData                       = Id $ ModelOneArgumentConstantCost    32
-  , paramMkNilPairData                   = Id $ ModelOneArgumentConstantCost    32
-  , paramSerialiseData                   = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 0 2
-  , paramBls12_381_G1_add                = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G1_neg                = Id $ ModelOneArgumentConstantCost  g1MemSize
-  , paramBls12_381_G1_scalarMul          = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G1_equal              = Id $ boolMemModel
-  , paramBls12_381_G1_compress           = Id $ ModelOneArgumentConstantCost  g1CompressedSize
-  , paramBls12_381_G1_uncompress         = Id $ ModelOneArgumentConstantCost  g1MemSize
-  , paramBls12_381_G1_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g1MemSize
-  , paramBls12_381_G2_add                = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_G2_neg                = Id $ ModelOneArgumentConstantCost  g2MemSize
-  , paramBls12_381_G2_scalarMul          = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_G2_equal              = Id $ boolMemModel
-  , paramBls12_381_G2_compress           = Id $ ModelOneArgumentConstantCost  g2CompressedSize
-  , paramBls12_381_G2_uncompress         = Id $ ModelOneArgumentConstantCost  g2MemSize
-  , paramBls12_381_G2_hashToGroup        = Id $ ModelTwoArgumentsConstantCost g2MemSize
-  , paramBls12_381_millerLoop            = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
-  , paramBls12_381_mulMlResult           = Id $ ModelTwoArgumentsConstantCost mlResultMemSize
-  , paramBls12_381_finalVerify           = Id $ boolMemModel
-  , paramBlake2b_224                     = Id $ hashMemModel Hash.blake2b_224
-  , paramKeccak_256                      = Id $ hashMemModel Hash.keccak_256
-  -- integerToByteString e w n allocates a bytestring of length w if w is
-  -- nonzero and a bytestring just big enough to contain n otherwise, so we need
-  -- a special memory costing function to handle that.
+  , paramDropList                      = Id $ ModelOneArgumentConstantCost    32
   , paramIntegerToByteString             = Id $ ModelThreeArgumentsLiteralInYOrLinearInZ identityFunction
   , paramByteStringToInteger             = Id $ ModelTwoArgumentsLinearInY identityFunction
   -- andByteString b y z etc. return something whose length is min(length(y),length(z)) if b is
