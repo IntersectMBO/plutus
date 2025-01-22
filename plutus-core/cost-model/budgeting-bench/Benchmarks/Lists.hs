@@ -87,11 +87,12 @@ benchDropList :: StdGen -> Benchmark
 benchDropList gen =
     let name = DropList
         resultSizes = [100, 500, 1500, 3000, 5000]
-        results1 = makeSizedByteStrings seedA resultSizes
+        -- Produce lists of sz items, each of sz length
+        stringlists = makeListOfByteStringLists seedA [ (sz , sz) | sz <- resultSizes ]
         intInputs = [ intMaxList 10 (toInteger sz) gen | sz <- resultSizes ]
-        inputs = concat [[(n , r1) | n <- ns] | (ns, r1) <- zip intInputs results1]
+        inputs = concat [[(n , rs) | n <- ns] | (ns, rs) <- zip intInputs stringlists]
     in createTwoTermBuiltinBenchElementwiseWithWrappers
-           (IntegerCostedLiterally, id) name [integer,bytestring] inputs
+           (IntegerCostedLiterally, id) name [bytestring] inputs
 
 benchMkCons :: StdGen -> Benchmark
 benchMkCons gen =
