@@ -55,6 +55,8 @@ The most common method to programmatically generate code like `tails5` is throug
 The following `ntailsTH` function generates a Template Haskell expression for applying `tail` `n` times, for any `n` that is statically known:
 
 ```haskell
+import qualified Language.Haskell.TH as TH
+
 ntailsTH :: forall a. Int -> TH.Code TH.Q ([a] -> [a])
 ntailsTH n =
   Data.List.foldl'
