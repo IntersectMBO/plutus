@@ -21,7 +21,7 @@ executable UTxO
     , bytestring
     , containers
     , cryptohash
-    , cryptonite
+    , crypton
     , hashable
     , memory
     , template-haskell

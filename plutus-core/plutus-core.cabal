@@ -293,13 +293,13 @@ library
     , bimap
     , bytestring
     , bytestring-strict-builder
-    , cardano-crypto              <1.2
+    , cardano-crypto              >=1.2
     , cardano-crypto-class        ^>=2.2
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
     , containers
-    , cryptonite
+    , crypton
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
