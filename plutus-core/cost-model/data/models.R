@@ -145,7 +145,7 @@ arity <- function(name) {
         "CountSetBits" = 1,
         "FindFirstSetBit" = 1,
         "ExpModInteger" = 3,
-        "DropList" = 2,
+        "DropList" = 2
         )
 }
 
