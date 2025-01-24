@@ -105,19 +105,16 @@ data DefaultFun
     | SndPair
     -- Lists
     | ChooseList
-    | CaseList
     | MkCons
     | HeadList
     | TailList
     | NullList
-    | DropList
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
-    | CaseData
     | ConstrData
     | MapData
     | ListData
@@ -179,7 +176,11 @@ data DefaultFun
     | FindFirstSetBit
     -- Ripemd_160
     | Ripemd_160
+    -- Batch 6
     | ExpModInteger
+    | CaseList
+    | CaseData
+    | DropList
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1486,25 +1487,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
 
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
@@ -1564,30 +1546,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation
             (runCostingFunOneArgument . paramNullList)
 
-    toBuiltinMeaning _semvar DropList =
-        let dropListDenotation :: Integer -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-            dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Operational vs structural errors within builtins].
-                case uniListA of
-                    DefaultUniList _ ->
-#if MIN_VERSION_base(4,15,0)
-                        fromValueOf uniListA <$> case i of
-                            IS i# -> pure $ drop (I# i#) xs
-                            IP _ -> case drop maxBound xs of
-                               []  -> pure []
-                               _ ->
-                                   throwing _StructuralUnliftingError
-                                       "Panic: unreachable clause executed"
-                            IN _ -> pure xs
-#else
-                        throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
-#endif
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE dropListDenotation #-}
-        in makeBuiltinMeaning
-            dropListDenotation
-            (runCostingFunTwoArguments . paramDropList)
-
     -- Data
     toBuiltinMeaning _semvar ChooseData =
         let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
@@ -1602,26 +1560,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             chooseDataDenotation
             (runCostingFunSixArguments . paramChooseData)
-
-    toBuiltinMeaning _ver CaseData =
-        let caseDataDenotation
-                :: Opaque val (Integer -> [Data] -> b)
-                -> Opaque val ([(Data, Data)] -> b)
-                -> Opaque val ([Data] -> b)
-                -> Opaque val (Integer -> b)
-                -> Opaque val (BS.ByteString -> b)
-                -> Data
-                -> Opaque (HeadSpine val) b
-            caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
-            {-# INLINE caseDataDenotation #-}
-        in makeBuiltinMeaning
-            caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
@@ -2065,6 +2003,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ripemd_160Denotation
             (runCostingFunOneArgument . paramRipemd_160)
 
+    -- Batch 6
+
     toBuiltinMeaning _semvar ExpModInteger =
         let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
             expModIntegerDenotation = ExpMod.expMod
@@ -2072,6 +2012,69 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
+
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val (LastArg a b)
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _ver CaseData =
+        let caseDataDenotation
+                :: Opaque val (Integer -> [Data] -> b)
+                -> Opaque val ([(Data, Data)] -> b)
+                -> Opaque val ([Data] -> b)
+                -> Opaque val (Integer -> b)
+                -> Opaque val (BS.ByteString -> b)
+                -> Data
+                -> Opaque (HeadSpine val) b
+            caseDataDenotation fConstr fMap fList fI fB = \case
+                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpine fMap [fromValue es]
+                List ds     -> headSpine fList [fromValue ds]
+                I i         -> headSpine fI [fromValue i]
+                B b         -> headSpine fB [fromValue b]
+            {-# INLINE caseDataDenotation #-}
+        in makeBuiltinMeaning
+            caseDataDenotation
+            (runCostingFunSixArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar DropList =
+        let dropListDenotation :: Integer -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+            dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
+                case uniListA of
+                    DefaultUniList _ ->
+#if MIN_VERSION_base(4,15,0)
+                        fromValueOf uniListA <$> case i of
+                            IS i# -> pure $ drop (I# i#) xs
+                            IP _ -> case drop maxBound xs of
+                               []  -> pure []
+                               _ ->
+                                   throwing _StructuralUnliftingError
+                                       "Panic: unreachable clause executed"
+                            IN _ -> pure xs
+#else
+                        throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
+#endif
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE dropListDenotation #-}
+        in makeBuiltinMeaning
+            dropListDenotation
+            (runCostingFunTwoArguments . paramDropList)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

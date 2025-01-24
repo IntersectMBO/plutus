@@ -288,7 +288,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramHeadList                        = unitCostOneArgument
     , paramTailList                        = unitCostOneArgument
     , paramNullList                        = unitCostOneArgument
-    , paramDropList                        = unitCostTwoArguments
     -- Data
     , paramChooseData                      = unitCostSixArguments
     , paramConstrData                      = unitCostTwoArguments
@@ -344,7 +343,11 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramFindFirstSetBit                 = unitCostOneArgument
     -- Ripemd_160
     , paramRipemd_160                      = unitCostOneArgument
+    -- Batch 6
     , paramExpModInteger                   = unitCostThreeArguments
+    -- paramCaseList
+    -- paramCaseData
+    , paramDropList                        = unitCostTwoArguments
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)

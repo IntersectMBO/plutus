@@ -302,19 +302,6 @@
             "type": "constant_cost"
         }
     },
-    "dropList": {
-        "cpu": {
-	    "arguments": {
-                "intercept": 0,
-                "slope": 0
-            },
-            "type": "linear_in_x"
-        },
-        "memory": {
-            "arguments": 0,
-            "type": "constant_cost"
-        }
-    },
     "chooseUnit": {
         "cpu": {
             "arguments": 61462,
@@ -1153,6 +1140,22 @@
         "memory": {
             "arguments": 100000000000,
             "type": "constant_cost"
+        }
+    },
+    "dropList": {
+        "cpu": {
+            "arguments": {
+                "intercept": 116711,
+                "slope": 1957
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 4,
+                "slope": 0
+            },
+            "type": "linear_in_y"
         }
     }
 }
