@@ -58,7 +58,6 @@ nonEmptyByteStringLists :: H.Seed -> [[ByteString]]
 nonEmptyByteStringLists seed =
     makeListOfByteStringLists seed [(count,size) | count <- [1..7], size <- [0, 500..3000]]
 
-
 -- chooseList l a b = case l of [] -> a | _ -> b
 -- We expect this to be constant time, but check anyway.  We look at a subset of
 -- the sample lists and give each one several choices of bytestring results of
@@ -80,6 +79,32 @@ benchChooseList gen =
     in bgroup (show name) (mkBMs [integer,bytestring] intInputs
                             ++ mkBMs [bytestring,bytestring] bsInputs)
 
+benchMkCons :: StdGen -> Benchmark
+benchMkCons gen =
+    let name = MkCons
+        intInputs = intLists gen
+        (intsToCons, _) = makeSizedIntegers gen $ take (length intInputs) (cycle [1,2,4,10,15])
+        bsInputs = byteStringLists seedA
+        bssToCons =
+            makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
+        mkBM ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
+    in  bgroup (show name) $ fmap (mkBM integer) (zip intsToCons intInputs)
+                           ++ fmap (mkBM bytestring) (zip bssToCons bsInputs)
+
+-- For headList and tailList
+benchNonEmptyList :: StdGen -> DefaultFun -> Benchmark
+benchNonEmptyList gen name =
+    bgroup (show name) $ fmap (mkBM integer) (nonEmptyIntLists gen)
+                      ++ fmap (mkBM bytestring) (nonEmptyByteStringLists seedA)
+                          where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
+
+-- nullList tests if a list is empty
+benchNullList :: StdGen -> Benchmark
+benchNullList gen =
+    bgroup (show name) $ fmap (mkBM integer) (intLists gen)
+                      ++ fmap (mkBM bytestring) (byteStringLists seedA)
+        where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
+              name = NullList
 
 -- dropList n ls
 -- We expect this to be linear with the value of n.
@@ -93,36 +118,6 @@ benchDropList gen =
         inputs = concat [[(n , rs) | n <- ns] | (ns, rs) <- zip intInputs stringlists]
     in createTwoTermBuiltinBenchElementwiseWithWrappers
            (IntegerCostedLiterally, id) name [bytestring] inputs
-
-benchMkCons :: StdGen -> Benchmark
-benchMkCons gen =
-    let name = MkCons
-        intInputs = intLists gen
-        (intsToCons, _) = makeSizedIntegers gen $ take (length intInputs) (cycle [1,2,4,10,15])
-        bsInputs = byteStringLists seedA
-        bssToCons =
-            makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
-        mkBM ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
-    in  bgroup (show name) $ fmap (mkBM integer) (zip intsToCons intInputs)
-                           ++ fmap (mkBM bytestring) (zip bssToCons bsInputs)
-
-
--- nullList tests if a list is empty
-benchNullList :: StdGen -> Benchmark
-benchNullList gen =
-    bgroup (show name) $ fmap (mkBM integer) (intLists gen)
-                      ++ fmap (mkBM bytestring) (byteStringLists seedA)
-        where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
-              name = NullList
-
-
--- For headList and tailList
-benchNonEmptyList :: StdGen -> DefaultFun -> Benchmark
-benchNonEmptyList gen name =
-    bgroup (show name) $ fmap (mkBM integer) (nonEmptyIntLists gen)
-                      ++ fmap (mkBM bytestring) (nonEmptyByteStringLists seedA)
-                          where mkBM ty x = benchDefault (showMemoryUsage x) $ mkApp1 name [ty] x
-
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ benchChooseList gen
