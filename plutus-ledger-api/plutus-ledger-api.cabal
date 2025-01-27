@@ -214,6 +214,7 @@ test-suite plutus-ledger-api-plugin-test
   other-modules:
     Spec.Budget
     Spec.Data.Budget
+    Spec.Data.ScriptContext
     Spec.Data.Value
     Spec.MintValue.V3
     Spec.ReturnUnit.V1
@@ -224,7 +225,7 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Value.WithCurrencySymbol
 
   if os(windows)
-    buildable: False 
+    buildable: False
 
   build-depends:
     , base                                         >=4.9   && <5
