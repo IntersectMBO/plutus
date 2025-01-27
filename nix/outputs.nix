@@ -11,7 +11,8 @@ let
   ghc810 = project.variants.ghc810;
   ghc910 = project.variants.ghc910;
 
-in [
+in
+[
   {
     inherit (project) cabalProject;
     inherit project repoRoot;
@@ -64,7 +65,7 @@ in [
 
   (lib.optionalAttrs (system == "aarch64-darwin") {
     # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
-    # Se we only build roots and dev sshells on aarch to avoid overloading the builders.
+    # Se we only build roots and dev shells on aarch to avoid overloading the builders.
     hydraJobs.ghc810.devShell = ghc810.devShell;
     hydraJobs.ghc96.devShell = ghc96.devShell;
     hydraJobs.ghc98.devShell = ghc98.devShell;
