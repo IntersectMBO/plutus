@@ -10,7 +10,9 @@ import Distribution.Types.BuildInfo qualified as D
 import Distribution.Types.ComponentLocalBuildInfo qualified as D
 import Distribution.Types.LocalBuildInfo qualified as D
 import Distribution.Verbosity qualified as D
+#if MIN_VERSION_Cabal(3,14,1)
 import Distribution.Utils.Path qualified as D 
+#endif
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO.Unsafe (unsafePerformIO)
 
