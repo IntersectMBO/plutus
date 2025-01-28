@@ -19,6 +19,7 @@ open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj�
 open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+open import Relation.Nullary.Negation using (contradiction)
 ```
 ## Values
 ```
@@ -37,15 +38,15 @@ data Value {X : Set} : X ⊢ → Set where
 infix 5 _⟶_
 data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   ξ₁ : {a a' b : X ⊢} → a ⟶ a' → a · b ⟶ a' · b
-  ξ₂ : {a b b' : X ⊢} → b ⟶ b' → a · b ⟶ a · b'
+  ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b' -- PLFA requires Value a here - do we?
   ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
   β : {a : (Maybe X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
   force-delay : {a : X ⊢} → force (delay a) ⟶ a
 
 infix 5 _⟶*_
 data _⟶*_ {X : Set} : X ⊢ → X ⊢ → Set where
-  refl : {a : X ⊢} → a ⟶* a
-  trans : { a a' b : X ⊢} → a ⟶ a' → a' ⟶* b → a ⟶* b
+  refl : {M : X ⊢} → M ⟶* M
+  trans : { M P N : X ⊢} → M ⟶ P → P ⟶* N → M ⟶* N
 
 tran-⟶* : ∀ {X : Set}{a b c : X ⊢} → a ⟶* b → b ⟶* c → a ⟶* c
 tran-⟶* refl b→c = b→c
@@ -57,18 +58,22 @@ value-¬⟶ delay (N , ())
 value-¬⟶ ƛ (N , ())
 value-¬⟶ con (N , ())
 
+⟶-¬value : ∀ {X : Set}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
+⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
+
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
-⟶-det (ξ₁ M⟶N) (ξ₁ M⟶P) = cong₂ _·_ (⟶-det M⟶N M⟶P) refl
-⟶-det (ξ₁ M⟶N) (ξ₂ M⟶P) = ?
-⟶-det (ξ₂ M⟶N) (ξ₁ M⟶P) = ?
-⟶-det (ξ₂ M⟶N) (ξ₂ M⟶P) = {!!}
-⟶-det (ξ₂ M⟶N) (β x) = {!!}
-⟶-det (ξ₃ M⟶N) M⟶P = {!!}
-⟶-det (β x) M⟶P = {!!}
-⟶-det force-delay M⟶P = {!!}
+⟶-det (ξ₁ m) (ξ₁ n) = cong₂ _·_ (⟶-det m n) refl
+⟶-det (ξ₁ m) (ξ₂ x n) = contradiction x (⟶-¬value m)
+⟶-det (ξ₂ x m) (ξ₁ n) = contradiction x (⟶-¬value n)
+⟶-det (ξ₂ x m) (ξ₂ x₁ n) = cong₂ _·_ refl (⟶-det m n)
+⟶-det (ξ₂ x m) (β x₁) = contradiction x₁ (⟶-¬value m)
+⟶-det (ξ₃ m) (ξ₃ n) = cong force (⟶-det m n)
+⟶-det (β x) (ξ₂ x₁ n) = contradiction x (⟶-¬value n)
+⟶-det (β x) (β x₁) = refl
+⟶-det force-delay force-delay = refl
 
 ```
-## Equivalence
+## "Reduction" Equivalence
 ```
 infix 5 _≅_
 data _≅_ {X : Set} : X ⊢ → X ⊢ → Set where
