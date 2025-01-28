@@ -8,6 +8,7 @@
 module Data.RandomAccessList.SkewBinary
     ( RAList(Cons,Nil)
     , contIndexZero
+    , contUpdateZero
     , contIndexOne
     , safeIndexZero
     , unsafeIndexZero
@@ -115,6 +116,30 @@ contIndexZero z f = findTree where
            then indexTree halfSize (offset - 1) t1
            else indexTree halfSize (offset - 1 - halfSize) t2
 {-# INLINE contIndexZero #-}
+
+-- See Note [Optimizations of contUpdateZero].
+contUpdateZero :: forall a. (a -> a) -> RAList a -> Word64 -> RAList a
+contUpdateZero f = findTree where
+    findTree :: RAList a -> Word64 -> RAList a
+    -- See Note [Optimizations of contUpdateZero].
+    findTree Nil !_ = error "out of bounds"
+    findTree (BHead w t ts) i =
+        if i < w
+        then BHead w (indexTree w i t) ts
+        else BHead w t (findTree ts (i-w))
+
+    indexTree :: Word64 -> Word64 -> Tree a -> Tree a
+    -- See Note [Optimizations of contUpdateZero].
+    indexTree !w 0 t = case t of
+        Node x l r -> Node (f x) l r
+        Leaf x     -> if w == 1 then Leaf (f x) else error "out of bounds"
+    indexTree _ _ (Leaf _) = error "out of bounds"
+    indexTree treeSize offset (Node x t1 t2) =
+        let halfSize = unsafeShiftR treeSize 1 -- probably faster than `div w 2`
+        in if offset <= halfSize
+           then Node x (indexTree halfSize (offset - 1) t1) t2
+           else Node x t1 (indexTree halfSize (offset - 1 - halfSize) t2)
+{-# INLINE contUpdateZero #-}
 
 contIndexOne :: forall a b. b -> (a -> b) -> RAList a -> Word64 -> b
 contIndexOne z _ _ 0 = z

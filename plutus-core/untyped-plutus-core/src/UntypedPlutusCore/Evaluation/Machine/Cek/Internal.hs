@@ -246,6 +246,7 @@ data CekValue uni fun ann =
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
   | VConstr {-# UNPACK #-} !Word64 !(ArgStack uni fun ann)
+  | VBlackHole !Text !Word64
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
     => Show (CekValue uni fun ann)
@@ -508,7 +509,10 @@ dischargeCekValEnv valEnv = go 0
                -- var is free, leave it alone
                var
                -- var is in the env, discharge its value
-               dischargeCekValue
+               (\case
+                   VBlackHole recName recLamCnt ->
+                       Var () (NamedDeBruijn recName . coerce $ lamCnt - recLamCnt)
+                   val -> dischargeCekValue val)
                -- index relative to (as seen from the point of view of) the environment
                (Env.indexOne valEnv $ idx - lamCnt)
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
@@ -537,6 +541,7 @@ dischargeCekValue = \case
         stack2list = go []
         go acc EmptyStack           = acc
         go acc (ConsStack arg rest) = go (arg : acc) rest
+    VBlackHole _ _ -> error "can't happen"
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
@@ -571,7 +576,7 @@ data Context uni fun ann
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
-    | FrameFix !(Context uni fun ann)
+    | FrameFix {-# UNPACK #-} !Word64 !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -580,11 +585,12 @@ deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Clo
 -- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
     memoryUsage = \case
-        VCon c      -> memoryUsage c
-        VDelay {}   -> singletonRose 1
-        VLamAbs {}  -> singletonRose 1
-        VBuiltin {} -> singletonRose 1
-        VConstr {}  -> singletonRose 1
+        VCon c        -> memoryUsage c
+        VDelay {}     -> singletonRose 1
+        VLamAbs {}    -> singletonRose 1
+        VBuiltin {}   -> singletonRose 1
+        VConstr {}    -> singletonRose 1
+        VBlackHole {} -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
 {- Note [ArgStack vs Spine]
@@ -703,9 +709,10 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
         computeCek (FrameCases env cs ctx) env scrut
-    computeCek !ctx !env (Fix _ _ body) = do
+    computeCek !ctx !env (Fix _ rec body) = do
         stepAndMaybeSpend BFix
-        computeCek (FrameFix ctx) env body
+        let !len' = Env.length env + 1
+        computeCek (FrameFix len' ctx) (Env.cons (VBlackHole (ndbnString rec) len') env) body
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwing_ _EvaluationFailure
@@ -759,12 +766,12 @@ enterComputeCek = computeCek
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
-    returnCek (FrameFix ctx) bodyV =
+    returnCek (FrameFix recIx ctx) bodyV =
         case bodyV of
-            VLamAbs nameArg bodyLam env ->
-                let env' = Env.cons bodyV' env
+            VLamAbs nameArg bodyLam env -> do
+                let env' = Env.contUpdateZero (\_ -> bodyV') env (Env.length env - recIx)
                     bodyV' = VLamAbs nameArg bodyLam env'
-                in returnCek ctx bodyV'
+                returnCek ctx bodyV'
             _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyV
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
