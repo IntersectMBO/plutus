@@ -68,7 +68,6 @@ executable quickstart
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.39
     , plutus-ledger-api  ^>=1.39
     , plutus-tx          ^>=1.39
 
