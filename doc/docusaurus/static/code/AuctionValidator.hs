@@ -32,7 +32,6 @@ import GHC.Generics (Generic)
 
 import PlutusTx.Prelude
 
-import PlutusCore.Version (plcVersion110)
 import PlutusLedgerApi.V1 (lovelaceValueOf, valueOf)
 import PlutusLedgerApi.V1.Address (toPubKeyHash)
 import PlutusLedgerApi.V1.Interval (contains)
@@ -43,7 +42,7 @@ import PlutusLedgerApi.V3 (CurrencySymbol, Datum (Datum, getDatum), Lovelace,
                            TxInfo (txInfoOutputs, txInfoValidRange),
                            TxOut (txOutAddress, txOutDatum, txOutValue), from, to)
 import PlutusLedgerApi.V3.Contexts (getContinuingOutputs)
-import PlutusTx (CompiledCode, FromData (..), ToData, UnsafeFromData (..), compile, liftCode,
+import PlutusTx (CompiledCode, FromData (..), ToData, UnsafeFromData (..), compile, liftCodeDef,
                  makeIsDataSchemaIndexed, makeLift, unsafeApplyCode)
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
@@ -270,7 +269,7 @@ auctionUntypedValidator params ctx =
 auctionValidatorScript :: AuctionParams -> CompiledCode (BuiltinData -> BuiltinUnit)
 auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion110 params
+    `PlutusTx.unsafeApplyCode` liftCodeDef params
 
 -- BLOCK9
 -- AuctionValidator.hs
