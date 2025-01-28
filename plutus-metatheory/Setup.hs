@@ -113,11 +113,7 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
     runAgda :: D.Verbosity -> IO ()
     runAgda verb =
       D.runProgram verb agdaProgram
-#if MIN_VERSION_Cabal(3,14,1)
         [ "--compile-dir", (D.getSymbolicPath $ D.buildDir lbi)
-#else
-        [ "--compile-dir", D.buildDir lbi
-#endif
         , "--compile"
         , "--ghc-dont-call-ghc"
         , "src/Main.lagda.md"
