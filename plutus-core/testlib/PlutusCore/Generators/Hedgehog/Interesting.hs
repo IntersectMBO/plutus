@@ -41,7 +41,8 @@ import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Type
 
-import Data.List (genericIndex)
+import Control.Monad.Morph (hoist)
+import Data.List (genericIndex, scanl')
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -95,27 +96,38 @@ factorial = runQuote $ do
 -- >         (\(u : unit) -> addInteger
 -- >             (rec (subtractInteger i 1))
 -- >             (rec (subtractInteger i 2))))
-naiveFib :: Integer -> Term TyName Name DefaultUni DefaultFun ()
-naiveFib iv = runQuote $ do
+getNaiveFib
+    :: MonadQuote m
+    => [(VarDecl TyName Name DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
+    -> Integer
+    -> m (Term TyName Name DefaultUni DefaultFun ())
+getNaiveFib args iv = do
     rec <- freshName "rec"
     i   <- freshName "i"
     u   <- freshName "u"
     let
       intS = mkTyBuiltin @_ @Integer ()
       fib = Fix () rec (TyFun () intS intS)
-          . LamAbs () i intS
-          $ mkIterAppNoAnn (TyInst () ifThenElse intS)
-              [ mkIterAppNoAnn (Builtin () LessThanEqualsInteger)
-                  [Var () i, mkConstant @Integer () 1]
-              , LamAbs () u unit $ Var () i
-              , LamAbs () u unit $ mkIterAppNoAnn (Builtin () AddInteger)
-                  [ Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
+          . mkIterAppNoAnn
+              ( mkIterLamAbs (Prelude.map fst args)
+              . LamAbs () i intS
+              $ mkIterAppNoAnn (TyInst () ifThenElse intS)
+                  [ mkIterAppNoAnn (Builtin () LessThanEqualsInteger)
                       [Var () i, mkConstant @Integer () 1]
-                  , Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
-                      [Var () i, mkConstant @Integer () 2]
+                  , LamAbs () u unit $ Var () i
+                  , LamAbs () u unit $ mkIterAppNoAnn (Builtin () AddInteger)
+                      [ Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
+                          [Var () i, mkConstant @Integer () 1]
+                      , Apply () (Var () rec) $ mkIterAppNoAnn (Builtin () SubtractInteger)
+                          [Var () i, mkConstant @Integer () 2]
+                      ]
                   ]
-              ]
+              )
+          $ Prelude.map snd args
     pure . Apply () fib $ mkConstant @Integer () iv
+
+naiveFib :: Integer -> Term TyName Name DefaultUni DefaultFun ()
+naiveFib = runQuote . getNaiveFib []
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
@@ -129,11 +141,17 @@ genFactorial = do
 -- | Generate a term that computes the ith Fibonacci number and return it
 -- along with the corresponding 'Integer' computed on the Haskell side.
 genNaiveFib :: TermGen Integer
-genNaiveFib = do
-    let fibs = scanl (+) 0 $ 1 : fibs
+genNaiveFib = hoist (pure . runQuote) $ do
+    let fibs = scanl' (+) 0 $ 1 : fibs
         m = 16
+        argsN = 8
     iv <- Gen.integral $ Range.linear 0 m
-    return . TermOf (naiveFib iv) $ fibs `genericIndex` iv
+    args <- Gen.list (Range.linear 0 $ fromInteger argsN) $
+        withAnyTermLoose $ \proxy@(TermOf arg _) -> do
+            argName <- freshName "arg"
+            pure (VarDecl () argName $ toTypeAst proxy, arg)
+    fib <- getNaiveFib args iv
+    return . TermOf fib $ fibs `genericIndex` iv
 
 -- | Generate an 'Integer', turn it into a Scott-encoded PLC @Nat@ (see 'Nat'),
 -- turn that @Nat@ into the corresponding PLC @integer@ using a fold (see 'FoldNat')
