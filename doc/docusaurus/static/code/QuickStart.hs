@@ -1,13 +1,19 @@
 -- BLOCK1
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE NumericUnderscores  #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Main where
 
 import AuctionValidator
 import Data.ByteString qualified as B
 import Data.ByteString.Base16 qualified as Base16
-import Data.ByteString.Short qualified as B
-import PlutusLedgerApi.V2 qualified as V2
+import Data.ByteString.Short qualified as BS
+import PlutusLedgerApi.V1.Crypto qualified as Crypto
+import PlutusLedgerApi.V1.Time qualified as Time
+import PlutusLedgerApi.V1.Value qualified as Value
+import PlutusLedgerApi.V3 (serialiseCompiledCode)
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteStringHex)
 
 main :: IO ()
 main =
