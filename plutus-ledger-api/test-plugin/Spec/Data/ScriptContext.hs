@@ -27,24 +27,24 @@ import PlutusTx.TH (compile)
 tests :: TestTree
 tests =
   runTestNested ["test-plugin", "Spec", "Data", "SriptContext"] . pure . testNestedGhc $
-      [ goldenPirReadable "alwaysSucceeds" compiledAlwaysSucceeds
-      , goldenUPlcReadable "alwaysSucceeds" compiledAlwaysSucceeds
-      , goldenPirReadable "succeedsIfHasDatum" compiledSucceedsIfHasDatum
-      , goldenUPlcReadable "succeedsIfHasDatum" compiledSucceedsIfHasDatum
-      ]
+    [ goldenPirReadable "alwaysSucceeds" compiledAlwaysSucceeds
+    , goldenUPlcReadable "alwaysSucceeds" compiledAlwaysSucceeds
+    , goldenPirReadable "succeedsIfHasDatum" compiledSucceedsIfHasDatum
+    , goldenUPlcReadable "succeedsIfHasDatum" compiledSucceedsIfHasDatum
+    ]
 
 alwaysSucceeds :: PlutusTx.BuiltinData -> PlutusTx.BuiltinUnit
 alwaysSucceeds d =
-    PlutusTx.check $
-      case PlutusTx.unsafeFromBuiltinData d of
-        V3D.ScriptContext _ _ _ -> True
+  PlutusTx.check $
+    case PlutusTx.unsafeFromBuiltinData d of
+      V3D.ScriptContext _ _ _ -> True
 
 succeedsIfHasDatum :: PlutusTx.BuiltinData -> PlutusTx.BuiltinUnit
 succeedsIfHasDatum d =
-    PlutusTx.check $
-      case PlutusTx.unsafeFromBuiltinData d of
-        V3D.ScriptContext _ _ (V3D.SpendingScript _ (Just _)) -> True
-        _                                                     -> False
+  PlutusTx.check $
+    case PlutusTx.unsafeFromBuiltinData d of
+      V3D.ScriptContext _ _ (V3D.SpendingScript _ (Just _)) -> True
+      _                                                     -> False
 
 compiledAlwaysSucceeds :: CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinUnit)
 compiledAlwaysSucceeds = $$(compile [||alwaysSucceeds||])
