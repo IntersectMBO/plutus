@@ -10,7 +10,7 @@ import Distribution.Types.BuildInfo qualified as D
 import Distribution.Types.ComponentLocalBuildInfo qualified as D
 import Distribution.Types.LocalBuildInfo qualified as D
 import Distribution.Verbosity qualified as D
-
+import Distribution.Utils.Path qualified as D 
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -111,7 +111,11 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
     runAgda :: D.Verbosity -> IO ()
     runAgda verb =
       D.runProgram verb agdaProgram
+#if MIN_VERSION_Cabal(3,14,1)
+        [ "--compile-dir", (D.getSymbolicPath $ D.buildDir lbi)
+#else
         [ "--compile-dir", D.buildDir lbi
+#endif
         , "--compile"
         , "--ghc-dont-call-ghc"
         , "src/Main.lagda.md"
