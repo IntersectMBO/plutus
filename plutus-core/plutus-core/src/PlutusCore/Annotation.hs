@@ -23,12 +23,10 @@ import Data.MonoTraversable
 import Data.Semigroup (Any (..))
 import Data.Set (Set)
 import Data.Set qualified as Set
-import Data.Text qualified as T
 import Flat (Flat (..))
 import GHC.Generics
 import Prettyprinter
 import Text.Megaparsec.Pos as Megaparsec
-import Text.SimpleShow
 
 newtype InlineHints name a = InlineHints { shouldInline :: a -> name -> Bool }
     deriving (Semigroup, Monoid) via (a -> name -> Any)
@@ -42,7 +40,7 @@ data Ann = Ann
     , annSrcSpans :: SrcSpans
     }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving anyclass (Hashable, SimpleShow)
+    deriving anyclass (Hashable)
 
 data Inline
     = -- | When calling @PlutusIR.Compiler.Definitions.defineTerm@ to add a new term definition,
@@ -57,7 +55,6 @@ data Inline
     | MayInline
     deriving stock (Eq, Ord, Generic, Show)
     deriving anyclass (Hashable)
-    deriving anyclass (SimpleShow)
 
 instance Pretty Ann where
     pretty = viaShow
@@ -90,13 +87,6 @@ data SrcSpan = SrcSpan
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Flat, Hashable, NFData)
 
--- Cannot directly derive SimpleShow using Generic, since an instance of SimpleShow FilePath
--- ( = String) results in overlapping instances, which do not work well with
--- QuantifiedConstraints (needed for instances of uni)
--- Workaround: print as tuple and use Text instance
-instance SimpleShow SrcSpan where
-  simpleShow (SrcSpan f l c l' c') = simpleShow (T.pack f, l, c, l', c')
-
 instance Show SrcSpan where
     showsPrec _ s =
         showString (srcSpanFile s)
@@ -115,7 +105,7 @@ instance Pretty SrcSpan where
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
     deriving newtype (Eq, Ord, Hashable, Semigroup, Monoid, MonoFoldable, NFData)
     deriving stock (Generic)
-    deriving anyclass (Flat, SimpleShow)
+    deriving anyclass (Flat)
 
 type instance Element SrcSpans = SrcSpan
 

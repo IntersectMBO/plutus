@@ -52,7 +52,6 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Syntax (Lift)
-import Text.SimpleShow
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name
@@ -61,8 +60,17 @@ data Name = Name
   , _nameUnique :: Unique
   -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
   }
-  deriving stock (Show, Generic, Lift)
-  deriving anyclass (NFData, SimpleShow)
+  deriving stock (Generic, Lift)
+  deriving anyclass (NFData)
+
+instance Show Name where
+  showsPrec p (Name x y) =
+    showParen (p >= 11) $
+      showString "Name" .
+      showString " " .
+      showsPrec 11 x .
+      showString " " .
+      showsPrec 11 y
 
 -- | Allowed characters in the starting position of a non-quoted identifier.
 isIdentifierStartingChar :: Char -> Bool
@@ -94,8 +102,15 @@ toPrintedName txt = if isValidUnquotedName txt then txt else "`" <> txt <> "`"
 those used for terms.
 -}
 newtype TyName = TyName {unTyName :: Name}
-  deriving stock (Show, Generic, Lift)
-  deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config, SimpleShow)
+  deriving stock (Generic, Lift)
+  deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
+
+instance Show TyName where
+  showsPrec p (TyName x) =
+    showParen (p >= 11) $
+      showString "TyName" .
+      showString " " .
+      showsPrec 11 x
 
 instance Wrapped TyName
 
@@ -124,8 +139,15 @@ instance Hashable Name where
 
 -- | A unique identifier
 newtype Unique = Unique {unUnique :: Int}
-  deriving stock (Eq, Show, Ord, Lift, Generic)
-  deriving newtype (Enum, NFData, Pretty, Hashable, SimpleShow)
+  deriving stock (Eq, Ord, Lift, Generic)
+  deriving newtype (Enum, NFData, Pretty, Hashable)
+
+instance Show Unique where
+  showsPrec p (Unique n) =
+    showParen (p >= 11) $
+      showString "Unique" .
+      showString " " .
+      showsPrec 11 n
 
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique

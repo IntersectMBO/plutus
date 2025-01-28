@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -51,8 +50,6 @@ import Data.Text.IO qualified as T
 import Prettyprinter
 import Prettyprinter.Render.Text
 
-import Text.SimpleShow
-
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
@@ -64,11 +61,9 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-
-  , forall t. SimpleShow (uni t)
-  , SimpleShow fun
-  , SimpleShow a
-  , PLC.Everywhere uni SimpleShow
+  , PLC.Everywhere uni Show
+  , PLC.GShow uni
+  , Show fun
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -86,11 +81,9 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-
-  , forall t. SimpleShow (uni t)
-  , SimpleShow fun
-  , SimpleShow a
-  , PLC.Everywhere uni SimpleShow
+  , PLC.Everywhere uni Show
+  , PLC.GShow uni
+  , Show fun
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -118,12 +111,9 @@ compileWithOpts ::
   , Default (BuiltinsInfo uni fun)
   , Default (PLC.CostingPart uni fun)
   , Default (RewriteRules uni fun)
-
-
-  , forall t. SimpleShow (uni t)
-  , SimpleShow fun
-  , SimpleShow a
-  , PLC.Everywhere uni SimpleShow
+  , Show fun
+  , PLC.Everywhere uni Show
+  , PLC.GShow uni
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->
@@ -204,10 +194,7 @@ goldenPlcFromPir = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ do
 
 goldenPlcFromPirScott ::
   (Ord a, Typeable a, Pretty a
-  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a
-
-  , SimpleShow a
-  ) =>
+  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
   Parser prog ->
   String ->
   TestNested

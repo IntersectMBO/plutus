@@ -1,8 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | Functions for compiling PIR let terms.
 module PlutusIR.Compiler.Let (compileLets, LetKind(..), compileLetsPass, compileLetsPassSC) where
 

@@ -48,7 +48,6 @@ import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
-import Text.SimpleShow
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
@@ -175,7 +174,7 @@ data DefaultFun
     | Ripemd_160
     | ExpModInteger
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
-    deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc, SimpleShow)
+    deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
 {- Note [Textual representation of names of built-in functions]. The plc parser
  parses builtin names by looking at an enumeration of all of the built-in

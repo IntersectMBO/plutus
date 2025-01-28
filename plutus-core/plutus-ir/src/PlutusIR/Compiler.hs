@@ -1,11 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE ImpredicativeTypes    #-}
-{-# LANGUAGE QuantifiedConstraints #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 module PlutusIR.Compiler (
     compileProgram,
     compileToReadable,
@@ -88,7 +86,6 @@ import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusPrelude
-import Text.SimpleShow
 
 isVerbose :: Compiling m e uni fun a => m Bool
 isVerbose = view $ ccOpts . coVerbose
@@ -103,7 +100,13 @@ logDebug :: Compiling m e uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
 runCompilerPass
-  :: (Compiling m e uni fun a, b ~ Provenance a, SimpleShow tyname, SimpleShow name)
+  :: (Compiling m e uni fun a, b ~ Provenance a
+  , PLC.Everywhere uni Show
+  , Show fun
+  , Show name
+  , Show tyname
+  , PLC.GShow uni
+  )
   => (Text -> m ())
   -> m (P.Pass m tyname name uni fun b)
   -> Term tyname name uni fun b
@@ -187,7 +190,11 @@ dce = do
 -- to dump a "readable" version of pir (i.e. floated).
 compileToReadable
   :: forall m e uni fun a b
-  . (Compiling m e uni fun a, b ~ Provenance a)
+  . (Compiling m e uni fun a, b ~ Provenance a
+  , PLC.Everywhere uni Show
+  , PLC.GShow uni
+  , Show fun
+  )
   => (Text -> m ())
   -> Program TyName Name uni fun b
   -> m (Program TyName Name uni fun b)
@@ -202,7 +209,11 @@ compileToReadable dumpCert (Program a v t) = do
 -- Note: the result *does* have globally unique names.
 compileReadableToPlc
   :: forall m e uni fun a b
-  . (Compiling m e uni fun a, b ~ Provenance a)
+  . (Compiling m e uni fun a, b ~ Provenance a
+     , PLC.Everywhere uni Show
+     , PLC.GShow uni
+     , Show fun
+  )
   => (Text -> m ())
   -> Program TyName Name uni fun b
   -> m (PLCProgram uni fun a)
@@ -235,7 +246,11 @@ compileReadableToPlc dumpCert (Program a v t) = do
   PLC.Program a v <$> go t
 
 --- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m e uni fun a
+compileProgram :: ( Compiling m e uni fun a
+  , PLC.Everywhere uni Show
+  , PLC.GShow uni
+  , Show fun
+  )
             => (Text -> m ()) ->
             Program TyName Name uni fun a -> m (PLCProgram uni fun a)
 compileProgram dumpCert =

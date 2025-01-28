@@ -35,7 +35,6 @@ import Control.Monad.Reader
 import Data.Singletons.Decide
 import Data.Text
 import PlutusPrelude hiding ((%~))
-import Text.SimpleShow
 
 -- Note that we use for erroring the original term's annotation
 compileProgram :: (?opts :: Opts, e ~ PIR.Provenance (FromAnn (US_ann s1)),
@@ -76,7 +75,7 @@ compileProgram = curry $ \case
 
     -- pir to plc
     ----------------------------------------
-    (SPir n1@SName a1, SPlc n2 SUnit) -> withA @Ord a1 $ withA @Pretty a1 $ withA @SimpleShow a1 $
+    (SPir n1@SName a1, SPlc n2 SUnit) -> withA @Ord a1 $ withA @Pretty a1 $ withA @Show a1 $
         -- Note: PIR.compileProgram subsumes pir typechecking
         (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram (const (return ())))
         >=> plcToOutName n1 n2

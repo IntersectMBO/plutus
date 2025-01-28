@@ -15,7 +15,6 @@ import Data.Set qualified as S
 import GHC.Generics (Generic)
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
-import Text.SimpleShow
 
 -- | Indicates where a value comes from.
 --
@@ -33,7 +32,7 @@ data Provenance a = Original a
                   -- | Added for accumulating difference provenances when floating lets
                   | MultipleSources (S.Set (Provenance a))
                   deriving stock (Show, Eq, Ord, Foldable, Generic)
-                  deriving anyclass (Hashable, SimpleShow)
+                  deriving anyclass (Hashable)
 
 instance Ord a => Semigroup (Provenance a) where
     x <> y = MultipleSources (toSet x `S.union` toSet y)
@@ -56,7 +55,7 @@ data DatatypeComponent = Constructor
                        | DatatypeType
                        | PatternFunctor
                        deriving stock (Show, Eq, Ord, Generic)
-                       deriving anyclass (Hashable, SimpleShow)
+                       deriving anyclass (Hashable)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case

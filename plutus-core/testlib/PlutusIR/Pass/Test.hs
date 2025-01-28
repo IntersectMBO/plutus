@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE QuantifiedConstraints #-}
-{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Pass.Test where
 
@@ -19,7 +18,6 @@ import PlutusIR.TypeCheck
 import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
 import Test.QuickCheck
-import Text.SimpleShow
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
 -- instance.
@@ -43,11 +41,11 @@ runTestPass
   :: (PLC.ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.Pretty a
-     , forall t. SimpleShow (uni t)
-     , SimpleShow tyname
-     , SimpleShow fun
-     , SimpleShow name
-     , PLC.Everywhere uni SimpleShow
+     , Show tyname
+     , Show fun
+     , Show name
+     , PLC.Everywhere uni Show
+     , PLC.GShow uni
      , Typeable a
      , Monoid a
      , Monad m
@@ -84,10 +82,11 @@ testPassProp exitMonad pass =
 -- of the term, and a more specific "exit" function.
 testPassProp' ::
   forall m tyname name a prop
-  . (Monad m, Testable prop
-     , SimpleShow tyname
-     , SimpleShow name
-     )
+  . ( Monad m
+    , Testable prop
+    , Show tyname
+    , Show name
+    )
   => a
   -> (Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
       -> Term tyname name PLC.DefaultUni PLC.DefaultFun a)

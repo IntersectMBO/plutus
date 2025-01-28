@@ -1,7 +1,6 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE GADTs          #-}
-{-# LANGUAGE LambdaCase     #-}
-{-# LANGUAGE RankNTypes     #-}
+{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 module PlutusIR.Pass where
 
@@ -18,9 +17,9 @@ import Control.Monad.Except
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable
 import Data.Text (Text)
+import Data.Text qualified as T
 import GHC.Generics (Generic)
 import PlutusCore.Quote
-import Text.SimpleShow
 
 -- | A condition on a 'Term'.
 data Condition tyname name uni fun a where
@@ -99,8 +98,7 @@ data PassId
   -- Misc
   | PassTypeCheck
   | PassOther String
-  deriving stock Generic
-  deriving anyclass SimpleShow
+  deriving stock (Show, Generic)
 
 -- | A pass over a term, with pre- and post-conditions.
 data Pass m tyname name uni fun a =
@@ -131,7 +129,12 @@ hoistPass f = \case
 
 runPass
   :: ( Monad m
-     , SimpleShow (Term tyname name uni fun ())
+     , PLC.Everywhere uni Show
+     , PLC.GShow uni
+     , Show tyname
+     , Show name
+     , Show fun
+     , PLC.Closed uni
      )
   => (String -> m ())
   -> (Text -> m ())
@@ -145,8 +148,8 @@ runPass logger certDump checkConditions (Pass p mainPass pre post) t = do
     for_ pre $ \c -> checkCondition c t
   t' <- lift $ mainPass t
   lift $ do
-    certDump (simpleShow p)
-    certDump (simpleShow (void t'))
+    certDump (T.pack . show $ p)
+    certDump (T.pack . show $ (void t'))
   when checkConditions $ do
     lift $ logger "checking postconditions"
     for_ post $ \c -> checkBiCondition c t t'

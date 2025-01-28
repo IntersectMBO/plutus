@@ -82,7 +82,9 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Text.IO qualified as T
 import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -94,11 +96,6 @@ import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
 import System.IO (hClose, hPutStr, hPutStrLn, openBinaryTempFile)
 import System.IO.Unsafe (unsafePerformIO)
-
-import Data.Text (Text)
-import Data.Text.IO qualified as T
-import GHC.Word
-import Text.SimpleShow
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -559,7 +556,7 @@ runCompiler moduleName opts expr = do
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
     (dumpCert, closeCertHandle) <- liftIO getDumpCert
-    liftIO $ dumpCert (simpleShow (void pirT))
+    liftIO $ dumpCert (Text.pack (show (void pirT)))
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirP <- flip runReaderT pirCtx $ PIR.compileToReadable (liftIO . dumpCert) pirP

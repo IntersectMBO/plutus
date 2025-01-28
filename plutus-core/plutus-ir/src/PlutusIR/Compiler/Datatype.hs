@@ -1,10 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE ImpredicativeTypes #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TupleSections      #-}
-{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeApplications  #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module PlutusIR.Compiler.Datatype
     ( compileDatatype

@@ -64,10 +64,8 @@ import Data.Hashable
 import Data.Kind
 import Data.Proxy
 import Data.Some.Newtype
-import Data.Text qualified as T
 import Data.Type.Equality
 import Text.Show.Deriving
-import Text.SimpleShow
 import Type.Reflection
 
 {- Note [Universes]
@@ -807,17 +805,3 @@ instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =
 instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =>
         Hashable (Some (ValueOf uni)) where
     hashWithSalt salt (Some s) = hashWithSalt salt s
-
-
---------------------- 'SimpleShow'
-instance (forall a. SimpleShow (uni a)) => SimpleShow (SomeTypeIn uni) where
-  simpleShow (SomeTypeIn x) = parens True (simpleShow x)
-
-instance
-  ( forall t. SimpleShow (uni t)
-  , Closed uni
-  , Everywhere uni SimpleShow
-  ) =>
-  SimpleShow (ValueOf uni a) where
-    simpleShow (ValueOf uni x) = bring (Proxy @SimpleShow) uni $
-      parens True (T.pack "ValueOf " <> simpleShow uni <> simpleShow x)

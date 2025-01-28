@@ -190,7 +190,6 @@ library
     PlutusCore.Version
     PlutusPrelude
     Prettyprinter.Custom
-    Text.SimpleShow
     Universe
     UntypedPlutusCore
     UntypedPlutusCore.Check.Scope

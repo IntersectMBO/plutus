@@ -2,7 +2,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE ImpredicativeTypes    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -35,7 +34,6 @@ import Control.Monad.Error.Lens (throwing)
 import Data.Text qualified as T
 import PlutusIR.Analysis.Builtins
 import Prettyprinter (viaShow)
-import Text.SimpleShow
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -227,11 +225,6 @@ type Compiling m e uni fun a =
     , PLC.PrettyUni uni
     , PLC.Pretty fun
     , PLC.Pretty a
-    -- SimpleShow instances
-    , PLC.Everywhere uni SimpleShow
-    , SimpleShow fun
-    , SimpleShow a
-    , forall t. SimpleShow (uni t)
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
