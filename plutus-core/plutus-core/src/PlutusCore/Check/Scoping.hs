@@ -20,6 +20,7 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Map.Strict as Map
 import Data.Maybe
+import Data.Proxy
 import Data.Set as Set
 import Text.Pretty
 import Text.PrettyBy
@@ -66,6 +67,11 @@ to touch any annotations) and collect all the available information: which names
 which didn't, which appeared etc, simultaneously checking that the names that were supposed to
 disappear indeed disappeared and the names that were supposed to stay indeed stayed.
 
+Note that to tell that e.g. a binding disappeared it's crucial that the AST node with the appopriate
+annotation is itself preserved, only the name changed. If some pass removes the AST node of a
+binding that is supposed to be disappear, it won't be accounted for. Which is precisely what we need
+for passes like inlining.
+
 Once all this scoping information is collected, we run 'checkScopeInfo' to check that the
 information is coherent. See its docs for the details on what exactly the checked invariants are.
 
@@ -88,24 +94,24 @@ isSameScope TermName{} TypeName{} = False
 data Stays
     = StaysOutOfScopeVariable  -- ^ An out-of-scope variable does not get renamed and hence stays.
     | StaysFreeVariable        -- ^ A free variable does not get renamed and hence stays.
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 -- | Changing names.
 data Disappears
     = DisappearsBinding   -- ^ A binding gets renamed and hence the name that it binds disappears.
     | DisappearsVariable  -- ^ A bound variable gets renamed and hence its name disappears.
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 -- | A name either stays or disappears.
 data NameAction
     = Stays Stays
     | Disappears Disappears
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 data NameAnn
     = NameAction NameAction ScopedName
     | NotAName
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 instance Pretty NameAnn where
     pretty = viaShow
@@ -282,6 +288,12 @@ class CollectScopeInfo t where
     -}
     collectScopeInfo :: t NameAnn -> ScopeErrorOrInfo
 
+instance EstablishScoping Proxy where
+    establishScoping _ = pure Proxy
+
+instance CollectScopeInfo Proxy where
+    collectScopeInfo _ = mempty
+
 -- See Note [Example of a scoping check].
 type Scoping t = (EstablishScoping t, CollectScopeInfo t)
 
@@ -290,7 +302,7 @@ type Scoping t = (EstablishScoping t, CollectScopeInfo t)
 -- original binder with the annotated sort and its value, but also decorate the reassembled binder
 -- with one out-of-scope variable and one in-scope one.
 establishScopingBinder
-    :: (Reference name value, ToScopedName name, Scoping sort, Scoping value)
+    :: (Reference name value, ToScopedName name, EstablishScoping sort, EstablishScoping value)
     => (NameAnn -> name -> sort NameAnn -> value NameAnn -> value NameAnn)
     -> name
     -> sort ann
@@ -459,18 +471,21 @@ checkScopeInfo bindRem scopeInfo = do
 
 -- | The type of errors that the scope checking machinery returns.
 data ScopeCheckError t = ScopeCheckError
-    { _input  :: !(t NameAnn)  -- ^ What got fed to the scoping check pass.
-    , _output :: !(t NameAnn)  -- ^ What got out of it.
-    , _error  :: !ScopeError   -- ^ The error returned by the scoping check pass.
+    { _input    :: !(t NameAnn)  -- ^ What got fed to the scoping check pass before preparation.
+    , _prepared :: !(t NameAnn)  -- ^ What got fed to the scoping check pass after preparation.
+    , _output   :: !(t NameAnn)  -- ^ What got out of it.
+    , _error    :: !ScopeError   -- ^ The error returned by the scoping check pass.
     }
 
 deriving stock instance Show (t NameAnn) => Show (ScopeCheckError t)
 
 instance PrettyBy config (t NameAnn) => PrettyBy config (ScopeCheckError t) where
-    prettyBy config (ScopeCheckError input output err) = vsep
+    prettyBy config (ScopeCheckError input prepared output err) = vsep
         [ pretty err
         , "when checking that transformation of" <> hardline
         , indent 2 $ prettyBy config input <> hardline
+        , "to" <> hardline
+        , indent 2 $ prettyBy config prepared <> hardline
         , "to" <> hardline
         , indent 2 $ prettyBy config output <> hardline
         , "is correct"
@@ -490,8 +505,9 @@ checkRespectsScoping
     -> t ann
     -> Either (ScopeCheckError t) ()
 checkRespectsScoping bindRem prep run thing =
-    first (ScopeCheckError input output) $
+    first (ScopeCheckError input prepared output) $
         unScopeErrorOrInfo (collectScopeInfo output) >>= checkScopeInfo bindRem
   where
-    input  = prep . runQuote $ establishScoping thing
-    output = run input
+    input    = runQuote $ establishScoping thing
+    prepared = prep input
+    output   = run prepared
