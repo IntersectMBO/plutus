@@ -418,8 +418,8 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniBLS12_381_MlResult
                ]
            SingType `SingKindArrow` SingType ->
-                [ genDefaultUniApply | size > 10 ] 
-                  ++ map pure 
+                [ genDefaultUniApply | size > 10 ]
+                  ++ map pure
                     [ JustSomeType DefaultUniProtoList
                     , JustSomeType DefaultUniProtoArray
                     ]
