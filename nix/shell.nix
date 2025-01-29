@@ -49,7 +49,6 @@ let
       shellcheck = {
         enable = false;
         package = pkgs.shellcheck;
-        args = [ "--hint" ".hlint.yaml" ];
       };
       prettier = {
         enable = false;

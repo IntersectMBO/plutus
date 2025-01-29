@@ -7,7 +7,7 @@ let
 
     # We need the mkDefault here since compiler-nix-name will be overridden
     # in the flake variants.
-    compiler-nix-name = "ghc96";
+    compiler-nix-name = lib.mkDefault "ghc96";
 
     src = ../.;
 
@@ -17,9 +17,9 @@ let
         enableProfiling = true;
         enableLibraryProfiling = true;
       }];
-      ghc810.compiler-nix-name = lib.mkForce "ghc810";
-      ghc98.compiler-nix-name = lib.mkForce "ghc98";
-      ghc910.compiler-nix-name = lib.mkForce "ghc910";
+      ghc810.compiler-nix-name = "ghc810";
+      ghc98.compiler-nix-name = "ghc98";
+      ghc910.compiler-nix-name = "ghc910";
     };
 
     inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
