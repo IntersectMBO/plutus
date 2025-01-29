@@ -83,7 +83,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens.Review
-import Control.Monad (unless, when)
 import Control.Monad.Catch
 import Control.Monad.Except (MonadError, catchError, throwError)
 import Control.Monad.Primitive (PrimMonad (..))
@@ -94,7 +93,6 @@ import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Proxy
-import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
@@ -172,18 +170,6 @@ data StepKind
     | BCase
     deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
     deriving anyclass (NFData, Hashable)
-
-cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
-cekStepCost costs = runIdentity . \case
-    BConst   -> cekConstCost costs
-    BVar     -> cekVarCost costs
-    BLamAbs  -> cekLamCost costs
-    BApply   -> cekApplyCost costs
-    BDelay   -> cekDelayCost costs
-    BForce   -> cekForceCost costs
-    BBuiltin -> cekBuiltinCost costs
-    BConstr  -> cekConstrCost costs
-    BCase    -> cekCaseCost costs
 
 data ExBudgetCategory fun
     = BStep StepKind
@@ -661,44 +647,35 @@ enterComputeCek = computeCek
         -> CekM uni fun s (NTerm uni fun ())
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek !ctx !env (Var _ varName) = do
-        stepAndMaybeSpend BVar
         val <- lookupVarName varName env
         returnCek ctx val
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     computeCek !ctx !_ (Constant _ val) = do
-        stepAndMaybeSpend BConst
         returnCek ctx (VCon val)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek !ctx !env (LamAbs _ name body) = do
-        stepAndMaybeSpend BLamAbs
         returnCek ctx (VLamAbs name body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
-        stepAndMaybeSpend BDelay
         returnCek ctx (VDelay body env)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
-        stepAndMaybeSpend BForce
         computeCek (FrameForce ctx) env body
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !ctx !env (Apply _ fun arg) = do
-        stepAndMaybeSpend BApply
         computeCek (FrameAwaitFunTerm env arg ctx) env fun
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !ctx !_ (Builtin _ bn) = do
-        stepAndMaybeSpend BBuiltin
         let meaning = lookupBuiltin bn ?cekRuntime
         -- 'Builtin' is fully discharged.
         returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
-        stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
           []         -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
-        stepAndMaybeSpend BCase
         computeCek (FrameCases env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
@@ -720,7 +697,6 @@ enterComputeCek = computeCek
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
     returnCek NoFrame val = do
-        spendAccumulatedBudget
         pure $ dischargeCekValue val
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
@@ -821,39 +797,11 @@ enterComputeCek = computeCek
     applyEvaluate !_ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
-    -- | Spend the budget that has been accumulated for a number of machine steps.
-    spendAccumulatedBudget :: CekM uni fun s ()
-    spendAccumulatedBudget = do
-        let ctr = ?cekStepCounter
-        iforCounter_ ctr spend
-        resetCounter ctr
-    -- It's very important for this definition not to get inlined. Inlining it caused performance to
-    -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# OPAQUE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
-    spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
-      let kind = toEnum i in spendBudget (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
-    {-# INLINE spend #-}
-
-    -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
-    stepAndMaybeSpend :: StepKind -> CekM uni fun s ()
-    stepAndMaybeSpend !kind = do
-        -- See Note [Structure of the step counter]
-        -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
-        -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
-        let !counterIndex = fromEnum kind
-            ctr = ?cekStepCounter
-            !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
-        !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
-        _ <- modifyCounter counterIndex (+1) ctr
-        -- There's no risk of overflow here, since we only ever increment the total
-        -- steps by 1 and then check this condition.
-        when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
-    {-# INLINE stepAndMaybeSpend #-}
 
     -- | Take a possibly partial builtin application and
     --
@@ -870,11 +818,6 @@ enterComputeCek = computeCek
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     evalBuiltinApp ctx fun term runtime = case runtime of
         BuiltinCostedResult budgets0 getFXs -> do
-            let exCat = BBuiltinApp fun
-                spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-                spendBudgets (ExBudgetCons budget budgets) =
-                    spendBudget exCat budget *> spendBudgets budgets
-            spendBudgets budgets0
             case getFXs of
                 BuiltinSuccess fXs ->
                     returnCekHeadSpine ctx fXs
