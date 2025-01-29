@@ -58,6 +58,13 @@ get-pr-state() {
 }
 
 
+get-workflow-run-url() {
+  local REPO=$1
+  local WORKFLOW=$2
+  gh run list --repo $REPO --workflow $WORKFLOW --json url --jq ".[0].url" || echo MISSING
+}
+
+
 get-pr-merge-state-status() {
   local REPO=$1
   local BRANCH=$2
@@ -124,6 +131,8 @@ open-plutus-pr() {
     "plutus-ledger-api"
     "plutus-tx"
     "plutus-tx-plugin"
+    "plutus-executables"
+    "cardano-constitution"
   )
 
   local MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
@@ -193,6 +202,7 @@ open-chap-pr() {
   cd -
   rm -rf cardano-haskell-packages || true
   tell "The release PR has been created at $PR_URL"
+  tell "Wait for CI, then merge, then wait for master to pass the deploy checks"
 }
 
 
@@ -230,27 +240,39 @@ merge-plutus-pr() {
 
 
 open-plutus-tx-pr() {
+  tell "Starting a workflow to bump the plutus version in plutus-tx-template"
   gh workflow run bump-plutus-version.yml \
     --repo IntersectMBO/plutus-tx-template \
     --field version=$VERSION 
+  tell "This workflow will create branch bump-plutus-$VERSION in plutus-tx-template"
+  local RUN_URL=$(get-workflow-run-url IntersectMBO/plutus-tx-template bump-plutus-version.yml)
+  tell "Follow the workflow progress at $RUN_URL"
 }
     
 
 deploy-metatheory-site() {
+  tell "Starting a workflow to deploy the metatheory site for the new release"
   gh workflow run metatheory-site.yml \
     --repo IntersectMBO/plutus \
     --field ref=$VERSION \
     --field destination=$VERSION \
     --field latest=true
+  tell "This workflow will publish the site to https://plutus.cardano.intersectmbo.org/metatheory/$VERSION"
+  local RUN_URL=$(get-workflow-run-url IntersectMBO/plutus metatheory-site.yml)
+  tell "Follow the workflow progress at $RUN_URL"
 }
 
 
 deploy-haddock-site() {
+  tell "Starting a workflow to deploy the haddock site for the new release"
   gh workflow run haddock-site.yml \
     --repo IntersectMBO/plutus \
     --field ref=$VERSION \
     --field destination=$VERSION \
     --field latest=true 
+  tell "This workflow will publish the site to https://plutus.cardano.intersectmbo.org/haddock/$VERSION"
+  local RUN_URL=$(get-workflow-run-url IntersectMBO/plutus haddock-site.yml)
+  tell "Follow the workflow progress at $RUN_URL"
 }
 
 
@@ -299,7 +321,7 @@ print-status() {
   elif [[ $PR_STATE == "OPEN" ]]; then 
     echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE but not MERGED at $PR_URL"
   else 
-    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE"
+    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE\n       Follow the workflow at https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml"
   fi   
   echo 
   
@@ -327,7 +349,7 @@ print-status() {
   local HADDOCK_URL="https://plutus.cardano.intersectmbo.org/haddock/$VERSION/"
   local CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
   if [[ $CURL_STATE == "404" ]]; then  
-    echo -e "[7] ❌ Deploy the Haddock site for the new release\n       Haddock site not found at $HADDOCK_URL"
+    echo -e "[7] ❌ Deploy the Haddock site for the new release\n       Haddock site not found at $HADDOCK_URL\n       Follow the workflow at https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml"
   else
     echo -e "[7] ✅ Deploy the Haddock site for the new release\n       Haddock site found at $HADDOCK_URL"
   fi 
@@ -336,7 +358,7 @@ print-status() {
   local METATHEORY_URL="https://plutus.cardano.intersectmbo.org/metatheory/$VERSION/"
   CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
   if [[ $CURL_STATE == "404" ]]; then  
-    echo -e "[8] ❌ Deploy the Metatheory site for the new release\n       Metatheory site not found at $METATHEORY_URL" 
+    echo -e "[8] ❌ Deploy the Metatheory site for the new release\n       Metatheory site not found at $METATHEORY_URL\n       Follow the workflow at https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml" 
   else
     echo -e "[8] ✅ Deploy the Metatheory site for the new release\n       Metatheory site found at $METATHEORY_URL" 
   fi  
