@@ -240,6 +240,11 @@ builtinNames = [
     , 'Builtins.mkCons
     , 'Builtins.drop
 
+    , ''Builtins.BuiltinArray
+    , 'Builtins.lengthOfArray
+    , 'Builtins.listToArray
+    , 'Builtins.indexArray
+
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
     , 'Builtins.caseData'
@@ -462,6 +467,11 @@ defineBuiltinTerms = do
             PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
             PLC.DropList -> defineBuiltinInl 'Builtins.drop
 
+            -- Arrays
+            PLC.LengthArray -> defineBuiltinInl 'Builtins.lengthOfArray
+            PLC.ListToArray -> defineBuiltinInl 'Builtins.listToArray
+            PLC.IndexArray -> defineBuiltinInl 'Builtins.indexArray
+
             -- Data
             PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
             PLC.EqualsData -> defineBuiltinInl 'Builtins.equalsData
@@ -599,9 +609,7 @@ defineBuiltinTerms = do
 
             PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
 
-defineBuiltinTypes
-    :: CompilingDefault uni fun m ann
-    => m ()
+defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinByteString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BS.ByteString
     defineBuiltinType ''Integer . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Integer
@@ -611,6 +619,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
+    defineBuiltinType ''Builtins.BuiltinArray . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoArray)
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G1_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G1.Element
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G2_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G2.Element
     defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.Pairing.MlResult
