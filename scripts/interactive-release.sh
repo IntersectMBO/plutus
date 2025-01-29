@@ -207,7 +207,7 @@ open-chap-pr() {
 
 
 check-and-publish-gh-release() {
-  local RELEASE_URL="$(gh release view 1.38.0.0 --json url --jq ".url" 2>&1)"
+  local RELEASE_URL="$(gh release view $VERSION --json url --jq ".url" 2>&1)"
   if [[ $RELEASE_URL == "release not found" ]]; then
     tell "No release found for $VERSION, I will publish it now"
     publish-gh-release
