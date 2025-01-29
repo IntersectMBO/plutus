@@ -490,7 +490,7 @@ library marlowe-internal
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class             >=2.1.5 && <2.3
+    , cardano-crypto-class             ^>=2.1.5
     , directory
     , filepath
     , mtl
