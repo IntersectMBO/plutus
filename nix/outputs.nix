@@ -43,10 +43,11 @@ let
     project = project.flake'.variants.profiled;
   };
 
-  common-haskell-packages = {
+  exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
     plutus-ir-test = project.flake'.packages."plutus-core:test:plutus-ir-test";
     cardano-constitution-test = project.flake'.packages."cardano-constitution:test:cardano-constitution-test"; # editorconfig-checker-disable-line
+    cost-model-budgeting-bench = project.flake'.packages."plutus-core:exe:cost-model-budgeting-bench"; # editorconfig-checker-disable-line
   };
 
   static-haskell-packages = {
@@ -80,7 +81,7 @@ let
   };
 
   packages =
-    common-haskell-packages //
+    exposed-haskell-packages //
     static-haskell-packages //
     extra-artifacts;
 
@@ -121,7 +122,7 @@ let
     inherit build-latex;
     inherit extra-artifacts;
     inherit static-haskell-packages;
-    inherit common-haskell-packages;
+    inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
   };
