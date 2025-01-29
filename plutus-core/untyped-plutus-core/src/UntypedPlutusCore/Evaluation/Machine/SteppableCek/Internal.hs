@@ -42,7 +42,6 @@ where
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
@@ -462,12 +461,7 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
 evalBuiltinApp ann ctx fun term runtime = case runtime of
-    BuiltinCostedResult budgets0 getFXs -> do
-        let exCat = BBuiltinApp fun
-            spendBudgets (ExBudgetLast budget) = spendBudget exCat budget
-            spendBudgets (ExBudgetCons budget budgets) =
-                spendBudget exCat budget *> spendBudgets budgets
-        spendBudgets budgets0
+    BuiltinCostedResult getFXs -> do
         case getFXs of
             BuiltinSuccess fXs ->
                 returnCekHeadSpine ann ctx fXs

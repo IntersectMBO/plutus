@@ -816,7 +816,7 @@ enterComputeCek = computeCek
         -> BuiltinRuntime (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     evalBuiltinApp ctx fun term runtime = case runtime of
-        BuiltinCostedResult _budgets0 getFXs -> do
+        BuiltinCostedResult getFXs -> do
             case getFXs of
                 BuiltinSuccess fXs ->
                     returnCekHeadSpine ctx fXs
@@ -850,8 +850,7 @@ runCekDeBruijn
     -> NTerm uni fun ann
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
-    runCekM params mode emitMode $ do
-        unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
+    runCekM params mode emitMode $
         enterComputeCek NoFrame Env.empty term
 
 {- Note [Accumulators for terms]

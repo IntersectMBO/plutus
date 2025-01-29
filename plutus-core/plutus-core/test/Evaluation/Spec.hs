@@ -133,7 +133,7 @@ prop_builtinEvaluation runtimes bn mkGen f = property $ do
             [Term uni fun] ->
             BuiltinRuntime (Term uni fun) ->
             BuiltinResult (HeadSpine (Term uni fun))
-        eval [] (BuiltinCostedResult _ getFxs) =
+        eval [] (BuiltinCostedResult getFxs) =
             getFxs
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
             eval args (toRuntime arg)

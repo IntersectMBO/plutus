@@ -211,7 +211,7 @@ testCosts semvar runtimes bn =
       runtime0 = lookupBuiltin bn runtimes
 
       eval :: [Term] -> BuiltinRuntime Term -> ExBudget
-      eval [] (BuiltinCostedResult budgetStream _) = sumExBudgetStream budgetStream
+      eval [] (BuiltinCostedResult _) = mempty
       eval (arg : args) (BuiltinExpectArgument toRuntime) =
         eval args (toRuntime arg)
       eval args (BuiltinExpectForce runtime) =

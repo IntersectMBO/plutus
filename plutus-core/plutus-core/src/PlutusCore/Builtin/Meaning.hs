@@ -64,7 +64,7 @@ data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
         ~(FoldArgs args res)
-        (cost -> BuiltinRuntime val)
+        (BuiltinRuntime val)
 
 -- | Constraints available when defining a built-in function.
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
@@ -232,7 +232,7 @@ class KnownMonotype val args res where
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toMonoF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+        :: ReadKnownM (FoldArgs args res)
         -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a
@@ -256,7 +256,7 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
             builtinRuntimeFailure
-            (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
+            (\x -> BuiltinCostedResult $ makeKnown x)
     {-# INLINE toMonoF #-}
 
 {- Note [One-shotting runtime denotations]
@@ -317,15 +317,13 @@ instance
         -- no benefit from having caching as the builtin application is going to be computed only
         -- once. So we choose the "call-by-name" behavior and 'oneShot' is what enables that.
         oneShot (toMonoF @val @args @res) $ do
-            (f, exF) <- getBoth
+            f <- getBoth
             -- Force the argument that gets passed to the denotation. This seems to help performance
             -- a bit (possibly due to its impact on strictness analysis), plus this way we ensure
             -- that if computing the argument throws an exception (isn't supposed to happen), we'll
             -- catch it in tests.
             !x <- readKnown arg
-            -- See Note [Strict application in runtime denotations].
-            let !exY = exF x
-            pure (f x, exY)
+            pure (f x)
     {-# INLINE toMonoF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
@@ -337,7 +335,7 @@ class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) va
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toPolyF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+        :: ReadKnownM (FoldArgs args res)
         -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
@@ -401,8 +399,8 @@ instance
         , ThrowOnBothEmpty binds args (IsBuiltin uni a) a
         , ElaborateFromTo uni 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where
-    makeBuiltinMeaning f toExF =
-        BuiltinMeaning (knownPolytype @binds @val @args @res) f $ \cost ->
+    makeBuiltinMeaning f _ =
+        BuiltinMeaning (knownPolytype @binds @val @args @res) f $
             -- In order to make the 'BuiltinRuntime' of a builtin cacheable we need to tell GHC to
             -- create a thunk for it, which we achieve by applying 'lazy' to the 'BuiltinRuntime'
             -- here.
@@ -410,14 +408,12 @@ instance
             -- Those thunks however require a lot of care to be properly shared rather than
             -- recreated every time a builtin application is evaluated, see 'toBuiltinsRuntime' for
             -- how we sort it out.
-            lazy $ case toExF cost of
-                -- See Note [Optimizations of runCostingFun*] for why we use strict @case@.
-                !exF -> toPolyF @binds @val @args @res $ pure (f, exF)
+            lazy $ toPolyF @binds @val @args @res $ pure f
     {-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
+toBuiltinRuntime _ (BuiltinMeaning _ _ denot) = denot
 {-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].

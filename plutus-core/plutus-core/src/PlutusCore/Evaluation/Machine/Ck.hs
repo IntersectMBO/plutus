@@ -261,7 +261,7 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
 evalBuiltinApp stack term runtime = case runtime of
-    BuiltinCostedResult _ getFXs -> case getFXs of
+    BuiltinCostedResult getFXs -> case getFXs of
         BuiltinSuccess fXs              -> returnCkHeadSpine stack fXs
         BuiltinSuccessWithLogs logs fXs -> emitCkM logs *> returnCkHeadSpine stack fXs
         BuiltinFailure logs err         -> emitCkM logs *> throwBuiltinErrorWithCause term err

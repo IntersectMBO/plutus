@@ -7,7 +7,6 @@ module PlutusCore.Builtin.Runtime where
 import PlutusPrelude
 
 import PlutusCore.Builtin.KnownType
-import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
 import Control.Monad.Except (throwError)
@@ -30,7 +29,7 @@ import NoThunks.Class
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
-    = BuiltinCostedResult ExBudgetStream ~(BuiltinResult (HeadSpine val))
+    = BuiltinCostedResult ~(BuiltinResult (HeadSpine val))
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 
@@ -40,7 +39,7 @@ instance NoThunks (BuiltinRuntime val) where
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
         -- TODO: remove the CPP when rest of IOE moves to nothunks>=0.2
 #if MIN_VERSION_nothunks(0,2,0)
-        BuiltinCostedResult _ _    -> pure . Just . ThunkInfo $ Left ctx
+        BuiltinCostedResult _      -> pure . Just . ThunkInfo $ Left ctx
 #else
         -- Plutus has moved to nothunks>=0.2, but some other IOE repos are using nothunks<0.2.
         -- As a consequence, cardano-constitution:create-json-envelope cannot be build.
@@ -88,7 +87,7 @@ instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
 
 builtinRuntimeFailure :: BuiltinError -> BuiltinRuntime val
-builtinRuntimeFailure = BuiltinCostedResult (ExBudgetLast mempty) . throwError
+builtinRuntimeFailure = BuiltinCostedResult . throwError
 -- See Note [INLINE and OPAQUE on error-related definitions].
 {-# OPAQUE builtinRuntimeFailure #-}
 

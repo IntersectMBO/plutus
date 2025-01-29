@@ -54,7 +54,7 @@ evaluateBuiltins preserveLogging binfo costModel = transformOf termSubterms proc
       :: BuiltinRuntime (Term tyname name uni fun ())
       -> AppContext tyname name uni fun a
       -> Maybe (Term tyname name uni fun ())
-    eval (BuiltinCostedResult _ getFXs) AppContextEnd =
+    eval (BuiltinCostedResult getFXs) AppContextEnd =
         case getFXs of
             BuiltinSuccess fXs -> Just $ headSpineToTerm fXs
             -- Evaluates successfully, but does logging. If we're being conservative
