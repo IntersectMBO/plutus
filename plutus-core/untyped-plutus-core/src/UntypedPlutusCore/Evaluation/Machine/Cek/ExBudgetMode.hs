@@ -20,6 +20,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     , enormousBudget
     , tallying
     , restricting
+    , restrictingLarge
     , restrictingEnormous
     )
 where
@@ -158,6 +159,10 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
             pure $ initB `minusExBudget` r
         final = RestrictingSt . ExRestrictingBudget <$> remaining
     pure $ ExBudgetInfo spender final cumulative
+
+-- | 'restricting' instantiated at 'largeBudget'.
+restrictingLarge :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
+restrictingLarge = restricting largeBudget
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
