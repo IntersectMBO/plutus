@@ -11,7 +11,7 @@ import Evaluation.Builtins (test_builtins)
 import Evaluation.Debug (test_debug)
 import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
-import Evaluation.Machines (test_budget, test_machines, test_tallying)
+import Evaluation.Machines (test_NumberOfStepCounters, test_budget, test_machines, test_tallying)
 import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
 import Generators (test_parsing)
@@ -33,6 +33,7 @@ main = do
       , test_caseOfCase
       , test_golden
       , test_tallying
+      , test_NumberOfStepCounters
       , test_simplify
       , test_debruijn
       , test_freevars
