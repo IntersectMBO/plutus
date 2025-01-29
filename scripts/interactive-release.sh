@@ -180,7 +180,8 @@ open-chap-pr() {
   cd cardano-haskell-packages
   git checkout -b $PR_BRANCH
   tell "Running ./scripts/add-from-github.sh with COMMIT_SHA=$COMMIT_SHA"
-  ./scripts/add-from-github.sh https://github.com/IntersectMBO/plutus $COMMIT_SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin
+  local RELEASE_PACKAGES=(plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin plutus-executables cardano-constitution)
+  ./scripts/add-from-github.sh https://github.com/IntersectMBO/plutus $COMMIT_SHA ${RELEASE_PACKAGES[@]}
   git push --force --set-upstream origin $PR_BRANCH
   local PR_URL=$(gh pr create \
     --repo IntersectMBO/cardano-haskell-packages \
