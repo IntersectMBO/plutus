@@ -71,7 +71,6 @@ import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -817,7 +816,7 @@ enterComputeCek = computeCek
         -> BuiltinRuntime (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     evalBuiltinApp ctx fun term runtime = case runtime of
-        BuiltinCostedResult budgets0 getFXs -> do
+        BuiltinCostedResult _budgets0 getFXs -> do
             case getFXs of
                 BuiltinSuccess fXs ->
                     returnCekHeadSpine ctx fXs
@@ -830,9 +829,6 @@ enterComputeCek = computeCek
         _ -> returnCek ctx $ VBuiltin fun term runtime
     {-# INLINE evalBuiltinApp #-}
 
-    spendBudget :: ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-    spendBudget = unCekBudgetSpender ?cekBudgetSpender
-    {-# INLINE spendBudget #-}
 
     -- | Look up a variable name in the environment.
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
