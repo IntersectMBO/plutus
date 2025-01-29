@@ -1,5 +1,2 @@
-An error has occurred:
-The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
-Final budget: ({cpu: 60615653
-| mem: 266896})
-Logs: 
+({cpu: 378263310
+| mem: 1720355})

@@ -21,6 +21,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
@@ -232,7 +233,8 @@ mkMarloweValidator
     noOthers :: Bool
     (ownInput@Data.TxInInfo{txInInfoResolved=Data.TxOut{txOutAddress=ownAddress}}, noOthers) =
         case findOwnInput ctx of
-            Just ownTxInInfo -> examineScripts (sameValidatorHash ownTxInInfo) Nothing True (Data.txInfoInputs scriptContextTxInfo)
+            Just ownTxInInfo ->
+              examineScripts (sameValidatorHash ownTxInInfo) Nothing True (Data.txInfoInputs scriptContextTxInfo)
             _ -> traceError "x" -- Input to be validated was not found.
 
     -- Check for the presence of multiple Marlowe validators or other Plutus validators.
@@ -246,43 +248,28 @@ mkMarloweValidator
       go check mTxInInfo valWasFound inputs
       where
         go f mSelf noOthers =
-          B.caseList'
-            (case mSelf of
-              Just self -> (self, noOthers)
-              Nothing   -> traceError "x"
+          B.caseList
+            (\() ->
+                case mSelf of
+                  Just self -> (self, noOthers)
+                  Nothing   -> traceError "examineScripts: empty list of inputs"
             )
             (\hd tl ->
-              let hd' = unsafeFromBuiltinData hd
-              in
-                case hd' of
-                  Data.TxInInfo{txInInfoResolved=Data.TxOut{txOutAddress=Data.Address (Data.ScriptCredential vh) _}} ->
-                    if f vh
-                      then
-                        case mSelf of
-                          Nothing -> go f (Just hd') noOthers tl
-                          Just _  -> traceError "w"
-                      else go f mSelf False tl
-                  _ -> go f mSelf noOthers tl
+              case (mSelf, noOthers) of
+                (Just self, False) -> (self, False)
+                _ ->
+                  let hd' = unsafeFromBuiltinData hd
+                  in
+                    case hd' of
+                      Data.TxInInfo{txInInfoResolved=Data.TxOut{txOutAddress=Data.Address (Data.ScriptCredential vh) _}} ->
+                        if f vh
+                          then
+                            case mSelf of
+                              Nothing -> go f (Just hd') noOthers tl
+                              Just _  -> traceError "w"
+                          else go f mSelf False tl
+                      _ -> go f mSelf noOthers tl
             )
-
-    -- This validator has not been found.
-    -- examineScripts _ Nothing _ [] = traceError "x"
-    -- -- This validator has been found, and other validators may have been found.
-    -- examineScripts _ (Just self) noOthers [] = (self, noOthers)
-    -- -- Found both this validator and another script, so we short-cut.
-    -- examineScripts _ (Just self) False _ = (self, False)
-    --  -- Found one script.
-    -- examineScripts f mSelf noOthers (tx@Data.TxInInfo{txInInfoResolved=Data.TxOut{txOutAddress=Ledger.Address (Data.ScriptCredential vh) _}} : txs)
-    --   -- The script is this validator.
-    --   | f vh = case mSelf of
-    --              -- We hadn't found it before, so we save it in `mSelf`.
-    --              Nothing -> examineScripts f (Just tx) noOthers txs
-    --              -- We already had found this validator before
-    --              Just _  -> traceError "w"
-    --   -- The script is something else, so we set `noOther` to `False`.
-    --   | otherwise = examineScripts f mSelf False txs
-    -- -- An input without a validator is encountered.
-    -- examineScripts f self others (_ : txs) = examineScripts f self others txs
 
     -- Check if inputs are being spent from the same script.
     sameValidatorHash:: Data.TxInInfo -> ScriptHash -> Bool
@@ -333,12 +320,14 @@ mkMarloweValidator
             Data.List.toBuiltinList
             $ Data.List.filter (\Data.TxOut{txOutAddress} -> ownAddress == txOutAddress) allOutputs
       in
-        B.caseList'
-          (traceError "o") -- No continuation or multiple Marlowe contract outputs is forbidden.
+        B.caseList
+          (\() ->
+            traceError "o"
+          ) -- No continuation or multiple Marlowe contract outputs is forbidden.
           (\hd tl ->
             B.caseList'
               (PlutusTx.unsafeFromBuiltinData hd)
-              (traceError "o") -- No continuation or multiple Marlowe contract outputs is forbidden.
+              (\_ _ -> traceError "o") -- No continuation or multiple Marlowe contract outputs is forbidden.
               tl
           )
           result

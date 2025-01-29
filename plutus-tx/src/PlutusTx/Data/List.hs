@@ -19,6 +19,7 @@ module PlutusTx.Data.List (
     fromSOP,
     toSOP,
     toBuiltinList,
+    null,
 ) where
 
 import PlutusTx.Builtins qualified as B
@@ -27,7 +28,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (all, any, filter, find, findIndices, foldMap, length, map, mapMaybe,
-                         mconcat, pred)
+                         mconcat, null, pred)
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
@@ -223,5 +224,9 @@ mconcat (List l) = go l
                 in h' <> go t
             )
 {-# INLINABLE mconcat #-}
+
+null :: List a -> Bool
+null = B.null . toBuiltinList
+{-# INLINABLE null #-}
 
 makeLift ''List
