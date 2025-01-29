@@ -44,7 +44,7 @@ library docusaurus-code
     , plutus-tx          ^>=1.39
 
   if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin
+    build-depends: plutus-tx-plugin ^>=1.39
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -57,3 +57,19 @@ executable example-cip57
     , containers
     , plutus-ledger-api  ^>=1.39
     , plutus-tx          ^>=1.39
+
+executable quickstart
+  import:           lang, ghc-version-support, os-support
+  main-is:          QuickStart.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  other-modules:    AuctionValidator
+  build-depends:
+    , base               >=4.9   && <5
+    , base16-bytestring
+    , bytestring
+    , plutus-ledger-api  ^>=1.39
+    , plutus-tx          ^>=1.39
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin ^>=1.39
