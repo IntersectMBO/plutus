@@ -137,7 +137,7 @@ in T1
 Here we need to not delete U, even though T2 is "dead"!
 
 The solution is to focus on the meaning of "dependency": with the pruning that we can do, we *can*
-remove all the term level bits en masse, but only en-mass. So we need to make *them* into a clique,
+remove all the term level bits en masse, but only en-mass. So we need to make *them* into a circuit,
 so that this is visible to the dependency analysis.
 -}
 
@@ -187,8 +187,8 @@ bindingDeps b = case b of
         <$> (withCurrent destr $ traverse (typeDeps . _varDeclType) constrs)
     let tus = fmap (view PLC.theUnique) (destr : fmap _varDeclName constrs)
     -- See Note [Dependencies for datatype bindings, and pruning them]
-    let nonDatatypeClique = G.clique (fmap Variable tus)
-    pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeClique]
+    let nonDatatypeCircuit = G.circuit (fmap Variable tus)
+    pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeCircuit]
 
 varDeclDeps ::
   ( DepGraph g
