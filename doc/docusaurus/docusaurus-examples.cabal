@@ -44,7 +44,7 @@ library docusaurus-code
     , plutus-tx          ^>=1.40
 
   if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin ^>=1.39
+    build-depends: plutus-tx-plugin ^>=1.40
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -57,4 +57,3 @@ executable example-cip57
     , containers
     , plutus-ledger-api  ^>=1.40
     , plutus-tx          ^>=1.40
-
