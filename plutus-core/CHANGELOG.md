@@ -1,4 +1,17 @@
 
+<a id='changelog-1.40.0.0'></a>
+# 1.40.0.0 — 2025-01-16
+
+## Changed
+
+- In #5265 made `itraverseCounter_` faster increasing overall performance of the evaluator by 2.5%.
+
+- In #6737 made the the CEK creation operation marginally faster by resorting to bit manipulation
+
+## Fixed
+
+- Fix the Steppable CEK machine to correctly "pause/step" in case of SOPs.
+
 <a id='changelog-1.39.0.0'></a>
 # 1.39.0.0 — 2024-12-20
 
