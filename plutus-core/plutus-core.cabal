@@ -293,8 +293,8 @@ library
     , bimap
     , bytestring
     , bytestring-strict-builder
-    , cardano-crypto
-    , cardano-crypto-class        ^>=2.1.5
+    , cardano-crypto              >=1.2
+    , cardano-crypto-class        ^>=2.2
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
