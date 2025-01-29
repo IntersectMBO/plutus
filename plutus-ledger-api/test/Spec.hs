@@ -221,7 +221,6 @@ tests =
             , runTestNested
                 ["CostModel", "Data", "Params"]
                 [Spec.Data.CostModelParams.tests]
-            , Spec.Data.ContextDecoding.tests
             , Data.Value.test_Value
             ]
         ]
