@@ -8,7 +8,8 @@ import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
-import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as Data (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOP (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -52,10 +53,16 @@ main = do
                     , let (name, value) = mkBudgetTest marloweValidator bench
                     ]
             , runTestGhc ["role-payout"] $
-                goldenSize "role-payout" rolePayoutValidator
+                goldenSize "role-payout" SOP.rolePayoutValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- rolePayoutMBench
-                    , let (name, value) = mkBudgetTest rolePayoutValidator bench
+                    , let (name, value) = mkBudgetTest SOP.rolePayoutValidator bench
+                    ]
+            , runTestGhc ["data-role-payout"] $
+                goldenSize "data-role-payout" Data.rolePayoutValidator
+                  : [ goldenUEvalBudget name [value]
+                    | bench <- rolePayoutMBench
+                    , let (name, value) = mkBudgetTest Data.rolePayoutValidator bench
                     ]
             ]
   defaultMain allTests
