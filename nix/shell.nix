@@ -3,7 +3,7 @@
 let
   haskell-tools = project.tools
     {
-      cabal = "latest";
+      cabal = "3.12.1.0"; # TODO 3.14.1.1 breaks haddock, update when fixed
       hlint = "latest";
       haskell-language-server = "latest";
     } // {
@@ -71,6 +71,11 @@ let
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
     haskell-language-server
+    stylish-haskell
+    fourmolu
+    cabal
+    hlint
+    cabal-fmt
 
     pkgs.texliveFull
     pkgs.jekyll
@@ -111,5 +116,6 @@ project.shellFor {
   shellHook = ''
     eval "$(starship init bash)"
     ${pre-commit-check.shellHook}
+    echo -e "\n🤟 Welcome to Plutus 🤟"
   '';
 }
