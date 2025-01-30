@@ -2221,7 +2221,7 @@ instance Flat DefaultFun where
               CaseList                        -> 88
               CaseData                        -> 89
 
-              DropList -> 88
+              DropList                        -> 90
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -2314,7 +2314,7 @@ instance Flat DefaultFun where
               go 87 = pure ExpModInteger
               go 88 = pure CaseList
               go 89 = pure CaseData
-              go 88 = pure DropList
+              go 90 = pure DropList
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

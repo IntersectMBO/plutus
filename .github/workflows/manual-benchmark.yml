@@ -18,10 +18,10 @@ jobs:
     runs-on: [self-hosted, plutus-benchmark]
     permissions:
       pull-requests: write
-  
-    if: | 
-      startsWith(github.event.comment.body, '/benchmark') && 
-      github.event.issue.pull_request 
+
+    if: |
+      startsWith(github.event.comment.body, '/benchmark') &&
+      github.event.issue.pull_request
 
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
           # We need at least one commit before master to compare against
           fetch-depth: 5
 
-      - name: React With Rocket 
+      - name: React With Rocket
         uses: actions/github-script@main
         with:
           script: |
@@ -39,7 +39,7 @@ jobs:
               repo: context.issue.repo,
               comment_id: context.payload.comment.id,
               content: "rocket"
-            });  
+            });
 
       - name: Extract Benchmark Name
         id: extract-benchmark
@@ -59,7 +59,7 @@ jobs:
         id: extract-branch
         uses: actions/github-script@main
         with:
-          script: | 
+          script: |
             async function isPullRequest() {
               const result = await github.rest.issues.get({
                 owner: context.issue.owner,
@@ -93,17 +93,17 @@ jobs:
             try {
               if (!await isPullRequest()) {
                 core.setFailed("Comment is not on a pull request");
-              } else {  
+              } else {
                 core.setOutput("head_ref", await getCommentHeadRef());
               }
             } catch (error) {
               core.setFailed(`Error: ${error}`);
-            } 
+            }
 
       - name: Publish GH Action Link
         uses: actions/github-script@main
         with:
-          script: | 
+          script: |
             async function getJobUrl() {
               return `https://github.com/${context.issue.owner}/${context.issue.repo}/actions/runs/${context.runId}`;
             }
@@ -117,7 +117,7 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           CAPABILITY_NUM: ${{ steps.extract-benchmark.outputs.capability_num }}
@@ -128,7 +128,7 @@ jobs:
       - name: Publish Results
         uses: actions/github-script@main
         with:
-          script: | 
+          script: |
             const fs = require("fs");
 
             await github.rest.issues.createComment({

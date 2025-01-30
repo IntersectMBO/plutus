@@ -409,6 +409,10 @@ chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 {-# OPAQUE chooseList #-}
 
+drop :: Integer -> BuiltinList a -> BuiltinList a
+drop i (BuiltinList xs) = BuiltinList (Haskell.genericDrop i xs)
+{-# OPAQUE drop #-}
+
 caseList' :: forall a r . r -> (a -> BuiltinList a -> r) -> BuiltinList a -> r
 caseList' nilCase _        (BuiltinList [])       = nilCase
 caseList' _       consCase (BuiltinList (x : xs)) = consCase x (BuiltinList xs)

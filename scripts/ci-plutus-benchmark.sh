@@ -2,20 +2,20 @@
 
 # This script runs the given benchmark and compares the results against origin/master.
 #
-# USAGE: 
+# USAGE:
 # In order to trigger benchmarking for an open PR, post a comment like `/benchmark NAME` to
 # the PR. The command will be acknowledged with a :rocket: reaction and when done a bot will
 # publish the results to the same PR.
-# 
-# This script can also be run locally inside the nix shell like so: 
+#
+# This script can also be run locally inside the nix shell like so:
 # `BENCHMARK_NAME=nofib ./scripts/ci-plutus-benchmark.sh`
 #
 #
 # NOTES:
 # The `cabal update` command below is necessary because while the whole script is executed inside
-# a nix shell, this environment does not provide the hackage record inside .cabal and we have to 
+# a nix shell, this environment does not provide the hackage record inside .cabal and we have to
 # fetch/build this each time since we want to run this in a clean environment.
-# The `jq` invocation below is necessary because we have to POST the PR comment as JSON data 
+# The `jq` invocation below is necessary because we have to POST the PR comment as JSON data
 # (see the curl command) meaning the script output has to be escaped first before we can insert it.
 # For consistent results, the benchmarks should be run on a CPU with a fixed frequency or a performance governor.
 
@@ -32,9 +32,9 @@ fi
 
 if [ -z "$PR_BRANCH" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_BRANCH' is not set, probably running locally"
-else 
+else
    echo "[ci-plutus-benchmark]: 'PR_BRANCH' set to $PR_BRANCH, fetching origin ..."
-   git fetch origin 
+   git fetch origin
    git checkout "$PR_BRANCH"
 fi
 
@@ -56,7 +56,7 @@ fi
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Running as user:"
-whoami 
+whoami
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
@@ -88,7 +88,7 @@ echo "[ci-plutus-benchmark]: Comparing results ..."
 {
 # The blank line is important, otherwise Github doesn't render markdown in the body of the details element.
 # See https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d for examples
-cat <<EOF 
+cat <<EOF
 Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)
 
 <details>
@@ -99,6 +99,6 @@ EOF
     awk -v hdr1="${BASE_BRANCH_REF:0:7}" -v hdr2="${PR_BRANCH_REF:0:7}" '
      /^[| \t]*$/ {print "</details>"; next}
      /TOTAL/ {printf ("\n| | %s | %s | Change |\n| :------| :------: | :------: | :------: |\n", hdr1, hdr2)}
-     {print}' 
+     {print}'
 # ^ This puts </details> after the individual results and puts the TOTAL line in a small table on its own.
 } > bench-compare-result.log
