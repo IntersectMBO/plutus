@@ -1,7 +1,10 @@
-# This workflows checks for comments in PRs. If the comment has this format: 
-# /benchmark NAME
-# Then this action will run the benchmark with the given NAME, first against 
+# This job runs the desired benchmarks on demand.
+#
+# This job triggers whenever a comment is created in any PR.
+# If the comment has this format: "/benchmark NAME"
+# The this job will run the benchmark with the given NAME, first against 
 # the current branch and then comparing the results against the master branch.
+
 
 name: "🚀 Manual Benchmark"
 
