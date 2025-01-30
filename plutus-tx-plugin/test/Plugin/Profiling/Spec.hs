@@ -171,17 +171,17 @@ typeclassTest :: CompiledCode (Integer -> Integer -> Integer)
 typeclassTest = plc (Proxy @"typeclass") do
   \(x :: Integer) (y :: Integer) -> useTypeclass x y
 
-{-# INLINEABLE newtypeFunction #-}
 newtypeFunction :: a -> Identity (a -> a)
 newtypeFunction _ = Identity (\a -> a)
+{-# INLINEABLE newtypeFunction #-}
 
 argMismatch1 :: CompiledCode Integer
 argMismatch1 = plc (Proxy @"argMismatch1") do
   runIdentity (newtypeFunction 1) 1
 
-{-# INLINEABLE obscuredFunction #-}
 obscuredFunction :: (a -> a -> a) -> a -> a -> a
 obscuredFunction f a = f a
+{-# INLINEABLE obscuredFunction #-}
 
 argMismatch2 :: CompiledCode Integer
 argMismatch2 = plc (Proxy @"argMismatch2") do

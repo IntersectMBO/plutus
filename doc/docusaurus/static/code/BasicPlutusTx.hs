@@ -18,15 +18,6 @@ import PlutusTx.Builtins
 -- The Plutus Tx Prelude, discussed further below.
 import PlutusTx.Prelude
 
--- Setup for doctest examples.
-
--- $setup
--- >>> import Tutorial.PlutusTx
--- >>> import PlutusTx
--- >>> import PlutusCore
--- >>> import PlutusCore.Evaluation.Machine.Ck
--- >>> import Data.Text.Prettyprint.Doc
-
 -- BLOCK2
 integerOne :: CompiledCode Integer
 {- 'compile' turns the 'TExpQ Integer' into a
@@ -61,13 +52,12 @@ integerIdentity = $$(compile [|| \(x:: Integer) -> x ||])
   GHC to keep the information that the Plutus Tx compiler needs. While
   you may be able to get away with omitting it, it is good practice to
   always include it. -}
-{-# INLINABLE plusOne #-}
 plusOne :: Integer -> Integer
 {- 'addInteger' comes from 'PlutusTx.Builtins', and is
   mapped to the builtin integer addition function in Plutus Core. -}
 plusOne x = x `addInteger` 1
+{-# INLINABLE plusOne #-}
 
-{-# INLINABLE myProgram #-}
 myProgram :: Integer
 myProgram =
     let
@@ -78,6 +68,7 @@ myProgram =
         localTwo = plusOneLocal 1
         externalTwo = plusOne 1
     in localTwo `addInteger` externalTwo
+{-# INLINABLE myProgram #-}
 
 functions :: CompiledCode Integer
 functions = $$(compile [|| myProgram ||])

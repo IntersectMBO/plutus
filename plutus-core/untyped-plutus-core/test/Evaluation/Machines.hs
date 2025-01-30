@@ -7,10 +7,14 @@ module Evaluation.Machines
     ( test_machines
     , test_budget
     , test_tallying
+    , test_NumberOfStepCounters
     ) where
+
+import PlutusPrelude
 
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NumberOfStepCounters)
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 
 import PlutusCore qualified as Plc
@@ -24,15 +28,16 @@ import PlutusCore.FsTree
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-import PlutusPrelude
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
+import Data.Proxy (Proxy (..))
 import GHC.Exts (fromString)
 import GHC.Ix
+import GHC.TypeNats (natVal)
 import Hedgehog hiding (Size, Var, eval)
 import Test.Tasty
 import Test.Tasty.Extras
@@ -147,3 +152,9 @@ test_tallying =
         . runTestNested ["untyped-plutus-core", "test", "Evaluation", "Machines", "Tallying"]
         . foldPlcFolderContents testNested mempty (\name -> testTallying name . eraseTerm)
         $ bunchOfFibs
+
+test_NumberOfStepCounters :: TestTree
+test_NumberOfStepCounters =
+    runTestNestedM ["untyped-plutus-core", "test", "Evaluation", "Machines"] $ do
+        nestedGoldenVsDoc "NumberOfStepCounters" "" . pretty . natVal $ Proxy @NumberOfStepCounters
+        nestedGoldenVsDoc "NumberOfStepCounters" "" . pretty . length $ enumerate @StepKind

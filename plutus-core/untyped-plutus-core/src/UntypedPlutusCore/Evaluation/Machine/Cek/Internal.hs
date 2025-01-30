@@ -52,6 +52,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , GivenCekReqs
     , GivenCekSpender
     , StepCounter
+    , NumberOfStepCounters
     , CounterSize
     , TotalCountIndex
     , Slippage
@@ -97,6 +98,7 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
+import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -311,9 +313,23 @@ We keep the counters for each step in the first indices, so we can index them si
 the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
+-- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
+-- error-prone and has caused a bug in the past.
+type CountConstructorsEnum :: (GHC.Type -> GHC.Type) -> Nat
+type family CountConstructorsEnum rep where
+    CountConstructorsEnum U1         = 1
+    CountConstructorsEnum (M1 _ _ f) = CountConstructorsEnum f
+    CountConstructorsEnum (f :+: g)  = CountConstructorsEnum f + CountConstructorsEnum g
+    CountConstructorsEnum V1         = TypeError ('Text "Cannot be empty")
+    CountConstructorsEnum (f :*: g)  = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum (K1 _ _)   = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum (Rec1 _)   = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum Par1       =
+        TypeError ('Text "If you really want a parameterized type, handle this clause")
+
 -- | The number of step counters that we need, should be the same as the number of constructors
 -- of 'StepKind'.
-type NumberOfStepCounters = 9
+type NumberOfStepCounters = CountConstructorsEnum (Rep StepKind)
 -- | The total number of counters that we need, one extra for the total counter.
 -- See Note [Structure of the step counter]
 type CounterSize = NumberOfStepCounters + 1
@@ -878,11 +894,11 @@ enterComputeCek = computeCek
     -- | Look up a variable name in the environment.
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-        case varEnv `Env.indexOne` coerce varIx of
-            Nothing  ->
-                throwingWithCause _MachineError OpenTermEvaluatedMachineError $
-                    Just $ Var () varName
-            Just val -> pure val
+        Env.contIndexOne
+            (throwingWithCause _MachineError OpenTermEvaluatedMachineError . Just $ Var () varName)
+            pure
+            varEnv
+            (coerce varIx)
     {-# INLINE lookupVarName #-}
 
 -- See Note [Compilation peculiarities].

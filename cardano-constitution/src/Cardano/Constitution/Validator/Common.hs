@@ -30,7 +30,6 @@ type ChangedParams = [(BuiltinData, BuiltinData)]
 
 {- HLINT ignore "Redundant lambda" -} -- I like to see until where it supposed to be first applied.
 {- HLINT ignore "Collapse lambdas" -} -- I like to see and comment on each arg
-{-# INLINABLE withChangedParams #-}
 withChangedParams :: (ChangedParams -> Bool) -> ConstitutionValidator
 withChangedParams fun (scriptContextToValidGovAction -> validGovAction) =
     case validGovAction of
@@ -38,8 +37,8 @@ withChangedParams fun (scriptContextToValidGovAction -> validGovAction) =
             then BI.unitval
             else traceError "ChangedParams failed to validate"
         Nothing -> BI.unitval -- this is a treasury withdrawal, we just accept it
+{-# INLINABLE withChangedParams #-}
 
-{-# INLINABLE validateParamValue #-}
 validateParamValue :: ParamValue -> BuiltinData -> Bool
 validateParamValue = \case
     ParamInteger preds -> validatePreds preds . B.unsafeDataAsI
@@ -69,8 +68,8 @@ validateParamValue = \case
           meaning = defaultPredMeanings predKey
           -- apply the meaning to actual value: expectedValue is 1st argument, actualValue is 2nd argument
           meaningWithActual = (`meaning` actualValue)
+{-# INLINABLE validateParamValue #-}
 
-{-# INLINABLE scriptContextToValidGovAction #-}
 scriptContextToValidGovAction :: BuiltinData -> Maybe ChangedParams
 scriptContextToValidGovAction = scriptContextToScriptInfo
                            >>> scriptInfoToProposalProcedure
@@ -104,3 +103,4 @@ scriptContextToValidGovAction = scriptContextToScriptInfo
         -- Constructor Index of `TreasuryWithdrawals` is 2
         | govActionConstr `B.equalsInteger` 2 = Nothing -- means treasurywithdrawal
         | otherwise = traceError "Not a ChangedParams or TreasuryWithdrawals. This should not ever happen, because ledger should guard before, against it."
+{-# INLINABLE scriptContextToValidGovAction #-}

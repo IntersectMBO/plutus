@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -19,6 +20,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     , enormousBudget
     , tallying
     , restricting
+    , restrictingLarge
     , restrictingEnormous
     )
 where
@@ -142,7 +144,11 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
             CekM $ writeCpu cpuLeft'
             CekM $ writeMem memLeft'
             when (cpuLeft' < 0 || memLeft' < 0) $ do
-                let budgetLeft = ExBudget cpuLeft' memLeft'
+                let -- You'd think whether the budget is computed strictly or not before throwing
+                    -- an error isn't important, but GHC refuses to unbox the second argument of
+                    -- @spend@ without this bang. Bangs on @cpuLeft'@ and @memLeft'@ don't help
+                    -- either as those are forced by 'writeCpu' and 'writeMem' anyway. Go figure.
+                    !budgetLeft = ExBudget cpuLeft' memLeft'
                 throwingWithCause _EvaluationError
                     (OperationalEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
                     Nothing
@@ -153,6 +159,10 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
             pure $ initB `minusExBudget` r
         final = RestrictingSt . ExRestrictingBudget <$> remaining
     pure $ ExBudgetInfo spender final cumulative
+
+-- | 'restricting' instantiated at 'largeBudget'.
+restrictingLarge :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
+restrictingLarge = restricting largeBudget
 
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun

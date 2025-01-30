@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.36.0.0
+version:         1.40.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -78,6 +78,7 @@ library
     PlutusTx.Code
     PlutusTx.Coverage
     PlutusTx.Data.AssocMap
+    PlutusTx.Data.List
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
@@ -132,7 +133,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.36
+    , plutus-core            ^>=1.40
     , plutus-core:plutus-ir
     , prettyprinter
     , serialise
@@ -166,10 +167,10 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.36
+    , plutus-core                      ^>=1.40
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.36
+    , plutus-tx                        ^>=1.40
     , prettyprinter
     , tagged
     , tasty
@@ -177,14 +178,14 @@ library plutus-tx-testlib
     , text
 
 test-suite plutus-tx-test
-  import:             lang
+  import:         lang
 
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-  type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
-  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
@@ -203,8 +204,7 @@ test-suite plutus-tx-test
     Rational.Laws.Serialization
     Show.Spec
 
-  hs-source-dirs:     test
-  build-tool-depends: doctest:doctest
+  hs-source-dirs: test
   build-depends:
     , aeson
     , base                             >=4.9   && <5
@@ -217,9 +217,9 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.36
+    , plutus-core                      ^>=1.40
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.36
+    , plutus-tx                        ^>=1.40
     , pretty-show
     , serialise
     , tasty

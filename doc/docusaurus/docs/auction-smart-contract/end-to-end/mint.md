@@ -51,9 +51,9 @@ One final step before minting the token: since we want to lock the minted token 
 we must supply the parameters (i.e., `AuctionParams`) to the auction validator, compile the auction validator, and calculate its script address.
 
 Open `GenAuctionValidatorBlueprint.hs` in the `on-chain` directory, and replace all placeholders:
-- Replace `error "Replace with seller pkh"` with the content of `off-chain/seller.pkh`.
-- Replace `error "Replace with currency symbol"` with the minting policy hash, which you can find in the `hash` field in `off-chain/plutus-auction-minting-policy.json`.
-- Replace `error "Replace with the auction's end time"` with a POSIX timestamp for a time in the near future (say 24 hours from now).
+- Replace the `apSeller` value with the content of `off-chain/seller.pkh`.
+- Replace the `apCurrencySymbol` value with the minting policy hash, which you can find in the `hash` field in `off-chain/plutus-auction-minting-policy.json`.
+- Replace the `apEndTime` value with a POSIX timestamp for a time in the near future (say 24 hours from now).
   Note that the POSIX timestamp in Plutus is the number of _milliseconds_, rather than seconds, elapsed since January 1, 1970.
   In other words, add three zeros to the usual POSIX timestamp.
   For instance, the POSIX timestamp of September 1, 2024, 21:44:51 UTC, is 1725227091000.

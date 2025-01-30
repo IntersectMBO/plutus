@@ -7,9 +7,14 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-full-laziness #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
+{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 
 module PlutusLedgerApi.V3.MintValue
   ( MintValue (..) -- Constructor is exported for testing
@@ -66,7 +71,6 @@ instance HasBlueprintDefinition MintValue where
   definitionId = definitionIdFromType @MintValue
 
 instance HasBlueprintSchema MintValue referencedTypes where
-  {-# INLINEABLE schema #-}
   schema =
     SchemaMap
       emptySchemaInfo{title = Just "MintValue"}
@@ -84,28 +88,28 @@ instance HasBlueprintSchema MintValue referencedTypes where
         , minItems = Nothing
         , maxItems = Nothing
         }
+  {-# INLINEABLE schema #-}
 
-{-# INLINEABLE emptyMintValue #-}
 emptyMintValue :: MintValue
 emptyMintValue = UnsafeMintValue Map.empty
+{-# INLINEABLE emptyMintValue #-}
 
-{-# INLINEABLE mintValueToMap #-}
 mintValueToMap :: MintValue -> Map CurrencySymbol (Map TokenName Integer)
 mintValueToMap (UnsafeMintValue m) = m
+{-# INLINEABLE mintValueToMap #-}
 
 -- | Get the 'Value' minted by the 'MintValue'.
-{-# INLINEABLE mintValueMinted #-}
 mintValueMinted :: MintValue -> Value
 mintValueMinted (UnsafeMintValue values) = filterQuantities (\x -> [x | x > 0]) values
+{-# INLINEABLE mintValueMinted #-}
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
-{-# INLINEABLE mintValueBurned #-}
 mintValueBurned :: MintValue -> Value
 mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> [abs x | x < 0]) values
+{-# INLINEABLE mintValueBurned #-}
 
-{-# INLINEABLE filterQuantities #-}
 filterQuantities :: (Integer -> [Integer]) -> Map CurrencySymbol (Map TokenName Integer) -> Value
 filterQuantities mapQuantity values =
   Value (Map.unsafeFromList (foldr filterTokenQuantities [] (Map.toList values)))
@@ -119,6 +123,7 @@ filterQuantities mapQuantity values =
       case concatMap (traverse mapQuantity) (Map.toList tokenQuantities) of
         []         -> id
         quantities -> ((currency, Map.unsafeFromList quantities) :)
+{-# INLINEABLE filterQuantities #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

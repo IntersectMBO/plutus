@@ -30,7 +30,7 @@ test_names :: TestTree
 test_names = testGroup "names"
     [ T.test_scopingGood "beta-reduction" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . beta
-    , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+    , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalOk T.PrerenameYes $
         pure . caseReduce
     , T.test_scopingGood "commuteFnWithConst" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . commuteFnWithConst

@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Compiler.Utils where
@@ -21,14 +22,32 @@ import Language.Haskell.TH.Syntax qualified as TH
 import Data.Map qualified as Map
 import Data.Text qualified as T
 
--- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
+-- | Get the 'GHC.TyCon' for a given 'TH.Name' stored in the builtin name info,
 -- failing if it is missing.
-getThing :: Compiling uni fun m ann => TH.Name -> m GHC.TyThing
-getThing name = do
-    CompileContext{ccNameInfo=names} <- ask
-    case Map.lookup name names of
-        Nothing    -> throwSd CompilationError $ "Missing name:" GHC.<+> (GHC.text $ show name)
-        Just thing -> pure thing
+lookupGhcTyCon :: Compiling uni fun m ann => TH.Name -> m GHC.TyCon
+lookupGhcTyCon thName = do
+  CompileContext { ccNameInfo } <- ask
+  case Map.lookup thName ccNameInfo of
+    Just (GHC.ATyCon tc) -> pure tc
+    _ -> throwPlain $ CompilationError $ "TyCon not found: " <> T.pack (show thName)
+
+-- | Get the 'GHC.Name' for a given 'TH.Name' stored in the builtin name info,
+-- failing if it is missing.
+lookupGhcName :: Compiling uni fun m ann => TH.Name -> m GHC.Name
+lookupGhcName thName = do
+  CompileContext { ccNameInfo } <- ask
+  case Map.lookup thName ccNameInfo of
+    Just thing -> pure (GHC.getName thing)
+    Nothing    -> throwPlain $ CompilationError $ "Name not found: " <> T.pack (show thName)
+
+-- | Get the 'GHC.Id' for a given 'TH.Name' stored in the builtin name info,
+-- failing if it is missing.
+lookupGhcId :: Compiling uni fun m ann => TH.Name -> m GHC.Id
+lookupGhcId thName = do
+  CompileContext { ccNameInfo } <- ask
+  case Map.lookup thName ccNameInfo of
+    Just (GHC.AnId ghcId) -> pure ghcId
+    _ -> throwPlain $ CompilationError $ "Id not found: " <> T.pack (show thName)
 
 sdToStr :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m String
 sdToStr sd = do

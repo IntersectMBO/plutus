@@ -109,8 +109,12 @@ Some cancellation lemmas
 
 <>>-cancelʳ : ∀{A : Set} (bs bs' : Bwd A) xs → bs <>> xs ≡ bs' <>> xs → bs ≡ bs'
 <>>-cancelʳ bs bs' xs p = <>>[]-cancelʳ bs bs'
-        (++-cancelʳ (bs <>> []) (bs' <>> []) (trans (sym (lemma-<>>-++ bs [] xs))
-                                             (trans p (lemma-<>>-++ bs' [] xs))))
+        (++-cancelʳ xs (bs <>> []) (bs' <>> [])
+          (trans
+            (sym (lemma-<>>-++ bs [] xs))
+            (trans p (lemma-<>>-++ bs' [] xs))
+          )
+        )
 
 <>>-cancelˡ : ∀{A : Set} (bs : Bwd A) xs xs' → bs <>> xs ≡ bs <>> xs' → xs ≡ xs'
 <>>-cancelˡ [] xs xs' p = p

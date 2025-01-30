@@ -59,11 +59,11 @@ consN n = applyN n (cons ())
 consNSlab :: (RandomAccessList e, Element e ~ ()) => Word64 -> e -> e
 consNSlab n = consNSlabM (n `div` 10) 10
 
-{-# INLINE consNSlabM #-}
 -- | Conses on 'n' slabs of size 'm'
 consNSlabM :: (RandomAccessList e, Element e ~ ()) => Word64 -> Word64 -> e -> e
 consNSlabM slabNo slabSize = applyN slabNo (consSlab slab)
    where slab = fromJust $ NEV.replicate (fromIntegral slabSize) ()
+{-# INLINE consNSlabM #-}
 
 -- | Accesses the given indices.
 query :: (RandomAccessList e, Element e ~ ()) => [Word64] -> e -> Element e

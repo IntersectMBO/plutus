@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "docusaurus build --no-minify",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -15,32 +15,26 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "http-proxy-middleware": "^2.0.7",
-    "mermaid": "^10.9.3",
-    "cookie": "^0.7.0",
-    "path-to-regexp": "^1.9.0",
     "@cmfcmf/docusaurus-search-local": "^1.1.0",
-    "@docusaurus/core": "3.3.0",
-    "@docusaurus/plugin-google-gtag": "3.3.0",
-    "@docusaurus/preset-classic": "3.3.0",
-    "@docusaurus/theme-mermaid": "3.3.0",
-    "@mdx-js/react": "^3.0.0",
-    "body-parser": "^1.20.3",
-    "clsx": "^2.0.0",
-    "express": "^4.20.0",
-    "micromatch": "^4.0.8",
-    "prism-react-renderer": "^2.3.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "send": "^0.19.0",
-    "serve-static": "^1.16.0",
-    "webpack": "^5.94.0"
+    "@docusaurus/core": "^3.6.0",
+    "@docusaurus/plugin-google-gtag": "^3.6.0",
+    "@docusaurus/preset-classic": "^3.6.0",
+    "@docusaurus/theme-mermaid": "^3.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.2.1",
-    "@docusaurus/tsconfig": "3.2.1",
-    "@docusaurus/types": "3.2.1",
+    "@docusaurus/module-type-aliases": "^3.6.0",
+    "@docusaurus/tsconfig": "^3.6.0",
+    "@docusaurus/types": "^3.6.0",
     "typescript": "~5.2.2"
+  },
+  "resolutions": {
+    "cheerio": "1.0.0-rc.12",
+    "cross-spawn": "7.0.5",
+    "nanoid": "3.3.8",
+    "path-to-regexp": "3.3.0",
+    "katex": "0.16.21"
   },
   "browserslist": {
     "production": [

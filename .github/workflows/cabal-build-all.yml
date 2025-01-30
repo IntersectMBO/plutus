@@ -1,0 +1,30 @@
+# This workflow runs `cabal build all` on Linux with all supported GHC versions.
+# Normally, if Nix can build the shell and the packages via haskell.nix, we can be confident that 
+# Cabal can build the project inside the Nix shell.
+# However, this workflow is implemented to catch edge cases, such as the one described in 
+# https://github.com/IntersectMBO/plutus/issues/6625.
+
+name: "👷 Cabal Build All"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: [plutus-ci, self-hosted]
+    strategy:
+      matrix:
+        ghc: [ghc810, ghc910, ghc96, ghc98]
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Cold Build On ${{ matrix.ghc }}
+        run: | 
+          nix develop --no-warn-dirty --accept-flake-config .#${{ matrix.ghc }} \
+            --command bash -c 'cabal clean && cabal update && cabal build all' 

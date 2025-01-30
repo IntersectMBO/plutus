@@ -40,9 +40,9 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Pair qualified as PLC
 
 import GHC.Plugins qualified as GHC
-import GHC.Types.TyThing qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
@@ -162,6 +162,8 @@ mkBuiltin = PIR.Builtin annMayInline
 builtinNames :: [TH.Name]
 builtinNames = [
       ''Builtins.BuiltinByteString
+    , ''Builtins.BuiltinByteStringHex
+    , ''Builtins.BuiltinByteStringUtf8
     , 'Builtins.appendByteString
     , 'Builtins.consByteString
     , 'Builtins.sliceByteString
@@ -179,6 +181,8 @@ builtinNames = [
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
     , 'Builtins.stringToBuiltinByteString
+    , 'Builtins.stringToBuiltinByteStringHex
+    , 'Builtins.stringToBuiltinByteStringUtf8
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature
 
@@ -300,7 +304,7 @@ builtinNames = [
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm ann name term = do
-    ghcId <- GHC.tyThingId <$> getThing name
+    ghcId <- lookupGhcId name
     var <- compileVarFresh ann ghcId
     binfo <- asks ccBuiltinsInfo
     -- See Note [Builtin terms and values]
@@ -311,7 +315,7 @@ defineBuiltinTerm ann name term = do
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: forall uni fun m ann. Compiling uni fun m ann => TH.Name -> PIRType uni -> m ()
 defineBuiltinType name ty = do
-    tc <- GHC.tyThingTyCon <$> getThing name
+    tc <- lookupGhcTyCon name
     var <- compileTcTyVarFresh tc
     PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) mempty
     -- these are all aliases for now
@@ -410,7 +414,49 @@ defineBuiltinTerms = do
             PLC.HeadList -> defineBuiltinInl 'Builtins.head
             PLC.TailList -> defineBuiltinInl 'Builtins.tail
             PLC.ChooseList -> defineBuiltinInl 'Builtins.chooseList
-            PLC.CaseList -> defineBuiltinInl 'Builtins.caseList'
+            PLC.CaseList -> defineBuiltinTerm annMayInline 'Builtins.caseList' $
+                -- > /\a r ->
+                -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
+                -- >     chooseList
+                -- >       {a}
+                -- >       {all dead. r}
+                -- >       xs
+                -- >       (/\dead -> z)
+                -- >       (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                -- >       {r}
+                fmap (const annMayInline) . runQuote $ do
+                    a <- freshTyName "a"
+                    r <- freshTyName "r"
+                    dead <- freshTyName "dead"
+                    xs <- freshName "xs"
+                    z <- freshName "z"
+                    f <- freshName "f"
+                    let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+                        funAtXs headOrTail =
+                            PIR.apply ()
+                                (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
+                                (PIR.var () xs)
+                    return
+                        . PIR.tyAbs () a (PLC.Type ())
+                        . PIR.tyAbs () r (PLC.Type ())
+                        . PIR.lamAbs () z (PLC.TyVar () r)
+                        . PIR.lamAbs () f
+                            (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
+                        . PIR.lamAbs () xs listA
+                        . PIR.tyInst ()
+                            (PIR.mkIterAppNoAnn
+                                (PIR.mkIterInstNoAnn
+                                    (PIR.builtin () PLC.ChooseList)
+                                    [ PLC.TyVar () a
+                                    , PLC.TyForall () dead (PLC.Type ()) $ PLC.TyVar () r
+                                    ])
+                                [ PIR.var () xs
+                                , PIR.tyAbs () dead (PLC.Type ()) $ PIR.var () z
+                                , PIR.tyAbs () dead (PLC.Type ()) $ PIR.mkIterAppNoAnn
+                                    (PIR.var () f)
+                                    [funAtXs PLC.HeadList, funAtXs PLC.TailList]
+                                ])
+                        $ PLC.TyVar () r
             PLC.MkNilData -> defineBuiltinInl 'Builtins.mkNilData
             PLC.MkNilPairData -> defineBuiltinInl 'Builtins.mkNilPairData
             PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
@@ -430,8 +476,87 @@ defineBuiltinTerms = do
             PLC.UnBData -> defineBuiltinInl 'Builtins.unsafeDataAsB
             PLC.UnIData -> defineBuiltinInl 'Builtins.unsafeDataAsI
             PLC.SerialiseData -> defineBuiltinInl 'Builtins.serialiseData
-            PLC.CaseData -> defineBuiltinInl 'Builtins.caseData'
-
+            PLC.CaseData -> defineBuiltinTerm annMayInline 'Builtins.caseData' $
+                -- > /\r ->
+                -- >   \(fConstr : integer -> list data -> r)
+                -- >    (fMap : list (pair data data) -> r)
+                -- >    (fList : list data -> r)
+                -- >    (fI : integer -> r)
+                -- >    (fB : bytestring -> r)
+                -- >    (d : data) ->
+                -- >     chooseData
+                -- >       {all dead. r}
+                -- >       d
+                -- >       (/\dead ->
+                -- >          (/\a b c ->
+                -- >             \(f : a -> b -> c) (p : pair a b) ->
+                -- >               f (fstPair {a} {b} p) (sndPair {a} {b} p))
+                -- >            {integer}
+                -- >            {list data}
+                -- >            {r}
+                -- >            fConstr
+                -- >            (unConstrData d))
+                -- >       (/\dead -> fMap (unMapData d))
+                -- >       (/\dead -> fList (unListData d))
+                -- >       (/\dead -> fI (unIData d))
+                -- >       (/\dead -> fB (unBData d))
+                -- >       {r}
+                fmap (const annMayInline) . runQuote $ do
+                    r       <- freshTyName "r"
+                    dead    <- freshTyName "dead"
+                    fConstr <- freshName "fConstr"
+                    fMap    <- freshName "fMap"
+                    fList   <- freshName "fList"
+                    fI      <- freshName "fI"
+                    fB      <- freshName "fB"
+                    d       <- freshName "d"
+                    let integer = PLC.mkTyBuiltin @_ @Integer ()
+                        listData = PLC.mkTyBuiltin @_ @[PLC.Data] ()
+                        listPairData = PLC.mkTyBuiltin @_ @[(PLC.Data, PLC.Data)] ()
+                        bytestring = PLC.mkTyBuiltin @_ @BS.ByteString ()
+                    return
+                        . PIR.tyAbs () r (PLC.Type ())
+                        . PIR.lamAbs ()
+                            fConstr
+                            (PLC.TyFun () integer . PLC.TyFun () listData $ PLC.TyVar () r)
+                        . PIR.lamAbs () fMap (PLC.TyFun () listPairData $ PLC.TyVar () r)
+                        . PIR.lamAbs () fList (PLC.TyFun () listData $ PLC.TyVar () r)
+                        . PIR.lamAbs () fI (PLC.TyFun () integer $ PLC.TyVar () r)
+                        . PIR.lamAbs () fB (PLC.TyFun () bytestring $ PLC.TyVar () r)
+                        . PIR.lamAbs () d (PLC.mkTyBuiltin @_ @PLC.Data ())
+                        . PIR.tyInst ()
+                            (PIR.mkIterAppNoAnn
+                                (   PIR.tyInst () (PIR.builtin () PLC.ChooseData)
+                                  . PLC.TyForall () dead (PLC.Type ())
+                                  $ PLC.TyVar () r)
+                                [ PIR.var () d
+                                ,   PIR.tyAbs () dead (PLC.Type ())
+                                  $ PIR.mkIterAppNoAnn
+                                      (PIR.mkIterInstNoAnn
+                                          PLC.uncurry
+                                          [integer, listData, PLC.TyVar () r])
+                                      [ PIR.var () fConstr
+                                      , PIR.apply () (PIR.builtin () PLC.UnConstrData) $
+                                          PIR.var () d
+                                      ]
+                                ,   PIR.tyAbs () dead (PLC.Type ())
+                                  . PIR.apply () (PIR.var () fMap)
+                                  . PIR.apply () (PIR.builtin () PLC.UnMapData)
+                                  $ PIR.var () d
+                                ,   PIR.tyAbs () dead (PLC.Type ())
+                                  . PIR.apply () (PIR.var () fList)
+                                  . PIR.apply () (PIR.builtin () PLC.UnListData)
+                                  $ PIR.var () d
+                                ,   PIR.tyAbs () dead (PLC.Type ())
+                                  . PIR.apply () (PIR.var () fI)
+                                  . PIR.apply () (PIR.builtin () PLC.UnIData)
+                                  $ PIR.var () d
+                                ,   PIR.tyAbs () dead (PLC.Type ())
+                                  . PIR.apply () (PIR.var () fB)
+                                  . PIR.apply () (PIR.builtin () PLC.UnBData)
+                                  $ PIR.var () d
+                                ])
+                        $ PLC.TyVar () r
             -- BLS
             PLC.Bls12_381_G1_equal -> defineBuiltinInl 'Builtins.bls12_381_G1_equals
             PLC.Bls12_381_G1_add -> defineBuiltinInl 'Builtins.bls12_381_G1_add
@@ -493,7 +618,7 @@ defineBuiltinTypes = do
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
-    ghcName <- GHC.getName <$> getThing name
+    ghcName <- lookupGhcName name
     maybeTerm <- PIR.lookupTerm annMayInline (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
@@ -502,7 +627,7 @@ lookupBuiltinTerm name = do
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
 lookupBuiltinType :: Compiling uni fun m ann => TH.Name -> m (PIRType uni)
 lookupBuiltinType name = do
-    ghcName <- GHC.getName <$> getThing name
+    ghcName <- lookupGhcName name
     maybeType <- PIR.lookupType annMayInline (LexName ghcName)
     case maybeType of
         Just t  -> pure t

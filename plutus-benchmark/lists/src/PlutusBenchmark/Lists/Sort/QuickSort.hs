@@ -11,7 +11,6 @@ import PlutusTx qualified as Tx
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 
-{-# INLINABLE quickSort #-}
 quickSort :: [Integer] -> [Integer]
 quickSort []     = []
 quickSort (n:ns) = (quickSort $ before n ns []) ++ (n:(quickSort $ after n ns []))
@@ -23,6 +22,7 @@ quickSort (n:ns) = (quickSort $ before n ns []) ++ (n:(quickSort $ after n ns []
            after x (y:ys) r = if y >= x  -- Elements >= x
                            then after x ys (y:r)
                            else after x ys r
+{-# INLINABLE quickSort #-}
 
 {- The worst case is when the list is already sorted (or reverse sorted) because
    then if the list has n elements you have to recurse n times, scanning a list

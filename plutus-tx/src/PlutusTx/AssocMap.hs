@@ -209,25 +209,24 @@ instance (Eq k, Semigroup v) => Monoid (Map k v) where
 instance (Pretty k, Pretty v) => Pretty (Map k v) where
   pretty (Map mp) = pretty mp
 
-{-# INLINEABLE unsafeFromList #-}
 -- | Unsafely create a 'Map' from a list of pairs. This should _only_ be applied to lists which
 -- have been checked to not contain duplicate keys, otherwise the resulting 'Map' will contain
 -- conflicting entries (two entries sharing the same key).
 -- As usual, the "keys" are considered to be the first element of the pair.
 unsafeFromList :: [(k, v)] -> Map k v
 unsafeFromList = Map
+{-# INLINEABLE unsafeFromList #-}
 
-{-# INLINEABLE safeFromList #-}
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
 safeFromList :: Eq k => [(k, v)] -> Map k v
 safeFromList = foldr (uncurry insert) empty
+{-# INLINEABLE safeFromList #-}
 
-{-# INLINEABLE toList #-}
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
+{-# INLINEABLE toList #-}
 
-{-# INLINEABLE lookup #-}
 -- | Find an entry in a 'Map'. If the 'Map' is not well-formed (it contains duplicate keys)
 -- then this will return the value of the left-most pair in the underlying list of pairs.
 lookup :: forall k v. (Eq k) => k -> Map k v -> Maybe v
@@ -238,21 +237,21 @@ lookup c (Map xs) =
     go ((c', i) : xs') = if c' == c then Just i else go xs'
    in
     go xs
+{-# INLINEABLE lookup #-}
 
-{-# INLINEABLE member #-}
 -- | Is the key a member of the map?
 member :: forall k v. (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
+{-# INLINEABLE member #-}
 
-{-# INLINEABLE insert #-}
 -- | If a key already exists in the map, its entry will be replaced with the new value.
 insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
 insert k v (Map xs) = Map (go xs)
   where
     go []                = [(k, v)]
     go ((k', v') : rest) = if k == k' then (k, v) : rest else (k', v') : go rest
+{-# INLINEABLE insert #-}
 
-{-# INLINEABLE delete #-}
 -- | Delete an entry from the 'Map'. Assumes that the 'Map' is well-formed, i.e. if the
 -- underlying list of pairs contains pairs with duplicate keys then only the left-most
 -- pair will be removed.
@@ -263,12 +262,13 @@ delete key (Map ls) = Map (go ls)
     go ((k, v) : rest)
       | k == key = rest
       | otherwise = (k, v) : go rest
+{-# INLINEABLE delete #-}
 
-{-# INLINEABLE keys #-}
 -- | The keys of a 'Map'. Semantically, the resulting list is only a set if the 'Map'
 -- didn't contain duplicate keys.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
+{-# INLINEABLE keys #-}
 
 -- | Combine two 'Map's. Keeps both values on key collisions.
 -- Note that well-formedness is only preserved if the two input maps
@@ -296,7 +296,6 @@ union (Map ls) (Map rs) =
    in
     Map (ls' ++ rs'')
 
-{-# INLINEABLE unionWith #-}
 -- | Combine two 'Map's with the given combination function.
 -- Note that well-formedness of the resulting map depends on the two input maps
 -- being well-formed.
@@ -318,8 +317,8 @@ unionWith merge (Map ls) (Map rs) =
     rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
    in
     Map (ls' ++ rs')
+{-# INLINEABLE unionWith #-}
 
-{-# INLINEABLE mapThese #-}
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f mps = (Map mpl, Map mpr)
@@ -330,54 +329,47 @@ mapThese f mps = (Map mpl, Map mpr)
       This a    -> ((k, a) : as, bs)
       That b    -> (as, (k, b) : bs)
       These a b -> ((k, a) : as, (k, b) : bs)
+{-# INLINEABLE mapThese #-}
 
 -- | A singleton map.
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
-{-# INLINEABLE empty #-}
 
 -- | An empty 'Map'.
 empty :: Map k v
 empty = Map ([] :: [(k, v)])
-
-{-# INLINEABLE null #-}
+{-# INLINEABLE empty #-}
 
 -- | Is the map empty?
 null :: Map k v -> Bool
 null = P.null . unMap
-
-{-# INLINEABLE filter #-}
+{-# INLINEABLE null #-}
 
 -- | Filter all values that satisfy the predicate.
 filter :: (v -> Bool) -> Map k v -> Map k v
 filter f (Map m) = Map $ P.filter (f . snd) m
-
-{-# INLINEABLE elems #-}
+{-# INLINEABLE filter #-}
 
 -- | Return all elements of the map.
 elems :: Map k v -> [v]
 elems (Map xs) = P.fmap (\(_ :: k, v) -> v) xs
-
-{-# INLINEABLE mapWithKey #-}
+{-# INLINEABLE elems #-}
 
 -- | Map a function over all values in the map.
 mapWithKey :: (k -> a -> b) -> Map k a -> Map k b
 mapWithKey f (Map xs) = Map $ fmap (\(k, v) -> (k, f k v)) xs
-
-{-# INLINEABLE mapMaybe #-}
+{-# INLINEABLE mapWithKey #-}
 
 -- | Map keys\/values and collect the 'Just' results.
 mapMaybe :: (a -> Maybe b) -> Map k a -> Map k b
 mapMaybe f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k,) <$> f v) xs
-
-{-# INLINEABLE mapMaybeWithKey #-}
+{-# INLINEABLE mapMaybe #-}
 
 -- | Map keys\/values and collect the 'Just' results.
 mapMaybeWithKey :: (k -> a -> Maybe b) -> Map k a -> Map k b
 mapMaybeWithKey f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k,) <$> f k v) xs
-
-{-# INLINEABLE all #-}
+{-# INLINEABLE mapMaybeWithKey #-}
 
 -- | Determines whether all elements in the map satisfy the predicate.
 all :: (a -> Bool) -> Map k a -> Bool
@@ -386,6 +378,7 @@ all f (Map m) = go m
     go = \case
       []          -> True
       (_, x) : xs -> if f x then go xs else False
+{-# INLINEABLE all #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

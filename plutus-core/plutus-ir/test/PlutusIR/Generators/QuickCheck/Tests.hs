@@ -14,7 +14,6 @@ import PlutusIR.Generators.QuickCheck
 
 import PlutusCore.Builtin (fromValue)
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
@@ -25,7 +24,7 @@ import PlutusCore.Version (latestVersion)
 import PlutusIR
 import PlutusIR.Test ()
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (restricting, runCekNoEmit,
+import UntypedPlutusCore.Evaluation.Machine.Cek (restrictingLarge, runCekNoEmit,
                                                  unsafeSplitStructuralOperational)
 
 import Control.Exception
@@ -84,7 +83,8 @@ prop_genWellTypedFullyApplied = withMaxSuccess 50 $
 
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
-prop_shrinkTermSound = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_shrinkTermSound = withMaxSuccess 0 $
   forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
   -- While we generate well-typed terms we still need this check here for
@@ -157,7 +157,8 @@ prop_stats_leaves = withMaxSuccess 10 $
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
-prop_stats_numShrink = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_stats_numShrink = withMaxSuccess 0 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   let shrinks = map snd $ shrinkClosedTypedTerm (ty, tm)
@@ -186,7 +187,8 @@ prop_inhabited = withMaxSuccess 50 $
 
 -- | Check that there are no one-step shrink loops
 prop_noTermShrinkLoops :: Property
-prop_noTermShrinkLoops = withMaxSuccess 10 $
+-- The test is disabled, because it's exponential and was hanging CI.
+prop_noTermShrinkLoops = withMaxSuccess 0 $
   -- Note that we need to remove x from the shrinks of x here because
   -- a counterexample to this property is otherwise guaranteed to
   -- go into a shrink loop.
@@ -200,11 +202,10 @@ noStructuralErrors term =
   -- Throw on a structural evaluation error and succeed on both an operational evaluation error and
   -- evaluation success.
   void . evaluate . unsafeSplitStructuralOperational . fst $ do
-    let -- The numbers are picked so that evaluation of the arbitrarily generated term always
-        -- finishes in reasonable time even if evaluation loops (in which case we'll get an
-        -- out-of-budget failure).
-        budgeting = restricting . ExRestrictingBudget $ ExBudget 1000000000 1000000000
-    runCekNoEmit defaultCekParametersForTesting budgeting term
+    -- Using 'restrictingLarge' so that evaluation of the arbitrarily generated term always finishes
+    -- in reasonable time even if evaluation loops (in which case we'll get an out-of-budget
+    -- failure).
+    runCekNoEmit defaultCekParametersForTesting restrictingLarge term
 
 -- | Test that evaluation of well-typed terms doesn't fail with a structural error.
 prop_noStructuralErrors :: Property

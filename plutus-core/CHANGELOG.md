@@ -1,4 +1,44 @@
 
+<a id='changelog-1.40.0.0'></a>
+# 1.40.0.0 — 2025-01-16
+
+## Changed
+
+- In #5265 made `itraverseCounter_` faster increasing overall performance of the evaluator by 2.5%.
+
+- In #6737 made the the CEK creation operation marginally faster by resorting to bit manipulation
+
+## Fixed
+
+- Fix the Steppable CEK machine to correctly "pause/step" in case of SOPs.
+
+<a id='changelog-1.39.0.0'></a>
+# 1.39.0.0 — 2024-12-20
+
+## Changed
+
+- Relaxed upper bound for the `cardano-crypto-class` dependency (< 2.3)
+
+<a id='changelog-1.38.0.0'></a>
+# 1.38.0.0 — 2024-12-09
+
+## Changed
+
+- In #6702 made variable lookup faster increasing overall performance of the evaluator by 1%.
+
+- In #6705 made the local `spend` function faster increasing overall performance of the evaluator by 1.8%.
+
+<a id='changelog-1.37.0.0'></a>
+# 1.37.0.0 — 2024-11-25
+
+## Added
+
+- In #6530 added support for pattern matching builtins: `CaseList` and `CaseData`.
+
+## Changed
+
+- In #6663 made variable lookup significantly faster increasing overall performance of the evaluator by 10+%.
+
 <a id='changelog-1.36.0.0'></a>
 # 1.36.0.0 — 2024-10-09
 
@@ -68,7 +108,7 @@
 
 ## Added
 
-- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Chang+1 HF.
+- Added costing for the new bitwise builtins (see CIP-0058), which will probably become available at the Plomin HF.
 
 - Support for `Natural` numbers in the default universe, backed by `Integer`.
 

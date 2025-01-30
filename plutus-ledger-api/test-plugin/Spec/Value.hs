@@ -38,11 +38,10 @@ import Prettyprinter qualified as Pretty
 import Test.Tasty
 import Test.Tasty.Extras
 
-{-# INLINEABLE scalingFactor #-}
 scalingFactor :: Integer
 scalingFactor = 4
+{-# INLINEABLE scalingFactor #-}
 
-{-# INLINEABLE patternOptions #-}
 -- | A list of \"patterns\", each of which can be turned into 'Value's.
 --
 -- We use the patterns to construct lists of tokens: the first element of a tuple becomes a
@@ -66,16 +65,16 @@ patternOptions =
     , [(2,2), (2,3), (1,0), (3,5), (3,6), (2,4), (1,1), (2,7)]
     , [(1,9), (2,2), (6,10), (2,3), (1,0), (4,10), (3,5), (5,0), (3,6), (2,4), (1,1), (2,7), (4,8)]
     ]
+{-# INLINEABLE patternOptions #-}
 
-{-# INLINEABLE i2Bs #-}
 i2Bs :: Integer -> BuiltinByteString
 i2Bs n =
     if n < 0
         then "-" `appendByteString` i2Bs (negate n)
         -- @48@ is the ASCII code of @0@.
         else ListTx.foldr (consByteString . (48 +)) emptyByteString $ toDigits n
+{-# INLINEABLE i2Bs #-}
 
-{-# INLINEABLE replicateToByteString #-}
 -- | Like 'i2Bs but generates longer bytestrings, so that repeated recalculations of
 -- currency/token name comparisons get reflected in the budget tests in a visible manner.
 replicateToByteString :: Integer -> BuiltinByteString
@@ -86,15 +85,15 @@ replicateToByteString i =
     iTo2 = i * i
     iTo4 = iTo2 * iTo2
     iTo6 = iTo4 * iTo2
+{-# INLINEABLE replicateToByteString #-}
 
-{-# INLINEABLE tokenListOptions #-}
 tokenListOptions :: [[(TokenName, Integer)]]
 tokenListOptions =
     ListTx.map
         (ListTx.map $ \(i, x) -> (TokenName $ replicateToByteString i, x))
         patternOptions
+{-# INLINEABLE tokenListOptions #-}
 
-{-# INLINEABLE currencyListOptions #-}
 currencyListOptions :: [[(CurrencySymbol, [(TokenName, Integer)])]]
 currencyListOptions =
     ListTx.map
@@ -103,8 +102,8 @@ currencyListOptions =
             , tokenListOptions ListTx.!! x
             ))
         patternOptions
+{-# INLINEABLE currencyListOptions #-}
 
-{-# INLINEABLE longCurrencyChunk #-}
 -- | A \"long\" list of currencies each with a \"long\" list of tokens for stress-testing (one
 -- doesn't need many elements to stress-test Plutus Tx, hence the quotes).
 longCurrencyChunk :: [(CurrencySymbol, [(TokenName, Integer)])]
@@ -112,8 +111,8 @@ longCurrencyChunk
     = ListTx.concatMap Tx.sequence
     . ListTx.zip (ListTx.map (CurrencySymbol . replicateToByteString) [1 .. scalingFactor])
     $ ListTx.replicate scalingFactor tokenListOptions
+{-# INLINEABLE longCurrencyChunk #-}
 
-{-# INLINEABLE insertHooks #-}
 -- | Return a list whose head is the argument list with 'Nothing' inserted at the beginning, the
 -- middle and the end of it (every other element is wrapped with 'Just'). The tail of the resulting
 -- list comprises all possible versions of the head that we get by removing any number of
@@ -137,14 +136,15 @@ insertHooks xs0 = do
             [prefix ++ map Just xsSlow ++ suffix]
     xs0' <- go xs0 xs0
     [Nothing : xs0', xs0']
+{-# INLINEABLE insertHooks #-}
 
-{-# INLINEABLE currencyLongListOptions #-}
 -- | The last and the biggest list of currencies from 'currencyListOptions' with 'longCurrencyChunk'
 -- inserted in it in various ways as per 'insertHooks'.
 currencyLongListOptions :: [[(CurrencySymbol, [(TokenName, Integer)])]]
 currencyLongListOptions =
     insertHooks (ListTx.last currencyListOptions) <&> \currencyListWithHooks ->
     ListTx.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
+{-# INLINEABLE currencyLongListOptions #-}
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
 listsToValue = Value . AssocMap.unsafeFromList . ListTx.map (fmap AssocMap.unsafeFromList)
