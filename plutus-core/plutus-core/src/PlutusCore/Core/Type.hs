@@ -41,6 +41,8 @@ module PlutusCore.Core.Type
     , termAnn
     , typeAnn
     , mapFun
+    , mapUniType
+    , mapUniTerm
     , tyVarDeclAnn
     , tyVarDeclName
     , tyVarDeclKind
@@ -269,6 +271,43 @@ mapFun f = go where
     go (Builtin ann fun)          = Builtin ann (f fun)
     go (Constr ann ty i args)     = Constr ann ty i (map go args)
     go (Case ann ty arg cs)       = Case ann ty (go arg) (map go cs)
+
+mapUniType
+    :: forall uni uni' tyname ann.
+       (SomeTypeIn uni -> SomeTypeIn uni')
+    -> Type tyname uni ann
+    -> Type tyname uni' ann
+mapUniType f = go where
+    go :: Type tyname uni ann -> Type tyname uni' ann
+    go (TyVar ann name)        = TyVar ann name
+    go (TyFun ann ty1 ty2)     = TyFun ann (go ty1) (go ty2)
+    go (TyIFix ann ty1 ty2)    = TyIFix ann (go ty1) (go ty2)
+    go (TyForall ann name k t) = TyForall ann name k (go t)
+    go (TyBuiltin ann con)     = TyBuiltin ann (f con)
+    go (TyLam ann name k t)    = TyLam ann name k (go t)
+    go (TyApp ann t1 t2)       = TyApp ann (go t1) (go t2)
+    go (TySOP ann tys)         = TySOP ann (map (map go) tys)
+
+mapUniTerm
+    :: forall uni uni' tyname name fun ann.
+       (SomeTypeIn uni -> SomeTypeIn uni')
+    -> (Some (ValueOf uni) -> Some (ValueOf uni'))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni' fun ann
+mapUniTerm fTy fCon = go where
+    go :: Term tyname name uni fun ann -> Term tyname name uni' fun ann
+    go (LamAbs ann name ty body)  = LamAbs ann name (mapUniType fTy ty) (go body)
+    go (TyAbs ann name kind body) = TyAbs ann name kind (go body)
+    go (IWrap ann pat arg term)   = IWrap ann (mapUniType fTy pat) (mapUniType fTy arg) (go term)
+    go (Apply ann fun arg)        = Apply ann (go fun) (go arg)
+    go (Unwrap ann term)          = Unwrap ann (go term)
+    go (Error ann ty)             = Error ann (mapUniType fTy ty)
+    go (TyInst ann term ty)       = TyInst ann (go term) (mapUniType fTy ty)
+    go (Var ann name)             = Var ann name
+    go (Constant ann con)         = Constant ann (fCon con)
+    go (Builtin ann fun)          = Builtin ann fun
+    go (Constr ann ty i args)     = Constr ann (mapUniType fTy ty) i (map go args)
+    go (Case ann ty arg cs)       = Case ann (mapUniType fTy ty) (go arg) (map go cs)
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).
