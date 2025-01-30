@@ -30,5 +30,5 @@ in
       {all dead. dead})
     {all dead. unit}
     (/\dead -> ())
-    (/\dead -> error {unit})
+    (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
     {all dead. dead}

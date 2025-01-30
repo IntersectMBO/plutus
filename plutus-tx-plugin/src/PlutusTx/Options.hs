@@ -341,7 +341,7 @@ defaultPluginOptions =
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
     , _posInlineConstants = True
-    , _posPreserveLogging = False
+    , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     }
