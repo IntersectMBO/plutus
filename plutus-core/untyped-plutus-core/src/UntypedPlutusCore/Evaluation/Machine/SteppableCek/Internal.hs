@@ -59,6 +59,7 @@ import Control.Monad
 import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
@@ -101,7 +102,7 @@ data Context uni fun ann
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
-    | FrameFix ann !(Context uni fun ann)
+    | FrameFix ann !Word64 !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -165,9 +166,10 @@ computeCek !ctx !env (Constr ann i es) = do
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
     pure $ Computing (FrameCases ann env cs ctx) env scrut
-computeCek !ctx !env (Fix ann _ bodyOuter) = do
+computeCek !ctx !env (Fix ann rec body) = do
     stepAndMaybeSpend BFix
-    pure $ Computing (FrameFix ann ctx) env bodyOuter
+    let !len' = Env.length env + 1
+    pure $ Computing (FrameFix ann len' ctx) (Env.cons (VBlackHole (ndbnString rec) len') env) body
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure
@@ -216,13 +218,13 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               in computeCek ctx' env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
     _ -> throwingDischarged _MachineError NonConstrScrutinized e
-returnCek (FrameFix _ ctx) bodyOuter =
-    case bodyOuter of
-        VLamAbs nameArg bodyInner env ->
-            let env' = Env.cons bodyOuter' env
-                bodyOuter' = VLamAbs nameArg bodyInner env'
-            in pure $ Returning ctx bodyOuter'
-        _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyOuter
+returnCek (FrameFix _ recIx ctx) bodyV =
+    case bodyV of
+        VLamAbs nameArg bodyLam env -> do
+            let env' = Env.contUpdateZero (\_ -> bodyV') env (Env.length env - recIx)
+                bodyV' = VLamAbs nameArg bodyLam env'
+            pure $ Returning ctx bodyV'
+        _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyV
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;
@@ -394,7 +396,7 @@ contextAnn = \case
     FrameForce ann _            -> pure ann
     FrameConstr ann _ _ _ _ _   -> pure ann
     FrameCases ann _ _ _        -> pure ann
-    FrameFix ann _              -> pure ann
+    FrameFix ann _ _            -> pure ann
     NoFrame                     -> empty
 
 lenContext :: Context uni fun ann -> Word
@@ -408,7 +410,7 @@ lenContext = go 0
               FrameForce _ k            -> go (n+1) k
               FrameConstr _ _ _ _ _ k   -> go (n+1) k
               FrameCases _ _ _ k        -> go (n+1) k
-              FrameFix _ k              -> go (n+1) k
+              FrameFix _ _ k            -> go (n+1) k
               NoFrame                   -> 0
 
 

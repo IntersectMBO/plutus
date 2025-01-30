@@ -51,7 +51,8 @@
 | BStep BBuiltin causes ({cpu: 0 | mem: 0})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
+| BStep BFix causes ({cpu: 16000 | mem: 100})
 | BStartup causes ({cpu: 100 | mem: 100})})
-| budget: ({cpu: 5168100
-| mem: 32400})
+| budget: ({cpu: 5184100
+| mem: 32500})
 }) )

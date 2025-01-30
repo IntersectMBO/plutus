@@ -511,6 +511,7 @@ dischargeCekValEnv valEnv = go 0
                -- var is in the env, discharge its value
                (\case
                    VBlackHole recName recLamCnt ->
+                       -- TODO: is this right?
                        Var () (NamedDeBruijn recName . coerce $ lamCnt - recLamCnt)
                    val -> dischargeCekValue val)
                -- index relative to (as seen from the point of view of) the environment
@@ -541,7 +542,8 @@ dischargeCekValue = \case
         stack2list = go []
         go acc EmptyStack           = acc
         go acc (ConsStack arg rest) = go (arg : acc) rest
-    VBlackHole _ _ -> error "can't happen"
+    -- TODO: is this right?
+    VBlackHole recName _ -> Var () (NamedDeBruijn recName 0)
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
@@ -772,6 +774,7 @@ enterComputeCek = computeCek
                 let env' = Env.contUpdateZero (\_ -> bodyV') env (Env.length env - recIx)
                     bodyV' = VLamAbs nameArg bodyLam env'
                 returnCek ctx bodyV'
+            VBlackHole{} -> throwingDischarged _MachineError FixLoopMachineError bodyV
             _ -> throwingDischarged _MachineError NonLambdaFixedMachineError bodyV
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with

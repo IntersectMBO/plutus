@@ -63,6 +63,7 @@ data MachineError fun
     | NonConstrScrutinized
     | MissingCaseBranch Word64
     | NonLambdaFixedMachineError
+    | FixLoopMachineError
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -136,3 +137,5 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
     prettyBy _      NonLambdaFixedMachineError =
         "Attempted to take the fixed-point of a non-lambda term"
+    prettyBy _      FixLoopMachineError =
+        "Fix entered infinite recursion"
