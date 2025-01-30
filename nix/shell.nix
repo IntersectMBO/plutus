@@ -3,7 +3,7 @@
 let
   haskell-tools = project.tools
     {
-      cabal = "3.12.1.0"; # TODO 3.14.1.1 breaks haddock, update when fixed
+      cabal = "latest";
       hlint = "latest";
       haskell-language-server = "latest";
     } // {
