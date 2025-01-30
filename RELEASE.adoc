@@ -41,7 +41,7 @@ In all other cases, we always start a new major or minor release from master.
 
 == Release Process
 
-Run `./scripts/prepare-release.sh` to manage the release process. 
+Run `./scripts/interactive-release.sh` to manage the release process. 
 
 == Backwards Compatibility with Cardano API
 
