@@ -50,6 +50,7 @@ let
     pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
+    pkgs.github-cli
 
     # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
     # it's not available on macOS.
@@ -77,24 +78,6 @@ in {
   welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
   packages = lib.concatLists [ all-pkgs linux-pkgs ];
-
-  scripts.assemble-changelog = {
-    description = "Assembles the changelog for PACKAGE at VERSION";
-    exec = repoRoot.scripts."assemble-changelog.sh";
-    group = "changelog";
-  };
-
-  scripts.prepare-release = {
-    description = "Prepares to release PACKAGEs at VERSION";
-    exec = repoRoot.scripts."prepare-release.sh";
-    group = "changelog";
-  };
-
-  scripts.update-version = {
-    description = "Updates the version for PACKAGE to VERSION";
-    exec = repoRoot.scripts."update-version.sh";
-    group = "changelog";
-  };
 
   shellHook = ''
     ${builtins.readFile certEnv}
