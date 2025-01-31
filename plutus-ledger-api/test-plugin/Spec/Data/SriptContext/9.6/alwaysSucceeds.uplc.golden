@@ -22,4 +22,5 @@
                                 (force (force sndPair) tup))))
                        (delay (delay (case error [error]))))))
               (unConstrData d))
-           [(delay ()), (delay error)])))
+           [ (delay ())
+           , (delay ((\x -> error) (force trace "PT5" (constr 0 [])))) ])))
