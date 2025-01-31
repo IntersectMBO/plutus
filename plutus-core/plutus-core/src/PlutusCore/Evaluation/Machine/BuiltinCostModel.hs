@@ -140,7 +140,6 @@ data BuiltinCostModelBase f =
     , paramUnIData                         :: f ModelOneArgument
     , paramUnBData                         :: f ModelOneArgument
     , paramEqualsData                      :: f ModelTwoArguments
-    , paramDropList                        :: f ModelTwoArguments
     -- Misc constructors
     , paramMkPairData                      :: f ModelTwoArguments
     , paramMkNilData                       :: f ModelOneArgument
@@ -187,6 +186,7 @@ data BuiltinCostModelBase f =
     , paramExpModInteger                   :: f ModelThreeArguments
     -- , paramCaseList here
     -- , paramCaseData here
+    , paramDropList                        :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
