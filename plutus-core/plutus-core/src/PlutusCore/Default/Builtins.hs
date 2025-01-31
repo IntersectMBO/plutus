@@ -109,7 +109,6 @@ data DefaultFun
     | HeadList
     | TailList
     | NullList
-    | DropList
     -- Data
     -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
@@ -1546,18 +1545,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             nullListDenotation
             (runCostingFunOneArgument . paramNullList)
-
-    toBuiltinMeaning _semvar DropList =
-        let dropListDenotation :: Int -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-            dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Operational vs structural errors within builtins].
-                case uniListA of
-                    DefaultUniList _ -> pure . fromValueOf uniListA $ drop i xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE dropListDenotation #-}
-        in makeBuiltinMeaning
-            dropListDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- Data
     toBuiltinMeaning _semvar ChooseData =
