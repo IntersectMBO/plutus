@@ -151,7 +151,11 @@
                                        {all dead. bytestring}
                                        (/\dead ->
                                           unBData (headList {data} args))
-                                       (/\dead -> error {bytestring})
+                                       (/\dead ->
+                                          let
+                                            !x : Unit = trace {Unit} "PT1" Unit
+                                          in
+                                          error {bytestring})
                                        {all dead. dead}))
                                 (/\dead -> fail ())
                                 {all dead. dead})
@@ -191,7 +195,11 @@
               False)
            {all dead. Unit}
            (/\dead -> Unit)
-           (/\dead -> error {Unit})
+           (/\dead ->
+              let
+                !x : Unit = trace {Unit} "Odd number of outputs" Unit
+              in
+              error {Unit})
            {all dead. dead}))
   (Constr 0
      [ Constr 0

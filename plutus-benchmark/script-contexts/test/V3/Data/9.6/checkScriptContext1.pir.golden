@@ -22,6 +22,8 @@
     data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
+    data Unit | Unit_match where
+      Unit : Unit
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -41,13 +43,15 @@
                    {all dead. Maybe a}
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
-                   (/\dead -> error {Maybe a})
+                   (/\dead ->
+                      let
+                        !x : Unit = trace {Unit} "PT1" Unit
+                      in
+                      error {Maybe a})
                    {all dead. dead})
               {all dead. dead}
     data (Solo :: * -> *) a | Solo_match where
       MkSolo : a -> Solo a
-    data Unit | Unit_match where
-      Unit : Unit
   in
   \(d : data) ->
     Solo_match
@@ -220,7 +224,11 @@
               False)
            {all dead. Unit}
            (/\dead -> Unit)
-           (/\dead -> error {Unit})
+           (/\dead ->
+              let
+                !x : Unit = trace {Unit} "Odd number of outputs" Unit
+              in
+              error {Unit})
            {all dead. dead}))
   (Constr 0
      [ Constr 0
