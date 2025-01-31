@@ -182,7 +182,11 @@ data BuiltinCostModelBase f =
     , paramFindFirstSetBit                 :: f ModelOneArgument
     -- Ripemd_160
     , paramRipemd_160                      :: f ModelOneArgument
+    -- Batch 6
     , paramExpModInteger                   :: f ModelThreeArguments
+    -- , paramCaseList here
+    -- , paramCaseData here
+    , paramDropList                        :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

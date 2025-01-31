@@ -84,6 +84,7 @@ module PlutusTx.Builtins (
                          , headMaybe
                          , BI.head
                          , BI.tail
+                         , BI.drop
                          , uncons
                          , unsafeUncons
                          -- * Tracing

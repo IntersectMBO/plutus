@@ -230,7 +230,7 @@ diagnostic purposes).  It should be clear how to do this.  For the
 
 #### Step 3: add an outline costing function entry in the JSON file
 
-Add a new entry in [`builtinCostModel.json`](./data/builtinCostModel.json):
+Add a new entry to each of the three JSON files ([`builtinCostModelA.json`](./data/builtinCostModelA.json), and `B` and `C`) in [`data`](./data/):
 
 ```
     "xorByteString": {
@@ -296,9 +296,8 @@ Now go back to
 #### Step 5: add a benchmark for the new builtin and run it
 
 Now a CPU usage benchmark for the function will have to be added in
-[`plutus-core/cost-model/budgeting-bench`](./budgeting-bench) and new R code
-will have to be added in [`models.R`](./data/models.R) to process the results of
-the benchmark (see Step 6 below).  The benchmark should aim to cover a wide
+[`plutus-core/cost-model/budgeting-bench`](./budgeting-bench) - this will be
+processed by R code added in Step 6 below.  The benchmark should aim to cover a wide
 range of inputs in order to get a good idea of the worst-case behaviour of the
 function: experimentation may be needed to achieve this.
 

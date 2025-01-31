@@ -317,5 +317,10 @@ data ParamName =
 --  not enabled yet:
 --    ExpModInteger'cpu'arguments
 --    ExpModInteger'memory'arguments
+--    DropList'cpu'arguments'intercept
+--    DropList'cpu'arguments'slope
+--    DropList'memory'arguments'intercept
+--    DropList'memory'arguments'slope
+
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
