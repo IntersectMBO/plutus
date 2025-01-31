@@ -24,21 +24,7 @@ program
                    \(by : (all Q. F Q -> Q) -> (all Q. F Q -> Q)) ->
                      (/\a b ->
                         \(f : (a -> b) -> a -> b) ->
-                          (\(s :
-                               (\a ->
-                                  ifix (\(self :: * -> *) a -> self a -> a) a)
-                                 (a -> b)) ->
-                             unwrap s s)
-                            (iwrap
-                               (\(self :: * -> *) a -> self a -> a)
-                               (a -> b)
-                               (\(s :
-                                    (\a ->
-                                       ifix
-                                         (\(self :: * -> *) a -> self a -> a)
-                                         a)
-                                      (a -> b)) ->
-                                  f (\(x : a) -> unwrap s s x))))
+                          fix (rec : a -> b). \(x : a) -> f rec x)
                        {all Q. F Q -> F Q}
                        {all Q. F Q -> Q}
                        (\(rec : (all Q. F Q -> F Q) -> (all Q. F Q -> Q))

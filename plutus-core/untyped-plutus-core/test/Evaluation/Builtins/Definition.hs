@@ -33,6 +33,7 @@ import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
@@ -523,6 +524,20 @@ test_fixId =
                     , mkConstant @Integer () 42
                     ]
         typecheckAndEvalToOutOfEx fixId
+
+test_fixLoop :: TestTree
+test_fixLoop =
+    testCase "a 'fix' loop finishes" $ do
+        let fixLoop :: Term TyName Name DefaultUni DefaultFun ()
+            fixLoop = runQuote $ do
+                rec <- freshName "rec"
+                pure $ Fix () rec (TyFun () integer integer) $ Var () rec
+            evalRestricting params = fst . runCekNoEmit params restrictingLarge
+        case typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting fixLoop of
+                Right (Left (ErrorWithCause (StructuralEvaluationError FixLoopMachineError) _)) ->
+                    pure ()
+                err ->
+                    assertFailure $ "Expected a 'FixLoopMachineError' but got: " ++ displayPlc err
 
 -- | If the first char is an opening paren and the last chat is a closing paren, then remove them.
 -- This is useful for rendering a term-as-a-test-name in CLI, since currently we wrap readably
@@ -1212,6 +1227,7 @@ test_definition =
 #endif
         , test_SerialiseDataImpossible
         , test_fixId
+        , test_fixLoop
         , runTestNestedHere
             [ test_Integer
             , test_String

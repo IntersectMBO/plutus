@@ -152,8 +152,7 @@ unroll = runQuote $ do
 -- | 'fix' as a PLC term.
 --
 -- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
--- >     unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) ->
--- >         f (\(x : a) -> unroll {a -> b} s x))
+-- >   Fix [a] rec (\(x : a) -> f rec x)
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
 fix :: TermLike term TyName Name uni fun => term ()
@@ -161,30 +160,24 @@ fix = fst fixAndType
 
 fixAndType :: TermLike term TyName Name uni fun => (term (), Type TyName uni ())
 fixAndType = runQuote $ do
-    let RecursiveType self wrapSelf = selfData
     a <- freshTyName "a"
     b <- freshTyName "b"
     f <- freshName "f"
-    s <- freshName "s"
+    rec <- freshName "rec"
     x <- freshName "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
-        unrollFunAB = tyInst () unroll funAB
-    let selfFunAB = TyApp () self funAB
-    let fixTerm =
-            tyAbs () a (Type ())
+        fixTerm
+            = tyAbs () a (Type ())
             . tyAbs () b (Type ())
             . lamAbs () f (TyFun () funAB funAB)
-            . apply () unrollFunAB
-            . wrapSelf [funAB]
-            . lamAbs () s selfFunAB
-            . apply () (var () f)
+            . mkFix () rec (TyFun () (TyVar () a) $ TyVar () b)
             . lamAbs () x (TyVar () a)
-            $ mkIterAppNoAnn unrollFunAB
-                [ var () s
+            $ mkIterAppNoAnn (var () f)
+                [ var () rec
                 , var () x
                 ]
-    let fixType =
-            TyForall () a (Type ())
+        fixType
+            = TyForall () a (Type ())
             . TyForall () b (Type ())
             $ TyFun () (TyFun () funAB funAB) funAB
     pure (fixTerm, fixType)

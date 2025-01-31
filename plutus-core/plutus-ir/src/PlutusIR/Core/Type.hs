@@ -150,6 +150,7 @@ data Term tyname name uni fun a
   | -- See Note [Constr tag type]
     Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
   | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
+  | Fix a name (Type tyname uni a) (Term tyname name uni fun a)
   deriving stock (Functor, Generic)
 
 deriving stock instance
@@ -189,6 +190,7 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   error = Error
   constr = Constr
   kase = Case
+  mkFix = Fix
 
   termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
   typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
@@ -250,6 +252,7 @@ termAnn = \case
   Unwrap a _     -> a
   Constr a _ _ _ -> a
   Case a _ _ _   -> a
+  Fix a _ _ _    -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case

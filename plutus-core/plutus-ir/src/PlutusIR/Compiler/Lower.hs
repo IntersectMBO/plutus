@@ -20,6 +20,7 @@ lowerTerm = \case
     Var x n          -> pure $ PLC.Var x n
     TyAbs x n k t    -> PLC.TyAbs x n k <$> lowerTerm t
     LamAbs x n ty t  -> PLC.LamAbs x n ty <$> lowerTerm t
+    Fix x n ty t     -> PLC.Fix x n ty <$> lowerTerm t
     Apply x t1 t2    -> PLC.Apply x <$> lowerTerm t1 <*> lowerTerm t2
     Constant x c     -> pure $ PLC.Constant x c
     Builtin x bi     -> pure $ PLC.Builtin x bi

@@ -42,6 +42,7 @@ clearMachineCostModel :: (m ~ MCekMachineCosts) => m -> m
 clearMachineCostModel r = r
     { cekConstrCost  = mempty
     , cekCaseCost    = mempty
+    , cekFixCost     = mempty
     }
 
 {- | Assign to `mempty` those builtins that the @PlutusV3@ introduces.

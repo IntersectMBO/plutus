@@ -89,6 +89,9 @@ termVarInfo = \case
   LamAbs _ n ty t ->
     VarsInfo (UMap.insertByName n (NormalVar Strict ty Nothing) mempty) mempty
     <> termVarInfo t
+  Fix _ n ty t ->
+    VarsInfo (UMap.insertByName n (NormalVar Strict ty Nothing) mempty) mempty
+    <> termVarInfo t
   TyAbs _ n _ t   ->
     VarsInfo mempty (UMap.insertByName n NormalTyVar mempty)
     <> termVarInfo t

@@ -159,13 +159,22 @@ inferTypeM (Builtin ann bn)         =
 inferTypeM (Var ann name)           =
     lookupVarM ann name
 
--- [check| G !- dom :: *]    dom ~> vDom    [infer| G , n : dom !- body : vCod]
+-- [check| G !- dom :: *]    dom ~> vDom    [infer| G , n : vDom !- body : vCod]
 -- ----------------------------------------------------------------------------
 -- [infer| G !- lam n dom body : vDom -> vCod]
 inferTypeM (LamAbs ann n dom body)  = do
     checkKindM ann dom $ Type ()
     vDom <- normalizeTypeM $ void dom
     TyFun () <<$>> pure vDom <<*>> withVar n vDom (inferTypeM body)
+
+-- [check| G !- ty :: *]    ty ~> vTy    [check| G , rec : vTy !- body : vTy]
+-- ----------------------------------------------------------------------------
+-- [infer| G !- fix rec ty body : vTy]
+inferTypeM (Fix ann rec ty body) = do
+    checkKindM ann ty $ Type ()
+    vTy <- normalizeTypeM $ void ty
+    withVar rec vTy $ checkTypeM ann body vTy
+    pure vTy
 
 -- [infer| G , n :: nK !- body : vBodyTy]
 -- ---------------------------------------------------

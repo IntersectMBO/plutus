@@ -82,6 +82,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     error    :: ann -> Type tyname uni ann -> term ann
     constr   :: ann -> Type tyname uni ann -> Word64 -> [term ann] -> term ann
     kase     :: ann -> Type tyname uni ann -> term ann -> [term ann] -> term ann
+    mkFix    :: ann -> name -> Type tyname uni ann -> term ann -> term ann
 
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
@@ -121,6 +122,7 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     error    = Error
     constr   = Constr
     kase     = Case
+    mkFix    = Fix
 
 embedTerm :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
 embedTerm = \case
@@ -136,6 +138,7 @@ embedTerm = \case
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embedTerm t)
     Constr a ty i es  -> constr a ty i (fmap embedTerm es)
     Case a ty arg cs  -> kase a ty (embedTerm arg) (fmap embedTerm cs)
+    Fix a name ty t   -> mkFix a name ty (embedTerm t)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann

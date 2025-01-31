@@ -414,6 +414,7 @@ costIsAcceptable = \case
   Case{} -> False
   Force{} -> False
   Delay{} -> True
+  Fix{} -> False
 
 {- | Is the size increase (in the AST) of inlining a variable whose RHS is
 the given term acceptable?
@@ -442,6 +443,7 @@ sizeIsAcceptable inlineConstants = \case
   Apply{} -> False
   Force _ t -> sizeIsAcceptable inlineConstants t
   Delay _ t -> sizeIsAcceptable inlineConstants t
+  Fix{} -> False
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce ::

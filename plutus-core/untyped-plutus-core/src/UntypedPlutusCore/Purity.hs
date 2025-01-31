@@ -122,6 +122,13 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
           LamAbs _ _ body -> goTerm body
           -- unknown function body
           _               -> evalThis Unknown
+    t@(Fix _ _ body) ->
+      -- first the body
+      goTerm body
+        -- then the whole term, which means work
+        <> evalThis (EvalTerm Pure MaybeWork t)
+        -- then recursion
+        <> evalThis Unknown
     t@(Force _ dterm) ->
       -- first delayed term
       goTerm dterm

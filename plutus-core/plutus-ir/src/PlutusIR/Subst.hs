@@ -48,6 +48,7 @@ fvTermCtx bound f = \case
      in Let a r <$> traverse (fvBindingCtx bound f) bs <*> fvTermCtx bound' f tIn
   Var a n -> Var a <$> (if USet.memberByName n bound then pure n else f n)
   LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
+  Fix a n ty t -> Fix a n ty <$> fvTermCtx (USet.insertByName n bound) f t
   t -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.

@@ -40,6 +40,8 @@ handleTerm = \case
         addUsage n ann TermScope
     LamAbs ann n _ ->
         addDef n ann TermScope
+    Fix ann n _ ->
+        addDef n ann TermScope
     _               -> pure ()
 
 runTermDefs

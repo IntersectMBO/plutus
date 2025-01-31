@@ -1,16 +1,15 @@
 (program
    1.1.0
-   ((\s ->
-       s s)
-      (\s ds ->
+   ((fix rec.
+       \x ->
          force
            (case
-              ds
+              x
               [ (delay (constr 0 []))
               , (\x xs ->
                    delay
                      (force
-                        (case x [(delay (s s xs)), (delay (constr 1 []))]))) ]))
+                        (case x [(delay (rec xs)), (delay (constr 1 []))]))) ]))
       (constr 1
          [ (constr 0 [])
          , (constr 1

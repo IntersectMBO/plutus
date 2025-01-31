@@ -85,6 +85,9 @@ eqTermM (Var ann1 name1) (Var ann2 name2) = do
 eqTermM (LamAbs ann1 name1 body1) (LamAbs ann2 name2 body2) = do
     eqM ann1 ann2
     withTwinBindings name1 name2 $ eqTermM body1 body2
+eqTermM (Fix ann1 name1 body1) (Fix ann2 name2 body2) = do
+    eqM ann1 ann2
+    withTwinBindings name1 name2 $ eqTermM body1 body2
 eqTermM (Apply ann1 fun1 arg1) (Apply ann2 fun2 arg2) = do
     eqM ann1 ann2
     eqTermM fun1 fun2
@@ -116,5 +119,6 @@ eqTermM Apply{}    _ = empty
 eqTermM Delay{}    _ = empty
 eqTermM Force{}    _ = empty
 eqTermM Error{}    _ = empty
-eqTermM Constr{}    _ = empty
-eqTermM Case{}    _ = empty
+eqTermM Constr{}   _ = empty
+eqTermM Case{}     _ = empty
+eqTermM Fix{}      _ = empty

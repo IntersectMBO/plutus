@@ -32,6 +32,7 @@ termConstants f term0 = case term0 of
     Builtin{}        -> pure term0
     Constr{}         -> pure term0
     Case{}           -> pure term0
+    Fix{}            -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term name uni fun ann) name
@@ -61,6 +62,7 @@ termSubterms f = \case
     Force ann t       -> Force ann <$> f t
     Constr ann i args -> Constr ann i <$> traverse f args
     Case ann arg cs   -> Case ann <$> f arg <*> traverse f cs
+    Fix ann n t       -> Fix ann n <$> f t
     e@Error {}        -> pure e
     v@Var {}          -> pure v
     c@Constant {}     -> pure c

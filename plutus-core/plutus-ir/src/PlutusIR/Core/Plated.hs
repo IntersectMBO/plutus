@@ -134,6 +134,8 @@ termConstants f term0 = case term0 of
     Builtin{}        -> pure term0
     Constr{}         -> pure term0
     Case{}           -> pure term0
+    Fix{}            -> pure term0
+{-# INLINE termConstants #-}
 
 -- | Get all the direct child 'Kind's of the given 'Term'.
 termSubkinds :: Traversal' (Term tyname name uni fun ann) (Kind ann)
@@ -151,6 +153,7 @@ termSubkinds f term0 = case term0 of
     Builtin{}       -> pure term0
     Constr{}        -> pure term0
     Case{}          -> pure term0
+    Fix{}           -> pure term0
 {-# INLINE termSubkinds #-}
 
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
@@ -165,6 +168,7 @@ termSubterms f = \case
     Unwrap x t        -> Unwrap x <$> f t
     Constr x ty i es  -> Constr x ty i <$> traverse f es
     Case x ty arg cs  -> Case x ty <$> f arg <*> traverse f cs
+    Fix x n ty t      -> Fix x n ty <$> f t
     e@Error {}        -> pure e
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
@@ -180,6 +184,7 @@ termSubtypes :: Traversal' (Term tyname name uni fun a) (Type tyname uni a)
 termSubtypes f = \case
     Let x r bs t      -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
     LamAbs x n ty t   -> LamAbs x n <$> f ty <*> pure t
+    Fix x n ty t      -> Fix x n <$> f ty <*> pure t
     TyInst x t ty     -> TyInst x t <$> f ty
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
     Error x ty        -> Error x <$> f ty
@@ -213,6 +218,7 @@ termUniques f = \case
     Var ann n         -> PLC.theUnique f n  <&> Var ann
     TyAbs ann tn k t  -> PLC.theUnique f tn <&> \tn' -> TyAbs ann tn' k t
     LamAbs ann n ty t -> PLC.theUnique f n  <&> \n'  -> LamAbs ann n' ty t
+    Fix ann n ty t    -> PLC.theUnique f n  <&> \n'  -> Fix ann n' ty t
     a@Apply{}         -> pure a
     c@Constant{}      -> pure c
     b@Builtin{}       -> pure b

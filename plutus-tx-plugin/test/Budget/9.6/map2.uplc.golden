@@ -229,4 +229,4 @@
                  xs
                  (delay z)
                  (delay (f (force headList xs) (force tailList xs))))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+      (\f -> fix rec. \x -> f rec x)))

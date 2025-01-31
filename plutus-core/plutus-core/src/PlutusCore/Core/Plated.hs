@@ -134,6 +134,7 @@ termConstants f term0 = case term0 of
     Builtin{}        -> pure term0
     Constr{}         -> pure term0
     Case{}           -> pure term0
+    Fix{}            -> pure term0
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
 termTyBinds :: Traversal' (Term tyname name uni fun ann) tyname
@@ -150,11 +151,13 @@ termTyBinds f term0 = case term0 of
     Builtin{}        -> pure term0
     Constr{}         -> pure term0
     Case{}           -> pure term0
+    Fix{}            -> pure term0
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
 termBinds :: Traversal' (Term tyname name uni fun ann) name
 termBinds f term0 = case term0 of
     LamAbs ann n ty t -> f n <&> \n' -> LamAbs ann n' ty t
+    Fix ann n ty t    -> f n <&> \n' -> Fix ann n' ty t
     Var{}             -> pure term0
     TyAbs{}           -> pure term0
     TyInst{}          -> pure term0
@@ -182,12 +185,14 @@ termVars f term0 = case term0 of
     Builtin{}  -> pure term0
     Constr{}   -> pure term0
     Case{}     -> pure term0
+    Fix{}      -> pure term0
 
 -- | Get all the direct child 'Unique's of the given 'Term' (including the type-level ones).
 termUniques :: HasUniques (Term tyname name uni fun ann) => Traversal' (Term tyname name uni fun ann) Unique
 termUniques f term0 = case term0 of
     TyAbs ann tn k t  -> theUnique f tn <&> \tn' -> TyAbs ann tn' k t
     LamAbs ann n ty t -> theUnique f n <&> \n' -> LamAbs ann n' ty t
+    Fix ann n ty t    -> theUnique f n <&> \n' -> Fix ann n' ty t
     Var ann n         -> theUnique f n <&> Var ann
     TyInst{}          -> pure term0
     IWrap{}           -> pure term0
@@ -214,6 +219,7 @@ termSubkinds f term0 = case term0 of
     Builtin{}       -> pure term0
     Constr{}        -> pure term0
     Case{}          -> pure term0
+    Fix{}           -> pure term0
 {-# INLINE termSubkinds #-}
 
 -- | Get all the direct child 'Type's of the given 'Term'.
@@ -231,6 +237,7 @@ termSubtypes f term0 = case term0 of
     Var{}               -> pure term0
     Constant{}          -> pure term0
     Builtin{}           -> pure term0
+    Fix{}               -> pure term0
 {-# INLINE termSubtypes #-}
 
 -- | Get all the transitive child 'Constant's of the given 'Term'.
@@ -252,6 +259,7 @@ termSubterms f term0 = case term0 of
     Unwrap ann t        -> Unwrap ann <$> f t
     Constr ann ty i es  -> Constr ann ty i <$> traverse f es
     Case ann ty arg cs  -> Case ann ty <$> f arg <*> traverse f cs
+    Fix ann n ty t      -> Fix ann n ty <$> f t
     Error{}             -> pure term0
     Var{}               -> pure term0
     Constant{}          -> pure term0

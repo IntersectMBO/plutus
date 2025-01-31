@@ -53,6 +53,7 @@ instance
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
       ("constr" <+> prettyArg i) :| [prettyArg es]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
+    Fix _ name body -> fixPrettyM name body
 
 instance
   (PrettyReadableBy configName (Term name uni fun a)) =>

@@ -1,22 +1,21 @@
 (program
    1.1.0
    ((\go d -> go (unListData d) 5)
-      ((\s -> s s)
-         (\s xs i ->
-            force
-              (force (force chooseList)
-                 xs
-                 (delay (\ds -> error))
-                 (delay
-                    ((\x xs ds eta ->
-                        force
-                          (force
-                             (force ifThenElse
-                                (equalsInteger 0 i)
-                                (delay (delay x))
-                                (delay
-                                   (delay (s s xs (subtractInteger i 1)))))))
-                       (force headList xs)
-                       (force tailList xs))))
-              (constr 0 [])
-              (constr 0 [])))))
+      (fix rec.
+         \x i ->
+           force
+             (force (force chooseList)
+                x
+                (delay (\ds -> error))
+                (delay
+                   ((\x xs ds eta ->
+                       force
+                         (force
+                            (force ifThenElse
+                               (equalsInteger 0 i)
+                               (delay (delay x))
+                               (delay (delay (rec xs (subtractInteger i 1)))))))
+                      (force headList x)
+                      (force tailList x))))
+             (constr 0 [])
+             (constr 0 []))))
