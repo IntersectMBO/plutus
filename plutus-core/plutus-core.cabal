@@ -312,7 +312,7 @@ library
     , flat                        ^>=0.6
     , free
     , ghc-prim
-    , hashable                    >=1.4
+    , hashable                    >=1.5
     , hedgehog                    >=1.0
     , index-envs
     , lens
@@ -703,8 +703,8 @@ executable plutus
     , singletons-th
     , text
     , text-zipper
-    , vty                    ^>=6
-    , vty-crossplatform      ^>=0.2
+    , vty                    ^>=6.2
+    , vty-crossplatform      ^>=0.4
 
   ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
   default-extensions:
