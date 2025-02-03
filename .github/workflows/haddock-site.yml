@@ -1,15 +1,15 @@
-# This job builds and deploys the Haddock site.
+# This workflow builds and deploys the Haddock site.
 # 
-# When this job is triggered manually via workflow dispatch, it builds and then 
+# When this workflow is triggered manually via workflow dispatch, it builds and then 
 # publishes the site according to the 'ref' input:
 # https://plutus.cardano.intersectmbo.org/haddock/$ref
 # And optionally (if the 'latest' flag is set) to: 
 # https://plutus.cardano.intersectmbo.org/haddock/latest
 #
-# This job also builds and publishes the site on push to master to:
+# This workflow also builds and publishes the site on push to master to:
 # https://plutus.cardano.intersectmbo.org/haddock/master
 #
-# This job does not trigger on each pull request because it takes about 1h to run.
+# This workflow does not trigger on each pull request because it takes about 1h to run.
 # However it will build (but not deploy) the site on pull requests to the release/* branches.
 
 

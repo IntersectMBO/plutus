@@ -1,6 +1,6 @@
-# This job checks for broken links in various files in the repo.
+# This workflow checks for broken links in various files in the repo.
 #
-# This job runs on all pull requests and on push to master, and it can also be triggered manually.
+# This workflow runs on all pull requests and on push to master, and it can also be triggered manually.
 
 
 name: "🔗 Broken Links"

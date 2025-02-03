@@ -1,4 +1,4 @@
-# This job builds the plutus-tx-template using the current version of the plutus code.
+# This workflow builds the plutus-tx-template using the current version of the plutus code.
 # 
 # It ensures that the plutus-tx-template repository stays working even if there 
 # are changes in plutus. It checks out both the current commit of plutus and the 
@@ -6,7 +6,7 @@
 # plutus-tx-template that adjusts the plutus version. Finally, it double-checks 
 # that everything still builds correctly using cabal inside the devx shell.
 #
-# This job runs on all pull requests.
+# This workflow runs on all pull requests.
 
 
 name: "🏛️ PlutusTx Template"

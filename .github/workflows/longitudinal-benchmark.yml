@@ -1,8 +1,8 @@
-# This job runs a suite of benchmarks and detects performance regressions.
+# This workflow runs a suite of benchmarks and detects performance regressions.
 # The benchmark charts are live at https://plutus.cardano.intersectmbo.org/dev/bench
 # The benchmark data is available at https://plutus.cardano.intersectmbo.org/dev/bench/data.js
 #
-# This job runs on push to master, and on pull requests to the release/* branches,
+# This workflow runs on push to master, and on pull requests to the release/* branches,
 # and it can also be triggered manually.
 
 

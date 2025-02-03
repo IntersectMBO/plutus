@@ -83,6 +83,11 @@ in {
     ${builtins.readFile certEnv}
   '';
 
+  scripts.interactive-release = {
+    description = "Release a new version of Plutus";
+    exec = repoRoot.scripts."interactive-release.sh";
+  };
+
   preCommit = {
     stylish-haskell.enable = true;
     cabal-fmt.enable = true;
