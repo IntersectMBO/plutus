@@ -61,6 +61,62 @@ mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =
   [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
+-- | Function which generates a function which takes a runtime BuiltinData argument
+-- and decodes it into a tuple of arguments
+mkDecodingFunction
+  :: TH.Name
+  -- ^ Name of the constructor
+  -> Integer
+  -- ^ Index of the constructor
+  -> Integer
+  -- ^ Number of fields in the constructor
+  -> TH.DecQ
+mkDecodingFunction dTypeName dTypeConstrIx numFields = do
+  let funcName = TH.mkName $ "matchOn" <> TH.nameBase dTypeName
+      builtinData = TH.mkName "builtinData"
+      argPat = TH.ConP dTypeName [] [TH.VarP builtinData]
+      decs =
+        [ TH.ValD
+            (TH.VarP $ TH.mkName "asConstr")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "constrIx")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.fst) (TH.VarE $ TH.mkName "asConstr"))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "constrArgs")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE $ TH.mkName "asConstr"))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "field0")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs"))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "rest0")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName "constrArgs"))
+            []
+        ]
+        <> foldMap (\i ->
+            [ TH.ValD
+                (TH.VarP $ TH.mkName $ "field" <> show i)
+                (TH.NormalB $ TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
+                []
+            , TH.ValD
+                (TH.VarP $ TH.mkName $ "rest" <> show i)
+                (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
+                []
+            ])
+            [1 .. numFields - 1]
+      ifExpr =
+          TH.CondE
+            (TH.AppE (TH.AppE (TH.VarE '(==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
+            (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1])
+            (TH.AppE (TH.VarE 'traceError) (TH.LitE . TH.StringL $ "Constructor index mismatch"))
+      body = TH.NormalB $ TH.LetE decs ifExpr
+      clause = TH.Clause [argPat] body []
+  return $ TH.FunD funcName [clause]
+
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
   let
