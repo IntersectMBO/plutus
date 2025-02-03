@@ -10,6 +10,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Generators.QuickCheck (forAllDoc)
 import PlutusCore.Pretty qualified as PLC
+import PlutusIR.Core.Instance.CoqShow
 import PlutusIR.Core.Type
 import PlutusIR.Error qualified as PIR
 import PlutusIR.Generators.QuickCheck
@@ -44,8 +45,8 @@ runTestPass
      , Show tyname
      , Show fun
      , Show name
-     , PLC.Everywhere uni Show
-     , PLC.GShow uni
+     , PLC.Everywhere uni (ComposeC Show AsCoq)
+     , PLC.GShow (AsCoqUni uni)
      , Typeable a
      , Monoid a
      , Monad m

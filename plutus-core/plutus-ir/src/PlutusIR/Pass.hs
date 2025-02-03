@@ -20,6 +20,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import GHC.Generics (Generic)
 import PlutusCore.Quote
+import PlutusIR.Core.Instance.CoqShow
 
 -- | A condition on a 'Term'.
 data Condition tyname name uni fun a where
@@ -129,8 +130,8 @@ hoistPass f = \case
 
 runPass
   :: ( Monad m
-     , PLC.Everywhere uni Show
-     , PLC.GShow uni
+     , PLC.Everywhere uni (ComposeC Show AsCoq)
+     , PLC.GShow (AsCoqUni uni)
      , Show tyname
      , Show name
      , Show fun
@@ -142,24 +143,24 @@ runPass
   -> Pass m tyname name uni fun a
   -> Term tyname name uni fun a
   -> ExceptT (Error uni fun a) m (Term tyname name uni fun a)
-runPass logger certDump checkConditions (Pass p mainPass pre post) t = do
+runPass logger dumpCert checkConditions (Pass p mainPass pre post) t = do
   when checkConditions $ do
     lift $ logger "checking preconditions"
     for_ pre $ \c -> checkCondition c t
   t' <- lift $ mainPass t
   lift $ do
-    certDump (T.pack . show $ p)
-    certDump (T.pack . show $ (void t'))
+    dumpCert (T.pack . show $ p)
+    dumpCert (T.pack . show . AsCoq $ (void t'))
   when checkConditions $ do
     lift $ logger "checking postconditions"
     for_ post $ \c -> checkBiCondition c t t'
   pure t'
-runPass logger certDump checkConditions (CompoundPass p1 p2) t = do
-  t' <- runPass logger certDump checkConditions p1 t
-  runPass logger certDump checkConditions p2 t'
-runPass logger certDump checkConditions (NamedPass n pass) t = do
+runPass logger dumpCert checkConditions (CompoundPass p1 p2) t = do
+  t' <- runPass logger dumpCert checkConditions p1 t
+  runPass logger dumpCert checkConditions p2 t'
+runPass logger dumpCert checkConditions (NamedPass n pass) t = do
   lift $ logger $ n ++ ": running pass"
-  t' <- runPass logger certDump checkConditions pass t
+  t' <- runPass logger dumpCert checkConditions pass t
   lift $ logger $ n ++ ": finished pass"
   pure t'
 runPass _ _ _ NoOpPass t = pure t

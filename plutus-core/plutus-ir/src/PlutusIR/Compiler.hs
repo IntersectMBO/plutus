@@ -87,6 +87,8 @@ import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusPrelude
 
+import PlutusIR.Core.Instance.CoqShow
+
 isVerbose :: Compiling m e uni fun a => m Bool
 isVerbose = view $ ccOpts . coVerbose
 
@@ -101,11 +103,11 @@ logDebug = whenM isDebug . traceM
 
 runCompilerPass
   :: (Compiling m e uni fun a, b ~ Provenance a
-  , PLC.Everywhere uni Show
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
   , Show fun
   , Show name
   , Show tyname
-  , PLC.GShow uni
+  , PLC.GShow (AsCoqUni uni)
   )
   => (Text -> m ())
   -> m (P.Pass m tyname name uni fun b)
@@ -191,8 +193,8 @@ dce = do
 compileToReadable
   :: forall m e uni fun a b
   . (Compiling m e uni fun a, b ~ Provenance a
-  , PLC.Everywhere uni Show
-  , PLC.GShow uni
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
+  , PLC.GShow (AsCoqUni uni)
   , Show fun
   )
   => (Text -> m ())
@@ -210,8 +212,8 @@ compileToReadable dumpCert (Program a v t) = do
 compileReadableToPlc
   :: forall m e uni fun a b
   . (Compiling m e uni fun a, b ~ Provenance a
-     , PLC.Everywhere uni Show
-     , PLC.GShow uni
+     , PLC.Everywhere uni (ComposeC Show AsCoq)
+     , PLC.GShow (AsCoqUni uni)
      , Show fun
   )
   => (Text -> m ())
@@ -247,8 +249,8 @@ compileReadableToPlc dumpCert (Program a v t) = do
 
 --- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
 compileProgram :: ( Compiling m e uni fun a
-  , PLC.Everywhere uni Show
-  , PLC.GShow uni
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
+  , PLC.GShow (AsCoqUni uni)
   , Show fun
   )
             => (Text -> m ()) ->

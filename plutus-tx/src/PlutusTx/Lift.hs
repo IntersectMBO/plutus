@@ -42,6 +42,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
 
+import PlutusIR.Core.Instance.CoqShow
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
@@ -71,8 +72,8 @@ safeLift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
@@ -107,8 +108,8 @@ safeLiftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
@@ -126,8 +127,8 @@ safeLiftCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
@@ -154,8 +155,8 @@ lift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
@@ -168,8 +169,8 @@ liftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
@@ -189,8 +190,8 @@ liftCode
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
 
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
@@ -203,8 +204,8 @@ liftCodeDef
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => a -> CompiledCodeIn uni fun a
@@ -237,8 +238,8 @@ typeCheckAgainst
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
 
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => Proxy a
@@ -286,8 +287,8 @@ typeCode
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
 
-       , PLC.Everywhere uni Show
-       , PLC.GShow uni
+       , PLC.Everywhere uni (ComposeC Show AsCoq)
+       , PLC.GShow (AsCoqUni uni)
        , Show fun
        )
     => Proxy a

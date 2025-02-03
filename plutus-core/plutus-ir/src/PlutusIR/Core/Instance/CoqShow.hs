@@ -11,21 +11,23 @@
 {-# LANGUAGE UndecidableInstances     #-}
 {-# LANGUAGE UndecidableSuperClasses  #-}
 
-module UntypedPlutusCore.Core.Instance.CoqShow where
+module PlutusIR.Core.Instance.CoqShow where
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
-import PlutusCore.Default.Universe
-import UntypedPlutusCore.Core.Type
+import PlutusCore.Default
+import PlutusIR.Core.Type
 
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, unpack)
 import Data.Kind (Constraint)
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Text (Text)
-import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
+import Data.Word (Word8)
+import Text.Printf
 
 type ComposeC :: forall a b. (b -> Constraint) -> (a -> b) -> a -> Constraint
 class c (f x) => ComposeC c f x
@@ -56,21 +58,10 @@ instance Closed uni => Closed (AsCoqUni uni) where
 
     withDecodedUni k = withDecodedUni $ \uni -> k (AsCoqUni uni)
 
-instance
-        ( Show name
-        , GShow (AsCoqUni uni)
-        , Closed uni, AsCoqUni uni `Everywhere` Show
-        , Show fun
-        , Show ann
-        ) => Show (AsCoq (Term name uni fun ann)) where
-    showsPrec pr (AsCoq term) = showsPrec pr $ mapUni f term where
-        f (Some (ValueOf uni x)) = Some (ValueOf (AsCoqUni uni) (AsCoq x))
-
 instance GShow (AsCoqUni DefaultUni) where
     gshowsPrec pr (AsCoqUni a) = showsPrec pr a
 
 deriving newtype instance Show (AsCoq Integer)
-deriving newtype instance Show (AsCoq ByteString)
 deriving newtype instance Show (AsCoq ())
 deriving newtype instance Show (AsCoq Bool)
 deriving via [AsCoq a] instance Show (AsCoq a) => Show (AsCoq [a])
@@ -80,4 +71,21 @@ deriving newtype instance Show (AsCoq BLS12_381.G1.Element)
 deriving newtype instance Show (AsCoq BLS12_381.G2.Element)
 deriving newtype instance Show (AsCoq BLS12_381.Pairing.MlResult)
 instance Show (AsCoq Text) where
-    show (AsCoq text) = Text.unpack text
+    show (AsCoq text) = show (map AsCoq (unpack $ Text.encodeUtf8 text))
+instance Show (AsCoq Word8) where
+    -- Matches constructor notation of Coq.Init.Byte
+    show (AsCoq w) = printf "x%02x" w
+instance Show (AsCoq ByteString) where
+    show (AsCoq bs) = show (map AsCoq (unpack bs))
+
+instance
+        ( Show name
+        , Show tyname
+        , GShow (AsCoqUni uni)
+        , Closed uni, AsCoqUni uni `Everywhere` Show
+        , Show fun
+        , Show ann
+        ) => Show (AsCoq (Term tyname name uni fun ann)) where
+    showsPrec pr (AsCoq term) = showsPrec pr $ mapUni fTy fConst term where
+        fConst (Some (ValueOf uni x)) = Some (ValueOf (AsCoqUni uni) (AsCoq x))
+        fTy (SomeTypeIn ty) = SomeTypeIn (AsCoqUni ty)

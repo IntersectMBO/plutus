@@ -43,6 +43,8 @@ import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
+import PlutusIR.Core.Instance.CoqShow
+
 import Data.Hashable
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -61,8 +63,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  , PLC.Everywhere uni Show
-  , PLC.GShow uni
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
+  , PLC.GShow (AsCoqUni uni)
   , Show fun
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
@@ -81,8 +83,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  , PLC.Everywhere uni Show
-  , PLC.GShow uni
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
+  , PLC.GShow (AsCoqUni uni)
   , Show fun
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
@@ -112,8 +114,8 @@ compileWithOpts ::
   , Default (PLC.CostingPart uni fun)
   , Default (RewriteRules uni fun)
   , Show fun
-  , PLC.Everywhere uni Show
-  , PLC.GShow uni
+  , PLC.Everywhere uni (ComposeC Show AsCoq)
+  , PLC.GShow (AsCoqUni uni)
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->

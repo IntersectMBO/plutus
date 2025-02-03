@@ -195,7 +195,6 @@ library
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
     UntypedPlutusCore.Core
-    UntypedPlutusCore.Core.Instance.CoqShow
     UntypedPlutusCore.Core.Instance.Scoping
     UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Core.Type
@@ -496,6 +495,7 @@ library plutus-ir
     PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
+    PlutusIR.Core.Instance.CoqShow
     PlutusIR.Core.Instance.Flat
     PlutusIR.Core.Instance.Pretty
     PlutusIR.Core.Instance.Pretty.Readable
@@ -548,6 +548,7 @@ library plutus-ir
   build-depends:
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
+    , bytestring
     , containers
     , dlist
     , dom-lt
