@@ -217,12 +217,32 @@ check-and-publish-gh-release() {
 }
 
 
+collect-release-notes() {
+  local CHANGELOG_PACKAGES=(
+    "plutus-core"
+    "plutus-ledger-api"
+    "plutus-tx"
+    "plutus-tx-plugin"
+    "plutus-executables"
+  )
+  for PACKAGE in "${CHANGELOG_PACKAGES[@]}"; do
+    echo "# $PACKAGE"
+    local CHANGELOG="$(sed -n "/# $VERSION —/,/changelog-/p" $PACKAGE/CHANGELOG.md | sed '1d;$d')"
+    echo 
+    echo "${CHANGELOG:="No changes."}"
+    echo 
+  done
+}
+
+
 publish-gh-release() {
   for EXEC in uplc pir plc; do 
     nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
-  gh release create $VERSION --title $VERSION --generate-notes --latest
+  local NOTES_FILE=$(mktemp)
+  collect-release-notes > $NOTES_FILE
+  gh release create $VERSION --title $VERSION --notes-file $NOTES_FILE --latest
   gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
   tell "Published the release"
 }
