@@ -131,7 +131,6 @@ arity <- function(name) {
         "Keccak_256" = 1,
         "Blake2b_224" = 1,
         "Ripemd_160" = 1,
-        "ExpModInteger" = 3,
         "IntegerToByteString" = 3,
         "ByteStringToInteger" = 2,
         "AndByteString" = 3,
@@ -144,7 +143,9 @@ arity <- function(name) {
         "ShiftByteString" = 2,
         "RotateByteString" = 2,
         "CountSetBits" = 1,
-        "FindFirstSetBit" = 1
+        "FindFirstSetBit" = 1,
+        "ExpModInteger" = 3,
+        "DropList" = 2
         )
 }
 
@@ -653,7 +654,7 @@ modelFun <- function(path) {
     headListModel   <- constantModel ("HeadList")
     tailListModel   <- constantModel ("TailList")
     nullListModel   <- constantModel ("NullList")
-
+    dropListModel   <- linearInX     ("DropList")
 
     ##### Data #####
 
@@ -804,8 +805,6 @@ modelFun <- function(path) {
         blake2b_224Model                     = blake2b_224Model,
         blake2b_256Model                     = blake2b_256Model,
         keccak_256Model                      = keccak_256Model,
-        ripemd_160Model                      = ripemd_160Model,
-        expModIntegerModel                   = expModIntegerModel,
         verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,
@@ -868,7 +867,10 @@ modelFun <- function(path) {
         shiftByteStringModel                 = shiftByteStringModel,
         rotateByteStringModel                = rotateByteStringModel,
         countSetBitsModel                    = countSetBitsModel,
-        findFirstSetBitModel                 = findFirstSetBitModel
+        findFirstSetBitModel                 = findFirstSetBitModel,
+        ripemd_160Model                      = ripemd_160Model,
+        expModIntegerModel                   = expModIntegerModel,
+        dropListModel                        = dropListModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
