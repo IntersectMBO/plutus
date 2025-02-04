@@ -1,6 +1,6 @@
-# This job runs the cost model benchmark and uploads the results as a GitHub artifact.
+# This workflow runs the cost model benchmark and uploads the results as a GitHub artifact.
 #
-# This job must be triggered manually via workflow dispatch.
+# This workflow must be triggered manually via workflow dispatch.
 
 
 name: "💰 Cost Model Benchmark" 

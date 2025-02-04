@@ -36,7 +36,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
 |`optimize`|Bool|True|Run optimization passes such as simplification and floating let-bindings.|
 |`pedantic`|Bool|False|Run type checker after each compilation pass|
-|`preserve-logging`|Bool|False|Turn off optimisations that may alter (i.e., add, remove or change the order of) trace messages. Implied by `conservative-optimisation`.|
+|`preserve-logging`|Bool|True|Turn off optimisations that may alter (i.e., add, remove or change the order of) trace messages. Implied by `conservative-optimisation`.|
 |`profile-all`|ProfileOpts|None|Set profiling options to All, which adds tracing when entering and exiting a term.|
 |`relaxed-float-in`|Bool|True|Use a more aggressive float-in pass, which often leads to reduced costs but may occasionally lead to slightly increased costs. Implied by `no-conservative-optimisation`.|
 |`remove-trace`|Bool|False|Eliminate calls to `trace` from Plutus Core|

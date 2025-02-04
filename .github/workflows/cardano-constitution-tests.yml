@@ -1,6 +1,6 @@
-# This job runs the nightly cardano-constitution tests.
+# This workflow runs the nightly cardano-constitution tests.
 #
-# This job runs daily at 2am, and it can also be triggered manually.
+# This workflow runs daily at 2am, and it can also be triggered manually.
 
 
 name: "🗽 Cardano Constitution Tests"
