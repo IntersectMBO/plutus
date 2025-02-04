@@ -1,7 +1,7 @@
-# This job enforces that: either some changelog.d/** files were added by the 
+# This workflow enforces that: either some changelog.d/** files were added by the 
 # PR, or the PR has the "No Changelog Required" label.  
 # 
-# This job runs on all pull requests, and on pull request label changes.
+# This workflow runs on all pull requests, and on pull request label changes.
 
 
 name: "🏷️ Changelog Label"

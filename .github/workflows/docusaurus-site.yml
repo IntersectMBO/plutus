@@ -1,6 +1,6 @@
-# This job builds and deploys the Docusaurus site.
+# This workflow builds and deploys the Docusaurus site.
 # 
-# This job builds the site on pull requests, and it also automatically deploys 
+# This workflow builds the site on pull requests, and it also automatically deploys 
 # the site on push to master or on workflow dispatch to: 
 # https://plutus.cardano.intersectmbo.org/docs
 

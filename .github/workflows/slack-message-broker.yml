@@ -1,7 +1,7 @@
-# This job sends a message to the plutus-ci channel whenever a status check fails, 
+# This workflow sends a message to the plutus-ci channel whenever a status check fails, 
 # and tried to notify the author of the commit that caused the failure.
 #
-# This job triggers whenever a workflow run or a check run is completed.
+# This workflow triggers whenever a workflow run or a check run is completed.
 
 name: "📮 Slack Message Broker"
 

@@ -1,6 +1,6 @@
-# This job runs the nightly plutus-core-test and plutus-ir-test test suite.
+# This workflow runs the plutus-core-test and plutus-ir-test test suite.
 #
-# This job runs daily at midnight, and it can also be triggered manually.
+# This workflow runs daily at midnight, and it can also be triggered manually.
 
 
 name: "🌘 Nightly Testsuite"
