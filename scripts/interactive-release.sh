@@ -232,20 +232,20 @@ generate-release-notes() {
     echo "${CHANGELOG:="No changes."}"
     echo 
   done
-  local PREV_VERSION=$(gh release list --json tagName --jq ".[1].tagName")
+  local PREV_VERSION=$(gh release list --json tagName --jq ".[0].tagName")
   echo "**Full Changelog**: https://github.com/IntersectMBO/plutus/compare/$PREV_VERSION...$VERSION"
 }
 
 
 publish-gh-release() {
-  for EXEC in uplc pir plc; do 
-    nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
-    upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
-  done 
+  # for EXEC in uplc pir plc; do 
+  #   nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
+  #   upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
+  # done 
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
   gh release create $VERSION --title $VERSION --notes-file $NOTES_FILE --latest
-  gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
+  # gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
   tell "Published the release"
 }
 
