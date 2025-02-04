@@ -35,13 +35,8 @@ let
   project = import ./project.nix
     { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
 
-  shell = import ./shell.nix
+  mkShell = project: import ./shell.nix
     { inherit inputs pkgs lib project agda-with-stdlib r-with-packages; };
-
-  profiled-shell = import ./shell.nix {
-    inherit inputs pkgs agda-with-stdlib r-with-packages;
-    project = project.flake'.variants.profiled;
-  };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -85,24 +80,32 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-  devShells = {
-    default = shell;
-    profiled = profiled-shell;
+
+  non-profiled-shells = rec {
+    default = ghc96;
+    ghc810 = mkShell project.projectVariants.ghc810;
+    ghc96 = mkShell project.projectVariants.ghc96;
+    ghc98 = mkShell project.projectVariants.ghc98;
+    ghc910 = mkShell project.projectVariants.ghc910;
   };
+
+  devShells =
+    (non-profiled-shells) //
+    { profiled = mkShell project.projectVariants.profiled; };
 
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
       (packages) //
-      { devShells.default = shell; };
+      { devShells = non-profiled-shells; };
     "x86_64-darwin" =
       (project-variants-hydra-jobs) //
-      { devShells.default = shell; };
+      { devShells = non-profiled-shells; };
     "aarch64-linux" =
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
-      { devShells.default = shell; };
+      { devShells = non-profiled-shells; };
   };
 
   flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;

@@ -1,24 +1,15 @@
 { inputs, pkgs, lib, project, agda-with-stdlib, r-with-packages }:
 
 let
-  haskell-tools = project.tools
-    {
-      cabal = "latest";
-      hlint = "latest";
-      haskell-language-server = "latest";
-    } // {
-    cabal-fmt = pkgs.haskell-nix.hackage-project {
-      name = "cabal-fmt";
-      compiler-nix-name = "ghc966";
-    };
-  };
 
-  haskell-language-server = haskell-tools.haskell-language-server.project.hsPkgs.haskell-language-server.components.exes.haskell-language-server; # editorconfig-checker-disable-line
-  stylish-haskell = haskell-tools.haskell-language-server.project.hsPkgs.stylish-haskell.components.exes.stylish-haskell; # editorconfig-checker-disable-line
-  fourmolu = haskell-tools.haskell-language-server.project.hsPkgs.fourmolu.components.exes.fourmolu;
-  cabal = haskell-tools.cabal.project.hsPkgs.cabal-install.components.exes.cabal;
-  hlint = haskell-tools.hlint.project.hsPkgs.hlint.components.exes.hlint;
-  cabal-fmt = haskell-tools.cabal-fmt.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
+  tools = project.tools {
+    cabal = "latest";
+    cabal-fmt = "latest";
+    haskell-language-server = "latest";
+    fourmolu = "latest";
+    hlint = "latest";
+    stylish-haskell = "latest";
+  };
 
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
     src = ../.;
@@ -29,21 +20,21 @@ let
       };
       cabal-fmt = {
         enable = true;
-        package = cabal-fmt;
+        package = tools.cabal-fmt;
       };
       stylish-haskell = {
         enable = true;
-        package = stylish-haskell;
+        package = tools.stylish-haskell;
         args = [ "--config" ".stylish-haskell.yaml" ];
       };
       fourmolu = {
         enable = false;
-        package = fourmolu;
+        package = tools.fourmolu;
         args = [ "--mode" "inplace" ];
       };
       hlint = {
         enable = false;
-        package = hlint;
+        package = tools.hlint;
         args = [ "--hint" ".hlint.yaml" ];
       };
       shellcheck = {
@@ -70,12 +61,13 @@ let
     agda-with-stdlib
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
-    haskell-language-server
-    stylish-haskell
-    fourmolu
-    cabal
-    hlint
-    cabal-fmt
+
+    tools.haskell-language-server
+    tools.stylish-haskell
+    tools.fourmolu
+    tools.cabal
+    tools.hlint
+    tools.cabal-fmt
 
     pkgs.texliveFull
     pkgs.jekyll
@@ -101,21 +93,39 @@ let
     pkgs.nodejs_20
   ];
 
+
+  full-shell = project.shellFor {
+    name = "plutus-shell-${project.args.compiler-nix-name}";
+
+    buildInputs = lib.concatLists [
+      common-pkgs
+      linux-pkgs
+      pre-commit-check.enabledPackages
+    ];
+
+    withHoogle = true;
+
+    shellHook = ''
+      eval "$(starship init bash)"
+      ${pre-commit-check.shellHook}
+      echo -e "\n🤟 Welcome to Plutus 🤟"
+    '';
+  };
+
+
+  quick-shell = project.shellFor {
+    name = "plutus-shell-${project.args.compiler-nix-name}";
+    tools = { cabal = "latest"; };
+  };
+
+
+  shell = {
+    ghc8107 = quick-shell;
+    ghc966 = full-shell;
+    ghc984 = quick-shell;
+    ghc9101 = quick-shell;
+  }.${project.args.compiler-nix-name};
+
 in
 
-project.shellFor {
-
-  buildInputs = lib.concatLists [
-    common-pkgs
-    linux-pkgs
-    pre-commit-check.enabledPackages
-  ];
-
-  withHoogle = true;
-
-  shellHook = ''
-    eval "$(starship init bash)"
-    ${pre-commit-check.shellHook}
-    echo -e "\n🤟 Welcome to Plutus 🤟"
-  '';
-}
+shell
