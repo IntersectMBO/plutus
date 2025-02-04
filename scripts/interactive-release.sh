@@ -217,7 +217,7 @@ check-and-publish-gh-release() {
 }
 
 
-collect-release-notes() {
+generate-release-notes() {
   local CHANGELOG_PACKAGES=(
     "plutus-core"
     "plutus-ledger-api"
@@ -232,6 +232,8 @@ collect-release-notes() {
     echo "${CHANGELOG:="No changes."}"
     echo 
   done
+  local PREV_VERSION=$(gh release list --json tagName --jq ".[1].tagName")
+  echo "**Full Changelog**: https://github.com/IntersectMBO/plutus/compare/$PREV_VERSION...$VERSION"
 }
 
 
@@ -241,7 +243,7 @@ publish-gh-release() {
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
   local NOTES_FILE=$(mktemp)
-  collect-release-notes > $NOTES_FILE
+  generate-release-notes > $NOTES_FILE
   gh release create $VERSION --title $VERSION --notes-file $NOTES_FILE --latest
   gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
   tell "Published the release"
