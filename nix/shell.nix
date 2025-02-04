@@ -1,24 +1,33 @@
 { inputs, pkgs, lib, project, agda-with-stdlib, r-with-packages }:
 
 let
-  haskell-tools = project.tools
-    {
-      cabal = "latest";
-      hlint = "latest";
-      haskell-language-server = "latest";
-    } // {
-    cabal-fmt = pkgs.haskell-nix.hackage-project {
-      name = "cabal-fmt";
-      compiler-nix-name = "ghc966";
-    };
-  };
+  cabal-tool = project.tool "cabal" "latest";
+  cabal = cabal-tool.project.hsPkgs.cabal-install.components.exes.cabal;
 
-  haskell-language-server = haskell-tools.haskell-language-server.project.hsPkgs.haskell-language-server.components.exes.haskell-language-server; # editorconfig-checker-disable-line
-  stylish-haskell = haskell-tools.haskell-language-server.project.hsPkgs.stylish-haskell.components.exes.stylish-haskell; # editorconfig-checker-disable-line
-  fourmolu = haskell-tools.haskell-language-server.project.hsPkgs.fourmolu.components.exes.fourmolu;
-  cabal = haskell-tools.cabal.project.hsPkgs.cabal-install.components.exes.cabal;
-  hlint = haskell-tools.hlint.project.hsPkgs.hlint.components.exes.hlint;
-  cabal-fmt = haskell-tools.cabal-fmt.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
+  cabal-fmt-project = pkgs.haskell-nix.hackage-project {
+    name = "cabal-fmt";
+    compiler-nix-name = "ghc966";
+  };
+  cabal-fmt = cabal-fmt-project.hsPkgs.cabal-fmt.components.exes.cabal-fmt;
+
+  hls-tool = project.tool "haskell-language-server"
+    {
+      ghc8107 = "2.2.0.0";
+      ghc966 = "latest";
+      ghc984 = "latest";
+      ghc9101 = "latest";
+    }.${project.args.compiler-nix-name};
+
+  getHlsTool = name:
+    if hls-tool.project.hsPkgs ? name then
+      hls-tool.project.hsPkgs.${name}.components.exes.${name}
+    else
+      null;
+
+  haskell-language-server = getHlsTool "haskell-language-server";
+  stylish-haskell = getHlsTool "stylish-haskell";
+  fourmolu = getHlsTool "fourmolu";
+  hlint = getHlsTool "hlint";
 
   pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
     src = ../.;
@@ -104,6 +113,8 @@ let
 in
 
 project.shellFor {
+
+  name = "plutus-shell-${project.args.compiler-nix-name}";
 
   buildInputs = lib.concatLists [
     common-pkgs
