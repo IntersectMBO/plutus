@@ -66,7 +66,7 @@ jobs:
 
       - name: Build Site
         run: | 
-          nix build --accept-flake-config .#plutus-metatheory-site
+          nix build --accept-flake-config .#metatheory-site
           mkdir _metatheory
           cp -RL result/* _metatheory
 
