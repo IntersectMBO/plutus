@@ -11,9 +11,6 @@ name: "👷 Cabal Build All"
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - fix-cabal-build-all
   push:
     branches:
       - master
