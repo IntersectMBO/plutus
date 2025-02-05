@@ -15,6 +15,8 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE ViewPatterns             #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module Blueprint.Spec where
 
 import Prelude

@@ -8,6 +8,8 @@ module PlutusTx.IsData.TH (
   makeIsDataIndexed,
   mkConstrCreateExpr,
   mkUnsafeConstrMatchPattern,
+  mkUnsafeConstrMatchPattern',
+  mkDecodingFunction,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
 ) where
@@ -61,6 +63,11 @@ mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =
   [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
+mkUnsafeConstrMatchPattern' :: TH.Name -> Integer -> [TH.Name] -> TH.PatQ
+mkUnsafeConstrMatchPattern' cName conIx extractFieldNames = do
+  (TH.FunD fName _) <- mkDecodingFunction cName conIx (fromIntegral $ length extractFieldNames)
+  return $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP extractFieldNames)
+
 -- | Function which generates a function which takes a runtime BuiltinData argument
 -- and decodes it into a tuple of arguments
 mkDecodingFunction
@@ -90,29 +97,32 @@ mkDecodingFunction dTypeName dTypeConstrIx numFields = do
             []
         , TH.ValD
             (TH.VarP $ TH.mkName "field0")
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs"))
+            (TH.NormalB $ TH.AppE (TH.VarE 'unsafeFromBuiltinData) (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs")))
             []
         , TH.ValD
             (TH.VarP $ TH.mkName "rest0")
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName "constrArgs"))
             []
         ]
-        <> foldMap (\i ->
-            [ TH.ValD
+        <> fmap (\i ->
+            TH.ValD
                 (TH.VarP $ TH.mkName $ "field" <> show i)
-                (TH.NormalB $ TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
+                (TH.NormalB $ TH.AppE (TH.VarE 'unsafeFromBuiltinData) (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1))))
                 []
-            , TH.ValD
+            )
+            [1 .. numFields - 1]
+        <> fmap (\i ->
+            TH.ValD
                 (TH.VarP $ TH.mkName $ "rest" <> show i)
                 (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
                 []
-            ])
-            [1 .. numFields - 1]
+            )
+            [1 .. numFields - 2]
       ifExpr =
           TH.CondE
             (TH.AppE (TH.AppE (TH.VarE '(==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
             (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1])
-            (TH.AppE (TH.VarE 'traceError) (TH.LitE . TH.StringL $ "Constructor index mismatch"))
+            (TH.AppE (TH.VarE 'traceError) (TH.VarE 'Builtins.emptyString))
       body = TH.NormalB $ TH.LetE decs ifExpr
       clause = TH.Clause [argPat] body []
   return $ TH.FunD funcName [clause]
