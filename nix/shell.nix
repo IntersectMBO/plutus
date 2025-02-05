@@ -3,7 +3,9 @@
 let
 
   tools = project.tools {
-    cabal = "latest";
+    # "latest" cabal would be 3.14.1.0 which breaks haddock generation.
+    # TODO update cabal version once haddock generation is fixed upstream.
+    cabal = "3.12.1.0";
     cabal-fmt = "latest";
     haskell-language-server = "latest";
     fourmolu = "latest";
