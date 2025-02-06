@@ -16,6 +16,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module Blueprint.Tests.Lib
   ( module Blueprint.Tests.Lib
   , module AsData

@@ -67,6 +67,8 @@ mkUnsafeConstrMatchPattern conIx extractFieldNames =
 mkDecodingFunction
   :: TH.Name
   -- ^ Name of the type
+  -> [TH.Name]
+  -- ^ Type variables of the type
   -> [TH.Type]
   -- ^ Types of the fields
   -> TH.Name
@@ -78,7 +80,7 @@ mkDecodingFunction
   -> Integer
   -- ^ Number of fields in the constructor
   -> TH.Q [TH.Dec]
-mkDecodingFunction name fieldTypes cn dTypeName dTypeConstrIx numFields = do
+mkDecodingFunction name typeVars _ cn dTypeName dTypeConstrIx 0 = do
   let funcName = TH.mkName $ "matchOn" <> TH.nameBase cn
       builtinData = TH.mkName "builtinData"
       argPat = TH.ConP dTypeName [] [TH.VarP builtinData]
@@ -95,6 +97,36 @@ mkDecodingFunction name fieldTypes cn dTypeName dTypeConstrIx numFields = do
             (TH.VarP $ TH.mkName "constrArgs")
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE $ TH.mkName "asConstr"))
             []
+        ]
+      ifExpr =
+          TH.CondE
+            (TH.AppE (TH.AppE (TH.VarE '(==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
+            (TH.TupE [])
+            (TH.AppE (TH.VarE 'traceError) (TH.VarE 'Builtins.emptyString))
+      body = TH.NormalB $ TH.LetE decs ifExpr
+      clause = TH.Clause [argPat] body []
+      functionDef = TH.FunD funcName [clause]
+      tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
+      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT tType) (TH.TupleT 0)
+  return [functionType, functionDef]
+mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields = do
+  let funcName = TH.mkName $ "matchOn" <> TH.nameBase cn
+      builtinData = TH.mkName "builtinData"
+      argPat = TH.ConP dTypeName [] [TH.VarP builtinData]
+      decs =
+        [ TH.ValD
+            (TH.VarP $ TH.mkName "asConstr")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "constrIx")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.fst) (TH.VarE $ TH.mkName "asConstr"))
+            []
+        , TH.ValD
+            (TH.VarP $ TH.mkName "constrArgs")
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE $ TH.mkName "asConstr"))
+            []
+        -- , TH.SigD (TH.mkName "field0") (Prelude.head fieldTypes)
         , TH.ValD
             (TH.VarP $ TH.mkName "field0")
             (TH.NormalB $ TH.AppE (TH.VarE 'unsafeFromBuiltinData) (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs")))
@@ -104,11 +136,13 @@ mkDecodingFunction name fieldTypes cn dTypeName dTypeConstrIx numFields = do
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName "constrArgs"))
             []
         ]
-        <> fmap (\i ->
+        <> foldMap (\i ->
+            [ -- TH.SigD (TH.mkName $ "field" <> show i) (fieldTypes !! fromIntegral i)
             TH.ValD
                 (TH.VarP $ TH.mkName $ "field" <> show i)
                 (TH.NormalB $ TH.AppE (TH.VarE 'unsafeFromBuiltinData) (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1))))
                 []
+            ]
             )
             [1 .. numFields - 1]
         <> fmap (\i ->
@@ -127,7 +161,11 @@ mkDecodingFunction name fieldTypes cn dTypeName dTypeConstrIx numFields = do
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
       tupleType = foldl TH.AppT (TH.TupleT (fromIntegral numFields)) fieldTypes
-      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT (TH.ConT name)) tupleType
+      tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
+      constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
+      typeBody =  TH.AppT (TH.AppT TH.ArrowT tType) tupleType
+      typeBodyWithQuantification = TH.ForallT [] constraints typeBody
+      functionType = TH.SigD funcName typeBodyWithQuantification
   return [functionType, functionDef]
 
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ

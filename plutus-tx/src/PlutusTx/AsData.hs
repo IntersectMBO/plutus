@@ -126,10 +126,12 @@ asDataFor dec = do
       TH.InfixConstructor    -> case fieldNames of
         [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
+    let typeVarNames = fmap TH.tvName tTypeVars
 
     matchFunc@[_, TH.FunD fName _] <-
       mkDecodingFunction
         name
+        typeVarNames
         fields
         conName
         cname
