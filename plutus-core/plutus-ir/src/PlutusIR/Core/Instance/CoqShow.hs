@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE InstanceSigs             #-}
@@ -18,6 +19,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Default
+import PlutusCore.Name.Unique
 import PlutusIR.Core.Type
 
 import Data.ByteString (ByteString, unpack)
@@ -78,14 +80,53 @@ instance Show (AsCoq Word8) where
 instance Show (AsCoq ByteString) where
     show (AsCoq bs) = show (map AsCoq (unpack bs))
 
+instance Show (AsCoq Name) where
+  showsPrec p (AsCoq (Name x y)) =
+    showParen (p >= 11) $
+      showString "Name" .
+      showString " " .
+      showsPrec 11 (AsCoq x) .
+      showString " " .
+      showsPrec 11 (AsCoq y)
+
+instance Show (AsCoq TyName) where
+  showsPrec p (AsCoq (TyName x)) =
+    showParen (p >= 11) $
+      showString "TyName" .
+      showString " " .
+      showsPrec 11 (AsCoq x)
+
+instance Show (AsCoq Unique) where
+  showsPrec p (AsCoq (Unique n)) =
+    showParen (p >= 11) $
+      showString "Unique" .
+      showString " " .
+      showsPrec 11 n
+
 instance
-        ( Show name
-        , Show tyname
-        , GShow (AsCoqUni uni)
-        , Closed uni, AsCoqUni uni `Everywhere` Show
-        , Show fun
-        , Show ann
-        ) => Show (AsCoq (Term tyname name uni fun ann)) where
-    showsPrec pr (AsCoq term) = showsPrec pr $ mapUni fTy fConst term where
+  ( Show (AsCoq tyname)
+  , Show (AsCoq name)
+  , GShow (AsCoqUni uni)
+  , Closed uni, AsCoqUni uni `Everywhere` Show
+  , Show fun
+  , Show ann
+  ) => Show (AsCoq (Term tyname name uni fun ann)) where
+    showsPrec pr (AsCoq term) =
+      showsPrec pr .
+      mapName AsCoq .
+      mapTyName AsCoq .
+      mapUni fTy fConst $
+        term
+      where
         fConst (Some (ValueOf uni x)) = Some (ValueOf (AsCoqUni uni) (AsCoq x))
         fTy (SomeTypeIn ty) = SomeTypeIn (AsCoqUni ty)
+
+
+type CoqShow tyname name uni fun a =
+  ( Show (AsCoq tyname)
+  , Show fun
+  , Show (AsCoq name)
+  , Everywhere uni (ComposeC Show AsCoq)
+  , GShow (AsCoqUni uni)
+  )
+

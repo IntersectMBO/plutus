@@ -42,11 +42,7 @@ runTestPass
   :: (PLC.ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.Pretty a
-     , Show tyname
-     , Show fun
-     , Show name
-     , PLC.Everywhere uni (ComposeC Show AsCoq)
-     , PLC.GShow (AsCoqUni uni)
+     , CoqShow tyname name uni fun a
      , Typeable a
      , Monoid a
      , Monad m
@@ -85,8 +81,8 @@ testPassProp' ::
   forall m tyname name a prop
   . ( Monad m
     , Testable prop
-    , Show tyname
-    , Show name
+    , Show (AsCoq tyname)
+    , Show (AsCoq name)
     )
   => a
   -> (Term TyName Name PLC.DefaultUni PLC.DefaultFun ()

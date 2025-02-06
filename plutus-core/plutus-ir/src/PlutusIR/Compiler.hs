@@ -105,8 +105,8 @@ runCompilerPass
   :: (Compiling m e uni fun a, b ~ Provenance a
   , PLC.Everywhere uni (ComposeC Show AsCoq)
   , Show fun
-  , Show name
-  , Show tyname
+  , Show (AsCoq name)
+  , Show (AsCoq tyname)
   , PLC.GShow (AsCoqUni uni)
   )
   => (Text -> m ())

@@ -58,7 +58,7 @@ import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
 import PlutusCore.Version qualified as PLC
 
-import PlutusIR.Core.Instance.CoqShow qualified as UPLC
+import PlutusIR.Core.Instance.CoqShow qualified as PIR
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusIR qualified as PIR
@@ -557,7 +557,7 @@ runCompiler moduleName opts expr = do
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
     (dumpCert, closeCertHandle) <- liftIO getDumpCert
-    liftIO $ dumpCert (Text.pack (show . UPLC.AsCoq $ void pirT))
+    liftIO $ dumpCert (Text.pack (show . PIR.AsCoq $ void pirT))
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirP <- flip runReaderT pirCtx $ PIR.compileToReadable (liftIO . dumpCert) pirP

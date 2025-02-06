@@ -132,8 +132,8 @@ runPass
   :: ( Monad m
      , PLC.Everywhere uni (ComposeC Show AsCoq)
      , PLC.GShow (AsCoqUni uni)
-     , Show tyname
-     , Show name
+     , Show (AsCoq tyname)
+     , Show (AsCoq name)
      , Show fun
      , PLC.Closed uni
      )
@@ -173,9 +173,9 @@ simplePass
   -> TC.PirTCConfig uni fun
   -> (Term TyName Name uni fun a -> Term TyName Name uni fun a)
   -> Pass m TyName Name uni fun a
-simplePass name p tcConfig f =
+simplePass name passId tcConfig f =
   NamedPass name $
-    Pass p (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
+    Pass passId (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 
 -- | A pass that does renaming.
 renamePass
