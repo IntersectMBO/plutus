@@ -29,6 +29,7 @@ import Data.Data (Data)
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
+import Data.List qualified as Haskell
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics (Generic)
@@ -408,10 +409,15 @@ chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 {-# OPAQUE chooseList #-}
 
+
 caseList' :: forall a r . r -> (a -> BuiltinList a -> r) -> BuiltinList a -> r
 caseList' nilCase _        (BuiltinList [])       = nilCase
 caseList' _       consCase (BuiltinList (x : xs)) = consCase x (BuiltinList xs)
 {-# OPAQUE caseList' #-}
+
+drop :: Integer -> BuiltinList a -> BuiltinList a
+drop i (BuiltinList xs) = BuiltinList (Haskell.genericDrop i xs)
+{-# OPAQUE drop #-}
 
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []

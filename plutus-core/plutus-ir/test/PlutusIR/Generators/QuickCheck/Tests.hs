@@ -14,7 +14,6 @@ import PlutusIR.Generators.QuickCheck
 
 import PlutusCore.Builtin (fromValue)
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
@@ -25,7 +24,7 @@ import PlutusCore.Version (latestVersion)
 import PlutusIR
 import PlutusIR.Test ()
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (restricting, runCekNoEmit,
+import UntypedPlutusCore.Evaluation.Machine.Cek (restrictingLarge, runCekNoEmit,
                                                  unsafeSplitStructuralOperational)
 
 import Control.Exception
@@ -203,11 +202,10 @@ noStructuralErrors term =
   -- Throw on a structural evaluation error and succeed on both an operational evaluation error and
   -- evaluation success.
   void . evaluate . unsafeSplitStructuralOperational . fst $ do
-    let -- The numbers are picked so that evaluation of the arbitrarily generated term always
-        -- finishes in reasonable time even if evaluation loops (in which case we'll get an
-        -- out-of-budget failure).
-        budgeting = restricting . ExRestrictingBudget $ ExBudget 1000000000 1000000000
-    runCekNoEmit defaultCekParametersForTesting budgeting term
+    -- Using 'restrictingLarge' so that evaluation of the arbitrarily generated term always finishes
+    -- in reasonable time even if evaluation loops (in which case we'll get an out-of-budget
+    -- failure).
+    runCekNoEmit defaultCekParametersForTesting restrictingLarge term
 
 -- | Test that evaluation of well-typed terms doesn't fail with a structural error.
 prop_noStructuralErrors :: Property

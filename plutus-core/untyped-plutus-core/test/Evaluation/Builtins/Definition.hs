@@ -32,7 +32,6 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Examples.Builtins
@@ -497,16 +496,33 @@ test_TrackCostsRetaining =
                         ]
                 assertBool err $ expected > actual
 
+typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assertion
+typecheckAndEvalToOutOfEx term =
+    let evalRestricting params = fst . runCekNoEmit params restrictingLarge
+    in case typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting term of
+        Right (Left (ErrorWithCause (OperationalEvaluationError (CekOutOfExError _)) _)) ->
+            pure ()
+        err -> assertFailure $ "Expected a 'CekOutOfExError' but got: " ++ displayPlc err
+
 test_SerialiseDataImpossible :: TestTree
 test_SerialiseDataImpossible =
-    testCase "Serialising an impossible 'Data' object finishes" $ do
+    testCase "Serialising an impossible 'Data' object runs out of budget and finishes" $ do
         let dataLoop :: Term TyName Name DefaultUni DefaultFun ()
-            dataLoop = Apply () (Builtin () SerialiseData) $ mkConstant () loop where
-                loop = List [loop]
-            budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
-            evalRestricting params = unsafeSplitStructuralOperational . fst . runCekNoEmit params budgetMode
-        typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
-            Right EvaluationFailure
+            dataLoop =
+                let loop = List [loop]
+                in Apply () (Builtin () SerialiseData) $ mkConstant () loop
+        typecheckAndEvalToOutOfEx dataLoop
+
+test_fixId :: TestTree
+test_fixId =
+    testCase "'fix id' runs out of budget and finishes" $ do
+        let fixId :: Term TyName Name DefaultUni DefaultFun ()
+            fixId =
+                mkIterAppNoAnn (mkIterInstNoAnn Plc.fix [integer, integer])
+                    [ tyInst () Plc.idFun (TyFun () integer integer)
+                    , mkConstant @Integer () 42
+                    ]
+        typecheckAndEvalToOutOfEx fixId
 
 -- | If the first char is an opening paren and the last chat is a closing paren, then remove them.
 -- This is useful for rendering a term-as-a-test-name in CLI, since currently we wrap readably
@@ -1195,6 +1211,7 @@ test_definition =
         , test_TrackCostsRetaining
 #endif
         , test_SerialiseDataImpossible
+        , test_fixId
         , runTestNestedHere
             [ test_Integer
             , test_String

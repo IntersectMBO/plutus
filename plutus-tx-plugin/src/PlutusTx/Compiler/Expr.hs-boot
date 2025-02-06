@@ -1,12 +1,12 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import           PlutusTx.Compiler.Types
-import           PlutusTx.PIRTypes
+import PlutusTx.Compiler.Types
+import PlutusTx.PIRTypes
 
-import qualified GHC.Plugins as GHC
+import GHC.Plugins qualified as GHC
 
 compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
 

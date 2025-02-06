@@ -6,7 +6,8 @@
             force
               (force (force chooseList)
                  xs
-                 (delay (\ds -> error))
+                 (delay
+                    (\ds -> (\x -> error) (force trace "PT22" (constr 0 []))))
                  (delay
                     ((\x xs ds eta ->
                         force

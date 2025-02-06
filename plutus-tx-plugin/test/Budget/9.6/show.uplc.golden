@@ -11,11 +11,11 @@
                             (\go ->
                                (\concatBuiltinStrings ->
                                   (\a ->
-                                     (\c ->
-                                        (\d ->
-                                           (\cse ->
-                                              (\e ->
-                                                 (\cse ->
+                                     (\b ->
+                                        (\c ->
+                                           (\d ->
+                                              (\cse ->
+                                                 (\e ->
                                                     multiplyInteger
                                                       2
                                                       (force
@@ -24,9 +24,11 @@
                                                             (constr 1
                                                                [ "("
                                                                , (cse
+                                                                    a
                                                                     (constr 1
                                                                        [ ","
                                                                        , (cse
+                                                                            b
                                                                             (constr 1
                                                                                [ ","
                                                                                , (cse
@@ -44,66 +46,70 @@
                                                                                                        , (constr 0
                                                                                                             [  ]) ])) ])) ])) ])) ])) ]))
                                                          e))
-                                                   (cse a))
+                                                   (force
+                                                      trace
+                                                      (concatBuiltinStrings
+                                                         ((\go ->
+                                                             constr 1
+                                                               [ "["
+                                                               , (cse
+                                                                    a
+                                                                    (go
+                                                                       (constr 1
+                                                                          [ b
+                                                                          , (constr 1
+                                                                               [ c
+                                                                               , (constr 1
+                                                                                    [ d
+                                                                                    , (constr 0
+                                                                                         [  ]) ]) ]) ])
+                                                                       (constr 1
+                                                                          [ "]"
+                                                                          , (constr 0
+                                                                               [  ]) ]))) ])
+                                                            (fix1
+                                                               (\go
+                                                                 ds ->
+                                                                  force
+                                                                    (case
+                                                                       ds
+                                                                       [ (delay
+                                                                            (\x ->
+                                                                               x))
+                                                                       , (\x
+                                                                           xs ->
+                                                                            delay
+                                                                              ((\acc
+                                                                                 eta ->
+                                                                                  constr 1
+                                                                                    [ ","
+                                                                                    , (cse
+                                                                                         x
+                                                                                         (acc
+                                                                                            eta)) ])
+                                                                                 (go
+                                                                                    xs))) ])))))
+                                                      d))
+                                                (`$fShowBuiltinByteString_$cshowsPrec`
+                                                   0))
+                                             (force trace
                                                 (force
-                                                   trace
-                                                   (concatBuiltinStrings
-                                                      ((\go ->
-                                                          constr 1
-                                                            [ "["
-                                                            , (cse
-                                                                 a
-                                                                 (go
-                                                                    (constr 1
-                                                                       [ a
-                                                                       , (constr 1
-                                                                            [ c
-                                                                            , (constr 1
-                                                                                 [ d
-                                                                                 , (constr 0
-                                                                                      [  ]) ]) ]) ])
-                                                                    (constr 1
-                                                                       [ "]"
-                                                                       , (constr 0
-                                                                            [  ]) ]))) ])
-                                                         (fix1
-                                                            (\go
-                                                              ds ->
-                                                               force
-                                                                 (case
-                                                                    ds
-                                                                    [ (delay
-                                                                         (\x ->
-                                                                            x))
-                                                                    , (\x
-                                                                        xs ->
-                                                                         delay
-                                                                           ((\acc
-                                                                              eta ->
-                                                                               constr 1
-                                                                                 [ ","
-                                                                                 , (cse
-                                                                                      x
-                                                                                      (acc
-                                                                                         eta)) ])
-                                                                              (go
-                                                                                 xs))) ])))))
-                                                   d))
-                                             (`$fShowBuiltinByteString_$cshowsPrec`
-                                                0))
+                                                   (force ifThenElse
+                                                      (lessThanEqualsInteger
+                                                         c
+                                                         0)
+                                                      (delay "False")
+                                                      (delay "True")))
+                                                c))
                                           (force trace
-                                             (force
-                                                (force ifThenElse
-                                                   (lessThanEqualsInteger c 0)
-                                                   (delay "False")
-                                                   (delay "True")))
-                                             c))
-                                       (force trace
-                                          (concatBuiltinStrings
-                                             (go
-                                                (`$fEnumBool_$cenumFromTo` 0 17)
-                                                (constr 0 [])))
-                                          a))
+                                             (concatBuiltinStrings
+                                                (go
+                                                   (`$fEnumBool_$cenumFromTo`
+                                                      0
+                                                      17)
+                                                   (constr 0 [])))
+                                             b))
+                                       (force trace "This is an example" a))
                                     (force
                                        trace
                                        ((\x ->

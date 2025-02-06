@@ -3,6 +3,8 @@ let
     That : b -> These a b
     These : a -> b -> These a b
     This : a -> These a b
+  data Unit | Unit_match where
+    Unit : Unit
   data Bool | Bool_match where
     True : Bool
     False : Bool
@@ -38,7 +40,11 @@ let
                            (`$dUnsafeFromData` (headList {data} args))
                            (`$dUnsafeFromData`
                               (headList {data} (tailList {data} args))))
-                      (/\dead -> error {These a b})
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {These a b})
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -354,8 +360,6 @@ let
               !goLeft : list (pair data data) -> list (pair data data) = goLeft
             in
             safeAppend (goLeft ds) (goRight ds)
-  data Unit | Unit_match where
-    Unit : Unit
 in
 letrec
   !rev : all a. list a -> list a -> list a

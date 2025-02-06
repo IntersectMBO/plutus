@@ -31,20 +31,6 @@ A minor release is also allowed to change the observable behaviors of functions 
 For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
 - A patch release (e.g., 3.5.2.1 -> 3.5.2.2) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
 
-=== Version Qualifiers
-
-Version qualifiers, also known as pre-release versions, usually refer to alpha, beta, and release candidate.
-Typically, alpha and beta are pre-feature complete, while release candidates are post-feature complete.
-
-We do not tag or publish alpha or beta versions for libraries.
-Depending on an alpha or beta version of a library requires `source-repository-package`, which is quite inconvenient.
-It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
-
-We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out (see "Release QA Process").
-Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
-
-For executables, we may publish alpha, beta or release candidates at our discretion.
-
 == Release Frequency
 
 We will begin by making a new major or minor release every 4 weeks, and evaluate and adjust the frequency in the future.
@@ -55,80 +41,7 @@ In all other cases, we always start a new major or minor release from master.
 
 == Release Process
 
-=== Major and Minor Releases
-
-Suppose we are releasing version `x.y.z.0`.
-
-1. Tag `x.y.z.0-rc1` on master.
-- There's no need to create a release branch at this point.
-A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
-- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
-2. In future it will be necessary to run the release QA process (see "Release QA Process" below) at this point, however currently it is not required for the lack of specific instructions.
-3. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.0 <packages>`.
-This updates versions and version bounds, and assembles the changelogs.open a PR for updating the cabal files and the changelog files.
-- `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
-4. Review the changelogs and edit manually if needed.
-5. Open a PR for updating the cabal files and the changelog files. Example: https://github.com/IntersectMBO/plutus/pull/5452.
-6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface] (this can also be found under `Tags`/`Releases` on the main `plutus` page):
-- Choose as git tag `x.y.z.0`
-- Choose as target the git commit hash which points to the release commit
-- Click `Generate release notes` to automatically fill in the details of what's changed
-- Create and attach pir&uplc executables to the release by running the following script inside the repository where its HEAD is at the release commit: `./scripts/prepare-bins.sh`. This will create `pir-x86_64-linux-ghc96` and `uplc-x86_64-linux-ghc96` executables, compress them and put in the project's root folder. Upload them to the release draft.
-- Click `Publish release`.
-7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. +
-If you are making PR from your own fork then don't forget to sync your fork with the upstream first. +
-Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/764.
-- If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
-- Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
-It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
-For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
-Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
-- If another CHaP PR gets merged before yours it will invalidate the timestamps and you won't be able to merge: see the https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md[CHaP README file], in particular https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md#monotonically-increasing-timestamps[this section].  Read https://github.com/IntersectMBO/cardano-haskell-packages/blob/main/README.md#dealing-with-timestamp-conflicts[this section] for advice on how to deal with this problem.
-
-8. Make a PR to update the version used in `plutus-tx-template`
-- Navigate to the https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml[Bump Plutus Version Action] on GitHub
-- Click the `Run workflow` button on the right, enter the new release version and confirm
-- This will automatically open a PR in `plutus-tx-template` with auto-merge enabled
-- Ensure that CI is green and the PR gets merged
-
-9. Publish the updated Metatheory site
-- Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml[Metatheory Site Action] on GitHub
-- Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
-- Ensure that the action completes successfully
-
-10. Publish the updated Haddock site
-- Navigate to the https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml[Haddock Site Action] on GitHub
-- Click the `Run workflow` button on the right, enter the new release version 2 times, leave the checkbox Enabled, and confirm
-- Ensure that the action completes successfully
-
-11. Delete unused branches and tags
-- If it was created, delete the `release/*` branch locally and on GitHub
-- If they were created, delete any release candidate `-rc*` tags locally and on GitHub
-
-=== Patch Releases
-
-Suppose we are releasing version `x.y.z.w`.
-
-1. If it is the first time we are making a patch release for version `x.y.z` (i.e., `x.y.z.0` -> `x.y.z.1`), a release branch may not exist for `x.y`.
-If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
-- We create release branches lazily, because we do not expect to make many patch releases.
-2. Backport the needed fixes from master to `release/x.y.z`.
-3. Tag `x.y.z.w-rc1` on the release branch.
-- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
-4. Run the release QA process. See "Release QA Process" below.
-5. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.w <packages>`.
-6. Open a PR for updating the cabal files and the changelog files.
-7. Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
-- If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 5.
-8. If it was created, delete the `release/*` branch locally and on GitHub
-
-=== Release QA Process
-
-All applicable tests and checks that haven't been run on the release candidate should be carried out prior to tagging and publishing a release.
-- This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
-- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
-The right group of people should be involved and sign off on the tests and checks.
-- This does not include tests that require building a new node, or integrating with other downstream projects.
+Run `./scripts/interactive-release.sh` to manage the release process. 
 
 == Backwards Compatibility with Cardano API
 

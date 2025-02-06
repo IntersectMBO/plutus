@@ -1,15 +1,18 @@
-# This workflow runs the nightly plutus-core-test and plutus-ir-test test suite.
+# This workflow runs the plutus-core-test and plutus-ir-test test suite.
+#
+# This workflow runs daily at midnight, and it can also be triggered manually.
+
 
 name: "🌘 Nightly Testsuite"
 
 on:
   schedule:
-    - cron: 0 0 * * * # Daily at midnight
+    - cron: 0 0 * * *
 
   workflow_dispatch: 
     inputs:
       hedgehog-tests:
-        description: Numer of tests to run (--hedgehog-tests XXXXX)
+        description: Number of tests to run (--hedgehog-tests XXXXX)
         required: false
         default: "100000"
 
