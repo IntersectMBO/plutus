@@ -370,12 +370,13 @@ let
                v)
   !a : integer
     = trace {integer} (`$fShowInteger_$cshow` -1234567890) -1234567890
+  !b : integer = trace {integer} "This is an example" a
   !c : integer
     = trace
         {integer}
         (concatBuiltinStrings
            (go (`$fEnumBool_$cenumFromTo` 0 17) (Nil {string})))
-        a
+        b
   !d : integer
     = trace
         {integer}
@@ -393,7 +394,7 @@ let
             = (let
                   a = List integer
                 in
-                \(c : integer -> a -> a) (n : a) -> c a (c a (c c (c d n))))
+                \(c : integer -> a -> a) (n : a) -> c a (c b (c c (c d n))))
                 (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
                 (Nil {integer})
         in
@@ -452,7 +453,7 @@ multiplyInteger
                     {integer}
                     `$fShowInteger`
                     0
-                    a
+                    b
                     (Cons
                        {string}
                        ","

@@ -19,7 +19,11 @@ letrec
               (/\dead -> z)
               (/\dead -> f (headList {data} xs) (tailList {data} xs))
               {r})
-          (\(ds : Unit) -> error {Unit -> data})
+          (\(ds : Unit) ->
+             let
+               !x : Unit = trace {Unit} "PT22" Unit
+             in
+             error {Unit -> data})
           (\(x : data) (xs : list data) (ds : Unit) (eta : Unit) ->
              Bool_match
                (ifThenElse {Bool} (equalsInteger 0 i) True False)

@@ -1,6 +1,6 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ pkgs, lib }:
 
-rec {
+let
 
   agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
@@ -41,30 +41,32 @@ rec {
   # another GHC from nixpkgs! Sadly, this one is harder to override, and we just hack
   # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
   # we have a few extra packages that it uses in our Haskell package set.
-  agda-packages = let
-    Agda = agda-project.hsPkgs.Agda;
+  agda-packages =
+    let
+      Agda = agda-project.hsPkgs.Agda;
 
-    frankenAgdaBin = pkgs.symlinkJoin {
-      name = "agda";
-      version = Agda.identifier.version;
-      paths = [ Agda.components.exes.agda Agda.components.exes.agda-mode ];
-    };
-
-    frankenAgda = frankenAgdaBin // {
-      # Newer Agda is built with enableSeparateBinOutput, hence this hacky workaround.
-      # https://github.com/NixOS/nixpkgs/commit/294245f7501e0a8e69b83346a4fa5afd4ed33ab3
-      bin = frankenAgdaBin;
-    };
-
-    frankenPkgs = pkgs // {
-      haskellPackages = pkgs.haskellPackages // {
-        inherit (agda-project) ghcWithPackages;
+      frankenAgdaBin = pkgs.symlinkJoin {
+        name = "agda";
+        version = Agda.identifier.version;
+        paths = [ Agda.components.exes.agda Agda.components.exes.agda-mode ];
       };
+
+      frankenAgda = frankenAgdaBin // {
+        # Newer Agda is built with enableSeparateBinOutput, hence this hacky workaround.
+        # https://github.com/NixOS/nixpkgs/commit/294245f7501e0a8e69b83346a4fa5afd4ed33ab3
+        bin = frankenAgdaBin;
+      };
+
+      frankenPkgs = pkgs // {
+        haskellPackages = pkgs.haskellPackages // {
+          inherit (agda-project) ghcWithPackages;
+        };
+      };
+    in
+    pkgs.agdaPackages.override {
+      Agda = frankenAgda;
+      pkgs = frankenPkgs;
     };
-  in pkgs.agdaPackages.override {
-    Agda = frankenAgda;
-    pkgs = frankenPkgs;
-  };
 
   # Agda is a huge pain. They have a special custom setup that compiles the
   # interface files for the Agda that ships with the compiler. These go in
@@ -115,4 +117,7 @@ rec {
     cabalProjectLocal = "extra-packages: ieee754, filemanip";
     modules = [ agda-project-module-patch-default ];
   };
-}
+
+in
+
+agda-with-stdlib

@@ -1,5 +1,7 @@
-# This job builds various papers and deploys them to:
-# https://plutus.cardano.intersectmbo.org/resources
+# This workflow builds and deploys various papers.
+# 
+# This workflow runs on all push to master and can also be triggered manually.
+# It deploys the artifacts to: https://plutus.cardano.intersectmbo.org/resources
 
 name: "📝 Papers & Specs"
 
@@ -35,7 +37,7 @@ jobs:
           )
           mkdir -p _resources
           for target in "${TARGETS[@]}"; do 
-            nix build --no-warn-dirty --accept-flake-config .#latex-documents.x86_64-linux.${target}
+            nix build --no-warn-dirty --accept-flake-config .#${target}
             cp -fr ./result/*.pdf _resources/${target}.pdf
           done 
 

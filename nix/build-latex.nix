@@ -1,12 +1,14 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ pkgs }:
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]
 , # The specific tex files to build, will try and build all of them if absent
-texInputs ? { inherit (pkgs.texlive) scheme-small; }
+  texInputs ? { inherit (pkgs.texlive) scheme-small; }
 , # Tex dependencies as an attrset
-buildInputs ? [ ], # Additional build inputs
-... }@attrs:
+  buildInputs ? [ ]
+, # Additional build inputs
+  ...
+}@attrs:
 
 let
   tex = pkgs.texlive.combine (texInputs // { inherit (pkgs.texlive) latexmk; });
@@ -16,7 +18,8 @@ let
 
   buildDir = ".nix-build";
 
-in pkgs.stdenv.mkDerivation (filteredAttrs // {
+in
+pkgs.stdenv.mkDerivation (filteredAttrs // {
 
   buildInputs = [ tex ] ++ buildInputs;
 

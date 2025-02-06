@@ -2,17 +2,9 @@
   description = "Plutus Core";
 
   inputs = {
-
-    iogx = {
-      url = "github:input-output-hk/iogx";
-      inputs.hackage.follows = "hackage";
-      inputs.CHaP.follows = "CHaP";
-      inputs.haskell-nix.follows = "haskell-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nixpkgs.follows = "haskell-nix/nixpkgs-unstable";
     nixpkgs-2405.follows = "haskell-nix/nixpkgs-2405";
+
+    nixpkgs.follows = "haskell-nix/nixpkgs";
 
     hackage = {
       url = "github:input-output-hk/hackage.nix";
@@ -28,15 +20,20 @@
       url = "github:input-output-hk/haskell.nix";
       inputs.hackage.follows = "hackage";
     };
+
+    iohk-nix = {
+      url = "github:input-output-hk/iohk-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    flake-utils.url = "github:numtide/flake-utils";
+
+    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
   };
 
-  outputs = inputs:
-    inputs.iogx.lib.mkFlake {
-      inherit inputs;
-      repoRoot = ./.;
-      systems = [ "x86_64-darwin" "x86_64-linux" "aarch64-darwin" ];
-      outputs = import ./nix/outputs.nix;
-    };
+  outputs = inputs: inputs.flake-utils.lib.eachDefaultSystem (system:
+    import ./nix/outputs.nix { inherit inputs system; }
+  );
 
   nixConfig = {
     extra-substituters = [ "https://cache.iog.io" ];

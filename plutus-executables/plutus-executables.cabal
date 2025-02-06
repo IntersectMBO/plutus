@@ -116,6 +116,7 @@ executable uplc
     , plutus-executables:lib
     , plutus-metatheory
     , prettyprinter
+    , serialise
     , split
     , text
 

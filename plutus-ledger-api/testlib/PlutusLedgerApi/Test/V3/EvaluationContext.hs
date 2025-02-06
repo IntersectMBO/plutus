@@ -85,6 +85,7 @@ clearBuiltinCostModel r = r
                , paramFindFirstSetBit = mempty
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
+               , paramDropList = mempty
                }
 
 
@@ -93,6 +94,7 @@ clearBuiltinCostModel r = r
 clearBuiltinCostModel' :: (m ~ MBuiltinCostModel) => m -> m
 clearBuiltinCostModel' r = r
                { -- , paramIntegerToByteString = mempty -- Required for V2
-               -- , paramByteStringToInteger = mempty -- Required for V2
+                 -- , paramByteStringToInteger = mempty -- Required for V2
                  paramExpModInteger = mempty
+               , paramDropList = mempty
                }
