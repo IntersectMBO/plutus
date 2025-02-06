@@ -8,7 +8,6 @@ module PlutusTx.IsData.TH (
   makeIsDataIndexed,
   mkConstrCreateExpr,
   mkUnsafeConstrMatchPattern,
-  mkUnsafeConstrMatchPattern',
   mkDecodingFunction,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
@@ -63,23 +62,24 @@ mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =
   [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
-mkUnsafeConstrMatchPattern' :: TH.Name -> Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrMatchPattern' cName conIx extractFieldNames = do
-  (TH.FunD fName _) <- mkDecodingFunction cName conIx (fromIntegral $ length extractFieldNames)
-  return $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP extractFieldNames)
-
 -- | Function which generates a function which takes a runtime BuiltinData argument
 -- and decodes it into a tuple of arguments
 mkDecodingFunction
   :: TH.Name
+  -- ^ Name of the type
+  -> [TH.Type]
+  -- ^ Types of the fields
+  -> TH.Name
   -- ^ Name of the constructor
+  -> TH.Name
+  -- ^ Name of the generated constructor
   -> Integer
   -- ^ Index of the constructor
   -> Integer
   -- ^ Number of fields in the constructor
-  -> TH.DecQ
-mkDecodingFunction dTypeName dTypeConstrIx numFields = do
-  let funcName = TH.mkName $ "matchOn" <> TH.nameBase dTypeName
+  -> TH.Q [TH.Dec]
+mkDecodingFunction name fieldTypes cn dTypeName dTypeConstrIx numFields = do
+  let funcName = TH.mkName $ "matchOn" <> TH.nameBase cn
       builtinData = TH.mkName "builtinData"
       argPat = TH.ConP dTypeName [] [TH.VarP builtinData]
       decs =
@@ -125,7 +125,10 @@ mkDecodingFunction dTypeName dTypeConstrIx numFields = do
             (TH.AppE (TH.VarE 'traceError) (TH.VarE 'Builtins.emptyString))
       body = TH.NormalB $ TH.LetE decs ifExpr
       clause = TH.Clause [argPat] body []
-  return $ TH.FunD funcName [clause]
+      functionDef = TH.FunD funcName [clause]
+      tupleType = foldl TH.AppT (TH.TupleT (fromIntegral numFields)) fieldTypes
+      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT (TH.ConT name)) tupleType
+  return [functionType, functionDef]
 
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =

@@ -47,7 +47,7 @@ newtype IntsManual = IntsManual PlutusTx.BuiltinData
 
 pattern IntsManual' :: Integer -> Integer -> Integer -> Integer -> IntsManual
 pattern IntsManual' {i1, i2, i3, i4} <-
-  (matchOnInts -> (i1, i2, i3, i4))
+  (matchOnIntsManual -> (i1, i2, i3, i4))
   where
     IntsManual' i1 i2 i3 i4 =
       IntsManual
@@ -63,8 +63,8 @@ pattern IntsManual' {i1, i2, i3, i4} <-
         )
         )
 
-matchOnInts :: IntsManual -> (Integer, Integer, Integer, Integer)
-matchOnInts (IntsManual d) =
+matchOnIntsManual :: IntsManual -> (Integer, Integer, Integer, Integer)
+matchOnIntsManual (IntsManual d) =
   let tup = BI.unsafeDataAsConstr d
       i = BI.fst tup
       ds0 = BI.snd tup
