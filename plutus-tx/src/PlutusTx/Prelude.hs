@@ -12,6 +12,7 @@ module PlutusTx.Prelude (
     module Semigroup,
     module Monoid,
     module Numeric,
+    module Function,
     module Functor,
     module Applicative,
     module Lattice,
@@ -160,6 +161,7 @@ import PlutusTx.Enum as Enum
 import PlutusTx.Eq as Eq
 import PlutusTx.ErrorCodes
 import PlutusTx.Foldable as Foldable
+import PlutusTx.Function as Function
 import PlutusTx.Functor as Functor
 import PlutusTx.IsData
 import PlutusTx.Lattice as Lattice

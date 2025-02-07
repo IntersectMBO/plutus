@@ -48,6 +48,7 @@ import PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
+import PlutusTx.Function qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
@@ -67,6 +68,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
+import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
 
 import Control.Exception (displayException)
@@ -1349,6 +1351,14 @@ defineIntegerNegate = do
     def = PIR.Def var (body, PIR.Strict)
   PIR.defineTerm (LexName GHC.integerNegateName) def mempty
 
+defineFix :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
+defineFix = do
+  ghcId <- lookupGhcId 'PlutusTx.Function.fix
+  var <- compileVarFresh annMayInline ghcId
+  let rhs = annMayInline <$ PlutusCore.StdLib.Data.Function.fix
+  let def = PIR.Def var (rhs, PIR.Strict)
+  PIR.defineTerm (LexName (GHC.getName ghcId)) def mempty
+
 lookupIntegerNegate :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
 lookupIntegerNegate = do
   ghcName <- lookupGhcName 'GHC.Num.Integer.integerNegate
@@ -1365,6 +1375,7 @@ compileExprWithDefs e = do
   defineBuiltinTypes
   defineBuiltinTerms
   defineIntegerNegate
+  defineFix
   compileExpr e
 
 {- Note [We always need DEFAULT]
