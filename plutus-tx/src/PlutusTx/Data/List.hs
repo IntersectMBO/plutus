@@ -11,12 +11,15 @@ module PlutusTx.Data.List (
     filter,
     mapMaybe,
     any,
+    all,
     foldMap,
     map,
     length,
     mconcat,
     fromSOP,
     toSOP,
+    toBuiltinList,
+    null,
 ) where
 
 import PlutusTx.Builtins qualified as B
@@ -24,8 +27,8 @@ import PlutusTx.Builtins.Internal (BuiltinList)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
-                         mconcat, pred)
+import PlutusTx.Prelude hiding (all, any, filter, find, findIndices, foldMap, length, map, mapMaybe,
+                         mconcat, null, pred)
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
@@ -59,6 +62,9 @@ instance UnsafeFromData (List a) where
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
+
+toBuiltinList :: List a -> BuiltinList BuiltinData
+toBuiltinList (List l) = l
 
 cons :: (ToData a) => a -> List a -> List a
 cons h (List t) = List (BI.mkCons (toBuiltinData h) t)
@@ -165,6 +171,18 @@ any pred (List l) = go l
             )
 {-# INLINEABLE any #-}
 
+all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
+all pred (List l) = go l
+  where
+    go =
+        B.caseList'
+            True
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in pred h' && go t
+            )
+{-# INLINEABLE all #-}
+
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f (List l) = go l
   where
@@ -206,5 +224,9 @@ mconcat (List l) = go l
                 in h' <> go t
             )
 {-# INLINABLE mconcat #-}
+
+null :: List a -> Bool
+null = B.null . toBuiltinList
+{-# INLINABLE null #-}
 
 makeLift ''List
