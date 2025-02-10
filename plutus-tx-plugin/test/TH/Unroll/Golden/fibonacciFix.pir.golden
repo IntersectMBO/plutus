@@ -1,0 +1,31 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (integer -> integer)
+    = iwrap
+        (\(self :: * -> *) a -> self a -> a)
+        (integer -> integer)
+        (\(s :
+             (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+               (integer -> integer)) ->
+           let
+             !self : integer -> integer = \(x : integer) -> unwrap s s x
+           in
+           \(n : integer) ->
+             Bool_match
+               (Bool_match
+                  (ifThenElse {Bool} (equalsInteger 0 n) True False)
+                  {all dead. Bool}
+                  (/\dead -> True)
+                  (/\dead -> ifThenElse {Bool} (equalsInteger 1 n) True False)
+                  {all dead. dead})
+               {all dead. integer}
+               (/\dead -> n)
+               (/\dead ->
+                  addInteger
+                    (self (subtractInteger n 1))
+                    (self (subtractInteger n 2)))
+               {all dead. dead})
+in
+unwrap s s 15

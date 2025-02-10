@@ -1,0 +1,24 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !fibonacci : integer -> integer
+    = \(n : integer) ->
+        Bool_match
+          (Bool_match
+             (ifThenElse {Bool} (equalsInteger 0 n) True False)
+             {all dead. Bool}
+             (/\dead -> True)
+             (/\dead -> ifThenElse {Bool} (equalsInteger 1 n) True False)
+             {all dead. dead})
+          {all dead. integer}
+          (/\dead -> n)
+          (/\dead ->
+             addInteger
+               (fibonacci (subtractInteger n 1))
+               (fibonacci (subtractInteger n 2)))
+          {all dead. dead}
+in
+fibonacci 15

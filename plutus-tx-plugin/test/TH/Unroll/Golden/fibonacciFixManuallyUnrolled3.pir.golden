@@ -1,0 +1,406 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (integer -> integer)
+    = iwrap
+        (\(self :: * -> *) a -> self a -> a)
+        (integer -> integer)
+        (\(s :
+             (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+               (integer -> integer)) ->
+           let
+             !self : integer -> integer = \(x : integer) -> unwrap s s x
+           in
+           \(n : integer) ->
+             let
+               !`$j` : integer -> integer
+                 = \(x : integer) ->
+                     let
+                       !n' : integer = subtractInteger n 2
+                       !`$j` : integer -> integer
+                         = \(x : integer) ->
+                             let
+                               !n'' : integer = subtractInteger n' 2
+                               !`$j` : integer -> integer
+                                 = \(x : integer) ->
+                                     let
+                                       !n''' : integer = subtractInteger n'' 2
+                                     in
+                                     Bool_match
+                                       (Bool_match
+                                          (ifThenElse
+                                             {Bool}
+                                             (equalsInteger 0 n''')
+                                             True
+                                             False)
+                                          {all dead. Bool}
+                                          (/\dead -> True)
+                                          (/\dead ->
+                                             ifThenElse
+                                               {Bool}
+                                               (equalsInteger 1 n''')
+                                               True
+                                               False)
+                                          {all dead. dead})
+                                       {all dead. integer}
+                                       (/\dead ->
+                                          addInteger
+                                            x
+                                            (addInteger x (addInteger x n''')))
+                                       (/\dead ->
+                                          addInteger
+                                            x
+                                            (addInteger
+                                               x
+                                               (addInteger
+                                                  x
+                                                  (addInteger
+                                                     (self
+                                                        (subtractInteger
+                                                           n'''
+                                                           1))
+                                                     (self
+                                                        (subtractInteger
+                                                           n'''
+                                                           2))))))
+                                       {all dead. dead}
+                             in
+                             Bool_match
+                               (Bool_match
+                                  (ifThenElse
+                                     {Bool}
+                                     (equalsInteger 0 n'')
+                                     True
+                                     False)
+                                  {all dead. Bool}
+                                  (/\dead -> True)
+                                  (/\dead ->
+                                     ifThenElse
+                                       {Bool}
+                                       (equalsInteger 1 n'')
+                                       True
+                                       False)
+                                  {all dead. dead})
+                               {all dead. integer}
+                               (/\dead -> addInteger x (addInteger x n''))
+                               (/\dead ->
+                                  let
+                                    !n''' : integer = subtractInteger n'' 1
+                                  in
+                                  Bool_match
+                                    (Bool_match
+                                       (ifThenElse
+                                          {Bool}
+                                          (equalsInteger 0 n''')
+                                          True
+                                          False)
+                                       {all dead. Bool}
+                                       (/\dead -> True)
+                                       (/\dead ->
+                                          ifThenElse
+                                            {Bool}
+                                            (equalsInteger 1 n''')
+                                            True
+                                            False)
+                                       {all dead. dead})
+                                    {all dead. integer}
+                                    (/\dead -> `$j` n''')
+                                    (/\dead ->
+                                       `$j`
+                                         (addInteger
+                                            (self (subtractInteger n''' 1))
+                                            (self (subtractInteger n''' 2))))
+                                    {all dead. dead})
+                               {all dead. dead}
+                     in
+                     Bool_match
+                       (Bool_match
+                          (ifThenElse {Bool} (equalsInteger 0 n') True False)
+                          {all dead. Bool}
+                          (/\dead -> True)
+                          (/\dead ->
+                             ifThenElse {Bool} (equalsInteger 1 n') True False)
+                          {all dead. dead})
+                       {all dead. integer}
+                       (/\dead -> addInteger x n')
+                       (/\dead ->
+                          let
+                            !n'' : integer = subtractInteger n' 1
+                            !`$j` : integer -> integer
+                              = \(x : integer) ->
+                                  let
+                                    !n''' : integer = subtractInteger n'' 2
+                                  in
+                                  Bool_match
+                                    (Bool_match
+                                       (ifThenElse
+                                          {Bool}
+                                          (equalsInteger 0 n''')
+                                          True
+                                          False)
+                                       {all dead. Bool}
+                                       (/\dead -> True)
+                                       (/\dead ->
+                                          ifThenElse
+                                            {Bool}
+                                            (equalsInteger 1 n''')
+                                            True
+                                            False)
+                                       {all dead. dead})
+                                    {all dead. integer}
+                                    (/\dead -> `$j` (addInteger x n'''))
+                                    (/\dead ->
+                                       `$j`
+                                         (addInteger
+                                            x
+                                            (addInteger
+                                               (self (subtractInteger n''' 1))
+                                               (self
+                                                  (subtractInteger n''' 2)))))
+                                    {all dead. dead}
+                          in
+                          Bool_match
+                            (Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger 0 n'')
+                                  True
+                                  False)
+                               {all dead. Bool}
+                               (/\dead -> True)
+                               (/\dead ->
+                                  ifThenElse
+                                    {Bool}
+                                    (equalsInteger 1 n'')
+                                    True
+                                    False)
+                               {all dead. dead})
+                            {all dead. integer}
+                            (/\dead -> `$j` n'')
+                            (/\dead ->
+                               let
+                                 !n''' : integer = subtractInteger n'' 1
+                               in
+                               Bool_match
+                                 (Bool_match
+                                    (ifThenElse
+                                       {Bool}
+                                       (equalsInteger 0 n''')
+                                       True
+                                       False)
+                                    {all dead. Bool}
+                                    (/\dead -> True)
+                                    (/\dead ->
+                                       ifThenElse
+                                         {Bool}
+                                         (equalsInteger 1 n''')
+                                         True
+                                         False)
+                                    {all dead. dead})
+                                 {all dead. integer}
+                                 (/\dead -> `$j` n''')
+                                 (/\dead ->
+                                    `$j`
+                                      (addInteger
+                                         (self (subtractInteger n''' 1))
+                                         (self (subtractInteger n''' 2))))
+                                 {all dead. dead})
+                            {all dead. dead})
+                       {all dead. dead}
+             in
+             Bool_match
+               (Bool_match
+                  (ifThenElse {Bool} (equalsInteger 0 n) True False)
+                  {all dead. Bool}
+                  (/\dead -> True)
+                  (/\dead -> ifThenElse {Bool} (equalsInteger 1 n) True False)
+                  {all dead. dead})
+               {all dead. integer}
+               (/\dead -> n)
+               (/\dead ->
+                  let
+                    !n' : integer = subtractInteger n 1
+                    !`$j` : integer -> integer
+                      = \(x : integer) ->
+                          let
+                            !n'' : integer = subtractInteger n' 2
+                            !`$j` : integer -> integer
+                              = \(x : integer) ->
+                                  let
+                                    !n''' : integer = subtractInteger n'' 2
+                                  in
+                                  Bool_match
+                                    (Bool_match
+                                       (ifThenElse
+                                          {Bool}
+                                          (equalsInteger 0 n''')
+                                          True
+                                          False)
+                                       {all dead. Bool}
+                                       (/\dead -> True)
+                                       (/\dead ->
+                                          ifThenElse
+                                            {Bool}
+                                            (equalsInteger 1 n''')
+                                            True
+                                            False)
+                                       {all dead. dead})
+                                    {all dead. integer}
+                                    (/\dead ->
+                                       `$j` (addInteger x (addInteger x n''')))
+                                    (/\dead ->
+                                       `$j`
+                                         (addInteger
+                                            x
+                                            (addInteger
+                                               x
+                                               (addInteger
+                                                  (self
+                                                     (subtractInteger n''' 1))
+                                                  (self
+                                                     (subtractInteger
+                                                        n'''
+                                                        2))))))
+                                    {all dead. dead}
+                          in
+                          Bool_match
+                            (Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger 0 n'')
+                                  True
+                                  False)
+                               {all dead. Bool}
+                               (/\dead -> True)
+                               (/\dead ->
+                                  ifThenElse
+                                    {Bool}
+                                    (equalsInteger 1 n'')
+                                    True
+                                    False)
+                               {all dead. dead})
+                            {all dead. integer}
+                            (/\dead -> `$j` (addInteger x n''))
+                            (/\dead ->
+                               let
+                                 !n''' : integer = subtractInteger n'' 1
+                               in
+                               Bool_match
+                                 (Bool_match
+                                    (ifThenElse
+                                       {Bool}
+                                       (equalsInteger 0 n''')
+                                       True
+                                       False)
+                                    {all dead. Bool}
+                                    (/\dead -> True)
+                                    (/\dead ->
+                                       ifThenElse
+                                         {Bool}
+                                         (equalsInteger 1 n''')
+                                         True
+                                         False)
+                                    {all dead. dead})
+                                 {all dead. integer}
+                                 (/\dead -> `$j` n''')
+                                 (/\dead ->
+                                    `$j`
+                                      (addInteger
+                                         (self (subtractInteger n''' 1))
+                                         (self (subtractInteger n''' 2))))
+                                 {all dead. dead})
+                            {all dead. dead}
+                  in
+                  Bool_match
+                    (Bool_match
+                       (ifThenElse {Bool} (equalsInteger 0 n') True False)
+                       {all dead. Bool}
+                       (/\dead -> True)
+                       (/\dead ->
+                          ifThenElse {Bool} (equalsInteger 1 n') True False)
+                       {all dead. dead})
+                    {all dead. integer}
+                    (/\dead -> `$j` n')
+                    (/\dead ->
+                       let
+                         !n'' : integer = subtractInteger n' 1
+                         !`$j` : integer -> integer
+                           = \(x : integer) ->
+                               let
+                                 !n''' : integer = subtractInteger n'' 2
+                               in
+                               Bool_match
+                                 (Bool_match
+                                    (ifThenElse
+                                       {Bool}
+                                       (equalsInteger 0 n''')
+                                       True
+                                       False)
+                                    {all dead. Bool}
+                                    (/\dead -> True)
+                                    (/\dead ->
+                                       ifThenElse
+                                         {Bool}
+                                         (equalsInteger 1 n''')
+                                         True
+                                         False)
+                                    {all dead. dead})
+                                 {all dead. integer}
+                                 (/\dead -> `$j` (addInteger x n'''))
+                                 (/\dead ->
+                                    `$j`
+                                      (addInteger
+                                         x
+                                         (addInteger
+                                            (self (subtractInteger n''' 1))
+                                            (self (subtractInteger n''' 2)))))
+                                 {all dead. dead}
+                       in
+                       Bool_match
+                         (Bool_match
+                            (ifThenElse {Bool} (equalsInteger 0 n'') True False)
+                            {all dead. Bool}
+                            (/\dead -> True)
+                            (/\dead ->
+                               ifThenElse
+                                 {Bool}
+                                 (equalsInteger 1 n'')
+                                 True
+                                 False)
+                            {all dead. dead})
+                         {all dead. integer}
+                         (/\dead -> `$j` n'')
+                         (/\dead ->
+                            let
+                              !n''' : integer = subtractInteger n'' 1
+                            in
+                            Bool_match
+                              (Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger 0 n''')
+                                    True
+                                    False)
+                                 {all dead. Bool}
+                                 (/\dead -> True)
+                                 (/\dead ->
+                                    ifThenElse
+                                      {Bool}
+                                      (equalsInteger 1 n''')
+                                      True
+                                      False)
+                                 {all dead. dead})
+                              {all dead. integer}
+                              (/\dead -> `$j` n''')
+                              (/\dead ->
+                                 `$j`
+                                   (addInteger
+                                      (self (subtractInteger n''' 1))
+                                      (self (subtractInteger n''' 2))))
+                              {all dead. dead})
+                         {all dead. dead})
+                    {all dead. dead})
+               {all dead. dead})
+in
+unwrap s s 15

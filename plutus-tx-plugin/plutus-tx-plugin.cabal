@@ -164,6 +164,8 @@ test-suite plutus-tx-plugin-tests
     Strictness.Spec
     TH.Spec
     TH.TestTH
+    TH.Unroll.Spec
+    TH.Unroll.Spec.Lib
     Unicode.Spec
 
   build-depends:

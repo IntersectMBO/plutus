@@ -21,6 +21,7 @@ import Strictness.Spec qualified as Strictness
 import Test.Tasty (TestTree, defaultMain)
 import Test.Tasty.Extras (embed, runTestNested)
 import TH.Spec qualified as TH
+import TH.Unroll.Spec qualified as Unroll
 import Unicode.Spec qualified as Unicode
 
 main :: IO ()
@@ -39,6 +40,7 @@ tests =
     , IsData.tests
     , Lift.tests
     , TH.tests
+    , Unroll.tests
     , Lib.tests
     , Budget.tests
     , AsData.Budget.tests

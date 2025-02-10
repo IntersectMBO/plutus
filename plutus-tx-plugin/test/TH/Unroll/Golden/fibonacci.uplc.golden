@@ -1,0 +1,25 @@
+(program
+   1.1.0
+   ((\s -> s s)
+      (\s ->
+         (\fibonacci n ->
+            force
+              (case
+                 (force
+                    (force
+                       (force ifThenElse
+                          (equalsInteger 0 n)
+                          (delay (delay (constr 0 [])))
+                          (delay
+                             (delay
+                                (force ifThenElse
+                                   (equalsInteger 1 n)
+                                   (constr 0 [])
+                                   (constr 1 [])))))))
+                 [ (delay n)
+                 , (delay
+                      (addInteger
+                         (fibonacci (subtractInteger n 1))
+                         (fibonacci (subtractInteger n 2)))) ]))
+           (\x -> s s x))
+      15))

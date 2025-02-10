@@ -1,0 +1,557 @@
+(program
+   1.1.0
+   ((\s ->
+       s s)
+      (\s ->
+         (\fibonacciManuallyUnrolled
+           n ->
+            force
+              (case
+                 (force
+                    (force
+                       (force ifThenElse
+                          (equalsInteger 0 n)
+                          (delay (delay (constr 0 [])))
+                          (delay
+                             (delay
+                                (force ifThenElse
+                                   (equalsInteger 1 n)
+                                   (constr 0 [])
+                                   (constr 1 [])))))))
+                 [ (delay n)
+                 , (delay
+                      ((\n' ->
+                          force
+                            ((\`$j` ->
+                                case
+                                  (force
+                                     (force
+                                        (force ifThenElse
+                                           (equalsInteger 0 n')
+                                           (delay (delay (constr 0 [])))
+                                           (delay
+                                              (delay
+                                                 (force ifThenElse
+                                                    (equalsInteger 1 n')
+                                                    (constr 0 [])
+                                                    (constr 1 [])))))))
+                                  [ (delay (`$j` n'))
+                                  , (delay
+                                       ((\n'' ->
+                                           force
+                                             ((\`$j` ->
+                                                 case
+                                                   (force
+                                                      (force
+                                                         (force
+                                                            ifThenElse
+                                                            (equalsInteger
+                                                               0
+                                                               n'')
+                                                            (delay
+                                                               (delay
+                                                                  (constr 0
+                                                                     [])))
+                                                            (delay
+                                                               (delay
+                                                                  (force
+                                                                     ifThenElse
+                                                                     (equalsInteger
+                                                                        1
+                                                                        n'')
+                                                                     (constr 0
+                                                                        [])
+                                                                     (constr 1
+                                                                        [  ])))))))
+                                                   [ (delay (`$j` n''))
+                                                   , (delay
+                                                        ((\n''' ->
+                                                            force
+                                                              ((\`$j` ->
+                                                                  case
+                                                                    (force
+                                                                       (force
+                                                                          (force
+                                                                             ifThenElse
+                                                                             (equalsInteger
+                                                                                0
+                                                                                n''')
+                                                                             (delay
+                                                                                (delay
+                                                                                   (constr 0
+                                                                                      [  ])))
+                                                                             (delay
+                                                                                (delay
+                                                                                   (force
+                                                                                      ifThenElse
+                                                                                      (equalsInteger
+                                                                                         1
+                                                                                         n''')
+                                                                                      (constr 0
+                                                                                         [  ])
+                                                                                      (constr 1
+                                                                                         [  ])))))))
+                                                                    [ (delay
+                                                                         (`$j`
+                                                                            n'''))
+                                                                    , (delay
+                                                                         (`$j`
+                                                                            (addInteger
+                                                                               (fibonacciManuallyUnrolled
+                                                                                  (subtractInteger
+                                                                                     n'''
+                                                                                     1))
+                                                                               (fibonacciManuallyUnrolled
+                                                                                  (subtractInteger
+                                                                                     n'''
+                                                                                     2))))) ])
+                                                                 (\x ->
+                                                                    (\n''' ->
+                                                                       force
+                                                                         (case
+                                                                            (force
+                                                                               (force
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        0
+                                                                                        n''')
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (constr 0
+                                                                                              [  ])))
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (force
+                                                                                              ifThenElse
+                                                                                              (equalsInteger
+                                                                                                 1
+                                                                                                 n''')
+                                                                                              (constr 0
+                                                                                                 [  ])
+                                                                                              (constr 1
+                                                                                                 [  ])))))))
+                                                                            [ (delay
+                                                                                 (`$j`
+                                                                                    (addInteger
+                                                                                       x
+                                                                                       n''')))
+                                                                            , (delay
+                                                                                 (`$j`
+                                                                                    (addInteger
+                                                                                       x
+                                                                                       (addInteger
+                                                                                          (fibonacciManuallyUnrolled
+                                                                                             (subtractInteger
+                                                                                                n'''
+                                                                                                1))
+                                                                                          (fibonacciManuallyUnrolled
+                                                                                             (subtractInteger
+                                                                                                n'''
+                                                                                                2)))))) ]))
+                                                                      (subtractInteger
+                                                                         n''
+                                                                         2))))
+                                                           (subtractInteger
+                                                              n''
+                                                              1))) ])
+                                                (\x ->
+                                                   (\n'' ->
+                                                      force
+                                                        (case
+                                                           (force
+                                                              (force
+                                                                 (force
+                                                                    ifThenElse
+                                                                    (equalsInteger
+                                                                       0
+                                                                       n'')
+                                                                    (delay
+                                                                       (delay
+                                                                          (constr 0
+                                                                             [  ])))
+                                                                    (delay
+                                                                       (delay
+                                                                          (force
+                                                                             ifThenElse
+                                                                             (equalsInteger
+                                                                                1
+                                                                                n'')
+                                                                             (constr 0
+                                                                                [  ])
+                                                                             (constr 1
+                                                                                [  ])))))))
+                                                           [ (delay
+                                                                (`$j`
+                                                                   (addInteger
+                                                                      x
+                                                                      n'')))
+                                                           , (delay
+                                                                ((\n''' ->
+                                                                    force
+                                                                      ((\`$j` ->
+                                                                          case
+                                                                            (force
+                                                                               (force
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        0
+                                                                                        n''')
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (constr 0
+                                                                                              [  ])))
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (force
+                                                                                              ifThenElse
+                                                                                              (equalsInteger
+                                                                                                 1
+                                                                                                 n''')
+                                                                                              (constr 0
+                                                                                                 [  ])
+                                                                                              (constr 1
+                                                                                                 [  ])))))))
+                                                                            [ (delay
+                                                                                 (`$j`
+                                                                                    n'''))
+                                                                            , (delay
+                                                                                 (`$j`
+                                                                                    (addInteger
+                                                                                       (fibonacciManuallyUnrolled
+                                                                                          (subtractInteger
+                                                                                             n'''
+                                                                                             1))
+                                                                                       (fibonacciManuallyUnrolled
+                                                                                          (subtractInteger
+                                                                                             n'''
+                                                                                             2))))) ])
+                                                                         (\x ->
+                                                                            (\n''' ->
+                                                                               force
+                                                                                 (case
+                                                                                    (force
+                                                                                       (force
+                                                                                          (force
+                                                                                             ifThenElse
+                                                                                             (equalsInteger
+                                                                                                0
+                                                                                                n''')
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (constr 0
+                                                                                                      [  ])))
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (force
+                                                                                                      ifThenElse
+                                                                                                      (equalsInteger
+                                                                                                         1
+                                                                                                         n''')
+                                                                                                      (constr 0
+                                                                                                         [  ])
+                                                                                                      (constr 1
+                                                                                                         [  ])))))))
+                                                                                    [ (delay
+                                                                                         (`$j`
+                                                                                            (addInteger
+                                                                                               x
+                                                                                               (addInteger
+                                                                                                  x
+                                                                                                  n'''))))
+                                                                                    , (delay
+                                                                                         (`$j`
+                                                                                            (addInteger
+                                                                                               x
+                                                                                               (addInteger
+                                                                                                  x
+                                                                                                  (addInteger
+                                                                                                     (fibonacciManuallyUnrolled
+                                                                                                        (subtractInteger
+                                                                                                           n'''
+                                                                                                           1))
+                                                                                                     (fibonacciManuallyUnrolled
+                                                                                                        (subtractInteger
+                                                                                                           n'''
+                                                                                                           2))))))) ]))
+                                                                              (subtractInteger
+                                                                                 n''
+                                                                                 2))))
+                                                                   (subtractInteger
+                                                                      n''
+                                                                      1))) ]))
+                                                     (subtractInteger n' 2))))
+                                          (subtractInteger n' 1))) ])
+                               (\x ->
+                                  (\n' ->
+                                     force
+                                       (case
+                                          (force
+                                             (force
+                                                (force ifThenElse
+                                                   (equalsInteger 0 n')
+                                                   (delay (delay (constr 0 [])))
+                                                   (delay
+                                                      (delay
+                                                         (force ifThenElse
+                                                            (equalsInteger 1 n')
+                                                            (constr 0 [])
+                                                            (constr 1 [])))))))
+                                          [ (delay (addInteger x n'))
+                                          , (delay
+                                               ((\n'' ->
+                                                   force
+                                                     ((\`$j` ->
+                                                         case
+                                                           (force
+                                                              (force
+                                                                 (force
+                                                                    ifThenElse
+                                                                    (equalsInteger
+                                                                       0
+                                                                       n'')
+                                                                    (delay
+                                                                       (delay
+                                                                          (constr 0
+                                                                             [  ])))
+                                                                    (delay
+                                                                       (delay
+                                                                          (force
+                                                                             ifThenElse
+                                                                             (equalsInteger
+                                                                                1
+                                                                                n'')
+                                                                             (constr 0
+                                                                                [  ])
+                                                                             (constr 1
+                                                                                [  ])))))))
+                                                           [ (delay (`$j` n''))
+                                                           , (delay
+                                                                ((\n''' ->
+                                                                    force
+                                                                      ((\`$j` ->
+                                                                          case
+                                                                            (force
+                                                                               (force
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        0
+                                                                                        n''')
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (constr 0
+                                                                                              [  ])))
+                                                                                     (delay
+                                                                                        (delay
+                                                                                           (force
+                                                                                              ifThenElse
+                                                                                              (equalsInteger
+                                                                                                 1
+                                                                                                 n''')
+                                                                                              (constr 0
+                                                                                                 [  ])
+                                                                                              (constr 1
+                                                                                                 [  ])))))))
+                                                                            [ (delay
+                                                                                 (`$j`
+                                                                                    n'''))
+                                                                            , (delay
+                                                                                 (`$j`
+                                                                                    (addInteger
+                                                                                       (fibonacciManuallyUnrolled
+                                                                                          (subtractInteger
+                                                                                             n'''
+                                                                                             1))
+                                                                                       (fibonacciManuallyUnrolled
+                                                                                          (subtractInteger
+                                                                                             n'''
+                                                                                             2))))) ])
+                                                                         (\x ->
+                                                                            (\n''' ->
+                                                                               force
+                                                                                 (case
+                                                                                    (force
+                                                                                       (force
+                                                                                          (force
+                                                                                             ifThenElse
+                                                                                             (equalsInteger
+                                                                                                0
+                                                                                                n''')
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (constr 0
+                                                                                                      [  ])))
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (force
+                                                                                                      ifThenElse
+                                                                                                      (equalsInteger
+                                                                                                         1
+                                                                                                         n''')
+                                                                                                      (constr 0
+                                                                                                         [  ])
+                                                                                                      (constr 1
+                                                                                                         [  ])))))))
+                                                                                    [ (delay
+                                                                                         (`$j`
+                                                                                            (addInteger
+                                                                                               x
+                                                                                               n''')))
+                                                                                    , (delay
+                                                                                         (`$j`
+                                                                                            (addInteger
+                                                                                               x
+                                                                                               (addInteger
+                                                                                                  (fibonacciManuallyUnrolled
+                                                                                                     (subtractInteger
+                                                                                                        n'''
+                                                                                                        1))
+                                                                                                  (fibonacciManuallyUnrolled
+                                                                                                     (subtractInteger
+                                                                                                        n'''
+                                                                                                        2)))))) ]))
+                                                                              (subtractInteger
+                                                                                 n''
+                                                                                 2))))
+                                                                   (subtractInteger
+                                                                      n''
+                                                                      1))) ])
+                                                        (\x ->
+                                                           (\n'' ->
+                                                              force
+                                                                (case
+                                                                   (force
+                                                                      (force
+                                                                         (force
+                                                                            ifThenElse
+                                                                            (equalsInteger
+                                                                               0
+                                                                               n'')
+                                                                            (delay
+                                                                               (delay
+                                                                                  (constr 0
+                                                                                     [  ])))
+                                                                            (delay
+                                                                               (delay
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        1
+                                                                                        n'')
+                                                                                     (constr 0
+                                                                                        [  ])
+                                                                                     (constr 1
+                                                                                        [  ])))))))
+                                                                   [ (delay
+                                                                        (addInteger
+                                                                           x
+                                                                           (addInteger
+                                                                              x
+                                                                              n'')))
+                                                                   , (delay
+                                                                        ((\n''' ->
+                                                                            force
+                                                                              ((\`$j` ->
+                                                                                  case
+                                                                                    (force
+                                                                                       (force
+                                                                                          (force
+                                                                                             ifThenElse
+                                                                                             (equalsInteger
+                                                                                                0
+                                                                                                n''')
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (constr 0
+                                                                                                      [  ])))
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (force
+                                                                                                      ifThenElse
+                                                                                                      (equalsInteger
+                                                                                                         1
+                                                                                                         n''')
+                                                                                                      (constr 0
+                                                                                                         [  ])
+                                                                                                      (constr 1
+                                                                                                         [  ])))))))
+                                                                                    [ (delay
+                                                                                         (`$j`
+                                                                                            n'''))
+                                                                                    , (delay
+                                                                                         (`$j`
+                                                                                            (addInteger
+                                                                                               (fibonacciManuallyUnrolled
+                                                                                                  (subtractInteger
+                                                                                                     n'''
+                                                                                                     1))
+                                                                                               (fibonacciManuallyUnrolled
+                                                                                                  (subtractInteger
+                                                                                                     n'''
+                                                                                                     2))))) ])
+                                                                                 (\x ->
+                                                                                    (\n''' ->
+                                                                                       force
+                                                                                         (case
+                                                                                            (force
+                                                                                               (force
+                                                                                                  (force
+                                                                                                     ifThenElse
+                                                                                                     (equalsInteger
+                                                                                                        0
+                                                                                                        n''')
+                                                                                                     (delay
+                                                                                                        (delay
+                                                                                                           (constr 0
+                                                                                                              [  ])))
+                                                                                                     (delay
+                                                                                                        (delay
+                                                                                                           (force
+                                                                                                              ifThenElse
+                                                                                                              (equalsInteger
+                                                                                                                 1
+                                                                                                                 n''')
+                                                                                                              (constr 0
+                                                                                                                 [  ])
+                                                                                                              (constr 1
+                                                                                                                 [  ])))))))
+                                                                                            [ (delay
+                                                                                                 (addInteger
+                                                                                                    x
+                                                                                                    (addInteger
+                                                                                                       x
+                                                                                                       (addInteger
+                                                                                                          x
+                                                                                                          n'''))))
+                                                                                            , (delay
+                                                                                                 (addInteger
+                                                                                                    x
+                                                                                                    (addInteger
+                                                                                                       x
+                                                                                                       (addInteger
+                                                                                                          x
+                                                                                                          (addInteger
+                                                                                                             (fibonacciManuallyUnrolled
+                                                                                                                (subtractInteger
+                                                                                                                   n'''
+                                                                                                                   1))
+                                                                                                             (fibonacciManuallyUnrolled
+                                                                                                                (subtractInteger
+                                                                                                                   n'''
+                                                                                                                   2))))))) ]))
+                                                                                      (subtractInteger
+                                                                                         n''
+                                                                                         2))))
+                                                                           (subtractInteger
+                                                                              n''
+                                                                              1))) ]))
+                                                             (subtractInteger
+                                                                n'
+                                                                2))))
+                                                  (subtractInteger n' 1))) ]))
+                                    (subtractInteger n 2))))
+                         (subtractInteger n 1))) ]))
+           (\x -> s s x))
+      15))
