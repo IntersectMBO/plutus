@@ -109,7 +109,7 @@ Plutus V2 was enabled at the Vasil hard fork, which introduced the Babbage era.
 
 Plutus V2 shares several similarities with Plutus V1:
 - It supports the same four script purposes.
-- The number of arguments a Plutus V2 script receives is identical to Plutus V1: three for minting scripts, and two for other script purposes.
+- The number of arguments a Plutus V2 script receives is identical to Plutus V1: three for spending scripts, and two for other script purposes.
 - Script evaluation succeeds as long as no errors occur and the budget is not exceeded.
 
 The differences between Plutus V1 and Plutus V2 include:
