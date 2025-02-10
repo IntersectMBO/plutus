@@ -30,6 +30,7 @@ import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
+import PlutusTx.Function qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
@@ -407,6 +408,7 @@ compileMarkedExpr locStr codeTy origE = do
           , 'GHC.Num.Integer.integerNegate
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
+          , 'PlutusTx.Function.fix
           , 'useToOpaque
           , 'useFromOpaque
           , 'mkNilOpaque

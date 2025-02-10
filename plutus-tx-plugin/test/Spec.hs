@@ -14,6 +14,7 @@ import Lift.Spec qualified as Lift
 import List.Spec qualified as List
 import Optimization.Spec qualified as Optimization
 import Plugin.Spec qualified as Plugin
+import Recursion.Spec qualified as Recursion
 import ShortCircuit.Spec qualified as ShortCircuit
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
@@ -41,6 +42,7 @@ tests =
     , Lib.tests
     , Budget.tests
     , AsData.Budget.tests
+    , Recursion.tests
     , Optimization.tests
     , Strictness.tests
     , Blueprint.Tests.tests
