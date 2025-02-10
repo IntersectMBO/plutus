@@ -88,7 +88,6 @@ let
     pkgs.cacert
     pkgs.upx
     pkgs.curl
-    pkgs.starship
     pkgs.bash
     pkgs.git
     pkgs.which
@@ -108,8 +107,8 @@ let
     withHoogle = true;
 
     shellHook = ''
-      eval "$(starship init bash)"
       ${pre-commit-check.shellHook}
+      export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
       echo -e "\n🤟 Welcome to Plutus 🤟"
     '';
   };
