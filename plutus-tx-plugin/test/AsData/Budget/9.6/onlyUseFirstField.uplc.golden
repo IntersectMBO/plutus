@@ -1,28 +1,40 @@
 (program
    1.1.0
    (\d ->
-      (\tup ->
-         force
-           (force
-              (force ifThenElse
-                 (equalsInteger 0 (force (force fstPair) tup))
-                 (delay
-                    (delay
-                       ((\l ->
-                           (\l ->
-                              (\l ->
-                                 (\ds ->
-                                    (\ds ->
-                                       (\ds ->
-                                          (\ds -> ds)
-                                            (unIData
-                                               (force headList
-                                                  (force tailList l))))
-                                         (unIData (force headList l)))
-                                      (unIData (force headList l)))
-                                   (unIData (force headList l)))
-                                (force tailList l))
-                             (force tailList l))
-                          (force (force sndPair) tup))))
-                 (delay (delay error)))))
-        (unConstrData d)))
+      force
+        (case
+           ((\asConstr ->
+               (\constrIx ->
+                  (\constrArgs ->
+                     (\field ->
+                        (\rest ->
+                           (\field ->
+                              (\rest ->
+                                 (\field ->
+                                    (\field ->
+                                       force
+                                         (force
+                                            (force ifThenElse
+                                               (equalsInteger 0 constrIx)
+                                               (delay
+                                                  (delay
+                                                     (constr 0
+                                                        [ (constr 0
+                                                             [ field
+                                                             , field
+                                                             , field
+                                                             , field ]) ])))
+                                               (delay (delay (constr 1 []))))))
+                                      (unIData
+                                         (force headList
+                                            (force tailList rest))))
+                                   (unIData (force headList rest)))
+                                (force tailList rest))
+                             (unIData (force headList rest)))
+                          (force tailList constrArgs))
+                       (unIData (force headList constrArgs)))
+                    (force (force sndPair) asConstr))
+                 (force (force fstPair) asConstr))
+              (unConstrData d))
+           [ (\ds -> delay (case ds [(\int int int int -> int)]))
+           , (delay error) ])))

@@ -1,70 +1,132 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !`$mInts` :
-     all r.
-       data ->
-       (integer -> integer -> integer -> integer -> r) ->
-       (unit -> r) ->
-       r
-    = /\r ->
-        \(scrut : data)
-         (cont : integer -> integer -> integer -> integer -> r)
-         (fail : unit -> r) ->
-          let
-            !tup : pair integer (list data) = unConstrData scrut
-          in
-          Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger 0 (fstPair {integer} {list data} tup))
-               True
-               False)
-            {all dead. r}
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-                 !l : list data = tailList {data} l
-                 !l : list data = tailList {data} l
-               in
-               cont
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
-            {all dead. dead}
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !matchOnInts : data -> Maybe (Tuple4 integer integer integer integer)
+    = \(ds : data) ->
+        let
+          !asConstr : pair integer (list data) = unConstrData ds
+          !constrIx : integer = fstPair {integer} {list data} asConstr
+          !constrArgs : list data = sndPair {integer} {list data} asConstr
+          !field : integer = unIData (headList {data} constrArgs)
+          !rest : list data = tailList {data} constrArgs
+          !field : integer = unIData (headList {data} rest)
+          !rest : list data = tailList {data} rest
+          !field : integer = unIData (headList {data} rest)
+          !field : integer = unIData (headList {data} (tailList {data} rest))
+        in
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 constrIx) True False)
+          {all dead. Maybe (Tuple4 integer integer integer integer)}
+          (/\dead ->
+             Just
+               {Tuple4 integer integer integer integer}
+               (Tuple4
+                  {integer}
+                  {integer}
+                  {integer}
+                  {integer}
+                  field
+                  field
+                  field
+                  field))
+          (/\dead -> Nothing {Tuple4 integer integer integer integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        Maybe_match
+          {Tuple4 integer integer integer integer}
+          (matchOnInts ds)
+          {all dead. integer}
+          (\(ds : Tuple4 integer integer integer integer) ->
+             /\dead ->
+               Tuple4_match
+                 {integer}
+                 {integer}
+                 {integer}
+                 {integer}
+                 ds
+                 {integer}
+                 (\(int : integer)
+                   (int : integer)
+                   (int : integer)
+                   (int : integer) ->
+                    int))
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        Maybe_match
+          {Tuple4 integer integer integer integer}
+          (matchOnInts ds)
+          {all dead. integer}
+          (\(ds : Tuple4 integer integer integer integer) ->
+             /\dead ->
+               Tuple4_match
+                 {integer}
+                 {integer}
+                 {integer}
+                 {integer}
+                 ds
+                 {integer}
+                 (\(int : integer)
+                   (int : integer)
+                   (int : integer)
+                   (int : integer) ->
+                    int))
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        Maybe_match
+          {Tuple4 integer integer integer integer}
+          (matchOnInts ds)
+          {all dead. integer}
+          (\(ds : Tuple4 integer integer integer integer) ->
+             /\dead ->
+               Tuple4_match
+                 {integer}
+                 {integer}
+                 {integer}
+                 {integer}
+                 ds
+                 {integer}
+                 (\(int : integer)
+                   (int : integer)
+                   (int : integer)
+                   (int : integer) ->
+                    int))
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        Maybe_match
+          {Tuple4 integer integer integer integer}
+          (matchOnInts ds)
+          {all dead. integer}
+          (\(ds : Tuple4 integer integer integer integer) ->
+             /\dead ->
+               Tuple4_match
+                 {integer}
+                 {integer}
+                 {integer}
+                 {integer}
+                 ds
+                 {integer}
+                 (\(int : integer)
+                   (int : integer)
+                   (int : integer)
+                   (int : integer) ->
+                    int))
+          (/\dead -> error {integer})
+          {all dead. dead}
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False

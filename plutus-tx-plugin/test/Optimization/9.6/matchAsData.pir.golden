@@ -1,60 +1,58 @@
 let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
   data Unit | Unit_match where
     Unit : Unit
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
 in
 \(ds : (\a -> data) integer) ->
-  Tuple2_match
-    {integer}
-    {list data}
-    ((let
-         b = list data
-       in
-       \(tup : pair integer b) ->
-         Tuple2
+  Maybe_match
+    {Tuple2 integer integer}
+    (let
+      !asConstr : pair integer (list data) = unConstrData ds
+      !constrIx : integer = fstPair {integer} {list data} asConstr
+      !constrArgs : list data = sndPair {integer} {list data} asConstr
+      !field : integer = unIData (headList {data} constrArgs)
+      !field : integer = unIData (headList {data} (tailList {data} constrArgs))
+    in
+    Bool_match
+      (ifThenElse {Bool} (equalsInteger 0 constrIx) True False)
+      {all dead. Maybe (Tuple2 integer integer)}
+      (/\dead ->
+         Just {Tuple2 integer integer} (Tuple2 {integer} {integer} field field))
+      (/\dead -> Nothing {Tuple2 integer integer})
+      {all dead. dead})
+    {all dead. integer}
+    (\(ds : Tuple2 integer integer) ->
+       /\dead ->
+         Tuple2_match
            {integer}
-           {b}
-           (fstPair {integer} {b} tup)
-           (sndPair {integer} {b} tup))
-       (unConstrData ds))
-    {integer}
-    (\(ds : integer) (ds : list data) ->
-       Bool_match
-         (ifThenElse {Bool} (equalsInteger 0 ds) True False)
+           {integer}
+           ds
+           {integer}
+           (\(arg : integer) (arg : integer) -> arg))
+    (/\dead ->
+       Maybe_match
+         {Unit}
+         (Bool_match
+            (ifThenElse
+               {Bool}
+               (equalsInteger
+                  1
+                  (fstPair {integer} {list data} (unConstrData ds)))
+               True
+               False)
+            {all dead. Maybe Unit}
+            (/\dead -> Just {Unit} Unit)
+            (/\dead -> Nothing {Unit})
+            {all dead. dead})
          {all dead. integer}
-         (/\dead ->
-            let
-              !ds : data = headList {data} ds
-              !ds : list data = tailList {data} ds
-              !a : integer = unIData ds
-              !ds : integer = unIData (headList {data} ds)
-            in
-            a)
-         (/\dead ->
-            Tuple2_match
-              {integer}
-              {list data}
-              ((let
-                   b = list data
-                 in
-                 \(tup : pair integer b) ->
-                   Tuple2
-                     {integer}
-                     {b}
-                     (fstPair {integer} {b} tup)
-                     (sndPair {integer} {b} tup))
-                 (unConstrData ds))
-              {integer}
-              (\(ds : integer) (ds : list data) ->
-                 Bool_match
-                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
-                   {all dead. integer}
-                   (/\dead -> 1)
-                   (/\dead ->
-                      Unit_match (error {Unit}) {integer} (error {integer}))
-                   {all dead. dead}))
+         (\(ds : Unit) -> /\dead -> 1)
+         (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
          {all dead. dead})
+    {all dead. dead}

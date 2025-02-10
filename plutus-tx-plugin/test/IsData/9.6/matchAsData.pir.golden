@@ -1,5 +1,6 @@
 let
   ~defaultBody : data = (/\e -> error {e}) {data}
+  ~`$` : all a b. (a -> b) -> a -> b = /\a b -> \(f : a -> b) (x : a) -> f x
   data Unit | Unit_match where
     Unit : Unit
   !mkConstr : integer -> list data -> data = constrData
@@ -36,11 +37,14 @@ let
     = unsafeFromBuiltinData {data} `$fUnsafeFromDataBuiltinData`
   ~`$fUnsafeFromDataSecretlyData` : (\a -> data -> a) data
     = `$cunsafeFromBuiltinData`
+  data (Solo :: * -> *) a | Solo_match where
+    MkSolo : a -> Solo a
+  !head : all a. list a -> a = headList
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
@@ -55,19 +59,33 @@ let
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
     = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
-  !head : all a. list a -> a = headList
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
   !fst : all a b. pair a b -> a = fstPair
   !snd : all a b. pair a b -> b = sndPair
-  ~pairToPair : all a b. pair a b -> Tuple2 a b
-    = /\a b ->
-        \(tup : pair a b) ->
-          let
-            !tup : pair a b = tup
-          in
-          Tuple2 {a} {b} (fst {a} {b} tup) (snd {a} {b} tup)
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~matchOnJustD : all a. (\a -> data -> a) a -> (\a -> data) a -> Maybe (Solo a)
+    = /\a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (ds : (\a -> data) a) ->
+          let
+            !builtinData : data = ds
+            !asConstr : pair integer (list data)
+              = unsafeDataAsConstr builtinData
+            !constrIx : integer = fst {integer} {list data} asConstr
+            !constrArgs : list data = snd {integer} {list data} asConstr
+            !field : a
+              = unsafeFromBuiltinData
+                  {a}
+                  `$dUnsafeFromData`
+                  (head {data} constrArgs)
+          in
+          Bool_match
+            (`==` {integer} `$fEqInteger` constrIx 0)
+            {all dead. Maybe (Solo a)}
+            (/\dead -> Just {Solo a} (MkSolo {a} field))
+            (/\dead -> Nothing {Solo a})
+            {all dead. dead}
   ~`$mJustD` :
      all r a.
        (\a -> a -> data) a ->
@@ -91,23 +109,29 @@ let
               let
                 !fail : unit -> r = fail
               in
-              Tuple2_match
-                {integer}
-                {list data}
-                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-                {r}
-                (\(ds : integer) (ds : list data) ->
-                   Bool_match
-                     (`==` {integer} `$fEqInteger` 0 ds)
-                     {all dead. r}
-                     (/\dead ->
-                        cont
-                          (unsafeFromBuiltinData
-                             {a}
-                             `$dUnsafeFromData`
-                             (head {data} ds)))
-                     (/\dead -> fail ())
-                     {all dead. dead})
+              Maybe_match
+                {Solo a}
+                (matchOnJustD {a} `$dUnsafeFromData` nt)
+                {all dead. r}
+                (\(ds : Solo a) ->
+                   /\dead -> Solo_match {a} ds {r} (\(arg : a) -> cont arg))
+                (/\dead -> fail ())
+                {all dead. dead}
+  ~matchOnNothingD : all a. (\a -> data) a -> Maybe Unit
+    = /\a ->
+        \(ds : (\a -> data) a) ->
+          let
+            !builtinData : data = ds
+            !asConstr : pair integer (list data)
+              = unsafeDataAsConstr builtinData
+            !constrIx : integer = fst {integer} {list data} asConstr
+          in
+          Bool_match
+            (`==` {integer} `$fEqInteger` constrIx 1)
+            {all dead. Maybe Unit}
+            (/\dead -> Just {Unit} Unit)
+            (/\dead -> Nothing {Unit})
+            {all dead. dead}
   ~`$mNothingD` : all r a. (\a -> data) a -> (unit -> r) -> (unit -> r) -> r
     = /\r a ->
         \(scrut : (\a -> data) a) ->
@@ -122,18 +146,15 @@ let
               let
                 !fail : unit -> r = fail
               in
-              Tuple2_match
-                {integer}
-                {list data}
-                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-                {r}
-                (\(ds : integer) (ds : list data) ->
-                   Bool_match
-                     (`==` {integer} `$fEqInteger` 1 ds)
-                     {all dead. r}
-                     (/\dead -> cont ())
-                     (/\dead -> fail ())
-                     {all dead. dead})
+              Maybe_match
+                {Unit}
+                (matchOnNothingD {a} nt)
+                {all dead. r}
+                (\(ds : Unit) -> /\dead -> cont ())
+                (/\dead -> fail ())
+                {all dead. dead}
+  !trace : all a. string -> a -> a = trace
+  ~trace : all a. string -> a -> a = trace
 in
 \(ds : (\a -> data) data) ->
   let
@@ -145,12 +166,13 @@ in
     `$fToDataSecretlyData`
     `$fUnsafeFromDataSecretlyData`
     nt
-    (\(a : data) -> a)
+    (\(a : data) -> trace {data} "Just a" a)
     (\(void : unit) ->
        `$mNothingD`
          {data}
          {data}
          nt
-         (\(void : unit) -> `$bFirstC` Unit)
+         (\(void : unit) ->
+            `$` {data} {data} (trace {data} "Nothing") (`$bFirstC` Unit))
          (\(void : unit) ->
             Unit_match ((/\e -> error {e}) {Unit}) {data} defaultBody))

@@ -38,11 +38,11 @@ let
              {data}
              (toBuiltinData {integer} `$fToDataInteger` arg0_)
              (mkNilData unitval))
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let
@@ -57,31 +57,49 @@ let
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
-  ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
-    = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
-  !fst : all a b. pair a b -> a = fstPair
-  !snd : all a b. pair a b -> b = sndPair
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  ~pairToPair : all a b. pair a b -> Tuple2 a b
-    = /\a b ->
-        \(tup : pair a b) ->
-          let
-            !tup : pair a b = tup
-          in
-          Tuple2 {a} {b} (fst {a} {b} tup) (snd {a} {b} tup)
+  ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
+    = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !fst : all a b. pair a b -> a = fstPair
+  !head : all a. list a -> a = headList
+  !snd : all a b. pair a b -> b = sndPair
+  !tail : all a. list a -> list a = tailList
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
-  !head : all a. list a -> a = headList
-  !tail : all a. list a -> list a = tailList
-  ~unsafeUncons : all a. list a -> Tuple2 a (list a)
+  ~matchOnRecordConstructor :
+     all a. (\a -> data -> a) a -> (\a -> data) a -> Maybe (Tuple2 a integer)
     = /\a ->
-        \(l : list a) ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (ds : (\a -> data) a) ->
           let
-            !l : list a = l
+            !builtinData : data = ds
+            !asConstr : pair integer (list data)
+              = unsafeDataAsConstr builtinData
+            !constrIx : integer = fst {integer} {list data} asConstr
+            !constrArgs : list data = snd {integer} {list data} asConstr
+            !field : a
+              = unsafeFromBuiltinData
+                  {a}
+                  `$dUnsafeFromData`
+                  (head {data} constrArgs)
+            !rest : list data = tail {data} constrArgs
+            !field : integer
+              = unsafeFromBuiltinData
+                  {integer}
+                  `$fUnsafeFromDataInteger`
+                  (head {data} rest)
           in
-          Tuple2 {a} {list a} (head {a} l) (tail {a} l)
+          Bool_match
+            (`==` {integer} `$fEqInteger` constrIx 0)
+            {all dead. Maybe (Tuple2 a integer)}
+            (/\dead ->
+               Just {Tuple2 a integer} (Tuple2 {a} {integer} field field))
+            (/\dead -> Nothing {Tuple2 a integer})
+            {all dead. dead}
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
@@ -105,30 +123,20 @@ let
               let
                 !fail : unit -> r = fail
               in
-              Tuple2_match
-                {integer}
-                {list data}
-                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-                {r}
-                (\(ds : integer) (ds : list data) ->
-                   Bool_match
-                     (`==` {integer} `$fEqInteger` 0 ds)
-                     {all dead. r}
-                     (/\dead ->
-                        Tuple2_match
-                          {data}
-                          {list data}
-                          (unsafeUncons {data} ds)
-                          {r}
-                          (\(ds : data) (ds : list data) ->
-                             cont
-                               (unsafeFromBuiltinData {a} `$dUnsafeFromData` ds)
-                               (unsafeFromBuiltinData
-                                  {integer}
-                                  `$fUnsafeFromDataInteger`
-                                  (head {data} ds))))
-                     (/\dead -> fail ())
-                     {all dead. dead})
+              Maybe_match
+                {Tuple2 a integer}
+                (matchOnRecordConstructor {a} `$dUnsafeFromData` nt)
+                {all dead. r}
+                (\(ds : Tuple2 a integer) ->
+                   /\dead ->
+                     Tuple2_match
+                       {a}
+                       {integer}
+                       ds
+                       {r}
+                       (\(x : a) (y : integer) -> cont x y))
+                (/\dead -> fail ())
+                {all dead. dead}
   !addInteger : integer -> integer -> integer = addInteger
   ~addInteger : integer -> integer -> integer
     = \(x : integer) ->
