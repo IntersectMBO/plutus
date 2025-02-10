@@ -100,14 +100,14 @@ mkDecodingFunction name typeVars _ cn dTypeName dTypeConstrIx 0 = do
         ]
       ifExpr =
           TH.CondE
-            (TH.AppE (TH.AppE (TH.VarE '(==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
-            (TH.TupE [])
-            (TH.AppE (TH.VarE 'traceError) (TH.VarE 'Builtins.emptyString))
+            (TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
+            (TH.AppE (TH.ConE 'Just) (TH.TupE []))
+            (TH.ConE 'Nothing) -- (TH.AppE (TH.VarE 'traceError) (TH.LitE (TH.StringL "testing1")))
       body = TH.NormalB $ TH.LetE decs ifExpr
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
       tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
-      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT tType) (TH.TupleT 0)
+      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT tType) (TH.AppT (TH.ConT ''Maybe) (TH.TupleT 0))
   return [functionType, functionDef]
 mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields = do
   let funcName = TH.mkName $ "matchOn" <> TH.nameBase cn
@@ -131,10 +131,6 @@ mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields
             (TH.VarP $ TH.mkName "field0")
             (TH.NormalB $ TH.AppE (TH.VarE 'unsafeFromBuiltinData) (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs")))
             []
-        , TH.ValD
-            (TH.VarP $ TH.mkName "rest0")
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName "constrArgs"))
-            []
         ]
         <> foldMap (\i ->
             [ -- TH.SigD (TH.mkName $ "field" <> show i) (fieldTypes !! fromIntegral i)
@@ -148,22 +144,22 @@ mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields
         <> fmap (\i ->
             TH.ValD
                 (TH.VarP $ TH.mkName $ "rest" <> show i)
-                (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
+                (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (if i == 0 then TH.VarE $ TH.mkName "constrArgs" else TH.VarE $ TH.mkName $ "rest" <> show (i - 1)))
                 []
             )
-            [1 .. numFields - 2]
+            [0 .. numFields - 2]
       ifExpr =
           TH.CondE
-            (TH.AppE (TH.AppE (TH.VarE '(==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
-            (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1])
-            (TH.AppE (TH.VarE 'traceError) (TH.VarE 'Builtins.emptyString))
+            (TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
+            (TH.AppE (TH.ConE 'Just) (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1])) -- (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1])
+            (TH.ConE 'Nothing) -- (TH.AppE (TH.VarE 'traceError) (TH.LitE (TH.StringL "testing2")))
       body = TH.NormalB $ TH.LetE decs ifExpr
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
       tupleType = foldl TH.AppT (TH.TupleT (fromIntegral numFields)) fieldTypes
       tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
       constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
-      typeBody =  TH.AppT (TH.AppT TH.ArrowT tType) tupleType
+      typeBody =  TH.AppT (TH.AppT TH.ArrowT tType) (TH.AppT (TH.ConT ''Maybe) tupleType)
       typeBodyWithQuantification = TH.ForallT [] constraints typeBody
       functionType = TH.SigD funcName typeBodyWithQuantification
   return [functionType, functionDef]

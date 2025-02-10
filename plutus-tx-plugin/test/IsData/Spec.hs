@@ -19,6 +19,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module IsData.Spec where
 
 import Test.Tasty.Extras
@@ -39,6 +41,11 @@ import PlutusCore.MkPlc qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
 import Data.Proxy
+
+import Data.String (IsString (..))
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinString)
+
+import PlutusTx.Show qualified as P (Show (..))
 
 IsData.unstableMakeIsData ''MyMonoData
 IsData.unstableMakeIsData ''MyMonoRecord
@@ -76,6 +83,7 @@ isDataRoundtrip a =
 
 AsData.asData [d|
   data SecretlyData = FirstC () | SecondC Integer
+     deriving newtype P.Show
      deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
   |]
 
@@ -85,14 +93,19 @@ AsData.asData [d|
 
 AsData.asData [d|
   data MaybeD a = JustD a | NothingD
+    deriving newtype P.Show
   |]
+
+-- recomp
 
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData = plc (Proxy @"matchAsData") (
-  \case
-    JustD a  -> a
-    NothingD -> FirstC ())
+  P.trace "Before case" $ \x ->
+    P.trace (P.show x)
+    $ case x of
+      JustD a  -> P.trace "Just a" a
+      NothingD -> P.trace "Nothing" $ FirstC ())
 
 recordAsData :: CompiledCode (RecordConstructor Integer)
 recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
