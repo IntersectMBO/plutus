@@ -101,11 +101,9 @@ AsData.asData [d|
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData = plc (Proxy @"matchAsData") (
-  P.trace "Before case" $ \x ->
-    P.trace (P.show x)
-    $ case x of
-      JustD a  -> P.trace "Just a" a
-      NothingD -> P.trace "Nothing" $ FirstC ())
+  \case
+    JustD a  -> P.trace "Just a" a
+    NothingD -> P.trace "Nothing" $ FirstC ())
 
 recordAsData :: CompiledCode (RecordConstructor Integer)
 recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
