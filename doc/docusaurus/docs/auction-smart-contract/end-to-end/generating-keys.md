@@ -4,8 +4,10 @@ sidebar_position: 5
 
 # Generating Keys and Addresses
 
-To start, clone the plutus-tx-template repository into the `on-chain` directory.
-Make sure to have [NodeJS](https://nodejs.org/en) and [yarn](https://yarnpkg.com/) (or [npm](https://github.com/npm/cli), which comes bundled with NodeJS) installed. Then, create a separate `off-chain` directory, set up `package.json`, and add the required dependencies:
+The best way to setup your environment is with the [plutus-tx-template](https://github.com/IntersectMBO/plutus-tx-template) repository. See its [README](https://github.com/IntersectMBO/plutus-tx-template?tab=readme-ov-file#plutus-tx-template) for complete instructions on how to get up and running using Docker, Nix, or a custom approach.
+
+Make sure you also have [NodeJS](https://nodejs.org/en) and [yarn](https://yarnpkg.com/) (or [npm](https://github.com/npm/cli), which comes with `NodeJS`) installed.
+Then, create a separate `off-chain` directory, initialize `package.json`, and install the required dependencies:
 
 ```
 git clone git@github.com:IntersectMBO/plutus-tx-template.git on-chain
@@ -14,16 +16,6 @@ yarn init -y
 yarn add @meshsdk/core
 yarn add cbor
 ```
-
-We recommend using the Nix shell that comes with `plutus-tx-template` to run this example.
-The Nix shell provides the correct versions of all dependencies, including GHC, Cabal, Node.js, and various C libraries.
-To enter the nix shell, run
-
-```
-nix develop on-chain/
-```
-
-The first run of `nix develop` may take some time so please be patient.
 
 We'll use [mesh](https://meshjs.dev/), a JavaScript framework, for writing off-chain code.
 We'll use [Blockfrost](https://blockfrost.io/) as the blockchain provider, to avoid the need of running a local node.
