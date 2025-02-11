@@ -12,6 +12,22 @@
 {-# LANGUAGE UndecidableInstances     #-}
 {-# LANGUAGE UndecidableSuperClasses  #-}
 
+-- | This module implements custom pretty printing of PIR terms, used for dumping
+-- compilation runs that can be parsed by the Rocq PIR certifier. The targeted
+-- syntax is very similar to that of derived Show instances, but differs in a few places:
+--
+--   * No record syntax (this cannot be parsed in Coq)
+--   * String and ByteString literals are printed as byte sequences (literals are treated
+--     differently in Rocq)
+--
+-- In all other cases, existing instances of Show are reused.
+--
+-- This works by instantiating some type parameters differently for terms:
+--
+--    Term (AsCoq name) (AsCoq tyname) (AsCoqUni uni) fun
+--
+-- Here `AsCoq` and `AsCoqUni` are newtype wrappers that allow defining additional Show instances
+
 module PlutusIR.Core.Instance.CoqShow where
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -48,6 +64,24 @@ type AsCoqUni :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
 data AsCoqUni uni a where
     AsCoqUni :: uni (Esc a) -> AsCoqUni uni (Esc (AsCoqK a))
 
+-- | Groups all constraints needed for fully polymorphic Terms
+type CoqShow tyname name uni fun a =
+  ( Show (AsCoq tyname)
+  , Show (AsCoq name)
+  , Show fun
+  , Everywhere uni (ComposeC Show AsCoq)
+  , GShow (AsCoqUni uni)
+  )
+
+-- | Groups all constraints needed for PIR terms (with instantiated names)
+type CoqShowNamed uni fun a =
+  ( Show fun
+  , Everywhere uni (ComposeC Show AsCoq)
+  , GShow (AsCoqUni uni)
+  )
+
+-- * Instances for type universes
+
 instance Closed uni => Closed (AsCoqUni uni) where
     type AsCoqUni uni `Everywhere` constr = uni `Everywhere` ComposeC constr AsCoq
 
@@ -73,12 +107,15 @@ deriving newtype instance Show (AsCoq BLS12_381.G1.Element)
 deriving newtype instance Show (AsCoq BLS12_381.G2.Element)
 deriving newtype instance Show (AsCoq BLS12_381.Pairing.MlResult)
 instance Show (AsCoq Text) where
-    show (AsCoq text) = show (map AsCoq (unpack $ Text.encodeUtf8 text))
+    showsPrec p (AsCoq text) = showsPrec p (map AsCoq (unpack $ Text.encodeUtf8 text))
 instance Show (AsCoq Word8) where
     -- Matches constructor notation of Coq.Init.Byte
-    show (AsCoq w) = printf "x%02x" w
+    showsPrec _p (AsCoq w) = printf "x%02x" w
 instance Show (AsCoq ByteString) where
-    show (AsCoq bs) = show (map AsCoq (unpack bs))
+    showsPrec p (AsCoq bs) = showsPrec p (map AsCoq (unpack bs))
+
+-- * Names
+-- These instances mimic GHC derived show instances, if they were defined without record syntax.
 
 instance Show (AsCoq Name) where
   showsPrec p (AsCoq (Name x y)) =
@@ -122,16 +159,3 @@ instance
         fTy (SomeTypeIn ty) = SomeTypeIn (AsCoqUni ty)
 
 
-type CoqShow tyname name uni fun a =
-  ( Show (AsCoq tyname)
-  , Show (AsCoq name)
-  , Show fun
-  , Everywhere uni (ComposeC Show AsCoq)
-  , GShow (AsCoqUni uni)
-  )
-
-type CoqShowNamed uni fun a =
-  ( Show fun
-  , Everywhere uni (ComposeC Show AsCoq)
-  , GShow (AsCoqUni uni)
-  )
