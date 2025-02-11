@@ -124,9 +124,14 @@ instance
 
 type CoqShow tyname name uni fun a =
   ( Show (AsCoq tyname)
-  , Show fun
   , Show (AsCoq name)
+  , Show fun
   , Everywhere uni (ComposeC Show AsCoq)
   , GShow (AsCoqUni uni)
   )
 
+type CoqShowNamed uni fun a =
+  ( Show fun
+  , Everywhere uni (ComposeC Show AsCoq)
+  , GShow (AsCoqUni uni)
+  )

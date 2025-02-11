@@ -189,9 +189,7 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (PIR.BuiltinsInfo uni fun)
   , Default (PIR.RewriteRules uni fun)
-  , PLC.Everywhere uni (ComposeC Show AsCoq)
-  , PLC.GShow (AsCoqUni uni)
-  , Show fun
+  , CoqShowNamed uni fun a
   ) =>
   ToTPlc (CompiledCodeIn uni fun a) uni fun
   where

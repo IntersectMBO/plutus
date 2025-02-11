@@ -130,11 +130,7 @@ hoistPass f = \case
 
 runPass
   :: ( Monad m
-     , PLC.Everywhere uni (ComposeC Show AsCoq)
-     , PLC.GShow (AsCoqUni uni)
-     , Show (AsCoq tyname)
-     , Show (AsCoq name)
-     , Show fun
+     , CoqShow tyname name uni fun a
      , PLC.Closed uni
      )
   => (String -> m ())

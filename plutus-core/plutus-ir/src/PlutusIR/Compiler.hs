@@ -102,13 +102,9 @@ logDebug :: Compiling m e uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
 runCompilerPass
-  :: (Compiling m e uni fun a, b ~ Provenance a
-  , PLC.Everywhere uni (ComposeC Show AsCoq)
-  , Show fun
-  , Show (AsCoq name)
-  , Show (AsCoq tyname)
-  , PLC.GShow (AsCoqUni uni)
-  )
+  :: ( Compiling m e uni fun a, b ~ Provenance a
+     , CoqShow tyname name uni fun a
+     )
   => (Text -> m ())
   -> m (P.Pass m tyname name uni fun b)
   -> Term tyname name uni fun b
