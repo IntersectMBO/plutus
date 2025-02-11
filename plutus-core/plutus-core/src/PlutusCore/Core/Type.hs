@@ -189,6 +189,8 @@ data TyVarDecl tyname ann = TyVarDecl
     , _tyVarDeclKind :: Kind ann
     } deriving stock (Functor, Generic)
 
+-- | Custom instance that behaves as a derived instance of Show, but without record syntax.
+-- Used in the Rocq PIR certifier dumping format.
 instance (Show tn, Show ann) => Show (TyVarDecl tn ann) where
   showsPrec p (TyVarDecl x y z) =
     showParen (p >= 11) $
@@ -209,6 +211,8 @@ data VarDecl tyname name uni ann = VarDecl
     , _varDeclType :: Type tyname uni ann
     } deriving stock (Functor, Generic)
 
+-- | Custom instance that behaves as a derived instance of Show, but without record syntax.
+-- Used in the Rocq PIR certifier dumping format.
 instance (Show tn, Show ann, GShow uni, Show n) => Show (VarDecl tn n uni ann) where
   showsPrec p (VarDecl x y z) =
     showParen (p >= 11) $
