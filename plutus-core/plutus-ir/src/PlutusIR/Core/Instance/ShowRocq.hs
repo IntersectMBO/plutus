@@ -111,7 +111,7 @@ instance Show (AsRocq Text) where
     showsPrec p (AsRocq text) = showsPrec p (map AsRocq (unpack $ Text.encodeUtf8 text))
 instance Show (AsRocq Word8) where
     -- Matches constructor notation of Coq.Init.Byte
-    showsPrec _p (AsRocq w) = printf "x%02x" w
+    show (AsRocq w) = printf "x%02x" w
 instance Show (AsRocq ByteString) where
     showsPrec p (AsRocq bs) = showsPrec p (map AsRocq (unpack bs))
 
