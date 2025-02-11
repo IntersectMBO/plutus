@@ -3,7 +3,7 @@
 -- | Utilities for space-time tradeoff, such as recursion unrolling.
 module PlutusTx.Optimize.SpaceTime (peel) where
 
-import Language.Haskell.TH qualified as TH
+import Language.Haskell.TH.Syntax.Compat qualified as TH
 import PlutusTx.Function (fix)
 import Prelude
 
@@ -29,8 +29,8 @@ where @length@ is the regular recursive definition.
 peel
   :: forall a b
    . Int
-  -> (TH.Code TH.Q (a -> b) -> TH.Code TH.Q (a -> b))
-  -> TH.Code TH.Q (a -> b)
+  -> (TH.SpliceQ (a -> b) -> TH.SpliceQ (a -> b))
+  -> TH.SpliceQ (a -> b)
 peel 0 f = [||fix (\g -> $$(f [||g||]))||]
 peel n f
   | n > 0 = f (peel (n - 1) f)
