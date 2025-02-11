@@ -1,4 +1,11 @@
 
+<a id='changelog-1.41.0.0'></a>
+# 1.41.0.0 — 2025-02-11
+
+## Changed
+
+- Changed the default value of compiler flag `PlutusTx.Plugin:preserve-logging` to true.
+
 <a id='changelog-1.38.0.0'></a>
 # 1.38.0.0 — 2024-12-09
 

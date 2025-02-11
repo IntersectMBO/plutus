@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.34.0.0
+version:         1.41.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -64,7 +64,7 @@ library lib
   build-depends:
     , base               >=4.9   && <5
     , bytestring
-    , plutus-core        ^>=1.40
+    , plutus-core        ^>=1.41
     , plutus-metatheory
     , text
 
@@ -80,7 +80,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.41
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -95,7 +95,7 @@ executable plc
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.41
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -111,9 +111,9 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.41
     , plutus-core:plutus-core-execlib
-    , plutus-executables:lib
+    , plutus-executables:lib           ^>=1.41
     , plutus-metatheory
     , prettyprinter
     , serialise
@@ -134,8 +134,8 @@ test-suite test-simple
     , process
 
   build-tool-depends:
-    , plutus-executables:plc
-    , plutus-executables:uplc
+    , plutus-executables:plc   ^>=1.41
+    , plutus-executables:uplc  ^>=1.41
 
 test-suite test-detailed
   import:             lang, os-support
@@ -146,7 +146,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.40
+    , plutus-core        ^>=1.41
     , plutus-metatheory
     , process
     , tasty
@@ -154,5 +154,5 @@ test-suite test-detailed
     , text
 
   build-tool-depends:
-    , plutus-executables:plc
-    , plutus-executables:uplc
+    , plutus-executables:plc   ^>=1.41
+    , plutus-executables:uplc  ^>=1.41
