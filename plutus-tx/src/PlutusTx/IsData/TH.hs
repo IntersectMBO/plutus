@@ -94,16 +94,13 @@ mkDecodingFunction name typeVars _ cn dTypeName dTypeConstrIx 0 = do
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.fst) (TH.VarE $ TH.mkName "asConstr"))
             []
         ]
-      ifExpr =
-          TH.CondE
-            (TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
-            (TH.AppE (TH.ConE 'Just) (TH.TupE []))
-            (TH.ConE 'Nothing)
-      body = TH.NormalB $ TH.LetE decs ifExpr
+      boolExpr =
+            TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx)
+      body = TH.NormalB $ TH.LetE decs (TH.TupE [Just boolExpr])
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
       tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
-      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT tType) (TH.AppT (TH.ConT ''Maybe) (TH.TupleT 0))
+      functionType = TH.SigD funcName $ TH.AppT (TH.AppT TH.ArrowT tType) (TH.AppT (TH.TupleT 1) (TH.ConT ''Bool))
   return [functionType, functionDef]
 mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields = do
   let funcName = TH.mkName $ "matchOn" <> TH.nameBase cn
@@ -143,18 +140,16 @@ mkDecodingFunction name typeVars fieldTypes cn dTypeName dTypeConstrIx numFields
                 []
             )
             [0 .. numFields - 2]
-      ifExpr =
-          TH.CondE
-            (TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx))
-            (TH.AppE (TH.ConE 'Just) (TH.TupE $ fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1]))
-            (TH.ConE 'Nothing)
-      body = TH.NormalB $ TH.LetE decs ifExpr
+      boolExpr =
+            TH.AppE (TH.AppE (TH.VarE '(PlutusTx.==)) (TH.VarE $ TH.mkName "constrIx")) (TH.LitE . TH.IntegerL $ dTypeConstrIx)
+      resultExpr = TH.TupE $ Just boolExpr : fmap (Just . TH.VarE . TH.mkName . ("field" <>) . show) [0 .. numFields - 1]
+      body = TH.NormalB $ TH.LetE decs resultExpr
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
-      tupleType = foldl TH.AppT (TH.TupleT (fromIntegral numFields)) fieldTypes
+      tupleType = foldl TH.AppT (TH.AppT (TH.TupleT (fromIntegral numFields + 1)) (TH.ConT ''Bool)) fieldTypes
       tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
       constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
-      typeBody =  TH.AppT (TH.AppT TH.ArrowT tType) (TH.AppT (TH.ConT ''Maybe) tupleType)
+      typeBody =  TH.AppT (TH.AppT TH.ArrowT tType) tupleType
       typeBodyWithQuantification = TH.ForallT [] constraints typeBody
       functionType = TH.SigD funcName typeBodyWithQuantification
   return [functionType, functionDef]

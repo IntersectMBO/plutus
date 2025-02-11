@@ -1,6 +1,8 @@
 let
   data Unit | Unit_match where
     Unit : Unit
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
   data Bool | Bool_match where
@@ -9,11 +11,8 @@ let
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
+  data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
+    Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
 in
 \(d : data) ->
   let
@@ -24,8 +23,12 @@ in
           \(scrut : data)
            (cont : integer -> integer -> integer -> integer -> r)
            (fail : unit -> r) ->
-            Maybe_match
-              {Tuple4 integer integer integer integer}
+            Tuple5_match
+              {Bool}
+              {integer}
+              {integer}
+              {integer}
+              {integer}
               (let
                 !asConstr : pair integer (list data) = unConstrData scrut
                 !constrIx : integer = fstPair {integer} {list data} asConstr
@@ -38,40 +41,29 @@ in
                 !field : integer
                   = unIData (headList {data} (tailList {data} rest))
               in
-              Bool_match
+              Tuple5
+                {Bool}
+                {integer}
+                {integer}
+                {integer}
+                {integer}
                 (ifThenElse {Bool} (equalsInteger 0 constrIx) True False)
-                {all dead. Maybe (Tuple4 integer integer integer integer)}
-                (/\dead ->
-                   Just
-                     {Tuple4 integer integer integer integer}
-                     (Tuple4
-                        {integer}
-                        {integer}
-                        {integer}
-                        {integer}
-                        field
-                        field
-                        field
-                        field))
-                (/\dead -> Nothing {Tuple4 integer integer integer integer})
-                {all dead. dead})
-              {all dead. r}
-              (\(ds : Tuple4 integer integer integer integer) ->
-                 /\dead ->
-                   Tuple4_match
-                     {integer}
-                     {integer}
-                     {integer}
-                     {integer}
-                     ds
-                     {r}
-                     (\(int : integer)
-                       (int : integer)
-                       (int : integer)
-                       (int : integer) ->
-                        cont int int int int))
-              (/\dead -> fail ())
-              {all dead. dead})
+                field
+                field
+                field
+                field)
+              {r}
+              (\(ds : Bool)
+                (int : integer)
+                (int : integer)
+                (int : integer)
+                (int : integer) ->
+                 Bool_match
+                   ds
+                   {all dead. r}
+                   (/\dead -> cont int int int int)
+                   (/\dead -> fail ())
+                   {all dead. dead}))
           d
           (\(x : integer) (y : integer) (z : integer) (w : integer) ->
              Tuple4 {integer} {integer} {integer} {integer} x y z w)

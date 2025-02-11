@@ -41,37 +41,32 @@
                                         (constr 1 [])))
                                 (int d))
                              (\ds ->
-                                force
-                                  (case
-                                     (matchOnInts ds)
-                                     [ (\ds ->
-                                          delay
-                                            (case
-                                               ds
-                                               [(\int int int int -> int)]))
-                                     , (delay error) ])))
+                                case
+                                  (matchOnInts ds)
+                                  [ (\ds int int int int ->
+                                       force
+                                         (case
+                                            ds
+                                            [(delay int), (delay error)])) ]))
                           (int d))
                        (\ds ->
-                          force
-                            (case
-                               (matchOnInts ds)
-                               [ (\ds ->
-                                    delay (case ds [(\int int int int -> int)]))
-                               , (delay error) ])))
+                          case
+                            (matchOnInts ds)
+                            [ (\ds int int int int ->
+                                 force
+                                   (case ds [(delay int), (delay error)])) ]))
                     (int d))
                  (\ds ->
-                    force
-                      (case
-                         (matchOnInts ds)
-                         [ (\ds -> delay (case ds [(\int int int int -> int)]))
-                         , (delay error) ])))
+                    case
+                      (matchOnInts ds)
+                      [ (\ds int int int int ->
+                           force (case ds [(delay int), (delay error)])) ]))
               (int d))
            (\ds ->
-              force
-                (case
-                   (matchOnInts ds)
-                   [ (\ds -> delay (case ds [(\int int int int -> int)]))
-                   , (delay error) ])))
+              case
+                (matchOnInts ds)
+                [ (\ds int int int int ->
+                     force (case ds [(delay int), (delay error)])) ]))
         (\ds ->
            (\asConstr ->
               (\constrIx ->
@@ -82,19 +77,15 @@
                              (\rest ->
                                 (\field ->
                                    (\field ->
-                                      force
-                                        (force
-                                           (force ifThenElse
-                                              (equalsInteger 0 constrIx)
-                                              (delay
-                                                 (delay
-                                                    (constr 0
-                                                       [ (constr 0
-                                                            [ field
-                                                            , field
-                                                            , field
-                                                            , field ]) ])))
-                                              (delay (delay (constr 1 []))))))
+                                      constr 0
+                                        [ (force ifThenElse
+                                             (equalsInteger 0 constrIx)
+                                             (constr 0 [])
+                                             (constr 1 []))
+                                        , field
+                                        , field
+                                        , field
+                                        , field ])
                                      (unIData
                                         (force headList (force tailList rest))))
                                   (unIData (force headList rest)))

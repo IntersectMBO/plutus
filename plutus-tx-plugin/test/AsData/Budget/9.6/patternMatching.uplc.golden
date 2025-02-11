@@ -44,48 +44,39 @@
               (delay (case (force ds) [(\x y z w -> x)])))
            (force ds))
         (delay
-           (force
-              (case
-                 ((\asConstr ->
-                     (\constrIx ->
-                        (\constrArgs ->
-                           (\field ->
-                              (\rest ->
-                                 (\field ->
-                                    (\rest ->
+           (case
+              ((\asConstr ->
+                  (\constrIx ->
+                     (\constrArgs ->
+                        (\field ->
+                           (\rest ->
+                              (\field ->
+                                 (\rest ->
+                                    (\field ->
                                        (\field ->
-                                          (\field ->
-                                             force
-                                               (force
-                                                  (force
-                                                     ifThenElse
-                                                     (equalsInteger 0 constrIx)
-                                                     (delay
-                                                        (delay
-                                                           (constr 0
-                                                              [ (constr 0
-                                                                   [ field
-                                                                   , field
-                                                                   , field
-                                                                   , field ]) ])))
-                                                     (delay
-                                                        (delay
-                                                           (constr 1 []))))))
-                                            (unIData
-                                               (force headList
-                                                  (force tailList rest))))
-                                         (unIData (force headList rest)))
-                                      (force tailList rest))
-                                   (unIData (force headList rest)))
-                                (force tailList constrArgs))
-                             (unIData (force headList constrArgs)))
-                          (force (force sndPair) asConstr))
-                       (force (force fstPair) asConstr))
-                    (unConstrData d))
-                 [ (\ds ->
-                      delay
-                        (case
-                           ds
-                           [ (\int int int int ->
-                                constr 0 [int, int, int, int]) ]))
-                 , (delay (case error [error])) ])))))
+                                          constr 0
+                                            [ (force ifThenElse
+                                                 (equalsInteger 0 constrIx)
+                                                 (constr 0 [])
+                                                 (constr 1 []))
+                                            , field
+                                            , field
+                                            , field
+                                            , field ])
+                                         (unIData
+                                            (force headList
+                                               (force tailList rest))))
+                                      (unIData (force headList rest)))
+                                   (force tailList rest))
+                                (unIData (force headList rest)))
+                             (force tailList constrArgs))
+                          (unIData (force headList constrArgs)))
+                       (force (force sndPair) asConstr))
+                    (force (force fstPair) asConstr))
+                 (unConstrData d))
+              [ (\ds int int int int ->
+                   force
+                     (case
+                        ds
+                        [ (delay (constr 0 [int, int, int, int]))
+                        , (delay (case error [error])) ])) ]))))

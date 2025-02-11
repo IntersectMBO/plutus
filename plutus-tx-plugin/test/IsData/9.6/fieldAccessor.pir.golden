@@ -23,13 +23,10 @@ let
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
+  data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
+    Tuple3 : a -> b -> c -> Tuple3 a b c
   ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
     = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
   !fst : all a b. pair a b -> a = fstPair
   !head : all a. list a -> a = headList
   !snd : all a b. pair a b -> b = sndPair
@@ -38,7 +35,7 @@ let
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
   ~matchOnRecordConstructor :
-     all a. (\a -> data -> a) a -> (\a -> data) a -> Maybe (Tuple2 a integer)
+     all a. (\a -> data -> a) a -> (\a -> data) a -> Tuple3 Bool a integer
     = /\a ->
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (ds : (\a -> data) a) ->
           let
@@ -59,13 +56,13 @@ let
                   `$fUnsafeFromDataInteger`
                   (head {data} rest)
           in
-          Bool_match
+          Tuple3
+            {Bool}
+            {a}
+            {integer}
             (`==` {integer} `$fEqInteger` constrIx 0)
-            {all dead. Maybe (Tuple2 a integer)}
-            (/\dead ->
-               Just {Tuple2 a integer} (Tuple2 {a} {integer} field field))
-            (/\dead -> Nothing {Tuple2 a integer})
-            {all dead. dead}
+            field
+            field
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
@@ -89,20 +86,19 @@ let
               let
                 !fail : unit -> r = fail
               in
-              Maybe_match
-                {Tuple2 a integer}
+              Tuple3_match
+                {Bool}
+                {a}
+                {integer}
                 (matchOnRecordConstructor {a} `$dUnsafeFromData` nt)
-                {all dead. r}
-                (\(ds : Tuple2 a integer) ->
-                   /\dead ->
-                     Tuple2_match
-                       {a}
-                       {integer}
-                       ds
-                       {r}
-                       (\(x : a) (y : integer) -> cont x y))
-                (/\dead -> fail ())
-                {all dead. dead}
+                {r}
+                (\(ds : Bool) (x : a) (y : integer) ->
+                   Bool_match
+                     ds
+                     {all dead. r}
+                     (/\dead -> cont x y)
+                     (/\dead -> fail ())
+                     {all dead. dead})
   ~x : all a. (\a -> a -> data) a -> (\a -> data -> a) a -> (\a -> data) a -> a
     = /\a ->
         \(`$dToData` : (\a -> a -> data) a)

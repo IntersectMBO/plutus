@@ -138,7 +138,9 @@ asDataFor dec = do
         (fromIntegral conIx)
         (fromIntegral $ length fieldNames)
     let
-      pat = return $ TH.ViewP (TH.VarE fName) (TH.ConP 'Just [] [TH.TupP $ fmap TH.VarP fieldNames])
+      pat =
+        return
+        $ TH.ViewP (TH.VarE fName) (TH.TupP $ TH.ConP 'True [] [] : fmap TH.VarP fieldNames)
 
       createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []

@@ -1,18 +1,19 @@
 let
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
   data Unit | Unit_match where
     Unit : Unit
+  data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
+    Tuple3 : a -> b -> c -> Tuple3 a b c
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
+  data (Solo :: * -> *) a | Solo_match where
+    MkSolo : a -> Solo a
 in
 \(ds : (\a -> data) integer) ->
-  Maybe_match
-    {Tuple2 integer integer}
+  Tuple3_match
+    {Bool}
+    {integer}
+    {integer}
     (let
       !asConstr : pair integer (list data) = unConstrData ds
       !constrIx : integer = fstPair {integer} {list data} asConstr
@@ -20,39 +21,30 @@ in
       !field : integer = unIData (headList {data} constrArgs)
       !field : integer = unIData (headList {data} (tailList {data} constrArgs))
     in
-    Bool_match
+    Tuple3
+      {Bool}
+      {integer}
+      {integer}
       (ifThenElse {Bool} (equalsInteger 0 constrIx) True False)
-      {all dead. Maybe (Tuple2 integer integer)}
-      (/\dead ->
-         Just {Tuple2 integer integer} (Tuple2 {integer} {integer} field field))
-      (/\dead -> Nothing {Tuple2 integer integer})
-      {all dead. dead})
-    {all dead. integer}
-    (\(ds : Tuple2 integer integer) ->
-       /\dead ->
-         Tuple2_match
-           {integer}
-           {integer}
-           ds
-           {integer}
-           (\(arg : integer) (arg : integer) -> arg))
-    (/\dead ->
-       Maybe_match
-         {Unit}
-         (Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger
-                  1
-                  (fstPair {integer} {list data} (unConstrData ds)))
-               True
-               False)
-            {all dead. Maybe Unit}
-            (/\dead -> Just {Unit} Unit)
-            (/\dead -> Nothing {Unit})
-            {all dead. dead})
+      field
+      field)
+    {integer}
+    (\(ds : Bool) (arg : integer) (arg : integer) ->
+       Bool_match
+         ds
          {all dead. integer}
-         (\(ds : Unit) -> /\dead -> 1)
-         (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
+         (/\dead -> arg)
+         (/\dead ->
+            Bool_match
+              (ifThenElse
+                 {Bool}
+                 (equalsInteger
+                    1
+                    (fstPair {integer} {list data} (unConstrData ds)))
+                 True
+                 False)
+              {all dead. integer}
+              (/\dead -> 1)
+              (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
+              {all dead. dead})
          {all dead. dead})
-    {all dead. dead}

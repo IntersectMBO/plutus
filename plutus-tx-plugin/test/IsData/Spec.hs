@@ -96,8 +96,6 @@ AsData.asData [d|
     deriving newtype P.Show
   |]
 
--- recomp
-
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData = plc (Proxy @"matchAsData") (

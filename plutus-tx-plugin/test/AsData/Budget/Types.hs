@@ -124,3 +124,29 @@ int4Manual (IntsManual d) =
    in if i PlutusTx.== 0
         then BI.unsafeDataAsI d3
         else PlutusTx.error ()
+
+
+-- data SumType = V1 Integer Integer | V2 | V3 Integer
+--   deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+newtype SumTypeManual = SumTypeManual PlutusTx.BuiltinData
+  deriving newtype
+    ( PlutusTx.Eq
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    , PlutusTx.ToData
+    )
+
+-- pattern V1Manual :: Integer -> Integer -> SumTypeManual
+-- pattern V1Manual {v1, v2} <- (matchOnV1Manual -> (True, v1, v2))
+--   where
+--     V1Manual v1 v2 =
+--       SumTypeManual
+--         (BI.mkConstr 0
+--         (foldr
+--         BI.mkCons
+--         B.mkNil
+--         [ PlutusTx.toBuiltinData v1
+--         , PlutusTx.toBuiltinData v2
+--         ]
+--         )
+--         )

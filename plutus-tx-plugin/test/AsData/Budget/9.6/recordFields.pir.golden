@@ -1,15 +1,12 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
+  data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
+    Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
-  !matchOnInts : data -> Maybe (Tuple4 integer integer integer integer)
+  !matchOnInts : data -> Tuple5 Bool integer integer integer integer
     = \(ds : data) ->
         let
           !asConstr : pair integer (list data) = unConstrData ds
@@ -22,111 +19,101 @@ let
           !field : integer = unIData (headList {data} rest)
           !field : integer = unIData (headList {data} (tailList {data} rest))
         in
-        Bool_match
+        Tuple5
+          {Bool}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
           (ifThenElse {Bool} (equalsInteger 0 constrIx) True False)
-          {all dead. Maybe (Tuple4 integer integer integer integer)}
-          (/\dead ->
-             Just
-               {Tuple4 integer integer integer integer}
-               (Tuple4
-                  {integer}
-                  {integer}
-                  {integer}
-                  {integer}
-                  field
-                  field
-                  field
-                  field))
-          (/\dead -> Nothing {Tuple4 integer integer integer integer})
-          {all dead. dead}
+          field
+          field
+          field
+          field
   !int : data -> integer
     = \(ds : data) ->
-        Maybe_match
-          {Tuple4 integer integer integer integer}
+        Tuple5_match
+          {Bool}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
           (matchOnInts ds)
-          {all dead. integer}
-          (\(ds : Tuple4 integer integer integer integer) ->
-             /\dead ->
-               Tuple4_match
-                 {integer}
-                 {integer}
-                 {integer}
-                 {integer}
-                 ds
-                 {integer}
-                 (\(int : integer)
-                   (int : integer)
-                   (int : integer)
-                   (int : integer) ->
-                    int))
-          (/\dead -> error {integer})
-          {all dead. dead}
+          {integer}
+          (\(ds : Bool)
+            (int : integer)
+            (int : integer)
+            (int : integer)
+            (int : integer) ->
+             Bool_match
+               ds
+               {all dead. integer}
+               (/\dead -> int)
+               (/\dead -> error {integer})
+               {all dead. dead})
   !int : data -> integer
     = \(ds : data) ->
-        Maybe_match
-          {Tuple4 integer integer integer integer}
+        Tuple5_match
+          {Bool}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
           (matchOnInts ds)
-          {all dead. integer}
-          (\(ds : Tuple4 integer integer integer integer) ->
-             /\dead ->
-               Tuple4_match
-                 {integer}
-                 {integer}
-                 {integer}
-                 {integer}
-                 ds
-                 {integer}
-                 (\(int : integer)
-                   (int : integer)
-                   (int : integer)
-                   (int : integer) ->
-                    int))
-          (/\dead -> error {integer})
-          {all dead. dead}
+          {integer}
+          (\(ds : Bool)
+            (int : integer)
+            (int : integer)
+            (int : integer)
+            (int : integer) ->
+             Bool_match
+               ds
+               {all dead. integer}
+               (/\dead -> int)
+               (/\dead -> error {integer})
+               {all dead. dead})
   !int : data -> integer
     = \(ds : data) ->
-        Maybe_match
-          {Tuple4 integer integer integer integer}
+        Tuple5_match
+          {Bool}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
           (matchOnInts ds)
-          {all dead. integer}
-          (\(ds : Tuple4 integer integer integer integer) ->
-             /\dead ->
-               Tuple4_match
-                 {integer}
-                 {integer}
-                 {integer}
-                 {integer}
-                 ds
-                 {integer}
-                 (\(int : integer)
-                   (int : integer)
-                   (int : integer)
-                   (int : integer) ->
-                    int))
-          (/\dead -> error {integer})
-          {all dead. dead}
+          {integer}
+          (\(ds : Bool)
+            (int : integer)
+            (int : integer)
+            (int : integer)
+            (int : integer) ->
+             Bool_match
+               ds
+               {all dead. integer}
+               (/\dead -> int)
+               (/\dead -> error {integer})
+               {all dead. dead})
   !int : data -> integer
     = \(ds : data) ->
-        Maybe_match
-          {Tuple4 integer integer integer integer}
+        Tuple5_match
+          {Bool}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
           (matchOnInts ds)
-          {all dead. integer}
-          (\(ds : Tuple4 integer integer integer integer) ->
-             /\dead ->
-               Tuple4_match
-                 {integer}
-                 {integer}
-                 {integer}
-                 {integer}
-                 ds
-                 {integer}
-                 (\(int : integer)
-                   (int : integer)
-                   (int : integer)
-                   (int : integer) ->
-                    int))
-          (/\dead -> error {integer})
-          {all dead. dead}
+          {integer}
+          (\(ds : Bool)
+            (int : integer)
+            (int : integer)
+            (int : integer)
+            (int : integer) ->
+             Bool_match
+               ds
+               {all dead. integer}
+               (/\dead -> int)
+               (/\dead -> error {integer})
+               {all dead. dead})
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False
