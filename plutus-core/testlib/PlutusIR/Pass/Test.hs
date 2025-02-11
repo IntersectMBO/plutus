@@ -10,7 +10,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Generators.QuickCheck (forAllDoc)
 import PlutusCore.Pretty qualified as PLC
-import PlutusIR.Core.Instance.CoqShow
+import PlutusIR.Core.Instance.ShowRocq
 import PlutusIR.Core.Type
 import PlutusIR.Error qualified as PIR
 import PlutusIR.Generators.QuickCheck
@@ -42,7 +42,7 @@ runTestPass
   :: (PLC.ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.Pretty a
-     , CoqShow tyname name uni fun a
+     , ShowRocq tyname name uni fun a
      , Typeable a
      , Monoid a
      , Monad m
@@ -81,8 +81,8 @@ testPassProp' ::
   forall m tyname name a prop
   . ( Monad m
     , Testable prop
-    , Show (AsCoq tyname)
-    , Show (AsCoq name)
+    , Show (AsRocq tyname)
+    , Show (AsRocq name)
     )
   => a
   -> (Term TyName Name PLC.DefaultUni PLC.DefaultFun ()

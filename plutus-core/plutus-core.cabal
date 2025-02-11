@@ -495,11 +495,11 @@ library plutus-ir
     PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
-    PlutusIR.Core.Instance.CoqShow
     PlutusIR.Core.Instance.Flat
     PlutusIR.Core.Instance.Pretty
     PlutusIR.Core.Instance.Pretty.Readable
     PlutusIR.Core.Instance.Scoping
+    PlutusIR.Core.Instance.ShowRocq
     PlutusIR.Core.Plated
     PlutusIR.Core.Type
     PlutusIR.Error

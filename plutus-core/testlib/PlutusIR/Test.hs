@@ -43,7 +43,7 @@ import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
-import PlutusIR.Core.Instance.CoqShow
+import PlutusIR.Core.Instance.ShowRocq
 
 import Data.Hashable
 import Data.Text qualified as T
@@ -63,8 +63,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  , PLC.Everywhere uni (ComposeC Show AsCoq)
-  , PLC.GShow (AsCoqUni uni)
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
   , Show fun
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
@@ -83,8 +83,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  , PLC.Everywhere uni (ComposeC Show AsCoq)
-  , PLC.GShow (AsCoqUni uni)
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
   , Show fun
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
@@ -114,8 +114,8 @@ compileWithOpts ::
   , Default (PLC.CostingPart uni fun)
   , Default (RewriteRules uni fun)
   , Show fun
-  , PLC.Everywhere uni (ComposeC Show AsCoq)
-  , PLC.GShow (AsCoqUni uni)
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->

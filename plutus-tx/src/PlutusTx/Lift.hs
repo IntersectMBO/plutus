@@ -42,7 +42,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
 
-import PlutusIR.Core.Instance.CoqShow
+import PlutusIR.Core.Instance.ShowRocq
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
@@ -72,7 +72,7 @@ safeLift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift v x = do
@@ -106,7 +106,7 @@ safeLiftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
@@ -123,7 +123,7 @@ safeLiftCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCode v =
@@ -149,7 +149,7 @@ lift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
@@ -161,7 +161,7 @@ liftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
@@ -179,7 +179,7 @@ liftCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
@@ -191,7 +191,7 @@ liftCodeDef
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
@@ -222,7 +222,7 @@ typeCheckAgainst
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
@@ -268,7 +268,7 @@ typeCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
-       , CoqShowNamed uni fun a
+       , ShowRocqNamed uni fun a
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()

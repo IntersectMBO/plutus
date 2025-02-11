@@ -20,7 +20,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import GHC.Generics (Generic)
 import PlutusCore.Quote
-import PlutusIR.Core.Instance.CoqShow
+import PlutusIR.Core.Instance.ShowRocq
 
 -- | A condition on a 'Term'.
 data Condition tyname name uni fun a where
@@ -130,7 +130,7 @@ hoistPass f = \case
 
 runPass
   :: ( Monad m
-     , CoqShow tyname name uni fun a
+     , ShowRocq tyname name uni fun a
      , PLC.Closed uni
      )
   => (String -> m ())
@@ -146,7 +146,7 @@ runPass logger dumpCert checkConditions (Pass p mainPass pre post) t = do
   t' <- lift $ mainPass t
   lift $ do
     dumpCert (T.pack . show $ p)
-    dumpCert (T.pack . show . AsCoq $ (void t'))
+    dumpCert (T.pack . show . AsRocq $ (void t'))
   when checkConditions $ do
     lift $ logger "checking postconditions"
     for_ post $ \c -> checkBiCondition c t t'

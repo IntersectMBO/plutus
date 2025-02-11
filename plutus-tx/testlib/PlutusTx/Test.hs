@@ -52,7 +52,7 @@ import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusIR.Analysis.Builtins as PIR
-import PlutusIR.Core.Instance.CoqShow
+import PlutusIR.Core.Instance.ShowRocq
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
@@ -189,7 +189,7 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (PIR.BuiltinsInfo uni fun)
   , Default (PIR.RewriteRules uni fun)
-  , CoqShowNamed uni fun a
+  , ShowRocqNamed uni fun a
   ) =>
   ToTPlc (CompiledCodeIn uni fun a) uni fun
   where
