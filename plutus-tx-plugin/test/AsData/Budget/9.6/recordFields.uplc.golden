@@ -2,56 +2,73 @@
    1.1.0
    (\d ->
       (\`$mInts` ->
-         (\int ->
-            (\x ->
-               (\int ->
-                  (\y ->
-                     (\int ->
-                        (\z ->
-                           (\int ->
-                              (\w ->
-                                 (\lessThanInteger ->
-                                    addInteger
-                                      (addInteger
-                                         (addInteger
-                                            (addInteger (addInteger x y) z)
-                                            w)
-                                         (force
-                                            (case
-                                               (lessThanInteger
-                                                  (addInteger y z)
-                                                  (addInteger x w))
-                                               [ (delay (addInteger x z))
-                                               , (delay (addInteger y w)) ])))
-                                      (force
-                                         (case
-                                            (lessThanInteger
-                                               (addInteger (int d) (int d))
-                                               (addInteger (int d) (int d)))
-                                            [ (delay
-                                                 (addInteger (int d) (int d)))
-                                            , (delay
-                                                 (addInteger
-                                                    (int d)
-                                                    (int d))) ])))
-                                   (\x y ->
-                                      force ifThenElse
-                                        (lessThanInteger x y)
-                                        (constr 0 [])
-                                        (constr 1 [])))
-                                (int d))
-                             (\ds ->
-                                `$mInts`
-                                  ds
-                                  (\ds ds ds ds -> ds)
-                                  (\void -> error)))
-                          (int d))
-                       (\ds ->
-                          `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
-                    (int d))
-                 (\ds -> `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
-              (int d))
-           (\ds -> `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
+         (\x ->
+            (\y ->
+               (\z ->
+                  (\w ->
+                     addInteger
+                       (addInteger
+                          (addInteger (addInteger (addInteger x y) z) w)
+                          (force
+                             (case
+                                ((\x y ->
+                                    force ifThenElse
+                                      (lessThanInteger x y)
+                                      (constr 0 [])
+                                      (constr 1 []))
+                                   (addInteger y z)
+                                   (addInteger x w))
+                                [ (delay (addInteger x z))
+                                , (delay (addInteger y w)) ])))
+                       (force
+                          (case
+                             ((\x y ->
+                                 force ifThenElse
+                                   (lessThanInteger x y)
+                                   (constr 0 [])
+                                   (constr 1 []))
+                                (addInteger
+                                   (`$mInts`
+                                      d
+                                      (\ds ds ds ds -> ds)
+                                      (\void -> error))
+                                   (`$mInts`
+                                      d
+                                      (\ds ds ds ds -> ds)
+                                      (\void -> error)))
+                                (addInteger
+                                   (`$mInts`
+                                      d
+                                      (\ds ds ds ds -> ds)
+                                      (\void -> error))
+                                   (`$mInts`
+                                      d
+                                      (\ds ds ds ds -> ds)
+                                      (\void -> error))))
+                             [ (delay
+                                  (addInteger
+                                     (`$mInts`
+                                        d
+                                        (\ds ds ds ds -> ds)
+                                        (\void -> error))
+                                     (`$mInts`
+                                        d
+                                        (\ds ds ds ds -> ds)
+                                        (\void -> error))))
+                             , (delay
+                                  (addInteger
+                                     (`$mInts`
+                                        d
+                                        (\ds ds ds ds -> ds)
+                                        (\void -> error))
+                                     (`$mInts`
+                                        d
+                                        (\ds ds ds ds -> ds)
+                                        (\void -> error)))) ])))
+                    (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+                 (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+              (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+           (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
         (\scrut cont fail ->
            (\tup ->
               force

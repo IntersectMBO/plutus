@@ -125,6 +125,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints                   :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
+  , _iiInlineThreshold         :: Integer
   }
 
 makeLenses ''InlineInfo
@@ -178,17 +179,20 @@ inline ::
   ExternalConstraints name uni fun m =>
   -- | inline constants
   Bool ->
+  -- | inline threshold
+  Integer ->
   InlineHints name a ->
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
   SimplifierT name uni fun a m (Term name uni fun a)
-inline inlineConstants hints builtinSemanticsVariant t = do
+inline inlineConstants inlineThreshold hints builtinSemanticsVariant t = do
   result <-
     liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
       { _iiUsages = Usages.termUsages t
       , _iiHints  = hints
       , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
       , _iiInlineConstants = inlineConstants
+      , _iiInlineThreshold = inlineThreshold
       }
   recordSimplification t Inline result
   return result
@@ -315,19 +319,26 @@ shouldUnconditionallyInline ::
 shouldUnconditionallyInline n rhs body = do
   isTermPure <- checkPurity rhs
   inlineConstants <- view iiInlineConstants
-  preUnconditional isTermPure ||^ postUnconditional inlineConstants isTermPure
+  inlineThreshold <- view iiInlineThreshold
+  occ <- nameOcc n
+  preUnconditional occ isTermPure
+    ||^ postUnconditional occ inlineConstants inlineThreshold isTermPure
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
     -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
     -- isn't doing any substantial work.
     -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
-    preUnconditional isTermPure = nameUsedAtMostOnce n &&^ effectSafe body n isTermPure
+    preUnconditional occ isTermPure
+      -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+      | occ <= 1 = effectSafe body n isTermPure
+      | otherwise = pure False
+
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
     -- purity]. This is the case where we don't know that the number of occurrences is
     -- exactly one, so there's no point checking if the term is immediately evaluated.
-    postUnconditional inlineConstants isTermPure =
-      pure isTermPure &&^ acceptable inlineConstants rhs
+    postUnconditional occ inlineConstants inlineThreshold isTermPure =
+      pure isTermPure &&^ acceptable occ inlineConstants inlineThreshold rhs
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity :: PLC.ToBuiltinMeaning uni fun => Term name uni fun a -> InlineM name uni fun a Bool
@@ -335,15 +346,14 @@ checkPurity t = do
   builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
   pure $ isPure builtinSemanticsVariant t
 
-nameUsedAtMostOnce ::
+nameOcc ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
   name ->
-  InlineM name uni fun a Bool
-nameUsedAtMostOnce n = do
+  InlineM name uni fun a Int
+nameOcc n = do
   usgs <- view iiUsages
-  -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-  pure $ Usages.getUsageCount n usgs <= 1
+  pure $ Usages.getUsageCount n usgs
 
 isFirstVarBeforeEffects
     :: forall name uni fun ann. InliningConstraints name uni fun
@@ -383,13 +393,17 @@ effectSafe body n purity = do
 See Note [Inlining approach and 'Secrets of the GHC Inliner']
 -}
 acceptable ::
+  -- | occ
+  Int ->
   -- | inline constants
   Bool ->
+  -- | inline threshold
+  Integer ->
   Term name uni fun a ->
   InlineM name uni fun a Bool
-acceptable inlineConstants t =
+acceptable occ inlineConstants inlineThreshold t =
   -- See Note [Inlining criteria]
-  pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
+  pure $ costIsAcceptable t && sizeIsAcceptable occ inlineConstants inlineThreshold t
 
 {- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 the given term acceptable?
@@ -419,29 +433,35 @@ costIsAcceptable = \case
 the given term acceptable?
 -}
 sizeIsAcceptable ::
+  -- | occ
+  Int ->
   -- | inline constants
   Bool ->
+  -- | inline threshold
+  Integer ->
   Term name uni fun a ->
   Bool
-sizeIsAcceptable inlineConstants = \case
+sizeIsAcceptable occ inlineConstants inlineThreshold t0 = case t0 of
   Builtin{} -> True
   Var{} -> True
   Error{} -> True
   -- See Note [Differences from PIR inliner] 4
-  LamAbs{} -> False
+  LamAbs{} -> withinThreshold
   -- Inlining constructors of size 1 or 0 seems okay
   Constr _ _ es -> case es of
     []  -> True
-    [e] -> sizeIsAcceptable inlineConstants e
-    _   -> False
+    [e] -> sizeIsAcceptable occ inlineConstants inlineThreshold e
+    _   -> withinThreshold
   -- Cases are pretty big, due to the case branches
-  Case{} -> False
+  Case{} -> withinThreshold
   -- Inlining constants is deemed acceptable if the 'inlineConstants'
   -- flag is turned on, see Note [Inlining constants].
   Constant{} -> inlineConstants
-  Apply{} -> False
-  Force _ t -> sizeIsAcceptable inlineConstants t
-  Delay _ t -> sizeIsAcceptable inlineConstants t
+  Apply{} -> withinThreshold
+  Force _ t -> sizeIsAcceptable occ inlineConstants inlineThreshold t
+  Delay _ t -> sizeIsAcceptable occ inlineConstants inlineThreshold t
+  where
+    withinThreshold = toInteger (occ - 1) * unSize (termSize t0) <= inlineThreshold
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce ::
@@ -507,4 +527,3 @@ inlineSaturatedApp t
               rhsPure <- checkPurity rhs
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t
-

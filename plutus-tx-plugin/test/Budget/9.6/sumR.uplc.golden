@@ -1,11 +1,65 @@
 (program
    1.1.0
-   ((\fix1 ->
-       fix1
-         (\go ds ->
-            force
-              (case ds [(delay 0), (\x xs -> delay (addInteger x (go xs)))]))
-         (fix1
+   (force
+      (case
+         ((\f ->
+             f
+               (\x ->
+                  f
+                    (\x ->
+                       f
+                         (\x ->
+                            f
+                              (\x ->
+                                 f
+                                   (\x ->
+                                      f
+                                        (\x ->
+                                           f
+                                             (\x ->
+                                                f
+                                                  (\x ->
+                                                     f
+                                                       (\x ->
+                                                          f
+                                                            (\x ->
+                                                               f
+                                                                 (\x ->
+                                                                    f
+                                                                      (\x ->
+                                                                         f
+                                                                           (\x ->
+                                                                              f
+                                                                                (\x ->
+                                                                                   f
+                                                                                     (\x ->
+                                                                                        (\s ->
+                                                                                           f
+                                                                                             (\x ->
+                                                                                                s
+                                                                                                  s
+                                                                                                  x))
+                                                                                          (\s ->
+                                                                                             f
+                                                                                               (\x ->
+                                                                                                  s
+                                                                                                    s
+                                                                                                    x))
+                                                                                          x)
+                                                                                     x)
+                                                                                x)
+                                                                           x)
+                                                                      x)
+                                                                 x)
+                                                            x)
+                                                       x)
+                                                  x)
+                                             x)
+                                        x)
+                                   x)
+                              x)
+                         x)
+                    x))
             (\`$fEnumBool_$cenumFromTo` x lim ->
                force
                  (force
@@ -20,5 +74,178 @@
                                      lim) ])))
                        (delay (delay (constr 0 []))))))
             1
-            1000))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+            1000)
+         [ (delay 0)
+         , (\x
+             xs ->
+              delay
+                (addInteger
+                   x
+                   (force
+                      (case
+                         xs
+                         [ (delay 0)
+                         , (\x
+                             xs ->
+                              delay
+                                (addInteger
+                                   x
+                                   (force
+                                      (case
+                                         xs
+                                         [ (delay 0)
+                                         , (\x
+                                             xs ->
+                                              delay
+                                                (addInteger
+                                                   x
+                                                   (force
+                                                      (case
+                                                         xs
+                                                         [ (delay 0)
+                                                         , (\x
+                                                             xs ->
+                                                              delay
+                                                                (addInteger
+                                                                   x
+                                                                   (force
+                                                                      (case
+                                                                         xs
+                                                                         [ (delay
+                                                                              0)
+                                                                         , (\x
+                                                                             xs ->
+                                                                              delay
+                                                                                (addInteger
+                                                                                   x
+                                                                                   (force
+                                                                                      (case
+                                                                                         xs
+                                                                                         [ (delay
+                                                                                              0)
+                                                                                         , (\x
+                                                                                             xs ->
+                                                                                              delay
+                                                                                                (addInteger
+                                                                                                   x
+                                                                                                   (force
+                                                                                                      (case
+                                                                                                         xs
+                                                                                                         [ (delay
+                                                                                                              0)
+                                                                                                         , (\x
+                                                                                                             xs ->
+                                                                                                              delay
+                                                                                                                (addInteger
+                                                                                                                   x
+                                                                                                                   (force
+                                                                                                                      (case
+                                                                                                                         xs
+                                                                                                                         [ (delay
+                                                                                                                              0)
+                                                                                                                         , (\x
+                                                                                                                             xs ->
+                                                                                                                              delay
+                                                                                                                                (addInteger
+                                                                                                                                   x
+                                                                                                                                   (force
+                                                                                                                                      (case
+                                                                                                                                         xs
+                                                                                                                                         [ (delay
+                                                                                                                                              0)
+                                                                                                                                         , (\x
+                                                                                                                                             xs ->
+                                                                                                                                              delay
+                                                                                                                                                (addInteger
+                                                                                                                                                   x
+                                                                                                                                                   (force
+                                                                                                                                                      (case
+                                                                                                                                                         xs
+                                                                                                                                                         [ (delay
+                                                                                                                                                              0)
+                                                                                                                                                         , (\x
+                                                                                                                                                             xs ->
+                                                                                                                                                              delay
+                                                                                                                                                                (addInteger
+                                                                                                                                                                   x
+                                                                                                                                                                   (force
+                                                                                                                                                                      (case
+                                                                                                                                                                         xs
+                                                                                                                                                                         [ (delay
+                                                                                                                                                                              0)
+                                                                                                                                                                         , (\x
+                                                                                                                                                                             xs ->
+                                                                                                                                                                              delay
+                                                                                                                                                                                (addInteger
+                                                                                                                                                                                   x
+                                                                                                                                                                                   (force
+                                                                                                                                                                                      (case
+                                                                                                                                                                                         xs
+                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                              0)
+                                                                                                                                                                                         , (\x
+                                                                                                                                                                                             xs ->
+                                                                                                                                                                                              delay
+                                                                                                                                                                                                (addInteger
+                                                                                                                                                                                                   x
+                                                                                                                                                                                                   (force
+                                                                                                                                                                                                      (case
+                                                                                                                                                                                                         xs
+                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                              0)
+                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                (addInteger
+                                                                                                                                                                                                                   x
+                                                                                                                                                                                                                   (force
+                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                         xs
+                                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                                              0)
+                                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                                (addInteger
+                                                                                                                                                                                                                                   x
+                                                                                                                                                                                                                                   (force
+                                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                                         xs
+                                                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                                                              0)
+                                                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                                                (addInteger
+                                                                                                                                                                                                                                                   x
+                                                                                                                                                                                                                                                   ((\s
+                                                                                                                                                                                                                                                      ds ->
+                                                                                                                                                                                                                                                       force
+                                                                                                                                                                                                                                                         (case
+                                                                                                                                                                                                                                                            ds
+                                                                                                                                                                                                                                                            [ (delay
+                                                                                                                                                                                                                                                                 0)
+                                                                                                                                                                                                                                                            , (\x
+                                                                                                                                                                                                                                                                xs ->
+                                                                                                                                                                                                                                                                 delay
+                                                                                                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                                                                                                      x
+                                                                                                                                                                                                                                                                      (s
+                                                                                                                                                                                                                                                                         s
+                                                                                                                                                                                                                                                                         xs))) ]))
+                                                                                                                                                                                                                                                      (\s
+                                                                                                                                                                                                                                                        ds ->
+                                                                                                                                                                                                                                                         force
+                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                              ds
+                                                                                                                                                                                                                                                              [ (delay
+                                                                                                                                                                                                                                                                   0)
+                                                                                                                                                                                                                                                              , (\x
+                                                                                                                                                                                                                                                                  xs ->
+                                                                                                                                                                                                                                                                   delay
+                                                                                                                                                                                                                                                                     (addInteger
+                                                                                                                                                                                                                                                                        x
+                                                                                                                                                                                                                                                                        (s
+                                                                                                                                                                                                                                                                           s
+                                                                                                                                                                                                                                                                           xs))) ]))
+                                                                                                                                                                                                                                                      xs))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))

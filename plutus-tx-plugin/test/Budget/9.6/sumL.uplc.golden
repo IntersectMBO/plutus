@@ -1,29 +1,286 @@
 (program
    1.1.0
-   ((\fix1 ->
-       (\go ->
-          (\ls -> go 0 ls)
-            (fix1
-               (\`$fEnumBool_$cenumFromTo` x lim ->
-                  force
-                    (force
-                       (force ifThenElse
-                          (lessThanEqualsInteger x lim)
-                          (delay
-                             (delay
-                                (constr 1
-                                   [ x
-                                   , (`$fEnumBool_$cenumFromTo`
-                                        (addInteger 1 x)
-                                        lim) ])))
-                          (delay (delay (constr 0 []))))))
-               1
-               1000))
-         (fix1
-            (\go acc ds ->
+   (force
+      (case
+         ((\f ->
+             f
+               (\x ->
+                  f
+                    (\x ->
+                       f
+                         (\x ->
+                            f
+                              (\x ->
+                                 f
+                                   (\x ->
+                                      f
+                                        (\x ->
+                                           f
+                                             (\x ->
+                                                f
+                                                  (\x ->
+                                                     f
+                                                       (\x ->
+                                                          f
+                                                            (\x ->
+                                                               f
+                                                                 (\x ->
+                                                                    f
+                                                                      (\x ->
+                                                                         f
+                                                                           (\x ->
+                                                                              f
+                                                                                (\x ->
+                                                                                   f
+                                                                                     (\x ->
+                                                                                        (\s ->
+                                                                                           f
+                                                                                             (\x ->
+                                                                                                s
+                                                                                                  s
+                                                                                                  x))
+                                                                                          (\s ->
+                                                                                             f
+                                                                                               (\x ->
+                                                                                                  s
+                                                                                                    s
+                                                                                                    x))
+                                                                                          x)
+                                                                                     x)
+                                                                                x)
+                                                                           x)
+                                                                      x)
+                                                                 x)
+                                                            x)
+                                                       x)
+                                                  x)
+                                             x)
+                                        x)
+                                   x)
+                              x)
+                         x)
+                    x))
+            (\`$fEnumBool_$cenumFromTo` x lim ->
                force
-                 (case
-                    ds
-                    [ (delay acc)
-                    , (\x xs -> delay (go (addInteger acc x) xs)) ]))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+                 (force
+                    (force ifThenElse
+                       (lessThanEqualsInteger x lim)
+                       (delay
+                          (delay
+                             (constr 1
+                                [ x
+                                , (`$fEnumBool_$cenumFromTo`
+                                     (addInteger 1 x)
+                                     lim) ])))
+                       (delay (delay (constr 0 []))))))
+            1
+            1000)
+         [ (delay 0)
+         , (\x
+             xs ->
+              delay
+                ((\acc ->
+                    force
+                      (case
+                         xs
+                         [ (delay acc)
+                         , (\x
+                             xs ->
+                              delay
+                                ((\acc ->
+                                    force
+                                      (case
+                                         xs
+                                         [ (delay acc)
+                                         , (\x
+                                             xs ->
+                                              delay
+                                                ((\acc ->
+                                                    force
+                                                      (case
+                                                         xs
+                                                         [ (delay acc)
+                                                         , (\x
+                                                             xs ->
+                                                              delay
+                                                                ((\acc ->
+                                                                    force
+                                                                      (case
+                                                                         xs
+                                                                         [ (delay
+                                                                              acc)
+                                                                         , (\x
+                                                                             xs ->
+                                                                              delay
+                                                                                ((\acc ->
+                                                                                    force
+                                                                                      (case
+                                                                                         xs
+                                                                                         [ (delay
+                                                                                              acc)
+                                                                                         , (\x
+                                                                                             xs ->
+                                                                                              delay
+                                                                                                ((\acc ->
+                                                                                                    force
+                                                                                                      (case
+                                                                                                         xs
+                                                                                                         [ (delay
+                                                                                                              acc)
+                                                                                                         , (\x
+                                                                                                             xs ->
+                                                                                                              delay
+                                                                                                                ((\acc ->
+                                                                                                                    force
+                                                                                                                      (case
+                                                                                                                         xs
+                                                                                                                         [ (delay
+                                                                                                                              acc)
+                                                                                                                         , (\x
+                                                                                                                             xs ->
+                                                                                                                              delay
+                                                                                                                                ((\acc ->
+                                                                                                                                    force
+                                                                                                                                      (case
+                                                                                                                                         xs
+                                                                                                                                         [ (delay
+                                                                                                                                              acc)
+                                                                                                                                         , (\x
+                                                                                                                                             xs ->
+                                                                                                                                              delay
+                                                                                                                                                ((\acc ->
+                                                                                                                                                    force
+                                                                                                                                                      (case
+                                                                                                                                                         xs
+                                                                                                                                                         [ (delay
+                                                                                                                                                              acc)
+                                                                                                                                                         , (\x
+                                                                                                                                                             xs ->
+                                                                                                                                                              delay
+                                                                                                                                                                ((\acc ->
+                                                                                                                                                                    force
+                                                                                                                                                                      (case
+                                                                                                                                                                         xs
+                                                                                                                                                                         [ (delay
+                                                                                                                                                                              acc)
+                                                                                                                                                                         , (\x
+                                                                                                                                                                             xs ->
+                                                                                                                                                                              delay
+                                                                                                                                                                                ((\acc ->
+                                                                                                                                                                                    force
+                                                                                                                                                                                      (case
+                                                                                                                                                                                         xs
+                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                              acc)
+                                                                                                                                                                                         , (\x
+                                                                                                                                                                                             xs ->
+                                                                                                                                                                                              delay
+                                                                                                                                                                                                ((\acc ->
+                                                                                                                                                                                                    force
+                                                                                                                                                                                                      (case
+                                                                                                                                                                                                         xs
+                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                              acc)
+                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                ((\acc ->
+                                                                                                                                                                                                                    force
+                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                         xs
+                                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                                              acc)
+                                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                                ((\acc
+                                                                                                                                                                                                                                   ds ->
+                                                                                                                                                                                                                                    force
+                                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                                         ds
+                                                                                                                                                                                                                                         [ (delay
+                                                                                                                                                                                                                                              acc)
+                                                                                                                                                                                                                                         , (\x
+                                                                                                                                                                                                                                             xs ->
+                                                                                                                                                                                                                                              delay
+                                                                                                                                                                                                                                                ((\x ->
+                                                                                                                                                                                                                                                    (\s
+                                                                                                                                                                                                                                                      acc
+                                                                                                                                                                                                                                                      ds ->
+                                                                                                                                                                                                                                                       force
+                                                                                                                                                                                                                                                         (case
+                                                                                                                                                                                                                                                            ds
+                                                                                                                                                                                                                                                            [ (delay
+                                                                                                                                                                                                                                                                 acc)
+                                                                                                                                                                                                                                                            , (\x
+                                                                                                                                                                                                                                                                xs ->
+                                                                                                                                                                                                                                                                 delay
+                                                                                                                                                                                                                                                                   ((\x ->
+                                                                                                                                                                                                                                                                       s
+                                                                                                                                                                                                                                                                         s
+                                                                                                                                                                                                                                                                         x)
+                                                                                                                                                                                                                                                                      (addInteger
+                                                                                                                                                                                                                                                                         acc
+                                                                                                                                                                                                                                                                         x)
+                                                                                                                                                                                                                                                                      xs)) ]))
+                                                                                                                                                                                                                                                      (\s
+                                                                                                                                                                                                                                                        acc
+                                                                                                                                                                                                                                                        ds ->
+                                                                                                                                                                                                                                                         force
+                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                              ds
+                                                                                                                                                                                                                                                              [ (delay
+                                                                                                                                                                                                                                                                   acc)
+                                                                                                                                                                                                                                                              , (\x
+                                                                                                                                                                                                                                                                  xs ->
+                                                                                                                                                                                                                                                                   delay
+                                                                                                                                                                                                                                                                     ((\x ->
+                                                                                                                                                                                                                                                                         s
+                                                                                                                                                                                                                                                                           s
+                                                                                                                                                                                                                                                                           x)
+                                                                                                                                                                                                                                                                        (addInteger
+                                                                                                                                                                                                                                                                           acc
+                                                                                                                                                                                                                                                                           x)
+                                                                                                                                                                                                                                                                        xs)) ]))
+                                                                                                                                                                                                                                                      x)
+                                                                                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                                                                                      acc
+                                                                                                                                                                                                                                                      x)
+                                                                                                                                                                                                                                                   xs)) ]))
+                                                                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                                                                      acc
+                                                                                                                                                                                                                                      x)
+                                                                                                                                                                                                                                   xs)) ]))
+                                                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                                                      acc
+                                                                                                                                                                                                                      x))) ]))
+                                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                                      acc
+                                                                                                                                                                                                      x))) ]))
+                                                                                                                                                                                   (addInteger
+                                                                                                                                                                                      acc
+                                                                                                                                                                                      x))) ]))
+                                                                                                                                                                   (addInteger
+                                                                                                                                                                      acc
+                                                                                                                                                                      x))) ]))
+                                                                                                                                                   (addInteger
+                                                                                                                                                      acc
+                                                                                                                                                      x))) ]))
+                                                                                                                                   (addInteger
+                                                                                                                                      acc
+                                                                                                                                      x))) ]))
+                                                                                                                   (addInteger
+                                                                                                                      acc
+                                                                                                                      x))) ]))
+                                                                                                   (addInteger
+                                                                                                      acc
+                                                                                                      x))) ]))
+                                                                                   (addInteger
+                                                                                      acc
+                                                                                      x))) ]))
+                                                                   (addInteger
+                                                                      acc
+                                                                      x))) ]))
+                                                   (addInteger acc x))) ]))
+                                   (addInteger acc x))) ]))
+                   (addInteger 0 x))) ])))

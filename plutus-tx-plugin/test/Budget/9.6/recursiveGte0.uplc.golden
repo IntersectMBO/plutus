@@ -1,40 +1,26 @@
 (program
    1.1.0
-   ((\fix1 ->
-       (\go ->
-          (\recursiveAll ->
-             (\ls ->
-                force recursiveAll
-                  (\v ->
-                     force ifThenElse
-                       (lessThanInteger v 0)
-                       (constr 1 [])
-                       (constr 0 []))
-                  ls)
-               (go 1000))
-            (fix1
-               (\recursiveAll arg ->
-                  delay
-                    (\ds ds ->
-                       force
-                         (case
-                            ds
-                            [ (delay (constr 0 []))
-                            , (\x xs ->
-                                 delay
-                                   (force
-                                      (case
-                                         (ds x)
-                                         [ (delay
-                                              (force
-                                                 (recursiveAll
-                                                    (delay (\x -> x)))
-                                                 ds
-                                                 xs))
-                                         , (delay (constr 1 [])) ]))) ])))
-               (delay (\x -> x))))
-         (fix1
-            (\go n ->
+   ((\recursiveAll ->
+       (\ls ->
+          force recursiveAll
+            (\v ->
+               force ifThenElse
+                 (lessThanInteger v 0)
+                 (constr 1 [])
+                 (constr 0 []))
+            ls)
+         ((\s ->
+             force
+               (force
+                  (force ifThenElse
+                     (lessThanEqualsInteger 1000 0)
+                     (delay (delay (constr 0 [])))
+                     (delay
+                        (delay
+                           (constr 1
+                              [ 0
+                              , ((\x -> s s x) (subtractInteger 1000 1)) ]))))))
+            (\s n ->
                force
                  (force
                     (force ifThenElse
@@ -42,5 +28,83 @@
                        (delay (delay (constr 0 [])))
                        (delay
                           (delay
-                             (constr 1 [0, (go (subtractInteger n 1))]))))))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+                             (constr 1
+                                [ 0
+                                , ((\x -> s s x)
+                                     (subtractInteger n 1)) ]))))))))
+      ((\f ->
+          f
+            (\x ->
+               f
+                 (\x ->
+                    f
+                      (\x ->
+                         f
+                           (\x ->
+                              f
+                                (\x ->
+                                   f
+                                     (\x ->
+                                        f
+                                          (\x ->
+                                             f
+                                               (\x ->
+                                                  f
+                                                    (\x ->
+                                                       f
+                                                         (\x ->
+                                                            f
+                                                              (\x ->
+                                                                 f
+                                                                   (\x ->
+                                                                      f
+                                                                        (\x ->
+                                                                           f
+                                                                             (\x ->
+                                                                                f
+                                                                                  (\x ->
+                                                                                     (\s ->
+                                                                                        f
+                                                                                          (\x ->
+                                                                                             s
+                                                                                               s
+                                                                                               x))
+                                                                                       (\s ->
+                                                                                          f
+                                                                                            (\x ->
+                                                                                               s
+                                                                                                 s
+                                                                                                 x))
+                                                                                       x)
+                                                                                  x)
+                                                                             x)
+                                                                        x)
+                                                                   x)
+                                                              x)
+                                                         x)
+                                                    x)
+                                               x)
+                                          x)
+                                     x)
+                                x)
+                           x)
+                      x)
+                 x))
+         (\recursiveAll arg ->
+            delay
+              (\ds ds ->
+                 force
+                   (case
+                      ds
+                      [ (delay (constr 0 []))
+                      , (\x xs ->
+                           delay
+                             (force
+                                (case
+                                   (ds x)
+                                   [ (delay
+                                        (force (recursiveAll (delay (\x -> x)))
+                                           ds
+                                           xs))
+                                   , (delay (constr 1 [])) ]))) ])))
+         (delay (\x -> x)))))

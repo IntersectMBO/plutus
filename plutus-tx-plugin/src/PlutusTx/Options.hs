@@ -65,6 +65,7 @@ data PluginOptions = PluginOptions
   , _posRelaxedFloatin                 :: Bool
   , _posCaseOfCaseConservative         :: Bool
   , _posInlineConstants                :: Bool
+  , _posInlineThreshold                :: Integer
   , _posPreserveLogging                :: Bool
   -- ^ Whether to try and retain the logging behaviour of the program.
   , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -197,6 +198,9 @@ pluginOptions =
             \costs slightly, but may increase script sizes if a large constant \
             \is used more than once. Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
+    , let k = "inline-threshold"
+          desc = "Set the threshold for the inliner. The bigger, the more aggressive."
+       in (k, PluginOption typeRep (readOption k) posInlineThreshold desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
        in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -341,6 +345,7 @@ defaultPluginOptions =
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
     , _posInlineConstants = True
+    , _posInlineThreshold = 1
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False

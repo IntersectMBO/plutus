@@ -96,7 +96,11 @@ termSimplifier opts builtinSemanticsVariant =
         >=> forceDelay
         >=> caseOfCase'
         >=> caseReduce
-        >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
+        >=> inline
+              (_soInlineConstants opts)
+              (_soInlineThreshold opts)
+              (_soInlineHints opts)
+              builtinSemanticsVariant
 
     caseOfCase' ::
       Term name uni fun a ->

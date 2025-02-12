@@ -1,35 +1,113 @@
 (program
    1.1.0
-   ((\s ->
-       s s)
-      (\s ds ->
-         force
-           (case
-              ds
-              [ (delay (constr 0 []))
-              , (\x xs ->
-                   delay
-                     (force
-                        (case x [(delay (s s xs)), (delay (constr 1 []))]))) ]))
-      (constr 1
-         [ (constr 0 [])
-         , (constr 1
-              [ (constr 0 [])
-              , (constr 1
-                   [ (constr 0 [])
-                   , (constr 1
-                        [ (constr 0 [])
-                        , (constr 1
-                             [ (constr 0 [])
-                             , (constr 1
-                                  [ (constr 0 [])
-                                  , (constr 1
-                                       [ (constr 0 [])
-                                       , (constr 1
-                                            [ (constr 0 [])
-                                            , (constr 1
-                                                 [ (constr 0 [])
-                                                 , (constr 1
-                                                      [ (constr 0 [])
-                                                      , (constr 0
-                                                           [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ])))
+   (force
+      (case
+         (constr 0 [])
+         [ (delay
+              (force
+                 (case
+                    (constr 0 [])
+                    [ (delay
+                         (force
+                            (case
+                               (constr 0 [])
+                               [ (delay (constr 0 []))
+                               , (\x
+                                   xs ->
+                                    delay
+                                      (force
+                                         (case
+                                            x
+                                            [ (delay
+                                                 (force
+                                                    (case
+                                                       xs
+                                                       [ (delay (constr 0 []))
+                                                       , (\x
+                                                           xs ->
+                                                            delay
+                                                              (force
+                                                                 (case
+                                                                    x
+                                                                    [ (delay
+                                                                         (force
+                                                                            (case
+                                                                               xs
+                                                                               [ (delay
+                                                                                    (constr 0
+                                                                                       [  ]))
+                                                                               , (\x
+                                                                                   xs ->
+                                                                                    delay
+                                                                                      (force
+                                                                                         (case
+                                                                                            x
+                                                                                            [ (delay
+                                                                                                 (force
+                                                                                                    (case
+                                                                                                       xs
+                                                                                                       [ (delay
+                                                                                                            (constr 0
+                                                                                                               [  ]))
+                                                                                                       , (\x
+                                                                                                           xs ->
+                                                                                                            delay
+                                                                                                              (force
+                                                                                                                 (case
+                                                                                                                    x
+                                                                                                                    [ (delay
+                                                                                                                         ((\s
+                                                                                                                            ds ->
+                                                                                                                             force
+                                                                                                                               (case
+                                                                                                                                  ds
+                                                                                                                                  [ (delay
+                                                                                                                                       (constr 0
+                                                                                                                                          [  ]))
+                                                                                                                                  , (\x
+                                                                                                                                      xs ->
+                                                                                                                                       delay
+                                                                                                                                         (force
+                                                                                                                                            (case
+                                                                                                                                               x
+                                                                                                                                               [ (delay
+                                                                                                                                                    (s
+                                                                                                                                                       s
+                                                                                                                                                       xs))
+                                                                                                                                               , (delay
+                                                                                                                                                    (constr 1
+                                                                                                                                                       [  ])) ]))) ]))
+                                                                                                                            (\s
+                                                                                                                              ds ->
+                                                                                                                               force
+                                                                                                                                 (case
+                                                                                                                                    ds
+                                                                                                                                    [ (delay
+                                                                                                                                         (constr 0
+                                                                                                                                            [  ]))
+                                                                                                                                    , (\x
+                                                                                                                                        xs ->
+                                                                                                                                         delay
+                                                                                                                                           (force
+                                                                                                                                              (case
+                                                                                                                                                 x
+                                                                                                                                                 [ (delay
+                                                                                                                                                      (s
+                                                                                                                                                         s
+                                                                                                                                                         xs))
+                                                                                                                                                 , (delay
+                                                                                                                                                      (constr 1
+                                                                                                                                                         [  ])) ]))) ]))
+                                                                                                                            xs))
+                                                                                                                    , (delay
+                                                                                                                         (constr 1
+                                                                                                                            [  ])) ]))) ])))
+                                                                                            , (delay
+                                                                                                 (constr 1
+                                                                                                    [  ])) ]))) ])))
+                                                                    , (delay
+                                                                         (constr 1
+                                                                            [  ])) ]))) ])))
+                                            , (delay (constr 1 [])) ]))) ])))
+                    , (delay (constr 1 [])) ])))
+         , (delay (constr 1 [])) ])))

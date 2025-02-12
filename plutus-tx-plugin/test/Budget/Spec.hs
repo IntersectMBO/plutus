@@ -11,6 +11,7 @@
 
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:inline-threshold=30 #-}
 
 module Budget.Spec where
 

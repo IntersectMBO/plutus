@@ -7,37 +7,36 @@
                (\y ->
                   (\z ->
                      (\w ->
-                        (\lessThanInteger ->
-                           addInteger
+                        addInteger
+                          (addInteger
                              (addInteger
                                 (addInteger
-                                   (addInteger
-                                      (addInteger (force x) (force y))
-                                      (force z))
-                                   (force w))
-                                (force
-                                   (case
-                                      (lessThanInteger
-                                         (addInteger (force y) (force z))
-                                         (addInteger (force x) (force w)))
-                                      [ (delay (addInteger (force x) (force z)))
-                                      , (delay
-                                           (addInteger
-                                              (force y)
-                                              (force w))) ])))
+                                   (addInteger (force x) (force y))
+                                   (force z))
+                                (force w))
                              (force
                                 (case
-                                   (lessThanInteger
-                                      (addInteger (force z) (force y))
-                                      (addInteger (force w) (force x)))
-                                   [ (delay (addInteger (force z) (force x)))
+                                   ((\x y ->
+                                       force ifThenElse
+                                         (lessThanInteger x y)
+                                         (constr 0 [])
+                                         (constr 1 []))
+                                      (addInteger (force y) (force z))
+                                      (addInteger (force x) (force w)))
+                                   [ (delay (addInteger (force x) (force z)))
                                    , (delay
-                                        (addInteger (force w) (force y))) ])))
-                          (\x y ->
-                             force ifThenElse
-                               (lessThanInteger x y)
-                               (constr 0 [])
-                               (constr 1 [])))
+                                        (addInteger (force y) (force w))) ])))
+                          (force
+                             (case
+                                ((\x y ->
+                                    force ifThenElse
+                                      (lessThanInteger x y)
+                                      (constr 0 [])
+                                      (constr 1 []))
+                                   (addInteger (force z) (force y))
+                                   (addInteger (force w) (force x)))
+                                [ (delay (addInteger (force z) (force x)))
+                                , (delay (addInteger (force w) (force y))) ])))
                        (delay (case (force ds) [(\x y z w -> w)])))
                     (delay (case (force ds) [(\x y z w -> z)])))
                  (delay (case (force ds) [(\x y z w -> y)])))

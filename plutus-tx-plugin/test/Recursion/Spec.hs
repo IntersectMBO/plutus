@@ -10,6 +10,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:inline-threshold=30 #-}
 
 module Recursion.Spec where
 

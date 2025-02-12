@@ -9,41 +9,43 @@
                      (\z ->
                         (\int4Manual ->
                            (\w ->
-                              (\lessThanInteger ->
-                                 addInteger
+                              addInteger
+                                (addInteger
                                    (addInteger
-                                      (addInteger
-                                         (addInteger (addInteger x y) z)
-                                         w)
-                                      (force
-                                         (case
-                                            (lessThanInteger
-                                               (addInteger y z)
-                                               (addInteger x w))
-                                            [ (delay (addInteger x z))
-                                            , (delay (addInteger y w)) ])))
+                                      (addInteger (addInteger x y) z)
+                                      w)
                                    (force
                                       (case
-                                         (lessThanInteger
-                                            (addInteger
-                                               (int3Manual d)
-                                               (int2Manual d))
-                                            (addInteger
-                                               (int4Manual d)
-                                               (int1Manual d)))
-                                         [ (delay
-                                              (addInteger
-                                                 (int3Manual d)
-                                                 (int1Manual d)))
-                                         , (delay
-                                              (addInteger
-                                                 (int4Manual d)
-                                                 (int2Manual d))) ])))
-                                (\x y ->
-                                   force ifThenElse
-                                     (lessThanInteger x y)
-                                     (constr 0 [])
-                                     (constr 1 [])))
+                                         ((\x y ->
+                                             force ifThenElse
+                                               (lessThanInteger x y)
+                                               (constr 0 [])
+                                               (constr 1 []))
+                                            (addInteger y z)
+                                            (addInteger x w))
+                                         [ (delay (addInteger x z))
+                                         , (delay (addInteger y w)) ])))
+                                (force
+                                   (case
+                                      ((\x y ->
+                                          force ifThenElse
+                                            (lessThanInteger x y)
+                                            (constr 0 [])
+                                            (constr 1 []))
+                                         (addInteger
+                                            (int3Manual d)
+                                            (int2Manual d))
+                                         (addInteger
+                                            (int4Manual d)
+                                            (int1Manual d)))
+                                      [ (delay
+                                           (addInteger
+                                              (int3Manual d)
+                                              (int1Manual d)))
+                                      , (delay
+                                           (addInteger
+                                              (int4Manual d)
+                                              (int2Manual d))) ])))
                              (int4Manual d))
                           (\ds ->
                              (\tup ->

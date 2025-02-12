@@ -2,12 +2,175 @@
    1.1.0
    ((\`$dAdditiveMonoid` ->
        (\f ->
-          (\z ->
-             (\go eta -> go eta)
-               ((\s -> s s)
-                  (\s ds ->
-                     force
-                       (case ds [(delay z), (\x xs -> delay (f x (s s xs)))]))))
+          (\z
+            eta ->
+             force
+               (case
+                  eta
+                  [ (delay z)
+                  , (\x
+                      xs ->
+                       delay
+                         (f
+                            x
+                            (force
+                               (case
+                                  xs
+                                  [ (delay z)
+                                  , (\x
+                                      xs ->
+                                       delay
+                                         (f
+                                            x
+                                            (force
+                                               (case
+                                                  xs
+                                                  [ (delay z)
+                                                  , (\x
+                                                      xs ->
+                                                       delay
+                                                         (f
+                                                            x
+                                                            (force
+                                                               (case
+                                                                  xs
+                                                                  [ (delay z)
+                                                                  , (\x
+                                                                      xs ->
+                                                                       delay
+                                                                         (f
+                                                                            x
+                                                                            (force
+                                                                               (case
+                                                                                  xs
+                                                                                  [ (delay
+                                                                                       z)
+                                                                                  , (\x
+                                                                                      xs ->
+                                                                                       delay
+                                                                                         (f
+                                                                                            x
+                                                                                            (force
+                                                                                               (case
+                                                                                                  xs
+                                                                                                  [ (delay
+                                                                                                       z)
+                                                                                                  , (\x
+                                                                                                      xs ->
+                                                                                                       delay
+                                                                                                         (f
+                                                                                                            x
+                                                                                                            (force
+                                                                                                               (case
+                                                                                                                  xs
+                                                                                                                  [ (delay
+                                                                                                                       z)
+                                                                                                                  , (\x
+                                                                                                                      xs ->
+                                                                                                                       delay
+                                                                                                                         (f
+                                                                                                                            x
+                                                                                                                            (force
+                                                                                                                               (case
+                                                                                                                                  xs
+                                                                                                                                  [ (delay
+                                                                                                                                       z)
+                                                                                                                                  , (\x
+                                                                                                                                      xs ->
+                                                                                                                                       delay
+                                                                                                                                         (f
+                                                                                                                                            x
+                                                                                                                                            (force
+                                                                                                                                               (case
+                                                                                                                                                  xs
+                                                                                                                                                  [ (delay
+                                                                                                                                                       z)
+                                                                                                                                                  , (\x
+                                                                                                                                                      xs ->
+                                                                                                                                                       delay
+                                                                                                                                                         (f
+                                                                                                                                                            x
+                                                                                                                                                            (force
+                                                                                                                                                               (case
+                                                                                                                                                                  xs
+                                                                                                                                                                  [ (delay
+                                                                                                                                                                       z)
+                                                                                                                                                                  , (\x
+                                                                                                                                                                      xs ->
+                                                                                                                                                                       delay
+                                                                                                                                                                         (f
+                                                                                                                                                                            x
+                                                                                                                                                                            (force
+                                                                                                                                                                               (case
+                                                                                                                                                                                  xs
+                                                                                                                                                                                  [ (delay
+                                                                                                                                                                                       z)
+                                                                                                                                                                                  , (\x
+                                                                                                                                                                                      xs ->
+                                                                                                                                                                                       delay
+                                                                                                                                                                                         (f
+                                                                                                                                                                                            x
+                                                                                                                                                                                            (force
+                                                                                                                                                                                               (case
+                                                                                                                                                                                                  xs
+                                                                                                                                                                                                  [ (delay
+                                                                                                                                                                                                       z)
+                                                                                                                                                                                                  , (\x
+                                                                                                                                                                                                      xs ->
+                                                                                                                                                                                                       delay
+                                                                                                                                                                                                         (f
+                                                                                                                                                                                                            x
+                                                                                                                                                                                                            (force
+                                                                                                                                                                                                               (case
+                                                                                                                                                                                                                  xs
+                                                                                                                                                                                                                  [ (delay
+                                                                                                                                                                                                                       z)
+                                                                                                                                                                                                                  , (\x
+                                                                                                                                                                                                                      xs ->
+                                                                                                                                                                                                                       delay
+                                                                                                                                                                                                                         (f
+                                                                                                                                                                                                                            x
+                                                                                                                                                                                                                            (force
+                                                                                                                                                                                                                               (case
+                                                                                                                                                                                                                                  xs
+                                                                                                                                                                                                                                  [ (delay
+                                                                                                                                                                                                                                       z)
+                                                                                                                                                                                                                                  , (\x
+                                                                                                                                                                                                                                      xs ->
+                                                                                                                                                                                                                                       delay
+                                                                                                                                                                                                                                         (f
+                                                                                                                                                                                                                                            x
+                                                                                                                                                                                                                                            ((\s
+                                                                                                                                                                                                                                               ds ->
+                                                                                                                                                                                                                                                force
+                                                                                                                                                                                                                                                  (case
+                                                                                                                                                                                                                                                     ds
+                                                                                                                                                                                                                                                     [ (delay
+                                                                                                                                                                                                                                                          z)
+                                                                                                                                                                                                                                                     , (\x
+                                                                                                                                                                                                                                                         xs ->
+                                                                                                                                                                                                                                                          delay
+                                                                                                                                                                                                                                                            (f
+                                                                                                                                                                                                                                                               x
+                                                                                                                                                                                                                                                               (s
+                                                                                                                                                                                                                                                                  s
+                                                                                                                                                                                                                                                                  xs))) ]))
+                                                                                                                                                                                                                                               (\s
+                                                                                                                                                                                                                                                 ds ->
+                                                                                                                                                                                                                                                  force
+                                                                                                                                                                                                                                                    (case
+                                                                                                                                                                                                                                                       ds
+                                                                                                                                                                                                                                                       [ (delay
+                                                                                                                                                                                                                                                            z)
+                                                                                                                                                                                                                                                       , (\x
+                                                                                                                                                                                                                                                           xs ->
+                                                                                                                                                                                                                                                            delay
+                                                                                                                                                                                                                                                              (f
+                                                                                                                                                                                                                                                                 x
+                                                                                                                                                                                                                                                                 (s
+                                                                                                                                                                                                                                                                    s
+                                                                                                                                                                                                                                                                    xs))) ]))
+                                                                                                                                                                                                                                               xs))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ])))) ]))
             (case `$dAdditiveMonoid` [(\v v -> v)]))
          (case `$dAdditiveMonoid` [(\v v -> v)])
          (constr 1
