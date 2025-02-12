@@ -17,4 +17,4 @@
          (fix1
             (\go acc ds ->
                force (case ds [(delay acc), (\x xs -> delay (go acc xs))]))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+      (\f x0 -> (\s -> s s) (\s -> f (\x -> s s x)) x0)))

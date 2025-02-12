@@ -43,4 +43,4 @@
                        (delay
                           (delay
                              (constr 1 [0, (go (subtractInteger n 1))]))))))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+      (\f x0 -> (\s -> s s) (\s -> f (\x -> s s x)) x0)))
