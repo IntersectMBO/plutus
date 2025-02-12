@@ -18,7 +18,7 @@ in
                      (a -> b)) ->
                  f (\(x : a) -> unwrap s s x))
       in
-      unwrap s s)
+      \(x0 : a) -> unwrap s s x0)
   {integer}
   (\(f : List integer -> integer) (xs : List integer) ->
      List_match

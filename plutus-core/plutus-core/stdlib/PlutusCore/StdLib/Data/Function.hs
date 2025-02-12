@@ -151,9 +151,9 @@ unroll = runQuote $ do
 
 -- | 'fix' as a PLC term.
 --
--- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) ->
+-- > /\(a b :: *) -> \(f : (a -> b) -> a -> b) (x0 : a) ->
 -- >     unroll {a -> b} (iwrap selfF (a -> b) \(s : self (a -> b)) ->
--- >         f (\(x : a) -> unroll {a -> b} s x))
+-- >         f (\(x : a) -> unroll {a -> b} s x)) x0
 --
 -- See @plutus/runQuote $ docs/fomega/z-combinator-benchmarks@ for details.
 fix :: TermLike term TyName Name uni fun => term ()
@@ -167,6 +167,7 @@ fixAndType = runQuote $ do
     f <- freshName "f"
     s <- freshName "s"
     x <- freshName "x"
+    x0 <- freshName "x0"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
         unrollFunAB = tyInst () unroll funAB
     let selfFunAB = TyApp () self funAB
@@ -174,15 +175,18 @@ fixAndType = runQuote $ do
             tyAbs () a (Type ())
             . tyAbs () b (Type ())
             . lamAbs () f (TyFun () funAB funAB)
-            . apply () unrollFunAB
-            . wrapSelf [funAB]
-            . lamAbs () s selfFunAB
-            . apply () (var () f)
-            . lamAbs () x (TyVar () a)
+            . lamAbs () x0 (TyVar () a)
             $ mkIterAppNoAnn unrollFunAB
-                [ var () s
-                , var () x
-                ]
+              [   wrapSelf [funAB]
+                . lamAbs () s selfFunAB
+                . apply () (var () f)
+                . lamAbs () x (TyVar () a)
+                $ mkIterAppNoAnn unrollFunAB
+                  [ var () s
+                  , var () x
+                  ]
+              , var () x0
+              ]
     let fixType =
             TyForall () a (Type ())
             . TyForall () b (Type ())
