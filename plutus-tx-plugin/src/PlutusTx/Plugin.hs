@@ -422,7 +422,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccOpts = CompileOptions {
                 coProfile=_posProfile opts
                 ,coCoverage=coverage
-                ,coRemoveTrace=_posRemoveTrace opts},
+                ,coRemoveTrace=_posRemoveTrace opts
+                ,coInlineFix=_posInlineFix opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,
@@ -522,6 +523,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierRemoveDeadBindings)
                  & set (PIR.ccOpts . PIR.coInlineConstants)
                     (opts ^. posInlineConstants)
+                 & set (PIR.ccOpts . PIR.coInlineFix)
+                    (opts ^. posInlineFix)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)

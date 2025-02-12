@@ -95,6 +95,7 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierRemoveDeadBindings :: Bool
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     , _coInlineConstants                :: Bool
+    , _coInlineFix                      :: Bool
     -- Profiling
     , _coProfile                        :: Bool
     , _coRelaxedFloatin                 :: Bool
@@ -125,6 +126,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierStrictifyBindings = True
   , _coInlineHints = mempty
   , _coInlineConstants = True
+  , _coInlineFix = True
   , _coProfile = False
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True
@@ -219,6 +221,7 @@ type Compiling m e uni fun a =
     , MonadError e m
     , MonadQuote m
     , Ord a
+    , AnnInline a
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
     -- Pretty printing instances
