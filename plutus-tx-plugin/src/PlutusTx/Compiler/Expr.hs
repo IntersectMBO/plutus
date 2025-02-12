@@ -1354,7 +1354,7 @@ defineIntegerNegate = do
 defineFix :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineFix = do
   ghcId <- lookupGhcId 'PlutusTx.Function.fix
-  var <- compileVarFresh annMayInline ghcId
+  var <- compileVarFresh annAlwaysInline ghcId
   let rhs = annMayInline <$ PlutusCore.StdLib.Data.Function.fix
   let def = PIR.Def var (rhs, PIR.Strict)
   PIR.defineTerm (LexName (GHC.getName ghcId)) def mempty

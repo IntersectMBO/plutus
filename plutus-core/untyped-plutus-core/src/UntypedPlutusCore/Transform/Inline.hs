@@ -1,11 +1,12 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 {- |
 An inlining pass.
@@ -48,6 +49,8 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.Text qualified as T
+import Unsafe.Coerce
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
@@ -291,8 +294,9 @@ maybeAddSubst body a n rhs0 = do
   -- Check whether we've been told specifically to inline this
   hints <- view iiHints
   let hinted = shouldInline hints a n
+  let isFix = "fix" `T.isPrefixOf` PLC._nameText (unsafeCoerce n)
 
-  if hinted -- if we've been told specifically, then do it right away
+  if isFix || hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs)
     else
       ifM
@@ -507,4 +511,3 @@ inlineSaturatedApp t
               rhsPure <- checkPurity rhs
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t
-
