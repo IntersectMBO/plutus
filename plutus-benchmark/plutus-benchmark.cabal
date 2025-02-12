@@ -101,6 +101,24 @@ library plutus-benchmark-common
     , tasty-golden
     , temporary
 
+executable hello
+  import:         lang, ghc-version-support, os-support
+  main-is:        Main.hs
+  hs-source-dirs: hello
+  other-modules:  MyScript
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base               >=4.7 && <5
+    , containers
+    , lens
+    , mtl
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+    , prettyprinter
+    , text
+
 ---------------- nofib ----------------
 
 library nofib-internal
