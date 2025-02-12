@@ -33,7 +33,7 @@ import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
@@ -1334,14 +1334,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             blake2b_256Denotation
             (runCostingFunOneArgument . paramBlake2b_256)
 
-    toBuiltinMeaning semvar VerifyEd25519Signature =
+    toBuiltinMeaning _semvar VerifyEd25519Signature =
         let verifyEd25519SignatureDenotation
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
-            verifyEd25519SignatureDenotation =
-                case semvar of
-                  DefaultFunSemanticsVariantA -> verifyEd25519Signature_V1
-                  DefaultFunSemanticsVariantB -> verifyEd25519Signature_V2
-                  DefaultFunSemanticsVariantC -> verifyEd25519Signature_V2
+            verifyEd25519SignatureDenotation = verifyEd25519Signature
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning
             verifyEd25519SignatureDenotation

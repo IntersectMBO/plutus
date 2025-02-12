@@ -59,7 +59,6 @@ library
     , base
     , bytestring
     , composition-prelude
-    , crypton
     , extra
     , filepath
     , ghc-prim
