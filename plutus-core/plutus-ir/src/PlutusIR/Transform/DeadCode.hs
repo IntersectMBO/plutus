@@ -52,6 +52,7 @@ removeDeadBindingsPass ::
 removeDeadBindingsPass tcconfig binfo =
   NamedPass "dead code elimination" $
     Pass
+      PassDeadCode
       (removeDeadBindings binfo)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

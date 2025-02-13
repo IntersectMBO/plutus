@@ -41,6 +41,13 @@ Also we should pull out more stuff (e.g. see 'NonStrict' which uses unit).
 data LetKind = RecTerms | NonRecTerms | Types | DataTypes
   deriving stock (Show, Eq, Ord)
 
+kindToPass :: LetKind -> PassId
+kindToPass k = case k of
+  RecTerms    -> PassCompileLetRec
+  NonRecTerms -> PassCompileLetNonRec
+  Types       -> PassCompileLetType
+  DataTypes   -> PassCompileLetData
+
 compileLetsPassSC
   :: Compiling m e uni fun a
   => TC.PirTCConfig uni fun
@@ -57,6 +64,7 @@ compileLetsPass
 compileLetsPass tcconfig letKind =
   NamedPass "compile lets" $
     Pass
+      (kindToPass letKind)
       (compileLets letKind)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

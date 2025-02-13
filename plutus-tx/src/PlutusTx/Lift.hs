@@ -42,6 +42,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
 
+import PlutusIR.Core.Instance.ShowRocq
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
@@ -71,6 +72,7 @@ safeLift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift v x = do
@@ -86,7 +88,7 @@ safeLift v x = do
         ucOpts = PLC.defaultCompilationOpts
           & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
           & PLC.coSimplifyOpts . UPLC.soMaxCseIterations .~ 0
-    plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
+    plc <- flip runReaderT ccConfig $ compileProgram (const (return ())) (Program () v pir)
     uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
     UPLC.Program _ _ db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
     pure (void pir, void db)
@@ -104,6 +106,7 @@ safeLiftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
@@ -120,6 +123,7 @@ safeLiftCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCode v =
@@ -145,6 +149,7 @@ lift
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
@@ -156,6 +161,7 @@ liftProgram
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
@@ -173,6 +179,7 @@ liftCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
@@ -184,6 +191,7 @@ liftCodeDef
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
@@ -214,6 +222,7 @@ typeCheckAgainst
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , ShowRocqNamed uni fun a
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
@@ -235,7 +244,7 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
     -- this instance of only "lifting" it is safe to default to any builtin
     -- semantics variant, since the 'Lift' is impervious to builtins and will
     -- not generate code containing builtins.  See Note [Builtin semantics variants]
-    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
+    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (const (return ())) (Program () v applied)
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
     plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled
@@ -259,6 +268,7 @@ typeCode
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
        , Hashable fun
+       , ShowRocqNamed uni fun a
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()

@@ -60,7 +60,7 @@ data Name = Name
   , _nameUnique :: Unique
   -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
   }
-  deriving stock (Show, Generic, Lift)
+  deriving stock (Generic, Lift, Show)
   deriving anyclass (NFData)
 
 -- | Allowed characters in the starting position of a non-quoted identifier.
@@ -93,7 +93,7 @@ toPrintedName txt = if isValidUnquotedName txt then txt else "`" <> txt <> "`"
 those used for terms.
 -}
 newtype TyName = TyName {unTyName :: Name}
-  deriving stock (Show, Generic, Lift)
+  deriving stock (Generic, Lift, Show)
   deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
 
 instance Wrapped TyName
@@ -123,7 +123,7 @@ instance Hashable Name where
 
 -- | A unique identifier
 newtype Unique = Unique {unUnique :: Int}
-  deriving stock (Eq, Show, Ord, Lift)
+  deriving stock (Eq, Ord, Lift, Generic, Show)
   deriving newtype (Enum, NFData, Pretty, Hashable)
 
 -- | The unique of a type-level name.

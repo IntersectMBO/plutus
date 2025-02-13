@@ -60,6 +60,7 @@ compileNonStrictBindingsPass
 compileNonStrictBindingsPass tcConfig useUnit =
   NamedPass "compile non-strict bindings" $
     Pass
+      PassCompileLetNonStrict
       (compileNonStrictBindings useUnit)
       [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 

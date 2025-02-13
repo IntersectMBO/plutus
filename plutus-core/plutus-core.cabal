@@ -499,6 +499,7 @@ library plutus-ir
     PlutusIR.Core.Instance.Pretty
     PlutusIR.Core.Instance.Pretty.Readable
     PlutusIR.Core.Instance.Scoping
+    PlutusIR.Core.Instance.ShowRocq
     PlutusIR.Core.Plated
     PlutusIR.Core.Type
     PlutusIR.Error
@@ -547,6 +548,7 @@ library plutus-ir
   build-depends:
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
+    , bytestring
     , containers
     , dlist
     , dom-lt

@@ -180,6 +180,7 @@ inlinePass
 inlinePass ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
+      PassInline
       (inline ic hints binfo )
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]

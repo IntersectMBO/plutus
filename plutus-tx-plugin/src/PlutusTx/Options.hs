@@ -71,6 +71,7 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
+  , _posDumpCertTrace                  :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -275,6 +276,9 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
+    , let k = "dump-cert-trace"
+          desc = "Dump trace of ASTs for certifier (currently only PIR)"
+       in (k, PluginOption typeRep (setTrue k) posDumpCertTrace desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -344,6 +348,7 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
+    , _posDumpCertTrace = False
     }
 
 processOne ::

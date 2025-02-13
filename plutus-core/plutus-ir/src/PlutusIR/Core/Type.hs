@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusIR.Core.Type
@@ -26,6 +27,9 @@ module PlutusIR.Core.Type
   , applyProgram
   , termAnn
   , bindingAnn
+  , mapName
+  , mapTyName
+  , mapUni
   , progAnn
   , progVer
   , progTerm
@@ -256,3 +260,137 @@ bindingAnn = \case
   TermBind a _ _ _ -> a
   TypeBind a _ _   -> a
   DatatypeBind a _ -> a
+
+mapName
+  :: forall tyname name name' uni fun ann
+  .  (name -> name')
+  -> Term tyname name uni fun ann
+  -> Term tyname name' uni fun ann
+mapName f = go where
+    go :: Term tyname name uni fun ann -> Term tyname name' uni fun ann
+    go (Constant ann val)        = Constant ann val
+    go (Builtin ann fun)         = Builtin ann fun
+    go (Var ann name)            = Var ann (f name)
+    go (LamAbs ann name ty body) = LamAbs ann (f name) ty (go body)
+    go (Apply ann fun arg)       = Apply ann (go fun) (go arg)
+    go (TyAbs ann name k term)   = TyAbs ann name k (go term)
+    go (TyInst ann term ty)      = TyInst ann (go term) ty
+    go (Error ann ty)            = Error ann ty
+    go (Constr ann ty i args)    = Constr ann ty i (fmap go args)
+    go (Case ann ty arg cs)      = Case ann ty (go arg) (fmap go cs)
+    go (Let ann rec bs t)        = Let ann rec (fmap goBinding bs) (go t)
+    go (Unwrap ann term)         = Unwrap ann (go term)
+    go (IWrap ann ty1 ty2 term)  = IWrap ann ty1 ty2 (go term)
+
+    goBinding :: Binding tyname name uni fun ann -> Binding tyname name' uni fun ann
+    goBinding (TermBind ann s vd t) = TermBind ann s (goVarDecl vd) (go t)
+    goBinding (TypeBind ann tvd ty) = TypeBind ann tvd ty
+    goBinding (DatatypeBind ann (Datatype annD tvd tvds match cs)) =
+      DatatypeBind ann (Datatype annD tvd tvds (f match) (fmap goVarDecl cs))
+
+    goVarDecl :: VarDecl tyname name uni ann -> VarDecl tyname name' uni ann
+    goVarDecl (VarDecl ann name ty) = VarDecl ann (f name) ty
+
+mapTyNameType
+    :: forall tyname tyname' uni ann
+    .  (tyname -> tyname')
+    -> Type tyname uni ann
+    -> Type tyname' uni ann
+mapTyNameType f = go where
+    go :: Type tyname uni ann -> Type tyname' uni ann
+    go (TyVar ann name)        = TyVar ann (f name)
+    go (TyFun ann ty1 ty2)     = TyFun ann (go ty1) (go ty2)
+    go (TyIFix ann ty1 ty2)    = TyIFix ann (go ty1) (go ty2)
+    go (TyForall ann name k t) = TyForall ann (f name) k (go t)
+    go (TyBuiltin ann con)     = TyBuiltin ann (con)
+    go (TyLam ann name k t)    = TyLam ann (f name) k (go t)
+    go (TyApp ann t1 t2)       = TyApp ann (go t1) (go t2)
+    go (TySOP ann tys)         = TySOP ann (map (map go) tys)
+
+mapTyName
+  :: forall tyname tyname' name uni fun ann
+  .  (tyname -> tyname')
+  -> Term tyname name uni fun ann
+  -> Term tyname' name uni fun ann
+mapTyName f = go where
+    go :: Term tyname name uni fun ann -> Term tyname' name uni fun ann
+    go (Constant ann val)        = Constant ann val
+    go (Builtin ann fun)         = Builtin ann fun
+    go (Var ann name)            = Var ann name
+    go (LamAbs ann name ty body) = LamAbs ann name (goType ty) (go body)
+    go (Apply ann fun arg)       = Apply ann (go fun) (go arg)
+    go (TyAbs ann name k term)   = TyAbs ann (f name) k (go term)
+    go (TyInst ann term ty)      = TyInst ann (go term) (goType ty)
+    go (Error ann ty)            = Error ann (goType ty)
+    go (Constr ann ty i args)    = Constr ann (goType ty) i (fmap go args)
+    go (Case ann ty arg cs)      = Case ann (goType ty) (go arg) (fmap go cs)
+    go (Let ann rec bs t)        = Let ann rec (fmap goBinding bs) (go t)
+    go (Unwrap ann term)         = Unwrap ann (go term)
+    go (IWrap ann ty1 ty2 term)  = IWrap ann (goType ty1) (goType ty2) (go term)
+
+    goType :: Type tyname uni ann -> Type tyname' uni ann
+    goType = mapTyNameType f
+
+    goBinding :: Binding tyname name uni fun ann -> Binding tyname' name uni fun ann
+    goBinding (TermBind ann s vd t) = TermBind ann s (goVarDecl vd) (go t)
+    goBinding (TypeBind ann tvd ty) = TypeBind ann (goTyVarDecl tvd) (goType ty)
+    goBinding (DatatypeBind ann (Datatype annD tvd tvds match cs)) =
+      DatatypeBind ann
+        (Datatype annD (goTyVarDecl tvd) (map goTyVarDecl tvds)
+          match (fmap goVarDecl cs))
+
+    goTyVarDecl :: TyVarDecl tyname ann -> TyVarDecl tyname' ann
+    goTyVarDecl (TyVarDecl ann name k) = TyVarDecl ann (f name) k
+
+    goVarDecl :: VarDecl tyname name uni ann -> VarDecl tyname' name uni ann
+    goVarDecl (VarDecl ann name ty) = VarDecl ann name (goType ty)
+
+mapUniType
+    :: forall tyname uni uni' ann
+    .  (SomeTypeIn uni -> SomeTypeIn uni')
+    -> Type tyname uni ann
+    -> Type tyname uni' ann
+mapUniType f = go where
+    go :: Type tyname uni ann -> Type tyname uni' ann
+    go (TyVar ann name)        = TyVar ann name
+    go (TyFun ann ty1 ty2)     = TyFun ann (go ty1) (go ty2)
+    go (TyIFix ann ty1 ty2)    = TyIFix ann (go ty1) (go ty2)
+    go (TyForall ann name k t) = TyForall ann name k (go t)
+    go (TyBuiltin ann con)     = TyBuiltin ann (f con)
+    go (TyLam ann name k t)    = TyLam ann name k (go t)
+    go (TyApp ann t1 t2)       = TyApp ann (go t1) (go t2)
+    go (TySOP ann tys)         = TySOP ann (map (map go) tys)
+
+mapUni
+    :: forall tyname uni uni' name fun ann.
+       (SomeTypeIn uni -> SomeTypeIn uni')
+    -> (Some (ValueOf uni) -> Some (ValueOf uni'))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni' fun ann
+mapUni fTy fCon = go where
+    go :: Term tyname name uni fun ann -> Term tyname name uni' fun ann
+    go (Constant ann val)        = Constant ann (fCon val)
+    go (Builtin ann fun)         = Builtin ann fun
+    go (Var ann name)            = Var ann name
+    go (LamAbs ann name ty body) = LamAbs ann name (goType ty) (go body)
+    go (Apply ann fun arg)       = Apply ann (go fun) (go arg)
+    go (TyAbs ann name k term)   = TyAbs ann name k (go term)
+    go (TyInst ann term ty)      = TyInst ann (go term) (goType ty)
+    go (Error ann ty)            = Error ann (goType ty)
+    go (Constr ann ty i args)    = Constr ann (goType ty) i (fmap go args)
+    go (Case ann ty arg cs)      = Case ann (goType ty) (go arg) (fmap go cs)
+    go (Let ann rec bs t)        = Let ann rec (fmap goBinding bs) (go t)
+    go (Unwrap ann term)         = Unwrap ann (go term)
+    go (IWrap ann ty1 ty2 term)  = IWrap ann (goType ty1) (goType ty2) (go term)
+
+    goType :: Type tyname uni ann -> Type tyname uni' ann
+    goType = mapUniType fTy
+
+    goBinding :: Binding tyname name uni fun ann -> Binding tyname name uni' fun ann
+    goBinding (TermBind ann s vd t) = TermBind ann s (goVarDecl vd) (go t)
+    goBinding (TypeBind ann tvd ty) = TypeBind ann tvd (goType ty)
+    goBinding (DatatypeBind ann (Datatype annD tvd tvds match cs)) =
+      DatatypeBind ann (Datatype annD tvd tvds match (fmap goVarDecl cs))
+
+    goVarDecl :: VarDecl tyname name uni ann -> VarDecl tyname name uni' ann
+    goVarDecl (VarDecl ann name ty) = VarDecl ann name (goType ty)

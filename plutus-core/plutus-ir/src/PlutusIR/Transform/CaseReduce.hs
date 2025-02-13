@@ -19,7 +19,7 @@ caseReducePass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-caseReducePass tcconfig = simplePass "case reduce" tcconfig caseReduce
+caseReducePass tcconfig = simplePass "case reduce" PassCaseReduce tcconfig caseReduce
 
 caseReduce :: Term tyname name uni fun a -> Term tyname name uni fun a
 caseReduce = transformOf termSubterms processTerm
