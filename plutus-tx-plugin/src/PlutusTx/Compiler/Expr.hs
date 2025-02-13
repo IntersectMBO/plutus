@@ -74,7 +74,7 @@ import PlutusCore.Subst qualified as PLC
 import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
-import Control.Monad.Reader (ask)
+import Control.Monad.Reader (ask, asks)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -1353,8 +1353,9 @@ defineIntegerNegate = do
 
 defineFix :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineFix = do
+  inlineFix <- asks (coInlineFix . ccOpts)
   ghcId <- lookupGhcId 'PlutusTx.Function.fix
-  var <- compileVarFresh annMayInline ghcId
+  var <- compileVarFresh (if inlineFix then annAlwaysInline else annMayInline) ghcId
   let rhs = annMayInline <$ PlutusCore.StdLib.Data.Function.fix
   let def = PIR.Def var (rhs, PIR.Strict)
   PIR.defineTerm (LexName (GHC.getName ghcId)) def mempty
