@@ -141,9 +141,10 @@ program
                       (\case_Nil case_Cons -> case x [case_Nil, case_Cons]))))
            (delay
               (delay
-                 (\f ->
+                 (\f x0 ->
                     force (delay (\s -> s s))
-                      (\s -> f (\x -> force (delay (\s -> s s)) s x))))))
+                      (\s -> f (\x -> force (delay (\s -> s s)) s x))
+                      x0))))
         (delay
            (delay
               (delay
@@ -167,9 +168,10 @@ program
              (force
                 (delay
                    (delay
-                      (\f ->
+                      (\f x0 ->
                          force (delay (\s -> s s))
-                           (\s -> f (\x -> force (delay (\s -> s s)) s x))))))
+                           (\s -> f (\x -> force (delay (\s -> s s)) s x))
+                           x0))))
              (\rec h ->
                 delay
                   (\fr ->

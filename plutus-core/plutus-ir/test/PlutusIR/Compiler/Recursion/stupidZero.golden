@@ -5,18 +5,20 @@ program
        (Suc : Nat -> Nat)
        (match_Nat :
           Nat -> (all out_Nat. out_Nat -> (Nat -> out_Nat) -> out_Nat)) ->
-        (\(s :
-             (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-               (Nat -> Nat)) ->
-           unwrap s s)
-          (iwrap
-             (\(self :: * -> *) a -> self a -> a)
-             (Nat -> Nat)
-             (\(s :
-                  (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
-                    (Nat -> Nat))
-               (n : Nat) ->
-                match_Nat n {Nat} Zero (\(p : Nat) -> unwrap s s p)))
+        (\(x0 : Nat) ->
+           (\(s :
+                (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                  (Nat -> Nat)) ->
+              unwrap s s)
+             (iwrap
+                (\(self :: * -> *) a -> self a -> a)
+                (Nat -> Nat)
+                (\(s :
+                     (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                       (Nat -> Nat))
+                  (n : Nat) ->
+                   match_Nat n {Nat} Zero (\(p : Nat) -> unwrap s s p)))
+             x0)
           (Suc (Suc (Suc Zero))))
      {ifix
         (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
