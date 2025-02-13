@@ -2,11 +2,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Utilities for space-time tradeoff, such as recursion unrolling.
-module PlutusTx.Optimize.SpaceTime (peel, unroll, unrollBound) where
+module PlutusTx.Optimize.SpaceTime (peel, unroll) where
+
+import Prelude
 
 import Language.Haskell.TH.Syntax.Compat qualified as TH
 import PlutusTx.Function (fix)
-import Prelude
 
 {-| Given @n@, and the step function for a recursive function, peel @n@ layers
 off of the recursion.
@@ -32,7 +33,6 @@ yields the equivalence of the following function:
                       _ : ts -> 1 + self ts
                 ) ws
 @
-
 -}
 peel
   :: forall a b
@@ -69,7 +69,6 @@ yields the equivalence of the following function:
                 _ : ws -> 1 + self ws -- end of the "loop"
 
 @
-
 -}
 unroll
   :: forall a b
@@ -80,20 +79,10 @@ unroll
   a splice representing a single recursion step calling this continuation.
   -}
   -> TH.SpliceQ (a -> b)
-unroll n f = [||fix \self -> $$(unrollBound n f [||self||])||]
+unroll n f = [||fix \self -> $$(nTimes n f [||self||])||]
 
-unrollBound
-  :: forall a b
-   . Int
-  -- ^ How many recursion steps to perform inside the recursion loop.
-  -> (TH.SpliceQ (a -> b) -> TH.SpliceQ (a -> b))
-  {- ^ Function that given a continuation splice returns
-  a splice representing a single recursion step calling this continuation.
-  -}
-  -> TH.SpliceQ (a -> b)
-  -- ^ Splice representing continuation
-  -> TH.SpliceQ (a -> b)
-unrollBound 0 _step self = self
-unrollBound n step self
-  | n > 0 = unrollBound (n - 1) step (step self)
-  | otherwise = error $ "PlutusTx.Optimize.SpaceTime.unrollBound: negative n: " <> show n
+-- | Apply a function @n@ times to a given value.
+nTimes :: Int -> (a -> a) -> (a -> a)
+nTimes 0 _ = id
+nTimes 1 f = f
+nTimes n f = f . nTimes (n - 1) f
