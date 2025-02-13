@@ -807,7 +807,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
             case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding f) of
               Nothing -> compileExpr e'
               Just unfolding
-                -- `fun` is recursive. We do not inline recursive bindings.
+                -- `f` is recursive. We do not inline recursive bindings.
                 | any (== f) (universeBi unfolding) -> compileExpr e'
                 | otherwise -> compileExpr (GHC.mkCoreApps unfolding args)
           _ -> compileExpr e'
