@@ -31,6 +31,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
@@ -409,6 +410,7 @@ compileMarkedExpr locStr codeTy origE = do
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
           , 'PlutusTx.Function.fix
+          , 'PlutusTx.Optimize.Inline.inline
           , 'useToOpaque
           , 'useFromOpaque
           , 'mkNilOpaque
