@@ -84,6 +84,7 @@ library
     PlutusTx.Eq
     PlutusTx.ErrorCodes
     PlutusTx.Foldable
+    PlutusTx.Function
     PlutusTx.Functor
     PlutusTx.Integer
     PlutusTx.IsData
