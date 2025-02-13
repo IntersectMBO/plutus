@@ -203,7 +203,11 @@ pluginOptions =
     , let k = "inline-fix"
           desc =
             "Always inline fixed point combinators. This is generally preferable as \
-            \it often enables further optimization, though it may increase script size."
+            \it often enables further optimization, though it may increase script size. \
+            \Note that the fixed point combinators are not inlined by the inliner, which means \
+            \if this flag is set, the fixed point combinators are always inlined, even if \
+            \`simplifier-inline` is set to false, and the number of simplifier iterations \
+            \is set to 0."
        in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."

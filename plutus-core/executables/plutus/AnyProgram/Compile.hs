@@ -3,8 +3,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
-
 module AnyProgram.Compile
     ( compileProgram
     , checkProgram
@@ -19,7 +17,6 @@ import GetOpt
 import Types
 
 import PlutusCore qualified as PLC
-import PlutusCore.Annotation
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.DeBruijn qualified as PLC
 import PlutusCore.Default
@@ -78,8 +75,7 @@ compileProgram = curry $ \case
 
     -- pir to plc
     ----------------------------------------
-    (SPir n1@SName a1, SPlc n2 SUnit) ->
-      withA @Ord a1 $ withA @Pretty a1 $ withA @AnnInline a1 $
+    (SPir n1@SName a1, SPlc n2 SUnit) -> withA @Ord a1 $ withA @Pretty a1 $
         -- Note: PIR.compileProgram subsumes pir typechecking
         (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
         >=> plcToOutName n1 n2
@@ -319,7 +315,3 @@ checkProgram sng p = modifyError (fmap PIR.Original) $ case sng of
         SPir SName a -> pirTypecheck a p
         SData        -> pure () -- data is type correct by construction
         SPir{}       -> throwingPIR "PIR: Cannot typecheck non-names" ()
-
-instance AnnInline SrcSpans where
-  annAlwaysInline = mempty
-  annMayInline = mempty

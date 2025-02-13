@@ -97,12 +97,11 @@ mkFixpoint bs = do
         arity = fromIntegral $ length funs
         fixByKey = FixBy
         fixNKey = FixpointCombinator arity
-        ann = if inlineFix then annAlwaysInline else annMayInline
 
     let mkFixByDef = do
           name <- liftQuote $ toProgramName fixByKey
           let (fixByTerm, fixByType) = Function.fixByAndType
-          pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
+          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict) , mempty)
 
     let mkFixNDef = do
           name <- liftQuote $ toProgramName fixNKey
@@ -113,8 +112,12 @@ mkFixpoint bs = do
                   else do
                       fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
                       pure (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
-          pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
-    fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
+          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
+    fixN <- if inlineFix
+      then
+        pure $ noProvenance <$ if arity == 1 then Function.fix else Function.fixN arity (Function.fixBy)
+      else
+        lookupOrDefineTerm p0 fixNKey mkFixNDef
 
     liftQuote $ case funs of
         -- Takes a list of function defs and function bodies and turns them into a Scott-encoded tuple, which

@@ -8,7 +8,8 @@ module PlutusCore.Annotation
     , SrcSpans (..)
     , InlineHints (..)
     , Inline (..)
-    , AnnInline (..)
+    , annAlwaysInline
+    , annMayInline
     , Megaparsec.SourcePos (..)
     , Megaparsec.Pos
     , addSrcSpan
@@ -58,23 +59,13 @@ data Inline
 instance Pretty Ann where
     pretty = viaShow
 
-class AnnInline a where
-  -- | An annotation instructing the inliner to always inline a binding.
-  annAlwaysInline :: a
+-- | Create an `Ann` with `AlwaysInline`.
+annAlwaysInline :: Ann
+annAlwaysInline = Ann{annInline = AlwaysInline, annSrcSpans = mempty}
 
-  -- | An annotation that leaves the inlining decision to the inliner.
-  annMayInline :: a
-
-instance AnnInline () where
-  annAlwaysInline = ()
-  annMayInline = ()
-
-instance AnnInline Ann where
-    -- | Create an `Ann` with `AlwaysInline`.
-    annAlwaysInline = Ann{annInline = AlwaysInline, annSrcSpans = mempty}
-
-    -- | Create an `Ann` with `MayInline`.
-    annMayInline = Ann{annInline = MayInline, annSrcSpans = mempty}
+-- | Create an `Ann` with `MayInline`.
+annMayInline :: Ann
+annMayInline = Ann{annInline = MayInline, annSrcSpans = mempty}
 
 
 -- | The span between two source locations.

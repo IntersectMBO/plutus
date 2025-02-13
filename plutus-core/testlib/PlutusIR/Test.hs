@@ -58,7 +58,6 @@ instance
   , Pretty a
   , Typeable a
   , Ord a
-  , PLC.AnnInline a
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
@@ -76,7 +75,6 @@ instance
   , Pretty a
   , Typeable a
   , Ord a
-  , PLC.AnnInline a
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
@@ -84,14 +82,6 @@ instance
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toUPlc = toTPlc >=> toUPlc
-
-instance PLC.AnnInline PLC.SrcSpan where
-  annAlwaysInline = PLC.SrcSpan mempty 0 0 0 0
-  annMayInline = PLC.SrcSpan mempty 0 0 0 0
-
-instance PLC.AnnInline PLC.SrcSpans where
-  annAlwaysInline = mempty
-  annMayInline = mempty
 
 pTermAsProg :: Parser (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (PIR.Program mempty PLC.latestVersion) pTerm
@@ -109,7 +99,6 @@ compileWithOpts ::
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
   , Ord a
-  , PLC.AnnInline a
   , PLC.PrettyUni uni
   , PLC.Pretty fun
   , PLC.Pretty a
@@ -195,7 +184,7 @@ goldenPlcFromPir = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ do
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenPlcFromPirScott ::
-  (Ord a, Typeable a, Pretty a, PLC.AnnInline a
+  (Ord a, Typeable a, Pretty a
   , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
   Parser prog ->
   String ->
