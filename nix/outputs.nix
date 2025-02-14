@@ -80,32 +80,28 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-
-  non-profiled-shells = rec {
+  devShells = {
     default = ghc96;
+    profiled = mkShell project.projectVariants.profiled;
     ghc810 = mkShell project.projectVariants.ghc810;
     ghc96 = mkShell project.projectVariants.ghc96;
     ghc98 = mkShell project.projectVariants.ghc98;
     ghc910 = mkShell project.projectVariants.ghc910;
   };
 
-  devShells =
-    (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.profiled; };
-
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
       (packages) //
-      { devShells = non-profiled-shells; };
+      { inherit devShells; };
     "x86_64-darwin" =
       (project-variants-hydra-jobs) //
-      { devShells = non-profiled-shells; };
+      { inherit devShells; };
     "aarch64-linux" =
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
-      { devShells = non-profiled-shells; };
+      { inherit devShells; };
   };
 
   flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;
