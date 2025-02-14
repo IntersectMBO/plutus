@@ -80,7 +80,7 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-  devShells = {
+  devShells = rec {
     default = ghc96;
     profiled = mkShell project.projectVariants.profiled;
     ghc810 = mkShell project.projectVariants.ghc810;
