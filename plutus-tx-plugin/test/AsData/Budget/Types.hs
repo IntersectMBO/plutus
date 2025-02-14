@@ -45,20 +45,22 @@ newtype IntsManual = IntsManual PlutusTx.BuiltinData
     , PlutusTx.ToData
     )
 
+-- recomp
+
 pattern IntsManual' :: Integer -> Integer -> Integer -> Integer -> IntsManual
 pattern IntsManual' {i1, i2, i3, i4} <-
   (matchOnIntsManual -> (i1, i2, i3, i4))
   where
-    IntsManual' i1 i2 i3 i4 =
+    IntsManual' ii1 ii2 ii3 ii4 =
       IntsManual
         (BI.mkConstr 0
         (foldr
         BI.mkCons
         B.mkNil
-        [ PlutusTx.toBuiltinData i1
-        , PlutusTx.toBuiltinData i2
-        , PlutusTx.toBuiltinData i3
-        , PlutusTx.toBuiltinData i4
+        [ PlutusTx.toBuiltinData ii1
+        , PlutusTx.toBuiltinData ii2
+        , PlutusTx.toBuiltinData ii3
+        , PlutusTx.toBuiltinData ii4
         ]
         )
         )
