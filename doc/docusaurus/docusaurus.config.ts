@@ -3,8 +3,8 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "Plutus Documentation",
-  tagline: "Plutus Core and Plutus Tx user guide",
+  title: "Plinth and Plutus Core Documentation",
+  tagline: "Plinth and Plutus Core user guide",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here

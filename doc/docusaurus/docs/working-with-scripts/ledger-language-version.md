@@ -37,13 +37,13 @@ There is no requirement on the return value of a Plutus V1 script: script evalua
 
 A Plutus V1 spending script receives three arguments corresponding to datum, redeemer and script context.
 All arguments are encoded as `BuiltinData`.
-Thus in Plutus Tx, a spending script has the following type:
+Thus in Plinth, a spending script has the following type:
 
 ```haskell
 BuiltinData -> BuiltinData -> BuiltinData -> any
 ```
 
-To create a Plutus script using Plutus Tx, it is common to first write a function that takes the corresponding Haskell domain types and returns `Bool`.
+To create a Plutus script using Plinth, it is common to first write a function that takes the corresponding Haskell domain types and returns `Bool`.
 For example, the following function can be used to implement the main business logic of a Plutus V1 spending script:
 
 ```haskell
@@ -78,7 +78,7 @@ In this example the script happens to return `BuiltinUnit`, but this is not a re
 ### Minting, Certifying and Rewarding Scripts
 
 Unlike spending scripts, Plutus V1 scripts for minting, certifying and rewarding purposes take one fewer argument: there is no datum argument.
-Thus in Plutus Tx, a minting, certifying or rewarding script should have the following type:
+Thus in Plinth, a minting, certifying or rewarding script should have the following type:
 
 ```haskell
 BuiltinData -> BuiltinData -> any
@@ -138,7 +138,7 @@ Additional key differences between Plutus V3 and V1/V2 include:
 
 The first two points above are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
 
-In other words, all Plutus V3 scripts should have the following type in Plutus Tx:
+In other words, all Plutus V3 scripts should have the following type in Plinth:
 
 ```haskell
 BuiltinData -> BuiltinUnit
