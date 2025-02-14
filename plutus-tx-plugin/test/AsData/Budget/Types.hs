@@ -82,3 +82,9 @@ int4Manual (IntsManual d) =
    in if i PlutusTx.== 0
         then BI.unsafeDataAsI d3
         else PlutusTx.error ()
+
+AsData.asData
+  [d|
+    data DSum = Cons1 Integer | Cons2 | Cons3 Integer Bool
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]

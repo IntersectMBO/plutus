@@ -1,0 +1,75 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Unit | Unit_match where
+    Unit : Unit
+in
+\(d : data) ->
+  let
+    !tup : pair integer (list data) = unConstrData d
+  in
+  Bool_match
+    (ifThenElse
+       {Bool}
+       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       True
+       False)
+    {all dead. integer}
+    (/\dead -> unIData (headList {data} (sndPair {integer} {list data} tup)))
+    (/\dead ->
+       Bool_match
+         (ifThenElse
+            {Bool}
+            (equalsInteger 1 (fstPair {integer} {list data} (unConstrData d)))
+            True
+            False)
+         {all dead. integer}
+         (/\dead -> -1)
+         (/\dead ->
+            let
+              !tup : pair integer (list data) = unConstrData d
+            in
+            Bool_match
+              (ifThenElse
+                 {Bool}
+                 (equalsInteger 2 (fstPair {integer} {list data} tup))
+                 True
+                 False)
+              {all dead. integer}
+              (/\dead ->
+                 let
+                   !l : list data = sndPair {integer} {list data} tup
+                   !ds : integer = unIData (headList {data} l)
+                 in
+                 Bool_match
+                   (let
+                     !tup : pair integer (list data)
+                       = unConstrData (headList {data} (tailList {data} l))
+                     !index : integer = fstPair {integer} {list data} tup
+                     !args : list data = sndPair {integer} {list data} tup
+                   in
+                   Bool_match
+                     (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                     {all dead. Bool}
+                     (/\dead -> False)
+                     (/\dead ->
+                        Bool_match
+                          (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                          {all dead. Bool}
+                          (/\dead -> True)
+                          (/\dead ->
+                             let
+                               !x : Unit = trace {Unit} "PT1" Unit
+                             in
+                             error {Bool})
+                          {all dead. dead})
+                     {all dead. dead})
+                   {all dead. integer}
+                   (/\dead -> multiplyInteger 3 ds)
+                   (/\dead -> 0)
+                   {all dead. dead})
+              (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
+              {all dead. dead})
+         {all dead. dead})
+    {all dead. dead}

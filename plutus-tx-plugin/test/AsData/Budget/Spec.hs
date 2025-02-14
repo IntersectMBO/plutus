@@ -40,6 +40,10 @@ tests =
     , goldenUPlcReadable "recordFields-manual" recordFieldsManual
     , goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
     , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
+    , goldenPirReadable "sumTypeAsData" sumTypeAsData
+    , goldenUPlcReadable "sumTypeAsData" sumTypeAsData
+    , goldenEvalCekCatch "sumTypeAsData" [sumTypeAsData `unsafeApplyCode` dsum]
+    , goldenBudget "sumTypeAsData-budget" (sumTypeAsData `unsafeApplyCode` dsum)
     ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -147,3 +151,19 @@ recordFieldsManual =
 
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
+
+sumTypeAsData :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+sumTypeAsData =
+  $$( compile
+        [||
+        \d ->
+          case PlutusTx.unsafeFromBuiltinData d of
+                Cons1 i       -> i
+                Cons2         -> -1
+                Cons3 _ False -> 0
+                Cons3 i True  -> i `PlutusTx.multiplyInteger` 3
+        ||]
+    )
+
+dsum :: CompiledCode PlutusTx.BuiltinData
+dsum = liftCodeDef (PlutusTx.toBuiltinData (Cons3 10 True))
