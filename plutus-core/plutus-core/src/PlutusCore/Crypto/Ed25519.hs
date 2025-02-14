@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module PlutusCore.Crypto.Ed25519 (
-   verifyEd25519Signature
-   ) where
+module PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
+where
 
 import PlutusCore.Builtin.KnownType (BuiltinResult)
 import PlutusCore.Crypto.Utils
@@ -29,9 +28,9 @@ verifyEd25519Signature pk msg sig =
       Nothing -> failWithMessage loc "Invalid signature."
       Just sig' ->
           pure $
-               case DSIGN.verifyDSIGN () pk' msg sig' of
-                 Left _   -> False
-                 Right () -> True
+                case DSIGN.verifyDSIGN () pk' msg sig' of
+                  Left _   -> False
+                  Right () -> True
   where
     loc :: Text
     loc = "Ed25519 signature verification"
