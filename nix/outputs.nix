@@ -95,6 +95,7 @@ let
 
   non-profiled-shells = rec {
     default = ghc96;
+    profiled = mkShell project.projectVariants.profiled;
     ghc810 = mkShell project.projectVariants.ghc810;
     ghc96 = mkShell project.projectVariants.ghc96;
     ghc98 = mkShell project.projectVariants.ghc98;
