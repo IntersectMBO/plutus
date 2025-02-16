@@ -13,7 +13,7 @@ These are referred to as public key address and script address, respectively.
 
 ### Cardano
 
-The blockchain system for which Plutus Core and Plutus Tx are built.
+The blockchain system for which Plutus Core and Plinth are built.
 
 ### Contract Blueprint
 
@@ -96,17 +96,21 @@ Off-chain code can be developed using libraries like [Mesh](https://meshjs.dev/)
 
 Code executed directly on the Cardano blockchain by each participating node.
 The main function of on-chain code is for nodes to validate transactions, such as checking if a transaction is permitted to spend a UTXO or mint a token.
-On-chain code is usually written in a high level language like Plutus Tx, and compiled into Untyped Plutus Core (UPLC).
+On-chain code is usually written in a high level language like Plinth, and compiled into Untyped Plutus Core (UPLC).
 The Cardano node includes an evaluator that runs UPLC programs.
+
+### Plinth
+
+is a high-level language for writing the validation logic of transactions. See [Plinth and Plutus Core](./essential-concepts/plinth-and-plutus-core.md).
 
 ### The Plugin
 
-The compiler from Plutus Tx to Untyped Plutus Core, which is implemented as a GHC plugin.
+The compiler from Plinth to Untyped Plutus Core, which is implemented as a GHC plugin.
 
 ### Plutus
 
 The term "Plutus" can refer to Untyped Plutus Core, Typed Plutus Core, or, prior to its renaming to Plinth, Plutus Tx.
-To avoid ambiguity, it is advisable not to use "Plutus" on its own.
+To minimize confusion, the term "Plutus" on its own should either be avoided or used exclusively to refer to Untyped Plutus Core.
 
 ### Plutus Core
 
@@ -116,7 +120,7 @@ To avoid confusion, it is recommended to use UPLC for Untyped Plutus Core and TP
 ### Plutus IR
 
 An intermediate language that compiles to Plutus Core.
-See [Plutus Core and Plutus Tx](./essential-concepts/plutus-core-and-plutus-tx.md).
+See [Plinth and Plutus Core](./essential-concepts/plinth-and-plutus-core.md).
 
 ### Plutus Metatheory
 
@@ -127,11 +131,11 @@ It is "meta" in the sense that it is a framework for reasoning about the Plutus 
 ### Plutus Script/Validator
 
 A Plutus script, or Plutus validator, is a UPLC program executed on-chain.
-Sometimes a program written in a high level language that compiles to UPLC, such as Plutus Tx, is also referred to as a Plutus script.
+Sometimes a program written in a high level language that compiles to UPLC, such as Plinth, is also referred to as a Plutus script.
 
 ### Plutus Tx
 
-Plutus Tx is a high-level language for writing the validation logic of transactions. See [Plutus Core and Plutus Tx](./essential-concepts/plutus-core-and-plutus-tx.md).
+Plutus Tx was the former name of Plinth. See [Plinth and Plutus Core](./essential-concepts/plinth-and-plutus-core.md).
 
 ### Protocol Parameters
 
@@ -174,7 +178,7 @@ For more details, see [CIP-33](https://cips.cardano.org/cip/CIP-33).
 ### Scott Encoding
 
 Scott encoding is a method for encoding datatypes in lambda calculus.
-The Plutus Tx compiler adopts Scott encoding for Plutus Tx datatypes when compiling to Plutus Core 1.0.0.
+The Plinth compiler adopts Scott encoding for Plinth datatypes when compiling to Plutus Core 1.0.0.
 When compiling to Plutus Core 1.1.0, sums of products is used instead, which makes scripts smaller and cheaper compared to Scott encoding.
 Currently, Plutus V1 and V2 are only compatible with Plutus Core 1.0.0, whereas Plutus V3 is also compatible with Plutus Core 1.1.0.
 However, we plan to make all Plutus ledger language versions compatible with all Plutus Core versions in the future.
@@ -198,12 +202,12 @@ For more details, see [CIP-85](https://cips.cardano.org/cip/CIP-0085).
 ### Typed Plutus Core
 
 The typed counterpart of Untyped Plutus Core, and can serve as a low-level IR for compilers targeting Untyped Plutus Core.
-See [Plutus Core and Plutus Tx](./essential-concepts/plutus-core-and-plutus-tx.md).
+See [Plinth and Plutus Core](./essential-concepts/plinth-and-plutus-core.md).
 
 ### Untyped Plutus Core
 
 A low-level language for on-chain code, based on untyped lambda calculus, a well-studied formalism for computing.
-See [Plutus Core and Plutus Tx](./essential-concepts/plutus-core-and-plutus-tx.md).
+See [Plinth and Plutus Core](./essential-concepts/plinth-and-plutus-core.md).
 
 ### UTXO
 
