@@ -1,75 +1,106 @@
 let
+  ~defaultBody : data = (/\e -> error {e}) {data}
+  data Unit | Unit_match where
+    Unit : Unit
+  !mkCons : all a. a -> list a -> list a = mkCons
+  !mkConstr : integer -> list data -> data = constrData
+  !mkNilData : unit -> list data = mkNilData
+  !unitval : unit = ()
+  ~`$bFirstC` : Unit -> data
+    = \(arg0_ : Unit) ->
+        mkConstr
+          0
+          (mkCons {data} (mkConstr 0 (mkNilData unitval)) (mkNilData unitval))
+  ~id : all a. a -> a = /\a -> \(x : a) -> x
+  ~`$fToDataSecretlyData` : (\a -> a -> data) data = id {data}
+  ~`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
+    = \(d : data) -> d
+  ~`$fUnsafeFromDataSecretlyData` : (\a -> data -> a) data
+    = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  data Unit | Unit_match where
-    Unit : Unit
-in
-\(d : data) ->
-  let
-    !tup : pair integer (list data) = unConstrData d
-  in
-  Bool_match
-    (ifThenElse
-       {Bool}
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       True
-       False)
-    {all dead. integer}
-    (/\dead -> unIData (headList {data} (sndPair {integer} {list data} tup)))
-    (/\dead ->
-       Bool_match
-         (ifThenElse
-            {Bool}
-            (equalsInteger 1 (fstPair {integer} {list data} (unConstrData d)))
-            True
-            False)
-         {all dead. integer}
-         (/\dead -> -1)
-         (/\dead ->
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !fst : all a b. pair a b -> a = fstPair
+  !head : all a. list a -> a = headList
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !snd : all a b. pair a b -> b = sndPair
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~`$mJustD` :
+     all r a.
+       (\a -> a -> data) a ->
+       (\a -> data -> a) a ->
+       (\a -> data) a ->
+       (a -> r) ->
+       (unit -> r) ->
+       r
+    = /\r a ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) a)
+         (scrut : (\a -> data) a) ->
+          let
+            !nt : data = scrut
+          in
+          \(cont : a -> r) ->
             let
-              !tup : pair integer (list data) = unConstrData d
+              !cont : a -> r = cont
             in
-            Bool_match
-              (ifThenElse
-                 {Bool}
-                 (equalsInteger 2 (fstPair {integer} {list data} tup))
-                 True
-                 False)
-              {all dead. integer}
-              (/\dead ->
-                 let
-                   !l : list data = sndPair {integer} {list data} tup
-                   !ds : integer = unIData (headList {data} l)
-                 in
-                 Bool_match
-                   (let
-                     !tup : pair integer (list data)
-                       = unConstrData (headList {data} (tailList {data} l))
-                     !index : integer = fstPair {integer} {list data} tup
-                     !args : list data = sndPair {integer} {list data} tup
-                   in
-                   Bool_match
-                     (ifThenElse {Bool} (equalsInteger 0 index) True False)
-                     {all dead. Bool}
-                     (/\dead -> False)
-                     (/\dead ->
-                        Bool_match
-                          (ifThenElse {Bool} (equalsInteger 1 index) True False)
-                          {all dead. Bool}
-                          (/\dead -> True)
-                          (/\dead ->
-                             let
-                               !x : Unit = trace {Unit} "PT1" Unit
-                             in
-                             error {Bool})
-                          {all dead. dead})
-                     {all dead. dead})
-                   {all dead. integer}
-                   (/\dead -> multiplyInteger 3 ds)
-                   (/\dead -> 0)
-                   {all dead. dead})
-              (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
-              {all dead. dead})
-         {all dead. dead})
-    {all dead. dead}
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+                !tup : pair integer (list data) = unsafeDataAsConstr nt
+                !y : integer = fst {integer} {list data} tup
+                !b : bool = equalsInteger 0 y
+              in
+              Bool_match
+                (ifThenElse {Bool} b True False)
+                {all dead. r}
+                (/\dead ->
+                   cont
+                     (`$dUnsafeFromData`
+                        (head {data} (snd {integer} {list data} tup))))
+                (/\dead -> fail ())
+                {all dead. dead}
+  ~`$mNothingD` : all r a. (\a -> data) a -> (unit -> r) -> (unit -> r) -> r
+    = /\r a ->
+        \(scrut : (\a -> data) a) ->
+          let
+            !nt : data = scrut
+          in
+          \(cont : unit -> r) ->
+            let
+              !cont : unit -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+                !tup : pair integer (list data) = unsafeDataAsConstr nt
+                !y : integer = fst {integer} {list data} tup
+                !b : bool = equalsInteger 1 y
+              in
+              Bool_match
+                (ifThenElse {Bool} b True False)
+                {all dead. r}
+                (/\dead -> cont ())
+                (/\dead -> fail ())
+                {all dead. dead}
+in
+\(ds : (\a -> data) data) ->
+  let
+    !nt : data = ds
+  in
+  `$mJustD`
+    {data}
+    {data}
+    `$fToDataSecretlyData`
+    `$fUnsafeFromDataSecretlyData`
+    nt
+    (\(a : data) -> a)
+    (\(void : unit) ->
+       `$mNothingD`
+         {data}
+         {data}
+         nt
+         (\(void : unit) -> `$bFirstC` Unit)
+         (\(void : unit) ->
+            Unit_match ((/\e -> error {e}) {Unit}) {data} defaultBody))

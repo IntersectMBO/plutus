@@ -1,1 +1,1 @@
-(con integer 30)
+(con data (Constr 0 [I 10, I 20, I 30, I 40]))

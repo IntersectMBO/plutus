@@ -85,6 +85,21 @@ int4Manual (IntsManual d) =
 
 AsData.asData
   [d|
-    data DSum = Cons1 Integer | Cons2 | Cons3 Integer Bool
+    data DSum a b = Cons1 a | Cons2 | Cons3 a b
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
+
+AsData.asData [d|
+  data SecretlyData = FirstC () | SecondC Integer
+     deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
+
+AsData.asData [d|
+  data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
+     deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
+
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+     deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
   |]

@@ -1,108 +1,176 @@
 (program
    1.1.0
-   (\d ->
-      (\tup ->
-         force
-           (force
-              (force
-                 ifThenElse
-                 (equalsInteger 0 (force (force fstPair) tup))
-                 (delay
-                    (delay
-                       (unIData (force headList (force (force sndPair) tup)))))
-                 (delay
-                    (delay
-                       (force
-                          (force
-                             (force
-                                ifThenElse
-                                (equalsInteger
-                                   1
-                                   (force (force fstPair) (unConstrData d)))
-                                (delay (delay -1))
-                                (delay
-                                   (delay
-                                      ((\tup ->
+   (\ds ->
+      (\nt ->
+         (\unsafeDataAsConstr ->
+            (\ifThenElse ->
+               (\fst ->
+                  (\equalsInteger ->
+                     force
+                       (delay
+                          (\True
+                            False
+                            Bool_match ->
+                             force
+                               (force
+                                  ((\`$mJustD` ->
+                                      force `$mJustD`)
+                                     (delay
+                                        (delay
+                                           (delay
+                                              (\`$dToData`
+                                                `$dUnsafeFromData`
+                                                scrut ->
+                                                 (\nt
+                                                   cont ->
+                                                    (\cont
+                                                      fail ->
+                                                       (\fail ->
+                                                          (\tup ->
+                                                             (\y ->
+                                                                (\b ->
+                                                                   force
+                                                                     (force
+                                                                        (Bool_match
+                                                                           (force
+                                                                              ifThenElse
+                                                                              b
+                                                                              True
+                                                                              False))
+                                                                        (delay
+                                                                           (cont
+                                                                              (`$dUnsafeFromData`
+                                                                                 (force
+                                                                                    ((\head ->
+                                                                                        head)
+                                                                                       headList)
+                                                                                    (force
+                                                                                       (force
+                                                                                          ((\snd ->
+                                                                                              snd)
+                                                                                             sndPair))
+                                                                                       tup)))))
+                                                                        (delay
+                                                                           (fail
+                                                                              ()))))
+                                                                  (equalsInteger
+                                                                     0
+                                                                     y))
+                                                               (force
+                                                                  (force fst)
+                                                                  tup))
+                                                            (unsafeDataAsConstr
+                                                               nt))
+                                                         fail)
+                                                      cont)
+                                                   scrut))))))
+                               ((\id ->
+                                   (\`$fToDataSecretlyData` ->
+                                      force `$fToDataSecretlyData`)
+                                     (delay (force (force id))))
+                                  (delay (delay (\x -> x))))
+                               ((\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
+                                   (\`$fUnsafeFromDataSecretlyData` ->
+                                      force `$fUnsafeFromDataSecretlyData`)
+                                     (delay
+                                        (force
+                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`)))
+                                  (delay (\d -> d)))
+                               nt
+                               (\a -> a)
+                               (\void ->
+                                  force
+                                    (delay
+                                       (\Unit
+                                         Unit_match ->
                                           force
                                             (force
-                                               (force
-                                                  ifThenElse
-                                                  (equalsInteger
-                                                     2
-                                                     (force (force fstPair)
-                                                        tup))
+                                               ((\`$mNothingD` ->
+                                                   force `$mNothingD`)
                                                   (delay
                                                      (delay
-                                                        ((\l ->
-                                                            (\ds ->
-                                                               force
-                                                                 (case
-                                                                    ((\tup ->
-                                                                        (\index ->
-                                                                           (\args ->
-                                                                              force
-                                                                                (force
-                                                                                   (force
-                                                                                      ifThenElse
-                                                                                      (equalsInteger
-                                                                                         0
-                                                                                         index)
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (constr 1
-                                                                                               [  ])))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (force
-                                                                                               (force
-                                                                                                  (force
-                                                                                                     ifThenElse
-                                                                                                     (equalsInteger
-                                                                                                        1
-                                                                                                        index)
-                                                                                                     (delay
-                                                                                                        (delay
-                                                                                                           (constr 0
-                                                                                                              [  ])))
-                                                                                                     (delay
-                                                                                                        (delay
-                                                                                                           ((\x ->
-                                                                                                               error)
-                                                                                                              (force
-                                                                                                                 trace
-                                                                                                                 "PT1"
-                                                                                                                 (constr 0
-                                                                                                                    [  ])))))))))))))
-                                                                             (force
-                                                                                (force
-                                                                                   sndPair)
-                                                                                tup))
-                                                                          (force
-                                                                             (force
-                                                                                fstPair)
-                                                                             tup))
-                                                                       (unConstrData
-                                                                          (force
-                                                                             headList
-                                                                             (force
-                                                                                tailList
-                                                                                l))))
-                                                                    [ (delay
-                                                                         (multiplyInteger
-                                                                            3
-                                                                            ds))
-                                                                    , (delay
-                                                                         0) ]))
-                                                              (unIData
-                                                                 (force headList
-                                                                    l)))
-                                                           (force
-                                                              (force sndPair)
-                                                              tup))))
-                                                  (delay
-                                                     (delay
-                                                        (case
-                                                           error
-                                                           [error]))))))
-                                         (unConstrData d))))))))))))
-        (unConstrData d)))
+                                                        (delay
+                                                           (\scrut ->
+                                                              (\nt
+                                                                cont ->
+                                                                 (\cont
+                                                                   fail ->
+                                                                    (\fail ->
+                                                                       (\tup ->
+                                                                          (\y ->
+                                                                             (\b ->
+                                                                                force
+                                                                                  (force
+                                                                                     (Bool_match
+                                                                                        (force
+                                                                                           ifThenElse
+                                                                                           b
+                                                                                           True
+                                                                                           False))
+                                                                                     (delay
+                                                                                        (cont
+                                                                                           ()))
+                                                                                     (delay
+                                                                                        (fail
+                                                                                           ()))))
+                                                                               (equalsInteger
+                                                                                  1
+                                                                                  y))
+                                                                            (force
+                                                                               (force
+                                                                                  fst)
+                                                                               tup))
+                                                                         (unsafeDataAsConstr
+                                                                            nt))
+                                                                      fail)
+                                                                   cont)
+                                                                scrut))))))
+                                            nt
+                                            (\void ->
+                                               (\unitval ->
+                                                  (\mkNilData ->
+                                                     (\mkConstr ->
+                                                        (\mkCons ->
+                                                           (\`$bFirstC` ->
+                                                              force `$bFirstC`)
+                                                             (delay
+                                                                (\arg0_ ->
+                                                                   mkConstr
+                                                                     0
+                                                                     (force
+                                                                        mkCons
+                                                                        (mkConstr
+                                                                           0
+                                                                           (mkNilData
+                                                                              unitval))
+                                                                        (mkNilData
+                                                                           unitval)))))
+                                                          mkCons)
+                                                       constrData)
+                                                    mkNilData)
+                                                 ()
+                                                 Unit)
+                                            (\void ->
+                                               force
+                                                 (Unit_match
+                                                    (force (delay error)))
+                                                 ((\defaultBody ->
+                                                     force defaultBody)
+                                                    (delay
+                                                       (force
+                                                          (delay error)))))))
+                                    (constr 0 [])
+                                    (\x ->
+                                       delay
+                                         (\case_Unit -> case x [case_Unit])))))
+                       (constr 0 [])
+                       (constr 1 [])
+                       (\x ->
+                          delay
+                            (\case_True case_False ->
+                               case x [case_True, case_False])))
+                    equalsInteger)
+                 fstPair)
+              ifThenElse)
+           unConstrData)
+        ds))

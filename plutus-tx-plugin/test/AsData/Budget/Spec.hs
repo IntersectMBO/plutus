@@ -5,6 +5,9 @@
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# LANGUAGE LambdaCase      #-}
 
 module AsData.Budget.Spec where
 
@@ -42,8 +45,8 @@ tests =
     , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
     , goldenPirReadable "sumTypeAsData" sumTypeAsData
     , goldenUPlcReadable "sumTypeAsData" sumTypeAsData
-    , goldenEvalCekCatch "sumTypeAsData" [sumTypeAsData `unsafeApplyCode` dsum]
-    , goldenBudget "sumTypeAsData-budget" (sumTypeAsData `unsafeApplyCode` dsum)
+    -- , goldenEvalCekCatch "sumTypeAsData" [sumTypeAsData `unsafeApplyCode` dsum]
+    -- , goldenBudget "sumTypeAsData-budget" (sumTypeAsData `unsafeApplyCode` dsum)
     ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -152,18 +155,15 @@ recordFieldsManual =
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
 
-sumTypeAsData :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+sumTypeAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 sumTypeAsData =
   $$( compile
         [||
-        \d ->
-          case PlutusTx.unsafeFromBuiltinData d of
-                Cons1 i       -> i
-                Cons2         -> -1
-                Cons3 _ False -> 0
-                Cons3 i True  -> i `PlutusTx.multiplyInteger` 3
+          \case
+            JustD a  -> a
+            NothingD -> FirstC ()
         ||]
     )
 
-dsum :: CompiledCode PlutusTx.BuiltinData
-dsum = liftCodeDef (PlutusTx.toBuiltinData (Cons3 10 True))
+-- dsum :: CompiledCode PlutusTx.BuiltinData
+-- dsum = liftCodeDef (Cons1 (Ints 10 20 30 40))

@@ -19,6 +19,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module IsData.Spec where
 
 import Test.Tasty.Extras
