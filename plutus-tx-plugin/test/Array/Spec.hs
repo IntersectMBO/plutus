@@ -27,9 +27,9 @@ smokeTests =
         [ goldenPirReadable "compiledListToArray" compiledListToArray
         , goldenUPlcReadable "compiledListToArray" compiledListToArray
         , goldenUEval "compiledListToArray" [compiledListToArray]
-        , goldenPirReadable "compiledLengthArray" compiledLengthArray
-        , goldenUPlcReadable "compiledLengthArray" compiledLengthArray
-        , goldenUEval "compiledLengthArray" [compiledLengthArray]
+        , goldenPirReadable "compiledLengthOfArray" compiledLengthOfArray
+        , goldenUPlcReadable "compiledLengthOfArray" compiledLengthOfArray
+        , goldenUEval "compiledLengthOfArray" [compiledLengthOfArray]
         , goldenPirReadable "compiledIndexArray" compiledIndexArray
         , goldenUPlcReadable "compiledIndexArray" compiledIndexArray
         , goldenUEval "compiledIndexArray" [compiledIndexArray]
@@ -54,8 +54,8 @@ compiledListToArray =
         ||]
     )
 
-compiledLengthArray :: CompiledCode BuiltinInteger
-compiledLengthArray =
+compiledLengthOfArray :: CompiledCode BuiltinInteger
+compiledLengthOfArray =
   $$(compile [||lengthOfArray||]) `unsafeApplyCode` compiledListToArray
 
 compiledIndexArray :: CompiledCode BuiltinData

@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\lengthOfArray -> force lengthOfArray)
-      lengthArray
+      lengthOfArray
       ((\unitval ->
           (\mkNilData ->
              (\mkI ->

@@ -87,7 +87,7 @@ clearBuiltinCostModel r = r
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
                , paramDropList = mempty
-               , paramLengthArray = mempty
+               , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty
                }

@@ -289,7 +289,7 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramTailList                        = unitCostOneArgument
     , paramNullList                        = unitCostOneArgument
     -- Arrays
-    , paramLengthArray                     = unitCostOneArgument
+    , paramLengthOfArray                     = unitCostOneArgument
     , paramListToArray                     = unitCostOneArgument
     , paramIndexArray                      = unitCostTwoArguments
     -- Data

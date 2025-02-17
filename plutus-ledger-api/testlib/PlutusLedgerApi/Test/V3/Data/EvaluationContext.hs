@@ -85,7 +85,7 @@ clearBuiltinCostModel r = r
                , paramFindFirstSetBit = mempty
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
-               , paramLengthArray = mempty
+               , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty
                }
