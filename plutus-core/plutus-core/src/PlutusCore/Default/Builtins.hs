@@ -2259,7 +2259,7 @@ instance Flat DefaultFun where
 
               DropList                        -> 90
 
-              LengthOfArray                     -> 91
+              LengthOfArray                   -> 91
               ListToArray                     -> 92
               IndexArray                      -> 93
 
