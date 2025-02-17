@@ -214,7 +214,7 @@ createBuiltinCostModel bmfile rfile = do
   paramTailList                        <- getParams readCF1 paramTailList
   paramNullList                        <- getParams readCF1 paramNullList
   -- Arrays
-  paramLengthOfArray                     <- getParams readCF1 paramLengthOfArray
+  paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
   paramListToArray                     <- getParams readCF1 paramListToArray
   paramIndexArray                      <- getParams readCF2 paramIndexArray
   -- Data
