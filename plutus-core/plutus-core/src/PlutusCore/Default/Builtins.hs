@@ -184,7 +184,7 @@ data DefaultFun
     | CaseData
     | DropList
     -- Arrays
-    | LengthArray
+    | LengthOfArray
     | ListToArray
     | IndexArray
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
@@ -2078,14 +2078,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             dropListDenotation
             (runCostingFunTwoArguments . paramDropList)
 
-    toBuiltinMeaning _semvar LengthArray =
-      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
-          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+    toBuiltinMeaning _semvar LengthOfArray =
+      let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
             case uni of
               DefaultUniArray _uniA -> pure $ Vector.length vec
               _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
-          {-# INLINE lengthArrayDenotation #-}
-        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+          {-# INLINE lengthOfArrayDenotation #-}
+        in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ListToArray =
       let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
@@ -2259,7 +2259,7 @@ instance Flat DefaultFun where
 
               DropList                        -> 90
 
-              LengthArray                     -> 91
+              LengthOfArray                   -> 91
               ListToArray                     -> 92
               IndexArray                      -> 93
 
@@ -2355,7 +2355,7 @@ instance Flat DefaultFun where
               go 88 = pure CaseList
               go 89 = pure CaseData
               go 90 = pure DropList
-              go 91 = pure LengthArray
+              go 91 = pure LengthOfArray
               go 92 = pure ListToArray
               go 93 = pure IndexArray
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t

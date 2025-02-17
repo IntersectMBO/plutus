@@ -295,8 +295,8 @@ findFirstSetBit-memory-arguments
 ripemd_160-cpu-arguments-intercept
 ripemd_160-cpu-arguments-slope
 ripemd_160-memory-arguments
-lengthArray-cpu-arguments
-lengthArray-memory-arguments
+lengthOfArray-cpu-arguments
+lengthOfArray-memory-arguments
 listToArray-cpu-arguments
 listToArray-memory-arguments
 indexArray-cpu-arguments

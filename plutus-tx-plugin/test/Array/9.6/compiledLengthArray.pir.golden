@@ -1,5 +1,5 @@
 (let
-    !lengthOfArray : all a. array a -> integer = lengthArray
+    !lengthOfArray : all a. array a -> integer = lengthOfArray
   in
   lengthOfArray {data})
   (let

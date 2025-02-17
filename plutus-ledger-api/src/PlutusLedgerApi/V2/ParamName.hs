@@ -200,8 +200,8 @@ data ParamName =
   | ByteStringToInteger'cpu'arguments'c2
   | ByteStringToInteger'memory'arguments'intercept
   | ByteStringToInteger'memory'arguments'slope
-  | LengthArray'cpu'arguments
-  | LengthArray'memory'arguments
+  | LengthOfArray'cpu'arguments
+  | LengthOfArray'memory'arguments
   | ListToArray'cpu'arguments
   | ListToArray'memory'arguments
   | IndexArray'cpu'arguments

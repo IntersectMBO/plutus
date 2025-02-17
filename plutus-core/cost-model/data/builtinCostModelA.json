@@ -698,7 +698,7 @@
             "type": "constant_cost"
         }
     },
-    "lengthArray" : {
+    "lengthOfArray" : {
         "cpu": {
             "arguments": 99999999999999,
             "type": "constant_cost"

@@ -468,7 +468,7 @@ defineBuiltinTerms = do
             PLC.DropList -> defineBuiltinInl 'Builtins.drop
 
             -- Arrays
-            PLC.LengthArray -> defineBuiltinInl 'Builtins.lengthOfArray
+            PLC.LengthOfArray -> defineBuiltinInl 'Builtins.lengthOfArray
             PLC.ListToArray -> defineBuiltinInl 'Builtins.listToArray
             PLC.IndexArray -> defineBuiltinInl 'Builtins.indexArray
 
