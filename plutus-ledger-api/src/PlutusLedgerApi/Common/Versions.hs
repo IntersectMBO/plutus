@@ -101,6 +101,9 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
+  ((PlutusV1, futurePV), Set.fromList [
+          ListToArray, IndexArray, LengthArray
+          ]),
   ((PlutusV2, vasilPV), Set.fromList [
           SerialiseData
           ]),
@@ -109,6 +112,9 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV2, plominPV), Set.fromList [
           IntegerToByteString, ByteStringToInteger
+          ]),
+  ((PlutusV2, futurePV), Set.fromList [
+          ListToArray, IndexArray, LengthArray
           ]),
   ((PlutusV3, changPV), Set.fromList [
           Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
@@ -128,8 +134,8 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV3, futurePV), Set.fromList [
           ExpModInteger,
-          CaseList, CaseData,
-          DropList
+          CaseList, CaseData, DropList,
+          ListToArray, IndexArray, LengthArray
           ])
   ]
 

@@ -143,6 +143,7 @@ library
     , text
     , th-abstraction
     , th-compat
+    , vector                 ^>=0.13.2
 
   default-extensions: Strict
 

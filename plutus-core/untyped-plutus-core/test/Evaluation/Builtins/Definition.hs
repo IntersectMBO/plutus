@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -53,24 +54,26 @@ import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Test
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.Exception
+import Control.Exception (evaluate, try)
 import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
 import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
-import Data.Proxy
+import Data.Proxy (Proxy (..))
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
-import Hedgehog hiding (Opaque, Size, Var)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
+import Hedgehog (forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
-import Test.Tasty
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.QuickCheck qualified as QC
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
@@ -100,7 +103,7 @@ test_IntegerDistribution =
         \(AsArbitraryBuiltin (i :: Integer)) ->
             let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
                 (low, high) =
-                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                    maybe (error "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
                       find ((>= abs i) . snd) magnitudes
                 bounds = map snd magnitudes
                 isInteresting = i `elem` concat
@@ -366,6 +369,30 @@ test_IdBuiltinList =
                         ]
             typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
                 Right (EvaluationSuccess xsTerm)
+
+test_BuiltinArray :: TestTree
+test_BuiltinArray =
+  testGroup "BuiltinArray" [
+    testCase "listToArray" do
+      let listOfInts = mkConstant @[Integer] @DefaultUni () [1..10]
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let term = apply () (tyInst () (builtin () ListToArray) integer) listOfInts
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess arrayOfInts)
+    , testCase "lengthArray" do
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let expectedLength = mkConstant @Integer @DefaultUni () 10
+          term = apply () (tyInst () (builtin () LengthArray) integer) arrayOfInts
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess expectedLength)
+    , testCase "indexArray" do
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let index = mkConstant @Integer @DefaultUni () 5
+          expectedValue = mkConstant @Integer @DefaultUni () 6
+          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [arrayOfInts, index]
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess expectedValue)
+  ]
 
 test_BuiltinPair :: TestTree
 test_BuiltinPair =
@@ -1194,6 +1221,7 @@ test_definition =
         , test_ExpensivePlus
         , test_BuiltinList
         , test_IdBuiltinList
+        , test_BuiltinArray
         , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData

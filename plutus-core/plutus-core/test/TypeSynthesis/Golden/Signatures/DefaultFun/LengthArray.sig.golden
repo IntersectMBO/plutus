@@ -1,0 +1,1 @@
+forall a. SomeConstant DefaultUni (Vector (TyVarRep * ('TyNameRep * "a" 0))) -> BuiltinResult Int

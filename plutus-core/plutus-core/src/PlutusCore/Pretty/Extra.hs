@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -22,6 +21,7 @@ import Data.Map qualified as Map
 import Data.Profunctor
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Vector.Strict (Vector)
 import Text.PrettyBy.Fixity
 import Text.PrettyBy.Internal
 
@@ -62,3 +62,8 @@ instance PrettyDefaultBy config [a] => DefaultPrettyBy config (Set a) where
     defaultPrettyBy config = prettyBy config . Set.toList
 deriving via PrettyCommon (Set a)
     instance PrettyDefaultBy config (Set a) => PrettyBy config (Set a)
+
+instance PrettyDefaultBy config [a] => DefaultPrettyBy config (Vector a) where
+    defaultPrettyBy config = prettyBy config . toList
+deriving via PrettyCommon (Vector a)
+    instance PrettyDefaultBy config (Vector a) => PrettyBy config (Vector a)
