@@ -96,6 +96,7 @@ library
     PlutusTx.Maybe
     PlutusTx.Monoid
     PlutusTx.Numeric
+    PlutusTx.Optimize.Inline
     PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
     PlutusTx.Plugin.Utils
@@ -143,6 +144,7 @@ library
     , text
     , th-abstraction
     , th-compat
+    , vector                 ^>=0.13.2
 
   default-extensions: Strict
 

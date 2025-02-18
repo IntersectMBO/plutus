@@ -1,10 +1,12 @@
 module Main (main) where
 
+import Array.Spec qualified as Array
 import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
+import Inline.Spec qualified as Inline
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
 import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified
 import IntegerLiterals.Strict.NegativeLiterals.Spec qualified
@@ -42,6 +44,7 @@ tests =
     , Lib.tests
     , Budget.tests
     , AsData.Budget.tests
+    , Inline.tests
     , Recursion.tests
     , Optimization.tests
     , Strictness.tests
@@ -51,4 +54,5 @@ tests =
     , embed Unicode.tests
     , embed AssocMap.propertyTests
     , embed List.propertyTests
+    , Array.smokeTests
     ]

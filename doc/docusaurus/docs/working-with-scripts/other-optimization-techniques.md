@@ -9,9 +9,9 @@ sidebar_position: 25
 Profiling your script is a good way  to identify which parts of the script are responsible for significant resource consumption.
 For more details, see [Profiling the Budget Usage of Plutus Scripts](../working-with-scripts/profiling-budget-usage.md).
 
-## Using a Recent Version of the Plutus Tx Compiler
+## Using a Recent Version of the Plinth Compiler
 
-The Plutus Tx compiler is available through the `plutus-tx-plugin` package.
+The Plinth compiler is available through the `plutus-tx-plugin` package.
 The Plutus team continuously improves compiler optimization, so using the latest or a recent version of `plutus-tx-plugin` will likely result in more compact and efficient scripts.
 
 ## Try `conservative-optimisation` or Flags Implied by It
@@ -20,12 +20,12 @@ Certain optimizations, such as inlining constants, can occasionally have negativ
 It is worth disabling them to see how it affects your script.
 You can do this using the `conservative-optimisation` plugin flag, which implies several other flags like `no-inline-constants`.
 Alternatively, try turning on the flags implied by `conservative-optimisation` individually.
-See [Plutus Tx Compiler Options](../delve-deeper/plutus-tx-compiler-options.md).
+See [Plinth Compiler Options](../delve-deeper/plinth-compiler-options.md).
 
 ## Using the `Strict` Extension
 
 The `Strict` extension, which makes all bindings in a module strict, generally improves performance.
-See [GHC Extensions, Flags and Pragmas](../using-plutus-tx/extensions-flags-pragmas.md) for an explanation.
+See [GHC Extensions, Flags and Pragmas](../using-plinth/extensions-flags-pragmas.md) for an explanation.
 However, care should be taken to avoid triggering unnecessary evaluations.
 For example, in
 
@@ -36,8 +36,8 @@ let a = <expr1>
 ```
 
 `b` will always be evaluated, even when `a` evaluates to `False`.
-To avoid this, you can write either `~b = <expr2>`, or `a && <expr2>` (recall that `&&` and `||` are [special](../using-plutus-tx/special-functions-and-types.md) in Plutus Tx in that their second arguments are non-strict, unlike ordinary Plutus Tx functions).
-However, keep in mind that with `~b = <expr2>`, `<expr2>` will be evaluated each time `b` is referenced, since Plutus Tx does not employ lazy evaluation, i.e., there is no memoization.
+To avoid this, you can write either `~b = <expr2>`, or `a && <expr2>` (recall that `&&` and `||` are [special](../using-plinth/special-functions-and-types.md) in Plinth in that their second arguments are non-strict, unlike ordinary Plinth functions).
+However, keep in mind that with `~b = <expr2>`, `<expr2>` will be evaluated each time `b` is referenced, since Plinth does not employ lazy evaluation, i.e., there is no memoization.
 
 ## Avoiding the `INLINE` Pragma
 
@@ -49,7 +49,7 @@ This would leave most inlining decisions to the PIR and UPLC inliners, which are
 
 ## Be Mindful of Strict Applications
 
-In Plutus Tx, as with all strict languages, function applications are strict (call by value), with the exception of a few special functions like `&&` and `||`, which are treated specially by the compiler.
+In Plinth, as with all strict languages, function applications are strict (call by value), with the exception of a few special functions like `&&` and `||`, which are treated specially by the compiler.
 
 If you define your own version of `&&`:
 
@@ -90,7 +90,7 @@ and
 res2 = sum (Map.elems m)
 ```
 
-These are perfectly efficient in Haskell, but since function applications are strict in Plutus Tx, the results of `xs ++ ys` and `Map.elems m` will be fully materialized before invoking `find` and `sum`, respectively.
+These are perfectly efficient in Haskell, but since function applications are strict in Plinth, the results of `xs ++ ys` and `Map.elems m` will be fully materialized before invoking `find` and `sum`, respectively.
 You might consider rewriting these expressions to be less succinct but more efficient.
 
 ## Specializing higher-order functions

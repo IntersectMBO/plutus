@@ -1,6 +1,5 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
 module PlutusLedgerApi.Test.Common.EvaluationContext
     ( MCostModel
     , MCekMachineCosts

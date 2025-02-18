@@ -18,7 +18,7 @@ However, the "V1", "V2" and "V3" naming scheme is practically useful because in 
 
 When simply writing a standalone program, say one that takes two integers and returns their sum, or one that implements a Sudoku solver, the notion of ledger language version is completely irrelevant.
 There is no need (and nowhere) to specify whether you are writing a Plutus V1, or Plutus V2, or Plutus V3 program - again, the concept of ledger language version does not apply to programs themselves.
-You simply write your code in Plutus Tx, compile it to UPLC, and run it with a UPLC evaluator.
+You simply write your code in Plinth, compile it to UPLC, and run it with a UPLC evaluator.
 This is what we mean by "they are not really different versions of a language in the sense of programming languages".
 
 It is only when you write a Plutus _validator script_, put it in a transaction and submit it to the Cardano ledger, that ledger language version becomes relevant. It is relevant in three ways:

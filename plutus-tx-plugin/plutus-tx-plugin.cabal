@@ -115,6 +115,7 @@ test-suite plutus-tx-plugin-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
+    Array.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
     AssocMap.Spec
@@ -126,6 +127,7 @@ test-suite plutus-tx-plugin-tests
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
     ByteStringLiterals.Spec
+    Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IntegerLiterals.Strict.NegativeLiterals.Spec

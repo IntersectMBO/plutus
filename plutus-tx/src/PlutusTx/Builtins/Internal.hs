@@ -32,6 +32,8 @@ import Data.Kind (Type)
 import Data.List qualified as Haskell
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import GHC.Generics (Generic)
 import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Builtin (BuiltinResult (..))
@@ -557,6 +559,30 @@ serialiseData :: BuiltinData -> BuiltinByteString
 serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 {-# OPAQUE serialiseData #-}
 
+{-
+ARRAY
+-}
+
+data BuiltinArray a = BuiltinArray ~(Vector a) deriving stock (Data)
+
+instance Haskell.Show a => Haskell.Show (BuiltinArray a) where
+    show (BuiltinArray v) = show v
+instance Haskell.Eq a => Haskell.Eq (BuiltinArray a) where
+    (==) (BuiltinArray v1) (BuiltinArray v2) = (==) v1 v2
+instance Haskell.Ord a => Haskell.Ord (BuiltinArray a) where
+    compare (BuiltinArray v1) (BuiltinArray v2) = compare v1 v2
+
+lengthOfArray :: BuiltinArray a -> BuiltinInteger
+lengthOfArray (BuiltinArray v) = toInteger (Vector.length v)
+{-# OPAQUE lengthOfArray #-}
+
+listToArray :: BuiltinList a -> BuiltinArray a
+listToArray (BuiltinList l) = BuiltinArray (Vector.fromList l)
+{-# OPAQUE listToArray #-}
+
+indexArray :: BuiltinArray a -> BuiltinInteger -> a
+indexArray (BuiltinArray v) i = v Vector.! fromInteger i
+{-# OPAQUE indexArray #-}
 
 {-
 BLS12_381

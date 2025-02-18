@@ -114,6 +114,9 @@ isCommutative = \case
   HeadList                        -> False
   TailList                        -> False
   NullList                        -> False
+  LengthOfArray                   -> False
+  ListToArray                     -> False
+  IndexArray                      -> False
   ChooseData                      -> False
   CaseData                        -> False
   ConstrData                      -> False
