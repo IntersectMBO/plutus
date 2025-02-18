@@ -288,6 +288,10 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramHeadList                        = unitCostOneArgument
     , paramTailList                        = unitCostOneArgument
     , paramNullList                        = unitCostOneArgument
+    -- Arrays
+    , paramLengthOfArray                   = unitCostOneArgument
+    , paramListToArray                     = unitCostOneArgument
+    , paramIndexArray                      = unitCostTwoArguments
     -- Data
     , paramChooseData                      = unitCostSixArguments
     , paramConstrData                      = unitCostTwoArguments

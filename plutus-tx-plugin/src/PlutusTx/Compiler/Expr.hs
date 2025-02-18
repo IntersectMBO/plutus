@@ -49,6 +49,7 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
+import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 
@@ -74,7 +75,7 @@ import PlutusCore.Subst qualified as PLC
 import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
-import Control.Monad.Reader (ask)
+import Control.Monad.Reader (ask, asks)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -784,6 +785,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   mkNilOpaqueName <- lookupGhcName 'Builtins.mkNilOpaque
   boolOperatorOr <- lookupGhcName '(PlutusTx.Bool.||)
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
+  inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
 
   case e of
     {- Note [Lazy boolean operators]
@@ -797,6 +799,18 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Lazy &&
     GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
       compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+    -- `inline f` or `inline (f x  ... xn)`
+    GHC.App (GHC.App (GHC.Var var) (GHC.Type _aTy)) e'
+      | GHC.getName var == inlineName || GHC.getName var == GHC.inlineIdName ->
+        case GHC.collectArgs (strip e') of
+          (strip -> GHC.Var f, args) ->
+            case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding f) of
+              Nothing -> compileExpr e'
+              Just unfolding
+                -- `f` is recursive. We do not inline recursive bindings.
+                | any (== f) (universeBi unfolding) -> compileExpr e'
+                | otherwise -> compileExpr (GHC.mkCoreApps unfolding args)
+          _ -> compileExpr e'
 
     -- See Note [String literals]
     -- See Note [IsString instances and UTF-8 encoded string literals]
@@ -1353,8 +1367,9 @@ defineIntegerNegate = do
 
 defineFix :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineFix = do
+  inlineFix <- asks (coInlineFix . ccOpts)
   ghcId <- lookupGhcId 'PlutusTx.Function.fix
-  var <- compileVarFresh annMayInline ghcId
+  var <- compileVarFresh (if inlineFix then annAlwaysInline else annMayInline) ghcId
   let rhs = annMayInline <$ PlutusCore.StdLib.Data.Function.fix
   let def = PIR.Def var (rhs, PIR.Strict)
   PIR.defineTerm (LexName (GHC.getName ghcId)) def mempty

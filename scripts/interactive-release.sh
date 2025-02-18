@@ -116,15 +116,13 @@ check-and-open-plutus-pr() {
 
 open-plutus-pr() {
   local PR_BRANCH="release/$VERSION"
-  local PR_WORKTREE="release-$VERSION"
 
-  git worktree remove --force $PR_WORKTREE || true
-  git branch -D $PR_BRANCH || true 
+  tell "I will stash your changes and create a new branch $PR_BRANCH from master"
 
-  git worktree add $PR_WORKTREE master
-  cd $PR_WORKTREE
+  git stash
+  git branch -D $PR_BRANCH || true
+  git checkout -b $PR_BRANCH || true 
   git pull --rebase origin master
-  git checkout -b $PR_BRANCH
 
   local RELEASE_PACKAGES=(
     "plutus-core"
@@ -140,19 +138,18 @@ open-plutus-pr() {
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
-      -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$MAJOR_VERSION/" {} \; \
-      -exec sed -i "s/\(^[ \t]*,[ \t]*$PACKAGE$\)/\1 ^>=$MAJOR_VERSION/" {} \;
+      -exec sed -i "s/\([^,:]*.[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$MAJOR_VERSION/" {} \; \
+      -exec sed -i "s/\([^,:]*.[ \t]*$PACKAGE$\)/\1 ^>=$MAJOR_VERSION/" {} \;
 
     pushd $PACKAGE > /dev/null
     scriv collect --version $VERSION || true
     popd > /dev/null
   done
 
-  cp ../.pre-commit-config.yaml .pre-commit-config.yaml # this file is not in git so we need to copy it or pre-commit will complain
-  git add . 
+  git add .
   pre-commit run cabal-fmt || true # pre-commit will fail but will modify the files in place, hence the second git add . below
-  git add . 
-  git commit -m "Release $VERSION" || true 
+  git add .
+  git commit -m "Release $VERSION" || true
   git push --force --set-upstream origin $PR_BRANCH
 
   local PR_URL=$(gh pr create \
@@ -162,9 +159,6 @@ open-plutus-pr() {
     --head $PR_BRANCH \
     --base master \
     | grep "https://")
-
-  git worktree remove --force $PR_WORKTREE
-  git branch -D $PR_BRANCH 
 
   tell "The release PR has been created at $PR_URL"
 }

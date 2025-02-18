@@ -48,6 +48,7 @@ data CompileOptions = CompileOptions {
       coProfile     :: ProfileOpts
     , coCoverage    :: CoverageOpts
     , coRemoveTrace :: Bool
+    , coInlineFix   :: Bool
     }
 
 data CompileContext uni fun = CompileContext {

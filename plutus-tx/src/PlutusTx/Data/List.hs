@@ -5,6 +5,7 @@
 module PlutusTx.Data.List (
     -- constructor exported for testing
     List(List),
+    null,
     append,
     find,
     findIndices,
@@ -25,7 +26,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
-                         mconcat, pred)
+                         mconcat, null, pred)
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
@@ -59,6 +60,10 @@ instance UnsafeFromData (List a) where
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
+
+null :: List a -> Bool
+null (List l) = B.null l
+{-# INLINEABLE null #-}
 
 cons :: (ToData a) => a -> List a -> List a
 cons h (List t) = List (BI.mkCons (toBuiltinData h) t)

@@ -1,0 +1,7 @@
+(program
+   1.1.0
+   (\x y z ->
+      multiplyInteger
+        ((\double -> multiplyInteger (double x) (double y))
+           (\x -> addInteger x x))
+        (addInteger z z)))

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 -- on 9.2.4 this is the flag that suppresses the above warning
 {-# OPTIONS -Wno-missing-signatures #-}
@@ -21,7 +20,6 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -36,32 +34,35 @@
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
+    , pattern DefaultUniArray
     , pattern DefaultUniPair
     , noMoreTypeFunctions
     , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
+import PlutusCore.Builtin
 import PlutusPrelude
 
-import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+import PlutusCore.Data (Data)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength (..),
+                                                    IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..))
-import PlutusCore.Pretty.Extra
+import PlutusCore.Pretty.Extra (juxtRenderContext)
 
 import Data.ByteString (ByteString)
-import Data.Int
-import Data.Proxy
+import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
-import Data.Word
+import Data.Vector.Strict (Vector)
+import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
-import Text.PrettyBy.Fixity
+import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -106,6 +107,7 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
+    DefaultUniProtoArray :: DefaultUni (Esc Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
     DefaultUniApply :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
@@ -118,6 +120,8 @@ data DefaultUni a where
 -- so we just leave GHC with its craziness.
 pattern DefaultUniList uniA =
     DefaultUniProtoList `DefaultUniApply` uniA
+pattern DefaultUniArray uniA =
+    DefaultUniProtoArray `DefaultUniApply` uniA
 pattern DefaultUniPair uniA uniB =
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB
 
@@ -151,6 +155,9 @@ instance GEq DefaultUni where
             Just Refl
         geqStep DefaultUniProtoList a2 = do
             DefaultUniProtoList <- Just a2
+            Just Refl
+        geqStep DefaultUniProtoArray a2 = do
+            DefaultUniProtoArray <- Just a2
             Just Refl
         geqStep DefaultUniProtoPair a2 = do
             DefaultUniProtoPair <- Just a2
@@ -189,6 +196,7 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniUnit                 = knownKind
     toSingKind DefaultUniBool                 = knownKind
     toSingKind DefaultUniProtoList            = knownKind
+    toSingKind DefaultUniProtoArray           = knownKind
     toSingKind DefaultUniProtoPair            = knownKind
     toSingKind (DefaultUniApply uniF _)       = case toSingKind uniF of _ `SingKindArrow` cod -> cod
     toSingKind DefaultUniData                 = knownKind
@@ -213,6 +221,7 @@ instance PrettyBy RenderContext (DefaultUni a) where
         DefaultUniUnit                 -> "unit"
         DefaultUniBool                 -> "bool"
         DefaultUniProtoList            -> "list"
+        DefaultUniProtoArray           -> "array"
         DefaultUniProtoPair            -> "pair"
         DefaultUniApply uniF uniA      -> uniF `juxtPrettyM` uniA
         DefaultUniData                 -> "data"
@@ -253,6 +262,8 @@ instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
+instance DefaultUni `Contains` Vector where
+    knownUni = DefaultUniProtoArray
 instance DefaultUni `Contains` (,) where
     knownUni = DefaultUniProtoPair
 instance DefaultUni `Contains` Data where
@@ -276,6 +287,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
+instance KnownBuiltinTypeAst tyname DefaultUni (Vector a) =>
+    KnownTypeAst tyname DefaultUni (Vector a)
 instance KnownBuiltinTypeAst tyname DefaultUni (a, b) =>
     KnownTypeAst tyname DefaultUni (a, b)
 instance KnownBuiltinTypeAst tyname DefaultUni Data =>
@@ -301,6 +314,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term [a]
+instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+    ReadKnownIn DefaultUni term (Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     ReadKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -324,6 +339,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     MakeKnownIn DefaultUni term [a]
+instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+    MakeKnownIn DefaultUni term (Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     MakeKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -489,6 +506,13 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term (ListCostedByLength a)
 
+deriving newtype instance KnownTypeAst tyname DefaultUni a =>
+    KnownTypeAst tyname DefaultUni (ArrayCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+    MakeKnownIn DefaultUni term (ArrayCostedByLength a)
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+    ReadKnownIn DefaultUni term (ArrayCostedByLength a)
+
 deriving via AsInteger Natural instance
     KnownTypeAst tyname DefaultUni Natural
 deriving via AsInteger Natural instance KnownBuiltinTypeIn DefaultUni term Integer =>
@@ -525,6 +549,7 @@ instance Closed DefaultUni where
         , constr `Permits` ()
         , constr `Permits` Bool
         , constr `Permits` []
+        , constr `Permits` Vector
         , constr `Permits` (,)
         , constr `Permits` Data
         , constr `Permits` BLS12_381.G1.Element
@@ -546,6 +571,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniBLS12_381_G1_Element = [9]
     encodeUni DefaultUniBLS12_381_G2_Element = [10]
     encodeUni DefaultUniBLS12_381_MlResult   = [11]
+    encodeUni DefaultUniProtoArray           = [12]
 
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
@@ -566,6 +592,7 @@ instance Closed DefaultUni where
         9  -> k DefaultUniBLS12_381_G1_Element
         10 -> k DefaultUniBLS12_381_G2_Element
         11 -> k DefaultUniBLS12_381_MlResult
+        12 -> k DefaultUniProtoArray
         _  -> empty
 
     bring
@@ -577,6 +604,8 @@ instance Closed DefaultUni where
     bring _ DefaultUniUnit r = r
     bring _ DefaultUniBool r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
+        bring p uniA r
+    bring p (DefaultUniProtoArray `DefaultUniApply` uniA) r =
         bring p uniA r
     bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
         bring p uniA $ bring p uniB r
