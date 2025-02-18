@@ -91,7 +91,7 @@ $\lamU{x}{N}$.%
     % [A V] saturated
     \begin{prooftree}
       \AxiomC{$\length(A) = \chi(\beta(A))-1$}
-      \AxiomC{$\nextArg(A) \in \Unihash \cup \Var_*$}
+      \AxiomC{$\nextArg(A) \in \Unihash \cup \VarStar$}
         % \RightLabel{\textsf{final-apply}}
         \BinaryInfC{$\step{\app{A}{V}}{\Eval'(\beta(A), \args(A)\snoc V)}$}
     \end{prooftree}
@@ -99,7 +99,7 @@ $\lamU{x}{N}$.%
     % [A V] unsaturated
     \begin{prooftree}
       \AxiomC{$\length(A) < \chi(\beta(A))-1$}
-      \AxiomC{$\nextArg(A) \in \Unihash \cup \Var_*$}
+      \AxiomC{$\nextArg(A) \in \Unihash \cup \VarStar$}
         % \RightLabel{\textsf{intermediate-apply}}
         \BinaryInfC{$\step{\app{A}{V}}{\app{A}{V}}$}
     \end{prooftree}

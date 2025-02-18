@@ -259,14 +259,14 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{verifyEd25519Signature}          & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
     & Verify an \TT{Ed25519} digital signature. &  Yes
     & \ref{note:digital-signature-verification-functions}, \ref{note:ed25519-signature-verification}\\[2mm]
-    \TT{ifThenElse}               & $[\forall a_*, \ty{bool}, a_*, a_*] \to a_*$
+    \TT{ifThenElse}               & $[\forall\star, \ty{bool}, \star, \star] \to \star$
                                                  & \text{$(\true,t_1,t_2) \mapsto t_1$}
                                                  \text{$(\false,t_1,t_2) \mapsto t_2$} & No & \\[2mm]
-    \TT{chooseUnit}               & $[\forall a_*, \ty{unit}, a_*] \to a_*$        & $((), t) \mapsto t$ & No & \\[2mm]
-    \TT{trace}                    & $[\forall a_*, \ty{string}, a_*] \to a_*$      & $ (s,t) \mapsto t$ & No & \ref{note:trace}\\[2mm]
+    \TT{chooseUnit}               & $[\forall\star, \ty{unit}, \star] \to \star$        & $((), t) \mapsto t$ & No & \\[2mm]
+    \TT{trace}                    & $[\forall\star, \ty{string}, \star] \to \star$      & $ (s,t) \mapsto t$ & No & \ref{note:trace}\\[2mm]
     \TT{fstPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to a_\#$       & $(x,y) \mapsto x$ & No & \\[2mm]
     \TT{sndPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to b_\#$       & $(x,y) \mapsto y$ & No & \\[2mm]
-    \TT{chooseList}               & $[\forall a_\#, \forall b_*, \listOf{a_\#}, b_*, b_*] \to b_*$
+    \TT{chooseList}               & $[\forall a_\#, \forall\star, \listOf{a_\#}, \star, \star] \to \star$
                                               & \text{$([], t_1, t_2) \mapsto t_1$,} \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto t_2\ (n \geq 1)$}. & No & \\[2mm]
     \TT{mkCons}                   & $[\forall a_\#, a_\#, \listOf{a_\#}] \to \listOf{a _\#}$  & $(x,[x_1,\ldots,x_n]) \mapsto [x,x_1,\ldots,x_n]$ & No & \\[2mm]
     \TT{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \\[2mm]
@@ -274,7 +274,7 @@ it applies at each possible monomorphisation in an obvious way.
                                         &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \\[2mm]
     \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \true,
                                                                                                     [x_1,\ldots, x_n] \mapsto \false$ & No & \\[2mm]
-    \TT{chooseData}               & $[\forall a_*, \ty{data}, a_*, a_*, a_*, a_*, a_*] \to a_*$
+    \TT{chooseData}               & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \star$
     & $ (d,t_C, t_M, t_L, t_I, t_B) $
     \smallskip
     \newline  % The big \{ was abutting the text above

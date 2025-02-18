@@ -82,46 +82,49 @@ Figure~\ref{fig:type-variables}.
 \begin{minipage}{\linewidth}
   \centering
       \[\begin{array}{lrclr}
-        \textrm{TypeVariable}    & \tv & ::= & n_{*} & \textrm{fully polymorphic type variable}\\
+        \textrm{TypeVariable}    & \tv & ::= & \star & \textrm{fully polymorphic type variable}\\
                                  &           &      & n_{\#} & \textrm{built-in-polymorphic type variable}\\
     \end{array}\]
     \captionof{figure}{Type variables}
     \label{fig:type-variables}
 \end{minipage}
+% Previously we had fully polymorphic type variables like a_*, which allowed us
+% to re-use this notation with typed PLC.  This was OK until the advent of
+% caseData and caseList, which take term arguments which are expected to be
+% whose types involve arrows: the problem is that (a), we can't represent these
+% in the UPLC "type system", and (b) caseData and caseList in fact return a
+% HeadSpine object and if you supply a non-function argument it'll be embedded
+% in one of these and the type mismatch won't be discovered until the HeadSpine
+% is later evaluated.
+
+% If we ever specify TPLC we'll need a richer grammar of types for it, and here
+% we will need genuine type variables which are polymorphic over terms; these
+% will have to undergo an erasure process (replacing all a_*, b_*, ... with *)
+% to obtain the types used here.
 
 \medskip
 \noindent
-We denote the set of all possible type variables by $\Var$, the set of all
-fully-polymorphic type variables by $\Var_*$, and the set of all
+We denote the set of all possible type variables by $\Var$ and the set of all
 built-in-polymorphic type variables $v_\#$ by $\Var_\#$.  Note that $\Var \cap
-\Uni = \varnothing$ since the symbols ${}_*$ and ${}_\#$ do not occur in names in $\Uni$.%
-\nomenclature[Da]{$\Var$}{The set of all type variables, $\Var_\# \cup \Var_*$}%
+\Uni = \varnothing$ since the symbols $\star$ and ${}_\#$ do not occur in names in $\Uni$.%
+\nomenclature[Da]{$\Var$}{The set of all type variables, $\Var_\# \cup \VarStar$}%
 \nomenclature[Da]{$\Var_\#$}{The set of builtin-polymorphic type variables}%
-\nomenclature[Da]{$\Var_*$}{The set of fully-polymorphic type variables}%
 \nomenclature[Db]{$v_\#$}{A builtin-polymorphic type variable}%
-\nomenclature[Db]{$v_*$}{A fully-polymorphic type variable}
+\nomenclature[Db]{$\star*$}{The unique fully-polymorphic type variable}%
+
 The two kinds of type variable are required because we have two different types
 of polymorphism. Later on we will see that built-in functions can take arguments
 which can be of a type which is unknown but must be in $\Uni$, whereas other
 arguments can range over a larger set of values such as the set of all Plutus
 Core terms. Type variables in $\Var_\#$ are used in the former situation and
-$\Var_*$ in the latter.
-
-Given a variable $v \in \Var$ we sometimes write
-$$
-   \kindhash{v} \text{\quad if $v \in \Var_\#$}
-$$
-and
-$$
-   \kindstar{v} \text{\quad if $v \in \Var_*$}.
-$$
+$\star$ is used in the latter.
 
 \kwxm{I'm using syntax to represent kinds here.  I haven't introduced actual
   kinds because (a) we don't have a proper type system in Plutus Core (yet), and
   (b) the \texttt{TypeScheme} type in the implementation only has one kind of
   type variable.  I'm only using this in the specification of the signatures of
   built-in functions to characterise some aspects how the builtins machinery
-  works in practice: things in $\Var_*\backslash\Var_\#$ can fail with an
+  works in practice: things in $\VarStar\backslash\Var_\#$ can fail with an
   unlifting error at runtime but that's not statically enforced anywhere.}
 
 \subsubsection{Polymorphic types}
@@ -175,16 +178,16 @@ $S$ and denote it by $\dom S$.%
 
 \medskip
 \noindent We can extend a type assignment $S$ to a map
-$\Sext : \Unihash \disj \Var_* \rightarrow \Unihash \disj \Var_*$ by defining
+$\Sext : \Unihash \disj \VarStar \rightarrow \Unihash \disj \VarStar$ by defining
 
 \begin{align*}
     \Sext(v_\#) &= S(v_\#) \quad \text{if $v_\# \in \dom S$}\\
     \Sext(v_\#) &= v_\# \quad \text{if $v_\# \in \Var_\# \backslash \dom S$}\\
     \Sext(T) &= T \quad\text{if $T \in \Uni_0$}     \\
     \Sext(\op(P_1,\ldots,P_n)) &= \op(\Sext(P_1),\ldots,\Sext(P_n))\\
-    \Sext(v_*) &= v_* \quad \text{if $v_* \in \Var_*$}.
+    \Sext(\star) &= \star.
 \end{align*}%
-\nomenclature[Dr4]{$\Sext$}{The extension of a type assignment $S$ to $\Unihash \cup \Var_*$}
+\nomenclature[Dr4]{$\Sext$}{The extension of a type assignment $S$ to $\Unihash \cup \VarStar$}
 
 \noindent If $P \in \Unihash$ and $S$ is a type assignment with $\fv{P}
 \subseteq \dom S$ then in fact $\Sext(P) \in \Uni$; in this case we say that
@@ -308,7 +311,7 @@ $$[\iota_1, \ldots, \iota_n] \rightarrow \tau$$ with
     some $k < j$, and similarly for $\tau$; in other words, any type variable
     $v$ must be introduced by a quantification before it is used. (Here $\iota$
     \textit{involves} $v$ if either $\iota = \tn \in \Unihash$ and $v \in \fv{\tn}$
-    or $\iota = v$ and $v \in \Var_*$.)
+    or $\iota = v$ and $v \in \VarStar$.)
   \item If $\tau$ involves $v \in \Var$ then some $\iota_j$ must involve $v$; this
     implies that $\fv{\tau} \subseteq \bigcup \{\fv{\iota_j}: \iota_j \in \Unihash\}$.
   \item If $j \neq k$ and $\iota_j, \iota_k \in \QVar$ then $\iota_j \neq
@@ -326,7 +329,7 @@ $$[\iota_1, \ldots, \iota_n] \rightarrow \tau$$ with
 \noindent For example, in our default set of built-in functions we have the
 functions \texttt{mkCons} with signature $[\forall a_\#, a_\#,$  %% Allow line break
   $\listOf{a_\#}] \rightarrow \listOf{a_\#}$ and \texttt{ifThenElse} with signature
-$[\forall a_*, \mathtt{bool}, a_*, a_*] \rightarrow a_*$.  When we use
+$[\forallStar, \mathtt{bool}, \star, \star] \rightarrow \star$.  When we use
 \texttt{mkCons} its arguments must be of built-in types, but the two final
 arguments of \texttt{ifThenElse} can be any Plutus Core values.
 
@@ -383,8 +386,8 @@ until all arguments have been supplied and all \texttt{force}s have been
 applied. The arity (read from left to right) specifies what types of arguments
 are expected and how they should be interleaved with applications of
 \texttt{force}, and $\chi(b)$ tells you the total number of arguments and
-applications of \texttt{force} that a built-in function $b$ requires. A
-fully-polymorphic type variable $a_*$ indicates that an arbitrary value from
+applications of \texttt{force} that a built-in function $b$ requires. The
+fully-polymorphic type variable $\star$ indicates that an arbitrary value from
 $\Inputs$ can be provided, whereas a type from $\Unihash$ indicates that a value
 of the specified built-in type is expected. Occurrences of quantifications
 indicate that \texttt{force} is to be applied to a partially-applied builtin; we
@@ -414,7 +417,7 @@ $$%
 \nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
 \noindent where
 $$
-\denote{v_*} = \Inputs \text{\ for $v_* \in \Var_*$}.
+\denote{\star} = \Inputs.
 $$
 \noindent This makes sense because $\Sext(\tau_i) \in \Uni \disj
 \Inputs$ for all $i$, so $\denote{\Sext(\tau_i)}$ is always defined,
@@ -480,8 +483,10 @@ which converts results of built-in functions back into inputs (or the $\errorX$ 
 
 \subsubsection{Parametricity for *-polymorphic arguments}
 \label{sec:builtin-behaviour}
+HAVE WE DEFINED THIS?
+
 A built-in function $b$ can only inspect arguments which are values of built-in
-types; other arguments (occurring as $a_*$ in $\sigmabar(b)$) are treated opaquely,
+types; other arguments (occurring as $\star$ in $\sigmabar(b)$) are treated opaquely,
 and can be discarded or returned as (part of) a result, but cannot be altered or
 examined (in particular, they cannot be compared for equality): $b$ is
 \textit{parametrically polymorphic} in such arguments.  This implies that if a
@@ -531,8 +536,9 @@ the function.
 The previous section describes how a built-in function is interpreted as a
 mathematical function.  When a Plutus Core built-in function $b$ is applied to a
 sequence of arguments, the arguments must have types which are compatible with
-the signature of $b$; for example, if $b$ has signature $[\forall a_\#, \forall
-  b_\#, a_\#, b_\#, a_\#, c_*, c_*] \rightarrow c_*$ and $b$ is applied to a
+the signature of $b$; for example, if $b$ has signature
+$[\forallStar, \forall a_\#, \forall b_\#, a_\#, b_\#, a_\#, \star, \star] \rightarrow \star$ and $b$
+is applied to a
 sequence of inputs $V_1, V_2, V_3, V_4, V_5$ then $V_1, V_2$, and $V_3$ must all
 be constants of some monomorphic built-in types and the types of $V_1$ and $V_3$
 must be the same; $V_4$ and $V_5$ can be arbitrary inputs.  This section
@@ -555,7 +561,7 @@ describes the conditions for type compatibility.
   \tau_n]$, a sequence $\bar{V} = [V_1, \ldots, V_m]$, and a type assignment $S$
 we say that $\bar{V}$ is \textit{compatible with} $\alphabar$ (\textit{via} $S$)
 if and only if $n=m$ and, letting $I = \{i: 1 \leq i \leq n, \tau_i \in
-\Unihash\}$ (so $\tau_j \in \Var_*$ if $j \notin I$), there exist type
+\Unihash\}$ (so $\tau_j = \star$ if $j \notin I$), there exist type
 assignments $S_i$ ($1 \leq i \leq n$) such that all of the following are
 satisfied
 \begin{itemize}

@@ -138,13 +138,13 @@ state.
 \inAppRightFrame{\VLamAbs{x}{M}{\rho}} \cons s   & \return V  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
 \inAppLeftFrame{V} \cons s   & \return \VLamAbs{x}{M}{\rho}  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)}} \cons s & \return V &~\mapsto~&
-                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
-                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]} &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inForceFrame{} \cons s & \return \VDelay{M}{\rho}         &~\mapsto~& s;\rho \compute M\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
                          s \return \VBuiltin{b}{\repetition{V}}{\eta} \enskip \text{if $\iota \in \QVar$}\\

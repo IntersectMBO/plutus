@@ -288,7 +288,7 @@
 \newcommand\UniTop{\Uni^{\top}}      % Universe of built-in types extended with a top element
 \newcommand\Unihashn[1]{\Uni_{\#,#1}}
 \newcommand\Sext{\hat{S}}
-\newcommand\UnihashStar{\Unihash \disj \Var_*} % Built-in type or type name
+\newcommand\UnihashStar{\Unihash \disj \VarStar} % Built-in type or type name
 \newcommand\UnihashTop{\Unihash^{\top}}      % Universe of built-in types extended with a top element
 \newcommand\op{\textit{op}}               % Type operator names
 \newcommand\valency[1]{\left| #1 \right|} % Valency of a type operator
@@ -316,9 +316,10 @@
 \newcommand{\EvalCEK}{\mathsf{Eval_{\,CEK}}}
 %% NOTE!!!  Probably \byte and \Z are only used in V1-builtins
 
-\newcommand{\kindstar}[1]{#1::\text{\textasteriskcentered}}  % "v::*"  (The ordinary * is a bit above the centreline)
-\newcommand{\kindhash}[1]{#1::\text{\#}}                     % "v::#"
-
+\renewcommand{\star}{\text{\textasteriskcentered}}
+\newcommand{\VarStar}{\{\star\}}
+\newcommand{\forallStar}{\forall\star}
+% ^ {*}, the set of fully-polymorphic type variables (but there's only one of those)
 \newcommand\errorX{\textbf{\texttimes}}
 \newcommand\ValueOrError{\Inputs\disj\{\errorX\}}
 \newcommand\withError[1]{\ensuremath{#1_{\errorX}}}
