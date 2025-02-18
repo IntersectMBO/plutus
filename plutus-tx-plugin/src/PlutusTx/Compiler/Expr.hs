@@ -799,7 +799,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Lazy &&
     GHC.App (GHC.App (GHC.Var var) a) b | GHC.getName var == boolOperatorAnd ->
       compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
-    -- `inline f` or `inline (f args)`
+    -- `inline f` or `inline (f x  ... xn)`
     GHC.App (GHC.App (GHC.Var var) (GHC.Type _aTy)) e'
       | GHC.getName var == inlineName || GHC.getName var == GHC.inlineIdName ->
         case GHC.collectArgs (strip e') of
