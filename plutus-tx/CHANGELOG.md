@@ -1,4 +1,11 @@
 
+<a id='changelog-1.41.1.0'></a>
+# 1.41.1.0 — 2025-02-11
+
+## Added
+
+- `PlutusTx.Function.fix`, Plinth's equivalent of `Data.Function.fix`.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 
