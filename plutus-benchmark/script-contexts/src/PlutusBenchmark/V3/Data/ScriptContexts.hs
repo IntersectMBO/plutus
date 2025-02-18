@@ -77,11 +77,11 @@ checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
   -- Bang pattern to ensure this is forced, probably not necesssary
   -- since we do use it later
-  let !sc = PlutusTx.unsafeFromBuiltinData d
-      ScriptContext txi _ _ = sc
-   in if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
-        then ()
-        else PlutusTx.traceError "Odd number of outputs"
+    case PlutusTx.unsafeFromBuiltinData d of
+      ScriptContext (TxInfo _ _ txOuts _ _ _ _ _ _ _ _ _ _ _ _ _) _ _ ->
+        if Data.List.length txOuts `PlutusTx.modInteger` 2 PlutusTx.== 0
+          then ()
+          else PlutusTx.traceError "Odd number of outputs"
 {-# INLINEABLE checkScriptContext1 #-}
 
 mkCheckScriptContext1Code :: ScriptContext -> PlutusTx.CompiledCode ()
