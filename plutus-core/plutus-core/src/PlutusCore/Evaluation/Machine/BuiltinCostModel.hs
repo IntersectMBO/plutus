@@ -128,7 +128,7 @@ data BuiltinCostModelBase f =
     , paramTailList                        :: f ModelOneArgument
     , paramNullList                        :: f ModelOneArgument
     -- Arrays
-    , paramLengthArray                     :: f ModelOneArgument
+    , paramLengthOfArray                   :: f ModelOneArgument
     , paramListToArray                     :: f ModelOneArgument
     , paramIndexArray                      :: f ModelTwoArguments
     -- Data

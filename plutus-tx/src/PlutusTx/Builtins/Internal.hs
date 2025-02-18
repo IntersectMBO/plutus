@@ -264,7 +264,7 @@ ripemd_160 (BuiltinByteString b) = BuiltinByteString $ Hash.ripemd_160 b
 
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
+  case PlutusCore.Crypto.Ed25519.verifyEd25519Signature vk msg sig of
     BuiltinSuccess b              -> BuiltinBool b
     BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
     BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $

@@ -96,6 +96,7 @@ library
     PlutusTx.Maybe
     PlutusTx.Monoid
     PlutusTx.Numeric
+    PlutusTx.Optimize.Inline
     PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
     PlutusTx.Plugin.Utils

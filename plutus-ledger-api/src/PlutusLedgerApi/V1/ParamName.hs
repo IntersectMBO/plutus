@@ -181,8 +181,8 @@ data ParamName =
   | VerifyEd25519Signature'cpu'arguments'intercept
   | VerifyEd25519Signature'cpu'arguments'slope
   | VerifyEd25519Signature'memory'arguments
-  | LengthArray'cpu'arguments
-  | LengthArray'memory'arguments
+  | LengthOfArray'cpu'arguments
+  | LengthOfArray'memory'arguments
   | ListToArray'cpu'arguments
   | ListToArray'memory'arguments
   | IndexArray'cpu'arguments

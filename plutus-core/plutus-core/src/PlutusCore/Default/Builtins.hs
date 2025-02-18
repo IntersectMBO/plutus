@@ -33,7 +33,7 @@ import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
@@ -184,7 +184,7 @@ data DefaultFun
     | CaseData
     | DropList
     -- Arrays
-    | LengthArray
+    | LengthOfArray
     | ListToArray
     | IndexArray
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
@@ -1340,14 +1340,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             blake2b_256Denotation
             (runCostingFunOneArgument . paramBlake2b_256)
 
-    toBuiltinMeaning semvar VerifyEd25519Signature =
+    toBuiltinMeaning _semvar VerifyEd25519Signature =
         let verifyEd25519SignatureDenotation
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
-            verifyEd25519SignatureDenotation =
-                case semvar of
-                  DefaultFunSemanticsVariantA -> verifyEd25519Signature_V1
-                  DefaultFunSemanticsVariantB -> verifyEd25519Signature_V2
-                  DefaultFunSemanticsVariantC -> verifyEd25519Signature_V2
+            verifyEd25519SignatureDenotation = verifyEd25519Signature
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning
             verifyEd25519SignatureDenotation
@@ -2078,14 +2074,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             dropListDenotation
             (runCostingFunTwoArguments . paramDropList)
 
-    toBuiltinMeaning _semvar LengthArray =
-      let lengthArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
-          lengthArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+    toBuiltinMeaning _semvar LengthOfArray =
+      let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
             case uni of
               DefaultUniArray _uniA -> pure $ Vector.length vec
               _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
-          {-# INLINE lengthArrayDenotation #-}
-        in makeBuiltinMeaning lengthArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+          {-# INLINE lengthOfArrayDenotation #-}
+        in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ListToArray =
       let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
@@ -2259,7 +2255,7 @@ instance Flat DefaultFun where
 
               DropList                        -> 90
 
-              LengthArray                     -> 91
+              LengthOfArray                   -> 91
               ListToArray                     -> 92
               IndexArray                      -> 93
 
@@ -2355,7 +2351,7 @@ instance Flat DefaultFun where
               go 88 = pure CaseList
               go 89 = pure CaseData
               go 90 = pure DropList
-              go 91 = pure LengthArray
+              go 91 = pure LengthOfArray
               go 92 = pure ListToArray
               go 93 = pure IndexArray
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t

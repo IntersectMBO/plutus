@@ -313,8 +313,8 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
-  | LengthArray'cpu'arguments
-  | LengthArray'memory'arguments
+  | LengthOfArray'cpu'arguments
+  | LengthOfArray'memory'arguments
   | ListToArray'cpu'arguments
   | ListToArray'memory'arguments
   | IndexArray'cpu'arguments

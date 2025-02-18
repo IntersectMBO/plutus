@@ -379,10 +379,10 @@ test_BuiltinArray =
       let term = apply () (tyInst () (builtin () ListToArray) integer) listOfInts
       typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
           Right (EvaluationSuccess arrayOfInts)
-    , testCase "lengthArray" do
+    , testCase "lengthOfArray" do
       let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
       let expectedLength = mkConstant @Integer @DefaultUni () 10
-          term = apply () (tyInst () (builtin () LengthArray) integer) arrayOfInts
+          term = apply () (tyInst () (builtin () LengthOfArray) integer) arrayOfInts
       typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
           Right (EvaluationSuccess expectedLength)
     , testCase "indexArray" do
