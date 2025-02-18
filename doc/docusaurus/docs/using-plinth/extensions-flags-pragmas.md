@@ -65,7 +65,7 @@ ghc-options:
 >
 > This section only covers GHC flags, not Plutus Tx compiler flags.
 > A number of options can be passed to the Plutus Tx compiler.
-> See [Plutus Tx Compiler Options](../delve-deeper/plutus-tx-compiler-options.md) for details.
+> See [Plutus Tx Compiler Options](../delve-deeper/plinth-compiler-options.md) for details.
 
 ### Pragmas
 

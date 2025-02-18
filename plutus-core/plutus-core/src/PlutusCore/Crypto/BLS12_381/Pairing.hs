@@ -51,7 +51,7 @@ instance NFData MlResult where
     rnf _ = ()
 
 instance Hashable MlResult where
-    hashWithSalt salt = const salt
+    hashWithSalt salt _MlResult = salt
 
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop = coerce BlstBindings.millerLoop

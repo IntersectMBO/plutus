@@ -4,9 +4,9 @@ sidebar_position: 22
 
 # Simplifying Code Before Compilation
 
-Much like in regular Haskell, simplifying or expanding certain Plutus Tx code before compilation can make it more efficient.
+Much like in regular Haskell, simplifying or expanding certain Plinth code before compilation can make it more efficient.
 
-As an example, suppose you want to call `PlutusTx.List.tail` on a list `n` times in Plutus Tx.
+As an example, suppose you want to call `PlutusTx.List.tail` on a list `n` times in Plinth.
 You can implement it using a fold:
 
 ```haskell
@@ -47,7 +47,7 @@ ntails n
 ```
 
 You can write code like `tails5` by hand, but in more complex cases, you can instead use standard Haskell techniques for generating and manipulating source code, such as Template Haskell and GHC plugins.
-After all, Plutus Tx is a subset of Haskell.
+After all, Plinth is a subset of Haskell.
 
 ## Template Haskell
 
@@ -83,7 +83,7 @@ If you need something even more powerful and flexible than Template Haskell, you
 However, this is a more advanced tool with greater complexity, which is further compounded by GHC's unstable API, making it difficult to support multiple major GHC versions.
 You should rarely need to do this, as Template Haskell should meet most requirements.
 
-If you do decide to write your own GHC plugin, keep in mind that the Plutus Tx compiler is also a GHC plugin, so be careful of the orders in which the two plugins are invoked, especially since [the order has changed since GHC 9.4](https://gitlab.haskell.org/ghc/ghc/-/issues/17884).
+If you do decide to write your own GHC plugin, keep in mind that the Plinth compiler is also a GHC plugin, so be careful of the orders in which the two plugins are invoked, especially since [the order has changed since GHC 9.4](https://gitlab.haskell.org/ghc/ghc/-/issues/17884).
 
 Finally, keep in mind that doing what's described in this page is not always desirable, since although it reduces script execution costs, it often increases script sizes.
 For Plutus scripts, size is a much more valuable resource than for general-purpose programs, since Cardano has strict script size and transaction size limits.
