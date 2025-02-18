@@ -31,7 +31,8 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UBuiltin fun -> "(UBuiltin " ++ agdaUnparse fun ++ ")"
       AgdaFFI.UDelay term -> "(UDelay " ++ agdaUnparse term ++ ")"
       AgdaFFI.UForce term -> "(UForce " ++ agdaUnparse term ++ ")"
-      AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse i ++ " " ++ agdaUnparse terms ++ ")"
+      AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse (fromInteger i :: Natural)
+                                      ++ " " ++ agdaUnparse terms ++ ")"
       AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
 
 instance AgdaUnparse UPLC.DefaultFun where
@@ -49,7 +50,10 @@ instance AgdaUnparse Natural where
   agdaUnparse = show
 
 instance AgdaUnparse Integer where
-  agdaUnparse x = "(ℤ.pos " ++ show x ++ ")"
+  agdaUnparse x =
+    case (x < 0) of
+      True  -> "(ℤ.negsuc " ++ show (x - 1) ++ ")"
+      False ->  "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where
   agdaUnparse True  = "true"
