@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Nat.Solver</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Automatic solvers for equations over naturals</a>
+<a id="155" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="229" class="Comment">-- See README.Nat for examples of how to use this solver</a>
+
+<a id="287" class="Symbol">{-#</a> <a id="291" class="Keyword">OPTIONS</a> <a id="299" class="Pragma">--cubical-compatible</a> <a id="320" class="Pragma">--safe</a> <a id="327" class="Symbol">#-}</a>
+
+<a id="332" class="Keyword">module</a> <a id="339" href="Data.Nat.Solver.html" class="Module">Data.Nat.Solver</a> <a id="355" class="Keyword">where</a>
+
+<a id="362" class="Keyword">import</a> <a id="369" href="Algebra.Solver.Ring.Simple.html" class="Module">Algebra.Solver.Ring.Simple</a> <a id="396" class="Symbol">as</a> <a id="399" class="Module">Solver</a>
+<a id="406" class="Keyword">import</a> <a id="413" href="Algebra.Solver.Ring.AlmostCommutativeRing.html" class="Module">Algebra.Solver.Ring.AlmostCommutativeRing</a> <a id="455" class="Symbol">as</a> <a id="458" class="Module">ACR</a>
+<a id="462" class="Keyword">open</a> <a id="467" class="Keyword">import</a> <a id="474" href="Data.Nat.Properties.html" class="Module">Data.Nat.Properties</a>
+
+<a id="495" class="Comment">------------------------------------------------------------------------</a>
+<a id="568" class="Comment">-- A module for automatically solving propositional equivalences</a>
+<a id="633" class="Comment">-- containing _+_ and _*_</a>
+
+<a id="660" class="Keyword">module</a> <a id="+-*-Solver"></a><a id="667" href="Data.Nat.Solver.html#667" class="Module">+-*-Solver</a> <a id="678" class="Symbol">=</a>
+  <a id="682" href="Algebra.Solver.Ring.Simple.html" class="Module">Solver</a> <a id="689" class="Symbol">(</a><a id="690" href="Algebra.Solver.Ring.AlmostCommutativeRing.html#4276" class="Function">ACR.fromCommutativeSemiring</a> <a id="718" href="Data.Nat.Properties.html#23351" class="Function">+-*-commutativeSemiring</a><a id="741" class="Symbol">)</a> <a id="743" href="Data.Nat.Properties.html#2538" class="Function Operator">_≟_</a>
+</pre></body></html>
