@@ -40,7 +40,7 @@
       ~rest : list data = tailList {data} rest
       !ds : (\a -> list data) data = unListData (headList {data} constrArgs)
       !ds : (\a -> list data) data = unListData (headList {data} rest)
-      !txOuts : (\a -> list data) data = unListData (headList {data} rest)
+      !ds : (\a -> list data) data = unListData (headList {data} rest)
       !ds :
          (\k a -> list (pair data data))
            bytestring
@@ -79,11 +79,7 @@
           {all dead. dead}
     in
     Bool_match
-      (ifThenElse
-         {Bool}
-         (equalsInteger 0 (modInteger (go txOuts 0) 2))
-         True
-         False)
+      (ifThenElse {Bool} (equalsInteger 0 (modInteger (go ds 0) 2)) True False)
       {all dead. Unit}
       (/\dead -> Unit)
       (/\dead ->

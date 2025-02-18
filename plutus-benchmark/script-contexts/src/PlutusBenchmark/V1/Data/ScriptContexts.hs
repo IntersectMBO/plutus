@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -54,8 +55,8 @@ mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
   case PlutusTx.unsafeFromBuiltinData d of
-    ScriptContext (TxInfo _ txOuts _ _ _ _ _ _ _ _) _ ->
-      if Data.List.length txOuts `PlutusTx.modInteger` 2 PlutusTx.== 0
+    ScriptContext { scriptContextTxInfo = TxInfo { txInfoOutputs } } ->
+      if Data.List.length txInfoOutputs `PlutusTx.modInteger` 2 PlutusTx.== 0
         then ()
         else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
