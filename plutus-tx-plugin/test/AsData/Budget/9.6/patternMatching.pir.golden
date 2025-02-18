@@ -1,8 +1,6 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
   data Bool | Bool_match where
@@ -11,6 +9,8 @@ let
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
 in
 \(d : data) ->
   let
@@ -21,29 +21,34 @@ in
           \(scrut : data)
            (cont : integer -> integer -> integer -> integer -> r)
            (fail : unit -> r) ->
-            let
-              !tup : pair integer (list data) = unConstrData scrut
-            in
-            Bool_match
-              (ifThenElse
-                 {Bool}
-                 (equalsInteger 0 (fstPair {integer} {list data} tup))
-                 True
-                 False)
-              {all dead. r}
-              (/\dead ->
-                 let
-                   !l : list data = sndPair {integer} {list data} tup
-                   !l : list data = tailList {data} l
-                   !l : list data = tailList {data} l
-                 in
-                 cont
-                   (unIData (headList {data} l))
-                   (unIData (headList {data} l))
-                   (unIData (headList {data} l))
-                   (unIData (headList {data} (tailList {data} l))))
-              (/\dead -> fail ())
-              {all dead. dead})
+            Tuple4_match
+              {integer}
+              {integer}
+              {integer}
+              {integer}
+              (let
+                !constrArgs : list data
+                  = sndPair {integer} {list data} (unConstrData scrut)
+                !field : integer = unIData (headList {data} constrArgs)
+                !rest : list data = tailList {data} constrArgs
+                !field : integer = unIData (headList {data} rest)
+                !rest : list data = tailList {data} rest
+              in
+              Tuple4
+                {integer}
+                {integer}
+                {integer}
+                {integer}
+                field
+                field
+                (unIData (headList {data} rest))
+                (unIData (headList {data} (tailList {data} rest))))
+              {r}
+              (\(int : integer)
+                (int : integer)
+                (int : integer)
+                (int : integer) ->
+                 cont int int int int))
           d
           (\(x : integer) (y : integer) (z : integer) (w : integer) ->
              Tuple4 {integer} {integer} {integer} {integer} x y z w)

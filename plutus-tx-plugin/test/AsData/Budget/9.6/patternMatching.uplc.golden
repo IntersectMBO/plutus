@@ -44,28 +44,21 @@
               (delay (case (force ds) [(\x y z w -> x)])))
            (force ds))
         (delay
-           ((\tup ->
-               force
-                 (force
-                    (force ifThenElse
-                       (equalsInteger 0 (force (force fstPair) tup))
-                       (delay
-                          (delay
-                             ((\l ->
-                                 (\l ->
-                                    (\l ->
-                                       (\z w ->
-                                          constr 0
-                                            [ (unIData (force headList l))
-                                            , (unIData (force headList l))
-                                            , z
-                                            , w ])
-                                         (unIData (force headList l))
-                                         (unIData
-                                            (force headList
-                                               (force tailList l))))
-                                      (force tailList l))
-                                   (force tailList l))
-                                (force (force sndPair) tup))))
-                       (delay (delay (case error [error]))))))
-              (unConstrData d)))))
+           (case
+              ((\constrArgs ->
+                  (\field ->
+                     (\rest ->
+                        (\field ->
+                           (\rest ->
+                              constr 0
+                                [ field
+                                , field
+                                , (unIData (force headList rest))
+                                , (unIData
+                                     (force headList (force tailList rest))) ])
+                             (force tailList rest))
+                          (unIData (force headList rest)))
+                       (force tailList constrArgs))
+                    (unIData (force headList constrArgs)))
+                 (force (force sndPair) (unConstrData d)))
+              [(\int int int int -> constr 0 [int, int, int, int])]))))

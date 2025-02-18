@@ -1,7 +1,7 @@
 (program
    1.1.0
    (\d ->
-      (\`$mInts` ->
+      (\matchOnInts ->
          (\int ->
             (\x ->
                (\int ->
@@ -41,36 +41,30 @@
                                         (constr 1 [])))
                                 (int d))
                              (\ds ->
-                                `$mInts`
-                                  ds
-                                  (\ds ds ds ds -> ds)
-                                  (\void -> error)))
+                                case
+                                  (matchOnInts ds)
+                                  [(\int int int int -> int)]))
                           (int d))
                        (\ds ->
-                          `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
+                          case (matchOnInts ds) [(\int int int int -> int)]))
                     (int d))
-                 (\ds -> `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
+                 (\ds -> case (matchOnInts ds) [(\int int int int -> int)]))
               (int d))
-           (\ds -> `$mInts` ds (\ds ds ds ds -> ds) (\void -> error)))
-        (\scrut cont fail ->
-           (\tup ->
-              force
-                (force
-                   (force ifThenElse
-                      (equalsInteger 0 (force (force fstPair) tup))
-                      (delay
-                         (delay
-                            ((\l ->
-                                (\l ->
-                                   (\l ->
-                                      cont
-                                        (unIData (force headList l))
-                                        (unIData (force headList l))
-                                        (unIData (force headList l))
-                                        (unIData
-                                           (force headList (force tailList l))))
-                                     (force tailList l))
-                                  (force tailList l))
-                               (force (force sndPair) tup))))
-                      (delay (delay (fail ()))))))
-             (unConstrData scrut))))
+           (\ds -> case (matchOnInts ds) [(\int int int int -> int)]))
+        (\ds ->
+           (\constrArgs ->
+              (\field ->
+                 (\rest ->
+                    (\field ->
+                       (\rest ->
+                          constr 0
+                            [ field
+                            , field
+                            , (unIData (force headList rest))
+                            , (unIData
+                                 (force headList (force tailList rest))) ])
+                         (force tailList rest))
+                      (unIData (force headList rest)))
+                   (force tailList constrArgs))
+                (unIData (force headList constrArgs)))
+             (force (force sndPair) (unConstrData ds)))))
