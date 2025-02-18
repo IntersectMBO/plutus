@@ -133,24 +133,14 @@ asDataFor dec = do
                 (TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
                 , []
                 )
-            else
-              if null fieldNames
-                -- Even if there aren't any fields to extract, we need to check whether the
-                -- BuiltinData is well-formed, that means calling unsafeDataAsConstr which
-                -- fails if the input BuiltinData is not a Data.Constr.
-                then
-                  pure
-                    (TH.conP cname [TH.viewP (TH.varE 'Builtins.unsafeDataAsConstr) TH.wildP]
-                    , []
-                    )
-                else do
-                  let typeVarNames = fmap TH.tvName tTypeVars
-                  (matchFunType, matchFun@(TH.FunD fName _)) <-
-                    mkAsDataMatchingFunction name typeVarNames cname fields fieldNames
-                  pure
-                    (pure $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP fieldNames)
-                    , [matchFunType, matchFun]
-                    )
+            else do
+                let typeVarNames = fmap TH.tvName tTypeVars
+                (matchFunType, matchFun@(TH.FunD fName _)) <-
+                  mkAsDataMatchingFunction name typeVarNames cname fields fieldNames
+                pure
+                  (pure $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP fieldNames)
+                  , [matchFunType, matchFun]
+                  )
     let
       createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []

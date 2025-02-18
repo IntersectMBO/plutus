@@ -58,6 +58,7 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
 
 -- TODO: safe match for the whole thing? not needed atm
 
+-- | Generate a function that matches on a 'BuiltinData' value and decodes it as a product type.
 mkAsDataMatchingFunction
   :: TH.Name
   -- ^ The name of the type
@@ -70,7 +71,6 @@ mkAsDataMatchingFunction
   -> [TH.Name]
   -- ^ The names of the fields
   -> TH.Q (TH.Dec, TH.Dec)
-mkAsDataMatchingFunction _ _ _ _ [] = fail "Impossible."
 mkAsDataMatchingFunction name typeVars consName fieldTypes fields =
   let numFields = length fields
       funcName = TH.mkName $ "matchOn" <> TH.nameBase name
