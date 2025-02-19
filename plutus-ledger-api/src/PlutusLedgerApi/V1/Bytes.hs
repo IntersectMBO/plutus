@@ -24,7 +24,6 @@ import Data.Function ((&))
 import Data.String (IsString (..))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as TE
-import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import GHC.Generics (Generic)
 import PlutusTx (FromData, ToData, UnsafeFromData, makeLift)
@@ -77,7 +76,7 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
       withBytes f = fmap BS.pack . f . BS.unpack
 
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
-    deriving stock (Eq, Ord, Generic, Typeable)
+    deriving stock (Eq, Ord, Generic)
     deriving newtype (P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData, HasBlueprintDefinition)
     deriving Pretty via (PrettyShow LedgerBytes)
