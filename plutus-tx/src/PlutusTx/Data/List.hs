@@ -21,12 +21,12 @@ module PlutusTx.Data.List (
 ) where
 
 import PlutusTx.Builtins qualified as B
-import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (any, filter, find, findIndices, foldMap, length, map, mapMaybe,
-                         mconcat, null, pred)
+import PlutusTx.Prelude (Bool (..), BuiltinData, Eq (..), Integer, Maybe (..), Monoid (..),
+                         Semigroup (..), fmap, id, not, pure, ($), (&&), (.), (<$>), (||))
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
@@ -69,8 +69,6 @@ cons :: (ToData a) => a -> List a -> List a
 cons h (List t) = List (BI.mkCons (toBuiltinData h) t)
 {-# INLINEABLE cons #-}
 
-{-# INLINEABLE append #-}
-
 append :: List a -> List a -> List a
 append (List l) (List l') = List (go l)
   where
@@ -78,6 +76,7 @@ append (List l) (List l') = List (go l)
         B.caseList'
             l'
             (\h t -> BI.mkCons h (go t))
+{-# INLINEABLE append #-}
 
 instance Semigroup (List a) where
     (<>) = append
@@ -170,6 +169,18 @@ any pred (List l) = go l
             )
 {-# INLINEABLE any #-}
 
+all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
+all pred (List l) = go l
+  where
+    go =
+        B.caseList'
+            True
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in pred h' && go t
+            )
+{-# INLINEABLE all #-}
+
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f (List l) = go l
   where
@@ -211,5 +222,138 @@ mconcat (List l) = go l
                 in h' <> go t
             )
 {-# INLINABLE mconcat #-}
+
+uncons :: (UnsafeFromData a) => List a -> Maybe (a, List a)
+uncons (List l) = do
+    (h, t) <- B.uncons l
+    pure (unsafeFromBuiltinData h, List t)
+{-# INLINEABLE uncons #-}
+
+and :: List Bool -> Bool
+and (List l) = go l
+  where
+    go =
+        B.caseList'
+            True
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in h' && go t
+            )
+{-# INLINEABLE and #-}
+
+or :: List Bool -> Bool
+or (List l) = go l
+  where
+    go =
+        B.caseList'
+            False
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in h' || go t
+            )
+{-# INLINEABLE or #-}
+
+elem :: (UnsafeFromData a, Eq a) => a -> List a -> Bool
+elem x (List l) = go l
+  where
+    go =
+        B.caseList'
+            False
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in x == h' || go t
+            )
+{-# INLINEABLE elem #-}
+
+notElem :: (UnsafeFromData a, Eq a) => a -> List a -> Bool
+notElem x (List l) = not $ elem x (List l)
+{-# INLINEABLE notElem #-}
+
+foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
+foldr f z (List l) = go l z
+  where
+    go =
+        B.caseList'
+            id
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in f h' . go t
+            )
+{-# INLINEABLE foldr #-}
+
+foldl :: (UnsafeFromData a) => (b -> a -> b) -> b -> List a -> b
+foldl f z (List l) = go z l
+  where
+    go acc =
+        B.caseList'
+            z
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in go (f acc h') t
+            )
+{-# INLINEABLE foldl #-}
+
+concat :: List (List a) -> List a
+concat = foldr append mempty
+{-# INLINEABLE concat #-}
+
+concatMap :: (UnsafeFromData a) => (a -> List b) -> List a -> List b
+concatMap = foldMap
+{-# INLINEABLE concatMap #-}
+
+listToMaybe :: (UnsafeFromData a) => List a -> Maybe a
+listToMaybe (List l) = unsafeFromBuiltinData <$> B.headMaybe l
+{-# INLINEABLE listToMaybe #-}
+
+uniqueElement :: (UnsafeFromData a) => List a -> Maybe a
+uniqueElement (List l) = do
+    (h, t) <- B.uncons l
+    if B.null t
+        then Just $ unsafeFromBuiltinData h
+        else Nothing
+{-# INLINEABLE uniqueElement #-}
+
+findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
+findIndex pred' (List l) = go 0 l
+  where
+    go i =
+        B.caseList'
+            Nothing
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in if pred' h' then Just i else go (B.addInteger 1 i) t
+            )
+{-# INLINEABLE findIndex #-}
+
+infixl 9 !!
+(!!) :: (UnsafeFromData a) => List a -> Integer -> Maybe a
+(!!) (List l) i = go i l
+  where
+    go n =
+        B.caseList'
+            Nothing
+            (\h t ->
+                if B.equalsInteger n 0
+                    then Just $ unsafeFromBuiltinData h
+                    else go (B.subtractInteger n 1) t
+            )
+{-# INLINEABLE (!!) #-}
+
+revAppend :: List a -> List a -> List a
+revAppend (List l) (List l') = List $ rev l l'
+  where
+    rev l1 l2 =
+        B.caseList'
+            l2
+            (\h t -> rev (BI.mkCons h l1) t)
+            l1
+{-# INLINEABLE revAppend #-}
+
+reverse :: List a -> List a
+reverse l = revAppend l mempty
+{-# INLINEABLE reverse #-}
+
+-- TODO: I don't think there's a sensible way to implement zip
+
 
 makeLift ''List
