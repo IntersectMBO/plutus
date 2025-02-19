@@ -79,8 +79,8 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
   constrArgsN <- TH.newName "constrArgs"
   restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
   fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
-  let argPat = TH.ConP consName [] [TH.VarP builtinData]
-      restDecs =
+  argPat <- TH.conP consName [pure $ TH.VarP builtinData]
+  let restDecs =
         flip fmap (zip restNs (constrArgsN : restNs)) $ \(resti, restj) ->
           TH.ValD
             (TH.VarP resti)
