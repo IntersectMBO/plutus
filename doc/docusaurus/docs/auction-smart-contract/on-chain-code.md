@@ -102,7 +102,7 @@ On the other hand, by using the `txInfoValidRange` interval, the same interval i
 If the current time when the transaction is validated is outside of the interval, the transaction is rejected immediately without running the script.
 
 Also note the tilde (`~`) in `~validBidTime = ...`.
-When writing Plinth it is [advisable](../using-plinth/compiling-plutus-tx.md) to turn on the `Strict` extension, which generally improves script performance.
+When writing Plinth it is [advisable](../using-plinth/compiling-plinth.md) to turn on the `Strict` extension, which generally improves script performance.
 Doing so makes all bindings strict, which means, in this particular case, without the `~`, `validBidTime` would be evaluated even if the redeemer matches the `Payout` case, which doesn't need this condition.
 Doing so results in unnecessary work or even unexpected evaluation failures.
 The `~` makes `validBidTime` non-strict, i.e., only evaluated when used.

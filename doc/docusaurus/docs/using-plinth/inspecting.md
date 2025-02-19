@@ -4,7 +4,7 @@ sidebar_position: 30
 
 # Inspecting Compilation and Compiled Code
 
-On this page, you’ll learn how to look into the compilation of Plutus Tx and the resulting compiled code, which you might want to do for reasons such as debugging and tuning.
+On this page, you’ll learn how to look into the compilation of Plinth and the resulting compiled code, which you might want to do for reasons such as debugging and tuning.
 
 ## Inspecting the Compilation
 
@@ -29,7 +29,7 @@ In the compilation trace, to make it easier to figure out how the compilation go
 ## Inspecting the Compiled Code
 
 A `CompiledCode` obtained through normal compilation includes a UPLC program along with the corresponding PIR program.
-PIR is an intermediate representation used by the Plutus Tx compiler.
+PIR is an intermediate representation used by the Plinth compiler.
 It is much more readable than UPLC, so for tasks such as debugging and performance tuning, it is usually more helpful to inspect PIR, but there are also instances where looking into UPLC directly is necessary.
 
 The PIR and UPLC programs can be retrieved from the `CompiledCode` via `getPirNoAnn` and `getPlcNoAnn` from [`PlutusTx.Code`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html).

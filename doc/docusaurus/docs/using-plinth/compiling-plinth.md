@@ -2,9 +2,9 @@
 sidebar_position: 10
 ---
 
-# Compiling Plutus Tx
+# Compiling Plinth
 
-The Plutus Tx compiler is a GHC plugin, provided by the `plutus-tx-plugin` package.
+The Plinth compiler is a GHC plugin, provided by the `plutus-tx-plugin` package.
 There are two ways to invoke the plugin: via Template Haskell (preferred) or using a GHC flag.
 
 Let’s assume we want to compile the following code:
@@ -20,7 +20,7 @@ myPlutusTxCode x = x PlutusTx.+ 1
 
 > :pushpin: **NOTE**
 >
-> There are some GHC extensions, flags and pragmas recommended for modules containing Plutus Tx code, but these are omitted here.
+> There are some GHC extensions, flags and pragmas recommended for modules containing Plinth code, but these are omitted here.
 > You can find more information in [GHC Extensions, Flags and Pragmas](./extensions-flags-pragmas.md).
 
 ## Compiling Using Template Haskell (Preferred)
@@ -43,7 +43,7 @@ Under the hood, it uses [`addCorePlugin`](https://hackage.haskell.org/package/te
 You can then compile module `B` as you would any regular Haskell module.
 The resulting `CompiledCode` contains the UPLC code, and also includes PIR for debugging.
 
-Template Haskell is a complicated piece of machinery, but as you can see, you need to understand almost none of it for the purpose of compiling Plutus Tx.
+Template Haskell is a complicated piece of machinery, but as you can see, you need to understand almost none of it for the purpose of compiling Plinth.
 
 This method is preferred since it can leverage Template Haskell's [`location`](https://hackage.haskell.org/package/template-haskell/docs/Language-Haskell-TH.html#v:location) function to pass the location of `$$(compile [|| ... ||])` to the plugin, which is used in error messages.
 
