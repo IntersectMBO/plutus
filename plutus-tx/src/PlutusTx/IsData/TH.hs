@@ -20,7 +20,7 @@ import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 
-import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins as Builtins hiding (drop)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.ErrorCodes (reconstructCaseError)
@@ -71,63 +71,50 @@ mkAsDataMatchingFunction
   -> [TH.Name]
   -- ^ The names of the fields
   -> TH.Q (TH.Dec, TH.Dec)
-mkAsDataMatchingFunction name typeVars consName fieldTypes fields =
+mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
   let numFields = length fields
-      funcName = TH.mkName $ "matchOn" <> TH.nameBase name
-      builtinData = TH.mkName "builtinData"
-      argPat = TH.ConP consName [] [TH.VarP builtinData]
-      decs =
-        [ TH.ValD
-            (TH.VarP $ TH.mkName "asConstr")
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
+  funcName <- TH.newName $ "matchOn" <> TH.nameBase name
+  builtinData <- TH.newName "builtinData"
+  asConstrN <- TH.newName "asConstr"
+  constrArgsN <- TH.newName "constrArgs"
+  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
+  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
+  let argPat = TH.ConP consName [] [TH.VarP builtinData]
+      restDecs =
+        flip fmap (zip restNs (constrArgsN : restNs)) $ \(resti, restj) ->
+          TH.ValD
+            (TH.VarP resti)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
             []
-        , TH.ValD
-            (TH.VarP $ TH.mkName "constrArgs")
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE $ TH.mkName "asConstr"))
-            []
-        , TH.ValD
-            (TH.VarP $ TH.mkName "field0")
-            (TH.NormalB
-              $ TH.AppE
-                  (TH.VarE 'unsafeFromBuiltinData)
-                  (TH.AppE (TH.VarE 'BI.head) (TH.VarE $ TH.mkName "constrArgs"))
-            )
-            []
-        ]
-        <> foldMap (\i ->
-            [
-            TH.ValD
-                (TH.VarP $ TH.mkName $ "field" <> show i)
+      fieldDecs =
+          flip fmap (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
+              TH.ValD
+                (TH.VarP fieldi)
                 (TH.NormalB
                   $ TH.AppE
                       (TH.VarE 'unsafeFromBuiltinData)
                       (TH.AppE
                         (TH.VarE 'BI.head)
-                        (TH.VarE $ TH.mkName $ "rest" <> show (i - 1))
+                        (TH.VarE restj)
                       )
                 )
                 []
-            ]
-            )
-            [1 .. numFields - 1]
-        <> fmap (\i ->
-            TH.ValD
-                (TH.VarP $ TH.mkName $ "rest" <> show i)
-                (TH.NormalB
-                  $ TH.AppE
-                      (TH.VarE 'BI.tail)
-                      (if i == 0
-                        then TH.VarE $ TH.mkName "constrArgs"
-                        else TH.VarE $ TH.mkName $ "rest" <> show (i - 1)
-                      )
-                )
-                []
-            )
-            [0 .. numFields - 2]
+      decs =
+        [ TH.ValD
+            (TH.VarP asConstrN)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
+            []
+        , TH.ValD
+            (TH.VarP constrArgsN)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE asConstrN))
+            []
+        ]
+        <> fieldDecs
+        <> restDecs
       resultExpr =
         TH.TupE
-        $ Just . TH.VarE . TH.mkName . ("field" <>) . show
-        <$> [0 .. numFields - 1]
+        $ Just . TH.VarE
+        <$> fieldNs
       body = TH.NormalB $ TH.LetE decs resultExpr
       clause = TH.Clause [argPat] body []
       functionDef = TH.FunD funcName [clause]
