@@ -149,6 +149,7 @@ flattenCostRoseGo (CostRose cost1 forest1) forest2 =
 
 -- | Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
 -- time in the worst case regardless of the recursion pattern of the given 'CostRose'.
+{-# INFEASIBLE flattenCostRose #-}
 flattenCostRose :: CostRose -> CostStream
 flattenCostRose (CostRose cost [])              = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
