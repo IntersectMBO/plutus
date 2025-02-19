@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -57,14 +58,11 @@ mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 -- done in addition to decoding.
 checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
-  -- Bang pattern to ensure this is forced, probably not necesssary
-  -- since we do use it later
-  let !sc = PlutusTx.unsafeFromBuiltinData d
-      ScriptContext txi _ = sc
-  in
-  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
-  then ()
-  else PlutusTx.traceError "Odd number of outputs"
+  case PlutusTx.unsafeFromBuiltinData d of
+    ScriptContext { scriptContextTxInfo = TxInfo { txInfoOutputs } } ->
+      if Data.List.length txInfoOutputs `PlutusTx.modInteger` 2 PlutusTx.== 0
+        then ()
+        else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
 
 mkCheckScriptContext1Code :: ScriptContext -> PlutusTx.CompiledCode ()
