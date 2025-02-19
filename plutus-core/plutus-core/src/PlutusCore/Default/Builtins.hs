@@ -2051,20 +2051,52 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunSixArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar DropList =
-        let dropListDenotation :: Integer -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+        let dropListDenotation
+                :: IntegerCostedLiterally -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
                 -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList _ ->
+-- We only support @base-4.15@ and higher, because prior versions don't expose the same interface to
+-- 'Integer'.
 #if MIN_VERSION_base(4,15,0)
-                        fromValueOf uniListA <$> case i of
+                        -- The fastest way of dropping elements from a list is by operating on
+                        -- an unboxed int (i.e. an 'Int#'). We could implement that manually, but
+                        -- 'drop' in @Prelude@ already does that under the hood, so we just need to
+                        -- convert the given 'Integer' to an 'Int' and call 'drop' over that.
+                        fromValueOf uniListA <$> case unIntegerCostedLiterally i of
                             IS i# -> pure $ drop (I# i#) xs
+                            IN _ -> pure xs
+                            -- If the given 'Integer' is higher than @maxBound :: Int@, then we
+                            -- call 'drop' over the latter instead to get the same performance as in
+                            -- the previous case. This will produce a difference result when the
+                            -- list is longer than @maxBound :: Int@, but in practice not only is
+                            -- the budget going to get exhausted long before a @maxBound@ number of
+                            -- elements is skipped, it's not even feasible to skip so many elements
+                            -- for 'Int64' (and we enforce @Int = Int64@ in the @Universe@ module)
+                            -- as that'll take ~3000 years assuming it takes a second to skip
+                            -- @10^8@ elements.
+                            --
+                            -- We could "optimistically" return '[]' directly without doing any
+                            -- skipping at all, but then we'd be occasionally returning the wrong
+                            -- answer immediately rather than in 3000 years and that doesn't sound
+                            -- like a good idea. Particularly given that costing for this builtin is
+                            -- oblivious to such implementation details anyway, so we wouldn't even
+                            -- be able to capitalize on the fast and loose approach.
+                            --
+                            -- Instead of using 'drop' we could've made it something like
+                            -- @foldl' const []@, which would be a tad faster while taking even more
+                            -- than 3000 years to return the wrong result, but with the current
+                            -- approach the wrong result is an error, while with the foldl-based one
+                            -- it'd be an actual incorrect value. Plus, it's best not to rely on
+                            -- GHC not optimizing such an expression away to just '[]' (it really
+                            -- shouldn't, but not taking chances with GHC is the best approach). And
+                            -- again, we wouldn't be able to capitalize on such a speedup anyway.
                             IP _ -> case drop maxBound xs of
-                               []  -> pure []
+                               [] -> pure []
                                _ ->
                                    throwing _StructuralUnliftingError
                                        "Panic: unreachable clause executed"
-                            IN _ -> pure xs
 #else
                         throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
 #endif
