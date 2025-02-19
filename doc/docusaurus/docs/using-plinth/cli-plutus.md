@@ -67,8 +67,8 @@ using the tool's built-in interpreter and debugger, respectively.
 ## Optimising UPLC with the CLI
 
 In this section we only focus on UPLC; a prerequisite is that you have already acquired (extracted) the UPLC code corresponding to your high-level source program.
-The process to *extract* plutus code varies depending on the source language you are using (Plutus Tx, Aiken, ...);
-if Plutus Tx is the source language, you can follow the instructions on [how to inspect compiled code](./inspecting.md#inspecting-the-compiled-code).
+The process to *extract* plutus code varies depending on the source language you are using (Plinth, Aiken, ...);
+if Plinth is the source language, you can follow the instructions on [how to inspect compiled code](./inspecting.md#inspecting-the-compiled-code).
 
 Since UPLC is the lowest-level language, compiling (*Step 3*) is not applicable for UPLC input programs and thus omitted
 &mdash; for actual compiling (converting) between different intermediate languages (PIR, TPLC) or serialisation formats (e.g. Flat, CBOR)
@@ -165,7 +165,7 @@ Used budget: ExBudget {exBudgetCPU = ExCPU 204149, exBudgetMemory = ExMemory 901
 > :pushpin: **NOTE**
 > The above example demonstrates that `uplc` &mdash; the language which actually *runs on the chain* &mdash;
 > is low-level and more akin to assembly. Users that are concerned about the safety of their smart contracts
-> are advised instead to develop in a higher-level (typed) language (e.g. Plutus Tx) which compiles down to `uplc`.
+> are advised instead to develop in a higher-level (typed) language (e.g. Plinth) which compiles down to `uplc`.
 
 After plutus program's execution is completed (either succeeded or failed), the final used budget will be printed as well.
 Because the CLI tool employs the same `uplc` interpreter as the one that the Cardano node runs, you can be sure
