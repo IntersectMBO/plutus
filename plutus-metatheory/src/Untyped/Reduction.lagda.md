@@ -28,8 +28,9 @@ data Value {X : Set} : X ⊢ → Set where
   delay : { a : X ⊢} → Value (delay a)
   ƛ : { a : (Maybe X) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
--- builtin : {b : Builtin} → Value (builtin b)
+  builtin : {b : Builtin} → Value (builtin b)
 -- constr ??? - when all of its arguments are values
+  error : Value error
 
 ```
 ## Reduction Steps
@@ -38,10 +39,14 @@ data Value {X : Set} : X ⊢ → Set where
 infix 5 _⟶_
 data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   ξ₁ : {a a' b : X ⊢} → a ⟶ a' → a · b ⟶ a' · b
-  ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b' -- PLFA requires Value a here - do we?
+  -- Value is required in ξ₂ to make this deterministically resolve the left side first
+  ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b'
   ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
+  ξ₄ : {a b c : X ⊢} → a · b ⟶ c → (delay a) · b ⟶ c
   β : {a : (Maybe X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
   force-delay : {a : X ⊢} → force (delay a) ⟶ a
+  -- FIXME: This clashes with force-delay because delay is a Value...
+ -- force-value : {a : X ⊢} → Value a → force a ⟶ a
 
 infix 5 _⟶*_
 data _⟶*_ {X : Set} : X ⊢ → X ⊢ → Set where
@@ -62,6 +67,35 @@ value-¬⟶ con (N , ())
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
+⟶-det (ξ₁ n) (ξ₁ p) = cong₂ _·_ (⟶-det n p) refl
+⟶-det (ξ₁ n) (ξ₂ x p) = contradiction x (⟶-¬value n)
+⟶-det (ξ₂ x n) (ξ₁ p) = contradiction x (⟶-¬value p)
+⟶-det (ξ₂ x n) (ξ₂ x₁ p) = cong₂ _·_ refl (⟶-det n p)
+⟶-det {M = M} {N = N} {P = P} (ξ₂ delay n) (ξ₄ p) = {!!}
+⟶-det (ξ₂ x n) (β x₁) = contradiction x₁ (⟶-¬value n)
+⟶-det (ξ₃ n) (ξ₃ p) = cong force (⟶-det n p)
+⟶-det (ξ₄ n) (ξ₂ x p) = {!!}
+⟶-det (ξ₄ n) (ξ₄ p) = ⟶-det n p
+⟶-det (β x) (ξ₂ x₁ p) = contradiction x (⟶-¬value p)
+⟶-det (β x) (β x₁) = refl
+⟶-det force-delay force-delay = refl
+{-
+⟶-det (ξ₁ m) (ξ₁ n) = cong₂ _·_ (⟶-det m n) refl
+⟶-det (ξ₁ m) (ξ₂ x n) = contradiction x (⟶-¬value m)
+⟶-det (ξ₂ x m) (ξ₁ n) = contradiction x (⟶-¬value n)
+⟶-det (ξ₂ x m) (ξ₂ x₁ n) = cong₂ _·_ refl (⟶-det m n)
+⟶-det (ξ₂ x m) (β x₁) = contradiction x₁ (⟶-¬value m)
+⟶-det (ξ₃ m) (ξ₃ n) = cong force (⟶-det m n)
+⟶-det (ξ₃ m) (force-value x) = contradiction x (⟶-¬value m)
+⟶-det (β x) (ξ₂ x₁ n) = {!!}
+⟶-det (β x) (β x₁) = refl
+⟶-det force-delay force-delay = refl
+⟶-det force-delay (force-value delay) = {!!}
+⟶-det (force-value x) (ξ₃ n) = {!!}
+⟶-det (force-value delay) force-delay = {!!}
+⟶-det (force-value x) (force-value x₁) = refl
+-}
+{-
 ⟶-det (ξ₁ m) (ξ₁ n) = cong₂ _·_ (⟶-det m n) refl
 ⟶-det (ξ₁ m) (ξ₂ x n) = contradiction x (⟶-¬value m)
 ⟶-det (ξ₂ x m) (ξ₁ n) = contradiction x (⟶-¬value n)
@@ -71,6 +105,47 @@ value-¬⟶ con (N , ())
 ⟶-det (β x) (ξ₂ x₁ n) = contradiction x (⟶-¬value n)
 ⟶-det (β x) (β x₁) = refl
 ⟶-det force-delay force-delay = refl
+-}
+```
+## Progress
+```
+variable
+  X Y : Set
+
+data Progress (a : X ⊢) : Set where
+  step : {b : X ⊢}
+        → a ⟶ b
+        → Progress a
+
+  done : Value a
+        → Progress a
+
+progress : ∀ (M : ⊥ ⊢) → Progress M
+progress (` ())
+progress (ƛ M) = done ƛ
+progress (L · R) with progress L
+... | step L⟶L' = step (ξ₁ L⟶L')
+... | done VL with progress R
+... | step R⟶R' = step (ξ₂ VL R⟶R')
+... | done VR with VL -- For the first time I see why Phil prefers typed languages!...
+... | delay = {!!}
+... | ƛ = step (β VR)
+... | con = {!!}
+... | error = {!!}
+... | builtin = {!!}
+progress (force M) with progress M
+... | step M⟶M' = step (ξ₃ M⟶M')
+... | done delay = step force-delay
+... | done ƛ = {!!}
+... | done con = {!!}
+... | done error = {!!}
+... | done builtin = {!!}
+progress (delay M) = done delay
+progress (con v) = done con
+progress (constr i xs) = {!!}
+progress (case x ts) = {!!}
+progress (builtin b) = done builtin
+progress error = done error
 
 ```
 ## "Reduction" Equivalence
