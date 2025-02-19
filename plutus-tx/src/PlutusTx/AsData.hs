@@ -154,7 +154,7 @@ asDataFor dec = do
       fullTy = TH.ForallT (TH.changeTVFlags TH.SpecifiedSpec allFreeVars) ctxForArgs conTy
       patSynSigD = pure $ TH.PatSynSigD conName fullTy
 
-    sequence [patSynSigD, patSynD] <> pure extraDecs
+    sequence $ [patSynSigD, patSynD] <> fmap pure extraDecs
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats
