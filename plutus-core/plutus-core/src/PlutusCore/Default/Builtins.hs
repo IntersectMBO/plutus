@@ -2069,7 +2069,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                             IN _ -> pure xs
                             -- If the given 'Integer' is higher than @maxBound :: Int@, then we
                             -- call 'drop' over the latter instead to get the same performance as in
-                            -- the previous case. This will produce a difference result when the
+                            -- the previous case. This will produce a different result when the
                             -- list is longer than @maxBound :: Int@, but in practice not only is
                             -- the budget going to get exhausted long before a @maxBound@ number of
                             -- elements is skipped, it's not even feasible to skip so many elements
