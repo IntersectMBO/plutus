@@ -154,6 +154,9 @@ flattenCostRose (CostRose cost [])              = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
 {-# INLINE flattenCostRose #-}
 
+unused ::Integer
+unused = 555
+
 class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> CostRose
