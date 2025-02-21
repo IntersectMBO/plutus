@@ -2618,7 +2618,7 @@ with conversion presented in section \ref{sec:intrinsically-typed}.
 We define two special cases of \AgdaFunction{subst} which allow us to
 substitute the types of variables or terms by propositionally equal
 types. While it is the case that types are now represented uniquely we
-still want or need to to prove that two types are equal, especially in
+still want or need to prove that two types are equal, especially in
 the presence of (Agda) variables, cf., while the natural number 7 has
 a unique representation in Agda we still might want to prove that for
 any natural numbers \AgdaBound{m} and \AgdaBound{n}, \AgdaBound{m}
