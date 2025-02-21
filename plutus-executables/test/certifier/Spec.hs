@@ -40,7 +40,7 @@ makeGoldenUplcCert path name = do
 -- We were just calling the nested stuff with this constant, so it
 -- might as well be constant for now.
 fixedPath :: [ String ]
-fixedPath = ["plutus-executables", "test", "certifier"]
+fixedPath = ["test", "certifier"]
 
 simpleTests :: [ String ]
 simpleTests = [ "len" ]
