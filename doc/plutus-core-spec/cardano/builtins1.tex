@@ -98,7 +98,7 @@ $$
 We have injections
 \begin{align*}
   \inj_C: \denote{\ty{integer}} \times \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
-  \inj_M: \denote{\ty{data}} \times \denote{\ty{data}}^*  & \to \denote{\ty{data}} \\
+  \inj_M: (\denote{\ty{data}} \times \denote{\ty{data}})^*  & \to \denote{\ty{data}} \\
   \inj_L: \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
   \inj_I: \denote{\ty{integer}} & \to \denote{\ty{data}} \\
   inj_B: \denote{\ty{bytestring}} & \to \denote{\ty{data}} \\
@@ -106,7 +106,7 @@ We have injections
 \noindent and projections
 \begin{align*}
   \proj_C: \denote{\ty{data}} & \to \withError{(\denote{\ty{integer}} \times \denote{\ty{data}}^*)}\\
-  \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}}^*)}\\
+  \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}})^*}\\
   \proj_L: \denote{\ty{data}} & \to \withError{\denote{\ty{data}}^* }\\
   \proj_I: \denote{\ty{data}} & \to \withError{\denote{\ty{integer}}}\\
   \proj_B: \denote{\ty{data}} & \to \withError{\denote{\ty{bytestring}} }\\

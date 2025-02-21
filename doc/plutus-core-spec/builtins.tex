@@ -110,7 +110,7 @@ built-in-polymorphic type variables $v_\#$ by $\Var_\#$.  Note that $\Var \cap
 \nomenclature[Da]{$\Var$}{The set of all type variables, $\Var_\# \cup \VarStar$}%
 \nomenclature[Da]{$\Var_\#$}{The set of builtin-polymorphic type variables}%
 \nomenclature[Db]{$v_\#$}{A builtin-polymorphic type variable}%
-\nomenclature[Db]{$\star*$}{The unique fully-polymorphic type variable}%
+\nomenclature[Db]{$\star$}{The unique fully-polymorphic type variable}%
 
 The two kinds of type variable are required because we have two different types
 of polymorphism. Later on we will see that built-in functions can take arguments
@@ -412,7 +412,7 @@ $\dom S = \fv{\tau_1} \cup \cdots \cup \fv{\tau_n}$ (which contains $\fv{\tau}$ 
 the conditions on signatures in Section~\ref{sec:signatures}) we require a
 \textit{denotation of $b$ at $S$}, a function
 $$
-\denote{b}_S: \denote{\Sext(\tau_1)} \times \cdots \times \denote{\Sext(\tau_n)} \rightarrow \withError{\denote{\Sext(\tau)}}.
+\denote{b}_S: \denote{\Sext(\tau_1)} \times \cdots \times \denote{\Sext(\tau_n)} \rightarrow \withError{\denote{\Sext(\tau)}}
 $$%
 \nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
 \noindent where
@@ -481,10 +481,8 @@ which converts results of built-in functions back into inputs (or the $\errorX$ 
   sometimes a builtin argument must be a constant but at other times it can be
   an arbitrary value, which includes all of the constants.}
 
-\subsubsection{Parametricity for *-polymorphic arguments}
+\subsubsection{Parametricity for fully-polymorphic arguments}
 \label{sec:builtin-behaviour}
-HAVE WE DEFINED THIS?
-
 A built-in function $b$ can only inspect arguments which are values of built-in
 types; other arguments (occurring as $\star$ in $\sigmabar(b)$) are treated opaquely,
 and can be discarded or returned as (part of) a result, but cannot be altered or
@@ -555,6 +553,14 @@ describes the conditions for type compatibility.
   describe what's actually going on so I'm just assuming that builtins always
   check this stuff.}
 
+\noindent\red{What is the return type of caseList/caseData?  Presumably it'll
+  have to be an \textsf{ap}, but do we want the user to see this? Maybe we can
+  say $\mathsf{ap}(\tau)$ to indicate that it's an ap which is expected to
+  evaluate to a particular type.}
+
+\noindent\red{Do we ever say what ``\#-polymorphic'' means?}
+
+\noindent\red{Do we really use $\tau$ consistently?}
 
 \medskip
 \noindent In detail, given a reduced arity $\alphabar = [\tau_1, \ldots,

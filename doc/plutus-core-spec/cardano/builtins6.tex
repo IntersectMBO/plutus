@@ -7,16 +7,16 @@
   \refstepcounter{notenumberF}
   \noindent\textbf{Note \thenotenumberF. #1}
 }
-
+\newpage
 \subsection{Batch 6}
 \label{sec:default-builtins-6}
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-6}
-The 6th batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
+The sixth batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
 
-\setlength{\LTleft}{2mm}  % Shift the table right a bit to centre it on the page
-\begin{longtable}[H]{|l|p{67mm}|p{18mm}|c|c|}
+\setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{45mm}|p{62mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
     & & & fail? & \\
@@ -33,8 +33,23 @@ The 6th batch of builtin operations is defined in Table~\ref{table:built-in-func
     \caption[]{Built-in functions, Batch 6}
     \label{table:built-in-functions-6}
     \endlastfoot
-    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, $ \text{$\;\; \ty{integer}] \to \ty{integer}$}
+    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, \ty{integer}]$ \text{$\;\;\; \to \ty{integer}$}
         & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
+    \TT{caseList}        & $[\forall a_\#, \forall\star, \listOf{a_\#}, \star, \star] \to \ap$
+                                              & \text{$([], t_1, t_2) \mapsto (t_1|)$,}
+                                              \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto (t_2|x_2,\ldots,x_n)\ (n \geq 1)$} & No & \\[2mm]
+    \TT{caseData}        & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \ap$
+    & $ (d,t_C, t_M, t_L, t_I, t_B) $
+    \smallskip
+    \newline  % The big \{ was abutting the text above
+    \text{$\;\;\mapsto
+               \left\{ \begin{array}{ll}  %% This looks better than `cases`
+                 (t_C|n,l)  & \text{if $d = \inj_C(n, l)$} \\
+                 (t_M|l)  & \text{if $d = \inj_M(l)$} \\
+                 (t_L|l)  & \text{if $d = \inj_L(l)$} \\
+                 (t_I|n)  & \text{if $d =\inj_I(n)$} \\
+                 (t_B|s)  & \text{if $d = \inj_B(s)$} \\
+               \end{array}\right.$}  & No & \\
 \hline
 \end{longtable}
 
