@@ -65,10 +65,10 @@ listToSemantics = ListS
 
 semanticsToDataList :: (ToData a) => ListS a -> Data.List a
 semanticsToDataList =
-  Data.List . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData . getListS
+  Data.fromBuiltinList . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData . getListS
 
 dataListToSemantics :: (UnsafeFromData a) => Data.List a -> ListS a
-dataListToSemantics (Data.List l) = ListS . go $ l
+dataListToSemantics (Data.toBuiltinList -> l) = ListS . go $ l
   where
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
 

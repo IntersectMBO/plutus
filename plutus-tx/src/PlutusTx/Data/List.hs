@@ -3,8 +3,11 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 module PlutusTx.Data.List (
-    -- constructor exported for testing
-    List(List),
+    List,
+    toBuiltinList,
+    fromBuiltinList,
+    toSOP,
+    fromSOP,
     null,
     append,
     find,
@@ -16,20 +19,55 @@ module PlutusTx.Data.List (
     map,
     length,
     mconcat,
-    fromSOP,
-    toSOP,
+    cons,
+    uncons,
+    all,
+    and,
+    or,
+    elem,
+    notElem,
+    foldr,
+    foldl,
+    concat,
+    concatMap,
+    listToMaybe,
+    uniqueElement,
+    findIndex,
+    (!!),
+    revAppend,
+    reverse,
+    zip,
+    unzip,
+    zipWith,
+    head,
+    last,
+    tail,
+    take,
+    drop,
+    dropWhile,
+    splitAt,
+    elemBy,
+    nubBy,
+    nub,
+    replicate,
+    partition,
+    sortBy,
+    sort
 ) where
 
 import PlutusTx.Builtins qualified as B
-import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
+import PlutusTx.Builtins.Internal (BuiltinList)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinData, Eq (..), Integer, Maybe (..), Monoid (..),
-                         Semigroup (..), fmap, id, not, pure, ($), (&&), (.), (<$>), (||))
+                         Ord (..), Ordering, Semigroup (..), fmap, id, not, pure, traceError, ($),
+                         (&&), (.), (<$>), (||))
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
+import PlutusTx.ErrorCodes (lastEmptyListError)
+import PlutusTx.List qualified as SOP
 import Prelude qualified as Haskell
 
 -- | A list type backed directly by 'Data'. It is meant to be used whenever fast
@@ -60,6 +98,14 @@ instance UnsafeFromData (List a) where
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
+
+toBuiltinList :: List a -> BuiltinList BuiltinData
+toBuiltinList (List l) = l
+{-# INLINEABLE toBuiltinList #-}
+
+fromBuiltinList :: BuiltinList BuiltinData -> List a
+fromBuiltinList = List
+{-# INLINEABLE fromBuiltinList #-}
 
 null :: List a -> Bool
 null (List l) = B.null l
@@ -132,14 +178,14 @@ findIndices pred' (List l) = go 0 l
 {-# INLINEABLE findIndices #-}
 
 filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
-filter pred (List l) = go l
+filter pred1 (List l) = go l
   where
     go =
         B.caseList'
             mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
-                in if pred h' then h' `cons` go t else go t
+                in if pred1 h' then h' `cons` go t else go t
             )
 {-# INLINEABLE filter #-}
 
@@ -158,26 +204,26 @@ mapMaybe f (List l) = go l
 {-# INLINEABLE mapMaybe #-}
 
 any :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-any pred (List l) = go l
+any pred1 (List l) = go l
   where
     go =
         B.caseList'
             False
             (\h t ->
                 let h' = unsafeFromBuiltinData h
-                in pred h' || go t
+                in pred1 h' || go t
             )
 {-# INLINEABLE any #-}
 
 all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-all pred (List l) = go l
+all pred1 (List l) = go l
   where
     go =
         B.caseList'
             True
             (\h t ->
                 let h' = unsafeFromBuiltinData h
-                in pred h' && go t
+                in pred1 h' && go t
             )
 {-# INLINEABLE all #-}
 
@@ -198,7 +244,11 @@ map f (List l) = List (go l)
     go =
         B.caseList'
             B.mkNil
-            (\h t -> BI.mkCons (toBuiltinData $ f $ unsafeFromBuiltinData h) (go t))
+            (\h t ->
+                BI.mkCons
+                    (toBuiltinData $ f $ unsafeFromBuiltinData h)
+                    (go t)
+            )
 {-# INLINEABLE foldMap #-}
 
 length :: List a -> Integer
@@ -253,19 +303,18 @@ or (List l) = go l
             )
 {-# INLINEABLE or #-}
 
-elem :: (UnsafeFromData a, Eq a) => a -> List a -> Bool
+elem :: (ToData a) => a -> List a -> Bool
 elem x (List l) = go l
   where
     go =
         B.caseList'
             False
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in x == h' || go t
+                toBuiltinData x == h || go t
             )
 {-# INLINEABLE elem #-}
 
-notElem :: (UnsafeFromData a, Eq a) => a -> List a -> Bool
+notElem :: (ToData a) => a -> List a -> Bool
 notElem x (List l) = not $ elem x (List l)
 {-# INLINEABLE notElem #-}
 
@@ -353,7 +402,206 @@ reverse :: List a -> List a
 reverse l = revAppend l mempty
 {-# INLINEABLE reverse #-}
 
--- TODO: I don't think there's a sensible way to implement zip
+zip :: forall a b . List a -> List b -> List (a, b)
+zip (List l1) (List l2) = List $ go l1 l2
+  where
+    go l1' l2' =
+        B.caseList'
+            B.mkNil
+            (\h1 t1 ->
+                B.caseList'
+                    B.mkNil
+                    (\h2 t2 ->
+                        BI.mkCons
+                            (toBuiltinData (h1, h2))
+                            (go t1 t2)
+                    )
+                    l2'
+            )
+            l1'
+{-# INLINEABLE zip #-}
 
+unzip :: List (a, b) -> (List a, List b)
+unzip (List l) =
+    let (l1, l2) = go l
+    in (List l1, List l2)
+  where
+    go =
+        B.caseList'
+            (B.mkNil, B.mkNil)
+            (\h t ->
+                let (a, b) = unsafeFromBuiltinData h
+                    (as, bs) = go t
+                in (a `BI.mkCons` as, b `BI.mkCons` bs)
+            )
+{-# INLINEABLE unzip #-}
+
+zipWith
+    :: (UnsafeFromData a, UnsafeFromData b, ToData c)
+    => (a -> b -> c) -> List a -> List b -> List c
+zipWith f (List l1) (List l2) = List $ go l1 l2
+  where
+    go l1' l2' =
+        B.caseList'
+            B.mkNil
+            (\h1 t1 ->
+                B.caseList'
+                    B.mkNil
+                    (\h2 t2 ->
+                        BI.mkCons
+                            (toBuiltinData
+                            $ f
+                                (unsafeFromBuiltinData h1)
+                                (unsafeFromBuiltinData h2)
+                            )
+                            (go t1 t2)
+                    )
+                    l2'
+            )
+            l1'
+{-# INLINEABLE zipWith #-}
+
+head :: (UnsafeFromData a) => List a -> a
+head (List l) = unsafeFromBuiltinData $ B.head l
+{-# INLINEABLE head #-}
+
+last :: (UnsafeFromData a) => List a -> a
+last (List l) = unsafeFromBuiltinData $ go l
+  where
+    go =
+        B.caseList'
+            (traceError lastEmptyListError)
+            (\h t ->
+                if B.null t
+                    then h
+                    else go t
+            )
+{-# INLINEABLE last #-}
+
+tail :: List a -> List a
+tail (List l) = List $ B.tail l
+{-# INLINEABLE tail #-}
+
+take :: Integer -> List a -> List a
+take n (List l) = List $ go n l
+  where
+    go n' =
+        B.caseList'
+            B.mkNil
+            (\h t ->
+                if B.equalsInteger n' 0
+                    then B.mkNil
+                    else BI.mkCons h (go (B.subtractInteger n' 1) t)
+            )
+{-# INLINEABLE take #-}
+
+drop :: Integer -> List a -> List a
+drop n (List l) = List $ go n l
+  where
+    go n' =
+        B.caseList'
+            B.mkNil
+            (\_ t ->
+                if B.equalsInteger n' 0
+                    then t
+                    else go (B.subtractInteger n' 1) t
+            )
+{-# INLINEABLE drop #-}
+
+dropWhile :: (UnsafeFromData a) => (a -> Bool) -> List a -> List a
+dropWhile pred1 (List l) = List $ go l
+  where
+    go =
+        B.caseList'
+            B.mkNil
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in if pred1 h' then go t else l
+            )
+{-# INLINEABLE dropWhile #-}
+
+splitAt :: Integer -> List a -> (List a, List a)
+splitAt n (List l) =
+    let (l1, l2) = go n l
+    in (List l1, List l2)
+  where
+    go n' =
+        B.caseList'
+            (B.mkNil, B.mkNil)
+            (\h t ->
+                if B.equalsInteger n' 0
+                    then (B.mkNil, l)
+                    else
+                        let (l1, l2) = go (B.subtractInteger n' 1) t
+                        in (BI.mkCons h l1, l2)
+            )
+{-# INLINEABLE splitAt #-}
+
+elemBy :: (UnsafeFromData a) => (a -> a -> Bool) -> a -> List a -> Bool
+elemBy pred2 x (List l) = go l
+  where
+    go =
+        B.caseList'
+            False
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in pred2 x h' || go t
+            )
+{-# INLINEABLE elemBy #-}
+
+nubBy :: forall a . (UnsafeFromData a) => (a -> a -> Bool) -> List a -> List a
+nubBy pred2 (List l) = List $ go l
+  where
+    go =
+        B.caseList'
+            B.mkNil
+            (\h t ->
+                let h' :: a
+                    h' = unsafeFromBuiltinData h
+                in if elemBy pred2 h' (List t)
+                    then go t
+                    else h `BI.mkCons` go t
+            )
+{-# INLINEABLE nubBy #-}
+
+nub :: (Eq a, UnsafeFromData a) => List a -> List a
+nub = nubBy (==)
+{-# INLINEABLE nub #-}
+
+replicate :: (ToData a) =>  Integer -> a -> List a
+replicate n x = List $ go n
+  where
+    go n' =
+        if B.equalsInteger n' 0
+            then B.mkNil
+            else BI.mkCons (toBuiltinData x) (go (B.subtractInteger n' 1))
+{-# INLINEABLE replicate #-}
+
+partition :: (UnsafeFromData a) => (a -> Bool) -> List a -> (List a, List a)
+partition pred1 (List l) =
+    let (l1, l2) = go l
+    in (List l1, List l2)
+  where
+    go =
+        B.caseList'
+            (B.mkNil, B.mkNil)
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                    (l1, l2) = go t
+                in if pred1 h'
+                    then (h `BI.mkCons` l1, l2)
+                    else (l1, h `BI.mkCons` l2)
+            )
+{-# INLINEABLE partition #-}
+
+sortBy
+    :: (UnsafeFromData a, ToData a)
+    => (a -> a -> Ordering) -> List a -> List a
+sortBy cmp l = fromSOP $ SOP.sortBy cmp $ toSOP l
+{-# INLINEABLE sortBy #-}
+
+sort :: (Ord a, UnsafeFromData a, ToData a) => List a -> List a
+sort = sortBy compare
+{-# INLINEABLE sort #-}
 
 makeLift ''List
