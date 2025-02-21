@@ -66,7 +66,7 @@ import PlutusTx.Prelude (Bool (..), BuiltinData, Eq (..), Integer, Maybe (..), M
 import Prettyprinter (Pretty (..))
 
 import Data.Semigroup qualified as Haskell
-import PlutusTx.ErrorCodes (lastEmptyListError)
+import PlutusTx.ErrorCodes (indexTooLargeError, lastEmptyListError, negativeIndexError)
 import PlutusTx.List qualified as SOP
 import Prelude qualified as Haskell
 
@@ -335,7 +335,7 @@ foldl f z (List l) = go z l
   where
     go acc =
         B.caseList'
-            z
+            acc
             (\h t ->
                 let h' = unsafeFromBuiltinData h
                 in go (f acc h') t
@@ -375,18 +375,19 @@ findIndex pred' (List l) = go 0 l
 {-# INLINEABLE findIndex #-}
 
 infixl 9 !!
-(!!) :: (UnsafeFromData a) => List a -> Integer -> Maybe a
-(!!) (List l) i = go i l
+(!!) :: (UnsafeFromData a) => List a -> Integer -> a
+_   !! n | n < 0 = traceError negativeIndexError
+(List l) !! n = go n l
   where
-    go n =
+    go n' =
         B.caseList'
-            Nothing
+            (traceError indexTooLargeError)
             (\h t ->
                 if B.equalsInteger n 0
-                    then Just $ unsafeFromBuiltinData h
-                    else go (B.subtractInteger n 1) t
+                    then unsafeFromBuiltinData h
+                    else go (B.subtractInteger n' 1) t
             )
-{-# INLINEABLE (!!) #-}
+{-# INLINABLE (!!) #-}
 
 revAppend :: List a -> List a -> List a
 revAppend (List l) (List l') = List $ rev l l'
