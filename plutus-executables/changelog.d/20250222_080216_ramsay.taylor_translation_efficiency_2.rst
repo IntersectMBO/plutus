@@ -1,0 +1,15 @@
+
+Added
+-----
+
+- CI Tests for the certifier, using some simple unoptimised UPLC
+
+Changed
+-------
+
+- Complete reordering of decisions in UntypedTranslation.lagda.md
+
+Fixed
+-----
+
+- Impossibly long certification of the Marlowe semantics example now takes ~20s
