@@ -43,7 +43,11 @@ fixedPath :: [ String ]
 fixedPath = ["test", "certifier"]
 
 simpleTests :: [ String ]
-simpleTests = [ "len" ]
+simpleTests = [ "inc" ]
+
+-- Currently these run but the certifier says "no"
+failingTests :: [String]
+failingTests = [ "len" ]
 
 makeTestTree :: [ String ] -> [ TestTree ]
 makeTestTree = map (\s -> makeGoldenUplcCert fixedPath s)
@@ -54,5 +58,5 @@ main = do
   defaultMain $
     testGroup "Certification"
     [ testGroup "simple certification"  $ makeTestTree simpleTests
-
+    , testGroup "failing certification"  $ makeTestTree failingTests
     ]
