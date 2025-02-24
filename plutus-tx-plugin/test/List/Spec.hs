@@ -31,10 +31,11 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
 import PlutusTx.TH (compile)
 
+import Control.Monad (when)
 import Data.List qualified as Haskell
 import Data.Maybe qualified as Haskell
 
-import Hedgehog (Gen, Property, Range, forAll, property, (===))
+import Hedgehog (Gen, Property, Range, discard, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
@@ -834,6 +835,154 @@ concatMapSpec = property $ do
     (===)
     (semanticsToDataList expected)
 
+listToMaybeProgram :: CompiledCode ([Integer] -> Maybe Integer)
+listToMaybeProgram = $$(compile [|| List.listToMaybe ||])
+
+dataListToMaybeProgram :: CompiledCode (Data.List Integer -> Maybe Integer)
+dataListToMaybeProgram = $$(compile [|| Data.List.listToMaybe ||])
+
+listToMaybeSpec :: Property
+listToMaybeSpec = property $ do
+  listS <- forAll genListS
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = listToMaybeS listS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ listToMaybeProgram
+        `unsafeApplyCode` liftCodeDef list
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataListToMaybeProgram
+        `unsafeApplyCode` liftCodeDef dataList
+    )
+    (===)
+    expected
+
+uniqueElementProgram :: CompiledCode ([Integer] -> Maybe Integer)
+uniqueElementProgram = $$(compile [|| List.uniqueElement ||])
+
+dataUniqueElementProgram :: CompiledCode (Data.List Integer -> Maybe Integer)
+dataUniqueElementProgram = $$(compile [|| Data.List.uniqueElement ||])
+
+uniqueElementSpec :: Property
+uniqueElementSpec = property $ do
+  listS <- forAll genListS
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = uniqueElementS listS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ uniqueElementProgram
+        `unsafeApplyCode` liftCodeDef list
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataUniqueElementProgram
+        `unsafeApplyCode` liftCodeDef dataList
+    )
+    (===)
+    expected
+
+findIndexProgram :: CompiledCode (Integer -> [Integer] -> Maybe Integer)
+findIndexProgram = $$(compile [|| \num -> List.findIndex (== num) ||])
+
+dataFindIndexProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe Integer)
+dataFindIndexProgram = $$(compile [|| \num -> Data.List.findIndex (== num) ||])
+
+findIndexSpec :: Property
+findIndexSpec = property $ do
+  listS <- forAll genListS
+  num <- forAll $ Gen.integral rangeElem
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = findIndexS (== num) listS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ findIndexProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataFindIndexProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
+    )
+    (===)
+    expected
+
+indexProgram :: CompiledCode ([Integer] -> Integer -> Integer)
+indexProgram = $$(compile [|| \l i -> l List.!! i ||])
+
+dataIndexProgram :: CompiledCode (Data.List Integer -> Integer -> Integer)
+dataIndexProgram = $$(compile [|| \l i -> l Data.List.!! i ||])
+
+indexSpec :: Property
+indexSpec = property $ do
+  listS <- forAll genListS
+  num <- forAll $ Gen.integral rangeElem
+  when (lengthS listS <= num) discard
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = indexS listS num
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ indexProgram
+        `unsafeApplyCode` liftCodeDef list
+        `unsafeApplyCode` liftCodeDef num
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataIndexProgram
+        `unsafeApplyCode` liftCodeDef dataList
+        `unsafeApplyCode` liftCodeDef num
+    )
+    (===)
+    expected
+
+revAppendProgram :: CompiledCode ([Integer] -> [Integer] -> [Integer])
+revAppendProgram = $$(compile [|| List.revAppend ||])
+
+dataRevAppendProgram :: CompiledCode (Data.List Integer -> Data.List Integer -> Data.List Integer)
+dataRevAppendProgram = $$(compile [|| Data.List.revAppend ||])
+
+-- this is insanely slow
+revAppendSpec :: Property
+revAppendSpec = property $ do
+  listS1 <- forAll genListS
+  listS2 <- forAll genListS
+  let list1 = semanticsToList listS1
+      list2 = semanticsToList listS2
+      dataList1 = semanticsToDataList listS1
+      dataList2 = semanticsToDataList listS2
+      expected = revAppendS listS1 listS2
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ revAppendProgram
+        `unsafeApplyCode` liftCodeDef list1
+        `unsafeApplyCode` liftCodeDef list2
+    )
+    (===)
+    (semanticsToList expected)
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataRevAppendProgram
+        `unsafeApplyCode` liftCodeDef dataList1
+        `unsafeApplyCode` liftCodeDef dataList2
+    )
+    (===)
+    (semanticsToDataList expected)
+
 propertyTests :: TestTree
 propertyTests =
   testGroup "List property tests"
@@ -859,4 +1008,9 @@ propertyTests =
     , testProperty "foldl" foldlSpec
     , testProperty "concat" concatSpec
     , testProperty "concatMap" concatMapSpec
+    , testProperty "listToMaybe" listToMaybeSpec
+    , testProperty "uniqueElement" uniqueElementSpec
+    , testProperty "findIndex" findIndexSpec
+    , testProperty "index" indexSpec
+    , testProperty "revAppend" revAppendSpec
     ]
