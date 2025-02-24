@@ -13,7 +13,7 @@
 module Types
 where
 
-import "cryptonite" Crypto.Hash
+import "crypton" Crypto.Hash
 
 
 -- Basic types

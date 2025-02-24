@@ -10,6 +10,7 @@ module PlutusTx.IsData.TH (
   mkUnsafeConstrMatchPattern,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
+  mkAsDataMatchingFunction,
 ) where
 
 import Data.Foldable as Foldable (foldl')
@@ -19,7 +20,7 @@ import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 
-import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins as Builtins hiding (drop)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.ErrorCodes (reconstructCaseError)
@@ -56,6 +57,74 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
   in pat
 
 -- TODO: safe match for the whole thing? not needed atm
+
+-- | Generate a function that matches on a 'BuiltinData' value and decodes it as a product type.
+mkAsDataMatchingFunction
+  :: TH.Name
+  -- ^ The name of the type
+  -> [TH.Name]
+  -- ^ Type variables of the type
+  -> TH.Name
+  -- ^ The name of the constructor
+  -> [TH.Type]
+  -- ^ Types of the fields
+  -> [TH.Name]
+  -- ^ The names of the fields
+  -> TH.Q (TH.Dec, TH.Dec)
+mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
+  let numFields = length fields
+  funcName <- TH.newName $ "matchOn" <> TH.nameBase name
+  builtinData <- TH.newName "builtinData"
+  asConstrN <- TH.newName "asConstr"
+  constrArgsN <- TH.newName "constrArgs"
+  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
+  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
+  argPat <- TH.conP consName [pure $ TH.VarP builtinData]
+  let restDecs =
+        flip fmap (zip restNs (constrArgsN : restNs)) $ \(resti, restj) ->
+          TH.ValD
+            (TH.VarP resti)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
+            []
+      fieldDecs =
+          flip fmap (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
+              TH.ValD
+                (TH.VarP fieldi)
+                (TH.NormalB
+                  $ TH.AppE
+                      (TH.VarE 'unsafeFromBuiltinData)
+                      (TH.AppE
+                        (TH.VarE 'BI.head)
+                        (TH.VarE restj)
+                      )
+                )
+                []
+      decs =
+        [ TH.ValD
+            (TH.VarP asConstrN)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
+            []
+        , TH.ValD
+            (TH.VarP constrArgsN)
+            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE asConstrN))
+            []
+        ]
+        <> fieldDecs
+        <> restDecs
+      resultExpr =
+        TH.TupE
+        $ Just . TH.VarE
+        <$> fieldNs
+      body = TH.NormalB $ TH.LetE decs resultExpr
+      clause = TH.Clause [argPat] body []
+      functionDef = TH.FunD funcName [clause]
+      tupleType = foldl TH.AppT (TH.TupleT numFields) fieldTypes
+      tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
+      constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
+      typeBody = TH.AppT (TH.AppT TH.ArrowT tType) tupleType
+      typeBodyWithQuantification = TH.ForallT [] constraints typeBody
+      functionType = TH.SigD funcName typeBodyWithQuantification
+    in pure (functionType, functionDef)
 
 mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =

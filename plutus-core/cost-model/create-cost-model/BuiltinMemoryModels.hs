@@ -175,6 +175,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramExpModInteger                   = Id $ ModelThreeArgumentsConstantCost 100000000000 -- FIXME: stub
   -- paramCaseList
   -- paramCaseData
-  , paramDropList                        = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 4 0
+  , paramDropList                        = Id $ ModelTwoArgumentsConstantCost 4
   }
   where identityFunction = OneVariableLinearFunction 0 1
