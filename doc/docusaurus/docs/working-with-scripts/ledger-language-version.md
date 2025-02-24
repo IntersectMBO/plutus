@@ -68,7 +68,7 @@ myV1SpendingScriptCompiled :: CompiledCode (BuiltinData -> BuiltinData -> Builti
 myV1SpendingScriptCompiled = $$(PlutusTx.compile [||myV1SpendingScriptUntyped||])
 ```
 
-`unsafeFromBuiltinData` is a method from the [`UnsafeFromData`](http://localhost:3000/docs/working-with-scripts/ledger-language-version) class.
+`unsafeFromBuiltinData` is a method from the [`UnsafeFromData`](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1.html#t:UnsafeFromData) class.
 Each call to `unsafeFromBuiltinData` decodes a `BuiltinData` into a value of a Haskell domain type, failing if the conversion fails.
 The `check` function takes a `Bool` and returns a `BuiltinUnit`, throwing an error if the input is `False`.
 It is needed because returning `False` does not cause the validation to fail; to fail the validation, an error needs to be thrown.
