@@ -1,0 +1,1116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Machinery for deciding whether an expression needs to be wrapped in parentheses or not.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Text.Fixity</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Precedence"
+	><span class="hs-identifier"
+	  >Precedence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#Associativity"
+	><span class="hs-identifier"
+	  >Associativity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#FixityOver"
+	><span class="hs-identifier"
+	  >FixityOver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Fixity"
+	><span class="hs-identifier"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#Direction"
+	><span class="hs-identifier"
+	  >Direction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#RenderContextOver"
+	><span class="hs-identifier"
+	  >RenderContextOver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#RenderContext"
+	><span class="hs-identifier"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#encloseIn"
+	><span class="hs-identifier"
+	  >encloseIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#botFixity"
+	><span class="hs-identifier"
+	  >botFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#juxtFixity"
+	><span class="hs-identifier"
+	  >juxtFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#unitFixity"
+	><span class="hs-identifier"
+	  >unitFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#topFixity"
+	><span class="hs-identifier"
+	  >topFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#botRenderContext"
+	><span class="hs-identifier"
+	  >botRenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#topRenderContext"
+	><span class="hs-identifier"
+	  >topRenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html"
+	><span class="hs-identifier"
+	  >Text.Fixity.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- | Fractional precedence, so that it's always possible to squeeze an operator precedence between</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- two existing precedences. Ranges over @[-20, 120]@. A normal operator should have a precedence</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- within @[0, 100)@. It might be useful to have a negative precedence if you're trying to model</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- some already existing system, for example in Haskell @($)@ has precedence @0@, but clearly</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- @if b then y else f $ x@ should be rendered without any parens, hence the precedence of</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- @if_then_else_@ is less than 0, i.e. negative.</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >-- The precedence of juxtaposition is @100@. Normally you want juxtaposition to have the highest</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- precedence, but some languages have operators that bind tighter than juxtaposition, e.g.</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >-- Haskell's postfix @_{_}@: @f z { x = y }@ means @f (z {x = y})@.</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Precedence"
+      ><span class="annot"
+	><a href="Text.Fixity.html#Precedence"
+	  ><span class="hs-identifier hs-var"
+	    >Precedence</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Double"
+	><span class="hs-identifier hs-type"
+	  >Double</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'FixityOver' instantiated at 'Precedence'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Fixity"
+      ><span class="annot"
+	><a href="Text.Fixity.html#Fixity"
+	  ><span class="hs-identifier hs-var"
+	    >Fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#FixityOver"
+	><span class="hs-identifier hs-type"
+	  >FixityOver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Precedence"
+	><span class="hs-identifier hs-type"
+	  >Precedence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | 'FixityOver' instantiated at 'Precedence'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="RenderContext"
+      ><span class="annot"
+	><a href="Text.Fixity.html#RenderContext"
+	  ><span class="hs-identifier hs-var"
+	    >RenderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.Internal.html#RenderContextOver"
+	><span class="hs-identifier hs-type"
+	  >RenderContextOver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Precedence"
+	><span class="hs-identifier hs-type"
+	  >Precedence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- | A fixity with the lowest precedence.</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- When used as a part of an outer context, never causes addition of parens.</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#botFixity"
+	><span class="hs-identifier hs-type"
+	  >botFixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Fixity"
+	><span class="hs-identifier hs-type"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="botFixity"
+      ><span class="annot"
+	><span class="annottext"
+	  >botFixity :: Fixity
+</span
+	  ><a href="Text.Fixity.html#botFixity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >botFixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity -&gt; Precedence -&gt; Fixity
+forall prec. Associativity -&gt; prec -&gt; FixityOver prec
+</span
+	><a href="Text.Fixity.Internal.html#Fixity"
+	><span class="hs-identifier hs-var"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity
+</span
+	><a href="Text.Fixity.Internal.html#NonAssociative"
+	><span class="hs-identifier hs-var"
+	  >NonAssociative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Precedence
+</span
+	><span class="hs-number"
+	>20</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The fixity of juxtaposition.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#juxtFixity"
+	><span class="hs-identifier hs-type"
+	  >juxtFixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Fixity"
+	><span class="hs-identifier hs-type"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="juxtFixity"
+      ><span class="annot"
+	><span class="annottext"
+	  >juxtFixity :: Fixity
+</span
+	  ><a href="Text.Fixity.html#juxtFixity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >juxtFixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity -&gt; Precedence -&gt; Fixity
+forall prec. Associativity -&gt; prec -&gt; FixityOver prec
+</span
+	><a href="Text.Fixity.Internal.html#Fixity"
+	><span class="hs-identifier hs-var"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity
+</span
+	><a href="Text.Fixity.Internal.html#LeftAssociative"
+	><span class="hs-identifier hs-var"
+	  >LeftAssociative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Precedence
+</span
+	><span class="hs-number"
+	>100</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- | The fixity of a unitary expression which is safe to render</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- without parens in any context.</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#unitFixity"
+	><span class="hs-identifier hs-type"
+	  >unitFixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Fixity"
+	><span class="hs-identifier hs-type"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="unitFixity"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitFixity :: Fixity
+</span
+	  ><a href="Text.Fixity.html#unitFixity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitFixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity -&gt; Precedence -&gt; Fixity
+forall prec. Associativity -&gt; prec -&gt; FixityOver prec
+</span
+	><a href="Text.Fixity.Internal.html#Fixity"
+	><span class="hs-identifier hs-var"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity
+</span
+	><a href="Text.Fixity.Internal.html#NonAssociative"
+	><span class="hs-identifier hs-var"
+	  >NonAssociative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Precedence
+</span
+	><span class="hs-number"
+	>110</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >-- | A fixity with the highest precedence.</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- When used as a part of an outer context, always causes addition of parens.</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#topFixity"
+	><span class="hs-identifier hs-type"
+	  >topFixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#Fixity"
+	><span class="hs-identifier hs-type"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="topFixity"
+      ><span class="annot"
+	><span class="annottext"
+	  >topFixity :: Fixity
+</span
+	  ><a href="Text.Fixity.html#topFixity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >topFixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity -&gt; Precedence -&gt; Fixity
+forall prec. Associativity -&gt; prec -&gt; FixityOver prec
+</span
+	><a href="Text.Fixity.Internal.html#Fixity"
+	><span class="hs-identifier hs-var"
+	  >Fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Associativity
+</span
+	><a href="Text.Fixity.Internal.html#NonAssociative"
+	><span class="hs-identifier hs-var"
+	  >NonAssociative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Precedence
+</span
+	><span class="hs-number"
+	>120</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- | An initial 'RenderContext'.</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >-- An expression printed in this context never gets enclosed in parens.</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#botRenderContext"
+	><span class="hs-identifier hs-type"
+	  >botRenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#RenderContext"
+	><span class="hs-identifier hs-type"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="botRenderContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >botRenderContext :: RenderContext
+</span
+	  ><a href="Text.Fixity.html#botRenderContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >botRenderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; RenderContext
+forall prec. Direction -&gt; FixityOver prec -&gt; RenderContextOver prec
+</span
+	><a href="Text.Fixity.Internal.html#RenderContext"
+	><span class="hs-identifier hs-var"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="Text.Fixity.Internal.html#ToTheRight"
+	><span class="hs-identifier hs-var"
+	  >ToTheRight</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="Text.Fixity.html#botFixity"
+	><span class="hs-identifier hs-var"
+	  >botFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- | An initial 'RenderContext'.</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-comment"
+      >-- An expression printed in this context always gets enclosed in parens.</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#topRenderContext"
+	><span class="hs-identifier hs-type"
+	  >topRenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#RenderContext"
+	><span class="hs-identifier hs-type"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="topRenderContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >topRenderContext :: RenderContext
+</span
+	  ><a href="Text.Fixity.html#topRenderContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >topRenderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; RenderContext
+forall prec. Direction -&gt; FixityOver prec -&gt; RenderContextOver prec
+</span
+	><a href="Text.Fixity.Internal.html#RenderContext"
+	><span class="hs-identifier hs-var"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="Text.Fixity.Internal.html#ToTheRight"
+	><span class="hs-identifier hs-var"
+	  >ToTheRight</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="Text.Fixity.html#topFixity"
+	><span class="hs-identifier hs-var"
+	  >topFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
