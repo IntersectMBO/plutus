@@ -4,9 +4,9 @@
       force
         ((\traceError ->
             case
-              ((\cse ->
-                  (\ds ->
-                     (\cse ->
+              ((\constrArgs ->
+                  (\rest ->
+                     (\ds ->
                         (\ds ->
                            (\tup ->
                               force
@@ -75,10 +75,10 @@
                                                (force (force sndPair) tup))))
                                       (delay (delay (constr 1 []))))))
                              (unConstrData
-                                (force headList (force tailList cse))))
-                          (force headList cse))
-                       (force tailList cse))
-                    (force headList cse))
+                                (force headList (force tailList rest))))
+                          (force headList rest))
+                       (force headList constrArgs))
+                    (force tailList constrArgs))
                  (force (force sndPair) (unConstrData d)))
               [(delay ()), (delay (traceError "PT5"))])
            (\str -> (\x -> error) (force trace str (constr 0 []))))))

@@ -72,7 +72,13 @@ mkAsDataMatchingFunction
   -- ^ The names of the fields
   -> TH.Q (TH.Dec, TH.Dec)
 mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
-  let numFields = length fields
+      -- Make a binding nonstrict if it is used once (so that the inliner can inline
+      -- it unconditionally).
+      -- Make a binding strict if it used more than once (so that it is evaluated
+      -- only once).
+  let strict = TH.BangP . TH.VarP
+      nonstrict = TH.TildeP . TH.VarP
+      numFields = length fields
   funcName <- TH.newName $ "matchOn" <> TH.nameBase name
   builtinData <- TH.newName "builtinData"
   asConstrN <- TH.newName "asConstr"
@@ -81,15 +87,17 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
   fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
   argPat <- TH.conP consName [pure $ TH.VarP builtinData]
   let restDecs =
-        flip fmap (zip restNs (constrArgsN : restNs)) $ \(resti, restj) ->
-          TH.ValD
-            (TH.VarP resti)
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
-            []
+        flip fmap (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
+          -- the last `rest` is used once, and other `rest`s are each used twice
+          let maybeStrict = if i == length restNs - 1 then nonstrict else strict
+          in TH.ValD
+              (maybeStrict resti)
+              (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
+              []
       fieldDecs =
           flip fmap (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
               TH.ValD
-                (TH.VarP fieldi)
+                (nonstrict fieldi) -- fields are each used once
                 (TH.NormalB
                   $ TH.AppE
                       (TH.VarE 'unsafeFromBuiltinData)
@@ -101,11 +109,11 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
                 []
       decs =
         [ TH.ValD
-            (TH.VarP asConstrN)
+            (nonstrict asConstrN) -- asConstr is used once
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
             []
         , TH.ValD
-            (TH.VarP constrArgsN)
+            (strict constrArgsN) -- constrArgs is used twice
             (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE asConstrN))
             []
         ]
