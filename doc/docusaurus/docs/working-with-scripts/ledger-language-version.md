@@ -136,7 +136,7 @@ Additional key differences between Plutus V3 and V1/V2 include:
 4. For now, Plutus V3 supports Plutus Core 1.1.0, a Plutus Core language version that introduced [sums-of-products](https://cips.cardano.org/cip/CIP-0085), as well as more builtin functions than Plutus V2.
    However, we plan to enable all Plutus Core versions and all builtin functions across all ledger language versions in the future.
 
-The first two points above are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
+The first two points above are attributed to [CIP-69]([https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/](https://cips.cardano.org/cip/CIP-0069)), whereas the third point is attributed to [CIP-117]([https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/](https://cips.cardano.org/cip/CIP-0117)).
 
 In other words, all Plutus V3 scripts should have the following type in Plinth:
 
