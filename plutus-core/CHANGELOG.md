@@ -1,4 +1,19 @@
 
+<a id='changelog-1.41.1.0'></a>
+# 1.41.1.0 — 2025-02-11
+
+## Added
+
+- Switch from `cryptonite` library to `crypton` (a drop in replacement).
+
+- DropList builtin functionality
+- Costing model for the DropList builtin
+
+## Fixed
+
+- Fixed a bug in Plutus IR's dead code elimination pass that could incorrectly remove
+  live data constructors or destructors.
+
 <a id='changelog-1.40.0.0'></a>
 # 1.40.0.0 — 2025-01-16
 
