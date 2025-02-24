@@ -555,18 +555,21 @@ runCompiler moduleName opts expr = do
                 (opts ^. posInlineConstants)
 
     -- GHC.Core -> Pir translation.
-    pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+    pirT <- {-# SCC "plinth-plugin-core-to-pir-step" #-}
+        original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
     let pirP = PIR.Program noProvenance plcVersion pirT
     when (opts ^. posDumpPir) . liftIO $
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
+    spirP <- {-# SCC "plinth-plugin-pir-to-simp-step" #-}
+        flip runReaderT pirCtx $ PIR.compileToReadable pirP
     when (opts ^. posDumpPir) . liftIO $
         dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
     -- (Simplified) Pir -> Plc translation.
-    plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
+    plcP <- {-# SCC "plinth-plugin-simp-to-plc-step" #-}
+        flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
     when (opts ^. posDumpPlc) . liftIO $
         dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
@@ -574,7 +577,8 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    uplcP <- {-# SCC "plinth-plugin-plc-to-uplc-step" #-}
+        flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
