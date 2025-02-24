@@ -131,7 +131,13 @@ mkMarloweValidator
     marloweTxInputs
     ctx@Data.ScriptContext{scriptContextTxInfo} = do
 
-    let scriptInValue = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutValue . Data.txInInfoResolved $ ownInput
+    let scriptInValue =
+          case ownInput of
+            Data.TxInInfo { txInInfoResolved = Data.TxOut { txOutValue }} ->
+              -- Data.Value -> Val.Value
+              PlutusTx.unsafeFromBuiltinData @Val.Value . PlutusTx.toBuiltinData $ txOutValue
+
+    -- let scriptInValue = PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txOutValue . Data.txInInfoResolved $ ownInput
     let interval =
             -- Marlowe semantics require a closed interval, so we might adjust by one millisecond.
             case closeInterval . PlutusTx.unsafeFromBuiltinData . PlutusTx.toBuiltinData . Data.txInfoValidRange $ scriptContextTxInfo of
