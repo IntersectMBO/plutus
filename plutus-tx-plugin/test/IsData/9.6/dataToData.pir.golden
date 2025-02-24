@@ -71,22 +71,20 @@ let
         \(`$dUnsafeFromData` : (\a -> data -> a) a) (ds : (\a -> data) a) ->
           let
             !builtinData : data = ds
-            !asConstr : pair integer (list data)
-              = unsafeDataAsConstr builtinData
-            !constrArgs : list data = snd {integer} {list data} asConstr
-            !field : a
-              = unsafeFromBuiltinData
-                  {a}
-                  `$dUnsafeFromData`
-                  (head {data} constrArgs)
-            !rest : list data = tail {data} constrArgs
-            !field : integer
-              = unsafeFromBuiltinData
-                  {integer}
-                  `$fUnsafeFromDataInteger`
-                  (head {data} rest)
+            !constrArgs : list data
+              = snd {integer} {list data} (unsafeDataAsConstr builtinData)
           in
-          Tuple2 {a} {integer} field field
+          Tuple2
+            {a}
+            {integer}
+            (unsafeFromBuiltinData
+               {a}
+               `$dUnsafeFromData`
+               (head {data} constrArgs))
+            (unsafeFromBuiltinData
+               {integer}
+               `$fUnsafeFromDataInteger`
+               (head {data} (tail {data} constrArgs)))
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
