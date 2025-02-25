@@ -76,8 +76,8 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
       -- it unconditionally).
       -- Make a binding strict if it used more than once (so that it is evaluated
       -- only once).
-  let strict = TH.BangP . TH.VarP
-      nonstrict = TH.TildeP . TH.VarP
+  let strict = TH.bangP . TH.varP
+      nonstrict = TH.tildeP . TH.varP
       numFields = length fields
   funcName <- TH.newName $ "matchOn" <> TH.nameBase name
   builtinData <- TH.newName "builtinData"
@@ -85,54 +85,34 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
   constrArgsN <- TH.newName "constrArgs"
   restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
   fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
-  argPat <- TH.conP consName [pure $ TH.VarP builtinData]
-  let restDecs =
-        flip fmap (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
-          -- the last `rest` is used once, and other `rest`s are each used twice
-          let maybeStrict = if i == length restNs - 1 then nonstrict else strict
-          in TH.ValD
-              (maybeStrict resti)
-              (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
-              []
-      fieldDecs =
-          flip fmap (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
-              TH.ValD
-                (nonstrict fieldi) -- fields are each used once
-                (TH.NormalB
-                  $ TH.AppE
-                      (TH.VarE 'unsafeFromBuiltinData)
-                      (TH.AppE
-                        (TH.VarE 'BI.head)
-                        (TH.VarE restj)
-                      )
-                )
-                []
-      decs =
-        [ TH.ValD
-            (nonstrict asConstrN) -- asConstr is used once
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
-            []
-        , TH.ValD
-            (strict constrArgsN) -- constrArgs is used twice
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE asConstrN))
-            []
-        ]
-        <> fieldDecs
-        <> restDecs
-      resultExpr =
-        TH.TupE
-        $ Just . TH.VarE
-        <$> fieldNs
-      body = TH.NormalB $ TH.LetE decs resultExpr
-      clause = TH.Clause [argPat] body []
-      functionDef = TH.FunD funcName [clause]
-      tupleType = foldl TH.AppT (TH.TupleT numFields) fieldTypes
-      tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
-      constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
-      typeBody = TH.AppT (TH.AppT TH.ArrowT tType) tupleType
-      typeBodyWithQuantification = TH.ForallT [] constraints typeBody
-      functionType = TH.SigD funcName typeBodyWithQuantification
-    in pure (functionType, functionDef)
+  restDecs <-
+    for (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
+      -- the last `rest` is used once, and other `rest`s are each used twice
+      let maybeStrict = if i == length restNs - 1 then nonstrict else strict
+      in [d| $(maybeStrict resti) = BI.tail $(TH.varE restj) |]
+  fieldDecs <-
+    for (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
+      -- fields are each used once
+      [d| $(nonstrict fieldi) = unsafeFromBuiltinData (BI.head $(TH.varE restj)) |]
+  otherDecs <- sequence
+    [ -- asConstr is used once
+      [d| $(nonstrict asConstrN) = BI.unsafeDataAsConstr $(TH.varE builtinData) |]
+    , -- constrArgs is used twice
+      [d| $(strict constrArgsN) = BI.snd $(TH.varE asConstrN) |]
+    ]
+  let decs = fmap pure . concat $ otherDecs <> fieldDecs <> restDecs
+      resultExpr = TH.tupE $ TH.varE <$> fieldNs
+      body = TH.normalB $ TH.letE decs resultExpr
+      argPat = TH.conP consName [TH.varP builtinData]
+      clause = TH.clause [argPat] body []
+      functionDef = TH.funD funcName [clause]
+      tupleType = foldl TH.appT (TH.tupleT numFields) (pure <$> fieldTypes)
+      tType = foldl TH.appT (TH.conT name) $ TH.varT <$> typeVars
+      constraints = traverse (\ty -> TH.appT (TH.conT ''UnsafeFromData) (TH.varT ty)) typeVars
+      typeBody = [t| $tType -> $tupleType |]
+      typeBodyWithQuantification = TH.forallT [] constraints typeBody
+      functionType = TH.sigD funcName typeBodyWithQuantification
+  (,) <$> functionType <*> functionDef
 
 mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =
