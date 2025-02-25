@@ -1,70 +1,48 @@
 (program
    1.1.0
    (\d ->
-      (\matchOnInts ->
-         (\int ->
-            (\x ->
-               (\int ->
-                  (\y ->
-                     (\int ->
-                        (\z ->
-                           (\int ->
-                              (\w ->
-                                 (\lessThanInteger ->
-                                    addInteger
-                                      (addInteger
-                                         (addInteger
-                                            (addInteger (addInteger x y) z)
-                                            w)
-                                         (force
-                                            (case
-                                               (lessThanInteger
-                                                  (addInteger y z)
-                                                  (addInteger x w))
-                                               [ (delay (addInteger x z))
-                                               , (delay (addInteger y w)) ])))
-                                      (force
-                                         (case
-                                            (lessThanInteger
-                                               (addInteger (int d) (int d))
-                                               (addInteger (int d) (int d)))
-                                            [ (delay
-                                                 (addInteger (int d) (int d)))
-                                            , (delay
-                                                 (addInteger
-                                                    (int d)
-                                                    (int d))) ])))
-                                   (\x y ->
-                                      force ifThenElse
-                                        (lessThanInteger x y)
-                                        (constr 0 [])
-                                        (constr 1 [])))
-                                (int d))
-                             (\ds ->
-                                case
-                                  (matchOnInts ds)
-                                  [(\int int int int -> int)]))
-                          (int d))
-                       (\ds ->
-                          case (matchOnInts ds) [(\int int int int -> int)]))
-                    (int d))
-                 (\ds -> case (matchOnInts ds) [(\int int int int -> int)]))
-              (int d))
-           (\ds -> case (matchOnInts ds) [(\int int int int -> int)]))
-        (\ds ->
-           (\constrArgs ->
-              (\field ->
-                 (\rest ->
-                    (\field ->
-                       (\rest ->
-                          constr 0
-                            [ field
-                            , field
-                            , (unIData (force headList rest))
-                            , (unIData
-                                 (force headList (force tailList rest))) ])
-                         (force tailList rest))
-                      (unIData (force headList rest)))
-                   (force tailList constrArgs))
-                (unIData (force headList constrArgs)))
-             (force (force sndPair) (unConstrData ds)))))
+      (\cse ->
+         (\cse ->
+            (\cse ->
+               (\cse ->
+                  (\cse ->
+                     (\lessThanInteger ->
+                        addInteger
+                          (addInteger
+                             (addInteger
+                                (addInteger (addInteger cse cse) cse)
+                                cse)
+                             (force
+                                (case
+                                   (lessThanInteger
+                                      (addInteger cse cse)
+                                      (addInteger cse cse))
+                                   [ (delay (addInteger cse cse))
+                                   , (delay (addInteger cse cse)) ])))
+                          (force
+                             (case
+                                (lessThanInteger
+                                   (addInteger cse cse)
+                                   (addInteger cse cse))
+                                [ (delay (addInteger cse cse))
+                                , (delay (addInteger cse cse)) ])))
+                       (\x y ->
+                          force ifThenElse
+                            (lessThanInteger x y)
+                            (constr 0 [])
+                            (constr 1 [])))
+                    (case cse [(\int int int int -> int)]))
+                 (case cse [(\int int int int -> int)]))
+              (case cse [(\int int int int -> int)]))
+           (case cse [(\int int int int -> int)]))
+        ((\constrArgs ->
+            (\rest ->
+               (\rest ->
+                  constr 0
+                    [ (unIData (force headList constrArgs))
+                    , (unIData (force headList rest))
+                    , (unIData (force headList rest))
+                    , (unIData (force headList (force tailList rest))) ])
+                 (force tailList rest))
+              (force tailList constrArgs))
+           (force (force sndPair) (unConstrData d)))))

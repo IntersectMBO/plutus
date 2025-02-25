@@ -2,9 +2,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
--- CSE is very unstable and produces different output, likely depending on the version of either
--- @unordered-containers@ or @hashable@.
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 
 module AsData.Budget.Spec where
 
@@ -20,6 +17,7 @@ import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, golde
 import PlutusTx.TH (compile)
 
 import AsData.Budget.Types
+
 
 tests :: TestNested
 tests =
@@ -56,24 +54,24 @@ patternMatching :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 patternMatching =
   $$( compile
         [||
-        \d ->
-          let (Ints x y z w) = PlutusTx.unsafeFromBuiltinData d
-           in x
-                `PlutusTx.addInteger` y
-                `PlutusTx.addInteger` z
-                `PlutusTx.addInteger` w
-                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
-                                          (y `PlutusTx.addInteger` z)
-                                          (x `PlutusTx.addInteger` w)
-                                          then x `PlutusTx.addInteger` z
-                                          else y `PlutusTx.addInteger` w
-                                      )
-                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
-                                          (z `PlutusTx.addInteger` y)
-                                          (w `PlutusTx.addInteger` x)
-                                          then z `PlutusTx.addInteger` x
-                                          else w `PlutusTx.addInteger` y
-                                      )
+        \d -> case PlutusTx.unsafeFromBuiltinData d of
+          Ints x y z w ->
+            x
+              `PlutusTx.addInteger` y
+              `PlutusTx.addInteger` z
+              `PlutusTx.addInteger` w
+              `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                        (y `PlutusTx.addInteger` z)
+                                        (x `PlutusTx.addInteger` w)
+                                        then x `PlutusTx.addInteger` z
+                                        else y `PlutusTx.addInteger` w
+                                    )
+              `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                        (z `PlutusTx.addInteger` y)
+                                        (w `PlutusTx.addInteger` x)
+                                        then z `PlutusTx.addInteger` x
+                                        else w `PlutusTx.addInteger` y
+                                    )
         ||]
     )
 
