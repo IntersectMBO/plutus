@@ -1013,5 +1013,5 @@ propertyTests =
     , testProperty "uniqueElement" uniqueElementSpec
     , testProperty "findIndex" findIndexSpec
     , testProperty "index" indexSpec
-    -- , testProperty "revAppend" revAppendSpec
+    , testProperty "revAppend" revAppendSpec
     ]

@@ -397,7 +397,7 @@ revAppend (List l) (List l') = List $ rev l l'
     rev l1 l2 =
         B.caseList'
             l2
-            (\h t -> rev (BI.mkCons h l1) t)
+            (\h t -> rev t (BI.mkCons h l2))
             l1
 {-# INLINEABLE revAppend #-}
 
