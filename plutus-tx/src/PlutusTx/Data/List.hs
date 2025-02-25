@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module PlutusTx.Data.List (
     List,
@@ -405,9 +406,10 @@ reverse :: List a -> List a
 reverse l = revAppend l mempty
 {-# INLINEABLE reverse #-}
 
-zip :: forall a b . List a -> List b -> List (a, b)
+zip :: List a -> List b -> List (a, b)
 zip (List l1) (List l2) = List $ go l1 l2
   where
+    go :: BuiltinList BuiltinData -> BuiltinList BuiltinData -> BuiltinList BuiltinData
     go l1' l2' =
         B.caseList'
             B.mkNil
@@ -416,7 +418,7 @@ zip (List l1) (List l2) = List $ go l1 l2
                     B.mkNil
                     (\h2 t2 ->
                         BI.mkCons
-                            (toBuiltinData (h1, h2))
+                            (toBuiltinData @(BuiltinData, BuiltinData) (h1, h2))
                             (go t1 t2)
                     )
                     l2'

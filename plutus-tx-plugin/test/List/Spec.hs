@@ -76,6 +76,10 @@ semanticsToDataList :: (ToData a) => ListS a -> Data.List a
 semanticsToDataList =
   Data.fromBuiltinList . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData . getListS
 
+semanticsToDataListIntPair :: ListS (Integer, Integer) -> Data.List (Integer, Integer)
+semanticsToDataListIntPair =
+  Data.fromBuiltinList . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData . getListS
+
 dataListToSemantics :: (UnsafeFromData a) => Data.List a -> ListS a
 dataListToSemantics (Data.toBuiltinList -> l) = ListS . go $ l
   where
@@ -957,7 +961,6 @@ revAppendProgram = $$(compile [|| List.revAppend ||])
 dataRevAppendProgram :: CompiledCode (Data.List Integer -> Data.List Integer -> Data.List Integer)
 dataRevAppendProgram = $$(compile [|| Data.List.revAppend ||])
 
--- this is insanely slow
 revAppendSpec :: Property
 revAppendSpec = property $ do
   listS1 <- forAll genListS
@@ -978,6 +981,68 @@ revAppendSpec = property $ do
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
         $ dataRevAppendProgram
+        `unsafeApplyCode` liftCodeDef dataList1
+        `unsafeApplyCode` liftCodeDef dataList2
+    )
+    (===)
+    (semanticsToDataList expected)
+
+reverseProgram :: CompiledCode ([Integer] -> [Integer])
+reverseProgram = $$(compile [|| List.reverse ||])
+
+dataReverseProgram :: CompiledCode (Data.List Integer -> Data.List Integer)
+dataReverseProgram = $$(compile [|| Data.List.reverse ||])
+
+reverseSpec :: Property
+reverseSpec = property $ do
+  listS <- forAll genListS
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = reverseS listS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ reverseProgram
+        `unsafeApplyCode` liftCodeDef list
+    )
+    (===)
+    (semanticsToList expected)
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataReverseProgram
+        `unsafeApplyCode` liftCodeDef dataList
+    )
+    (===)
+    (semanticsToDataList expected)
+
+zipProgram :: CompiledCode ([Integer] -> [Integer] -> [(Integer, Integer)])
+zipProgram = $$(compile [|| List.zip ||])
+
+dataZipProgram
+  :: CompiledCode
+    (Data.List Integer -> Data.List Integer -> Data.List (Integer, Integer))
+dataZipProgram = $$(compile [|| Data.List.zip ||])
+
+zipSpec :: Property
+zipSpec = property $ do
+  listS1 <- forAll genListS
+  listS2 <- forAll genListS
+  let list1 = semanticsToList listS1
+      list2 = semanticsToList listS2
+      dataList1 = semanticsToDataList listS1
+      dataList2 = semanticsToDataList listS2
+      expected :: ListS (Integer, Integer)
+      expected = zipS listS1 listS2
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ zipProgram
+        `unsafeApplyCode` liftCodeDef list1
+        `unsafeApplyCode` liftCodeDef list2
+    )
+    (===)
+    (semanticsToList expected)
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataZipProgram
         `unsafeApplyCode` liftCodeDef dataList1
         `unsafeApplyCode` liftCodeDef dataList2
     )
@@ -1014,4 +1079,7 @@ propertyTests =
     , testProperty "findIndex" findIndexSpec
     , testProperty "index" indexSpec
     , testProperty "revAppend" revAppendSpec
+    , testProperty "reverse" reverseSpec
+    -- TODO: fix
+    -- , testProperty "zip" zipSpec
     ]
