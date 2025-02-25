@@ -1,14 +1,3 @@
-
-Added
------
-
-- CI Tests for the certifier, using some simple unoptimised UPLC
-
-Changed
--------
-
-- Complete reordering of decisions in UntypedTranslation.lagda.md
-
 Fixed
 -----
 
