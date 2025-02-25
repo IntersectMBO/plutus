@@ -276,6 +276,17 @@
 \newcommand\pairOf[2]{\mathtt{pair}\,\mathtt{(}#1\mathtt{,}\,#2\mathtt{)}}
 
 
+\newcommand\errorX{\textbf{\texttimes}}
+\newcommand\ValueOrError{\Inputs\disj\{\errorX\}}
+\newcommand\withError[1]{\ensuremath{#1_{\errorX}}}
+
+\renewcommand{\star}{\text{\textasteriskcentered}}
+% ^ {*}, the set of fully-polymorphic type variables (but there's only one of those)
+\newcommand{\ap}{\textsf{ap}}  % deferred applications
+\newcommand{\VarStar}{\{\star\}}
+\newcommand{\VarStarAp}{\{\star, \ap\}}
+\newcommand{\forallStar}{\forall\star}
+
 %% \newcommand\disj{\mathbin{\dot{\cup}}}    % Infix disjoint union
 %% \newcommand\bigdisj{\bigcup^{\bullet}}      % Prefix disjoint union
 \newcommand\disj{\uplus}                  % Infix disjoint union
@@ -288,7 +299,8 @@
 \newcommand\UniTop{\Uni^{\top}}      % Universe of built-in types extended with a top element
 \newcommand\Unihashn[1]{\Uni_{\#,#1}}
 \newcommand\Sext{\hat{S}}
-\newcommand\UnihashStar{\Unihash \disj \VarStar} % Built-in type or type name
+\newcommand\UnihashStar{\Unihash \disj \VarStar}     % Built-in type or type name
+\newcommand\UnihashStarAp{\Unihash \disj \VarStarAp} % Built-in type or type name or deferred application
 \newcommand\UnihashTop{\Unihash^{\top}}      % Universe of built-in types extended with a top element
 \newcommand\op{\textit{op}}               % Type operator names
 \newcommand\valency[1]{\left| #1 \right|} % Valency of a type operator
@@ -301,7 +313,7 @@
 \newcommand\sat[1]{\gamma({#1})} % Interleaving structure of a partial builtin application
 \newcommand\fv[1]{\mathsf{FV}_{\#}(#1)}
 \newcommand{\N}{\mathbb{N}}
-\newcommand{\Nplus}{\N^{+}}
+\newcommand{\Nplus}{\N_{+}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\B}{\mathbb{B}}
 \renewcommand{\b}{\mathbb{b}}
@@ -315,17 +327,6 @@
 \newcommand{\Eval}{\mathsf{Eval}}
 \newcommand{\EvalCEK}{\mathsf{Eval_{\,CEK}}}
 %% NOTE!!!  Probably \byte and \Z are only used in V1-builtins
-
-\renewcommand{\star}{\text{\textasteriskcentered}}
-\newcommand{\VarStar}{\{\star\}}
-\newcommand{\forallStar}{\forall\star}
-% ^ {*}, the set of fully-polymorphic type variables (but there's only one of those)
-\newcommand{\ap}{\textsf{ap}}  % deferred applications
-\newcommand\errorX{\textbf{\texttimes}}
-\newcommand\ValueOrError{\Inputs\disj\{\errorX\}}
-\newcommand\withError[1]{\ensuremath{#1_{\errorX}}}
-
-
 
 \newcommand{\cons}{\mathbin{\!\cdot\!}}
 \newcommand{\snoc}{\mathbin{\!\cdot\!}}

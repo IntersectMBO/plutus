@@ -82,8 +82,8 @@ Figure~\ref{fig:type-variables}.
 \begin{minipage}{\linewidth}
   \centering
       \[\begin{array}{lrclr}
-        \textrm{TypeVariable}    & \tv & ::= & \star & \textrm{fully polymorphic type variable}\\
-                                 &           &      & n_{\#} & \textrm{built-in-polymorphic type variable}\\
+        \textrm{TypeVariable}    & \tv & ::= & n_{\#} & \textrm{built-in-polymorphic type variable}\\
+                                 &    &      & \star & \textrm{fully polymorphic type variable}\\
     \end{array}\]
     \captionof{figure}{Type variables}
     \label{fig:type-variables}
@@ -262,7 +262,7 @@ related.%
 
 \noindent It is also convenient to let $\denote{\Inputs} = \Inputs$ and define both
   $\denote{\cdot}_{\Inputs}$ and $\reify{\cdot}_{\Inputs}$ to be the identity
-  function.
+  function, and similarly for $\Inputs^{+}$.
 
 
 \kwxm{I'm still not sure what to call the things what we feed to builtins.
@@ -287,7 +287,7 @@ blockchain.
 \label{sec:signatures}
 We will consistently use the symbol $\tau$ and subscripted versions of it to
 denote members of $\UnihashStar$ in the rest of the document; these indicate the
-types of values consumed and returned by built-in functions.%
+types of values consumed by built-in functions.%
 \nomenclature[Eg]{$\tau$}{A member of $\UnihashStar$, ie a type or type variable}
 
 \medskip
@@ -296,31 +296,35 @@ introduce type variables: a quantification is a symbol of the form
 $\forallty{v}$ with $v \in \Var$; the set of of all possible quantifications is
 denoted by $\QVar$.%
 \nomenclature[Ez3]{$\forallty{v}$}{Type quantification}%
-\nomenclature[Ea]{$\QVar$}{The set of all type quantifications}
+\nomenclature[Eb]{$\QVar$}{The set of all type quantifications}
 
 \medskip
 \paragraph{Signatures.}
 Every built-in function $b \in \Fun$ has a \textit{signature} $\sigma(b)$ which describes
 the types of its arguments and its return value: a signature is of the form
-$$[\iota_1, \ldots, \iota_n] \rightarrow \tau$$ with
+$$[\iota_1, \ldots, \iota_n] \rightarrow \omega$$ with
 \begin{itemize}
   \item $\iota_j \in \UnihashStar \disj \QVar \enspace\text{for all $j$}$
-  \item $\tau \in \UnihashStar$
+  \item $\omega \in \UnihashStarAp$
   \item $\lvert\{j : \iota_j \notin \QVar\}\rvert \geq 1$ (so $n \geq 1$)
   \item If $\iota_j$ involves $v \in \Var$ then $\iota_k = \forallty{v}$ for
-    some $k < j$, and similarly for $\tau$; in other words, any type variable
+    some $k < j$, and similarly for $\omega$; in other words, any type variable
     $v$ must be introduced by a quantification before it is used. (Here $\iota$
     \textit{involves} $v$ if either $\iota = \tn \in \Unihash$ and $v \in \fv{\tn}$
     or $\iota = v$ and $v \in \VarStar$.)
-  \item If $\tau$ involves $v \in \Var$ then some $\iota_j$ must involve $v$; this
-    implies that $\fv{\tau} \subseteq \bigcup \{\fv{\iota_j}: \iota_j \in \Unihash\}$.
+  \item If $\omega$ involves $v \in \Var$ then some $\iota_j$ must involve $v$;
+    this implies that $\fv{\omega} \subseteq \bigcup \{\fv{\iota_j}: \iota_j \in
+    \Unihash\}$ (where we extend the earlier definition of $\mathsf{FV}_{\#}$ by
+    setting $\fv{\ap}=\varnothing$).
   \item If $j \neq k$ and $\iota_j, \iota_k \in \QVar$ then $\iota_j \neq
     \iota_k$; ie, no quantification appears more than once.
   \item If $\iota_i = \forall v \in \QVar$ then some $i_j \notin \QVar$ with $j
     > i$ must involve $v$ (signatures are not allowed to contain phantom type variables).
 \end{itemize}%
 \nomenclature[Eg]{$\iota$}{Signature item}%
-\nomenclature[Eg]{$\sigma$}{Signature of built-in function}
+\nomenclature[Eg]{$\sigma$}{Signature of built-in function}%
+\nomenclature[Eg]{$\omega$}{Return type of built-in function}
+
 
 \kwxm{\textsf{@effectfully} says that a builtin could actually return something
   in $\QVar$ too, so the target of the arrow could be an $\iota$. We don't need
@@ -334,7 +338,7 @@ $[\forallStar, \mathtt{bool}, \star, \star] \rightarrow \star$.  When we use
 arguments of \texttt{ifThenElse} can be any Plutus Core values.
 
 \smallskip
-\noindent If $b$ has signature $[\iota_1, \ldots, \iota_n] \rightarrow \tau$ then we define
+\noindent If $b$ has signature $[\iota_1, \ldots, \iota_n] \rightarrow \omega$ then we define
 the \textit{arity}  of $b$ to be
 $$
 \alpha(b) = [\iota_1, \ldots, \iota_n].
@@ -353,17 +357,17 @@ to signatures, and similarly with the symbol $\alpha$.
 
 \medskip
 \noindent Given a signature
-$\sigma = [\iota_1, \ldots, \iota_n] \rightarrow \tau$,
+$\sigma = [\iota_1, \ldots, \iota_n] \rightarrow \omega$,
 we define the \textit{reduced signature} $\sigmabar$ to be
 $$
-\sigmabar = [\iota_j : \iota_j \notin \QVar] \rightarrow \tau
+\sigmabar = [\iota_j : \iota_j \notin \QVar] \rightarrow \omega
 $$%
 \nomenclature[Eg]{$\sigmabar$}{Reduced signature}
 
 \noindent Here we have extended the usual set comprehension notation to lists in the
 obvious way, so $\sigmabar$ just denotes the signature $\sigma$ with all
 quantifications omitted. We will often write a reduced signature in the form
-$[\tau_1, \ldots, \tau_m] \rightarrow \tau$ to emphasise that the entries are
+$[\tau_1, \ldots, \tau_m] \rightarrow \omega$ to emphasise that the entries are
 \textit{types}, and $\mathbf{\forall}$ does not appear.
 
 \medskip
@@ -398,6 +402,22 @@ builtins are values which can be treated like any others (for example, by being
 passed as an argument to a \texttt{lam}-expression): see
 Section~\ref{sec:uplc-values}.
 
+Given a builtin $b$ with signature $[\iota_1, \ldots, \iota_n] \rightarrow
+\omega$, the symbol following the arrow indicates the return type of the
+function $b$s.  All built-in functions conceptually return a non-empty list of
+inputs, and we will denote such a list by a symbol of the form $(v|v_1, \ldots,
+v_k)$ with $v, v_i \in \Inputs$ and $k \geq 0$, the case $k=0$ indicating a list
+$(v|)$ with a single entry.  The majority of builtins return a single value, and
+to simplify notation we will identify $\Inputs$ with $\{(v|): v \in \Inputs\}
+\subseteq \Inputs^{+}$.  If $\omega \in \Unihash$ then $b$ returns a single
+value of some built-in type; if $\omega = \star$ then $b$ returns a single
+element of $\Inputs$ (probably not of a built-in type), and if $\omega = \ap$
+then $b$ returns a sequence of values $(v|v_1, \ldots, v_k)$ with $k>0$.  The
+intention is that this will immediately be interpreted as an application $v \;v_1\;
+\ldots\; v_k$ in the ambient language (eg, typed or untyped Plutus Core); the number
+of arguments $k$ may depend on the values of the inputs to the function, as is
+the case for the $\texttt{caseList}$ and $\texttt{caseData}$ functions described
+in Appendix~\ref{sec:default-builtins-6}.
 
 \subsubsection{Denotations of built-in functions}
 \label{sec:builtin-denotations}
@@ -407,28 +427,28 @@ this is complicated by the presence of polymorphism and we have to require that
 there is such a function for every possible monomorphisation of $b$.
 
 More precisely, suppose that we have a builtin $b$ with reduced signature
-$[\tau_1, \ldots \tau_n] \rightarrow \tau$.  For every type assignment $S$ with
-$\dom S = \fv{\tau_1} \cup \cdots \cup \fv{\tau_n}$ (which contains $\fv{\tau}$ by
+$[\tau_1, \ldots \tau_n] \rightarrow \omega$.  For every type assignment $S$ with
+$\dom S = \fv{\tau_1} \cup \cdots \cup \fv{\tau_n}$ (which contains $\fv{\omega}$ by
 the conditions on signatures in Section~\ref{sec:signatures}) we require a
 \textit{denotation of $b$ at $S$}, a function
 $$
-\denote{b}_S: \denote{\Sext(\tau_1)} \times \cdots \times \denote{\Sext(\tau_n)} \rightarrow \withError{\denote{\Sext(\tau)}}
+\denote{b}_S: \denote{\Sext(\tau_1)} \times \cdots \times \denote{\Sext(\tau_n)} \rightarrow \withError{\denote{\Sext(\omega)}}
 $$%
 \nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
 \noindent where
 $$
-\denote{\star} = \Inputs.
+\denote{\star} = \Inputs \quad\text{and}\quad \denote{\ap} = \Inputs^{+}.
 $$
 \noindent This makes sense because $\Sext(\tau_i) \in \Uni \disj
 \Inputs$ for all $i$, so $\denote{\Sext(\tau_i)}$ is always defined,
-and similarly for $\tau$.
+and similarly for $\omega$ (extending $\Sext$ by setting $\Sext(\ap) = \ap$).
 
 \medskip
 \noindent If $\fv{\sigmabar(b)} = \varnothing$ (in which case we say that $b$ is
 \textit{monomorphic}) then the only relevant type assignment will be the empty
 one; in this case we have a single denotation
 $$
-\denote{b}_\varnothing: \denote{\tau_1} \times \cdots \times \denote{\tau_n} \rightarrow \withError{\denote{\tau}}.
+\denote{b}_\varnothing: \denote{\tau_1} \times \cdots \times \denote{\tau_n} \rightarrow \withError{\denote{\omega}}.
 $$
 
 \smallskip
@@ -448,13 +468,13 @@ not insist on this though.
 If $r$ is the result of the evaluation of some built-in function there are thus
 three possibilities:
 \begin{enumerate}
-\item $r \in \denote{\tn} \enspace \text{for some $\tn \in \Uni$}$.
-\item $r \in \Inputs$.
+\item $r \in \denote{\tn} \enspace \text{for some $\tn \in \Uni$}$.  \red{Really?}
+\item $r \in \Inputs^{+}$ (remember that we identify $\Inputs$ with the subset of length-one elements of $\Inputs^{+}$).
 \item $r = \errorX$.
 \end{enumerate}
 In other words,
 $$
-r \in \R := \bigdisj\{\denote{\tn}: \tn \in \Uni \} \disj \Inputs \disj \{\errorX\}.
+r \in \R := \bigdisj\{\denote{\tn}: \tn \in \Uni \} \disj \Inputs^{+} \disj \{\errorX\}.
 $$
 
 \noindent Our assumptions on the set $\Inputs$
@@ -462,10 +482,11 @@ $$
 $$
 \reify{\cdot}: \R \rightarrow \withError{\Inputs}
 $$
-which converts results of built-in functions back into inputs (or the $\errorX$ symbol):
+which converts results of built-in functions back into inputs \red{plus apps} (or the $\errorX$ symbol):
 \begin{enumerate}
 \item If $r \in \denote{\tn}$, then $\reify{r} = \reify{r}_{\tn} \in \Con{\tn} \subseteq \Inputs$.
-\item If $r \in \Inputs$ then  $\reify{r} = r$.
+%% \item If $r \in \Inputs$ then  $\reify{r} = r$.
+\item If $r = (v|v_1, \ldots, v_k) \in \Inputs^{+}$ then  $\reify{r} = r$. \red{Or $(\reify{v}|\reify{v_1}, \ldots,\reify{v_k})$?}
 \item $\reify{\errorX} = \errorX$.
 \end{enumerate}%
 \nomenclature[Dz4]{$\reify{\cdot}$}{Reification of the result of a built-in
@@ -481,6 +502,11 @@ which converts results of built-in functions back into inputs (or the $\errorX$ 
   sometimes a builtin argument must be a constant but at other times it can be
   an arbitrary value, which includes all of the constants.}
 
+\red{I'm worrying about what happens if we return an $\ap$ that contains
+  built-in constants, not terms.  Maybe that's OK: it's handed over to the
+  application mechanism in the ambient language and that should do the right
+  thing.}
+
 \subsubsection{Parametricity for fully-polymorphic arguments}
 \label{sec:builtin-behaviour}
 A built-in function $b$ can only inspect arguments which are values of built-in
@@ -489,7 +515,7 @@ and can be discarded or returned as (part of) a result, but cannot be altered or
 examined (in particular, they cannot be compared for equality): $b$ is
 \textit{parametrically polymorphic} in such arguments.  This implies that if a
 builtin returns a value $v \in \Inputs$, then $v$ must have been an argument of
-the function.
+the function. \red{Or if we've got an $\ap$, its head must have been an argument.}
 
 \roman{This is not quite true, unfortunately. \texttt{toBuiltinMeaning}
   constrains \texttt{term} with \texttt{HasConstantIn uni term}. This means that we can
@@ -553,11 +579,6 @@ describes the conditions for type compatibility.
   describe what's actually going on so I'm just assuming that builtins always
   check this stuff.}
 
-\noindent\red{What is the return type of caseList/caseData?  Presumably it'll
-  have to be an \textsf{ap}, but do we want the user to see this? Maybe we can
-  say $\mathsf{ap}(\tau)$ to indicate that it's an ap which is expected to
-  evaluate to a particular type.}
-
 \noindent\red{Do we ever say what ``\#-polymorphic'' means?}
 
 \noindent\red{Do we really use $\tau$ consistently?}
@@ -613,7 +634,10 @@ $$%
 %
 \noindent It can be checked that the compatibility condition guarantees that
 this makes sense according to the definition of $\denote{b}_S$ in
-Section~\ref{sec:builtin-denotations}.
+Section~\ref{sec:builtin-denotations}.  \red{In fact, $\Eval$ now takes us into
+  $\Inputs \disj \Inputs{+}$ and the evaluator has to deal with deferred
+  applications. We have to not identify $\Inputs$ with a subset of $\Inputs^{+}$
+  because we treat $v$ differently from $(v|)$ -- or do we?  Maybe it's safe to do the identification.}
 
 \paragraph{Notes.}
 \begin{itemize}

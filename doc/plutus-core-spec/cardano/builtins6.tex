@@ -35,11 +35,11 @@ The sixth batch of builtin operations is defined in Table~\ref{table:built-in-fu
     \endlastfoot
     \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, \ty{integer}]$ \text{$\;\;\; \to \ty{integer}$}
         & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
-    \TT{caseList}        & $[\forall a_\#, \forall\star, \listOf{a_\#}, \star, \star] \to \ap$
-                                              & \text{$([], t_1, t_2) \mapsto (t_1|)$,}
-                                              \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto (t_2|x_2,\ldots,x_n)\ (n \geq 1)$} & No & \\[2mm]
-    \TT{caseData}        & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \ap$
-    & $ (d,t_C, t_M, t_L, t_I, t_B) $
+    \TT{caseList}        & $[\forall a_\#, \forall\star, \star, \star, \listOf{a_\#}] \to \ap$
+                                              & \text{$(t_1, t_2, []) \mapsto (t_1|)$,}
+                                              \text{$(t_1, t_2, [x_1,\ldots,x_n]) \mapsto (t_2|x_2,\ldots,x_n)\ (n \geq 1)$} & No & \\[2mm]
+    \TT{caseData}        & $[\forall\star, \star, \star, \star, \star, \star, \ty{data}] \to \ap$
+    & $ (t_C, t_M, t_L, t_I, t_B, d) $
     \smallskip
     \newline  % The big \{ was abutting the text above
     \text{$\;\;\mapsto

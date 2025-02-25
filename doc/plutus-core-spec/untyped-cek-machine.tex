@@ -154,8 +154,8 @@ state.
                          \inConstrFrame{i}{\repetition{V} \cons V}{(\repetition{M}, \rho)} \cons s;\rho \compute M \\
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
-\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_0 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_0} \cons s ;\rho \compute M_i \enskip \text{if $0 \leq i \leq n$}
+\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
+                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_1} \cons s ;\rho \compute M_i \enskip \text{if $0 \leq i \leq n$}
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
@@ -163,21 +163,23 @@ state.
 \end{subfigure}
 
 \bigskip
-  \begin{subfigure}[c]{\linewidth}
-$$ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
-   \begin{cases}
-      \cekerror  & \text{if $\Eval\,(b,[V_1, \ldots, V_n]) = \errorX$}\\
-      s \return \Eval\,(b,[V_1, \ldots, V_n]) & \text{otherwise}
-   \end{cases}
-$$
-    \caption{Evaluation of built-in functions}
-    \label{fig:untyped-cek-builtins}
-    \end{subfigure}
+\begin{subfigure}[c]{\linewidth}
+  \begin{align*}
+ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
+  &   \begin{cases}
+        \cekerror  & \text{if $r = \errorX$}\\
+        \inAppLeftFrame{W_m} \cons \cdots \cons \inAppLeftFrame{W_1} \cons s \return W & \text{if $r = (W|W_1,\ldots,W_m) \in \Inputs^{+}$}
+      \end{cases}\\
+  &  \;\;\text{where $r = \Eval\,(b,[V_1, \ldots, V_n])$}\\
+   \end{align*}
+  \caption{Evaluation of built-in functions}
+  \label{fig:untyped-cek-builtins}
+\end{subfigure}
 
-  \caption{A CEK machine for Plutus Core}
+  \caption{A CEK machine for Plutus Core \red{CHECK!! Ordering?  Are deferred applications values?}}
 \label{fig:untyped-cek-machine}
 \end{figure}
-
+  
 \subsection{Converting CEK evaluation results into Plutus Core terms}
 The purpose of the CEK machine is to evaluate Plutus Core terms, but in the
 definition in Figure~\ref{fig:untyped-cek-machine} it does not return a Plutus
