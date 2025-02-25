@@ -59,6 +59,7 @@ common lang
     FlexibleContexts
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
+    RecordWildCards
     ScopedTypeVariables
     StandaloneDeriving
     Strict
@@ -518,6 +519,7 @@ executable marlowe-validators
     , base16-bytestring
     , bytestring
     , cardano-binary
+    , filepath
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.40
