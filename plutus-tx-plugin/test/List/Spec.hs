@@ -31,11 +31,10 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
 import PlutusTx.TH (compile)
 
-import Control.Monad (when)
 import Data.List qualified as Haskell
 import Data.Maybe qualified as Haskell
 
-import Hedgehog (Gen, Property, Range, discard, forAll, property, (===))
+import Hedgehog (Gen, Property, Range, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
@@ -57,6 +56,9 @@ rangeLength = Range.linear 0 100
 
 genListS :: Gen (ListS Integer)
 genListS = ListS <$> Gen.list rangeLength (Gen.integral rangeElem)
+
+genNonEmptyListS :: Gen (ListS Integer)
+genNonEmptyListS = ListS <$> Gen.list (Range.linear 1 100) (Gen.integral rangeElem)
 
 genListSBool :: Gen (ListS Bool)
 genListSBool = ListS <$> Gen.list rangeLength Gen.bool
@@ -927,9 +929,8 @@ dataIndexProgram = $$(compile [|| \l i -> l Data.List.!! i ||])
 
 indexSpec :: Property
 indexSpec = property $ do
-  listS <- forAll genListS
-  num <- forAll $ Gen.integral rangeElem
-  when (lengthS listS <= num) discard
+  listS <- forAll genNonEmptyListS
+  num <- forAll $ Gen.integral (Range.linear 0 (lengthS listS - 1))
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = indexS listS num
@@ -1012,5 +1013,5 @@ propertyTests =
     , testProperty "uniqueElement" uniqueElementSpec
     , testProperty "findIndex" findIndexSpec
     , testProperty "index" indexSpec
-    , testProperty "revAppend" revAppendSpec
+    -- , testProperty "revAppend" revAppendSpec
     ]

@@ -376,14 +376,16 @@ findIndex pred' (List l) = go 0 l
 
 infixl 9 !!
 (!!) :: (UnsafeFromData a) => List a -> Integer -> a
-_   !! n | n < 0 = traceError negativeIndexError
-(List l) !! n = go n l
+(List l) !! n =
+    if B.lessThanInteger n 0
+        then traceError negativeIndexError
+        else go n l
   where
     go n' =
-        B.caseList'
-            (traceError indexTooLargeError)
+        B.caseList
+            (\() -> traceError indexTooLargeError)
             (\h t ->
-                if B.equalsInteger n 0
+                if B.equalsInteger n' 0
                     then unsafeFromBuiltinData h
                     else go (B.subtractInteger n' 1) t
             )
