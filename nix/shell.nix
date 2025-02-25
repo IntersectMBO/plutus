@@ -24,28 +24,9 @@ let
         enable = true;
         package = tools.cabal-fmt;
       };
-      stylish-haskell = {
-        enable = true;
-        package = tools.stylish-haskell;
-        args = [ "--config" ".stylish-haskell.yaml" ];
-      };
       fourmolu = {
-        enable = false;
+        enable = true;
         package = tools.fourmolu;
-        args = [ "--mode" "inplace" ];
-      };
-      hlint = {
-        enable = false;
-        package = tools.hlint;
-        args = [ "--hint" ".hlint.yaml" ];
-      };
-      shellcheck = {
-        enable = false;
-        package = pkgs.shellcheck;
-      };
-      prettier = {
-        enable = false;
-        package = pkgs.prettier;
       };
       editorconfig-checker = {
         enable = true;
