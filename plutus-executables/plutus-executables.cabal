@@ -52,6 +52,11 @@ common lang
   if impl(ghc >=9.8)
     ghc-options: -Wno-x-partial
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
+    buildable: False
+
 -- This means that we no longer support uplc/plc/pir on Windows
 common os-support
   if (impl(ghcjs) || os(windows))
