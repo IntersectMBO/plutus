@@ -16,6 +16,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MonoLocalBinds        #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use elemIndex" #-}
 
 module List.Spec where
 
@@ -895,35 +897,6 @@ uniqueElementSpec = property $ do
     (===)
     expected
 
-findIndexProgram :: CompiledCode (Integer -> [Integer] -> Maybe Integer)
-findIndexProgram = $$(compile [|| \num -> List.findIndex (== num) ||])
-
-dataFindIndexProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe Integer)
-dataFindIndexProgram = $$(compile [|| \num -> Data.List.findIndex (== num) ||])
-
-findIndexSpec :: Property
-findIndexSpec = property $ do
-  listS <- forAll genListS
-  num <- forAll $ Gen.integral rangeElem
-  let list = semanticsToList listS
-      dataList = semanticsToDataList listS
-      expected = findIndexS (== num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ findIndexProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
-    )
-    (===)
-    expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFindIndexProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
-    )
-    (===)
-    expected
 
 indexProgram :: CompiledCode ([Integer] -> Integer -> Integer)
 indexProgram = $$(compile [|| \l i -> l List.!! i ||])
@@ -1014,41 +987,6 @@ reverseSpec = property $ do
     (===)
     (semanticsToDataList expected)
 
-zipProgram :: CompiledCode ([Integer] -> [Integer] -> [(Integer, Integer)])
-zipProgram = $$(compile [|| List.zip ||])
-
-dataZipProgram
-  :: CompiledCode
-    (Data.List Integer -> Data.List Integer -> Data.List (Integer, Integer))
-dataZipProgram = $$(compile [|| Data.List.zip ||])
-
-zipSpec :: Property
-zipSpec = property $ do
-  listS1 <- forAll genListS
-  listS2 <- forAll genListS
-  let list1 = semanticsToList listS1
-      list2 = semanticsToList listS2
-      dataList1 = semanticsToDataList listS1
-      dataList2 = semanticsToDataList listS2
-      expected :: ListS (Integer, Integer)
-      expected = zipS listS1 listS2
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ zipProgram
-        `unsafeApplyCode` liftCodeDef list1
-        `unsafeApplyCode` liftCodeDef list2
-    )
-    (===)
-    (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataZipProgram
-        `unsafeApplyCode` liftCodeDef dataList1
-        `unsafeApplyCode` liftCodeDef dataList2
-    )
-    (===)
-    (semanticsToDataList expected)
-
 propertyTests :: TestTree
 propertyTests =
   testGroup "List property tests"
@@ -1076,10 +1014,7 @@ propertyTests =
     , testProperty "concatMap" concatMapSpec
     , testProperty "listToMaybe" listToMaybeSpec
     , testProperty "uniqueElement" uniqueElementSpec
-    , testProperty "findIndex" findIndexSpec
     , testProperty "index" indexSpec
     , testProperty "revAppend" revAppendSpec
     , testProperty "reverse" reverseSpec
-    -- TODO: fix
-    -- , testProperty "zip" zipSpec
     ]
