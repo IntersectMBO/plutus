@@ -121,7 +121,7 @@ mkUnsafeConstrMatchPattern conIx extractFieldNames =
 
 mkUnsafeConstrMatchPattern' :: [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern' extractFieldNames =
-  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern' extractFieldNames))) |]
+  [p| (BI.unsafeDataAsConstr -> (BI.snd -> $(mkUnsafeConstrPartsMatchPattern' extractFieldNames))) |]
 
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
@@ -150,7 +150,7 @@ mkUnsafeConstrPartsMatchPattern' extractFieldNames =
         go []     = [p| _ |]
         go [x]    = [p| (BI.head -> $x) |]
         go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
-    pat = [p| (_, $extractArgsPat) |]
+    pat = [p| $extractArgsPat |]
   in pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
