@@ -78,14 +78,9 @@ fixedPath = ["test", "certifier"]
 srcTests :: [ String ]
 srcTests =
   [ "inc"
+  -- TODO: This is currently failing to certify. This will be fixed
+  -- after the PR that covers counter example tracing.
   -- , len
-  ]
-
--- These run but the certifier says "no"
-rejectedTests :: [String]
-rejectedTests =
-  [
-
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
@@ -101,5 +96,4 @@ main = do
     testGroup "Certification"
     [ testGroup "simple certification"  $ makeTestTree srcTests
     , testGroup "example certification"  $ makeExampleTests exampleNames
-    , testGroup "rejected certification"  $ makeTestTree rejectedTests
     ]
