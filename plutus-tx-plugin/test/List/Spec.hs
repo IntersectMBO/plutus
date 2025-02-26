@@ -987,6 +987,36 @@ reverseSpec = property $ do
     (===)
     (semanticsToDataList expected)
 
+findIndexProgram :: CompiledCode (Integer -> [Integer] -> Maybe Integer)
+findIndexProgram = $$(compile [|| \num -> List.findIndex (PlutusTx.== num) ||])
+
+dataFindIndexProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe Integer)
+dataFindIndexProgram = $$(compile [|| \num -> Data.List.findIndex (PlutusTx.== num) ||])
+
+findIndexSpec :: Property
+findIndexSpec = property $ do
+  listS <- forAll genListS
+  num <- forAll $ Gen.integral rangeElem
+  let list = semanticsToList listS
+      dataList = semanticsToDataList listS
+      expected = findIndexS (== num) listS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ findIndexProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataFindIndexProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
+    )
+    (===)
+    expected
+
 propertyTests :: TestTree
 propertyTests =
   testGroup "List property tests"
@@ -1017,4 +1047,5 @@ propertyTests =
     , testProperty "index" indexSpec
     , testProperty "revAppend" revAppendSpec
     , testProperty "reverse" reverseSpec
+    , testProperty "findIndex" findIndexSpec
     ]

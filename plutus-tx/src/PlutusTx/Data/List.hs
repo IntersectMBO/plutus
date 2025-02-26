@@ -37,6 +37,7 @@ module PlutusTx.Data.List (
     revAppend,
     reverse,
     replicate,
+    findIndex,
 ) where
 
 import PlutusTx.Builtins qualified as B
@@ -384,5 +385,17 @@ replicate n x = List $ go n
             then B.mkNil
             else BI.mkCons (toBuiltinData x) (go (B.subtractInteger n' 1))
 {-# INLINEABLE replicate #-}
+
+findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
+findIndex pred' (List l) = go 0 l
+  where
+    go i =
+        B.caseList'
+            Nothing
+            (\h t ->
+                let h' = unsafeFromBuiltinData h
+                in if pred' h' then Just i else go (B.addInteger 1 i) t
+            )
+{-# INLINEABLE findIndex #-}
 
 makeLift ''List
