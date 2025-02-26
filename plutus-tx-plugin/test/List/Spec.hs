@@ -730,10 +730,10 @@ notElemSpec = property $ do
     expected
 
 foldrProgram :: CompiledCode (Integer -> [Integer] -> Integer)
-foldrProgram = $$(compile [|| List.foldr B.addInteger ||])
+foldrProgram = $$(compile [|| List.foldr B.subtractInteger ||])
 
 dataFoldrProgram :: CompiledCode (Integer -> Data.List Integer -> Integer)
-dataFoldrProgram = $$(compile [|| Data.List.foldr B.addInteger ||])
+dataFoldrProgram = $$(compile [|| Data.List.foldr B.subtractInteger ||])
 
 foldrSpec :: Property
 foldrSpec = property $ do
@@ -741,7 +741,7 @@ foldrSpec = property $ do
   num <- forAll $ Gen.integral rangeElem
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
-      expected = foldrS (+) num listS
+      expected = foldrS (-) num listS
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
         $ foldrProgram
@@ -760,10 +760,10 @@ foldrSpec = property $ do
     expected
 
 foldlProgram :: CompiledCode (Integer -> [Integer] -> Integer)
-foldlProgram = $$(compile [|| List.foldl B.addInteger ||])
+foldlProgram = $$(compile [|| List.foldl B.subtractInteger ||])
 
 dataFoldlProgram :: CompiledCode (Integer -> Data.List Integer -> Integer)
-dataFoldlProgram = $$(compile [|| Data.List.foldl B.addInteger ||])
+dataFoldlProgram = $$(compile [|| Data.List.foldl B.subtractInteger ||])
 
 foldlSpec :: Property
 foldlSpec = property $ do
@@ -771,7 +771,7 @@ foldlSpec = property $ do
   num <- forAll $ Gen.integral rangeElem
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
-      expected = foldlS (+) num listS
+      expected = foldlS (-) num listS
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
         $ foldlProgram
@@ -816,21 +816,23 @@ concatSpec = property $ do
     (===)
     (semanticsToDataList expected)
 
-concatMapProgram :: CompiledCode ([Integer] -> [Integer])
-concatMapProgram = $$(compile [|| List.concatMap (List.replicate 2) ||])
+concatMapProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
+concatMapProgram = $$(compile [|| \n -> List.concatMap (List.replicate n) ||])
 
-dataConcatMapProgram :: CompiledCode (Data.List Integer -> Data.List Integer)
-dataConcatMapProgram = $$(compile [|| Data.List.concatMap (Data.List.replicate 2) ||])
+dataConcatMapProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
+dataConcatMapProgram = $$(compile [|| \n -> Data.List.concatMap (Data.List.replicate n) ||])
 
 concatMapSpec :: Property
 concatMapSpec = property $ do
   listS <- forAll genListS
+  num <- forAll $ Gen.integral rangeElem
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
-      expected = concatMapS (replicateS 2) listS
+      expected = concatMapS (replicateS num) listS
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
         $ concatMapProgram
+        `unsafeApplyCode` liftCodeDef num
         `unsafeApplyCode` liftCodeDef list
     )
     (===)
@@ -838,6 +840,7 @@ concatMapSpec = property $ do
   cekResultMatchesHaskellValue
     ( compiledCodeToTerm
         $ dataConcatMapProgram
+        `unsafeApplyCode` liftCodeDef num
         `unsafeApplyCode` liftCodeDef dataList
     )
     (===)

@@ -1,7 +1,9 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Data.List (
     List,
@@ -50,6 +52,7 @@ import PlutusTx.Prelude (Bool (..), BuiltinData, Eq (..), Integer, Maybe (..), M
                          (||))
 import Prettyprinter (Pretty (..))
 
+import Data.Coerce (coerce)
 import Data.Semigroup qualified as Haskell
 import PlutusTx.ErrorCodes (indexTooLargeError, negativeIndexError)
 import Prelude qualified as Haskell
@@ -84,19 +87,19 @@ instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     pretty = pretty . toSOP
 
 toBuiltinList :: List a -> BuiltinList BuiltinData
-toBuiltinList (List l) = l
+toBuiltinList = coerce
 {-# INLINEABLE toBuiltinList #-}
 
 fromBuiltinList :: BuiltinList BuiltinData -> List a
-fromBuiltinList = List
+fromBuiltinList = coerce
 {-# INLINEABLE fromBuiltinList #-}
 
 null :: List a -> Bool
-null (List l) = B.null l
+null = B.null . coerce @_ @(BuiltinList BuiltinData)
 {-# INLINEABLE null #-}
 
 cons :: (ToData a) => a -> List a -> List a
-cons h (List t) = List (BI.mkCons (toBuiltinData h) t)
+cons h = coerce . BI.mkCons (toBuiltinData h) . coerce
 {-# INLINEABLE cons #-}
 
 append :: List a -> List a -> List a
@@ -118,20 +121,20 @@ instance Haskell.Semigroup  (List a) where
     (<>) = append
 
 instance Haskell.Monoid (List a) where
-    mempty = List B.mkNil
+    mempty = coerce @(BuiltinList BuiltinData) B.mkNil
 
 toSOP :: (UnsafeFromData a) => List a -> [a]
-toSOP (List l) = go l
+toSOP = go . coerce
   where
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
 {-# INLINEABLE toSOP #-}
 
 fromSOP :: (ToData a) => [a] -> List a
-fromSOP = List . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
+fromSOP = coerce . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
 {-# INLINEABLE fromSOP #-}
 
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
-find pred' (List l) = go l
+find pred' = go . coerce
   where
     go =
         B.caseList'
@@ -146,7 +149,7 @@ find pred' (List l) = go l
 {-# INLINEABLE find #-}
 
 findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> List Integer
-findIndices pred' (List l) = go 0 l
+findIndices pred' = go 0 . coerce
   where
     go i =
         B.caseList'
@@ -162,7 +165,7 @@ findIndices pred' (List l) = go 0 l
 {-# INLINEABLE findIndices #-}
 
 filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
-filter pred1 (List l) = go l
+filter pred1 = go . coerce
   where
     go =
         B.caseList'
@@ -174,45 +177,42 @@ filter pred1 (List l) = go l
 {-# INLINEABLE filter #-}
 
 mapMaybe :: (UnsafeFromData a, ToData b) => (a -> Maybe b) -> List a -> List b
-mapMaybe f (List l) = go l
+mapMaybe f = go . coerce
   where
     go =
         B.caseList'
             mempty
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in case f h' of
+                case f (unsafeFromBuiltinData h) of
                     Just b  -> b `cons` go t
                     Nothing -> go t
             )
 {-# INLINEABLE mapMaybe #-}
 
 any :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-any pred1 (List l) = go l
+any pred1 = go . coerce
   where
     go =
         B.caseList'
             False
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in pred1 h' || go t
+                pred1 (unsafeFromBuiltinData h) || go t
             )
 {-# INLINEABLE any #-}
 
 all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-all pred1 (List l) = go l
+all pred1 = go . coerce
   where
     go =
         B.caseList'
             True
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in pred1 h' && go t
+                pred1 (unsafeFromBuiltinData h) && go t
             )
 {-# INLINEABLE all #-}
 
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
-foldMap f (List l) = go l
+foldMap f = go . coerce
   where
     go =
         B.caseList'
@@ -223,7 +223,7 @@ foldMap f (List l) = go l
             )
 {-# INLINEABLE map #-}
 map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
-map f (List l) = List (go l)
+map f = coerce . go . coerce
   where
     go =
         B.caseList'
@@ -246,14 +246,13 @@ length (List l) = go l 0
 
 -- | Plutus Tx version of 'Data.Monoid.mconcat'.
 mconcat :: (Monoid a, UnsafeFromData a) => List a -> a
-mconcat (List l) = go l
+mconcat = go . coerce
   where
     go =
         B.caseList'
             mempty
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in h' <> go t
+                unsafeFromBuiltinData h <> go t
             )
 {-# INLINABLE mconcat #-}
 
@@ -264,31 +263,29 @@ uncons (List l) = do
 {-# INLINEABLE uncons #-}
 
 and :: List Bool -> Bool
-and (List l) = go l
+and = go . coerce
   where
     go =
         B.caseList'
             True
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in h' && go t
+                unsafeFromBuiltinData h && go t
             )
 {-# INLINEABLE and #-}
 
 or :: List Bool -> Bool
-or (List l) = go l
+or = go . coerce
   where
     go =
         B.caseList'
             False
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in h' || go t
+                unsafeFromBuiltinData h || go t
             )
 {-# INLINEABLE or #-}
 
 elem :: (ToData a) => a -> List a -> Bool
-elem x (List l) = go l
+elem x = go . coerce
   where
     go =
         B.caseList'
@@ -299,7 +296,7 @@ elem x (List l) = go l
 {-# INLINEABLE elem #-}
 
 notElem :: (ToData a) => a -> List a -> Bool
-notElem x (List l) = not $ elem x (List l)
+notElem x = not . elem x
 {-# INLINEABLE notElem #-}
 
 foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
@@ -309,8 +306,7 @@ foldr f z (List l) = go l z
         B.caseList'
             id
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in f h' . go t
+                f (unsafeFromBuiltinData h) . go t
             )
 {-# INLINEABLE foldr #-}
 
@@ -378,23 +374,22 @@ reverse l = revAppend l mempty
 {-# INLINEABLE reverse #-}
 
 replicate :: (ToData a) =>  Integer -> a -> List a
-replicate n x = List $ go n
+replicate n (toBuiltinData -> x) = coerce $ go n
   where
     go n' =
         if B.equalsInteger n' 0
             then B.mkNil
-            else BI.mkCons (toBuiltinData x) (go (B.subtractInteger n' 1))
+            else BI.mkCons x (go (B.subtractInteger n' 1))
 {-# INLINEABLE replicate #-}
 
 findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
-findIndex pred' (List l) = go 0 l
+findIndex pred' = go 0 . coerce
   where
     go i =
         B.caseList'
             Nothing
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in if pred' h' then Just i else go (B.addInteger 1 i) t
+                if pred' (unsafeFromBuiltinData h) then Just i else go (B.addInteger 1 i) t
             )
 {-# INLINEABLE findIndex #-}
 
