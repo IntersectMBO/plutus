@@ -311,7 +311,7 @@ foldr f z (List l) = go l z
 {-# INLINEABLE foldr #-}
 
 foldl :: (UnsafeFromData a) => (b -> a -> b) -> b -> List a -> b
-foldl f z (List l) = go z l
+foldl f z = go z . coerce
   where
     go acc =
         B.caseList'
