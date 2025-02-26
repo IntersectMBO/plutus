@@ -63,7 +63,7 @@ common os-support
     buildable: False
 
 library lib
-  import:          lang, os-support
+  import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
   exposed-modules: AgdaUnparse
   build-depends:
@@ -104,7 +104,7 @@ executable plc
     , plutus-core:plutus-core-execlib
 
 executable uplc
-  import:         lang, os-support
+  import:         lang, os-support, ghc-version-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
@@ -128,7 +128,7 @@ executable uplc
 -- build-tool-depends: Agda:agda
 
 test-suite test-simple
-  import:             lang, os-support
+  import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/simple
@@ -143,7 +143,7 @@ test-suite test-simple
     , plutus-executables:uplc
 
 test-suite test-detailed
-  import:             lang, os-support
+  import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/detailed
@@ -163,7 +163,7 @@ test-suite test-detailed
     , plutus-executables:uplc
 
 test-suite test-certifier
-  import:             lang, os-support
+  import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
