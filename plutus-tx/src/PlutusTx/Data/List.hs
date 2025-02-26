@@ -300,13 +300,13 @@ notElem x = not . elem x
 {-# INLINEABLE notElem #-}
 
 foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
-foldr f z (List l) = go l z
+foldr f z = go z . coerce
   where
-    go =
+    go u =
         B.caseList'
-            id
-            (\h t ->
-                f (unsafeFromBuiltinData h) . go t
+            u
+            (\h ->
+                f (unsafeFromBuiltinData h) . go u
             )
 {-# INLINEABLE foldr #-}
 
