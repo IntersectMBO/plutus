@@ -18,7 +18,8 @@ import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
-import PlutusTx.IsData.TH (mkAsDataMatchingFunction, mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
+import PlutusTx.IsData.TH (mkAsDataMatchingFunction, mkConstrCreateExpr, mkUnsafeConstrMatchPattern,
+                           mkUnsafeConstrMatchPattern')
 
 import Prelude
 
@@ -133,14 +134,18 @@ asDataFor dec = do
                 (TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
                 , []
                 )
-            else do
-                let typeVarNames = fmap TH.tvName tTypeVars
-                (matchFunType, matchFun@(TH.FunD fName _)) <-
-                  mkAsDataMatchingFunction name typeVarNames cname fields fieldNames
+            else -- do
                 pure
-                  (pure $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP fieldNames)
-                  , [matchFunType, matchFun]
-                  )
+                (TH.conP cname [mkUnsafeConstrMatchPattern' fieldNames]
+                , []
+                )
+                -- let typeVarNames = fmap TH.tvName tTypeVars
+                -- (matchFunType, matchFun@(TH.FunD fName _)) <-
+                --   mkAsDataMatchingFunction name typeVarNames cname fields fieldNames
+                -- pure
+                --   (pure $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP fieldNames)
+                --   , [matchFunType, matchFun]
+                --   )
     let
       createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []

@@ -8,6 +8,7 @@ module PlutusTx.IsData.TH (
   makeIsDataIndexed,
   mkConstrCreateExpr,
   mkUnsafeConstrMatchPattern,
+  mkUnsafeConstrMatchPattern',
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
   mkAsDataMatchingFunction,
@@ -118,6 +119,10 @@ mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =
   [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
+mkUnsafeConstrMatchPattern' :: [TH.Name] -> TH.PatQ
+mkUnsafeConstrMatchPattern' extractFieldNames =
+  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern' extractFieldNames))) |]
+
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
   let
@@ -132,6 +137,20 @@ mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
         go [x]    = [p| (BI.head -> $x) |]
         go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
     pat = [p| ($ixMatchPat, $extractArgsPat) |]
+  in pat
+
+mkUnsafeConstrPartsMatchPattern' :: [TH.Name] -> TH.PatQ
+mkUnsafeConstrPartsMatchPattern' extractFieldNames =
+  let
+    -- [unsafeFromBuiltinData -> arg1, ...]
+    extractArgPats = extractFieldNames <&> \n ->
+      [p| (unsafeFromBuiltinData -> $(TH.varP n)) |]
+    extractArgsPat = go extractArgPats
+      where
+        go []     = [p| _ |]
+        go [x]    = [p| (BI.head -> $x) |]
+        go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
+    pat = [p| (_, $extractArgsPat) |]
   in pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause

@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module AsData.Budget.Types where
 
 import PlutusTx.AsData qualified as AsData
