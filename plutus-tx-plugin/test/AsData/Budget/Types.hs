@@ -9,9 +9,12 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
 
+{-# OPTIONS_GHC -ddump-splices #-}
+
 module AsData.Budget.Types where
 
 import PlutusTx.AsData qualified as AsData
+import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
@@ -96,34 +99,24 @@ newtype TheseDManual a b = TheseDManual_ PlutusTx.BuiltinData
   deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
 
 pattern ThisDManual :: (PlutusTx.ToData a, PlutusTx.UnsafeFromData a) => a -> TheseDManual a b
-pattern ThisDManual arg <- (matchOnThisDManual -> (True, arg))
+pattern ThisDManual arg <-
+  TheseDManual_
+    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 0 -> True, unpack1 -> arg))
   where ThisDManual arg =
           TheseDManual_
             (BI.mkConstr 0 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
 
-matchOnThisDManual :: PlutusTx.UnsafeFromData a => TheseDManual a b -> (Bool, a)
-matchOnThisDManual (TheseDManual_ bd) =
-  let !asCons = BI.unsafeDataAsConstr bd
-      ~idx = BI.fst asCons
-      ~l = BI.snd asCons
-      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      ~b = 0 PlutusTx.== idx
-   in (b, x)
-
 pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
-pattern ThatDManual arg <- (matchOnThatDManual -> (True, arg))
+pattern ThatDManual arg <-
+  TheseDManual_
+    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 0 -> True, unpack1 -> arg))
   where ThatDManual arg =
           TheseDManual_
             (BI.mkConstr 1 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
 
-matchOnThatDManual :: PlutusTx.UnsafeFromData b => TheseDManual a b -> (Bool, b)
-matchOnThatDManual (TheseDManual_ bd) =
-  let !asCons = BI.unsafeDataAsConstr bd
-      ~idx = BI.fst asCons
-      ~l = BI.snd asCons
-      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      ~b = 1 PlutusTx.== idx
-   in (b, x)
+unpack1 :: PlutusTx.UnsafeFromData a => BI.BuiltinList BI.BuiltinData -> a
+unpack1 args =
+  PlutusTx.unsafeFromBuiltinData $ BI.head args
 
 pattern TheseDManual
   :: (PlutusTx.ToData a
@@ -131,7 +124,9 @@ pattern TheseDManual
     , PlutusTx.ToData b
     , PlutusTx.UnsafeFromData b
     ) => a -> b -> TheseDManual a b
-pattern TheseDManual arg1 arg2 <- (matchOnTheseDManual -> (True, arg1, arg2))
+pattern TheseDManual arg1 arg2 <-
+  TheseDManual_
+    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 2 -> True, unpack2 -> (arg1, arg2)))
   where TheseDManual arg1 arg2 =
           TheseDManual_
             (BI.mkConstr 2
@@ -144,17 +139,14 @@ pattern TheseDManual arg1 arg2 <- (matchOnTheseDManual -> (True, arg1, arg2))
               )
             )
 
-matchOnTheseDManual
-  :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b) => TheseDManual a b -> (Bool, a, b)
-matchOnTheseDManual (TheseDManual_ bd) =
-  let !asCons = BI.unsafeDataAsConstr bd
-      ~idx = BI.fst asCons
-      !l = BI.snd asCons
-      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      ~rest = BI.tail l
+unpack2
+  :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b)
+  => BI.BuiltinList BI.BuiltinData -> (a, b)
+unpack2 args =
+  let ~x = PlutusTx.unsafeFromBuiltinData $ BI.head args
+      ~rest = BI.tail args
       ~y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
-      ~b = 2 PlutusTx.== idx
-   in (b, x, y)
+   in (x, y)
 
 
 {-# COMPLETE ThisDManual, ThatDManual, TheseDManual #-}
