@@ -18,7 +18,6 @@ module PlutusLedgerApi.V1.Credential
     ) where
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
@@ -43,7 +42,7 @@ data StakingCredential
         Integer -- ^ the slot number
         Integer -- ^ the transaction index (within the block)
         Integer -- ^ the certificate index (within the transaction)
-    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty StakingCredential where
@@ -68,7 +67,7 @@ data Credential
     -- | The transaction that spends this output must include the validator script and
     -- be accepted by the validator. See `ScriptHash`.
   | ScriptCredential ScriptHash
-    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty Credential where

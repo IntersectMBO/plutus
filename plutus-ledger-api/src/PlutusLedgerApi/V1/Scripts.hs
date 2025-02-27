@@ -29,7 +29,6 @@ import Codec.Serialise (Serialise (..))
 import Control.DeepSeq (NFData)
 import Data.String (IsString)
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
@@ -58,12 +57,12 @@ data ScriptError
     EvaluationError ![Text] !Haskell.String
   | -- | Unexpected behavior of the engine (a bug)
     EvaluationException !Haskell.String !Haskell.String
-  deriving stock (Haskell.Show, Haskell.Eq, Generic, Typeable)
+  deriving stock (Haskell.Show, Haskell.Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum {getDatum :: BuiltinData}
-  deriving stock (Generic, Typeable, Haskell.Show)
+  deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
@@ -77,7 +76,7 @@ instance Serialise Datum where
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer {getRedeemer :: BuiltinData}
-  deriving stock (Generic, Haskell.Show, Typeable)
+  deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
@@ -105,7 +104,7 @@ newtype ScriptHash = ScriptHash {getScriptHash :: Builtins.BuiltinByteString}
       Pretty
     )
     via LedgerBytes
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
@@ -128,7 +127,7 @@ newtype DatumHash = DatumHash Builtins.BuiltinByteString
       Pretty
     )
     via LedgerBytes
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
@@ -151,7 +150,7 @@ newtype RedeemerHash = RedeemerHash Builtins.BuiltinByteString
       Pretty
     )
     via LedgerBytes
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
   deriving anyclass (NFData, HasBlueprintDefinition)
 

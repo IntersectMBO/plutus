@@ -16,7 +16,6 @@ module PlutusLedgerApi.V1.Crypto
 
 import Control.DeepSeq (NFData)
 import Data.String
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx qualified
@@ -37,7 +36,7 @@ You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype PubKeyHash = PubKeyHash {getPubKeyHash :: PlutusTx.BuiltinByteString}
-  deriving stock (Eq, Ord, Generic, Typeable)
+  deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData)
   deriving newtype
     ( PlutusTx.Eq
