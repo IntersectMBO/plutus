@@ -546,16 +546,23 @@ test-suite plutus-benchmark-marlowe-tests
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: marlowe/test
-  other-modules:
+  other-modules:  Lib
   build-depends:
     , base                             >=4.9   && <5
+    , directory
+    , filepath
+    , formatting
     , marlowe-internal
+    , mtl
+    , plutus-benchmark-common
     , plutus-core                      ^>=1.40
     , plutus-core:plutus-core-testlib
     , plutus-ledger-api                ^>=1.40
-    , plutus-tx                        ^>=1.40
-    , plutus-tx:plutus-tx-testlib
+    , tabular
     , tasty
+    , tasty-golden
+    , text
+    , with-utf8
 
 ---------------- agda evaluators ----------------
 
