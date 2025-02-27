@@ -25,7 +25,7 @@ import Data.Bifunctor (bimap, second)
 import Data.ByteString.Lazy qualified as LBS (readFile)
 import Data.Either.Extras (unsafeFromEither)
 import Data.Int (Int64)
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, sort)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
@@ -74,7 +74,7 @@ readBenchmarks subfolder = do
   files <-
     filter (isSuffixOf ".benchmark") . fmap (folder </>)
       <$> listDirectory folder
-  sequence <$> mapM readBenchmark files
+  sequence <$> mapM readBenchmark (sort files)
 
 -- | Read a benchmarking file.
 readBenchmark :: FilePath -> IO (Either String Benchmark)
