@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Parity.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Parity</a>
+<a id="116" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="190" class="Symbol">{-#</a> <a id="194" class="Keyword">OPTIONS</a> <a id="202" class="Pragma">--cubical-compatible</a> <a id="223" class="Pragma">--safe</a> <a id="230" class="Symbol">#-}</a>
+
+<a id="235" class="Keyword">module</a> <a id="242" href="Data.Parity.Base.html" class="Module">Data.Parity.Base</a> <a id="259" class="Keyword">where</a>
+
+<a id="266" class="Keyword">open</a> <a id="271" class="Keyword">import</a> <a id="278" href="Algebra.Bundles.Raw.html" class="Module">Algebra.Bundles.Raw</a>
+  <a id="300" class="Keyword">using</a> <a id="306" class="Symbol">(</a><a id="307" href="Algebra.Bundles.Raw.html#1073" class="Record">RawMagma</a><a id="315" class="Symbol">;</a> <a id="317" href="Algebra.Bundles.Raw.html#1534" class="Record">RawMonoid</a><a id="326" class="Symbol">;</a> <a id="328" href="Algebra.Bundles.Raw.html#2067" class="Record">RawGroup</a><a id="336" class="Symbol">;</a> <a id="338" href="Algebra.Bundles.Raw.html#2651" class="Record">RawNearSemiring</a><a id="353" class="Symbol">;</a> <a id="355" href="Algebra.Bundles.Raw.html#3363" class="Record">RawSemiring</a><a id="366" class="Symbol">)</a>
+<a id="368" class="Keyword">open</a> <a id="373" class="Keyword">import</a> <a id="380" href="Data.Sign.Base.html" class="Module">Data.Sign.Base</a> <a id="395" class="Keyword">using</a> <a id="401" class="Symbol">(</a><a id="402" href="Data.Sign.Base.html#523" class="Datatype">Sign</a><a id="406" class="Symbol">;</a> <a id="408" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a><a id="409" class="Symbol">;</a> <a id="411" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a><a id="412" class="Symbol">)</a>
+<a id="414" class="Keyword">open</a> <a id="419" class="Keyword">import</a> <a id="426" href="Level.html" class="Module">Level</a> <a id="432" class="Keyword">using</a> <a id="438" class="Symbol">(</a><a id="439" href="Level.html#521" class="Function">0ℓ</a><a id="441" class="Symbol">)</a>
+<a id="443" class="Keyword">open</a> <a id="448" class="Keyword">import</a> <a id="455" href="Relation.Binary.PropositionalEquality.Core.html" class="Module">Relation.Binary.PropositionalEquality.Core</a> <a id="498" class="Keyword">using</a> <a id="504" class="Symbol">(</a><a id="505" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="508" class="Symbol">)</a>
+
+<a id="511" class="Comment">------------------------------------------------------------------------</a>
+<a id="584" class="Comment">-- Definition</a>
+
+<a id="599" class="Keyword">data</a> <a id="Parity"></a><a id="604" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="611" class="Symbol">:</a> <a id="613" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="617" class="Keyword">where</a>
+  <a id="Parity.0ℙ"></a><a id="625" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a> <a id="628" class="Symbol">:</a> <a id="630" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+  <a id="Parity.1ℙ"></a><a id="639" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a> <a id="642" class="Symbol">:</a> <a id="644" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+
+<a id="652" class="Comment">------------------------------------------------------------------------</a>
+<a id="725" class="Comment">-- Operations</a>
+
+<a id="740" class="Comment">-- The opposite parity.</a>
+
+<a id="765" class="Keyword">infix</a> <a id="771" class="Number">8</a> <a id="773" href="Data.Parity.Base.html#778" class="Function Operator">_⁻¹</a>
+
+<a id="_⁻¹"></a><a id="778" href="Data.Parity.Base.html#778" class="Function Operator">_⁻¹</a> <a id="782" class="Symbol">:</a> <a id="784" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="791" class="Symbol">→</a> <a id="793" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+<a id="800" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a> <a id="803" href="Data.Parity.Base.html#778" class="Function Operator">⁻¹</a> <a id="806" class="Symbol">=</a> <a id="808" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+<a id="811" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a> <a id="814" href="Data.Parity.Base.html#778" class="Function Operator">⁻¹</a> <a id="817" class="Symbol">=</a> <a id="819" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a>
+
+<a id="823" class="Comment">-- Addition.</a>
+
+<a id="837" class="Keyword">infixl</a> <a id="844" class="Number">7</a> <a id="846" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+
+<a id="_+_"></a><a id="851" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a> <a id="855" class="Symbol">:</a> <a id="857" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="864" class="Symbol">→</a> <a id="866" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="873" class="Symbol">→</a> <a id="875" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+<a id="882" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a> <a id="885" href="Data.Parity.Base.html#851" class="Function Operator">+</a> <a id="887" href="Data.Parity.Base.html#887" class="Bound">p</a> <a id="889" class="Symbol">=</a> <a id="891" href="Data.Parity.Base.html#887" class="Bound">p</a>
+<a id="893" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a> <a id="896" href="Data.Parity.Base.html#851" class="Function Operator">+</a> <a id="898" href="Data.Parity.Base.html#898" class="Bound">p</a> <a id="900" class="Symbol">=</a> <a id="902" href="Data.Parity.Base.html#898" class="Bound">p</a> <a id="904" href="Data.Parity.Base.html#778" class="Function Operator">⁻¹</a>
+
+<a id="908" class="Comment">-- Multiplication.</a>
+
+<a id="928" class="Keyword">infixl</a> <a id="935" class="Number">7</a> <a id="937" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a>
+
+<a id="_*_"></a><a id="942" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a> <a id="946" class="Symbol">:</a> <a id="948" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="955" class="Symbol">→</a> <a id="957" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="964" class="Symbol">→</a> <a id="966" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+<a id="973" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a> <a id="976" href="Data.Parity.Base.html#942" class="Function Operator">*</a> <a id="978" href="Data.Parity.Base.html#978" class="Bound">p</a> <a id="980" class="Symbol">=</a> <a id="982" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+<a id="985" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a> <a id="988" href="Data.Parity.Base.html#942" class="Function Operator">*</a> <a id="990" href="Data.Parity.Base.html#990" class="Bound">p</a> <a id="992" class="Symbol">=</a> <a id="994" href="Data.Parity.Base.html#990" class="Bound">p</a>
+
+<a id="997" class="Comment">------------------------------------------------------------------------</a>
+<a id="1070" class="Comment">-- Raw Bundles</a>
+
+<a id="+-rawMagma"></a><a id="1086" href="Data.Parity.Base.html#1086" class="Function">+-rawMagma</a> <a id="1097" class="Symbol">:</a> <a id="1099" href="Algebra.Bundles.Raw.html#1073" class="Record">RawMagma</a> <a id="1108" href="Level.html#521" class="Function">0ℓ</a> <a id="1111" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1114" href="Data.Parity.Base.html#1086" class="Function">+-rawMagma</a> <a id="1125" class="Symbol">=</a> <a id="1127" class="Keyword">record</a>
+  <a id="1136" class="Symbol">{</a> <a id="1138" href="Algebra.Bundles.Raw.html#1174" class="Field Operator">_≈_</a> <a id="1142" class="Symbol">=</a> <a id="1144" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1150" class="Symbol">;</a> <a id="1152" href="Algebra.Bundles.Raw.html#1202" class="Field Operator">_∙_</a> <a id="1156" class="Symbol">=</a> <a id="1158" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+  <a id="1164" class="Symbol">}</a>
+
+<a id="+-0-rawMonoid"></a><a id="1167" href="Data.Parity.Base.html#1167" class="Function">+-0-rawMonoid</a> <a id="1181" class="Symbol">:</a> <a id="1183" href="Algebra.Bundles.Raw.html#1534" class="Record">RawMonoid</a> <a id="1193" href="Level.html#521" class="Function">0ℓ</a> <a id="1196" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1199" href="Data.Parity.Base.html#1167" class="Function">+-0-rawMonoid</a> <a id="1213" class="Symbol">=</a> <a id="1215" class="Keyword">record</a>
+  <a id="1224" class="Symbol">{</a> <a id="1226" href="Algebra.Bundles.Raw.html#1636" class="Field Operator">_≈_</a> <a id="1230" class="Symbol">=</a> <a id="1232" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1238" class="Symbol">;</a> <a id="1240" href="Algebra.Bundles.Raw.html#1664" class="Field Operator">_∙_</a> <a id="1244" class="Symbol">=</a> <a id="1246" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+  <a id="1252" class="Symbol">;</a> <a id="1254" href="Algebra.Bundles.Raw.html#1690" class="Field">ε</a> <a id="1256" class="Symbol">=</a> <a id="1258" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+  <a id="1263" class="Symbol">}</a>
+
+<a id="+-0-rawGroup"></a><a id="1266" href="Data.Parity.Base.html#1266" class="Function">+-0-rawGroup</a> <a id="1279" class="Symbol">:</a> <a id="1281" href="Algebra.Bundles.Raw.html#2067" class="Record">RawGroup</a> <a id="1290" href="Level.html#521" class="Function">0ℓ</a> <a id="1293" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1296" href="Data.Parity.Base.html#1266" class="Function">+-0-rawGroup</a> <a id="1309" class="Symbol">=</a> <a id="1311" class="Keyword">record</a>
+  <a id="1320" class="Symbol">{</a> <a id="1322" href="Algebra.Bundles.Raw.html#2183" class="Field Operator">_≈_</a> <a id="1326" class="Symbol">=</a> <a id="1328" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1334" class="Symbol">;</a> <a id="1336" href="Algebra.Bundles.Raw.html#2211" class="Field Operator">_∙_</a> <a id="1340" class="Symbol">=</a> <a id="1342" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+  <a id="1348" class="Symbol">;</a> <a id="1350" href="Algebra.Bundles.Raw.html#2259" class="Field Operator">_⁻¹</a> <a id="1354" class="Symbol">=</a> <a id="1356" href="Data.Parity.Base.html#778" class="Function Operator">_⁻¹</a>
+  <a id="1362" class="Symbol">;</a> <a id="1364" href="Algebra.Bundles.Raw.html#2237" class="Field">ε</a> <a id="1366" class="Symbol">=</a> <a id="1368" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+  <a id="1373" class="Symbol">}</a>
+
+<a id="*-rawMagma"></a><a id="1376" href="Data.Parity.Base.html#1376" class="Function">*-rawMagma</a> <a id="1387" class="Symbol">:</a> <a id="1389" href="Algebra.Bundles.Raw.html#1073" class="Record">RawMagma</a> <a id="1398" href="Level.html#521" class="Function">0ℓ</a> <a id="1401" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1404" href="Data.Parity.Base.html#1376" class="Function">*-rawMagma</a> <a id="1415" class="Symbol">=</a> <a id="1417" class="Keyword">record</a>
+  <a id="1426" class="Symbol">{</a> <a id="1428" href="Algebra.Bundles.Raw.html#1174" class="Field Operator">_≈_</a> <a id="1432" class="Symbol">=</a> <a id="1434" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1440" class="Symbol">;</a> <a id="1442" href="Algebra.Bundles.Raw.html#1202" class="Field Operator">_∙_</a> <a id="1446" class="Symbol">=</a> <a id="1448" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a>
+  <a id="1454" class="Symbol">}</a>
+
+<a id="*-1-rawMonoid"></a><a id="1457" href="Data.Parity.Base.html#1457" class="Function">*-1-rawMonoid</a> <a id="1471" class="Symbol">:</a> <a id="1473" href="Algebra.Bundles.Raw.html#1534" class="Record">RawMonoid</a> <a id="1483" href="Level.html#521" class="Function">0ℓ</a> <a id="1486" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1489" href="Data.Parity.Base.html#1457" class="Function">*-1-rawMonoid</a> <a id="1503" class="Symbol">=</a> <a id="1505" class="Keyword">record</a>
+  <a id="1514" class="Symbol">{</a> <a id="1516" href="Algebra.Bundles.Raw.html#1636" class="Field Operator">_≈_</a> <a id="1520" class="Symbol">=</a> <a id="1522" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1528" class="Symbol">;</a> <a id="1530" href="Algebra.Bundles.Raw.html#1664" class="Field Operator">_∙_</a> <a id="1534" class="Symbol">=</a> <a id="1536" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a>
+  <a id="1542" class="Symbol">;</a> <a id="1544" href="Algebra.Bundles.Raw.html#1690" class="Field">ε</a> <a id="1546" class="Symbol">=</a> <a id="1548" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a>
+  <a id="1553" class="Symbol">}</a>
+
+<a id="+-*-rawNearSemiring"></a><a id="1556" href="Data.Parity.Base.html#1556" class="Function">+-*-rawNearSemiring</a> <a id="1576" class="Symbol">:</a> <a id="1578" href="Algebra.Bundles.Raw.html#2651" class="Record">RawNearSemiring</a> <a id="1594" href="Level.html#521" class="Function">0ℓ</a> <a id="1597" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1600" href="Data.Parity.Base.html#1556" class="Function">+-*-rawNearSemiring</a> <a id="1620" class="Symbol">=</a> <a id="1622" class="Keyword">record</a>
+  <a id="1631" class="Symbol">{</a> <a id="1633" href="Algebra.Bundles.Raw.html#2754" class="Field">Carrier</a> <a id="1641" class="Symbol">=</a> <a id="1643" class="Symbol">_</a>
+  <a id="1647" class="Symbol">;</a> <a id="1649" href="Algebra.Bundles.Raw.html#2774" class="Field Operator">_≈_</a> <a id="1653" class="Symbol">=</a> <a id="1655" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1661" class="Symbol">;</a> <a id="1663" href="Algebra.Bundles.Raw.html#2802" class="Field Operator">_+_</a> <a id="1667" class="Symbol">=</a> <a id="1669" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+  <a id="1675" class="Symbol">;</a> <a id="1677" href="Algebra.Bundles.Raw.html#2828" class="Field Operator">_*_</a> <a id="1681" class="Symbol">=</a> <a id="1683" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a>
+  <a id="1689" class="Symbol">;</a> <a id="1691" href="Algebra.Bundles.Raw.html#2854" class="Field">0#</a> <a id="1694" class="Symbol">=</a> <a id="1696" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+  <a id="1701" class="Symbol">}</a>
+
+<a id="+-*-rawSemiring"></a><a id="1704" href="Data.Parity.Base.html#1704" class="Function">+-*-rawSemiring</a> <a id="1720" class="Symbol">:</a> <a id="1722" href="Algebra.Bundles.Raw.html#3363" class="Record">RawSemiring</a> <a id="1734" href="Level.html#521" class="Function">0ℓ</a> <a id="1737" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1740" href="Data.Parity.Base.html#1704" class="Function">+-*-rawSemiring</a> <a id="1756" class="Symbol">=</a> <a id="1758" class="Keyword">record</a>
+  <a id="1767" class="Symbol">{</a> <a id="1769" href="Algebra.Bundles.Raw.html#3462" class="Field">Carrier</a> <a id="1777" class="Symbol">=</a> <a id="1779" class="Symbol">_</a>
+  <a id="1783" class="Symbol">;</a> <a id="1785" href="Algebra.Bundles.Raw.html#3482" class="Field Operator">_≈_</a> <a id="1789" class="Symbol">=</a> <a id="1791" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1797" class="Symbol">;</a> <a id="1799" href="Algebra.Bundles.Raw.html#3510" class="Field Operator">_+_</a> <a id="1803" class="Symbol">=</a> <a id="1805" href="Data.Parity.Base.html#851" class="Function Operator">_+_</a>
+  <a id="1811" class="Symbol">;</a> <a id="1813" href="Algebra.Bundles.Raw.html#3536" class="Field Operator">_*_</a> <a id="1817" class="Symbol">=</a> <a id="1819" href="Data.Parity.Base.html#942" class="Function Operator">_*_</a>
+  <a id="1825" class="Symbol">;</a> <a id="1827" href="Algebra.Bundles.Raw.html#3562" class="Field">0#</a> <a id="1830" class="Symbol">=</a> <a id="1832" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+  <a id="1837" class="Symbol">;</a> <a id="1839" href="Algebra.Bundles.Raw.html#3584" class="Field">1#</a> <a id="1842" class="Symbol">=</a> <a id="1844" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a>
+  <a id="1849" class="Symbol">}</a>
+
+
+<a id="1853" class="Comment">------------------------------------------------------------------------</a>
+<a id="1926" class="Comment">-- Homomorphisms between Parity and Sign</a>
+
+<a id="toSign"></a><a id="1968" href="Data.Parity.Base.html#1968" class="Function">toSign</a> <a id="1975" class="Symbol">:</a> <a id="1977" href="Data.Parity.Base.html#604" class="Datatype">Parity</a> <a id="1984" class="Symbol">→</a> <a id="1986" href="Data.Sign.Base.html#523" class="Datatype">Sign</a>
+<a id="1991" href="Data.Parity.Base.html#1968" class="Function">toSign</a> <a id="1998" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a> <a id="2001" class="Symbol">=</a> <a id="2003" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a>
+<a id="2005" href="Data.Parity.Base.html#1968" class="Function">toSign</a> <a id="2012" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a> <a id="2015" class="Symbol">=</a> <a id="2017" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a>
+
+<a id="fromSign"></a><a id="2020" href="Data.Parity.Base.html#2020" class="Function">fromSign</a> <a id="2029" class="Symbol">:</a> <a id="2031" href="Data.Sign.Base.html#523" class="Datatype">Sign</a> <a id="2036" class="Symbol">→</a> <a id="2038" href="Data.Parity.Base.html#604" class="Datatype">Parity</a>
+<a id="2045" href="Data.Parity.Base.html#2020" class="Function">fromSign</a> <a id="2054" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a> <a id="2056" class="Symbol">=</a> <a id="2058" href="Data.Parity.Base.html#625" class="InductiveConstructor">0ℙ</a>
+<a id="2061" href="Data.Parity.Base.html#2020" class="Function">fromSign</a> <a id="2070" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a> <a id="2072" class="Symbol">=</a> <a id="2074" href="Data.Parity.Base.html#639" class="InductiveConstructor">1ℙ</a>
+</pre></body></html>

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Reasoning.Preorder</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Convenient syntax for &quot;equational reasoning&quot; using a preorder</a>
+<a id="171" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="245" class="Comment">-- Example uses:</a>
+<a id="262" class="Comment">--</a>
+<a id="265" class="Comment">--    u∼y : u ∼ y</a>
+<a id="283" class="Comment">--    u∼y = begin</a>
+<a id="301" class="Comment">--      u  ≈⟨ u≈v ⟩</a>
+<a id="321" class="Comment">--      v  ≡⟨ v≡w ⟩</a>
+<a id="341" class="Comment">--      w  ∼⟨ w∼y ⟩</a>
+<a id="361" class="Comment">--      y  ≈⟨ z≈y ⟩</a>
+<a id="381" class="Comment">--      z  ∎</a>
+<a id="394" class="Comment">--</a>
+<a id="397" class="Comment">--    u≈w : u ≈ w</a>
+<a id="415" class="Comment">--    u≈w = begin-equality</a>
+<a id="442" class="Comment">--      u  ≈⟨ u≈v ⟩</a>
+<a id="462" class="Comment">--      v  ≡⟨ v≡w ⟩</a>
+<a id="482" class="Comment">--      w  ≡˘⟨ x≡w ⟩</a>
+<a id="503" class="Comment">--      x  ∎</a>
+
+<a id="517" class="Symbol">{-#</a> <a id="521" class="Keyword">OPTIONS</a> <a id="529" class="Pragma">--cubical-compatible</a> <a id="550" class="Pragma">--safe</a> <a id="557" class="Symbol">#-}</a>
+
+<a id="562" class="Keyword">open</a> <a id="567" class="Keyword">import</a> <a id="574" href="Relation.Binary.html" class="Module">Relation.Binary</a>
+
+<a id="591" class="Keyword">module</a> <a id="598" href="Relation.Binary.Reasoning.Preorder.html" class="Module">Relation.Binary.Reasoning.Preorder</a>
+  <a id="635" class="Symbol">{</a><a id="636" href="Relation.Binary.Reasoning.Preorder.html#636" class="Bound">p₁</a> <a id="639" href="Relation.Binary.Reasoning.Preorder.html#639" class="Bound">p₂</a> <a id="642" href="Relation.Binary.Reasoning.Preorder.html#642" class="Bound">p₃</a><a id="644" class="Symbol">}</a> <a id="646" class="Symbol">(</a><a id="647" href="Relation.Binary.Reasoning.Preorder.html#647" class="Bound">P</a> <a id="649" class="Symbol">:</a> <a id="651" href="Relation.Binary.Bundles.html#1929" class="Record">Preorder</a> <a id="660" href="Relation.Binary.Reasoning.Preorder.html#636" class="Bound">p₁</a> <a id="663" href="Relation.Binary.Reasoning.Preorder.html#639" class="Bound">p₂</a> <a id="666" href="Relation.Binary.Reasoning.Preorder.html#642" class="Bound">p₃</a><a id="668" class="Symbol">)</a> <a id="670" class="Keyword">where</a>
+
+<a id="677" class="Keyword">open</a> <a id="682" href="Relation.Binary.Bundles.html#1929" class="Module">Preorder</a> <a id="691" href="Relation.Binary.Reasoning.Preorder.html#647" class="Bound">P</a>
+
+<a id="694" class="Comment">------------------------------------------------------------------------</a>
+<a id="767" class="Comment">-- Publicly re-export the contents of the base module</a>
+
+<a id="822" class="Keyword">open</a> <a id="827" class="Keyword">import</a> <a id="834" href="Relation.Binary.Reasoning.Base.Double.html" class="Module">Relation.Binary.Reasoning.Base.Double</a> <a id="872" href="Relation.Binary.Bundles.html#2142" class="Field">isPreorder</a> <a id="883" class="Keyword">public</a>
+
+
+<a id="892" class="Comment">------------------------------------------------------------------------</a>
+<a id="965" class="Comment">-- DEPRECATED NAMES</a>
+<a id="985" class="Comment">------------------------------------------------------------------------</a>
+<a id="1058" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="1129" class="Comment">-- not guaranteed.</a>
+
+<a id="1149" class="Comment">-- Version 1.0</a>
+
+<a id="1165" class="Keyword">infixr</a> <a id="1172" class="Number">2</a> <a id="1174" href="Relation.Binary.Reasoning.Preorder.html#1181" class="Function Operator">_≈⟨⟩_</a>
+
+<a id="_≈⟨⟩_"></a><a id="1181" href="Relation.Binary.Reasoning.Preorder.html#1181" class="Function Operator">_≈⟨⟩_</a> <a id="1187" class="Symbol">=</a> <a id="1189" href="Relation.Binary.Reasoning.Base.Double.html#3560" class="Function Operator">_≡⟨⟩_</a>
+<a id="1195" class="Symbol">{-#</a> <a id="1199" class="Keyword">WARNING_ON_USAGE</a> <a id="1216" class="Pragma">_≈⟨⟩_</a>
+<a id="1222" class="String">&quot;Warning: _≈⟨⟩_ was deprecated in v1.0.
+Please use _≡⟨⟩_ instead.&quot;</a>
+<a id="1289" class="Symbol">#-}</a>
+</pre></body></html>
