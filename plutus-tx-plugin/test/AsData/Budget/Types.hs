@@ -149,7 +149,7 @@ matchOnTheseDManual
 matchOnTheseDManual (TheseDManual_ bd) =
   let !asCons = BI.unsafeDataAsConstr bd
       ~idx = BI.fst asCons
-      ~l = BI.snd asCons
+      !l = BI.snd asCons
       ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
       ~rest = BI.tail l
       ~y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
