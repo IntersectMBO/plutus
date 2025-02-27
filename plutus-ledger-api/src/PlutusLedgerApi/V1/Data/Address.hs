@@ -24,7 +24,6 @@ module PlutusLedgerApi.V1.Data.Address (
 ) where
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Data.Credential (Credential, StakingCredential, pattern PubKeyCredential,
@@ -49,7 +48,7 @@ PlutusTx.asData
       }
       -- \^ the staking credential
 
-      deriving stock (Eq, Ord, Show, Generic, Typeable)
+      deriving stock (Eq, Ord, Show, Generic)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
       deriving anyclass (NFData, HasBlueprintDefinition)
     |]
