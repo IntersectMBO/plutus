@@ -19,8 +19,6 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
-{-# OPTIONS_GHC -ddump-splices #-}
-
 module IsData.Spec where
 
 import Test.Tasty.Extras
@@ -39,8 +37,6 @@ import PlutusTx.Test
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import UntypedPlutusCore qualified as UPLC
-
-import PlutusTx.Builtins.Internal qualified as BI
 
 import Data.Proxy
 

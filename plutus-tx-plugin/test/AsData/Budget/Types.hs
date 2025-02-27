@@ -115,8 +115,8 @@ pattern ThatDManual arg <-
             (BI.mkConstr 1 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
 
 unpack1 :: PlutusTx.UnsafeFromData a => BI.BuiltinList BI.BuiltinData -> a
-unpack1 args =
-  PlutusTx.unsafeFromBuiltinData $ BI.head args
+unpack1 =
+  PlutusTx.unsafeFromBuiltinData . BI.head
 
 pattern TheseDManual
   :: (PlutusTx.ToData a
