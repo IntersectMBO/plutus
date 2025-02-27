@@ -1,0 +1,130 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  !fail : unit -> data
+    = \(ds : unit) -> Unit_match (error {Unit}) {data} (error {data})
+  !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
+    = \(d : data) -> d
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
+  !`$mInts` :
+     all r.
+       data ->
+       (integer -> integer -> integer -> integer -> r) ->
+       (unit -> r) ->
+       r
+    = /\r ->
+        \(scrut : data)
+         (cont : integer -> integer -> integer -> integer -> r)
+         (fail : unit -> r) ->
+          Tuple4_match
+            {integer}
+            {integer}
+            {integer}
+            {integer}
+            (let
+              !constrArgs : list data
+                = sndPair {integer} {list data} (unConstrData scrut)
+              !rest : list data = tailList {data} constrArgs
+              !rest : list data = tailList {data} rest
+            in
+            Tuple4
+              {integer}
+              {integer}
+              {integer}
+              {integer}
+              (unIData (headList {data} constrArgs))
+              (unIData (headList {data} rest))
+              (unIData (headList {data} rest))
+              (unIData (headList {data} (tailList {data} rest))))
+            {r}
+            (\(int : integer) (int : integer) (int : integer) (int : integer) ->
+               cont int int int int)
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+\(d : data) ->
+  let
+    !tup : pair integer (list data) = unConstrData d
+  in
+  Bool_match
+    (ifThenElse
+       {Bool}
+       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       True
+       False)
+    {all dead. data}
+    (/\dead ->
+       `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+         (headList {data} (sndPair {integer} {list data} tup)))
+    (/\dead ->
+       let
+         !tup : pair integer (list data) = unConstrData d
+       in
+       Bool_match
+         (ifThenElse
+            {Bool}
+            (equalsInteger 1 (fstPair {integer} {list data} tup))
+            True
+            False)
+         {all dead. data}
+         (/\dead ->
+            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+              (headList {data} (sndPair {integer} {list data} tup)))
+         (/\dead ->
+            let
+              !tup : pair integer (list data) = unConstrData d
+            in
+            Bool_match
+              (ifThenElse
+                 {Bool}
+                 (equalsInteger 2 (fstPair {integer} {list data} tup))
+                 True
+                 False)
+              {all dead. data}
+              (/\dead ->
+                 let
+                   !l : list data = sndPair {integer} {list data} tup
+                   !ds : data
+                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                         (headList {data} l)
+                   !ds : data
+                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                         (headList {data} (tailList {data} l))
+                 in
+                 `$mInts`
+                   {data}
+                   ds
+                   (\(x : integer) (y : integer) (z : integer) (w : integer) ->
+                      `$mInts`
+                        {data}
+                        ds
+                        (\(x : integer)
+                          (y : integer)
+                          (z : integer)
+                          (w : integer) ->
+                           let
+                             !int1_ : integer = addInteger x x
+                             !int2_ : integer = addInteger y y
+                             !int3_ : integer = addInteger z z
+                             !int4_ : integer = addInteger w w
+                           in
+                           constrData
+                             0
+                             (mkCons
+                                {data}
+                                (iData int1_)
+                                (mkCons
+                                   {data}
+                                   (iData int2_)
+                                   (mkCons
+                                      {data}
+                                      (iData int3_)
+                                      (mkCons {data} (iData int4_) [])))))
+                        (\(void : unit) -> fail ()))
+                   (\(void : unit) -> fail ()))
+              (/\dead -> fail ())
+              {all dead. dead})
+         {all dead. dead})
+    {all dead. dead}
