@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusBenchmark.Marlowe.RolePayout (

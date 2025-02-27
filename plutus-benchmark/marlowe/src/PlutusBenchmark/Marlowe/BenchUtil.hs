@@ -1,38 +1,20 @@
+{-# LANGUAGE OverloadedStrings #-}
 
-
------------------------------------------------------------------------------
---
--- Module      :  $Headers
--- License     :  Apache 2.0
---
--- Stability   :  Experimental
--- Portability :  Portable
---
 -- | Benchmarking support for Marlowe's validators.
---
------------------------------------------------------------------------------
-
-
-{-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-
-
 module PlutusBenchmark.Marlowe.BenchUtil (
-  -- * Benchmarking
-  benchmarkToUPLC
-, executeBenchmark
-, evaluationContext
-, readBenchmark
-, readBenchmarks
-, printBenchmark
-, printResult
-, tabulateResults
-, writeFlatUPLC
-, writeFlatUPLCs
-, updateScriptHash
-, semanticsBenchmarks
-, rolePayoutBenchmarks
+  benchmarkToUPLC,
+  executeBenchmark,
+  evaluationContext,
+  readBenchmark,
+  readBenchmarks,
+  printBenchmark,
+  printResult,
+  tabulateResults,
+  writeFlatUPLC,
+  writeFlatUPLCs,
+  updateScriptHash,
+  semanticsBenchmarks,
+  rolePayoutBenchmarks,
 ) where
 
 import Codec.Serialise (deserialise)
@@ -70,105 +52,93 @@ benchmarkToUPLC
   :: CompiledCode a
   -- ^ semantics or role payout validator.
   -> M.Benchmark
-  -- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by the executable,
-  -- it includes benchmarking results along with script info.
+  {- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by
+  the executable, it includes benchmarking results along with script info.
+  -}
   -> UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark{..} =
-  let
-    wrap = UPLC.Program () (UPLC.Version 1 0 0)
-    datum = wrap $ mkConstant () bDatum
-    redeemer = wrap $ mkConstant () bRedeemer
-    context = wrap $ mkConstant () $ toData bScriptContext
-    prog = getPlc validator
-    appliedProg = foldl1 (unsafeFromEither .* applyProgram)
-        $ void prog : [datum, redeemer, context]
-  in
-    appliedProg
+  foldl1 (unsafeFromEither .* applyProgram) $
+    void prog : [datum, redeemer, context]
+ where
+  wrap = UPLC.Program () (UPLC.Version 1 0 0)
+  datum = wrap $ mkConstant () bDatum
+  redeemer = wrap $ mkConstant () bRedeemer
+  context = wrap $ mkConstant () $ toData bScriptContext
+  prog = getPlc validator
 
 -- | Read all of the benchmarking cases for a particular validator.
-readBenchmarks
-  :: FilePath
-  -> IO (Either String [Benchmark])
-readBenchmarks subfolder =
-  do
-    folder <- (</> subfolder) <$> getDataDir
-    files <- filter (isSuffixOf ".benchmark") . fmap (folder </>) <$> listDirectory folder
-    sequence <$> mapM readBenchmark files
-
+readBenchmarks :: FilePath -> IO (Either String [Benchmark])
+readBenchmarks subfolder = do
+  folder <- (</> subfolder) <$> getDataDir
+  files <-
+    filter (isSuffixOf ".benchmark") . fmap (folder </>)
+      <$> listDirectory folder
+  sequence <$> mapM readBenchmark files
 
 -- | Read a benchmarking file.
-readBenchmark
-  :: FilePath
-  -> IO (Either String Benchmark)
-readBenchmark filename =
-  do
-    payload <- LBS.readFile filename
-    pure
-      $ case deserialise payload of
-        Constr 0 [bDatum, bRedeemer, scriptContext, I cpu, I memory] ->
-             do
-               bScriptContext <-
-                 maybe (Left "Failed deserializing script context") pure
-                   $ fromData scriptContext
-               let
-                 bReferenceCost = Just $ ExBudget (fromInteger cpu) (fromInteger memory)
-               pure Benchmark{..}
-        _ -> Left "Failed deserializing benchmark file."
+readBenchmark :: FilePath -> IO (Either String Benchmark)
+readBenchmark filename = do
+  payload <- LBS.readFile filename
+  pure $
+    case deserialise payload of
+      Constr 0 [bDatum, bRedeemer, scriptContext, I cpu, I memory] -> do
+        bScriptContext <-
+          maybe (Left "Failed deserializing script context") pure $
+            fromData scriptContext
+        let
+          bReferenceCost =
+            Just $
+              ExBudget
+                (fromInteger cpu)
+                (fromInteger memory)
+        pure Benchmark{..}
+      _ -> Left "Failed deserializing benchmark file."
 
 -- Rewrite all of a particular script hash in the script context.
-updateScriptHash
-  :: ScriptHash
-  -> ScriptHash
-  -> ScriptContext
-  -> ScriptContext
+updateScriptHash :: ScriptHash -> ScriptHash -> ScriptContext -> ScriptContext
 updateScriptHash oldHash newHash scriptContext =
-  let
-    updateAddress address@(Address (ScriptCredential hash) stakeCredential)
-      | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
-      | otherwise = address
-    updateAddress address = address
-    updateTxOut txOut@TxOut{..} = txOut {txOutAddress = updateAddress txOutAddress}
-    updateTxInInfo txInInfo@TxInInfo{..} =
-      txInInfo {txInInfoResolved = updateTxOut txInInfoResolved}
-    txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
-    txInfo' =
-      txInfo
-      {
-        txInfoInputs = updateTxInInfo <$> txInfoInputs
+  scriptContext{scriptContextTxInfo = txInfo'}
+ where
+  updateAddress address@(Address (ScriptCredential hash) stakeCredential)
+    | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
+    | otherwise = address
+  updateAddress address = address
+  updateTxOut txOut@TxOut{..} =
+    txOut{txOutAddress = updateAddress txOutAddress}
+  updateTxInInfo txInInfo@TxInInfo{..} =
+    txInInfo{txInInfoResolved = updateTxOut txInInfoResolved}
+  txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
+  txInfo' =
+    txInfo
+      { txInfoInputs = updateTxInInfo <$> txInfoInputs
       , txInfoOutputs = updateTxOut <$> txInfoOutputs
       }
-  in
-    scriptContext
-    {
-      scriptContextTxInfo = txInfo'
-    }
-
 
 {-  | Revise the validator hashes in the benchmark's script context. Reasons:
 
-- Marlowe's semantics validator takes the hash of Marlowe's payout validator as an argument.
-If the script context pays from the semantics validator to the payout validator address, then that
-hash has to be correct. Hence, we need to edit the script context to ensure that the hash of the
-new payout validator is correct for any payments to that address.
-- Marlowe's semantics validator's prevention of double-satisfaction involves it checking for another
-Marlowe script running in the same transaction. Thus, the script context needs editing here, too.
- -}
-rescript
-  :: Benchmark
-  -> Benchmark
-rescript benchmark@Benchmark{..} =
-  benchmark {
-    bScriptContext =
-      updateScriptHash
-        "2ed2631dbb277c84334453c5c437b86325d371f0835a28b910a91a6e"
-        marloweValidatorHash
-      $ updateScriptHash
-        "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
-        rolePayoutValidatorHash
-        bScriptContext
-  }
+- Marlowe's semantics validator takes the hash of Marlowe's payout validator
+as an argument. If the script context pays from the semantics validator to the
+payout validator address, then that hash has to be correct. Hence, we need to
+edit the script context to ensure that the hash of the new payout validator is
+correct for any payments to that address.
 
+- Marlowe's semantics validator's prevention of double-satisfaction involves
+it checking for another Marlowe script running in the same transaction. Thus,
+the script context needs editing here, too.
+ -}
+rescript :: Benchmark -> Benchmark
+rescript benchmark@Benchmark{..} =
+  benchmark
+    { bScriptContext =
+        updateScriptHash
+          "2ed2631dbb277c84334453c5c437b86325d371f0835a28b910a91a6e"
+          marloweValidatorHash
+          $ updateScriptHash
+            "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
+            rolePayoutValidatorHash
+            bScriptContext
+    }
 
 -- | The benchmark cases for the Marlowe semantics validator.
 semanticsBenchmarks :: IO (Either String [Benchmark])
@@ -178,71 +148,87 @@ semanticsBenchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts/
 rolePayoutBenchmarks :: IO (Either String [Benchmark])
 rolePayoutBenchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts/rolepayout"
 
-
 -- | Print a benchmarking case.
-printBenchmark
-  :: Benchmark
-  -> IO ()
-printBenchmark Benchmark{..} =
-  do
-    putStrLn "*** DATUM ***"
-    print (fromData bDatum :: Maybe MarloweData)
-    putStrLn "*** REDEEMER ***"
-    print (fromData bRedeemer :: Maybe MarloweInput)
-    putStrLn "*** SCRIPT CONTEXT ***"
-    print bScriptContext
-    putStrLn "*** REFERENCE COST ***"
-    print bReferenceCost
-
+printBenchmark :: Benchmark -> IO ()
+printBenchmark Benchmark{..} = do
+  putStrLn "*** DATUM ***"
+  print (fromData bDatum :: Maybe MarloweData)
+  putStrLn "*** REDEEMER ***"
+  print (fromData bRedeemer :: Maybe MarloweInput)
+  putStrLn "*** SCRIPT CONTEXT ***"
+  print bScriptContext
+  putStrLn "*** REFERENCE COST ***"
+  print bReferenceCost
 
 -- | Run and print the results of benchmarking.
 printResult
-  :: SerialisedScript  -- ^ The serialised validator.
-  -> Benchmark  -- ^ The benchmarking case.
-  -> IO ()  -- ^ The action to run and print the results.
+  :: SerialisedScript
+  -- ^ The serialised validator.
+  -> Benchmark
+  -- ^ The benchmarking case.
+  -> IO ()
+  -- ^ The action to run and print the results.
 printResult validator benchmark =
   case executeBenchmark validator benchmark of
     Right (_, Right budget) ->
-      putStrLn ("actual = " <> show budget <> " vs expected = " <> show (bReferenceCost benchmark))
+      putStrLn
+        ( "actual = "
+            <> show budget
+            <> " vs expected = "
+            <> show (bReferenceCost benchmark)
+        )
     Right (logs, Left msg) -> print (msg, logs)
     Left msg -> print msg
 
-
 -- | Run multiple benchmarks and organize their results in a table.
 tabulateResults
-  :: String  -- ^ The name of the validator.
-  -> ScriptHash  -- ^ The hash of the validator script.
-  -> SerialisedScript  -- ^ The serialisation of the validator script.
-  -> [Benchmark]  -- ^ The benchmarking cases.
-  -> [[String]]  -- ^ A table of results, with a header in the first line.
+  :: String
+  -- ^ The name of the validator.
+  -> ScriptHash
+  -- ^ The hash of the validator script.
+  -> SerialisedScript
+  -- ^ The serialisation of the validator script.
+  -> [Benchmark]
+  -- ^ The benchmarking cases.
+  -> [[String]]
+  -- ^ A table of results, with a header in the first line.
 tabulateResults name hash validator benchmarks =
   let
     na = "NA"
     unExCPU (ExCPU n) = n
     unExMemory (ExMemory n) = n
-  in
-    (["Validator", "Script", "TxId"]
-       <> ["Measured CPU", "Measured Memory", "Reference CPU", "Reference Memory", "Message"])
-      : [
-          [name, show hash, show txId] <>
-            case executeBenchmark validator benchmark of
+   in
+    ["Validator", "Script", "TxId"]
+      <> [ "Measured CPU"
+         , "Measured Memory"
+         , "Reference CPU"
+         , "Reference Memory"
+         , "Message"
+         ]
+      : [ [name, show hash, show txId]
+            <> case executeBenchmark validator benchmark of
               Right (_, Right budget) ->
-                [
-                  show . unExCPU $ exBudgetCPU budget
+                [ show . unExCPU $ exBudgetCPU budget
                 , show . unExMemory $ exBudgetMemory budget
                 , cpuRef
                 , memoryRef
                 , mempty
                 ]
-              Right (logs, Left msg) -> [na, na, cpuRef, memoryRef, show (logs, msg)]
+              Right (logs, Left msg) ->
+                [ na
+                , na
+                , cpuRef
+                , memoryRef
+                , show (logs, msg)
+                ]
               Left msg -> [na, na, cpuRef, memoryRef, show msg]
-        |
-          benchmark@Benchmark{..} <- benchmarks
+        | benchmark@Benchmark{..} <- benchmarks
         , let txId = txInfoId $ scriptContextTxInfo bScriptContext
-              cpuRef = maybe na (show . unExCPU . exBudgetCPU) bReferenceCost
-              memoryRef = maybe na (show . unExMemory . exBudgetMemory) bReferenceCost
+              cpuRef =
+                maybe na (show . unExCPU . exBudgetCPU) bReferenceCost
+              memoryRef =
+                maybe na (show . unExMemory . exBudgetMemory) bReferenceCost
         ]
-
 
 -- | Write flat UPLC files for benchmarks.
 writeFlatUPLCs
@@ -252,20 +238,13 @@ writeFlatUPLCs
   -> IO ()
 writeFlatUPLCs writer benchmarks folder =
   sequence_
-    [
-      writer (folder </> show txId <> "-uplc" <.> "flat") benchmark
-    |
-      benchmark@Benchmark{..} <- benchmarks
+    [ writer (folder </> show txId <> "-uplc" <.> "flat") benchmark
+    | benchmark@Benchmark{..} <- benchmarks
     , let txId = txInfoId $ scriptContextTxInfo bScriptContext
     ]
 
-
 -- | Write a flat UPLC file for a benchmark.
-writeFlatUPLC
-  :: CompiledCode a
-  -> FilePath
-  -> Benchmark
-  -> IO ()
+writeFlatUPLC :: CompiledCode a -> FilePath -> Benchmark -> IO ()
 writeFlatUPLC validator filename Benchmark{..} =
   let
     wrap = Program () (Version 1 0 0)
@@ -274,44 +253,44 @@ writeFlatUPLC validator filename Benchmark{..} =
     context = wrap $ mkConstant () $ toData bScriptContext :: UplcProg ()
     prog = fromNamedDeBruijnUPLC $ getPlc validator
     applied =
-      foldl1 (unsafeFromEither .* applyProgram)
-        $ void prog : [datum, redeemer, context]
-  in
+      foldl1 (unsafeFromEither .* applyProgram) $
+        void prog : [datum, redeemer, context]
+   in
     writeProgram (FileOutput filename) (Flat NamedDeBruijn) Readable applied
-
 
 -- | Run a benchmark case.
 executeBenchmark
-  :: SerialisedScript  -- ^ The serialised validator.
-  -> Benchmark  -- ^ The benchmarking case.
-  -> Either String (LogOutput, Either EvaluationError ExBudget)  -- ^ An error or the cost.
+  :: SerialisedScript
+  -- ^ The serialised validator.
+  -> Benchmark
+  -- ^ The benchmarking case.
+  -> Either String (LogOutput, Either EvaluationError ExBudget)
+  -- ^ An error or the cost.
 executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
-   Left message -> Left message
-   Right ec ->
-    case deserialiseScript futurePV serialisedValidator of
-      Left err -> Left (show err)
-      Right validator ->
-        Right
-          $ evaluateScriptCounting futurePV Verbose ec validator
+    Left message -> Left message
+    Right ec ->
+      case deserialiseScript futurePV serialisedValidator of
+        Left err -> Left (show err)
+        Right validator ->
+          Right $
+            evaluateScriptCounting
+              futurePV
+              Verbose
+              ec
+              validator
               [bDatum, bRedeemer, toData bScriptContext]
-
 
 -- | The execution context for benchmarking.
 evaluationContext :: Either String EvaluationContext
 evaluationContext =
-  bimap show fst
-    . runExcept
-    . runWriterT
-    . mkEvaluationContext
-    $ snd <$> testCostModel
-
+  bimap show fst . runExcept . runWriterT . mkEvaluationContext $
+    snd <$> testCostModel
 
 -- | Cost model, hardwired for testing and fair benchmarking.
 testCostModel :: [(String, Int64)]
 testCostModel =
-  [
-    ("addInteger-cpu-arguments-intercept", 205665)
+  [ ("addInteger-cpu-arguments-intercept", 205665)
   , ("addInteger-cpu-arguments-slope", 812)
   , ("addInteger-memory-arguments-intercept", 1)
   , ("addInteger-memory-arguments-slope", 1)
