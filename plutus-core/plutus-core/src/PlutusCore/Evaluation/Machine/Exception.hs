@@ -60,8 +60,12 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received.
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | NonConstrScrutinized
-    | MissingCaseBranch Word64
+    | NonConstrScrutinizedMachineError
+      -- ^ An attempt to scrutinize a non-constr.
+    | MissingCaseBranchMachineError Word64
+      -- ^ An attempt to go into a non-existent case branch.
+    | PanicMachineError String
+      -- ^ A GHC exception was thrown.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -129,7 +133,11 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin received a term argument when something else was expected"
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
-    prettyBy _      NonConstrScrutinized =
+    prettyBy _      NonConstrScrutinizedMachineError =
         "A non-constructor value was scrutinized in a case expression"
-    prettyBy _      (MissingCaseBranch i) =
+    prettyBy _      (MissingCaseBranchMachineError i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
+    prettyBy _      (PanicMachineError err) = vcat
+        [ "Panic: a GHC exception was thrown, please report this as a bug."
+        , "The error: " <+> pretty err
+        ]
