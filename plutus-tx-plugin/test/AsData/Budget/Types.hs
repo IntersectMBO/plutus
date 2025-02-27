@@ -103,11 +103,11 @@ pattern ThisDManual arg <- (matchOnThisDManual -> (True, arg))
 
 matchOnThisDManual :: PlutusTx.UnsafeFromData a => TheseDManual a b -> (Bool, a)
 matchOnThisDManual (TheseDManual_ bd) =
-  let asCons = BI.unsafeDataAsConstr bd
-      idx = BI.fst asCons
-      l = BI.snd asCons
-      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      b = 0 PlutusTx.== idx
+  let !asCons = BI.unsafeDataAsConstr bd
+      ~idx = BI.fst asCons
+      ~l = BI.snd asCons
+      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      ~b = 0 PlutusTx.== idx
    in (b, x)
 
 pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
@@ -118,11 +118,11 @@ pattern ThatDManual arg <- (matchOnThatDManual -> (True, arg))
 
 matchOnThatDManual :: PlutusTx.UnsafeFromData b => TheseDManual a b -> (Bool, b)
 matchOnThatDManual (TheseDManual_ bd) =
-  let asCons = BI.unsafeDataAsConstr bd
-      idx = BI.fst asCons
-      l = BI.snd asCons
-      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      b = 1 PlutusTx.== idx
+  let !asCons = BI.unsafeDataAsConstr bd
+      ~idx = BI.fst asCons
+      ~l = BI.snd asCons
+      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      ~b = 1 PlutusTx.== idx
    in (b, x)
 
 pattern TheseDManual
@@ -147,13 +147,13 @@ pattern TheseDManual arg1 arg2 <- (matchOnTheseDManual -> (True, arg1, arg2))
 matchOnTheseDManual
   :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b) => TheseDManual a b -> (Bool, a, b)
 matchOnTheseDManual (TheseDManual_ bd) =
-  let asCons = BI.unsafeDataAsConstr bd
-      idx = BI.fst asCons
-      l = BI.snd asCons
-      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
-      rest = BI.tail l
-      y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
-      b = 2 PlutusTx.== idx
+  let !asCons = BI.unsafeDataAsConstr bd
+      ~idx = BI.fst asCons
+      ~l = BI.snd asCons
+      ~x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      ~rest = BI.tail l
+      ~y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
+      ~b = 2 PlutusTx.== idx
    in (b, x, y)
 
 
