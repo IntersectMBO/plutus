@@ -25,7 +25,7 @@ import Data.List
 import Data.Map qualified as Map
 import Data.Text qualified as T
 
-lookupName :: Scope uni -> GHC.Name -> Maybe (PLCVar uni)
+lookupName :: Scope uni fun -> GHC.Name -> Maybe (PLCVar uni, Maybe (PIRTerm uni fun))
 lookupName (Scope ns _) n = Map.lookup n ns
 
 {- |
@@ -70,7 +70,7 @@ compileVarWithTyFresh ann v t = do
   n' <- compileNameFresh $ GHC.getName v
   pure $ PLC.VarDecl ann n' t
 
-lookupTyName :: Scope uni -> GHC.Name -> Maybe PLCTyVar
+lookupTyName :: Scope uni fun -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
 compileTyNameFresh :: (MonadQuote m) => GHC.Name -> m PLC.TyName
@@ -88,14 +88,14 @@ compileTcTyVarFresh tc = do
   t' <- compileTyNameFresh $ GHC.getName tc
   pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
-pushName :: GHC.Name -> PLCVar uni -> Scope uni -> Scope uni
-pushName ghcName n (Scope ns tyns) = Scope (Map.insert ghcName n ns) tyns
+pushName :: GHC.Name -> PLCVar uni -> Maybe (PIRTerm uni fun) -> Scope uni fun -> Scope uni fun
+pushName ghcName n def (Scope ns tyns) = Scope (Map.insert ghcName (n, def) ns) tyns
 
-pushNames :: [(GHC.Name, PLCVar uni)] -> Scope uni -> Scope uni
-pushNames mappings scope = foldl' (\acc (n, v) -> pushName n v acc) scope mappings
+pushNames :: [(GHC.Name, PLCVar uni, Maybe (PIRTerm uni fun ))] -> Scope uni fun -> Scope uni fun
+pushNames mappings scope = foldl' (\acc (n, v, def) -> pushName n v def acc) scope mappings
 
-pushTyName :: GHC.Name -> PLCTyVar -> Scope uni -> Scope uni
+pushTyName :: GHC.Name -> PLCTyVar -> Scope uni fun -> Scope uni fun
 pushTyName ghcName n (Scope ns tyns) = Scope ns (Map.insert ghcName n tyns)
 
-pushTyNames :: [(GHC.Name, PLCTyVar)] -> Scope uni -> Scope uni
+pushTyNames :: [(GHC.Name, PLCTyVar)] -> Scope uni fun -> Scope uni fun
 pushTyNames mappings scope = foldl' (\acc (n, v) -> pushTyName n v acc) scope mappings
