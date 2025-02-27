@@ -38,6 +38,14 @@ tests =
     , goldenUPlcReadable "recordFields-manual" recordFieldsManual
     , goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
     , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
+    , goldenPirReadable "destructSum" destructSum
+    , goldenUPlcReadable "destructSum" destructSum
+    , goldenEvalCekCatch "destructSum" [destructSum `unsafeApplyCode` inpSum]
+    , goldenBudget "destructSum-budget" (destructSum `unsafeApplyCode` inpSum)
+    , goldenPirReadable "destructSum-manual" destructSumManual
+    , goldenUPlcReadable "destructSum-manual" destructSumManual
+    , goldenEvalCekCatch "destructSum-manual" [destructSumManual `unsafeApplyCode` inpSumM]
+    , goldenBudget "destructSum-budget-manual" (destructSumManual `unsafeApplyCode` inpSumM)
     ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -143,5 +151,43 @@ recordFieldsManual =
         ||]
     )
 
+destructSum :: CompiledCode (PlutusTx.BuiltinData -> Ints)
+destructSum =
+  $$(compile
+      [|| \d ->
+          case PlutusTx.unsafeFromBuiltinData d of
+            ThisD is -> is
+            ThatD is -> is
+            TheseD (Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
+              Ints
+                (x1 `PlutusTx.addInteger` x2)
+                (y1 `PlutusTx.addInteger` y2)
+                (z1 `PlutusTx.addInteger` z2)
+                (w1 `PlutusTx.addInteger` w2)
+      ||]
+    )
+
+destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> Ints)
+destructSumManual =
+  $$(compile
+      [|| \d ->
+          case PlutusTx.unsafeFromBuiltinData d of
+            ThisDManual is -> is
+            ThatDManual is -> is
+            TheseDManual (Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
+              Ints
+                (x1 `PlutusTx.addInteger` x2)
+                (y1 `PlutusTx.addInteger` y2)
+                (z1 `PlutusTx.addInteger` z2)
+                (w1 `PlutusTx.addInteger` w2)
+      ||]
+    )
+
 inp :: CompiledCode PlutusTx.BuiltinData
 inp = liftCodeDef (PlutusTx.toBuiltinData (Ints 10 20 30 40))
+
+inpSum :: CompiledCode PlutusTx.BuiltinData
+inpSum = liftCodeDef (PlutusTx.toBuiltinData (TheseD (Ints 10 20 30 40) (Ints 10 20 30 40)))
+
+inpSumM :: CompiledCode PlutusTx.BuiltinData
+inpSumM = liftCodeDef (PlutusTx.toBuiltinData (TheseDManual (Ints 10 20 30 40) (Ints 10 20 30 40)))

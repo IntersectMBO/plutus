@@ -87,37 +87,9 @@ AsData.asData [d|
   data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
   |]
 
--- AsData.asData [d|
---   data MaybeD a = JustD a | NothingD
---   |]
-
-newtype MaybeD a = MaybeD_ P.BuiltinData
-
-pattern JustD :: (IsData.ToData a, IsData.UnsafeFromData a) => a -> MaybeD a
-pattern JustD arg <- (matchOnJustD -> (True, arg))
-  where JustD arg = MaybeD_ (BI.mkConstr 0 (BI.mkCons (IsData.toBuiltinData arg) (BI.mkNilData BI.unitval)))
-
-matchOnJustD :: IsData.UnsafeFromData a => MaybeD a -> (Bool, a)
-matchOnJustD (MaybeD_ bd) =
-  let asCons = BI.unsafeDataAsConstr bd
-      idx = BI.fst asCons
-      l = BI.snd asCons
-      x = IsData.unsafeFromBuiltinData $ BI.head l
-      b = 0 P.== idx
-   in (b, x)
-
-pattern NothingD :: forall a. MaybeD a
-pattern NothingD <- (matchOnNothingD -> True)
-  where NothingD = MaybeD_ (BI.mkConstr 1 (BI.mkNilData BI.unitval))
-
-matchOnNothingD :: MaybeD a -> Bool
-matchOnNothingD (MaybeD_ bd) =
-  let asCons = BI.unsafeDataAsConstr bd
-      idx = BI.fst asCons
-   in 1 P.== idx
-
-{-# COMPLETE JustD, NothingD #-}
-
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
 
 -- Features a nested field which is also defined with AsData
 matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)

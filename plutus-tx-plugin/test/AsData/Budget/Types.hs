@@ -82,3 +82,79 @@ int4Manual (IntsManual d) =
    in if i PlutusTx.== 0
         then BI.unsafeDataAsI d3
         else PlutusTx.error ()
+
+AsData.asData
+  [d|
+    data TheseD a b
+      = ThisD a
+      | ThatD b
+      | TheseD a b
+      deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+  |]
+
+newtype TheseDManual a b = TheseDManual_ PlutusTx.BuiltinData
+  deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+
+pattern ThisDManual :: (PlutusTx.ToData a, PlutusTx.UnsafeFromData a) => a -> TheseDManual a b
+pattern ThisDManual arg <- (matchOnThisDManual -> (True, arg))
+  where ThisDManual arg =
+          TheseDManual_
+            (BI.mkConstr 0 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
+
+matchOnThisDManual :: PlutusTx.UnsafeFromData a => TheseDManual a b -> (Bool, a)
+matchOnThisDManual (TheseDManual_ bd) =
+  let asCons = BI.unsafeDataAsConstr bd
+      idx = BI.fst asCons
+      l = BI.snd asCons
+      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      b = 0 PlutusTx.== idx
+   in (b, x)
+
+pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
+pattern ThatDManual arg <- (matchOnThatDManual -> (True, arg))
+  where ThatDManual arg =
+          TheseDManual_
+            (BI.mkConstr 1 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
+
+matchOnThatDManual :: PlutusTx.UnsafeFromData b => TheseDManual a b -> (Bool, b)
+matchOnThatDManual (TheseDManual_ bd) =
+  let asCons = BI.unsafeDataAsConstr bd
+      idx = BI.fst asCons
+      l = BI.snd asCons
+      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      b = 1 PlutusTx.== idx
+   in (b, x)
+
+pattern TheseDManual
+  :: (PlutusTx.ToData a
+    , PlutusTx.UnsafeFromData a
+    , PlutusTx.ToData b
+    , PlutusTx.UnsafeFromData b
+    ) => a -> b -> TheseDManual a b
+pattern TheseDManual arg1 arg2 <- (matchOnTheseDManual -> (True, arg1, arg2))
+  where TheseDManual arg1 arg2 =
+          TheseDManual_
+            (BI.mkConstr 2
+              (BI.mkCons
+                (PlutusTx.toBuiltinData arg1)
+                (BI.mkCons
+                  (PlutusTx.toBuiltinData arg2)
+                  (BI.mkNilData BI.unitval)
+                )
+              )
+            )
+
+matchOnTheseDManual
+  :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b) => TheseDManual a b -> (Bool, a, b)
+matchOnTheseDManual (TheseDManual_ bd) =
+  let asCons = BI.unsafeDataAsConstr bd
+      idx = BI.fst asCons
+      l = BI.snd asCons
+      x = PlutusTx.unsafeFromBuiltinData $ BI.head l
+      rest = BI.tail l
+      y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
+      b = 2 PlutusTx.== idx
+   in (b, x, y)
+
+
+{-# COMPLETE ThisDManual, ThatDManual, TheseDManual #-}
