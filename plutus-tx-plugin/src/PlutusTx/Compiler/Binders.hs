@@ -33,11 +33,12 @@ variable *last* (so it is on the outside, so will be first when applying).
 withVarScoped ::
     CompilingDefault uni fun m ann =>
     GHC.Var ->
+    Ann ->
     (PIR.VarDecl PIR.TyName PIR.Name uni Ann -> m a) ->
     m a
-withVarScoped v k = do
+withVarScoped v ann k = do
     let ghcName = GHC.getName v
-    var <- compileVarFresh annMayInline v
+    var <- compileVarFresh ann v
     local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
 
 -- | Like `withVarScoped`, but takes a `PIRType`, and uses it for the type
@@ -94,7 +95,9 @@ mkLamAbsScoped ::
     GHC.Var ->
     m (PIRTerm uni fun) ->
     m (PIRTerm uni fun)
-mkLamAbsScoped v body = withVarScoped v $ \(PIR.VarDecl _ n t) -> PIR.LamAbs annMayInline n t <$> body
+mkLamAbsScoped v body =
+    withVarScoped v annMayInline $ \(PIR.VarDecl _ n t) ->
+        PIR.LamAbs annMayInline n t <$> body
 
 mkIterLamAbsScoped :: CompilingDefault uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
 mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars

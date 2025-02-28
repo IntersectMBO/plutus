@@ -1,9 +1,8 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Inline.Spec where
-
 
 import System.FilePath
 
@@ -86,6 +85,8 @@ tests =
           )
       , goldenPirReadable "recursive" recursive
       , goldenUPlcReadable "recursive" recursive
+      , goldenPirReadable "always-inline-local" compiledAlwaysInlineLocal
+      , goldenUPlcReadable "always-inline-local" compiledAlwaysInlineLocal
       ]
 
 double :: Integer -> Integer
@@ -155,3 +156,14 @@ recursive =
             `PlutusTx.multiplyInteger` inline factorial z
         ||]
     )
+
+-- Use INLINE pragma on local variable `square` to make it always inlined.
+alwaysInlineLocal :: Integer -> Integer
+alwaysInlineLocal x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` square
+  where
+    !square = x `PlutusTx.multiplyInteger` x
+    {-# INLINE square #-}
+{-# INLINABLE alwaysInlineLocal #-}
+
+compiledAlwaysInlineLocal :: CompiledCode (Integer -> Integer)
+compiledAlwaysInlineLocal = $$(compile [|| alwaysInlineLocal ||])
