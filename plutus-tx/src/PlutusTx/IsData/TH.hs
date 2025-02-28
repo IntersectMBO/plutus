@@ -83,7 +83,17 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
   builtinData <- TH.newName "builtinData"
   asConstrN <- TH.newName "asConstr"
   constrArgsN <- TH.newName "constrArgs"
-  (fieldDecs, restDecs, resultExpr) <- extractArgs builtinData fields
+  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
+  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
+  restDecs <-
+    for (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
+      -- the last `rest` is used once, and other `rest`s are each used twice
+      let maybeStrict = if i == length restNs - 1 then nonstrict else strict
+      in [d| $(maybeStrict resti) = BI.tail $(TH.varE restj) |]
+  fieldDecs <-
+    for (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
+      -- fields are each used once
+      [d| $(nonstrict fieldi) = unsafeFromBuiltinData (BI.head $(TH.varE restj)) |]
   otherDecs <- sequence
     [ -- asConstr is used once
       [d| $(nonstrict asConstrN) = BI.unsafeDataAsConstr $(TH.varE builtinData) |]
@@ -91,6 +101,7 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
       [d| $(strict constrArgsN) = BI.snd $(TH.varE asConstrN) |]
     ]
   let decs = fmap pure . concat $ otherDecs <> fieldDecs <> restDecs
+      resultExpr = TH.tupE $ TH.varE <$> fieldNs
       body = TH.normalB $ TH.letE decs resultExpr
       argPat = TH.conP consName [TH.varP builtinData]
       clause = TH.clause [argPat] body []
@@ -103,34 +114,25 @@ mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
       functionType = TH.sigD funcName typeBodyWithQuantification
   (,) <$> functionType <*> functionDef
 
-extractArgs :: TH.Name -> Int -> TH.Q ([[TH.Dec]], [[TH.Dec]], TH.ExpQ)
-extractArgs listName numFields = do
-  let strict = TH.bangP . TH.varP
-      nonstrict = TH.tildeP . TH.varP
-  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
-  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
-  restDecs <-
-    for (zip [0..] $ zip restNs (listName : restNs)) $ \(i, (resti, restj)) ->
-      -- the last `rest` is used once, and other `rest`s are each used twice
-      let maybeStrict = if i == length restNs - 1 then nonstrict else strict
-      in [d| $(maybeStrict resti) = BI.tail $(TH.varE restj) |]
-  fieldDecs <-
-    for (zip fieldNs (listName : restNs)) $ \(fieldi, restj) ->
-      -- fields are each used once
-      [d| $(nonstrict fieldi) = unsafeFromBuiltinData (BI.head $(TH.varE restj)) |]
-  let resultExpr = TH.tupE $ TH.varE <$> fieldNs
-  pure (fieldDecs, restDecs, resultExpr)
+mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
+mkUnsafeConstrMatchPattern conIx extractFieldNames =
+  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
-mkUnsafeConstrMatchPattern :: Integer -> TH.PatQ -> TH.PatQ
-mkUnsafeConstrMatchPattern conIx argExtractor =
-  [p| (BI.unsafeDataAsConstr ->
-        (Builtins.pairToPair ->
-          ( (PlutusTx.==) (conIx :: Integer) -> True
-          , $argExtractor
-          )
-        )
-      )
-  |]
+mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
+mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
+  let
+    -- (==) i -> True
+    ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
+    -- [unsafeFromBuiltinData -> arg1, ...]
+    extractArgPats = extractFieldNames <&> \n ->
+      [p| (unsafeFromBuiltinData -> $(TH.varP n)) |]
+    extractArgsPat = go extractArgPats
+      where
+        go []     = [p| _ |]
+        go [x]    = [p| (BI.head -> $x) |]
+        go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
+    pat = [p| ($ixMatchPat, $extractArgsPat) |]
+  in pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
