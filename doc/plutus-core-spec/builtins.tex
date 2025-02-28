@@ -55,11 +55,17 @@ would be considerably less compact.}
 The universe $\Uni$ consists entirely of \textit{names}, and the semantics of
 these names are given by \textit{denotations}. Each built-in type $\tn \in \Uni$
 is associated with some mathematical set $\denote{\tn}$, the \textit{denotation}
-of $\tn$. For example, we might have $\denote{\texttt{bool}}=
-\{\mathsf{true}, \mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$
-and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.
+of $\tn$. For example, we might have $\denote{\texttt{bool}}= \{\mathsf{true},
+\mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$ and
+$\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.  We assume that if $T,
+T^{\prime} \in \Uni$ and $T \ne T^{\prime}$ then $\denote{T}$ and
+$\denote{T^{\prime}}$ are disjoint, and we put
 
-See Section~\ref{sec:cardano-builtins}
+$$\denote{\Uni} = \bigdisj{\{\denote{T}: T \in \Uni\}}.$$%%
+\nomenclature[Dr4]{$\denote{T}$}{The denotation of a type name $T$}
+\nomenclature[Dr5]{$\denote{\Uni}$}{$\bigdisj{\{\denote{T}: T \in \Uni\}}$}
+
+\noindent See Section~\ref{sec:cardano-builtins}
 for a description of the types and functions which have already been deployed on
 the Cardano blockchain (or will be in the near future).
 % \nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
@@ -83,7 +89,7 @@ Figure~\ref{fig:type-variables}.
   \centering
       \[\begin{array}{lrclr}
         \textrm{TypeVariable}    & \tv & ::= & n_{\#} & \textrm{built-in-polymorphic type variable}\\
-                                 &    &      & \star & \textrm{fully polymorphic type variable}\\
+                                 &    &      & \star & \textrm{fully-polymorphic type variable}\\
     \end{array}\]
     \captionof{figure}{Type variables}
     \label{fig:type-variables}
@@ -112,7 +118,7 @@ built-in-polymorphic type variables $v_\#$ by $\Var_\#$.  Note that $\Var \cap
 \nomenclature[Db]{$v_\#$}{A builtin-polymorphic type variable}%
 \nomenclature[Db]{$\star$}{The unique fully-polymorphic type variable}%
 
-The two kinds of type variable are required because we have two different types
+The two kinds of type variable are required because we have two different kinds
 of polymorphism. Later on we will see that built-in functions can take arguments
 which can be of a type which is unknown but must be in $\Uni$, whereas other
 arguments can range over a larger set of values such as the set of all Plutus
@@ -144,8 +150,7 @@ $$
 \nomenclature[Da]{$\Unihash$}{The set of builtin-polymorphic types}%
 \noindent We will denote a typical element of $\Unihash$ by the symbol $P$
 (possibly subscripted).%
-\nomenclature[Dr1]{$P$}{A builtin-polymorphic type}
-
+\nomenclature[Ds1]{$P$}{A builtin-polymorphic type}
 
 \noindent We define the set of \textit{free \#-variables} of an element of $\Unihash$ by
 $$
@@ -157,7 +162,7 @@ $$
 $$
 \fv{\op(P_1, \ldots, P_k)} = \fv{P_1} \cup \fv{P_2} \cup \cdots \cup \fv{P_r}.
 $$%
-\nomenclature[Ds]{$\fv{P}$}{Free \#-variables of a polymorphic type $P \in \Unihash$}
+\nomenclature[Ds2]{$\fv{P}$}{Free \#-variables of a polymorphic type $P \in \Unihash$}
 
 \noindent Thus $\fv{P} \subseteq \Var_\#$ for all $P \in \Uni$.  We say that a
 type name $P \in \Unihash$ is \textit{monomorphic} if $\fv{P} = \varnothing$ (in
@@ -174,7 +179,7 @@ Core terms.
 A \textit{type assignment} is a function $S: D \rightarrow \Uni$ where $D$ is
 some subset of $\Var_\#$.  As usual we say that $D$ is the \textit{domain} of
 $S$ and denote it by $\dom S$.%
-\nomenclature[Dr4]{$S$}{A type assignment}
+\nomenclature[Dr6]{$S$}{A type assignment}
 
 \medskip
 \noindent We can extend a type assignment $S$ to a map
@@ -187,7 +192,7 @@ $\Sext : \Unihash \disj \VarStar \rightarrow \Unihash \disj \VarStar$ by definin
     \Sext(\op(P_1,\ldots,P_n)) &= \op(\Sext(P_1),\ldots,\Sext(P_n))\\
     \Sext(\star) &= \star.
 \end{align*}%
-\nomenclature[Dr4]{$\Sext$}{The extension of a type assignment $S$ to $\Unihash \cup \VarStar$}
+\nomenclature[Dr7]{$\Sext$}{The extension of a type assignment $S$ to $\Unihash \cup \VarStar$}
 
 \noindent If $P \in \Unihash$ and $S$ is a type assignment with $\fv{P}
 \subseteq \dom S$ then in fact $\Sext(P) \in \Uni$; in this case we say that
@@ -196,7 +201,7 @@ $\Sext(P)$ is an \textit{instance} or a \textit{monomorphisation} of $P$
 smallest $S$ (with $\fv{P}=\dom S$) such that $T = \Sext(P)$: we write
 $T\preceq_S P$ to indicate that $T$ is an instance of $P$ via $S$ and $S$ is
 minimal.%
-\nomenclature[Dr3]{$T\preceq_S P$}{$T$ is an instance of $P$ via $S$ and $\dom S = \fv{P}$}
+\nomenclature[Ds3]{$T\preceq_S P$}{$T$ is an instance of $P$ via $S$ and $\dom S = \fv{P}$}
 
 \paragraph{Constructing type assignments.}
 We say that a collection $\{S_i: 1 \leq i \leq n\}$ of type assignments is
@@ -262,8 +267,10 @@ related.%
 
 \noindent It is also convenient to let $\denote{\Inputs} = \Inputs$ and define both
   $\denote{\cdot}_{\Inputs}$ and $\reify{\cdot}_{\Inputs}$ to be the identity
-  function, and similarly for $\Inputs^{+}$.
-
+function, and we write
+$$
+\denote{\Uni}_{\Inputs} = \denote{\Uni} \disj \Inputs.
+$$
 
 \kwxm{I'm still not sure what to call the things what we feed to builtins.
   Previously there were called ``terms'', but in our setting they're
@@ -282,6 +289,30 @@ representation of constants; we do not specify this here, but see
 Section~\ref{sec:cardano-builtins}
 for suggested syntax for the built-in types currently in use on the Cardano
 blockchain.
+
+\subsubsection{Outputs of built-in functions}
+\label{sec:builtin-outputs}
+All built-in functions either fail or conceptually return a non-empty list whose
+entries lie either in the denotation of some built-in type $T$ or in the set of
+inputs $\Inputs$, i.e., builtins return elements of the set ${(\R^+)_{\errorX}}$,
+where
+
+$$
+\R := \bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs.
+$$%%
+\nomenclature[Eb]{$\R$}{The set of single values returned by built-in functions}%%
+\nomenclature[Ec]{$\R^+$}{The set of sequences of values returned by built-in functions}
+
+\noindent We will denote elements of $\R^+$ by expressions of the form $(v|v_1,
+\ldots, v_k)$ with $v, v_i \in \R$ and $k \geq 0$, the case $k=0$ indicating a
+list $(v|)$ with a single entry.  The majority of builtins return a single
+value, and to simplify notation we will identify $\R$ with $\{(v|): v \in \R\}
+\subseteq \R^+$.  The intention is that $(v|v_1, \ldots, v_k)$ will
+immediately be interpreted as an application $v \;v_1\; \ldots\; v_k$ in the
+ambient language (eg, typed or untyped Plutus Core); the number of arguments $k$
+may depend on the values of the inputs to the function, as is the case for the
+$\texttt{caseList}$ and $\texttt{caseData}$ functions described in
+Appendix~\ref{sec:default-builtins-6}.
 
 \subsubsection{Signatures and denotations of built-in functions}
 \label{sec:signatures}
@@ -402,22 +433,19 @@ builtins are values which can be treated like any others (for example, by being
 passed as an argument to a \texttt{lam}-expression): see
 Section~\ref{sec:uplc-values}.
 
-Given a builtin $b$ with signature $[\iota_1, \ldots, \iota_n] \rightarrow
-\omega$, the symbol following the arrow indicates the return type of the
-function $b$s.  All built-in functions conceptually return a non-empty list of
-inputs, and we will denote such a list by a symbol of the form $(v|v_1, \ldots,
-v_k)$ with $v, v_i \in \Inputs$ and $k \geq 0$, the case $k=0$ indicating a list
-$(v|)$ with a single entry.  The majority of builtins return a single value, and
-to simplify notation we will identify $\Inputs$ with $\{(v|): v \in \Inputs\}
-\subseteq \Inputs^{+}$.  If $\omega \in \Unihash$ then $b$ returns a single
-value of some built-in type; if $\omega = \star$ then $b$ returns a single
-element of $\Inputs$ (probably not of a built-in type), and if $\omega = \ap$
-then $b$ returns a sequence of values $(v|v_1, \ldots, v_k)$ with $k>0$.  The
-intention is that this will immediately be interpreted as an application $v \;v_1\;
-\ldots\; v_k$ in the ambient language (eg, typed or untyped Plutus Core); the number
-of arguments $k$ may depend on the values of the inputs to the function, as is
-the case for the $\texttt{caseList}$ and $\texttt{caseData}$ functions described
-in Appendix~\ref{sec:default-builtins-6}.
+In general a builtin returns a sequence $(v|v_1,\ldots,v_k) \in \R^+$, but in
+fact the majority of builtins currently deployed on Cardano only return a single
+value, and in this case we can specify a signature where $\omega$ is either a
+built-in type name $T$ or $\star$, denoting an input (typically a value in the
+ambient language), and this tells us exactly what sort of value is returned.
+The general case is considerably more complicated: the size of the list
+returned, and the types of its entries, may be different for different
+inputs. To specify this sort of behaviour precisely in a signature would require
+a considerable increase in the complexity of the notation for signatures, so
+instead we approximate all return types involving elements of $\R^+\backslash
+\R$ by $\ap$.  However, when specifying the semantics of particular builtins
+with $\omega = \ap$ we will always give a precise description of the possible
+return values.
 
 \subsubsection{Denotations of built-in functions}
 \label{sec:builtin-denotations}
@@ -437,7 +465,7 @@ $$%
 \nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
 \noindent where
 $$
-\denote{\star} = \Inputs \quad\text{and}\quad \denote{\ap} = \Inputs^{+}.
+\denote{\star} = \Inputs \quad\text{and}\quad \denote{\ap} = \R^+.
 $$
 \noindent This makes sense because $\Sext(\tau_i) \in \Uni \disj
 \Inputs$ for all $i$, so $\denote{\Sext(\tau_i)}$ is always defined,
@@ -465,30 +493,33 @@ not insist on this though.
 
 \subsubsection{Results of built-in functions.}
 \label{sec:builtin-results}
-If $r$ is the result of the evaluation of some built-in function there are thus
-three possibilities:
-\begin{enumerate}
-\item $r \in \denote{\tn} \enspace \text{for some $\tn \in \Uni$}$.  \red{Really?}
-\item $r \in \Inputs^{+}$ (remember that we identify $\Inputs$ with the subset of length-one elements of $\Inputs^{+}$).
-\item $r = \errorX$.
-\end{enumerate}
-In other words,
+Recall from Section~\ref{sec:builtin-outputs} that the result of the
+evaluation of a built-in function lies in the set 
 $$
-r \in \R := \bigdisj\{\denote{\tn}: \tn \in \Uni \} \disj \Inputs^{+} \disj \{\errorX\}.
+(\R^+)_{\errorX} = \left(\bigdisj\left\{\denote{\tn}: \tn \in \Uni \right\} \disj \Inputs \right)^+ \disj \{\errorX\}.
 $$
-
-\noindent Our assumptions on the set $\Inputs$
-(Section~\ref{sec:builtin-inputs}) allow us define a function
+\noindent Since we have assumed that all denotations $\denote{T}$ with $T \in
+\Uni$ are disjoint from each other and from $\Inputs$
+(Section~\ref{sec:builtin-inputs}) we can define a function
 $$
 \reify{\cdot}: \R \rightarrow \withError{\Inputs}
 $$
-which converts results of built-in functions back into inputs \red{plus apps} (or the $\errorX$ symbol):
-\begin{enumerate}
-\item If $r \in \denote{\tn}$, then $\reify{r} = \reify{r}_{\tn} \in \Con{\tn} \subseteq \Inputs$.
-%% \item If $r \in \Inputs$ then  $\reify{r} = r$.
-\item If $r = (v|v_1, \ldots, v_k) \in \Inputs^{+}$ then  $\reify{r} = r$. \red{Or $(\reify{v}|\reify{v_1}, \ldots,\reify{v_k})$?}
-\item $\reify{\errorX} = \errorX$.
-\end{enumerate}%
+which converts elements $r \in \R$ back into inputs by
+$$
+\reify{r} = 
+\begin{cases}
+  \reify{r}_{\tn} \in \Con{\tn} \subseteq \Inputs & \text{if $r \in \denote{\tn}$}\\
+  r & \text{if $r \in \Inputs$}
+\end{cases}
+$$
+\noindent(see Section~\ref{sec:builtin-inputs} for the definition of
+$\reify{\cdot}_{\tn}$), and we can extend this to a function
+$\reify{\cdot}: (\R^+)_{\errorX} \rightarrow \withError{\Inputs}$ by defining
+
+\begin{align*}
+  \reify{(r, r_1, \ldots, r_k)} &= (\reify{r}|\reify{r_1}, \ldots, \reify{r_k})\\
+  \reify{\errorX} &= \errorX
+\end{align*}%%
 \nomenclature[Dz4]{$\reify{\cdot}$}{Reification of the result of a built-in
   function application}
 
@@ -502,21 +533,15 @@ which converts results of built-in functions back into inputs \red{plus apps} (o
   sometimes a builtin argument must be a constant but at other times it can be
   an arbitrary value, which includes all of the constants.}
 
-\red{I'm worrying about what happens if we return an $\ap$ that contains
-  built-in constants, not terms.  Maybe that's OK: it's handed over to the
-  application mechanism in the ambient language and that should do the right
-  thing.}
-
 \subsubsection{Parametricity for fully-polymorphic arguments}
 \label{sec:builtin-behaviour}
 A built-in function $b$ can only inspect arguments which are values of built-in
-types; other arguments (occurring as $\star$ in $\sigmabar(b)$) are treated opaquely,
-and can be discarded or returned as (part of) a result, but cannot be altered or
-examined (in particular, they cannot be compared for equality): $b$ is
-\textit{parametrically polymorphic} in such arguments.  This implies that if a
-builtin returns a value $v \in \Inputs$, then $v$ must have been an argument of
-the function. \red{Or if we've got an $\ap$, its head must have been an argument.}
-
+types; other arguments (occurring as $\star$ in $\sigmabar(b)$) are treated
+opaquely, and can be discarded or returned as (part of) a result, but cannot be
+altered or examined (in particular, they cannot be compared for equality): $b$
+is \textit{parametrically polymorphic} in such arguments.  This implies that if
+the sequence returned by a builtin contains a value $v \in \Inputs$, then $v$
+must have been an argument of the builtin.
 \roman{This is not quite true, unfortunately. \texttt{toBuiltinMeaning}
   constrains \texttt{term} with \texttt{HasConstantIn uni term}. This means that we can
   check whether an argument whose type is a type variable is a constant or
@@ -579,10 +604,6 @@ describes the conditions for type compatibility.
   describe what's actually going on so I'm just assuming that builtins always
   check this stuff.}
 
-\noindent\red{Do we ever say what ``\#-polymorphic'' means?}
-
-\noindent\red{Do we really use $\tau$ consistently?}
-
 \medskip
 \noindent In detail, given a reduced arity $\alphabar = [\tau_1, \ldots,
   \tau_n]$, a sequence $\bar{V} = [V_1, \ldots, V_m]$, and a type assignment $S$
@@ -634,10 +655,7 @@ $$%
 %
 \noindent It can be checked that the compatibility condition guarantees that
 this makes sense according to the definition of $\denote{b}_S$ in
-Section~\ref{sec:builtin-denotations}.  \red{In fact, $\Eval$ now takes us into
-  $\Inputs \disj \Inputs{+}$ and the evaluator has to deal with deferred
-  applications. We have to not identify $\Inputs$ with a subset of $\Inputs^{+}$
-  because we treat $v$ differently from $(v|)$ -- or do we?  Maybe it's safe to do the identification.}
+Section~\ref{sec:builtin-denotations}.
 
 \paragraph{Notes.}
 \begin{itemize}

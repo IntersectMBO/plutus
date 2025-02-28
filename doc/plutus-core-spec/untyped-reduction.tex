@@ -79,7 +79,7 @@ $\lamU{x}{N}$.%
 \begin{subfigure}[c]{\linewidth}
   % \def\labelSpacing{20pt}
 
-  \judgmentdef{$\step{M}{M'}$}{Term $M$ reduces in one step to term $M'$. \red{We still have to deal with $\Inputs^{+}$.}}
+  \judgmentdef{$\step{M}{M'}$}{Term $M$ reduces in one step to term $M'$.}
 
    % [(lam x M) V] -> [V/x]M
     \begin{prooftree}
@@ -156,14 +156,16 @@ $\lamU{x}{N}$.%
 \bigskip
 
 \begin{subfigure}[c]{\linewidth}
-  $$ \Eval'(b, [V_1, \ldots, V_n]) =
+  $$
+  \Eval'(b, [V_1, \ldots, V_n]) =
   \begin{cases}
-  \errorU  & \text{if $\Eval(b,[V_1, \ldots, V_n]) = \errorX$}\\
-  \Eval(b,[V_1, \ldots, V_n]) & \text{otherwise}
+    \errorU  & \text{if $\Eval(b,[V_1, \ldots, V_n]) = \errorX$}\\
+    V & \text{if $\Eval(b,[V_1, \ldots, V_n]) = (V|)$}\\
+    [V \repetition{V^{\prime}}] & \text{if $\Eval(b,[V_1, \ldots, V_n]) = (V|\repetition{V^{\prime}})$ with $\repetition{V^{\prime}}$ nonempty.}
   \end{cases}
-$$
-    \caption{Built-in function application}
-    \label{fig:bif-appl}
+  $$
+  \caption{Built-in function application}
+  \label{fig:bif-appl}
 \end{subfigure}
 
 \caption{Term reduction for Plutus Core}
