@@ -16,6 +16,7 @@ import PlutusCore.Test (runUPlcFull)
 import PlutusLedgerApi.V3 (ExBudget (..), ExCPU (..), ExMemory (..), fromSatInt)
 import System.Directory (createDirectoryIfMissing, removeFile)
 import System.FilePath qualified as Path
+import System.IO (Handle, IOMode (WriteMode), withFile)
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Golden.Advanced (goldenTest2)
 import Text.Read (readMaybe)
@@ -45,20 +46,20 @@ goldenUplcMeasurements
   -- ^ path to the «golden» file (the file that contains correct output)
   -> FilePath
   -- ^ path to the output file
-  -> IO ()
-  -- ^ action that creates the output file with measurements
+  -> (Handle -> IO ())
+  -- ^ Given a file handle, action that writes measurements to it.
   -> TestTree
   {- ^ the test verifies that the output file contents is the same as
   the golden file contents
   -}
-goldenUplcMeasurements name ref new act =
+goldenUplcMeasurements name goldenPath outputPath act =
   goldenTest2
     name
-    (Text.IO.readFile ref)
-    (act >> Text.IO.readFile new)
+    (Text.IO.readFile goldenPath)
+    (withFile outputPath WriteMode act >> Text.IO.readFile outputPath)
     reportDifference
-    (createDirectoriesAndWriteFile ref)
-    (removeFile new)
+    (createDirectoriesAndWriteFile goldenPath)
+    (removeFile outputPath)
  where
   reportDifference :: Text -> Text -> IO (Maybe String)
   reportDifference expected actual = do

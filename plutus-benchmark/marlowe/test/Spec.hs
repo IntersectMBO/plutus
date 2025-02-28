@@ -8,22 +8,21 @@ import Data.Foldable (for_)
 import Data.List qualified as List
 import Lib qualified
 import Main.Utf8 (withUtf8)
-import PlutusBenchmark.Common (checkGoldenFileExists, getDataDir)
+import PlutusBenchmark.Common (checkGoldenFileExists)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
 import System.FilePath ((</>))
-import System.FilePath qualified as Path
-import System.IO (IOMode (WriteMode), hPutStrLn, withFile)
+import System.IO (hPutStrLn)
 import Test.Tasty (defaultMain)
 import UntypedPlutusCore.Size qualified as UPLC
 
 main :: IO ()
 main = withUtf8 do
-  dir <- Path.normalise . (</> "marlowe" </> "test") <$> getDataDir
-  let goldenFile = dir </> "budgets.golden.tsv"
+  let dir = "marlowe" </> "test"
+      goldenFile = dir </> "budgets.golden.tsv"
       actualFile = dir </> "budgets.actual.tsv"
   checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
 
@@ -47,8 +46,9 @@ main = withUtf8 do
 
   -- Write the measures to the actual file
   defaultMain do
-    Lib.goldenUplcMeasurements "budgets" goldenFile actualFile do
-      withFile actualFile WriteMode \h ->
-        for_ (semanticsMeasures <> rolePayoutMeasures) $
-          \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
-            hPutStrLn h $ List.intercalate "\t" [show cpu, show mem, show size]
+    Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
+      for_
+        (semanticsMeasures <> rolePayoutMeasures)
+        \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+          hPutStrLn writeHandle $
+            List.intercalate "\t" [show cpu, show mem, show size]
