@@ -25,7 +25,6 @@ import PlutusTx.Prelude
 import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Interval (Interval)
 import PlutusTx qualified
@@ -38,7 +37,7 @@ import Prettyprinter (Pretty (pretty), (<+>))
 
 -- | This is a length of time, as measured by a number of milliseconds.
 newtype DiffMilliSeconds = DiffMilliSeconds Integer
-  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic, Typeable)
+  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving newtype
     ( Haskell.Num
@@ -62,7 +61,7 @@ instance HasBlueprintSchema DiffMilliSeconds referencedTypes where
 This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime`
 -}
 newtype POSIXTime = POSIXTime {getPOSIXTime :: Integer}
-  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic, Typeable)
+  deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving newtype
     ( AdditiveSemigroup

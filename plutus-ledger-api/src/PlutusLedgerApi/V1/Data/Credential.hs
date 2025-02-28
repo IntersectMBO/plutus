@@ -21,7 +21,6 @@ module PlutusLedgerApi.V1.Data.Credential (
 ) where
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
@@ -48,7 +47,7 @@ PlutusTx.asData
     data Credential
       = PubKeyCredential PubKeyHash
       | ScriptCredential ScriptHash
-      deriving stock (Eq, Ord, Show, Generic, Typeable)
+      deriving stock (Eq, Ord, Show, Generic)
       deriving anyclass (NFData, HasBlueprintDefinition)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
@@ -85,7 +84,7 @@ PlutusTx.asData
           -- \^ the transaction index (within the block)
           Integer
       -- \^ the certificate index (within the transaction)
-      deriving stock (Eq, Ord, Show, Generic, Typeable)
+      deriving stock (Eq, Ord, Show, Generic)
       deriving anyclass (NFData, HasBlueprintDefinition)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
