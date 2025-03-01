@@ -70,7 +70,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import Data.Function ((&))
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -119,7 +119,7 @@ newtype CurrencySymbol = CurrencySymbol
       -- ^ using hex encoding
     )
     via LedgerBytes
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -153,7 +153,7 @@ You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file
 -}
 newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -220,7 +220,7 @@ adaToken = TokenName emptyByteString
 
 -- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
 newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -290,7 +290,7 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
 -}
 newtype Value = Value {getValue :: Map CurrencySymbol (Map TokenName Integer)}
-  deriving stock (Generic, Typeable, Haskell.Show)
+  deriving stock (Generic, Haskell.Show)
   deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
   deriving Pretty via (PrettyShow Value)
 
@@ -723,7 +723,7 @@ eq (Value currs1) (Value currs2) =
 {-# INLINEABLE eq #-}
 
 newtype Lovelace = Lovelace {getLovelace :: Integer}
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow Lovelace)
   deriving anyclass (HasBlueprintDefinition)
   deriving newtype

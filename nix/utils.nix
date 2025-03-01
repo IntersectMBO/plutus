@@ -13,4 +13,17 @@
 
     in
     assert lib.typeOf set == "set"; lib.listToAttrs (flatten "" set);
+
+
+  makeHydraRequiredJob = { self, pkgs }:
+    let
+      clean-jobs =
+        lib.filterAttrsRecursive (name: _: name != "recurseForDerivations")
+          (removeAttrs self.hydraJobs.${pkgs.system} [ "required" ]);
+    in
+    pkgs.releaseTools.aggregate {
+      name = "required";
+      meta.description = "All jobs required to pass CI";
+      constituents = lib.collect lib.isDerivation clean-jobs;
+    };
 }
