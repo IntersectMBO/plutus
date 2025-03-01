@@ -1,0 +1,759 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TupleSections #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Transform.CaseReduce</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Transform.CaseReduce.html#caseReduce"
+	><span class="hs-identifier"
+	  >caseReduce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>transformOf</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.1.0/docs/src/Data.Vector.html"
+	><span class="hs-identifier"
+	  >Data.Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span id="local-6989586621681798457"
+      ><span id="local-6989586621681798458"
+	><span id="local-6989586621681798459"
+	  ><span id="local-6989586621681798460"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.Transform.CaseReduce.html#caseReduce"
+		><span class="hs-identifier hs-type"
+		  >caseReduce</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798457"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798458"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798459"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798460"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798457"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798458"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798459"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798460"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="caseReduce"
+      ><span class="annot"
+	><span class="annottext"
+	  >caseReduce :: forall name (uni :: * -&gt; *) fun a.
+Term name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="UntypedPlutusCore.Transform.CaseReduce.html#caseReduce"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >caseReduce</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term name uni fun a)
+  (Term name uni fun a)
+  (Term name uni fun a)
+  (Term name uni fun a)
+-&gt; (Term name uni fun a -&gt; Term name uni fun a)
+-&gt; Term name uni fun a
+-&gt; Term name uni fun a
+forall a b. ASetter a b a b -&gt; (b -&gt; b) -&gt; a -&gt; b
+</span
+	><span class="hs-identifier hs-var"
+	>transformOf</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ASetter
+  (Term name uni fun a)
+  (Term name uni fun a)
+  (Term name uni fun a)
+  (Term name uni fun a)
+forall name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Term name uni fun ann -&gt; f (Term name uni fun ann))
+-&gt; Term name uni fun ann -&gt; f (Term name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a -&gt; Term name uni fun a
+forall name (uni :: * -&gt; *) fun a.
+Term name uni fun a -&gt; Term name uni fun a
+</span
+	><a href="UntypedPlutusCore.Transform.CaseReduce.html#processTerm"
+	><span class="hs-identifier hs-var"
+	  >processTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span id="local-6989586621681798503"
+      ><span id="local-6989586621681798504"
+	><span id="local-6989586621681798505"
+	  ><span id="local-6989586621681798506"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.Transform.CaseReduce.html#processTerm"
+		><span class="hs-identifier hs-type"
+		  >processTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798503"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798504"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798505"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798506"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798503"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798504"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798505"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681798506"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="processTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >processTerm :: forall name (uni :: * -&gt; *) fun a.
+Term name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="UntypedPlutusCore.Transform.CaseReduce.html#processTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >processTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Case"
+	><span class="hs-identifier hs-type"
+	  >Case</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681798516"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681798516"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Constr"
+	><span class="hs-identifier hs-type"
+	  >Constr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681798518"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621681798518"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681798519"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Term name uni fun a]
+</span
+	  ><a href="#local-6989586621681798519"
+	  ><span class="hs-identifier hs-var"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681798520"
+      ><span class="annot"
+	><span class="annottext"
+	  >Vector (Term name uni fun a)
+</span
+	  ><a href="#local-6989586621681798520"
+	  ><span class="hs-identifier hs-var"
+	    >cs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681798521"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun a
+</span
+	  ><a href="#local-6989586621681798521"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun a) -&gt; Int -&gt; Maybe (Term name uni fun a)
+forall a. Vector a -&gt; Int -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/vector-0.13.1.0/docs/src/Data.Vector.html#%21%3F"
+	><span class="hs-operator hs-var"
+	  >(V.!?)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector (Term name uni fun a)
+</span
+	><a href="#local-6989586621681798520"
+	><span class="hs-identifier hs-var"
+	  >cs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621681798518"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >                                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+-&gt; [(a, Term name uni fun a)] -&gt; Term name uni fun a
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+term ann -&gt; [(ann, term ann)] -&gt; term ann
+</span
+	><a href="PlutusCore.MkPlc.html#mkIterApp"
+	><span class="hs-identifier hs-var"
+	  >mkIterApp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621681798521"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681798516"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun a -&gt; (a, Term name uni fun a))
+-&gt; [Term name uni fun a] -&gt; [(a, Term name uni fun a)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Term name uni fun a]
+</span
+	><a href="#local-6989586621681798519"
+	><span class="hs-identifier hs-var"
+	  >args</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681798525"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun a
+</span
+	  ><a href="#local-6989586621681798525"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                                                     </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun a
+</span
+	><a href="#local-6989586621681798525"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

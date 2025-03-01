@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Reflection.AST.Pattern</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Patterns used in the reflection machinery</a>
+<a id="151" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="225" class="Symbol">{-#</a> <a id="229" class="Keyword">OPTIONS</a> <a id="237" class="Pragma">--cubical-compatible</a> <a id="258" class="Pragma">--safe</a> <a id="265" class="Symbol">#-}</a>
+
+<a id="270" class="Keyword">module</a> <a id="277" href="Reflection.AST.Pattern.html" class="Module">Reflection.AST.Pattern</a> <a id="300" class="Keyword">where</a>
+
+<a id="307" class="Comment">------------------------------------------------------------------------</a>
+<a id="380" class="Comment">-- Re-exporting the builtin type and constructors</a>
+
+<a id="431" class="Keyword">open</a> <a id="436" class="Keyword">import</a> <a id="443" href="Agda.Builtin.Reflection.html" class="Module">Agda.Builtin.Reflection</a> <a id="467" class="Keyword">public</a> <a id="474" class="Keyword">using</a> <a id="480" class="Symbol">(</a><a id="481" href="Agda.Builtin.Reflection.html#5031" class="Datatype">Pattern</a><a id="488" class="Symbol">)</a>
+<a id="490" class="Keyword">open</a> <a id="495" href="Agda.Builtin.Reflection.html#5031" class="Module">Pattern</a> <a id="503" class="Keyword">public</a>
+
+<a id="511" class="Comment">------------------------------------------------------------------------</a>
+<a id="584" class="Comment">-- Re-exporting definitions that used to be here</a>
+
+<a id="634" class="Keyword">open</a> <a id="639" class="Keyword">import</a> <a id="646" href="Reflection.AST.Term.html" class="Module">Reflection.AST.Term</a> <a id="666" class="Keyword">public</a>
+  <a id="675" class="Keyword">using</a>    <a id="684" class="Symbol">(</a> <a id="686" href="Reflection.AST.Term.html#16413" class="Function">proj-injective</a> <a id="701" class="Symbol">)</a>
+  <a id="705" class="Keyword">renaming</a> <a id="714" class="Symbol">(</a> <a id="716" href="Reflection.AST.Term.html#15832" class="Function">pat-con-injective₁</a> <a id="735" class="Symbol">to</a> <a id="738" class="Function">con-injective₁</a>
+           <a id="764" class="Symbol">;</a> <a id="766" href="Reflection.AST.Term.html#15950" class="Function">pat-con-injective₂</a> <a id="785" class="Symbol">to</a> <a id="788" class="Function">con-injective₂</a>
+           <a id="814" class="Symbol">;</a> <a id="816" href="Reflection.AST.Term.html#16074" class="Function">pat-con-injective</a>  <a id="835" class="Symbol">to</a> <a id="838" class="Function">con-injective</a>
+           <a id="863" class="Symbol">;</a> <a id="865" href="Reflection.AST.Term.html#16239" class="Function">pat-var-injective</a>  <a id="884" class="Symbol">to</a> <a id="887" class="Function">var-injective</a>
+           <a id="912" class="Symbol">;</a> <a id="914" href="Reflection.AST.Term.html#16322" class="Function">pat-lit-injective</a>  <a id="933" class="Symbol">to</a> <a id="936" class="Function">lit-injective</a>
+           <a id="961" class="Symbol">;</a> <a id="963" href="Reflection.AST.Term.html#5661" class="Function Operator">_≟-Patterns_</a>       <a id="982" class="Symbol">to</a> <a id="985" class="Function Operator">_≟s_</a>
+           <a id="1001" class="Symbol">;</a> <a id="1003" href="Reflection.AST.Term.html#5709" class="Function Operator">_≟-Pattern_</a>        <a id="1022" class="Symbol">to</a> <a id="1025" class="Function Operator">_≟_</a>
+           <a id="1040" class="Symbol">)</a>
+</pre></body></html>
