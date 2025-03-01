@@ -5,7 +5,6 @@
 
 module Inline.Spec where
 
-
 import System.FilePath
 
 import Test.Tasty.Extras
@@ -87,9 +86,11 @@ tests =
           )
       , goldenPirReadable "recursive" recursive
       , goldenUPlcReadable "recursive" recursive
-      , goldenPirReadable "squareSum" compiledSquareSum
-      , goldenUPlcReadable "squareSum" compiledSquareSum
-      , goldenEvalCekCatch "squareSum" [compiledSquareSum `unsafeApplyCode` liftCodeDef 2]
+      , goldenPirReadable "inlineLocalOnce" compiledInlineLocalOnce
+      , goldenUPlcReadable "inlineLocalOnce" compiledInlineLocalOnce
+      , goldenEvalCekCatch
+          "inlineLocalOnce"
+          [compiledInlineLocalOnce `unsafeApplyCode` liftCodeDef 2]
       ]
 
 double :: Integer -> Integer
@@ -102,16 +103,17 @@ factorial x
   | otherwise = x `PlutusTx.multiplyInteger` factorial (x `PlutusTx.subtractInteger` 1)
 {-# INLINEABLE factorial #-}
 
--- | This test case verifies that `inline` can inline local bindings
--- (like `square`).
---
--- The third usage of `square` is inlined in PIR, but not in UPLC, since
--- in UPLC the inlining is reversed by CSE.
-squareSum :: Integer -> Integer
-squareSum x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` inline square
+{-| This test case verifies that `inline` can inline local bindings
+(like `square`).
+
+The third usage of `square` is inlined in PIR, but not in UPLC, since
+in UPLC the inlining is reversed by CSE.
+-}
+inlineLocalOnce :: Integer -> Integer
+inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` inline square
   where
     !square = x `PlutusTx.multiplyInteger` x
-{-# INLINEABLE squareSum #-}
+{-# INLINEABLE inlineLocalOnce #-}
 
 notInlined :: CompiledCode (Integer -> Integer -> Integer -> Integer)
 notInlined =
@@ -171,5 +173,5 @@ recursive =
         ||]
     )
 
-compiledSquareSum :: CompiledCode (Integer -> Integer)
-compiledSquareSum = $$(compile [|| squareSum ||])
+compiledInlineLocalOnce :: CompiledCode (Integer -> Integer)
+compiledInlineLocalOnce = $$(compile [||inlineLocalOnce||])
