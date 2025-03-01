@@ -2,6 +2,7 @@ module PlutusIR.Transform.Inline.Tests where
 
 import Test.Tasty.Extras
 
+import PlutusCore.Annotation (Inline (..))
 import PlutusCore.Default.Builtins
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins
@@ -65,7 +66,7 @@ test_inline =
         <>  [runTest withoutConstantInlining "inlineConstantsOff"]
   where
     runTest constantInlining =
-      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC constantInlining tc mempty def)) pTerm
+      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC constantInlining tc def def)) pTerm
     withConstantInlining = True
     withoutConstantInlining = False
 
@@ -75,4 +76,4 @@ prop_inline biVariant =
   withMaxSuccess numTestsForPassProp $
     testPassProp
       runQuote
-      $ \tc -> inlinePassSC True tc mempty (def {_biSemanticsVariant = biVariant})
+      $ \tc -> inlinePassSC True tc def (def {_biSemanticsVariant = biVariant})

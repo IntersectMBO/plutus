@@ -316,7 +316,7 @@ getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm u
 getConstructors tc = do
   -- make sure the constructors have been created
   _ <- compileTyCon tc
-  maybeConstrs <- PIR.lookupConstructors annMayInline (LexName $ GHC.getName tc)
+  maybeConstrs <- PIR.lookupConstructors (LexName $ GHC.getName tc)
   case maybeConstrs of
     Just constrs -> pure constrs
     Nothing ->

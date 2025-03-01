@@ -16,10 +16,10 @@ module PlutusCore.Annotation
     ) where
 
 import Control.DeepSeq
+import Data.Default.Class
 import Data.Hashable
 import Data.List qualified as List
 import Data.MonoTraversable
-import Data.Semigroup (Any (..))
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Flat (Flat (..))
@@ -27,19 +27,30 @@ import GHC.Generics
 import Prettyprinter
 import Text.Megaparsec.Pos as Megaparsec
 
-newtype InlineHints name a = InlineHints { shouldInline :: a -> name -> Bool }
-    deriving (Semigroup, Monoid) via (a -> name -> Any)
+newtype InlineHints name a = InlineHints { shouldInline :: a -> name -> Inline }
 
 instance Show (InlineHints name a) where
     show _ = "<inline hints>"
 
+instance Default (InlineHints name a) where
+    def = InlineHints (\_ _ -> MayInline)
+
 -- | An annotation type used during the compilation.
 data Ann = Ann
-    { annInline   :: Inline
-    , annSrcSpans :: SrcSpans
+    { annInline          :: Inline
+    , annSrcSpans        :: SrcSpans
+    , annIsAsDataMatcher :: Bool
     }
     deriving stock (Eq, Ord, Generic, Show)
     deriving anyclass (Hashable)
+
+instance Default Ann where
+  def =
+    Ann
+      { annInline = MayInline
+      , annSrcSpans = mempty
+      , annIsAsDataMatcher = False
+      }
 
 data Inline
     = -- | When calling @PlutusIR.Compiler.Definitions.defineTerm@ to add a new term definition,
@@ -51,6 +62,9 @@ data Inline
       -- otherwise not inline them. To achieve that, we annotate the definition with `AlwaysInline`
       -- when defining @trace@, i.e., @trace <AlwaysInline> = \_ a -> a@.
       AlwaysInline
+    | -- | Signaling to the compiler that a binding is safe to inline. This is useful for
+      -- annotating strict bindings that aren't obviously safe to inline.
+      SafeToInline
     | MayInline
     deriving stock (Eq, Ord, Generic, Show)
     deriving anyclass (Hashable)
@@ -62,20 +76,23 @@ class AnnInline a where
   -- | An annotation instructing the inliner to always inline a binding.
   annAlwaysInline :: a
 
+  -- | An annotation signaling to the inliner that a binding is safe to inline.
+  -- The inlining decision is left to the inliner. This is useful for
+  -- annotating strict bindings that aren't obviously safe to inline.
+  annSafeToInline :: a
+
   -- | An annotation that leaves the inlining decision to the inliner.
   annMayInline :: a
 
 instance AnnInline () where
   annAlwaysInline = ()
+  annSafeToInline = ()
   annMayInline = ()
 
 instance AnnInline Ann where
-    -- | Create an `Ann` with `AlwaysInline`.
-    annAlwaysInline = Ann{annInline = AlwaysInline, annSrcSpans = mempty}
-
-    -- | Create an `Ann` with `MayInline`.
-    annMayInline = Ann{annInline = MayInline, annSrcSpans = mempty}
-
+    annAlwaysInline = def { annInline = AlwaysInline }
+    annSafeToInline = def { annInline = SafeToInline }
+    annMayInline = def { annInline = MayInline }
 
 -- | The span between two source locations.
 --
@@ -133,7 +150,7 @@ instance Pretty SrcSpans where
 
 -- | Add an extra SrcSpan to existing 'SrcSpans' of 'Ann'
 addSrcSpan :: SrcSpan -> Ann -> Ann
-addSrcSpan s (Ann i (SrcSpans ss)) = Ann i (SrcSpans $ Set.insert s ss)
+addSrcSpan s (Ann i (SrcSpans ss) b) = Ann i (SrcSpans $ Set.insert s ss) b
 
 -- | Tells if a line (positive integer) falls inside a SrcSpan.
 lineInSrcSpan :: Pos -> SrcSpan -> Bool

@@ -1,0 +1,16 @@
+(program
+   1.1.0
+   (\d ->
+      (\tup ->
+         force
+           (force
+              (force ifThenElse
+                 (equalsInteger 0 (force (force fstPair) tup))
+                 (delay
+                    (delay
+                       ((\l ->
+                           (\l -> unIData (force headList l))
+                             (force tailList (force tailList l)))
+                          (force (force sndPair) tup))))
+                 (delay (delay (case error [error]))))))
+        (unConstrData d)))
