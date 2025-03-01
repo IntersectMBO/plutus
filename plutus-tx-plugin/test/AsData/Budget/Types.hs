@@ -99,7 +99,12 @@ newtype TheseDManual a b = TheseDManual_ PlutusTx.BuiltinData
 pattern ThisDManual :: (PlutusTx.ToData a, PlutusTx.UnsafeFromData a) => a -> TheseDManual a b
 pattern ThisDManual arg <-
   TheseDManual_
-    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 0 -> True, unpack1 -> arg))
+    (BI.unsafeDataAsConstr ->
+      B.pairToPair ->
+        ((PlutusTx.==) 0 -> True
+        , AsData.unpack1 -> PlutusTx.unsafeFromBuiltinData -> arg
+        )
+    )
   where ThisDManual arg =
           TheseDManual_
             (BI.mkConstr 0 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
@@ -107,14 +112,15 @@ pattern ThisDManual arg <-
 pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
 pattern ThatDManual arg <-
   TheseDManual_
-    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 0 -> True, unpack1 -> arg))
+    (BI.unsafeDataAsConstr ->
+      B.pairToPair ->
+        ((PlutusTx.==) 0 -> True
+        , AsData.unpack1 -> PlutusTx.unsafeFromBuiltinData -> arg
+        )
+    )
   where ThatDManual arg =
           TheseDManual_
             (BI.mkConstr 1 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
-
-unpack1 :: PlutusTx.UnsafeFromData a => BI.BuiltinList BI.BuiltinData -> a
-unpack1 =
-  PlutusTx.unsafeFromBuiltinData . BI.head
 
 pattern TheseDManual
   :: (PlutusTx.ToData a
@@ -124,7 +130,15 @@ pattern TheseDManual
     ) => a -> b -> TheseDManual a b
 pattern TheseDManual arg1 arg2 <-
   TheseDManual_
-    (BI.unsafeDataAsConstr -> B.pairToPair -> ((PlutusTx.==) 2 -> True, unpack2 -> (arg1, arg2)))
+    (BI.unsafeDataAsConstr ->
+      B.pairToPair ->
+        ((PlutusTx.==) 2 -> True
+        , AsData.unpack2 ->
+          (PlutusTx.unsafeFromBuiltinData -> arg1
+          , PlutusTx.unsafeFromBuiltinData -> arg2
+          )
+        )
+    )
   where TheseDManual arg1 arg2 =
           TheseDManual_
             (BI.mkConstr 2
@@ -136,15 +150,4 @@ pattern TheseDManual arg1 arg2 <-
                 )
               )
             )
-
-unpack2
-  :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b)
-  => BI.BuiltinList BI.BuiltinData -> (a, b)
-unpack2 args =
-  let ~x = PlutusTx.unsafeFromBuiltinData $ BI.head args
-      ~rest = BI.tail args
-      ~y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
-   in (x, y)
-
-
 {-# COMPLETE ThisDManual, ThatDManual, TheseDManual #-}

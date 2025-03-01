@@ -6,7 +6,15 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE ViewPatterns       #-}
 
-module PlutusTx.AsData (asData, asDataFor) where
+module PlutusTx.AsData (
+  asData,
+  asDataFor,
+  unpack1,
+  unpack2,
+  unpack3,
+  unpack4,
+  unpack5,
+) where
 
 import Control.Lens (ifor)
 import Control.Monad (unless)
@@ -16,7 +24,8 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
-import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
 import PlutusTx.IsData.TH (mkAsDataMatchingFunction, mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
 
@@ -95,7 +104,7 @@ asDataFor dec = do
   let ntD =
         let con = TH.NormalC cname
               [ ( TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness
-                , TH.ConT ''Builtins.BuiltinData
+                , TH.ConT ''B.BuiltinData
                 )
               ]
         in TH.NewtypeD [] name
@@ -158,3 +167,34 @@ asDataFor dec = do
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats
+
+unpack1 :: BI.BuiltinList B.BuiltinData -> B.BuiltinData
+unpack1 = BI.head
+
+unpack2 :: BI.BuiltinList B.BuiltinData -> (B.BuiltinData, BI.BuiltinData)
+unpack2 args =
+  (BI.head args, BI.head $ BI.tail args)
+
+unpack3
+  :: BI.BuiltinList B.BuiltinData
+  -> (B.BuiltinData, B.BuiltinData, B.BuiltinData)
+unpack3 args =
+  let !rest = BI.tail args
+  in (BI.head args, BI.head rest, BI.head $ BI.tail rest)
+
+unpack4
+  :: BI.BuiltinList B.BuiltinData
+  -> (B.BuiltinData, B.BuiltinData, B.BuiltinData, B.BuiltinData)
+unpack4 args =
+  let !rest1 = BI.tail args
+      !rest2 = BI.tail rest1
+  in (BI.head args, BI.head rest1, BI.head rest2, BI.head $ BI.tail rest2)
+
+unpack5
+  :: BI.BuiltinList B.BuiltinData
+  -> (B.BuiltinData, B.BuiltinData, B.BuiltinData, B.BuiltinData, B.BuiltinData)
+unpack5 args =
+  let !rest1 = BI.tail args
+      !rest2 = BI.tail rest1
+      !rest3 = BI.tail rest2
+  in (BI.head args, BI.head rest1, BI.head rest2, BI.head rest3, BI.head $ BI.tail rest3)
