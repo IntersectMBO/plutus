@@ -1,0 +1,5109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes                 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies               #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators              #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- | Configurable precedence-aware pretty-printing.</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >-- Look into @test/Expr.hs@ for an extended example.</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Text.PrettyBy.Fixity</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy.Fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html"
+	><span class="hs-identifier"
+	  >Text.Fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Pretty.html"
+	><span class="hs-identifier"
+	  >Text.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Internal.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy.Internal</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Internal.Utils.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy.Internal.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Monad.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Export</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html"
+	><span class="hs-identifier"
+	  >Data.String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/src/Lens.Micro.html"
+	><span class="hs-identifier"
+	  >Lens.Micro</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A constraint for \&quot;'RenderContext' is a part of @config@\&quot;.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="HasRenderContext"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#HasRenderContext"
+	  ><span class="hs-identifier hs-var"
+	    >HasRenderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679065944"
+      ><span class="annot"
+	><a href="#local-6989586621679065944"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span id="renderContext"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#renderContext"
+	  ><span class="hs-identifier hs-type"
+	    >renderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/src/Lens.Micro.Type.html#Lens%27"
+	><span class="hs-identifier hs-type"
+	  >Lens'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679065944"
+	><span class="hs-identifier hs-type"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#RenderContext"
+	><span class="hs-identifier hs-type"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html#HasRenderContext"
+	><span class="hs-identifier hs-type"
+	  >HasRenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.Fixity.html#RenderContext"
+	><span class="hs-identifier hs-type"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679066183"
+      ><span class="annot"
+	><span class="annottext"
+	  >renderContext :: Lens' RenderContext RenderContext
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#renderContext"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >renderContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RenderContext -&gt; f RenderContext)
+-&gt; RenderContext -&gt; f RenderContext
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A constraint for \&quot;@m@ is a 'Monad' supporting configurable precedence-aware pretty-printing\&quot;.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="MonadPrettyContext"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+	  ><span class="hs-identifier hs-var"
+	    >MonadPrettyContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066185"
+      ><span class="annot"
+	><a href="#local-6989586621679066185"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066186"
+      ><span class="annot"
+	><a href="#local-6989586621679066186"
+	  ><span class="hs-identifier hs-type"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066187"
+      ><span class="annot"
+	><a href="#local-6989586621679066187"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Monad.html#MonadPretty"
+	><span class="hs-identifier hs-type"
+	  >MonadPretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066185"
+	><span class="hs-identifier hs-type"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066186"
+	><span class="hs-identifier hs-type"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066187"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html#HasRenderContext"
+	><span class="hs-identifier hs-type"
+	  >HasRenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066185"
+	><span class="hs-identifier hs-type"
+	  >config</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A @newtype@ wrapper around @a@ introduced for its 'HasPrettyConfig' instance.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="Sole"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#Sole"
+	  ><span class="hs-identifier hs-var"
+	    >Sole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679065947"
+      ><span class="annot"
+	><a href="#local-6989586621679065947"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Sole"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#Sole"
+	  ><span class="hs-identifier hs-var"
+	    >Sole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unSole"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. Sole a -&gt; a
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#unSole"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unSole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679065947"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >-- | It's not possible to have @HasPrettyConfig config config@, because that would mean that every</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >-- environment is a pretty-printing config on its own, which doesn't make sense. We could have an</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- OVERLAPPABLE instance, but I'd rather not.</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679065954"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Monad.html#HasPrettyConfig"
+	  ><span class="hs-identifier hs-type"
+	    >HasPrettyConfig</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#Sole"
+	  ><span class="hs-identifier hs-type"
+	    >Sole</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679065954"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679065954"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679066195"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyConfig :: Lens' (Sole config) config
+</span
+	  ><a href="#local-6989586621679066195"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066197"
+      ><span class="annot"
+	><span class="annottext"
+	  >config -&gt; f config
+</span
+	  ><a href="#local-6989586621679066197"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html#Sole"
+	><span class="hs-identifier hs-type"
+	  >Sole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066198"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679066198"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; Sole config
+forall a. a -&gt; Sole a
+</span
+	><a href="Text.PrettyBy.Fixity.html#Sole"
+	><span class="hs-identifier hs-var"
+	  >Sole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(config -&gt; Sole config) -&gt; f config -&gt; f (Sole config)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; f config
+</span
+	><a href="#local-6989586621679066197"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679066198"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A monad for precedence-aware pretty-printing.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="InContextM"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#InContextM"
+	  ><span class="hs-identifier hs-var"
+	    >InContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679065959"
+      ><span class="annot"
+	><a href="#local-6989586621679065959"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679065960"
+      ><span class="annot"
+	><a href="#local-6989586621679065960"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="InContextM"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#InContextM"
+	  ><span class="hs-identifier hs-var"
+	    >InContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unInContextM"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall config a. InContextM config a -&gt; Reader (Sole config) a
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#unInContextM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unInContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#Reader"
+	><span class="hs-identifier hs-type"
+	  >Reader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html#Sole"
+	><span class="hs-identifier hs-type"
+	  >Sole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679065959"
+	><span class="hs-identifier hs-type"
+	  >config</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679065960"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679066203"
+      ><span id="local-6989586621679066209"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b.
+ (a -&gt; b) -&gt; InContextM config a -&gt; InContextM config b)
+-&gt; (forall a b. a -&gt; InContextM config b -&gt; InContextM config a)
+-&gt; Functor (InContextM config)
+forall a b. a -&gt; InContextM config b -&gt; InContextM config a
+forall a b. (a -&gt; b) -&gt; InContextM config a -&gt; InContextM config b
+forall config a b. a -&gt; InContextM config b -&gt; InContextM config a
+forall config a b.
+(a -&gt; b) -&gt; InContextM config a -&gt; InContextM config b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall config a b.
+(a -&gt; b) -&gt; InContextM config a -&gt; InContextM config b
+fmap :: forall a b. (a -&gt; b) -&gt; InContextM config a -&gt; InContextM config b
+$c&lt;$ :: forall config a b. a -&gt; InContextM config b -&gt; InContextM config a
+&lt;$ :: forall a b. a -&gt; InContextM config b -&gt; InContextM config a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679066219"
+      ><span id="local-6989586621679066225"
+	><span id="local-6989586621679066230"
+	  ><span id="local-6989586621679066235"
+	    ><span id="local-6989586621679066240"
+	      ><span class="annot"
+		><span class="annottext"
+		  >Functor (InContextM config)
+Functor (InContextM config) =&gt;
+(forall a. a -&gt; InContextM config a)
+-&gt; (forall a b.
+    InContextM config (a -&gt; b)
+    -&gt; InContextM config a -&gt; InContextM config b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c)
+    -&gt; InContextM config a
+    -&gt; InContextM config b
+    -&gt; InContextM config c)
+-&gt; (forall a b.
+    InContextM config a -&gt; InContextM config b -&gt; InContextM config b)
+-&gt; (forall a b.
+    InContextM config a -&gt; InContextM config b -&gt; InContextM config a)
+-&gt; Applicative (InContextM config)
+forall config. Functor (InContextM config)
+forall a. a -&gt; InContextM config a
+forall config a. a -&gt; InContextM config a
+forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config a
+forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+forall a b.
+InContextM config (a -&gt; b)
+-&gt; InContextM config a -&gt; InContextM config b
+forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config a
+forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+forall config a b.
+InContextM config (a -&gt; b)
+-&gt; InContextM config a -&gt; InContextM config b
+forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; InContextM config a
+-&gt; InContextM config b
+-&gt; InContextM config c
+forall config a b c.
+(a -&gt; b -&gt; c)
+-&gt; InContextM config a
+-&gt; InContextM config b
+-&gt; InContextM config c
+forall (f :: * -&gt; *).
+Functor f =&gt;
+(forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+$cpure :: forall config a. a -&gt; InContextM config a
+pure :: forall a. a -&gt; InContextM config a
+$c&lt;*&gt; :: forall config a b.
+InContextM config (a -&gt; b)
+-&gt; InContextM config a -&gt; InContextM config b
+&lt;*&gt; :: forall a b.
+InContextM config (a -&gt; b)
+-&gt; InContextM config a -&gt; InContextM config b
+$cliftA2 :: forall config a b c.
+(a -&gt; b -&gt; c)
+-&gt; InContextM config a
+-&gt; InContextM config b
+-&gt; InContextM config c
+liftA2 :: forall a b c.
+(a -&gt; b -&gt; c)
+-&gt; InContextM config a
+-&gt; InContextM config b
+-&gt; InContextM config c
+$c*&gt; :: forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+*&gt; :: forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+$c&lt;* :: forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config a
+&lt;* :: forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config a
+</span
+		  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Applicative"
+		  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		    >Applicative</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679066250"
+      ><span id="local-6989586621679066256"
+	><span id="local-6989586621679066261"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Applicative (InContextM config)
+Applicative (InContextM config) =&gt;
+(forall a b.
+ InContextM config a
+ -&gt; (a -&gt; InContextM config b) -&gt; InContextM config b)
+-&gt; (forall a b.
+    InContextM config a -&gt; InContextM config b -&gt; InContextM config b)
+-&gt; (forall a. a -&gt; InContextM config a)
+-&gt; Monad (InContextM config)
+forall config. Applicative (InContextM config)
+forall a. a -&gt; InContextM config a
+forall config a. a -&gt; InContextM config a
+forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+forall a b.
+InContextM config a
+-&gt; (a -&gt; InContextM config b) -&gt; InContextM config b
+forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+forall config a b.
+InContextM config a
+-&gt; (a -&gt; InContextM config b) -&gt; InContextM config b
+forall (m :: * -&gt; *).
+Applicative m =&gt;
+(forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+$c&gt;&gt;= :: forall config a b.
+InContextM config a
+-&gt; (a -&gt; InContextM config b) -&gt; InContextM config b
+&gt;&gt;= :: forall a b.
+InContextM config a
+-&gt; (a -&gt; InContextM config b) -&gt; InContextM config b
+$c&gt;&gt; :: forall config a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+&gt;&gt; :: forall a b.
+InContextM config a -&gt; InContextM config b -&gt; InContextM config b
+$creturn :: forall config a. a -&gt; InContextM config a
+return :: forall a. a -&gt; InContextM config a
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Monad"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monad</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679066271"
+      ><span id="local-6989586621679066277"
+	><span id="local-6989586621679066282"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	      ><span class="hs-identifier hs-type"
+		>MonadReader</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="Text.PrettyBy.Fixity.html#Sole"
+	      ><span class="hs-identifier hs-type"
+		>Sole</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679065959"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Run 'InContextM' by supplying a @config@.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="local-6989586621679066034"
+      ><span id="local-6989586621679066035"
+	><span class="annot"
+	  ><a href="Text.PrettyBy.Fixity.html#runInContextM"
+	    ><span class="hs-identifier hs-type"
+	      >runInContextM</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679066034"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="Text.PrettyBy.Fixity.html#InContextM"
+	    ><span class="hs-identifier hs-type"
+	      >InContextM</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679066034"
+	    ><span class="hs-identifier hs-type"
+	      >config</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679066035"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679066035"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="runInContextM"
+      ><span class="annot"
+	><span class="annottext"
+	  >runInContextM :: forall config a. config -&gt; InContextM config a -&gt; a
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#runInContextM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runInContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066289"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679066289"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Fixity.html#InContextM"
+	><span class="hs-identifier hs-type"
+	  >InContextM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066290"
+      ><span class="annot"
+	><span class="annottext"
+	  >Reader (Sole config) a
+</span
+	  ><a href="#local-6989586621679066290"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Reader (Sole config) a -&gt; Sole config -&gt; a
+forall r a. Reader r a -&gt; r -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Reader.html#runReader"
+	><span class="hs-identifier hs-var"
+	  >runReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Reader (Sole config) a
+</span
+	><a href="#local-6989586621679066290"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Sole config -&gt; a) -&gt; Sole config -&gt; a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; Sole config
+forall a. a -&gt; Sole a
+</span
+	><a href="Text.PrettyBy.Fixity.html#Sole"
+	><span class="hs-identifier hs-var"
+	  >Sole</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679066289"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >-- | Takes a monadic pretty-printer and turns it into one that receives a @config@ explicitly.</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- Useful for defining instances of 'PrettyBy' monadically when writing precedence-aware</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- pretty-printing code (and since all functions below are monadic, it's currenty the only option).</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621679066043"
+      ><span id="local-6989586621679066044"
+	><span id="local-6989586621679066045"
+	  ><span class="annot"
+	    ><a href="Text.PrettyBy.Fixity.html#inContextM"
+	      ><span class="hs-identifier hs-type"
+		>inContextM</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066043"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="Text.PrettyBy.Fixity.html#InContextM"
+	      ><span class="hs-identifier hs-type"
+		>InContextM</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066044"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	      ><span class="hs-identifier hs-type"
+		>Doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066045"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066044"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066043"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	      ><span class="hs-identifier hs-type"
+		>Doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066045"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="inContextM"
+      ><span class="annot"
+	><span class="annottext"
+	  >inContextM :: forall a config ann.
+(a -&gt; InContextM config (Doc ann)) -&gt; config -&gt; a -&gt; Doc ann
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#inContextM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inContextM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066293"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; InContextM config (Doc ann)
+</span
+	  ><a href="#local-6989586621679066293"
+	  ><span class="hs-identifier hs-var"
+	    >pM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066294"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679066294"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; InContextM config (Doc ann) -&gt; Doc ann
+forall config a. config -&gt; InContextM config a -&gt; a
+</span
+	><a href="Text.PrettyBy.Fixity.html#runInContextM"
+	><span class="hs-identifier hs-var"
+	  >runInContextM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679066294"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(InContextM config (Doc ann) -&gt; Doc ann)
+-&gt; (a -&gt; InContextM config (Doc ann)) -&gt; a -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; InContextM config (Doc ann)
+</span
+	><a href="#local-6989586621679066293"
+	><span class="hs-identifier hs-var"
+	  >pM</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A string written in the 'InContextM' monad gets enclosed with 'unitDocM' automatically.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679066057"
+      ><span id="local-6989586621679066058"
+	><span id="local-6989586621679066059"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="Text.PrettyBy.Fixity.html#HasRenderContext"
+	      ><span class="hs-identifier hs-type"
+		>HasRenderContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066057"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066058"
+	      ><span class="hs-identifier hs-type"
+		>doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	      ><span class="hs-operator hs-type"
+		>~</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	      ><span class="hs-identifier hs-type"
+		>Doc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066059"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html#IsString"
+	      ><span class="hs-identifier hs-type"
+		>IsString</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="Text.PrettyBy.Fixity.html#InContextM"
+	      ><span class="hs-identifier hs-type"
+		>InContextM</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066057"
+	      ><span class="hs-identifier hs-type"
+		>config</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679066058"
+	      ><span class="hs-identifier hs-type"
+		>doc</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679066310"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromString :: String -&gt; InContextM config doc
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html#fromString"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fromString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; InContextM config doc
+Doc ann -&gt; InContextM config (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Doc ann -&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#unitDocM"
+	><span class="hs-identifier hs-var"
+	  >unitDocM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; InContextM config doc)
+-&gt; (String -&gt; Doc ann) -&gt; String -&gt; InContextM config doc
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall a. IsString a =&gt; String -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.String.html#fromString"
+	><span class="hs-identifier hs-var"
+	  >fromString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: when writing a precedence-aware pretty-printer we basically always want to specify a</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- fixity in each clause. Would be nice to enforce that in types.</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- | Enclose a 'Doc' in parentheses if required or leave it as is. The need for enclosing is</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- determined from an outer 'RenderContext' (stored in the environment of the monad) and the inner</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >-- fixity provided as an argument.</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="local-6989586621679066067"
+      ><span id="local-6989586621679066068"
+	><span id="local-6989586621679066069"
+	  ><span id="local-6989586621679066071"
+	    ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#encloseM"
+		><span class="hs-identifier hs-type"
+		  >encloseM</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		><span class="hs-identifier hs-type"
+		  >MonadPrettyContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066067"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066068"
+		><span class="hs-identifier hs-type"
+		  >env</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066069"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.html#Fixity"
+		><span class="hs-identifier hs-type"
+		  >Fixity</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066071"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066069"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066071"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="encloseM"
+      ><span class="annot"
+	><span class="annottext"
+	  >encloseM :: forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity -&gt; Doc ann -&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#encloseM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encloseM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066332"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066332"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066333"
+      ><span class="annot"
+	><span class="annottext"
+	  >Doc ann
+</span
+	  ><a href="#local-6989586621679066333"
+	  ><span class="hs-identifier hs-var"
+	    >doc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting RenderContext env RenderContext -&gt; m RenderContext
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><a href="Text.PrettyBy.Internal.Utils.html#view"
+	><span class="hs-identifier hs-var"
+	  >view</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(config -&gt; Const RenderContext config)
+-&gt; env -&gt; Const RenderContext env
+forall env config. HasPrettyConfig env config =&gt; Lens' env config
+Lens' env config
+</span
+	><a href="Text.PrettyBy.Monad.html#prettyConfig"
+	><span class="hs-identifier hs-var"
+	  >prettyConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((config -&gt; Const RenderContext config)
+ -&gt; env -&gt; Const RenderContext env)
+-&gt; ((RenderContext -&gt; Const RenderContext RenderContext)
+    -&gt; config -&gt; Const RenderContext config)
+-&gt; Getting RenderContext env RenderContext
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RenderContext -&gt; Const RenderContext RenderContext)
+-&gt; config -&gt; Const RenderContext config
+forall config.
+HasRenderContext config =&gt;
+Lens' config RenderContext
+Lens' config RenderContext
+</span
+	><a href="Text.PrettyBy.Fixity.html#renderContext"
+	><span class="hs-identifier hs-var"
+	  >renderContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m RenderContext -&gt; (RenderContext -&gt; Doc ann) -&gt; m (Doc ann)
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%26%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&amp;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066336"
+      ><span class="annot"
+	><span class="annottext"
+	  >RenderContext
+</span
+	  ><a href="#local-6989586621679066336"
+	  ><span class="hs-identifier hs-var"
+	    >context</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; Doc ann)
+-&gt; RenderContext -&gt; Fixity -&gt; Doc ann -&gt; Doc ann
+forall prec a.
+Ord prec =&gt;
+(a -&gt; a) -&gt; RenderContextOver prec -&gt; FixityOver prec -&gt; a -&gt; a
+</span
+	><a href="Text.Fixity.Internal.html#encloseIn"
+	><span class="hs-identifier hs-var"
+	  >encloseIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Symbols.Ascii.html#parens"
+	><span class="hs-identifier hs-var"
+	  >parens</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RenderContext
+</span
+	><a href="#local-6989586621679066336"
+	><span class="hs-identifier hs-var"
+	  >context</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066332"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621679066333"
+	><span class="hs-identifier hs-var"
+	  >doc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The type of a general @config@-based pretty-printer.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="AnyToDoc"
+      ><span class="annot"
+	><a href="Text.PrettyBy.Fixity.html#AnyToDoc"
+	  ><span class="hs-identifier hs-var"
+	    >AnyToDoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066339"
+      ><span class="annot"
+	><a href="#local-6989586621679066339"
+	  ><span class="hs-identifier hs-type"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066340"
+      ><span class="annot"
+	><a href="#local-6989586621679066340"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679066341"
+      ><span class="annot"
+	><a href="#local-6989586621679066341"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Text.PrettyBy.Internal.html#PrettyBy"
+	><span class="hs-identifier hs-type"
+	  >PrettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066339"
+	><span class="hs-identifier hs-type"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066341"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066341"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+	><span class="hs-identifier hs-type"
+	  >Doc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679066340"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Instantiate a supplied continuation with a precedence-aware pretty-printer.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span id="local-6989586621679066091"
+      ><span id="local-6989586621679066092"
+	><span id="local-6989586621679066093"
+	  ><span id="local-6989586621679066097"
+	    ><span id="local-6989586621679066098"
+	      ><span class="annot"
+		><a href="Text.PrettyBy.Fixity.html#withPrettyIn"
+		  ><span class="hs-identifier hs-type"
+		    >withPrettyIn</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-85"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		  ><span class="hs-identifier hs-type"
+		    >MonadPrettyContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066091"
+		  ><span class="hs-identifier hs-type"
+		    >config</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066092"
+		  ><span class="hs-identifier hs-type"
+		    >env</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066093"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-86"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-keyword"
+		>forall</span
+		><span
+		> </span
+		><span id="local-6989586621679066094"
+		><span class="annot"
+		  ><a href="#local-6989586621679066094"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ></span
+		><span class="hs-operator"
+		>.</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.PrettyBy.Internal.html#PrettyBy"
+		  ><span class="hs-identifier hs-type"
+		    >PrettyBy</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066091"
+		  ><span class="hs-identifier hs-type"
+		    >config</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066094"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.Fixity.Internal.html#Direction"
+		  ><span class="hs-identifier hs-type"
+		    >Direction</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.Fixity.html#Fixity"
+		  ><span class="hs-identifier hs-type"
+		    >Fixity</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066094"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		  ><span class="hs-identifier hs-type"
+		    >Doc</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066097"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066093"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066098"
+		  ><span class="hs-identifier hs-type"
+		    >r</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066093"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066098"
+		  ><span class="hs-identifier hs-type"
+		    >r</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="withPrettyIn"
+      ><span class="annot"
+	><span class="annottext"
+	  >withPrettyIn :: forall config env (m :: * -&gt; *) ann r.
+MonadPrettyContext config env m =&gt;
+((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m r)
+-&gt; m r
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#withPrettyIn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withPrettyIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066353"
+      ><span class="annot"
+	><span class="annottext"
+	  >(forall a.
+ PrettyBy config a =&gt;
+ Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+-&gt; m r
+</span
+	  ><a href="#local-6989586621679066353"
+	  ><span class="hs-identifier hs-var"
+	    >cont</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679066354"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621679066354"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting config env config -&gt; m config
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><a href="Text.PrettyBy.Internal.Utils.html#view"
+	><span class="hs-identifier hs-var"
+	  >view</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting config env config
+forall env config. HasPrettyConfig env config =&gt; Lens' env config
+Lens' env config
+</span
+	><a href="Text.PrettyBy.Monad.html#prettyConfig"
+	><span class="hs-identifier hs-var"
+	  >prettyConfig</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a.
+ PrettyBy config a =&gt;
+ Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+-&gt; m r
+</span
+	><a href="#local-6989586621679066353"
+	><span class="hs-identifier hs-var"
+	  >cont</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m r)
+-&gt; (forall a.
+    PrettyBy config a =&gt;
+    Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+-&gt; m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066359"
+      ><span class="annot"
+	><span class="annottext"
+	  >Direction
+</span
+	  ><a href="#local-6989586621679066359"
+	  ><span class="hs-identifier hs-var"
+	    >dir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066360"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066360"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; a -&gt; Doc ann
+forall ann. config -&gt; a -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(config -&gt; a -&gt; Doc ann) -&gt; config -&gt; a -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621679066354"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; (config -&gt; config) -&gt; config
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Function.html#%26"
+	><span class="hs-operator hs-var"
+	  >&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(RenderContext -&gt; Identity RenderContext)
+-&gt; config -&gt; Identity config
+forall config.
+HasRenderContext config =&gt;
+Lens' config RenderContext
+Lens' config RenderContext
+</span
+	><a href="Text.PrettyBy.Fixity.html#renderContext"
+	><span class="hs-identifier hs-var"
+	  >renderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((RenderContext -&gt; Identity RenderContext)
+ -&gt; config -&gt; Identity config)
+-&gt; RenderContext -&gt; config -&gt; config
+forall s t a b. ASetter s t a b -&gt; b -&gt; s -&gt; t
+</span
+	><a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/src/Lens.Micro.html#.~"
+	><span class="hs-operator hs-var"
+	  >.~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; RenderContext
+forall prec. Direction -&gt; FixityOver prec -&gt; RenderContextOver prec
+</span
+	><a href="Text.Fixity.Internal.html#RenderContext"
+	><span class="hs-identifier hs-var"
+	  >RenderContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="#local-6989586621679066359"
+	><span class="hs-identifier hs-var"
+	  >dir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066360"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-comment"
+      >-- | Instantiate a supplied continuation with a pretty-printer specialized to supplied</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-comment"
+      >-- 'Fixity' and 'Direction'.</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="local-6989586621679066116"
+      ><span id="local-6989586621679066117"
+	><span id="local-6989586621679066118"
+	  ><span id="local-6989586621679066119"
+	    ><span id="local-6989586621679066121"
+	      ><span class="annot"
+		><a href="Text.PrettyBy.Fixity.html#withPrettyAt"
+		  ><span class="hs-identifier hs-type"
+		    >withPrettyAt</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-94"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		  ><span class="hs-identifier hs-type"
+		    >MonadPrettyContext</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066116"
+		  ><span class="hs-identifier hs-type"
+		    >config</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066117"
+		  ><span class="hs-identifier hs-type"
+		    >env</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066118"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-95"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.Fixity.Internal.html#Direction"
+		  ><span class="hs-identifier hs-type"
+		    >Direction</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="Text.Fixity.html#Fixity"
+		  ><span class="hs-identifier hs-type"
+		    >Fixity</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="Text.PrettyBy.Fixity.html#AnyToDoc"
+		  ><span class="hs-identifier hs-type"
+		    >AnyToDoc</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066116"
+		  ><span class="hs-identifier hs-type"
+		    >config</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066119"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066118"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066121"
+		  ><span class="hs-identifier hs-type"
+		    >r</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066118"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679066121"
+		  ><span class="hs-identifier hs-type"
+		    >r</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="withPrettyAt"
+      ><span class="annot"
+	><span class="annottext"
+	  >withPrettyAt :: forall config env (m :: * -&gt; *) ann r.
+MonadPrettyContext config env m =&gt;
+Direction -&gt; Fixity -&gt; (AnyToDoc config ann -&gt; m r) -&gt; m r
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#withPrettyAt"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withPrettyAt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066376"
+      ><span class="annot"
+	><span class="annottext"
+	  >Direction
+</span
+	  ><a href="#local-6989586621679066376"
+	  ><span class="hs-identifier hs-var"
+	    >dir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066377"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066377"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066378"
+      ><span class="annot"
+	><span class="annottext"
+	  >AnyToDoc config ann -&gt; m r
+</span
+	  ><a href="#local-6989586621679066378"
+	  ><span class="hs-identifier hs-var"
+	    >cont</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m r)
+-&gt; m r
+forall config env (m :: * -&gt; *) ann r.
+MonadPrettyContext config env m =&gt;
+((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m r)
+-&gt; m r
+</span
+	><a href="Text.PrettyBy.Fixity.html#withPrettyIn"
+	><span class="hs-identifier hs-var"
+	  >withPrettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((forall a.
+   PrettyBy config a =&gt;
+   Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+  -&gt; m r)
+ -&gt; m r)
+-&gt; ((forall a.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; m r)
+-&gt; m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066379"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PrettyBy config a =&gt; Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066379"
+	  ><span class="hs-identifier hs-var"
+	    >prettyIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AnyToDoc config ann -&gt; m r
+</span
+	><a href="#local-6989586621679066378"
+	><span class="hs-identifier hs-var"
+	  >cont</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AnyToDoc config ann -&gt; m r) -&gt; AnyToDoc config ann -&gt; m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+forall a. PrettyBy config a =&gt; Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066379"
+	><span class="hs-identifier hs-var"
+	  >prettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="#local-6989586621679066376"
+	><span class="hs-identifier hs-var"
+	  >dir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066377"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Call 'encloseM' on 'unitFixity'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span id="local-6989586621679066062"
+      ><span id="local-6989586621679066063"
+	><span id="local-6989586621679066064"
+	  ><span id="local-6989586621679066066"
+	    ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#unitDocM"
+		><span class="hs-identifier hs-type"
+		  >unitDocM</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		><span class="hs-identifier hs-type"
+		  >MonadPrettyContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066062"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066063"
+		><span class="hs-identifier hs-type"
+		  >env</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066064"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066066"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066064"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066066"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="unitDocM"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitDocM :: forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Doc ann -&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#unitDocM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitDocM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity -&gt; Doc ann -&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity -&gt; Doc ann -&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#encloseM"
+	><span class="hs-identifier hs-var"
+	  >encloseM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="Text.Fixity.html#unitFixity"
+	><span class="hs-identifier hs-var"
+	  >unitFixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-comment"
+      >-- | Instantiate a supplied continuation with a pretty-printer and apply 'encloseM',</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >-- specialized to supplied 'Fixity', to the result.</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span id="local-6989586621679066132"
+      ><span id="local-6989586621679066133"
+	><span id="local-6989586621679066134"
+	  ><span id="local-6989586621679066136"
+	    ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#compoundDocM"
+		><span class="hs-identifier hs-type"
+		  >compoundDocM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-105"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		><span class="hs-identifier hs-type"
+		  >MonadPrettyContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066132"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066133"
+		><span class="hs-identifier hs-type"
+		  >env</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066134"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-106"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.html#Fixity"
+		><span class="hs-identifier hs-type"
+		  >Fixity</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-107"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-keyword"
+	      >forall</span
+	      ><span
+	      > </span
+	      ><span id="local-6989586621679066135"
+	      ><span class="annot"
+		><a href="#local-6989586621679066135"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ><span class="hs-operator"
+	      >.</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066132"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066135"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.Internal.html#Direction"
+		><span class="hs-identifier hs-type"
+		  >Direction</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.html#Fixity"
+		><span class="hs-identifier hs-type"
+		  >Fixity</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066135"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066136"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066136"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-108"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066134"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066136"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="compoundDocM"
+      ><span class="annot"
+	><span class="annottext"
+	  >compoundDocM :: forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity
+-&gt; ((forall a.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#compoundDocM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compoundDocM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066409"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066409"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066410"
+      ><span class="annot"
+	><span class="annottext"
+	  >(forall a.
+ PrettyBy config a =&gt;
+ Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+-&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066410"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m (Doc ann))
+-&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann r.
+MonadPrettyContext config env m =&gt;
+((forall a.
+  PrettyBy config a =&gt;
+  Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+ -&gt; m r)
+-&gt; m r
+</span
+	><a href="Text.PrettyBy.Fixity.html#withPrettyIn"
+	><span class="hs-identifier hs-var"
+	  >withPrettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((forall a.
+   PrettyBy config a =&gt;
+   Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+  -&gt; m (Doc ann))
+ -&gt; m (Doc ann))
+-&gt; ((forall a.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; m (Doc ann))
+-&gt; m (Doc ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066411"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. PrettyBy config a =&gt; Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066411"
+	  ><span class="hs-identifier hs-var"
+	    >prettyIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity -&gt; Doc ann -&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity -&gt; Doc ann -&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#encloseM"
+	><span class="hs-identifier hs-var"
+	  >encloseM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066409"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; m (Doc ann)) -&gt; Doc ann -&gt; m (Doc ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall a.
+ PrettyBy config a =&gt;
+ Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+-&gt; Doc ann
+</span
+	><a href="#local-6989586621679066410"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+forall a. PrettyBy config a =&gt; Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066411"
+	><span class="hs-identifier hs-var"
+	  >prettyIn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-comment"
+      >-- | Instantiate a supplied continuation with a pretty-printer specialized to supplied</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-comment"
+      >-- 'Fixity' and 'Direction' and apply 'encloseM' specialized to the provided fixity to the result.</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="hs-comment"
+      >-- This can be useful for pretty-printing a sequence of values (possibly consisting of a single</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-comment"
+      >-- value).</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="local-6989586621679066142"
+      ><span id="local-6989586621679066143"
+	><span id="local-6989586621679066144"
+	  ><span id="local-6989586621679066145"
+	    ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#sequenceDocM"
+		><span class="hs-identifier hs-type"
+		  >sequenceDocM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-116"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		><span class="hs-identifier hs-type"
+		  >MonadPrettyContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066142"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066143"
+		><span class="hs-identifier hs-type"
+		  >env</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066144"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-117"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.Internal.html#Direction"
+		><span class="hs-identifier hs-type"
+		  >Direction</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.html#Fixity"
+		><span class="hs-identifier hs-type"
+		  >Fixity</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#AnyToDoc"
+		><span class="hs-identifier hs-type"
+		  >AnyToDoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066142"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066145"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066145"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066144"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066145"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span id="sequenceDocM"
+      ><span class="annot"
+	><span class="annottext"
+	  >sequenceDocM :: forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Direction
+-&gt; Fixity -&gt; (AnyToDoc config ann -&gt; Doc ann) -&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#sequenceDocM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sequenceDocM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066425"
+      ><span class="annot"
+	><span class="annottext"
+	  >Direction
+</span
+	  ><a href="#local-6989586621679066425"
+	  ><span class="hs-identifier hs-var"
+	    >dir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066426"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066426"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066427"
+      ><span class="annot"
+	><span class="annottext"
+	  >AnyToDoc config ann -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066427"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+-&gt; ((forall {a}.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity
+-&gt; ((forall a.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#compoundDocM"
+	><span class="hs-identifier hs-var"
+	  >compoundDocM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066426"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((forall {a}.
+   PrettyBy config a =&gt;
+   Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+  -&gt; Doc ann)
+ -&gt; m (Doc ann))
+-&gt; ((forall {a}.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066428"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall {a}.
+PrettyBy config a =&gt;
+Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066428"
+	  ><span class="hs-identifier hs-var"
+	    >prettyIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AnyToDoc config ann -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066427"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AnyToDoc config ann -&gt; Doc ann) -&gt; AnyToDoc config ann -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+forall {a}.
+PrettyBy config a =&gt;
+Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066428"
+	><span class="hs-identifier hs-var"
+	  >prettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="#local-6989586621679066425"
+	><span class="hs-identifier hs-var"
+	  >dir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066426"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'ToTheLeft'</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- direction, the other is in the 'ToTheRight' direction) specialized to supplied 'Fixity'</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="hs-comment"
+      >-- and apply 'encloseM', specialized to the same fixity, to the result.</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span class="hs-comment"
+      >-- The idea is that to the outside an infix operator has the same inner fixity as</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-comment"
+      >-- it has the outer fixity to inner subexpressions.</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span id="local-6989586621679066152"
+      ><span id="local-6989586621679066153"
+	><span id="local-6989586621679066154"
+	  ><span id="local-6989586621679066155"
+	    ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#infixDocM"
+		><span class="hs-identifier hs-type"
+		  >infixDocM</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-126"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		><span class="hs-identifier hs-type"
+		  >MonadPrettyContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066152"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066153"
+		><span class="hs-identifier hs-type"
+		  >env</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066154"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-127"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.Fixity.html#Fixity"
+		><span class="hs-identifier hs-type"
+		  >Fixity</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-128"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#AnyToDoc"
+		><span class="hs-identifier hs-type"
+		  >AnyToDoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066152"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066155"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="Text.PrettyBy.Fixity.html#AnyToDoc"
+		><span class="hs-identifier hs-type"
+		  >AnyToDoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066152"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066155"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066155"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-129"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066154"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		><span class="hs-identifier hs-type"
+		  >Doc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679066155"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span id="infixDocM"
+      ><span class="annot"
+	><span class="annottext"
+	  >infixDocM :: forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity
+-&gt; (AnyToDoc config ann -&gt; AnyToDoc config ann -&gt; Doc ann)
+-&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#infixDocM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >infixDocM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066444"
+      ><span class="annot"
+	><span class="annottext"
+	  >Fixity
+</span
+	  ><a href="#local-6989586621679066444"
+	  ><span class="hs-identifier hs-var"
+	    >fixity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066445"
+      ><span class="annot"
+	><span class="annottext"
+	  >AnyToDoc config ann -&gt; AnyToDoc config ann -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066445"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+-&gt; ((forall {a}.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity
+-&gt; ((forall a.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#compoundDocM"
+	><span class="hs-identifier hs-var"
+	  >compoundDocM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066444"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((forall {a}.
+   PrettyBy config a =&gt;
+   Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+  -&gt; Doc ann)
+ -&gt; m (Doc ann))
+-&gt; ((forall {a}.
+     PrettyBy config a =&gt;
+     Direction -&gt; Fixity -&gt; a -&gt; Doc ann)
+    -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066446"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall {a}.
+PrettyBy config a =&gt;
+Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066446"
+	  ><span class="hs-identifier hs-var"
+	    >prettyIn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AnyToDoc config ann -&gt; AnyToDoc config ann -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066445"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+forall {a}.
+PrettyBy config a =&gt;
+Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066446"
+	><span class="hs-identifier hs-var"
+	  >prettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="Text.Fixity.Internal.html#ToTheLeft"
+	><span class="hs-identifier hs-var"
+	  >ToTheLeft</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066444"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+forall {a}.
+PrettyBy config a =&gt;
+Direction -&gt; Fixity -&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066446"
+	><span class="hs-identifier hs-var"
+	  >prettyIn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Direction
+</span
+	><a href="Text.Fixity.Internal.html#ToTheRight"
+	><span class="hs-identifier hs-var"
+	  >ToTheRight</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="#local-6989586621679066444"
+	><span class="hs-identifier hs-var"
+	  >fixity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="hs-comment"
+      >-- | Pretty-print two things with a space between them. The fixity of the context in which the</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span class="hs-comment"
+      >-- arguments get pretty-printed is set to 'juxtFixity'.</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span id="local-6989586621679066163"
+      ><span id="local-6989586621679066164"
+	><span id="local-6989586621679066165"
+	  ><span id="local-6989586621679066166"
+	    ><span id="local-6989586621679066167"
+	      ><span id="local-6989586621679066168"
+		><span class="annot"
+		  ><a href="Text.PrettyBy.Fixity.html#juxtPrettyM"
+		    ><span class="hs-identifier hs-type"
+		      >juxtPrettyM</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-137"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="Text.PrettyBy.Fixity.html#MonadPrettyContext"
+		    ><span class="hs-identifier hs-type"
+		      >MonadPrettyContext</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066163"
+		    ><span class="hs-identifier hs-type"
+		      >config</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066164"
+		    ><span class="hs-identifier hs-type"
+		      >env</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066165"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="Text.PrettyBy.Internal.html#PrettyBy"
+		    ><span class="hs-identifier hs-type"
+		      >PrettyBy</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066163"
+		    ><span class="hs-identifier hs-type"
+		      >config</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066166"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="Text.PrettyBy.Internal.html#PrettyBy"
+		    ><span class="hs-identifier hs-type"
+		      >PrettyBy</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066163"
+		    ><span class="hs-identifier hs-type"
+		      >config</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066167"
+		    ><span class="hs-identifier hs-type"
+		      >b</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-138"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066166"
+		    ><span class="hs-identifier hs-type"
+		      >a</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066167"
+		    ><span class="hs-identifier hs-type"
+		      >b</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066165"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Doc"
+		    ><span class="hs-identifier hs-type"
+		      >Doc</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621679066168"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span id="juxtPrettyM"
+      ><span class="annot"
+	><span class="annottext"
+	  >juxtPrettyM :: forall config env (m :: * -&gt; *) a b ann.
+(MonadPrettyContext config env m, PrettyBy config a,
+ PrettyBy config b) =&gt;
+a -&gt; b -&gt; m (Doc ann)
+</span
+	  ><a href="Text.PrettyBy.Fixity.html#juxtPrettyM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >juxtPrettyM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066467"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679066467"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066468"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679066468"
+	  ><span class="hs-identifier hs-var"
+	    >arg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+-&gt; ((forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann)
+    -&gt; (forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann) -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall config env (m :: * -&gt; *) ann.
+MonadPrettyContext config env m =&gt;
+Fixity
+-&gt; (AnyToDoc config ann -&gt; AnyToDoc config ann -&gt; Doc ann)
+-&gt; m (Doc ann)
+</span
+	><a href="Text.PrettyBy.Fixity.html#infixDocM"
+	><span class="hs-identifier hs-var"
+	  >infixDocM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Fixity
+</span
+	><a href="Text.Fixity.html#juxtFixity"
+	><span class="hs-identifier hs-var"
+	  >juxtFixity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(((forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann)
+  -&gt; (forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann) -&gt; Doc ann)
+ -&gt; m (Doc ann))
+-&gt; ((forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann)
+    -&gt; (forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann) -&gt; Doc ann)
+-&gt; m (Doc ann)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679066469"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066469"
+	  ><span class="hs-identifier hs-var"
+	    >prettyL</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679066470"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679066470"
+	  ><span class="hs-identifier hs-var"
+	    >prettyR</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc ann
+forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066469"
+	><span class="hs-identifier hs-var"
+	  >prettyL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679066467"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Doc ann
+forall {a}. PrettyBy config a =&gt; a -&gt; Doc ann
+</span
+	><a href="#local-6989586621679066470"
+	><span class="hs-identifier hs-var"
+	  >prettyR</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679066468"
+	><span class="hs-identifier hs-var"
+	  >arg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

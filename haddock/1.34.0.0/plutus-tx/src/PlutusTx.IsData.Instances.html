@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.IsData.Instances</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.TH.html#makeIsDataSchemaIndexed"
+	><span class="hs-identifier"
+	  >makeIsDataSchemaIndexed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.TH.html#unstableMakeIsDataSchema"
+	><span class="hs-identifier"
+	  >unstableMakeIsDataSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Maybe.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html"
+	><span class="hs-identifier"
+	  >PlutusTx.These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- While these types should be stable, we really don't want them changing,</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- so index them explicitly to be sure.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961808"
+      ><span id="local-6989586621679961936"
+	><span id="local-6989586621679961941"
+	  ><span id="local-6989586621679961943"
+	    ><span id="local-6989586621679961945"
+	      ><span class="hs-special"
+		>(</span
+		><span class="hs-identifier"
+		>makeIsDataSchemaIndexed</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>Bool</span
+		><span
+		> </span
+		><span class="hs-special"
+		>[</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>False</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>0</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>True</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>1</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>]</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961819"
+      ><span id="local-6989586621679961837"
+	><span id="local-6989586621679961991"
+	  ><span id="local-6989586621679961997"
+	    ><span id="local-6989586621679962001"
+	      ><span id="local-6989586621679962006"
+		><span class="hs-special"
+		  >(</span
+		  ><span class="hs-identifier"
+		  >makeIsDataSchemaIndexed</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-identifier"
+		  >Maybe</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >[</span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >'</span
+		  ><span class="hs-identifier"
+		  >Just</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-number"
+		  >0</span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >'</span
+		  ><span class="hs-identifier"
+		  >Nothing</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-number"
+		  >1</span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span class="hs-special"
+		  >]</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961853"
+      ><span id="local-6989586621679961854"
+	><span id="local-6989586621679961855"
+	  ><span id="local-6989586621679962037"
+	    ><span id="local-6989586621679962045"
+	      ><span id="local-6989586621679962051"
+		><span id="local-6989586621679962059"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-identifier"
+		    >makeIsDataSchemaIndexed</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-identifier"
+		    >Either</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >[</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-identifier"
+		    >Left</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-number"
+		    >0</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-identifier"
+		    >Right</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-number"
+		    >1</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >]</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961868"
+      ><span id="local-6989586621679961869"
+	><span id="local-6989586621679961870"
+	  ><span id="local-6989586621679962093"
+	    ><span id="local-6989586621679962104"
+	      ><span id="local-6989586621679962110"
+		><span id="local-6989586621679962120"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-identifier"
+		    >makeIsDataSchemaIndexed</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-identifier"
+		    >These</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >[</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-identifier"
+		    >This</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-number"
+		    >0</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-identifier"
+		    >That</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-number"
+		    >1</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >'</span
+		    ><span class="hs-identifier"
+		    >These</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span
+		    > </span
+		    ><span class="hs-number"
+		    >2</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >]</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >-- Okay to use unstableMakeIsData here since there's only one alternative</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- and we're sure that will never change.</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961876"
+      ><span id="local-6989586621679962169"
+	><span id="local-6989586621679962172"
+	  ><span id="local-6989586621679962174"
+	    ><span id="local-6989586621679962176"
+	      ><span class="hs-special"
+		>(</span
+		><span class="hs-identifier"
+		>unstableMakeIsDataSchema</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>)</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961819"
+      ><span id="local-6989586621679961887"
+	><span id="local-6989586621679961888"
+	  ><span id="local-6989586621679962194"
+	    ><span id="local-6989586621679962201"
+	      ><span id="local-6989586621679962207"
+		><span id="local-6989586621679962215"
+		  ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-identifier"
+		    >unstableMakeIsDataSchema</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >)</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961819"
+      ><span id="local-6989586621679961887"
+	><span id="local-6989586621679961904"
+	  ><span id="local-6989586621679961905"
+	    ><span id="local-6989586621679962246"
+	      ><span id="local-6989586621679962255"
+		><span id="local-6989586621679962263"
+		  ><span id="local-6989586621679962274"
+		    ><span class="hs-special"
+		      >(</span
+		      ><span class="hs-identifier"
+		      >unstableMakeIsDataSchema</span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >''</span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span class="hs-special"
+		      >)</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621679961819"
+      ><span id="local-6989586621679961887"
+	><span id="local-6989586621679961904"
+	  ><span id="local-6989586621679961926"
+	    ><span id="local-6989586621679961927"
+	      ><span id="local-6989586621679962312"
+		><span id="local-6989586621679962323"
+		  ><span id="local-6989586621679962333"
+		    ><span id="local-6989586621679962347"
+		      ><span class="hs-special"
+			>(</span
+			><span class="hs-identifier"
+			>unstableMakeIsDataSchema</span
+			><span
+			> </span
+			><span class="hs-special"
+			>''</span
+			><span class="hs-special"
+			>(</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>)</span
+			><span class="hs-special"
+			>)</span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

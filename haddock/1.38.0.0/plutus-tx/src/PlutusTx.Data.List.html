@@ -1,0 +1,7586 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Data.List</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- constructor exported for testing</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier"
+	  >List</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier"
+	  >List</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#append"
+	><span class="hs-identifier"
+	  >append</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#find"
+	><span class="hs-identifier"
+	  >find</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#findIndices"
+	><span class="hs-identifier"
+	  >findIndices</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#filter"
+	><span class="hs-identifier"
+	  >filter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#mapMaybe"
+	><span class="hs-identifier"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#any"
+	><span class="hs-identifier"
+	  >any</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#foldMap"
+	><span class="hs-identifier"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#map"
+	><span class="hs-identifier"
+	  >map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#length"
+	><span class="hs-identifier"
+	  >length</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#mconcat"
+	><span class="hs-identifier"
+	  >mconcat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#fromSOP"
+	><span class="hs-identifier"
+	  >fromSOP</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#toSOP"
+	><span class="hs-identifier"
+	  >toSOP</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	><span class="hs-identifier"
+	  >BuiltinList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BI</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.IsData.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#FromData"
+	><span class="hs-identifier"
+	  >FromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#ToData"
+	><span class="hs-identifier"
+	  >ToData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	><span class="hs-identifier"
+	  >UnsafeFromData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.TH.html#makeLift"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#any"
+	><span class="hs-identifier"
+	  >any</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#filter"
+	><span class="hs-identifier"
+	  >filter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#find"
+	><span class="hs-identifier"
+	  >find</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#findIndices"
+	><span class="hs-identifier"
+	  >findIndices</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Foldable.html#foldMap"
+	><span class="hs-identifier"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Foldable.html#length"
+	><span class="hs-identifier"
+	  >length</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#map"
+	><span class="hs-identifier"
+	  >map</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Maybe.html#mapMaybe"
+	><span class="hs-identifier"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >                         </span
+      ><span class="annot"
+      ><a href="PlutusTx.Monoid.html#mconcat"
+	><span class="hs-identifier"
+	  >mconcat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Enum.html#pred"
+	><span class="hs-identifier"
+	  >pred</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Semigroup.html"
+	><span class="hs-identifier"
+	  >Data.Semigroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Haskell</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- | A list type backed directly by 'Data'. It is meant to be used whenever fast</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- encoding/decoding to/from 'Data' is needed.</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="List"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-var"
+	    >List</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985626"
+      ><span class="annot"
+	><a href="#local-6989586621679985626"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="List"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-var"
+	    >List</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	><span class="hs-identifier hs-type"
+	  >BuiltinList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679985920"
+      ><span id="local-6989586621679985927"
+	><span id="local-6989586621679985931"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; List a -&gt; ShowS
+[List a] -&gt; ShowS
+List a -&gt; String
+(Int -&gt; List a -&gt; ShowS)
+-&gt; (List a -&gt; String) -&gt; ([List a] -&gt; ShowS) -&gt; Show (List a)
+forall a. Int -&gt; List a -&gt; ShowS
+forall a. [List a] -&gt; ShowS
+forall a. List a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Int -&gt; List a -&gt; ShowS
+showsPrec :: Int -&gt; List a -&gt; ShowS
+$cshow :: forall a. List a -&gt; String
+show :: List a -&gt; String
+$cshowList :: forall a. [List a] -&gt; ShowS
+showList :: [List a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Haskell.Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985936"
+      ><span id="local-6989586621679985941"
+	><span class="annot"
+	  ><span class="annottext"
+	    >List a -&gt; List a -&gt; Bool
+(List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; Bool) -&gt; Eq (List a)
+forall a. List a -&gt; List a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. List a -&gt; List a -&gt; Bool
+== :: List a -&gt; List a -&gt; Bool
+$c/= :: forall a. List a -&gt; List a -&gt; Bool
+/= :: List a -&gt; List a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Haskell.Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985624"
+      ><span class="annot"
+	><a href="PlutusTx.Eq.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985624"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >==</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985953"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985953"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985954"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: List a -&gt; List a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Eq.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985955"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985955"
+	  ><span class="hs-identifier hs-var"
+	    >l'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+-&gt; Maybe (BuiltinData, BuiltinList BuiltinData)
+forall a. BuiltinList a -&gt; Maybe (a, BuiltinList a)
+</span
+	><a href="PlutusTx.Builtins.html#uncons"
+	><span class="hs-identifier hs-var"
+	  >B.uncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985953"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+-&gt; Maybe (BuiltinData, BuiltinList BuiltinData)
+forall a. BuiltinList a -&gt; Maybe (a, BuiltinList a)
+</span
+	><a href="PlutusTx.Builtins.html#uncons"
+	><span class="hs-identifier hs-var"
+	  >B.uncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985955"
+	><span class="hs-identifier hs-var"
+	  >l'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679985957"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679985957"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985958"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985958"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679985959"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679985959"
+	  ><span class="hs-identifier hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985960"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985960"
+	  ><span class="hs-identifier hs-var"
+	    >t'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679985957"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinData -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679985959"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List Any
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985958"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List Any -&gt; List Any -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List Any
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985960"
+	><span class="hs-identifier hs-var"
+	  >t'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (BuiltinData, BuiltinList BuiltinData)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (BuiltinData, BuiltinList BuiltinData)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (BuiltinData, BuiltinList BuiltinData),
+ Maybe (BuiltinData, BuiltinList BuiltinData))
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985630"
+      ><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-type"
+	    >ToData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985630"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-pragma hs-type"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679985966"
+      ><span class="annot"
+	><span class="annottext"
+	  >toBuiltinData :: List a -&gt; BuiltinData
+</span
+	  ><a href="PlutusTx.IsData.Class.html#toBuiltinData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toBuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985967"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985967"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinData
+</span
+	><a href="PlutusTx.Builtins.Internal.html#mkList"
+	><span class="hs-identifier hs-var"
+	  >BI.mkList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985967"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985634"
+      ><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#FromData"
+	  ><span class="hs-identifier hs-type"
+	    >FromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985634"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#fromBuiltinData"
+	><span class="hs-pragma hs-type"
+	  >fromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679985973"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromBuiltinData :: BuiltinData -&gt; Maybe (List a)
+</span
+	  ><a href="PlutusTx.IsData.Class.html#fromBuiltinData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fromBuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a -&gt; Maybe (List a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(List a -&gt; Maybe (List a))
+-&gt; (BuiltinData -&gt; List a) -&gt; BuiltinData -&gt; Maybe (List a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinList BuiltinData -&gt; List a)
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData)
+-&gt; BuiltinData
+-&gt; List a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="PlutusTx.Builtins.Internal.html#unsafeDataAsList"
+	><span class="hs-identifier hs-var"
+	  >BI.unsafeDataAsList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985642"
+      ><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985642"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-pragma hs-type"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679985980"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeFromBuiltinData :: BuiltinData -&gt; List a
+</span
+	  ><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >unsafeFromBuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinList BuiltinData -&gt; List a)
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData)
+-&gt; BuiltinData
+-&gt; List a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="PlutusTx.Builtins.Internal.html#unsafeDataAsList"
+	><span class="hs-identifier hs-var"
+	  >BI.unsafeDataAsList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985649"
+      ><span id="local-6989586621679985985"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	    ><span class="hs-identifier hs-type"
+	      >UnsafeFromData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985649"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985649"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985649"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-pragma hs-type"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679985993"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. List a -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; Doc ann
+forall ann. [a] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([a] -&gt; Doc ann) -&gt; (List a -&gt; [a]) -&gt; List a -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a -&gt; [a]
+forall a. UnsafeFromData a =&gt; List a -&gt; [a]
+</span
+	><a href="PlutusTx.Data.List.html#toSOP"
+	><span class="hs-identifier hs-var"
+	  >toSOP</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621679985653"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#cons"
+	  ><span class="hs-identifier hs-type"
+	    >cons</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-type"
+	    >ToData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985653"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985653"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985653"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985653"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="cons"
+      ><span class="annot"
+	><span class="annottext"
+	  >cons :: forall a. ToData a =&gt; a -&gt; List a -&gt; List a
+</span
+	  ><a href="PlutusTx.Data.List.html#cons"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985997"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679985997"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679985998"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679985998"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+forall a. a -&gt; BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="PlutusTx.Builtins.Internal.html#mkCons"
+	><span class="hs-identifier hs-var"
+	  >BI.mkCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679985997"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679985998"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#cons"
+	><span class="hs-pragma hs-type"
+	  >cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#append"
+	><span class="hs-pragma hs-type"
+	  >append</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621679985656"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#append"
+	  ><span class="hs-identifier hs-type"
+	    >append</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985656"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985656"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985656"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="append"
+      ><span class="annot"
+	><span class="annottext"
+	  >append :: forall a. List a -&gt; List a -&gt; List a
+</span
+	  ><a href="PlutusTx.Data.List.html#append"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >append</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986000"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986000"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986001"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986001"
+	  ><span class="hs-identifier hs-var"
+	    >l'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986002"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986000"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986002"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986002"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+-&gt; (BuiltinData
+    -&gt; BuiltinList BuiltinData -&gt; BuiltinList BuiltinData)
+-&gt; BuiltinList BuiltinData
+-&gt; BuiltinList BuiltinData
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986001"
+	><span class="hs-identifier hs-var"
+	  >l'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986004"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986004"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986005"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986005"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+forall a. a -&gt; BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="PlutusTx.Builtins.Internal.html#mkCons"
+	><span class="hs-identifier hs-var"
+	  >BI.mkCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986004"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986002"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986005"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985663"
+      ><span class="annot"
+	><a href="PlutusTx.Semigroup.html#Semigroup"
+	  ><span class="hs-identifier hs-type"
+	    >Semigroup</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985663"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986009"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: List a -&gt; List a -&gt; List a
+</span
+	  ><a href="#local-6989586621679986009"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a -&gt; List a -&gt; List a
+forall a. List a -&gt; List a -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#append"
+	><span class="hs-identifier hs-var"
+	  >append</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985667"
+      ><span class="annot"
+	><a href="PlutusTx.Monoid.html#Monoid"
+	  ><span class="hs-identifier hs-type"
+	    >Monoid</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985667"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986018"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: List a
+</span
+	  ><a href="#local-6989586621679986018"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+forall arep. MkNil arep =&gt; BuiltinList arep
+</span
+	><a href="PlutusTx.Builtins.HasOpaque.html#mkNil"
+	><span class="hs-identifier hs-var"
+	  >B.mkNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985674"
+      ><span id="local-6989586621679986023"
+	><span id="local-6989586621679986027"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-type"
+		>Haskell.Semigroup</span
+		></a
+	      ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Data.List.html#List"
+	      ><span class="hs-identifier hs-type"
+		>List</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679985674"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986032"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;&gt; :: List a -&gt; List a -&gt; List a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%3C%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a -&gt; List a -&gt; List a
+forall a. List a -&gt; List a -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#append"
+	><span class="hs-identifier hs-var"
+	  >append</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679985677"
+      ><span id="local-6989586621679986037"
+	><span id="local-6989586621679986041"
+	  ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-type"
+		>Haskell.Monoid</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Data.List.html#List"
+	      ><span class="hs-identifier hs-type"
+		>List</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679985677"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986045"
+      ><span class="annot"
+	><span class="annottext"
+	  >mempty :: List a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#mempty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >mempty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+forall arep. MkNil arep =&gt; BuiltinList arep
+</span
+	><a href="PlutusTx.Builtins.HasOpaque.html#mkNil"
+	><span class="hs-identifier hs-var"
+	  >B.mkNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="local-6989586621679985652"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#toSOP"
+	  ><span class="hs-identifier hs-type"
+	    >toSOP</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985652"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985652"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="#local-6989586621679985652"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="toSOP"
+      ><span class="annot"
+	><span class="annottext"
+	  >toSOP :: forall a. UnsafeFromData a =&gt; List a -&gt; [a]
+</span
+	  ><a href="PlutusTx.Data.List.html#toSOP"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toSOP</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986047"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986047"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; [a]
+</span
+	><a href="#local-6989586621679986048"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986047"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986048"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; [a]
+</span
+	  ><a href="#local-6989586621679986048"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; [a])
+-&gt; BuiltinList BuiltinData
+-&gt; [a]
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986050"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986050"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986051"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986051"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986050"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; [a]
+</span
+	><a href="#local-6989586621679986048"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986051"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#toSOP"
+	><span class="hs-pragma hs-type"
+	  >toSOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span id="local-6989586621679985679"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#fromSOP"
+	  ><span class="hs-identifier hs-type"
+	    >fromSOP</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-type"
+	    >ToData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985679"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="annot"
+	><a href="#local-6989586621679985679"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985679"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span id="fromSOP"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromSOP :: forall a. ToData a =&gt; [a] -&gt; List a
+</span
+	  ><a href="PlutusTx.Data.List.html#fromSOP"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromSOP</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinList BuiltinData -&gt; List a)
+-&gt; ([a] -&gt; BuiltinList BuiltinData) -&gt; [a] -&gt; List a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="PlutusTx.Builtins.Internal.html#unsafeDataAsList"
+	><span class="hs-identifier hs-var"
+	  >BI.unsafeDataAsList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; BuiltinList BuiltinData)
+-&gt; ([a] -&gt; BuiltinData) -&gt; [a] -&gt; BuiltinList BuiltinData
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[BuiltinData] -&gt; BuiltinData
+</span
+	><a href="PlutusTx.Builtins.html#mkList"
+	><span class="hs-identifier hs-var"
+	  >B.mkList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([BuiltinData] -&gt; BuiltinData)
+-&gt; ([a] -&gt; [BuiltinData]) -&gt; [a] -&gt; BuiltinData
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; BuiltinData) -&gt; [a] -&gt; [BuiltinData]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="PlutusTx.Functor.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#fromSOP"
+	><span class="hs-pragma hs-type"
+	  >fromSOP</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span id="local-6989586621679985685"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#find"
+	  ><span class="hs-identifier hs-type"
+	    >find</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985685"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679985685"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985685"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985685"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="find"
+      ><span class="annot"
+	><span class="annottext"
+	  >find :: forall a. UnsafeFromData a =&gt; (a -&gt; Bool) -&gt; List a -&gt; Maybe a
+</span
+	  ><a href="PlutusTx.Data.List.html#find"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >find</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986059"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679986059"
+	  ><span class="hs-identifier hs-var"
+	    >pred'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986060"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986060"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Maybe a
+</span
+	><a href="#local-6989586621679986061"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986060"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986061"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; Maybe a
+</span
+	  ><a href="#local-6989586621679986061"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; Maybe a)
+-&gt; BuiltinList BuiltinData
+-&gt; Maybe a
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986062"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986062"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986063"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986063"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986065"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986065"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986062"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+</span
+	><a href="#local-6989586621679986059"
+	><span class="hs-identifier hs-var"
+	  >pred'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986065"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986065"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Maybe a
+</span
+	><a href="#local-6989586621679986061"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986063"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#find"
+	><span class="hs-pragma hs-type"
+	  >find</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="local-6989586621679985687"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#findIndices"
+	  ><span class="hs-identifier hs-type"
+	    >findIndices</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985687"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679985687"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985687"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="findIndices"
+      ><span class="annot"
+	><span class="annottext"
+	  >findIndices :: forall a. UnsafeFromData a =&gt; (a -&gt; Bool) -&gt; List a -&gt; List Integer
+</span
+	  ><a href="PlutusTx.Data.List.html#findIndices"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >findIndices</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986067"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679986067"
+	  ><span class="hs-identifier hs-var"
+	    >pred'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986068"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986068"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; BuiltinList BuiltinData -&gt; List Integer
+</span
+	><a href="#local-6989586621679986069"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986068"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986069"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: Integer -&gt; BuiltinList BuiltinData -&gt; List Integer
+</span
+	  ><a href="#local-6989586621679986069"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986073"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621679986073"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List Integer
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; List Integer)
+-&gt; BuiltinList BuiltinData
+-&gt; List Integer
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List Integer
+forall a. Monoid a =&gt; a
+</span
+	><a href="PlutusTx.Monoid.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986074"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986074"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986075"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986075"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986077"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986077"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986074"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >                    </span
+      ><span id="local-6989586621679986078"
+      ><span class="annot"
+	><span class="annottext"
+	  >indices :: List Integer
+</span
+	  ><a href="#local-6989586621679986078"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >indices</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; BuiltinList BuiltinData -&gt; List Integer
+</span
+	><a href="#local-6989586621679986069"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >B.addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679986073"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986075"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+</span
+	><a href="#local-6989586621679986067"
+	><span class="hs-identifier hs-var"
+	  >pred'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986077"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679986073"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; List Integer -&gt; List Integer
+forall a. ToData a =&gt; a -&gt; List a -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#cons"
+	><span class="hs-operator hs-var"
+	  >`cons`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List Integer
+</span
+	><a href="#local-6989586621679986078"
+	><span class="hs-identifier hs-var"
+	  >indices</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List Integer
+</span
+	><a href="#local-6989586621679986078"
+	><span class="hs-identifier hs-var"
+	  >indices</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#findIndices"
+	><span class="hs-pragma hs-type"
+	  >findIndices</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span id="local-6989586621679985689"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#filter"
+	  ><span class="hs-identifier hs-type"
+	    >filter</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#ToData"
+	  ><span class="hs-identifier hs-type"
+	    >ToData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679985689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985689"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="filter"
+      ><span class="annot"
+	><span class="annottext"
+	  >filter :: forall a.
+(UnsafeFromData a, ToData a) =&gt;
+(a -&gt; Bool) -&gt; List a -&gt; List a
+</span
+	  ><a href="PlutusTx.Data.List.html#filter"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >filter</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986082"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679986082"
+	  ><span class="hs-identifier hs-var"
+	    >pred</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986083"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986083"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="#local-6989586621679986084"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986083"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986084"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; List a
+</span
+	  ><a href="#local-6989586621679986084"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; List a)
+-&gt; BuiltinList BuiltinData
+-&gt; List a
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List a
+forall a. Monoid a =&gt; a
+</span
+	><a href="PlutusTx.Monoid.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986087"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986087"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986088"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986088"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986090"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986090"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986087"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+</span
+	><a href="#local-6989586621679986082"
+	><span class="hs-identifier hs-var"
+	  >pred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986090"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986090"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; List a -&gt; List a
+forall a. ToData a =&gt; a -&gt; List a -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#cons"
+	><span class="hs-operator hs-var"
+	  >`cons`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="#local-6989586621679986084"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986088"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="#local-6989586621679986084"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986088"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#filter"
+	><span class="hs-pragma hs-type"
+	  >filter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="local-6989586621679985691"
+      ><span id="local-6989586621679985692"
+	><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#mapMaybe"
+	    ><span class="hs-identifier hs-type"
+	      >mapMaybe</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	    ><span class="hs-identifier hs-type"
+	      >UnsafeFromData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985691"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#ToData"
+	    ><span class="hs-identifier hs-type"
+	      >ToData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985692"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985691"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Maybe"
+	    ><span class="hs-identifier hs-type"
+	      >Maybe</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985692"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985691"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985692"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="mapMaybe"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapMaybe :: forall a b.
+(UnsafeFromData a, ToData b) =&gt;
+(a -&gt; Maybe b) -&gt; List a -&gt; List b
+</span
+	  ><a href="PlutusTx.Data.List.html#mapMaybe"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapMaybe</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986093"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Maybe b
+</span
+	  ><a href="#local-6989586621679986093"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986094"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986094"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List b
+</span
+	><a href="#local-6989586621679986095"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986094"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986095"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; List b
+</span
+	  ><a href="#local-6989586621679986095"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List b
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; List b)
+-&gt; BuiltinList BuiltinData
+-&gt; List b
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>List b
+forall a. Monoid a =&gt; a
+</span
+	><a href="PlutusTx.Monoid.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986098"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986098"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986099"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986099"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986101"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986101"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986098"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Maybe b
+</span
+	><a href="#local-6989586621679986093"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986101"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986102"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679986102"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679986102"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; List b -&gt; List b
+forall a. ToData a =&gt; a -&gt; List a -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#cons"
+	><span class="hs-operator hs-var"
+	  >`cons`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List b
+</span
+	><a href="#local-6989586621679986095"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986099"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List b
+</span
+	><a href="#local-6989586621679986095"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986099"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#mapMaybe"
+	><span class="hs-pragma hs-type"
+	  >mapMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span id="local-6989586621679985695"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#any"
+	  ><span class="hs-identifier hs-type"
+	    >any</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985695"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679985695"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985695"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span id="any"
+      ><span class="annot"
+	><span class="annottext"
+	  >any :: forall a. UnsafeFromData a =&gt; (a -&gt; Bool) -&gt; List a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Data.List.html#any"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >any</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986104"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679986104"
+	  ><span class="hs-identifier hs-var"
+	    >pred</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986105"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986105"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Bool
+</span
+	><a href="#local-6989586621679986106"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986105"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986106"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; Bool
+</span
+	  ><a href="#local-6989586621679986106"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; Bool)
+-&gt; BuiltinList BuiltinData
+-&gt; Bool
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986107"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986107"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986108"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986108"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986110"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986110"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986107"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+</span
+	><a href="#local-6989586621679986104"
+	><span class="hs-identifier hs-var"
+	  >pred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986110"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="PlutusTx.Bool.html#%7C%7C"
+	><span class="hs-operator hs-var"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Bool
+</span
+	><a href="#local-6989586621679986106"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986108"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#any"
+	><span class="hs-pragma hs-type"
+	  >any</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="local-6989586621679985697"
+      ><span id="local-6989586621679985698"
+	><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#foldMap"
+	    ><span class="hs-identifier hs-type"
+	      >foldMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	    ><span class="hs-identifier hs-type"
+	      >UnsafeFromData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985697"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Monoid.html#Monoid"
+	    ><span class="hs-identifier hs-type"
+	      >Monoid</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985698"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985697"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985698"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985697"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985698"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span id="foldMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldMap :: forall a m. (UnsafeFromData a, Monoid m) =&gt; (a -&gt; m) -&gt; List a -&gt; m
+</span
+	  ><a href="PlutusTx.Data.List.html#foldMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >foldMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986116"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; m
+</span
+	  ><a href="#local-6989586621679986116"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986117"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986117"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; m
+</span
+	><a href="#local-6989586621679986118"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986117"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986118"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; m
+</span
+	  ><a href="#local-6989586621679986118"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; m)
+-&gt; BuiltinList BuiltinData
+-&gt; m
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m
+forall a. Monoid a =&gt; a
+</span
+	><a href="PlutusTx.Monoid.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986122"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986122"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986123"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986123"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986125"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986125"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986122"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; m
+</span
+	><a href="#local-6989586621679986116"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986125"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m -&gt; m -&gt; m
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="PlutusTx.Semigroup.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; m
+</span
+	><a href="#local-6989586621679986118"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986123"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#map"
+	><span class="hs-pragma hs-type"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span id="local-6989586621679985701"
+      ><span id="local-6989586621679985702"
+	><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#map"
+	    ><span class="hs-identifier hs-type"
+	      >map</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	    ><span class="hs-identifier hs-type"
+	      >UnsafeFromData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985701"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.IsData.Class.html#ToData"
+	    ><span class="hs-identifier hs-type"
+	      >ToData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985702"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985701"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985702"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985701"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Data.List.html#List"
+	    ><span class="hs-identifier hs-type"
+	      >List</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679985702"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span id="map"
+      ><span class="annot"
+	><span class="annottext"
+	  >map :: forall a b.
+(UnsafeFromData a, ToData b) =&gt;
+(a -&gt; b) -&gt; List a -&gt; List b
+</span
+	  ><a href="PlutusTx.Data.List.html#map"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >map</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986128"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621679986128"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986129"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986129"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; List b
+forall a. BuiltinList BuiltinData -&gt; List a
+</span
+	><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-var"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986130"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986129"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986130"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986130"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+-&gt; (BuiltinData
+    -&gt; BuiltinList BuiltinData -&gt; BuiltinList BuiltinData)
+-&gt; BuiltinList BuiltinData
+-&gt; BuiltinList BuiltinData
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+forall arep. MkNil arep =&gt; BuiltinList arep
+</span
+	><a href="PlutusTx.Builtins.HasOpaque.html#mkNil"
+	><span class="hs-identifier hs-var"
+	  >B.mkNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986134"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986134"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986135"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986135"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+forall a. a -&gt; BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="PlutusTx.Builtins.Internal.html#mkCons"
+	><span class="hs-identifier hs-var"
+	  >BI.mkCons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; BuiltinData) -&gt; b -&gt; BuiltinData
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="PlutusTx.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621679986128"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; b) -&gt; a -&gt; b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="PlutusTx.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986134"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986130"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986135"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#foldMap"
+	><span class="hs-pragma hs-type"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span id="local-6989586621679985707"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#length"
+	  ><span class="hs-identifier hs-type"
+	    >length</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985707"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span id="length"
+      ><span class="annot"
+	><span class="annottext"
+	  >length :: forall a. List a -&gt; Integer
+</span
+	  ><a href="PlutusTx.Data.List.html#length"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >length</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986137"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986137"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Integer -&gt; Integer
+forall {a}. BuiltinList a -&gt; Integer -&gt; Integer
+</span
+	><a href="#local-6989586621679986138"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986137"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986138"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList a -&gt; Integer -&gt; Integer
+</span
+	  ><a href="#local-6989586621679986138"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer)
+-&gt; (a -&gt; BuiltinList a -&gt; Integer -&gt; Integer)
+-&gt; BuiltinList a
+-&gt; Integer
+-&gt; Integer
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. a -&gt; a
+</span
+	><a href="PlutusTx.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986140"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList a
+</span
+	  ><a href="#local-6989586621679986140"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >B.addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Integer) -&gt; (Integer -&gt; Integer) -&gt; Integer -&gt; Integer
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a -&gt; Integer -&gt; Integer
+</span
+	><a href="#local-6989586621679986138"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a
+</span
+	><a href="#local-6989586621679986140"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#length"
+	><span class="hs-pragma hs-type"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Monoid.mconcat'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span id="local-6989586621679985711"
+      ><span class="annot"
+	><a href="PlutusTx.Data.List.html#mconcat"
+	  ><span class="hs-identifier hs-type"
+	    >mconcat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusTx.Monoid.html#Monoid"
+	  ><span class="hs-identifier hs-type"
+	    >Monoid</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985711"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.IsData.Class.html#UnsafeFromData"
+	  ><span class="hs-identifier hs-type"
+	    >UnsafeFromData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985711"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Data.List.html#List"
+	  ><span class="hs-identifier hs-type"
+	    >List</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985711"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679985711"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span id="mconcat"
+      ><span class="annot"
+	><span class="annottext"
+	  >mconcat :: forall a. (Monoid a, UnsafeFromData a) =&gt; List a -&gt; a
+</span
+	  ><a href="PlutusTx.Data.List.html#mconcat"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mconcat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#List"
+	><span class="hs-identifier hs-type"
+	  >List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986144"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986144"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; a
+</span
+	><a href="#local-6989586621679986145"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986144"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679986145"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: BuiltinList BuiltinData -&gt; a
+</span
+	  ><a href="#local-6989586621679986145"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData -&gt; a)
+-&gt; BuiltinList BuiltinData
+-&gt; a
+forall a r. r -&gt; (a -&gt; BuiltinList a -&gt; r) -&gt; BuiltinList a -&gt; r
+</span
+	><a href="PlutusTx.Builtins.Internal.html#caseList%27"
+	><span class="hs-identifier hs-var"
+	  >B.caseList'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+forall a. Monoid a =&gt; a
+</span
+	><a href="PlutusTx.Monoid.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679986149"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621679986149"
+	  ><span class="hs-identifier hs-var"
+	    >h</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679986150"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679986150"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679986152"
+      ><span class="annot"
+	><span class="annottext"
+	  >h' :: a
+</span
+	  ><a href="#local-6989586621679986152"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >h'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; a
+forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621679986149"
+	><span class="hs-identifier hs-var"
+	  >h</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679986152"
+	><span class="hs-identifier hs-var"
+	  >h'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; a
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="PlutusTx.Semigroup.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; a
+</span
+	><a href="#local-6989586621679986145"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679986150"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Data.List.html#mconcat"
+	><span class="hs-pragma hs-type"
+	  >mconcat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span id="local-6989586621679985626"
+      ><span id="local-6989586621679986154"
+	><span id="local-6989586621679986156"
+	  ><span class="hs-identifier"
+	    >makeLift</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >List</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
