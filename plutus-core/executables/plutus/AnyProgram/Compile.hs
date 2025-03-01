@@ -322,4 +322,5 @@ checkProgram sng p = modifyError (fmap PIR.Original) $ case sng of
 
 instance AnnInline SrcSpans where
   annAlwaysInline = mempty
+  annSafeToInline = mempty
   annMayInline = mempty
