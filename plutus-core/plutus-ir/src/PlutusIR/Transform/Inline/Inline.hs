@@ -377,7 +377,7 @@ processSingleBinding
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
+    (TermBind _ s v@(VarDecl ann n _) rhs0) -> do
         -- we want to do unconditional inline if possible
         maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
@@ -398,7 +398,7 @@ processSingleBinding body = \case
                         -- have unique names
                         (MkVarInfo s (Done (dupable rhs)))
                 pure $ Just $ TermBind ann s v rhs
-    (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
+    (TypeBind _ v@(TyVarDecl ann n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
     b -> -- Just process all the subterms
