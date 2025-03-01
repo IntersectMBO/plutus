@@ -87,6 +87,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable (for)
+import Data.Tuple.Extra
 import Data.Word (Word8)
 
 
@@ -271,7 +272,7 @@ compileAlt (GHC.Alt alt vars body) instArgTys defaultBody =
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
+    GHC.DataAlt _ -> withVarsScoped ((, Nothing) <$> vars) $ \vars' -> do
       b <- compileExpr body
       delayed <- delay b
       return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
@@ -804,7 +805,13 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         case GHC.collectArgs (strip e') of
           (strip -> GHC.Var f, args) ->
             case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding f) of
-              Nothing -> compileExpr e'
+              Nothing ->
+                case lookupName scope (GHC.getName f) of
+                  -- If `f` is locally bound, and its definition has already been compiled,
+                  -- we use it directly.
+                  -- This only supports `inline f`, not `inline (f x1 ... xn)`.
+                  Just (_var, Just def) | null args -> pure def
+                  _                                 -> compileExpr e'
               Just unfolding
                 -- `f` is recursive. We do not inline recursive bindings.
                 | any (== f) (universeBi unfolding) -> compileExpr e'
@@ -954,7 +961,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
                                                   "Unbounded ranges are not supported.")
     -- locally bound vars
-    GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
+    GHC.Var (lookupName scope . GHC.getName -> Just (var, _def)) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
@@ -1036,7 +1043,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         body' <- compileExpr body
         pure $ PIR.Let annMayInline PIR.NonRec binds body'
     GHC.Let (GHC.Rec bs) body ->
-      withVarsScoped (fmap fst bs) $ \vars -> do
+      withVarsScoped (fmap (second (const Nothing)) bs) $ \vars -> do
         -- the bindings are scope in both the body and the args
         -- TODO: this is a bit inelegant matching the vars back up
         binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
@@ -1087,7 +1094,7 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
       | all (`isDead` body) bs -> do
         -- See Note [At patterns]
         scrutinee' <- compileExpr scrutinee
-        withVarScoped binder binderAnn $ \v -> do
+        withVarScoped binder binderAnn (Just scrutinee') $ \v -> do
           body' <- compileExpr body
           -- See Note [At patterns]
           let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
@@ -1129,7 +1136,7 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
         let scrutineeType = GHC.varType binder
 
         -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
-        withVarScoped binder binderAnn $ \v -> do
+        withVarScoped binder binderAnn (Just scrutinee') $ \v -> do
           (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
             Just (tc, argTys) -> pure (tc, argTys)
             Nothing ->

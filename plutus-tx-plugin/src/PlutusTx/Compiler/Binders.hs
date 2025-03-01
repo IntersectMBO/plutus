@@ -17,6 +17,7 @@ import PlutusIR qualified as PIR
 import Control.Monad.Reader
 
 import Data.Traversable
+import Data.Tuple.Extra
 
 -- Binder helpers
 
@@ -34,12 +35,13 @@ withVarScoped ::
     CompilingDefault uni fun m ann =>
     GHC.Var ->
     Ann ->
+    Maybe (PIRTerm uni fun) ->
     (PIR.VarDecl PIR.TyName PIR.Name uni Ann -> m a) ->
     m a
-withVarScoped v ann k = do
+withVarScoped v ann def k = do
     let ghcName = GHC.getName v
     var <- compileVarFresh ann v
-    local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
+    local (\c -> c {ccScope=pushName ghcName var def (ccScope c)}) (k var)
 
 -- | Like `withVarScoped`, but takes a `PIRType`, and uses it for the type
 -- of the compiled `GHC.Var`.
@@ -52,19 +54,19 @@ withVarTyScoped ::
 withVarTyScoped v t k = do
     let ghcName = GHC.getName v
     var <- compileVarWithTyFresh annMayInline v t
-    local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
+    local (\c -> c {ccScope=pushName ghcName var Nothing (ccScope c)}) (k var)
 
 withVarsScoped ::
     CompilingDefault uni fun m ann =>
-    [GHC.Var] ->
+    [(GHC.Var, Maybe (PIRTerm uni fun))] ->
     ([PIR.VarDecl PIR.TyName PIR.Name uni Ann] -> m a) ->
     m a
 withVarsScoped vs k = do
-    vars <- for vs $ \v -> do
+    vars <- for vs $ \(v, def) -> do
         let name = GHC.getName v
         var' <- compileVarFresh annMayInline v
-        pure (name, var')
-    local (\c -> c {ccScope=pushNames vars (ccScope c)}) (k (fmap snd vars))
+        pure (name, var', def)
+    local (\c -> c {ccScope=pushNames vars (ccScope c)}) (k (fmap snd3 vars))
 
 withTyVarScoped ::
     Compiling uni fun m ann =>
@@ -96,7 +98,7 @@ mkLamAbsScoped ::
     m (PIRTerm uni fun) ->
     m (PIRTerm uni fun)
 mkLamAbsScoped v body =
-    withVarScoped v annMayInline $ \(PIR.VarDecl _ n t) ->
+    withVarScoped v annMayInline Nothing $ \(PIR.VarDecl _ n t) ->
         PIR.LamAbs annMayInline n t <$> body
 
 mkIterLamAbsScoped :: CompilingDefault uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)

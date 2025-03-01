@@ -20,10 +20,11 @@ import Recursion.Spec qualified as Recursion
 import ShortCircuit.Spec qualified as ShortCircuit
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
-import Test.Tasty (TestTree, defaultMain)
-import Test.Tasty.Extras (embed, runTestNested)
 import TH.Spec qualified as TH
 import Unicode.Spec qualified as Unicode
+
+import Test.Tasty (TestTree, defaultMain)
+import Test.Tasty.Extras (embed, runTestNested)
 
 main :: IO ()
 main = defaultMain tests
