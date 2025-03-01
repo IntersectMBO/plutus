@@ -11,7 +11,7 @@ module UntypedPlutusCore.Simplify.Opts
   ) where
 
 import Control.Lens.TH (makeLenses)
-import PlutusCore.Annotation (InlineHints)
+import PlutusCore.Annotation (Inline (..), InlineHints (..))
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
@@ -30,6 +30,6 @@ defaultSimplifyOpts =
     { _soMaxSimplifierIterations = 12
     , _soMaxCseIterations = 4
     , _soConservativeOpts = False
-    , _soInlineHints = mempty
+    , _soInlineHints = InlineHints (\_ _ -> MayInline)
     , _soInlineConstants = True
     }

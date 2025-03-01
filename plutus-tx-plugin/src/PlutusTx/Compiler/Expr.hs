@@ -564,10 +564,11 @@ hoistExpr ::
 hoistExpr var t = do
   let name = GHC.getName var
       lexName = LexName name
-      -- If the original ID has an "always inline" pragma, then
-      -- propagate that to PIR so that the PIR inliner will deal
-      -- with it.
-      ann = if hasAlwaysInlinePragma var then annAlwaysInline else annMayInline
+      -- Propagate `INLINE` or `NOINLINE [0]` pragmas
+      ann
+        | hasAlwaysInlinePragma var = annAlwaysInline
+        | hasNoInline0Pragma var = annSafeToInline
+        | otherwise = annMayInline
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
   maybeDef <- PIR.lookupTerm annMayInline lexName
@@ -1080,7 +1081,10 @@ compileCase ::
   [GHC.CoreAlt] ->
   m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
-  let binderAnn = if hasAlwaysInlinePragma binder then annAlwaysInline else annMayInline
+  let binderAnn
+        | hasAlwaysInlinePragma binder = annAlwaysInline
+        | hasNoInline0Pragma binder = annSafeToInline
+        | otherwise = annMayInline
   case alts of
     [GHC.Alt con bs body]
       -- See Note [Evaluation-only cases]
@@ -1341,6 +1345,14 @@ coverageCompile originalExpr exprType src compiledTerm covT =
 
 hasAlwaysInlinePragma :: GHC.Var -> Bool
 hasAlwaysInlinePragma = GHC.isInlinePragma . GHC.idInlinePragma
+
+-- Check for {-# NOINLINE [0] v #-}.
+hasNoInline0Pragma :: GHC.Var -> Bool
+hasNoInline0Pragma v
+  | let p = GHC.idInlinePragma v
+  , GHC.isNoInlinePragma p
+  , GHC.ActiveAfter _ 0 <- GHC.inlinePragmaActivation p = True
+  | otherwise = False
 
 -- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is
 -- important because GHC inserts calls to it when it sees negations, even negations

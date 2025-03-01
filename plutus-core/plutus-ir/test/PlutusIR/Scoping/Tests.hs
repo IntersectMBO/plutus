@@ -19,6 +19,7 @@ import PlutusIR.Transform.RewriteRules.CommuteFnWithConst
 import PlutusIR.Transform.ThunkRecursions
 import PlutusIR.Transform.Unwrap
 
+import PlutusCore.Annotation (Inline (..), InlineHints (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Rename
 import PlutusCore.Test qualified as T
@@ -46,7 +47,7 @@ test_names = testGroup "names"
       -- promises) due to the lack of marking in it (or initial renaming of the entire program,
       -- which would perform marking too).
       T.test_scopingBad "inlining" genTerm T.BindingRemovalOk T.PrerenameYes $
-        Inline.inline True mempty def
+        Inline.inline True (InlineHints $ \_ _ -> MayInline) def
     , T.test_scopingGood
         "match-against-known-constructor"
         genTerm
