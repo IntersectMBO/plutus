@@ -2,7 +2,6 @@ module PlutusIR.Transform.Inline.Tests where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Annotation (Inline (..))
 import PlutusCore.Default.Builtins
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins

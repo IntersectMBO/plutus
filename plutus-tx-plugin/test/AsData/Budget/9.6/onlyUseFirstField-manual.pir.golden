@@ -16,11 +16,6 @@ in
        True
        False)
     {all dead. integer}
-    (/\dead ->
-       let
-         !l : list data = sndPair {integer} {list data} tup
-         !l : list data = tailList {data} (tailList {data} l)
-       in
-       unIData (headList {data} l))
+    (/\dead -> unIData (headList {data} (sndPair {integer} {list data} tup)))
     (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
     {all dead. dead}

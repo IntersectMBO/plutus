@@ -19,7 +19,6 @@ import PlutusIR.Transform.RewriteRules.CommuteFnWithConst
 import PlutusIR.Transform.ThunkRecursions
 import PlutusIR.Transform.Unwrap
 
-import PlutusCore.Annotation (Inline (..), InlineHints (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Rename
 import PlutusCore.Test qualified as T

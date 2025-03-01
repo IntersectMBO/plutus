@@ -410,6 +410,7 @@ compileMarkedExpr locStr codeTy origE = do
           , 'GHC.Num.Integer.integerNegate
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
+          , 'PlutusTx.AsData.Internal.wrapTail
           , 'PlutusTx.AsData.Internal.wrapUnsafeFromBuiltinData
           , 'PlutusTx.Function.fix
           , 'PlutusTx.Optimize.Inline.inline

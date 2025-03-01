@@ -1129,7 +1129,16 @@ compileCase ::
   [GHC.CoreAlt] ->
   m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
-  let binderAnn = if hasAlwaysInlinePragma binder then annAlwaysInline else annMayInline
+  wrapTailName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapTail
+  let -- See Note [Compiling AsData Matchers]
+      isWrapTailApp =
+        case GHC.collectArgs (strip scrutinee) of
+          (strip -> GHC.Var f, _args) -> GHC.getName f == wrapTailName
+          _                           -> False
+      binderAnn
+        | hasAlwaysInlinePragma binder = annAlwaysInline
+        | isWrapTailApp = annSafeToInline
+        | otherwise = annMayInline
   case alts of
     [GHC.Alt con bs body]
       -- See Note [Evaluation-only cases]

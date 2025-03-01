@@ -12,7 +12,7 @@
 module AsData.Budget.Types where
 
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.AsData.Internal (wrapUnsafeFromBuiltinData)
+import PlutusTx.AsData.Internal (wrapUnsafeFromBuiltinData, wrapUnsafeUncons)
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData qualified as PlutusTx
@@ -38,11 +38,11 @@ pattern IntsManual{int1Manual, int2Manual, int3Manual, int4Manual} <-
     ( BI.unsafeDataAsConstr ->
         B.pairToPair ->
           ( (PlutusTx.==) 0 -> True
-            , B.unsafeUncons ->
+            , wrapUnsafeUncons ->
                 ( wrapUnsafeFromBuiltinData -> int1Manual
-                  , B.unsafeUncons ->
+                  , wrapUnsafeUncons ->
                       ( wrapUnsafeFromBuiltinData -> int2Manual
-                        , B.unsafeUncons ->
+                        , wrapUnsafeUncons ->
                             ( wrapUnsafeFromBuiltinData -> int3Manual
                               , BI.head -> wrapUnsafeFromBuiltinData -> int4Manual
                               )

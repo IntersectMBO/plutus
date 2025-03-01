@@ -6,17 +6,15 @@
 module AsData.Budget.Spec where
 
 import System.FilePath
-
 import Test.Tasty.Extras
 
+import AsData.Budget.Types
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
-
-import AsData.Budget.Types
 
 tests :: TestNested
 tests =
