@@ -94,15 +94,13 @@ withTyVarsScoped vs k = do
 -- will be in scope when running the second argument.
 mkLamAbsScoped ::
     CompilingDefault uni fun m ann =>
+    Ann ->
     GHC.Var ->
     m (PIRTerm uni fun) ->
     m (PIRTerm uni fun)
-mkLamAbsScoped v body =
-    withVarScoped v annMayInline Nothing $ \(PIR.VarDecl _ n t) ->
-        PIR.LamAbs annMayInline n t <$> body
-
-mkIterLamAbsScoped :: CompilingDefault uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
-mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
+mkLamAbsScoped ann v body =
+    withVarScoped v ann Nothing $ \(PIR.VarDecl _ n t) ->
+        PIR.LamAbs ann n t <$> body
 
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.

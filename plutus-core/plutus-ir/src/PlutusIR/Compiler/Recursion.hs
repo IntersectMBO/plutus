@@ -111,10 +111,10 @@ mkFixpoint bs = do
                   then pure (Function.fixAndType, mempty)
                   -- fixN depends on fixBy
                   else do
-                      fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
+                      fixBy <- lookupOrDefineTerm fixByKey mkFixByDef
                       pure (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
           pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
-    fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
+    fixN <- lookupOrDefineTerm fixNKey mkFixNDef
 
     liftQuote $ case funs of
         -- Takes a list of function defs and function bodies and turns them into a Scott-encoded tuple, which

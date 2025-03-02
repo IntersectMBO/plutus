@@ -436,7 +436,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
             -- ... and with the hole filled in with the datatype type
             let unrolled = unveilDatatype (getType dty) d pf
 
-            pure $ Constr ann unrolled index (fmap (PIR.mkVar ann) argsAndTypes)
+            pure $ Constr ann unrolled index (fmap PIR.mkVar argsAndTypes)
           ScottEncoding -> do
             resultType <- resultTypeName d
 
@@ -450,7 +450,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
                   pure $ zipWith (VarDecl ann) caseArgNames caseTypes
 
             -- This is inelegant, but it should never fail
-            let thisCase = PIR.mkVar ann $ casesAndTypes !! fromIntegral index
+            let thisCase = PIR.mkVar $ casesAndTypes !! fromIntegral index
 
             pure $
                 -- forall out
@@ -458,7 +458,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
                 -- \case_1 .. case_j
                 PIR.mkIterLamAbs casesAndTypes $
                 -- c_i arg_1 .. arg_m
-                PIR.mkIterApp thisCase (fmap ((ann,) . PIR.mkVar ann) argsAndTypes)
+                PIR.mkIterApp thisCase (fmap ((ann,) . PIR.mkVar) argsAndTypes)
 
     let constr =
             -- /\t_1 .. t_n
@@ -517,7 +517,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
                 PIR.mkIterLamAbs caseVars $
                 -- See Note [Recursive datatypes]
                 -- case (unwrap x) case_1 .. case_j
-                Case ann (TyVar ann resultType) (unwrap ann dty $ Var ann xn) (fmap (PIR.mkVar ann) caseVars)
+                Case ann (TyVar ann resultType) (unwrap ann dty $ Var ann xn) (fmap PIR.mkVar caseVars)
         ScottEncoding ->
             pure $
                 -- See Note [Recursive datatypes]

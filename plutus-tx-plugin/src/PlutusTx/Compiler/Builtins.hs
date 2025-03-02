@@ -628,7 +628,7 @@ defineBuiltinTypes = do
 lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
     ghcName <- lookupGhcName name
-    maybeTerm <- PIR.lookupTerm annMayInline (LexName ghcName)
+    maybeTerm <- PIR.lookupTerm (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)

@@ -548,6 +548,7 @@ library plutus-ir
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
     , containers
+    , data-default-class
     , dlist
     , dom-lt
     , extra

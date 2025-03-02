@@ -49,6 +49,7 @@ library
     PlutusTx
     PlutusTx.Applicative
     PlutusTx.AsData
+    PlutusTx.AsData.Internal
     PlutusTx.AssocMap
     PlutusTx.Base
     PlutusTx.Blueprint

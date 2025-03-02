@@ -1,4 +1,6 @@
 let
+  data Unit | Unit_match where
+    Unit : Unit
   data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
     Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
 in

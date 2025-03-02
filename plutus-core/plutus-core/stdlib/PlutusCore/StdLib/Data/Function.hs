@@ -361,7 +361,7 @@ fixNAndType n fixByTerm = runQuote $ do
                 apply () (tyInst () (var () k) (TyVar () b)) $
                 mkIterLamAbs fs $
                 -- this is an ugly but straightforward way of getting the right fi
-                apply () (mkVar () (fs !! i)) (var () x)
+                apply () (mkVar (fs !! i)) (var () x)
 
     -- a list of all the branches
     branches <- forM (zip asbs [0..]) $ uncurry branch
