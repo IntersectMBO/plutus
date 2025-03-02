@@ -569,7 +569,7 @@ hoistExpr var t = do
   let name = GHC.getName var
       lexName = LexName name
 
-      -- See Note [Compiling AsData Matchers]
+      -- See Note [Compiling AsData Matchers and Their Invocations]
       isAsDataMatcher =
         any
           ((== wrapUnsafeFromBuiltinDataName) . GHC.getName @GHC.Var)
@@ -1018,7 +1018,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       fmap
         ( -- If the head of the application is an `AsData` matcher, propagate the
           -- `annIsAsDataMatcher` annotation to the whole application.
-          -- See Note [Compiling AsData Matchers]
+          -- See Note [Compiling AsData Matchers and Their Invocations]
           if annIsAsDataMatcher (PIR.termAnn l')
             then fmap (\ann -> ann{annIsAsDataMatcher = True})
             else id
@@ -1035,7 +1035,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       fmap
         ( -- If the head of the application is an `AsData` matcher, propagate the
           -- `annIsAsDataMatcher` annotation to the whole application.
-          -- See Note [Compiling AsData Matchers]
+          -- See Note [Compiling AsData Matchers and Their Invocations]
           if isAsDataMatcher
             then fmap (\ann -> ann{annIsAsDataMatcher = True})
             else id
@@ -1130,7 +1130,7 @@ compileCase ::
   m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
   wrapTailName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapTail
-  let -- See Note [Compiling AsData Matchers]
+  let -- See Note [Compiling AsData Matchers and Their Invocations]
       isWrapTailApp =
         case GHC.collectArgs (strip scrutinee) of
           (strip -> GHC.Var f, _args) -> GHC.getName f == wrapTailName

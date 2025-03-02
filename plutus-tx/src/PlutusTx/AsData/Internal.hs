@@ -8,7 +8,7 @@ module PlutusTx.AsData.Internal where
 import PlutusTx.Builtins.Internal as BI
 import PlutusTx.IsData.Class
 
--- See Note [Compiling AsData Matchers]
+-- See Note [Compiling AsData Matchers and Their Invocations]
 
 wrapUnsafeFromBuiltinData :: forall a. (UnsafeFromData a) => BuiltinData -> a
 wrapUnsafeFromBuiltinData = unsafeFromBuiltinData
@@ -18,11 +18,18 @@ wrapTail :: BuiltinList a -> BuiltinList a
 wrapTail = BI.tail
 {-# NOINLINE wrapTail #-}
 
+-- Like `unsafeUncons` but uses `wrapTail` instead of the regular `tail`.
+--
+-- This function can be inlined, because the Plinth compiler does not rely on it being present.
+--
+-- We don't need a `wrapHead`, because there are no strict dead bindings of the form
+-- `let !y = head xs`. The dead bindings are only in the form of `let !ys = tail xs`
+-- and `let !y = unsafeFromBuiltinData (head xs)`.
 wrapUnsafeUncons :: BuiltinList a -> (a, BuiltinList a)
 wrapUnsafeUncons l = (BI.head l, wrapTail l)
 {-# INLINE wrapUnsafeUncons #-}
 
-{- Note [Compiling AsData Matchers]
+{- Note [Compiling AsData Matchers and Their Invocations]
 
 The AsData matchers, such as `AsData.Budget.Types.$mInts`, eagerly unpack all fields,
 even for unused fields. This leads to strict dead bindings. Since they are strict and
