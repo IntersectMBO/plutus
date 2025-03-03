@@ -20,6 +20,7 @@ import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 
+import PlutusTx.AsData.Internal (wrapUnsafeDataAsConstr, wrapUnsafeUncons)
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
@@ -72,7 +73,7 @@ mkUnsafeConstrMatchPattern
 mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
   case isProduct of
     IsAsDataProdType ->
-      [p| (BI.unsafeDataAsConstr ->
+      [p| (wrapUnsafeDataAsConstr ->
             (BI.snd ->
               $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
             )
@@ -80,7 +81,7 @@ mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
       |]
     IsNotAsDataProdType ->
       [p|
-        (BI.unsafeDataAsConstr ->
+        (wrapUnsafeDataAsConstr ->
           (Builtins.pairToPair ->
             $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
           )
@@ -103,7 +104,7 @@ mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
       where
         go []     = [p| _ |]
         go [x]    = [p| (BI.head -> $x) |]
-        go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
+        go (x:xs) = [p| (wrapUnsafeUncons -> ($x, $(go xs))) |]
     pat =
       -- We can safely omit the index match if we know that the type is a product type
       case isProduct of

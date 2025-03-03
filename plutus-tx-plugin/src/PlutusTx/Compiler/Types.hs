@@ -64,7 +64,8 @@ data CompileContext uni fun = CompileContext {
     ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun,
     ccBuiltinCostModel :: PLC.CostingPart uni fun,
     ccDebugTraceOn     :: Bool,
-    ccRewriteRules     :: PIR.RewriteRules uni fun
+    ccRewriteRules     :: PIR.RewriteRules uni fun,
+    ccSafeToInline     :: Bool
     }
 
 data CompileState = CompileState

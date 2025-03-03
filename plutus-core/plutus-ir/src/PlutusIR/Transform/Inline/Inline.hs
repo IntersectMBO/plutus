@@ -422,15 +422,16 @@ maybeAddSubst body ann s n rhs0 = do
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
-    let hinted = shouldInline hints ann n
-
-    if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs)
-    else
-        ifM
-            (shouldUnconditionallyInline s n rhs body)
-            (extendAndDrop (Done $ dupable rhs))
-            (pure $ Just rhs)
+    case shouldInline hints ann n of
+      AlwaysInline ->
+        -- if we've been told specifically, then do it right away
+        extendAndDrop (Done $ dupable rhs)
+      hint ->
+        let safeToInline = hint == SafeToInline
+         in ifM
+              (shouldUnconditionallyInline safeToInline s n rhs body)
+              (extendAndDrop (Done $ dupable rhs))
+              (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun ann

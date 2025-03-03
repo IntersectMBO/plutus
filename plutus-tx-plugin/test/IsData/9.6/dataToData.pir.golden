@@ -58,20 +58,23 @@ let
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
   !snd : all a b. pair a b -> b = sndPair
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~wrapUnsafeDataAsConstr : data -> pair integer (list data)
+    = unsafeDataAsConstr
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
   !head : all a. list a -> a = headList
   !tail : all a. list a -> list a = tailList
-  ~unsafeUncons : all a. list a -> Tuple2 a (list a)
+  ~wrapTail : all a. list a -> list a = tail
+  ~wrapUnsafeUncons : all a. list a -> Tuple2 a (list a)
     = /\a ->
         \(l : list a) ->
           let
             !l : list a = l
           in
-          Tuple2 {a} {list a} (head {a} l) (tail {a} l)
+          Tuple2 {a} {list a} (head {a} l) (wrapTail {a} l)
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
@@ -95,9 +98,9 @@ let
               Tuple2_match
                 {data}
                 {list data}
-                (unsafeUncons
+                (wrapUnsafeUncons
                    {data}
-                   (snd {integer} {list data} (unsafeDataAsConstr nt)))
+                   (snd {integer} {list data} (wrapUnsafeDataAsConstr nt)))
                 {r}
                 (\(ds : data) (ds : list data) ->
                    cont

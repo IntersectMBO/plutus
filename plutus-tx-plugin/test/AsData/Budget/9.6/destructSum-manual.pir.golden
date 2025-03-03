@@ -89,24 +89,21 @@ in
                           (y : integer)
                           (z : integer)
                           (w : integer) ->
-                           let
-                             !int1_ : integer = addInteger x x
-                             !int2_ : integer = addInteger y y
-                             !int3_ : integer = addInteger z z
-                             !int4_ : integer = addInteger w w
-                           in
                            constrData
                              0
                              (mkCons
                                 {data}
-                                (iData int1_)
+                                (iData (addInteger x x))
                                 (mkCons
                                    {data}
-                                   (iData int2_)
+                                   (iData (addInteger y y))
                                    (mkCons
                                       {data}
-                                      (iData int3_)
-                                      (mkCons {data} (iData int4_) [])))))
+                                      (iData (addInteger z z))
+                                      (mkCons
+                                         {data}
+                                         (iData (addInteger w w))
+                                         [])))))
                         (\(void : unit) -> fail ()))
                    (\(void : unit) -> fail ()))
               (/\dead -> fail ())

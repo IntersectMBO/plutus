@@ -5,17 +5,4 @@ let
   data Unit | Unit_match where
     Unit : Unit
 in
-\(d : data) ->
-  Bool_match
-    (let
-      !l : list data = sndPair {integer} {list data} (unConstrData d)
-      !l : list data = tailList {data} l
-      !ds : data = headList {data} l
-      !ds : data = headList {data} l
-      !ds : data = headList {data} (tailList {data} l)
-    in
-    True)
-    {all dead. unit}
-    (/\dead -> ())
-    (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
-    {all dead. dead}
+\(d : data) -> ()

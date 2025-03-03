@@ -35,6 +35,7 @@ import GHC.Types.Tickish qualified as GHC
 import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
+import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
@@ -75,7 +76,7 @@ import PlutusCore.Subst qualified as PLC
 import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
-import Control.Monad.Reader (ask, asks)
+import Control.Monad.Reader (ask, asks, local)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -563,15 +564,25 @@ hoistExpr ::
   GHC.CoreExpr ->
   m (PIRTerm uni fun)
 hoistExpr var t = do
+  wrapUnsafeDataAsConstrName <-
+    lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
   let name = GHC.getName var
       lexName = LexName name
+
+      -- See Note [Compiling AsData Matchers and Their Invocations]
+      isAsDataMatcher =
+        any
+          ((== wrapUnsafeDataAsConstrName) . GHC.getName @GHC.Var)
+          (universeBi t)
       -- If the original ID has an "always inline" pragma, then
       -- propagate that to PIR so that the PIR inliner will deal
       -- with it.
-      ann = if hasAlwaysInlinePragma var then annAlwaysInline else annMayInline
+      ann =
+        (if hasAlwaysInlinePragma var then annAlwaysInline else annMayInline)
+          { annIsAsDataMatcher = isAsDataMatcher }
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
-  maybeDef <- PIR.lookupTerm annMayInline lexName
+  maybeDef <- PIR.lookupTerm lexName
   let addSpan = case getVarSourceSpan var of
         Nothing  -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
@@ -583,13 +594,13 @@ hoistExpr var t = do
       -- See Note [Occurrences of recursive names]
       PIR.defineTerm
         lexName
-        (PIR.Def var' (PIR.mkVar ann var', PIR.Strict))
+        (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
       t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-      pure $ PIR.mkVar ann var'
+      pure $ PIR.mkVar var'
 
 maybeProfileRhs :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
@@ -765,7 +776,12 @@ entryExitTracing lamName displayName e ty =
 compileExpr :: CompilingDefault uni fun m ann => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
-  CompileContext {ccScope = scope, ccModBreaks = maybeModBreaks, ccBuiltinsInfo = binfo} <- ask
+  CompileContext
+    { ccScope = scope
+    , ccModBreaks = maybeModBreaks
+    , ccBuiltinsInfo = binfo
+    , ccSafeToInline = safeToInline
+    } <- ask
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
@@ -961,7 +977,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
                                                   "Unbounded ranges are not supported.")
     -- locally bound vars
-    GHC.Var (lookupName scope . GHC.getName -> Just (var, _def)) -> pure $ PIR.mkVar annMayInline var
+    GHC.Var (lookupName scope . GHC.getName -> Just (var, _def)) -> pure $ PIR.mkVar var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
@@ -981,7 +997,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       -- Defined names, including builtin names
       let lexName = LexName $ GHC.getName n
       modifyCurDeps (\d -> Set.insert lexName d)
-      maybeDef <- PIR.lookupTerm annMayInline lexName
+      maybeDef <- PIR.lookupTerm lexName
       case maybeDef of
         Just term -> pure term
         Nothing ->
@@ -996,15 +1012,39 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                   GHC.<+> GHC.ppr n
                   GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                   GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
-
     -- arg can be a type here, in which case it's a type instantiation
-    l `GHC.App` GHC.Type t ->
-      -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
-      if GHC.isRuntimeRepKindedTy t
-      then compileExpr l
-      else PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
+    l `GHC.App` GHC.Type t -> do
+      l' <- compileExpr l
+      fmap
+        ( -- If the head of the application is an `AsData` matcher, propagate the
+          -- `annIsAsDataMatcher` annotation to the whole application.
+          -- See Note [Compiling AsData Matchers and Their Invocations]
+          if annIsAsDataMatcher (PIR.termAnn l')
+            then fmap (\ann -> ann{annIsAsDataMatcher = True})
+            else id
+        )
+        ( -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
+          if GHC.isRuntimeRepKindedTy t
+            then pure l'
+            else PIR.TyInst annMayInline <$> pure l' <*> compileTypeNorm t
+        )
     -- otherwise it's a normal application
-    l `GHC.App` arg -> PIR.Apply annMayInline <$> compileExpr l <*> compileExpr arg
+    l `GHC.App` arg -> do
+      l' <- compileExpr l
+      let isAsDataMatcher = annIsAsDataMatcher (PIR.termAnn l')
+      fmap
+        ( -- If the head of the application is an `AsData` matcher, propagate the
+          -- `annIsAsDataMatcher` annotation to the whole application.
+          -- See Note [Compiling AsData Matchers and Their Invocations]
+          if isAsDataMatcher
+            then fmap (\ann -> ann{annIsAsDataMatcher = True})
+            else id
+        )
+        ( -- If the head of the application is an `AsData` matcher, set `safeToInline`
+          -- to True and continue.
+          (if isAsDataMatcher then local (\c -> c{ccSafeToInline = True}) else id)
+            (PIR.Apply annMayInline <$> pure l' <*> compileExpr arg)
+        )
     -- if we're biding a type variable it's a type abstraction
     GHC.Lam b@(GHC.isTyVar -> True) body ->
       -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
@@ -1012,7 +1052,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       then compileExpr body
       else mkTyAbsScoped b $ compileExpr body
     -- otherwise it's a normal lambda
-    GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
+    GHC.Lam b body -> do
+      let ann = if safeToInline then annSafeToInline else annMayInline
+      mkLamAbsScoped ann b $ compileExpr body
     GHC.Let (GHC.NonRec b rhs) body -> do
       -- the binding is in scope for the body, but not for the arg
       rhs' <- compileExpr rhs
@@ -1087,7 +1129,16 @@ compileCase ::
   [GHC.CoreAlt] ->
   m (PIRTerm uni fun)
 compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
-  let binderAnn = if hasAlwaysInlinePragma binder then annAlwaysInline else annMayInline
+  wrapTailName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapTail
+  let -- See Note [Compiling AsData Matchers and Their Invocations]
+      isWrapTailApp =
+        case GHC.collectArgs (strip scrutinee) of
+          (strip -> GHC.Var f, _args) -> GHC.getName f == wrapTailName
+          _                           -> False
+      binderAnn
+        | hasAlwaysInlinePragma binder = annAlwaysInline
+        | isWrapTailApp = annSafeToInline
+        | otherwise = annMayInline
   case alts of
     [GHC.Alt con bs body]
       -- See Note [Evaluation-only cases]
@@ -1388,7 +1439,7 @@ defineFix = do
 lookupIntegerNegate :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
 lookupIntegerNegate = do
   ghcName <- lookupGhcName 'GHC.Num.Integer.integerNegate
-  PIR.lookupTerm annMayInline (LexName ghcName) >>= \case
+  PIR.lookupTerm (LexName ghcName) >>= \case
     Just t -> pure t
     Nothing -> throwPlain $
       CompilationError "Cannot find the definition of integerNegate. Please file a bug report."

@@ -51,6 +51,7 @@ noProvenance = MultipleSources S.empty
 
 instance AnnInline a => AnnInline (Provenance a) where
     annAlwaysInline = Original annAlwaysInline
+    annSafeToInline = Original annSafeToInline
     annMayInline = Original annMayInline
 
 data DatatypeComponent = Constructor
