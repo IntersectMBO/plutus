@@ -3,15 +3,24 @@
    (\d ->
       force
         (case
-           ((\cse ->
-               (\ds ->
-                  (\cse ->
-                     (\ds ->
-                        (\ds -> constr 0 [])
-                          (force headList (force tailList cse)))
-                       (force headList cse))
-                    (force tailList cse))
-                 (force headList cse))
-              (force (force sndPair) (unConstrData d)))
+           ((\tup ->
+               force
+                 (force
+                    (force ifThenElse
+                       (equalsInteger 0 (force (force fstPair) tup))
+                       (delay
+                          (delay
+                             ((\l ->
+                                 (\l ->
+                                    (\ds ->
+                                       (\ds ->
+                                          (\ds -> constr 0 [])
+                                            (force headList (force tailList l)))
+                                         (force headList l))
+                                      (force headList l))
+                                   (force tailList l))
+                                (force (force sndPair) tup))))
+                       (delay (delay (case error [error]))))))
+              (unConstrData d))
            [ (delay ())
            , (delay ((\x -> error) (force trace "PT5" (constr 0 [])))) ])))

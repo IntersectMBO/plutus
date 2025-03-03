@@ -6,17 +6,28 @@ let
     Unit : Unit
 in
 \(d : data) ->
-  let
-    ~constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-    ~rest : list data = tailList {data} constrArgs
-  in
   Bool_match
     (let
-      !ds : data = headList {data} constrArgs
-      !ds : data = headList {data} rest
-      !ds : data = headList {data} (tailList {data} rest)
+      !tup : pair integer (list data) = unConstrData d
     in
-    True)
+    Bool_match
+      (ifThenElse
+         {Bool}
+         (equalsInteger 0 (fstPair {integer} {list data} tup))
+         True
+         False)
+      {all dead. Bool}
+      (/\dead ->
+         let
+           !l : list data = sndPair {integer} {list data} tup
+           !l : list data = tailList {data} l
+           !ds : data = headList {data} l
+           !ds : data = headList {data} l
+           !ds : data = headList {data} (tailList {data} l)
+         in
+         True)
+      (/\dead -> Unit_match (error {Unit}) {Bool} (error {Bool}))
+      {all dead. dead})
     {all dead. unit}
     (/\dead -> ())
     (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})

@@ -4,38 +4,50 @@ let
     = \(i : integer) -> let !i : integer = i in mkI i
   ~`$fToDataInteger` : (\a -> a -> data) integer
     = `$fToDataInteger_$ctoBuiltinData`
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  ~equalsInteger : integer -> integer -> Bool
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
+  ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
+  ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
+    = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
+  !fst : all a b. pair a b -> a = fstPair
+  !snd : all a b. pair a b -> b = sndPair
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !head : all a. list a -> a = headList
-  !snd : all a b. pair a b -> b = sndPair
-  !tail : all a. list a -> list a = tailList
+  ~pairToPair : all a b. pair a b -> Tuple2 a b
+    = /\a b ->
+        \(tup : pair a b) ->
+          let
+            !tup : pair a b = tup
+          in
+          Tuple2 {a} {b} (fst {a} {b} tup) (snd {a} {b} tup)
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
-  ~matchOnRecordConstructor :
-     all a. (\a -> data -> a) a -> (\a -> data) a -> Tuple2 a integer
+  !head : all a. list a -> a = headList
+  !tail : all a. list a -> list a = tailList
+  ~unsafeUncons : all a. list a -> Tuple2 a (list a)
     = /\a ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) a) (ds : (\a -> data) a) ->
+        \(l : list a) ->
           let
-            !builtinData : data = ds
-            !asConstr : pair integer (list data)
-              = unsafeDataAsConstr builtinData
-            !constrArgs : list data = snd {integer} {list data} asConstr
-            !field : a
-              = unsafeFromBuiltinData
-                  {a}
-                  `$dUnsafeFromData`
-                  (head {data} constrArgs)
-            !rest : list data = tail {data} constrArgs
-            !field : integer
-              = unsafeFromBuiltinData
-                  {integer}
-                  `$fUnsafeFromDataInteger`
-                  (head {data} rest)
+            !l : list a = l
           in
-          Tuple2 {a} {integer} field field
+          Tuple2 {a} {list a} (head {a} l) (tail {a} l)
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
@@ -56,12 +68,33 @@ let
               !cont : a -> integer -> r = cont
             in
             \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
               Tuple2_match
-                {a}
                 {integer}
-                (matchOnRecordConstructor {a} `$dUnsafeFromData` nt)
+                {list data}
+                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
                 {r}
-                (\(x : a) (y : integer) -> cont x y)
+                (\(ds : integer) (ds : list data) ->
+                   Bool_match
+                     (`==` {integer} `$fEqInteger` 0 ds)
+                     {all dead. r}
+                     (/\dead ->
+                        Tuple2_match
+                          {data}
+                          {list data}
+                          (unsafeUncons {data} ds)
+                          {r}
+                          (\(ds : data) (ds : list data) ->
+                             cont
+                               (unsafeFromBuiltinData {a} `$dUnsafeFromData` ds)
+                               (unsafeFromBuiltinData
+                                  {integer}
+                                  `$fUnsafeFromDataInteger`
+                                  (head {data} ds))))
+                     (/\dead -> fail ())
+                     {all dead. dead})
   ~x : all a. (\a -> a -> data) a -> (\a -> data -> a) a -> (\a -> data) a -> a
     = /\a ->
         \(`$dToData` : (\a -> a -> data) a)
