@@ -379,8 +379,8 @@ html[data-theme="dark"] .csv-table-overflow-marker::after {
 /* Footer */
 
 .footer {
-  background: #193d47;
-  color: #758b91;
+  background: #3b0005;
+  color: var(--color-white-smoke);
   font-size: 0.875rem;
   font-weight: 500;
   padding: 32px 0;
@@ -388,7 +388,7 @@ html[data-theme="dark"] .csv-table-overflow-marker::after {
 }
 
 .footer a {
-  color: #bac5c8;
+  color: var(--color-white-smoke);
   font-size: 1rem;
 }
 
