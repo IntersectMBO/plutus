@@ -10,6 +10,7 @@ module PlutusTx.IsData.TH (
   mkUnsafeConstrMatchPattern,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
+  AsDataProdType (..),
 ) where
 
 import Data.Foldable as Foldable (foldl')
@@ -55,14 +56,43 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
     pat = [p| ($ixMatchPat, $extractArgsPat) |]
   in pat
 
+-- | If generating pattern synonyms for a product type declared with 'asData',
+-- we can avoid the index match, as we know that the type only has one constructor.
+data AsDataProdType
+  = IsAsDataProdType
+  | IsNotAsDataProdType
+
 -- TODO: safe match for the whole thing? not needed atm
 
-mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrMatchPattern conIx extractFieldNames =
-  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
+mkUnsafeConstrMatchPattern
+  :: AsDataProdType
+  -> Integer
+  -> [TH.Name]
+  -> TH.PatQ
+mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
+  case isProduct of
+    IsAsDataProdType ->
+      [p| (BI.unsafeDataAsConstr ->
+            (BI.snd ->
+              $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+            )
+          )
+      |]
+    IsNotAsDataProdType ->
+      [p|
+        (BI.unsafeDataAsConstr ->
+          (Builtins.pairToPair ->
+            $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+          )
+        )
+      |]
 
-mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
+mkUnsafeConstrPartsMatchPattern
+  :: AsDataProdType
+  -> Integer
+  -> [TH.Name]
+  -> TH.PatQ
+mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
   let
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
@@ -74,7 +104,11 @@ mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
         go []     = [p| _ |]
         go [x]    = [p| (BI.head -> $x) |]
         go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
-    pat = [p| ($ixMatchPat, $extractArgsPat) |]
+    pat =
+      -- We can safely omit the index match if we know that the type is a product type
+      case isProduct of
+        IsAsDataProdType    -> [p| $extractArgsPat |]
+        IsNotAsDataProdType -> [p| ($ixMatchPat, $extractArgsPat) |]
   in pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
@@ -124,7 +158,7 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
     -- Build the constructor application, assuming that all the arguments are in scope
     let app = foldl' (\h v -> [| $h $(TH.varE v) |]) (TH.conE name) argNames
 
-    TH.match (mkUnsafeConstrPartsMatchPattern (fromIntegral index) argNames) (TH.normalB app) []
+    TH.match (mkUnsafeConstrPartsMatchPattern IsNotAsDataProdType (fromIntegral index) argNames) (TH.normalB app) []
 
 unsafeFromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
 unsafeFromDataClause indexedCons = do

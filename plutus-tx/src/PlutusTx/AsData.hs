@@ -18,7 +18,7 @@ import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
-import PlutusTx.IsData.TH (mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
+import PlutusTx.IsData.TH (AsDataProdType (..), mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
 
 import Prelude
 
@@ -106,6 +106,10 @@ asDataFor dec = do
 #endif
             Nothing con derivs
 
+  let isProductType =
+        if length cons == 1
+          then IsAsDataProdType
+          else IsNotAsDataProdType
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $
     \conIx TH.ConstructorInfo
@@ -127,7 +131,7 @@ asDataFor dec = do
         [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
     let
-      pat = TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
+      pat = TH.conP cname [mkUnsafeConstrMatchPattern isProductType (fromIntegral conIx) fieldNames]
 
       createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []
