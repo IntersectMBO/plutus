@@ -253,7 +253,7 @@ html[data-theme="dark"] {
 
 html[data-theme="dark"] body {
   --aa-primary-color-rgb: 222, 89, 48;
-  --aa-muted-color-rgb: 75, 180, 213;
+  --aa-muted-color-rgb: 222, 89, 48;
   --aa-background-color-rgb: 0, 0, 0;
 }
 
