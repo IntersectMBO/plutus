@@ -50,7 +50,10 @@ makeOutput credential value =
     . maybe NoOutputDatum OutputDatumHash
 
 -- Construct a map of redeemers.
-makeRedeemerMap :: ScriptPurpose -> LedgerBytes -> AM.Map ScriptPurpose Redeemer
+makeRedeemerMap
+  :: ScriptPurpose
+  -> LedgerBytes
+  -> AM.Map ScriptPurpose Redeemer
 makeRedeemerMap = (. (Redeemer . makeBuiltinData)) . AM.singleton
 
 -- Construct a map of datum hashes to datums.

@@ -16,7 +16,7 @@ module PlutusTx.Blueprint.Schema.Annotation (
 
 import Control.Monad.State (execStateT, get, lift, put)
 import Data.Aeson (ToJSON (..))
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import GHC.Generics (Generic)
 import Language.Haskell.TH.Syntax (Lift)
 import Prelude hiding (max, maximum, min, minimum)
@@ -58,7 +58,7 @@ data SchemaAnn
   = MkSchemaAnnTitle SchemaTitle
   | MkSchemaAnnDescription SchemaDescription
   | MkSchemaAnnComment SchemaComment
-  deriving stock (Eq, Ord, Show, Generic, Typeable, Data, Lift)
+  deriving stock (Eq, Ord, Show, Generic, Data, Lift)
 
 {- | An annotation for the "title" schema attribute.
 
@@ -70,7 +70,7 @@ newtype MyFoo = MkMyFoo Int
 @
 -}
 newtype SchemaTitle = SchemaTitle {schemaTitleToString :: String}
-  deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
+  deriving newtype (Eq, Ord, Show, ToJSON)
   deriving stock (Data, Lift)
 
 {- | An annotation for the "description" schema attribute.
@@ -83,7 +83,7 @@ newtype MyFoo = MkMyFoo Int
 @
 -}
 newtype SchemaDescription = SchemaDescription {schemaDescriptionToString :: String}
-  deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
+  deriving newtype (Eq, Ord, Show, ToJSON)
   deriving stock (Data, Lift)
 
 {- | An annotation for the "$comment" schema attribute.
@@ -96,5 +96,5 @@ newtype MyFoo = MkMyFoo Int
 @
 -}
 newtype SchemaComment = SchemaComment {schemaCommentToString :: String}
-  deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
+  deriving newtype (Eq, Ord, Show, ToJSON)
   deriving stock (Data, Lift)

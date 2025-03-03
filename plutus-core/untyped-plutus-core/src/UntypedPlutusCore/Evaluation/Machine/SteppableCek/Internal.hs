@@ -205,13 +205,13 @@ returnCek (FrameCases ann env cs ctx) e = case e of
     -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
     -- "apparently good" value.
     (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                    throwingDischarged _MachineError (MissingCaseBranch i) e
+                    throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
-        Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
-    _ -> throwingDischarged _MachineError NonConstrScrutinized e
+        Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
+    _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;

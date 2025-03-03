@@ -1,9 +1,8 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Inline.Spec where
-
 
 import System.FilePath
 
@@ -86,6 +85,13 @@ tests =
           )
       , goldenPirReadable "recursive" recursive
       , goldenUPlcReadable "recursive" recursive
+      , goldenPirReadable "inlineLocalOnce" compiledInlineLocalOnce
+      , goldenUPlcReadable "inlineLocalOnce" compiledInlineLocalOnce
+      , goldenEvalCekCatch
+          "inlineLocalOnce"
+          [compiledInlineLocalOnce `unsafeApplyCode` liftCodeDef 2]
+      , goldenPirReadable "always-inline-local" compiledAlwaysInlineLocal
+      , goldenUPlcReadable "always-inline-local" compiledAlwaysInlineLocal
       ]
 
 double :: Integer -> Integer
@@ -155,3 +161,31 @@ recursive =
             `PlutusTx.multiplyInteger` inline factorial z
         ||]
     )
+
+{-| This test case verifies that `inline` can inline local bindings
+(like `square`).
+
+The third usage of `square` is inlined in PIR, but not in UPLC, since
+in UPLC the inlining is reversed by CSE.
+-}
+inlineLocalOnce :: Integer -> Integer
+inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` inline square
+  where
+    !square = x `PlutusTx.multiplyInteger` x
+{-# INLINEABLE inlineLocalOnce #-}
+
+-- Use INLINE pragma on local variable `square` to make it always inlined.
+-- Similar to `inlineLocalOnce`, the inlining can be seen in PIR, but is
+-- reversed by CSE in UPLC.
+alwaysInlineLocal :: Integer -> Integer
+alwaysInlineLocal x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` square
+  where
+    !square = x `PlutusTx.multiplyInteger` x
+    {-# INLINE square #-}
+{-# INLINABLE alwaysInlineLocal #-}
+
+compiledInlineLocalOnce :: CompiledCode (Integer -> Integer)
+compiledInlineLocalOnce = $$(compile [|| inlineLocalOnce ||])
+
+compiledAlwaysInlineLocal :: CompiledCode (Integer -> Integer)
+compiledAlwaysInlineLocal = $$(compile [|| alwaysInlineLocal ||])
