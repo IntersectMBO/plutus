@@ -4,7 +4,6 @@ import Common
 import Generators
 
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
 
 import Criterion.Main
 import System.Random (StdGen)
