@@ -3,14 +3,18 @@
    (\d ->
       case
         ((\constrArgs ->
-            (\rest ->
+            (\field ->
                (\rest ->
-                  constr 0
-                    [ (unIData (force headList constrArgs))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList (force tailList rest))) ])
-                 (force tailList rest))
-              (force tailList constrArgs))
+                  (\field ->
+                     (\rest ->
+                        constr 0
+                          [ field
+                          , field
+                          , (unIData (force headList rest))
+                          , (unIData (force headList (force tailList rest))) ])
+                       (force tailList rest))
+                    (unIData (force headList rest)))
+                 (force tailList constrArgs))
+              (unIData (force headList constrArgs)))
            (force (force sndPair) (unConstrData d)))
         [(\int int int int -> int)]))

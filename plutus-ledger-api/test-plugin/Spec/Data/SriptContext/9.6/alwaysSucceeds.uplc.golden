@@ -3,15 +3,15 @@
    (\d ->
       force
         (case
-           ((\constrArgs ->
-               (\rest ->
-                  (\ds ->
+           ((\cse ->
+               (\ds ->
+                  (\cse ->
                      (\ds ->
                         (\ds -> constr 0 [])
-                          (force headList (force tailList rest)))
-                       (force headList rest))
-                    (force headList constrArgs))
-                 (force tailList constrArgs))
+                          (force headList (force tailList cse)))
+                       (force headList cse))
+                    (force tailList cse))
+                 (force headList cse))
               (force (force sndPair) (unConstrData d)))
            [ (delay ())
            , (delay ((\x -> error) (force trace "PT5" (constr 0 [])))) ])))

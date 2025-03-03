@@ -24,24 +24,20 @@
   in
   \(d : data) ->
     let
-      !constrArgs : list data
-        = sndPair
-            {integer}
-            {list data}
-            (unConstrData
-               (headList
-                  {data}
-                  (sndPair {integer} {list data} (unConstrData d))))
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
+      !scrut : data
+        = headList {data} (sndPair {integer} {list data} (unConstrData d))
+      ~constrArgs : list data
+        = sndPair {integer} {list data} (unConstrData scrut)
+      ~rest : list data = tailList {data} constrArgs
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
       !ds : (\a -> list data) data = unListData (headList {data} constrArgs)
       !ds : (\a -> list data) data = unListData (headList {data} rest)
       !ds : (\a -> list data) data = unListData (headList {data} rest)

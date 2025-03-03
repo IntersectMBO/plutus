@@ -20,7 +20,9 @@ in
     {integer}
     (let
       !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
+      !field : integer = unIData (headList {data} constrArgs)
       !rest : list data = tailList {data} constrArgs
+      !field : integer = unIData (headList {data} rest)
       !rest : list data = tailList {data} rest
     in
     Tuple4
@@ -28,8 +30,8 @@ in
       {integer}
       {integer}
       {integer}
-      (unIData (headList {data} constrArgs))
-      (unIData (headList {data} rest))
+      field
+      field
       (unIData (headList {data} rest))
       (unIData (headList {data} (tailList {data} rest))))
     {integer}

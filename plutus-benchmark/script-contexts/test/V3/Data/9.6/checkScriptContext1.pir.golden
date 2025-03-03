@@ -53,26 +53,26 @@
   in
   \(d : data) ->
     let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
+      ~constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
+      ~rest : list data = tailList {data} constrArgs
       !ds : data = headList {data} constrArgs
+      ~constrArgs : list data = sndPair {integer} {list data} (unConstrData ds)
+      ~rest : list data = tailList {data} constrArgs
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
+      ~rest : list data = tailList {data} rest
       !ds : data = headList {data} rest
       !ds : data = headList {data} (tailList {data} rest)
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData ds)
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
       !ds : (\a -> list data) data = unListData (headList {data} constrArgs)
       !ds : (\a -> list data) data = unListData (headList {data} rest)
       !ds : (\a -> list data) data = unListData (headList {data} rest)

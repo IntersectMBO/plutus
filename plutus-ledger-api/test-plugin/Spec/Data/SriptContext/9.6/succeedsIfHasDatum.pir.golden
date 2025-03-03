@@ -12,10 +12,12 @@ let
         \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(d : data) ->
+  let
+    ~constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
+    ~rest : list data = tailList {data} constrArgs
+  in
   Bool_match
     (let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
       !ds : data = headList {data} constrArgs
       !ds : data = headList {data} rest
       !tup : pair integer (list data)
