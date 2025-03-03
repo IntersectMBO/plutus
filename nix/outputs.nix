@@ -83,10 +83,6 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-  devShells =
-    (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.profiled; };
-
   non-profiled-shells = rec {
     default = ghc96;
     ghc810 = mkShell project.projectVariants.ghc810;
@@ -94,6 +90,10 @@ let
     ghc98 = mkShell project.projectVariants.ghc98;
     ghc910 = mkShell project.projectVariants.ghc910;
   };
+
+  devShells =
+    (non-profiled-shells) //
+    { profiled = mkShell project.projectVariants.profiled; };
 
   nested-ci-jobs = {
     "x86_64-linux" =
