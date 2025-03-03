@@ -49,7 +49,7 @@ benchExpModInteger _gen =
       pow (a::Integer) (b::Integer) = a^b
       p = (pow 2 255) - 19
 --      d = p `div` 20
-      inputs = fmap (\n -> 2^n-1) [1,10..255]
+      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
