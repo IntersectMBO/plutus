@@ -1,21 +1,6 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
 in
 \(d : data) ->
-  let
-    !tup : pair integer (list data) = unConstrData d
-  in
-  Bool_match
-    (ifThenElse
-       {Bool}
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       True
-       False)
-    {all dead. integer}
-    (/\dead -> unIData (headList {data} (sndPair {integer} {list data} tup)))
-    (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
-    {all dead. dead}
+  unIData (headList {data} (sndPair {integer} {list data} (unConstrData d)))

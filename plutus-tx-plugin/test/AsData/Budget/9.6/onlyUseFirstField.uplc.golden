@@ -1,16 +1,3 @@
 (program
    1.1.0
-   (\d ->
-      case
-        ((\constrArgs ->
-            (\rest ->
-               (\rest ->
-                  constr 0
-                    [ (unIData (force headList constrArgs))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList (force tailList rest))) ])
-                 (force tailList rest))
-              (force tailList constrArgs))
-           (force (force sndPair) (unConstrData d)))
-        [(\int int int int -> int)]))
+   (\d -> unIData (force headList (force (force sndPair) (unConstrData d)))))

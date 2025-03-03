@@ -411,7 +411,7 @@ compileMarkedExpr locStr codeTy origE = do
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
           , 'PlutusTx.AsData.Internal.wrapTail
-          , 'PlutusTx.AsData.Internal.wrapUnsafeFromBuiltinData
+          , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
           , 'PlutusTx.Function.fix
           , 'PlutusTx.Optimize.Inline.inline
           , 'useToOpaque
