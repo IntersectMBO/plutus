@@ -4,6 +4,7 @@ import Common
 import Generators
 
 import PlutusCore
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
 
 import Criterion.Main
 import System.Random (StdGen)
@@ -43,6 +44,19 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
+benchExpModInteger :: StdGen -> Benchmark
+benchExpModInteger _gen =
+  let builtinName = ExpModInteger
+      pow (a::Integer) (b::Integer) = a^b
+      p = (pow 2 255) - 19
+      d = p `div` 5
+      inputs = [0,d..p-1]
+      moduli = [p]
+  in createThreeTermBuiltinBenchWithWrappers
+     (id, id, id)
+     builtinName []
+     inputs inputs moduli
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
        [benchTwoIntegers gen makeLargeIntegerArgs AddInteger]-- SubtractInteger behaves identically.
@@ -52,3 +66,4 @@ makeBenchmarks gen =
                                      , LessThanInteger
                                      , LessThanEqualsInteger
                                      ])
+    <> [benchExpModInteger gen]
