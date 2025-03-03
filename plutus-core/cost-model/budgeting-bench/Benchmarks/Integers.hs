@@ -3,9 +3,9 @@ module Benchmarks.Integers (makeBenchmarks) where
 import Common
 import Generators
 
-import PlutusCore
-
 import Criterion.Main
+import PlutusCore
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog (..))
 import System.Random (StdGen)
 
 ---------------- Integer builtins ----------------
@@ -49,10 +49,10 @@ benchExpModInteger _gen =
       pow (a::Integer) (b::Integer) = a^b
       p = (pow 2 255) - 19
       d = p `div` 20
-      inputs = [0,d..p-1]
+      inputs = [d,d+d..p-1]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
-     (id, id, id)
+     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
      inputs inputs moduli
 
