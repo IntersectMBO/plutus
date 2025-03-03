@@ -48,8 +48,8 @@ benchExpModInteger _gen =
   let builtinName = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
       p = (pow 2 255) - 19
-      d = p `div` 20
-      inputs = [d,d+d..p-1]
+--      d = p `div` 20
+      inputs = fmap (\n -> 2^n-1) [1,10..255]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
