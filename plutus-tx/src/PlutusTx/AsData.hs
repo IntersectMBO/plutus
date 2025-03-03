@@ -18,7 +18,7 @@ import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.IsData.Class (ToData, UnsafeFromData)
-import PlutusTx.IsData.TH (mkAsDataMatchingFunction, mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
+import PlutusTx.IsData.TH (mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
 
 import Prelude
 
@@ -126,22 +126,9 @@ asDataFor dec = do
       TH.InfixConstructor    -> case fieldNames of
         [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
-    (pat, extraDecs) <-
-          if length cons > 1
-            then
-              pure
-                (TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
-                , []
-                )
-            else do
-                let typeVarNames = fmap TH.tvName tTypeVars
-                (matchFunType, matchFun@(TH.FunD fName _)) <-
-                  mkAsDataMatchingFunction name typeVarNames cname fields fieldNames
-                pure
-                  (pure $ TH.ViewP (TH.VarE fName) (TH.TupP $ fmap TH.VarP fieldNames)
-                  , [matchFunType, matchFun]
-                  )
     let
+      pat = TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
+
       createExpr = [|$(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []
       patSynD = TH.patSynD conName patSynArgs (TH.explBidir [clause]) pat
@@ -154,7 +141,7 @@ asDataFor dec = do
       fullTy = TH.ForallT (TH.changeTVFlags TH.SpecifiedSpec allFreeVars) ctxForArgs conTy
       patSynSigD = pure $ TH.PatSynSigD conName fullTy
 
-    sequence $ [patSynSigD, patSynD] <> fmap pure extraDecs
+    sequence [patSynSigD, patSynD]
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats

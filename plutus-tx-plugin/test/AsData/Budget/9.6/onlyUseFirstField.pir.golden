@@ -1,26 +1,29 @@
 let
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
 in
 \(d : data) ->
-  Tuple4_match
-    {integer}
-    {integer}
-    {integer}
-    {integer}
-    (let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-    in
-    Tuple4
-      {integer}
-      {integer}
-      {integer}
-      {integer}
-      (unIData (headList {data} constrArgs))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} (tailList {data} rest))))
-    {integer}
-    (\(int : integer) (int : integer) (int : integer) (int : integer) -> int)
+  let
+    !tup : pair integer (list data) = unConstrData d
+  in
+  Bool_match
+    (ifThenElse
+       {Bool}
+       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       True
+       False)
+    {all dead. integer}
+    (/\dead ->
+       let
+         !l : list data = sndPair {integer} {list data} tup
+         !l : list data = tailList {data} l
+         !l : list data = tailList {data} l
+         !ds : integer = unIData (headList {data} l)
+         !ds : integer = unIData (headList {data} l)
+         !ds : integer = unIData (headList {data} l)
+         !ds : integer = unIData (headList {data} (tailList {data} l))
+       in
+       ds)
+    (/\dead -> error {integer})
+    {all dead. dead}

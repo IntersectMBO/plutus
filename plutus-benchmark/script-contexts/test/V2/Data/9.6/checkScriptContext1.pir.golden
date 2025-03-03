@@ -19,79 +19,188 @@
     data Bool | Bool_match where
       True : Bool
       False : Bool
+    data (Solo :: * -> *) a | Solo_match where
+      MkSolo : a -> Solo a
     data Unit | Unit_match where
       Unit : Unit
   in
   \(d : data) ->
-    let
-      !constrArgs : list data
-        = sndPair
-            {integer}
-            {list data}
-            (unConstrData
-               (headList
-                  {data}
-                  (sndPair {integer} {list data} (unConstrData d))))
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !rest : list data = tailList {data} rest
-      !ds : (\a -> list data) data = unListData (headList {data} constrArgs)
-      !ds : (\a -> list data) data = unListData (headList {data} rest)
-      !ds : (\a -> list data) data = unListData (headList {data} rest)
-      !ds :
-         (\k a -> list (pair data data))
-           bytestring
-           ((\k a -> list (pair data data)) bytestring integer)
-        = unMapData (headList {data} rest)
-      !ds :
-         (\k a -> list (pair data data))
-           bytestring
-           ((\k a -> list (pair data data)) bytestring integer)
-        = unMapData (headList {data} rest)
-      !ds : (\a -> list data) data = unListData (headList {data} rest)
-      !ds : (\k a -> list (pair data data)) data integer
-        = unMapData (headList {data} rest)
-      !ds : (\a -> data) integer = headList {data} rest
-      !ds : (\a -> list data) bytestring = unListData (headList {data} rest)
-      !ds : (\k a -> list (pair data data)) data data
-        = unMapData (headList {data} rest)
-      !ds : (\k a -> list (pair data data)) bytestring data
-        = unMapData (headList {data} rest)
-      !ds : bytestring
-        = let
-          !tup : pair integer (list data)
-            = unConstrData (headList {data} (tailList {data} rest))
-          !index : integer = fstPair {integer} {list data} tup
-          !args : list data = sndPair {integer} {list data} tup
-        in
-        Bool_match
-          (ifThenElse {Bool} (equalsInteger 0 index) True False)
-          {all dead. bytestring}
-          (/\dead -> unBData (headList {data} args))
-          (/\dead ->
-             let
-               !x : Unit = trace {Unit} "PT1" Unit
-             in
-             error {bytestring})
-          {all dead. dead}
-    in
-    Bool_match
-      (ifThenElse {Bool} (equalsInteger 0 (modInteger (go ds 0) 2)) True False)
-      {all dead. Unit}
-      (/\dead -> Unit)
-      (/\dead ->
-         let
-           !x : Unit = trace {Unit} "Odd number of outputs" Unit
+    Solo_match
+      {data}
+      ((let
+           r = Solo data
          in
-         error {Unit})
-      {all dead. dead})
+         \(scrut : data) (cont : data -> data -> r) (fail : unit -> r) ->
+           let
+             !tup : pair integer (list data) = unConstrData scrut
+           in
+           Bool_match
+             (ifThenElse
+                {Bool}
+                (equalsInteger 0 (fstPair {integer} {list data} tup))
+                True
+                False)
+             {all dead. r}
+             (/\dead ->
+                let
+                  !l : list data = sndPair {integer} {list data} tup
+                in
+                cont (headList {data} l) (headList {data} (tailList {data} l)))
+             (/\dead -> fail ())
+             {all dead. dead})
+         d
+         (\(txi : data) (ds : data) -> MkSolo {data} txi)
+         (\(void : unit) ->
+            Unit_match (error {Unit}) {Solo data} (error {Solo data})))
+      {Unit}
+      (\(ipv : data) ->
+         Bool_match
+           (ifThenElse
+              {Bool}
+              (equalsInteger
+                 0
+                 (modInteger
+                    (let
+                      !ds : (\a -> list data) data
+                        = (let
+                              r = (\a -> list data) data
+                            in
+                            \(scrut : data)
+                             (cont :
+                                (\a -> list data) data ->
+                                (\a -> list data) data ->
+                                (\a -> list data) data ->
+                                (\k a -> list (pair data data))
+                                  bytestring
+                                  ((\k a -> list (pair data data))
+                                     bytestring
+                                     integer) ->
+                                (\k a -> list (pair data data))
+                                  bytestring
+                                  ((\k a -> list (pair data data))
+                                     bytestring
+                                     integer) ->
+                                (\a -> list data) data ->
+                                (\k a -> list (pair data data)) data integer ->
+                                (\a -> data) integer ->
+                                (\a -> list data) bytestring ->
+                                (\k a -> list (pair data data)) data data ->
+                                (\k a -> list (pair data data))
+                                  bytestring
+                                  data ->
+                                bytestring ->
+                                r)
+                             (fail : unit -> r) ->
+                              let
+                                !tup : pair integer (list data)
+                                  = unConstrData scrut
+                              in
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger
+                                      0
+                                      (fstPair {integer} {list data} tup))
+                                   True
+                                   False)
+                                {all dead. r}
+                                (/\dead ->
+                                   let
+                                     !l : list data
+                                       = sndPair {integer} {list data} tup
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                     !l : list data = tailList {data} l
+                                   in
+                                   cont
+                                     (unListData (headList {data} l))
+                                     (unListData (headList {data} l))
+                                     (unListData (headList {data} l))
+                                     (unMapData (headList {data} l))
+                                     (unMapData (headList {data} l))
+                                     (unListData (headList {data} l))
+                                     (unMapData (headList {data} l))
+                                     (headList {data} l)
+                                     (unListData (headList {data} l))
+                                     (unMapData (headList {data} l))
+                                     (unMapData (headList {data} l))
+                                     (let
+                                       !tup : pair integer (list data)
+                                         = unConstrData
+                                             (headList
+                                                {data}
+                                                (tailList {data} l))
+                                       !index : integer
+                                         = fstPair {integer} {list data} tup
+                                       !args : list data
+                                         = sndPair {integer} {list data} tup
+                                     in
+                                     Bool_match
+                                       (ifThenElse
+                                          {Bool}
+                                          (equalsInteger 0 index)
+                                          True
+                                          False)
+                                       {all dead. bytestring}
+                                       (/\dead ->
+                                          unBData (headList {data} args))
+                                       (/\dead ->
+                                          let
+                                            !x : Unit = trace {Unit} "PT1" Unit
+                                          in
+                                          error {bytestring})
+                                       {all dead. dead}))
+                                (/\dead -> fail ())
+                                {all dead. dead})
+                            ipv
+                            (\(ds : (\a -> list data) data)
+                              (ds : (\a -> list data) data)
+                              (ds : (\a -> list data) data)
+                              (ds :
+                                 (\k a -> list (pair data data))
+                                   bytestring
+                                   ((\k a -> list (pair data data))
+                                      bytestring
+                                      integer))
+                              (ds :
+                                 (\k a -> list (pair data data))
+                                   bytestring
+                                   ((\k a -> list (pair data data))
+                                      bytestring
+                                      integer))
+                              (ds : (\a -> list data) data)
+                              (ds :
+                                 (\k a -> list (pair data data)) data integer)
+                              (ds : (\a -> data) integer)
+                              (ds : (\a -> list data) bytestring)
+                              (ds : (\k a -> list (pair data data)) data data)
+                              (ds :
+                                 (\k a -> list (pair data data))
+                                   bytestring
+                                   data)
+                              (ds : bytestring) ->
+                               ds)
+                            (\(void : unit) -> error {(\a -> list data) data})
+                    in
+                    go ds 0)
+                    2))
+              True
+              False)
+           {all dead. Unit}
+           (/\dead -> Unit)
+           (/\dead ->
+              let
+                !x : Unit = trace {Unit} "Odd number of outputs" Unit
+              in
+              error {Unit})
+           {all dead. dead}))
   (Constr 0
      [ Constr 0
          [ List []

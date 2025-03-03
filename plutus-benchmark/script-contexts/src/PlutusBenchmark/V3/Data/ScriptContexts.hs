@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -12,12 +11,12 @@ import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,
                                 TxOut, always, pattern NoOutputDatum, pattern ScriptContext,
                                 pattern SpendingScript, pattern TxInfo, pattern TxOut,
-                                pattern TxOutRef, scriptContextTxInfo, txInfoCurrentTreasuryAmount,
-                                txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint,
-                                txInfoOutputs, txInfoProposalProcedures, txInfoRedeemers,
-                                txInfoReferenceInputs, txInfoSignatories, txInfoTreasuryDonation,
-                                txInfoTxCerts, txInfoValidRange, txInfoVotes, txInfoWdrl,
-                                txOutAddress, txOutDatum, txOutReferenceScript, txOutValue)
+                                pattern TxOutRef, txInfoCurrentTreasuryAmount, txInfoData,
+                                txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs,
+                                txInfoProposalProcedures, txInfoRedeemers, txInfoReferenceInputs,
+                                txInfoSignatories, txInfoTreasuryDonation, txInfoTxCerts,
+                                txInfoValidRange, txInfoVotes, txInfoWdrl, txOutAddress, txOutDatum,
+                                txOutReferenceScript, txOutValue)
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
@@ -76,9 +75,11 @@ mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 -- done in addition to decoding.
 checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
-  case PlutusTx.unsafeFromBuiltinData d of
-    ScriptContext { scriptContextTxInfo = TxInfo { txInfoOutputs } } ->
-      if Data.List.length txInfoOutputs `PlutusTx.modInteger` 2 PlutusTx.== 0
+  -- Bang pattern to ensure this is forced, probably not necesssary
+  -- since we do use it later
+  let !sc = PlutusTx.unsafeFromBuiltinData d
+      ScriptContext txi _ _ = sc
+   in if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
         then ()
         else PlutusTx.traceError "Odd number of outputs"
 {-# INLINEABLE checkScriptContext1 #-}

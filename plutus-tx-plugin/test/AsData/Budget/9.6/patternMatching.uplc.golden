@@ -1,39 +1,65 @@
 (program
    1.1.0
    (\d ->
-      case
-        ((\constrArgs ->
-            (\rest ->
-               (\rest ->
-                  constr 0
-                    [ (unIData (force headList constrArgs))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList (force tailList rest))) ])
-                 (force tailList rest))
-              (force tailList constrArgs))
-           (force (force sndPair) (unConstrData d)))
-        [ (\int int int int ->
-             (\lessThanInteger ->
-                addInteger
-                  (addInteger
-                     (addInteger (addInteger (addInteger int int) int) int)
-                     (force
-                        (case
-                           (lessThanInteger
-                              (addInteger int int)
-                              (addInteger int int))
-                           [ (delay (addInteger int int))
-                           , (delay (addInteger int int)) ])))
-                  (force
-                     (case
-                        (lessThanInteger
-                           (addInteger int int)
-                           (addInteger int int))
-                        [ (delay (addInteger int int))
-                        , (delay (addInteger int int)) ])))
-               (\x y ->
-                  force ifThenElse
-                    (lessThanInteger x y)
-                    (constr 0 [])
-                    (constr 1 []))) ]))
+      (\tup ->
+         force
+           (force
+              (force ifThenElse
+                 (equalsInteger 0 (force (force fstPair) tup))
+                 (delay
+                    (delay
+                       ((\l ->
+                           (\l ->
+                              (\l ->
+                                 (\x ->
+                                    (\y ->
+                                       (\z ->
+                                          (\w ->
+                                             (\lessThanInteger ->
+                                                addInteger
+                                                  (addInteger
+                                                     (addInteger
+                                                        (addInteger
+                                                           (addInteger x y)
+                                                           z)
+                                                        w)
+                                                     (force
+                                                        (case
+                                                           (lessThanInteger
+                                                              (addInteger y z)
+                                                              (addInteger x w))
+                                                           [ (delay
+                                                                (addInteger
+                                                                   x
+                                                                   z))
+                                                           , (delay
+                                                                (addInteger
+                                                                   y
+                                                                   w)) ])))
+                                                  (force
+                                                     (case
+                                                        (lessThanInteger
+                                                           (addInteger z y)
+                                                           (addInteger w x))
+                                                        [ (delay
+                                                             (addInteger z x))
+                                                        , (delay
+                                                             (addInteger
+                                                                w
+                                                                y)) ])))
+                                               (\x y ->
+                                                  force ifThenElse
+                                                    (lessThanInteger x y)
+                                                    (constr 0 [])
+                                                    (constr 1 [])))
+                                            (unIData
+                                               (force headList
+                                                  (force tailList l))))
+                                         (unIData (force headList l)))
+                                      (unIData (force headList l)))
+                                   (unIData (force headList l)))
+                                (force tailList l))
+                             (force tailList l))
+                          (force (force sndPair) tup))))
+                 (delay (delay (case error [error]))))))
+        (unConstrData d)))

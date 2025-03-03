@@ -10,7 +10,6 @@ module PlutusTx.IsData.TH (
   mkUnsafeConstrMatchPattern,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
-  mkAsDataMatchingFunction,
 ) where
 
 import Data.Foldable as Foldable (foldl')
@@ -20,7 +19,7 @@ import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 
-import PlutusTx.Builtins as Builtins hiding (drop)
+import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.ErrorCodes (reconstructCaseError)
@@ -57,62 +56,6 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
   in pat
 
 -- TODO: safe match for the whole thing? not needed atm
-
--- | Generate a function that matches on a 'BuiltinData' value and decodes it as a product type.
-mkAsDataMatchingFunction
-  :: TH.Name
-  -- ^ The name of the type
-  -> [TH.Name]
-  -- ^ Type variables of the type
-  -> TH.Name
-  -- ^ The name of the constructor
-  -> [TH.Type]
-  -- ^ Types of the fields
-  -> [TH.Name]
-  -- ^ The names of the fields
-  -> TH.Q (TH.Dec, TH.Dec)
-mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
-      -- Make a binding nonstrict if it is used once (so that the inliner can inline
-      -- it unconditionally).
-      -- Make a binding strict if it used more than once (so that it is evaluated
-      -- only once).
-  let strict = TH.bangP . TH.varP
-      nonstrict = TH.tildeP . TH.varP
-      numFields = length fields
-  funcName <- TH.newName $ "matchOn" <> TH.nameBase name
-  builtinData <- TH.newName "builtinData"
-  asConstrN <- TH.newName "asConstr"
-  constrArgsN <- TH.newName "constrArgs"
-  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
-  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
-  restDecs <-
-    for (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
-      -- the last `rest` is used once, and other `rest`s are each used twice
-      let maybeStrict = if i == length restNs - 1 then nonstrict else strict
-      in [d| $(maybeStrict resti) = BI.tail $(TH.varE restj) |]
-  fieldDecs <-
-    for (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
-      -- fields are each used once
-      [d| $(nonstrict fieldi) = unsafeFromBuiltinData (BI.head $(TH.varE restj)) |]
-  otherDecs <- sequence
-    [ -- asConstr is used once
-      [d| $(nonstrict asConstrN) = BI.unsafeDataAsConstr $(TH.varE builtinData) |]
-    , -- constrArgs is used twice
-      [d| $(strict constrArgsN) = BI.snd $(TH.varE asConstrN) |]
-    ]
-  let decs = fmap pure . concat $ otherDecs <> fieldDecs <> restDecs
-      resultExpr = TH.tupE $ TH.varE <$> fieldNs
-      body = TH.normalB $ TH.letE decs resultExpr
-      argPat = TH.conP consName [TH.varP builtinData]
-      clause = TH.clause [argPat] body []
-      functionDef = TH.funD funcName [clause]
-      tupleType = foldl TH.appT (TH.tupleT numFields) (pure <$> fieldTypes)
-      tType = foldl TH.appT (TH.conT name) $ TH.varT <$> typeVars
-      constraints = traverse (\ty -> TH.appT (TH.conT ''UnsafeFromData) (TH.varT ty)) typeVars
-      typeBody = [t| $tType -> $tupleType |]
-      typeBodyWithQuantification = TH.forallT [] constraints typeBody
-      functionType = TH.sigD funcName typeBodyWithQuantification
-  (,) <$> functionType <*> functionDef
 
 mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrMatchPattern conIx extractFieldNames =

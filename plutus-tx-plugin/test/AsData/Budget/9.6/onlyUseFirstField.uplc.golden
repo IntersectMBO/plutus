@@ -1,16 +1,28 @@
 (program
    1.1.0
    (\d ->
-      case
-        ((\constrArgs ->
-            (\rest ->
-               (\rest ->
-                  constr 0
-                    [ (unIData (force headList constrArgs))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList (force tailList rest))) ])
-                 (force tailList rest))
-              (force tailList constrArgs))
-           (force (force sndPair) (unConstrData d)))
-        [(\int int int int -> int)]))
+      (\tup ->
+         force
+           (force
+              (force ifThenElse
+                 (equalsInteger 0 (force (force fstPair) tup))
+                 (delay
+                    (delay
+                       ((\l ->
+                           (\l ->
+                              (\l ->
+                                 (\ds ->
+                                    (\ds ->
+                                       (\ds ->
+                                          (\ds -> ds)
+                                            (unIData
+                                               (force headList
+                                                  (force tailList l))))
+                                         (unIData (force headList l)))
+                                      (unIData (force headList l)))
+                                   (unIData (force headList l)))
+                                (force tailList l))
+                             (force tailList l))
+                          (force (force sndPair) tup))))
+                 (delay (delay error)))))
+        (unConstrData d)))

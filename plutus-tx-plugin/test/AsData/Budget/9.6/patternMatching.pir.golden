@@ -9,43 +9,42 @@ let
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
 in
 \(d : data) ->
-  Tuple4_match
-    {integer}
-    {integer}
-    {integer}
-    {integer}
-    (let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-    in
-    Tuple4
-      {integer}
-      {integer}
-      {integer}
-      {integer}
-      (unIData (headList {data} constrArgs))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} (tailList {data} rest))))
-    {integer}
-    (\(int : integer) (int : integer) (int : integer) (int : integer) ->
+  let
+    !tup : pair integer (list data) = unConstrData d
+  in
+  Bool_match
+    (ifThenElse
+       {Bool}
+       (equalsInteger 0 (fstPair {integer} {list data} tup))
+       True
+       False)
+    {all dead. integer}
+    (/\dead ->
+       let
+         !l : list data = sndPair {integer} {list data} tup
+         !l : list data = tailList {data} l
+         !l : list data = tailList {data} l
+         !x : integer = unIData (headList {data} l)
+         !y : integer = unIData (headList {data} l)
+         !z : integer = unIData (headList {data} l)
+         !w : integer = unIData (headList {data} (tailList {data} l))
+       in
        addInteger
          (addInteger
-            (addInteger (addInteger (addInteger int int) int) int)
+            (addInteger (addInteger (addInteger x y) z) w)
             (Bool_match
-               (lessThanInteger (addInteger int int) (addInteger int int))
+               (lessThanInteger (addInteger y z) (addInteger x w))
                {all dead. integer}
-               (/\dead -> addInteger int int)
-               (/\dead -> addInteger int int)
+               (/\dead -> addInteger x z)
+               (/\dead -> addInteger y w)
                {all dead. dead}))
          (Bool_match
-            (lessThanInteger (addInteger int int) (addInteger int int))
+            (lessThanInteger (addInteger z y) (addInteger w x))
             {all dead. integer}
-            (/\dead -> addInteger int int)
-            (/\dead -> addInteger int int)
+            (/\dead -> addInteger z x)
+            (/\dead -> addInteger w y)
             {all dead. dead}))
+    (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
+    {all dead. dead}
