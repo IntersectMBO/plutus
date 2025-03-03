@@ -93,10 +93,6 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-  devShells =
-    (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.profiled; };
-
   non-profiled-shells = rec {
     default = ghc96;
     ghc810 = mkShell project.projectVariants.ghc810;
