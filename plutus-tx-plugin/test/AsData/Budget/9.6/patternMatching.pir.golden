@@ -12,39 +12,26 @@ let
 in
 \(d : data) ->
   let
-    !tup : pair integer (list data) = unConstrData d
+    !l : list data = sndPair {integer} {list data} (unConstrData d)
+    !l : list data = tailList {data} l
+    !l : list data = tailList {data} l
+    !x : integer = unIData (headList {data} l)
+    !y : integer = unIData (headList {data} l)
+    !z : integer = unIData (headList {data} l)
+    !w : integer = unIData (headList {data} (tailList {data} l))
   in
-  Bool_match
-    (ifThenElse
-       {Bool}
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       True
-       False)
-    {all dead. integer}
-    (/\dead ->
-       let
-         !l : list data = sndPair {integer} {list data} tup
-         !l : list data = tailList {data} l
-         !l : list data = tailList {data} l
-         !x : integer = unIData (headList {data} l)
-         !y : integer = unIData (headList {data} l)
-         !z : integer = unIData (headList {data} l)
-         !w : integer = unIData (headList {data} (tailList {data} l))
-       in
-       addInteger
-         (addInteger
-            (addInteger (addInteger (addInteger x y) z) w)
-            (Bool_match
-               (lessThanInteger (addInteger y z) (addInteger x w))
-               {all dead. integer}
-               (/\dead -> addInteger x z)
-               (/\dead -> addInteger y w)
-               {all dead. dead}))
-         (Bool_match
-            (lessThanInteger (addInteger z y) (addInteger w x))
-            {all dead. integer}
-            (/\dead -> addInteger z x)
-            (/\dead -> addInteger w y)
-            {all dead. dead}))
-    (/\dead -> Unit_match (error {Unit}) {integer} (error {integer}))
-    {all dead. dead}
+  addInteger
+    (addInteger
+       (addInteger (addInteger (addInteger x y) z) w)
+       (Bool_match
+          (lessThanInteger (addInteger y z) (addInteger x w))
+          {all dead. integer}
+          (/\dead -> addInteger x z)
+          (/\dead -> addInteger y w)
+          {all dead. dead}))
+    (Bool_match
+       (lessThanInteger (addInteger z y) (addInteger w x))
+       {all dead. integer}
+       (/\dead -> addInteger z x)
+       (/\dead -> addInteger w y)
+       {all dead. dead})

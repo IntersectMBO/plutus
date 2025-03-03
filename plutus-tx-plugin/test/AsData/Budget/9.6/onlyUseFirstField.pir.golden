@@ -1,29 +1,11 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 \(d : data) ->
   let
-    !tup : pair integer (list data) = unConstrData d
+    !l : list data = sndPair {integer} {list data} (unConstrData d)
+    !l : list data = tailList {data} l
+    !l : list data = tailList {data} l
+    !ds : integer = unIData (headList {data} l)
+    !ds : integer = unIData (headList {data} l)
+    !ds : integer = unIData (headList {data} l)
+    !ds : integer = unIData (headList {data} (tailList {data} l))
   in
-  Bool_match
-    (ifThenElse
-       {Bool}
-       (equalsInteger 0 (fstPair {integer} {list data} tup))
-       True
-       False)
-    {all dead. integer}
-    (/\dead ->
-       let
-         !l : list data = sndPair {integer} {list data} tup
-         !l : list data = tailList {data} l
-         !l : list data = tailList {data} l
-         !ds : integer = unIData (headList {data} l)
-         !ds : integer = unIData (headList {data} l)
-         !ds : integer = unIData (headList {data} l)
-         !ds : integer = unIData (headList {data} (tailList {data} l))
-       in
-       ds)
-    (/\dead -> error {integer})
-    {all dead. dead}
+  ds

@@ -80,57 +80,39 @@
                                                                           (\scrut
                                                                             cont
                                                                             fail ->
-                                                                             (\tup ->
-                                                                                force
-                                                                                  (force
-                                                                                     (force
-                                                                                        ifThenElse
-                                                                                        (equalsInteger
-                                                                                           0
+                                                                             (\l ->
+                                                                                (\l ->
+                                                                                   (\l ->
+                                                                                      cont
+                                                                                        (unIData
                                                                                            (force
+                                                                                              headList
+                                                                                              l))
+                                                                                        (unIData
+                                                                                           (force
+                                                                                              headList
+                                                                                              l))
+                                                                                        (unIData
+                                                                                           (force
+                                                                                              headList
+                                                                                              l))
+                                                                                        (unIData
+                                                                                           (force
+                                                                                              headList
                                                                                               (force
-                                                                                                 fstPair)
-                                                                                              tup))
-                                                                                        (delay
-                                                                                           (delay
-                                                                                              ((\l ->
-                                                                                                  (\l ->
-                                                                                                     (\l ->
-                                                                                                        cont
-                                                                                                          (unIData
-                                                                                                             (force
-                                                                                                                headList
-                                                                                                                l))
-                                                                                                          (unIData
-                                                                                                             (force
-                                                                                                                headList
-                                                                                                                l))
-                                                                                                          (unIData
-                                                                                                             (force
-                                                                                                                headList
-                                                                                                                l))
-                                                                                                          (unIData
-                                                                                                             (force
-                                                                                                                headList
-                                                                                                                (force
-                                                                                                                   tailList
-                                                                                                                   l))))
-                                                                                                       (force
-                                                                                                          tailList
-                                                                                                          l))
-                                                                                                    (force
-                                                                                                       tailList
-                                                                                                       l))
-                                                                                                 (force
-                                                                                                    (force
-                                                                                                       sndPair)
-                                                                                                    tup))))
-                                                                                        (delay
-                                                                                           (delay
-                                                                                              (fail
-                                                                                                 ()))))))
-                                                                               (unConstrData
-                                                                                  scrut))
+                                                                                                 tailList
+                                                                                                 l))))
+                                                                                     (force
+                                                                                        tailList
+                                                                                        l))
+                                                                                  (force
+                                                                                     tailList
+                                                                                     l))
+                                                                               (force
+                                                                                  (force
+                                                                                     sndPair)
+                                                                                  (unConstrData
+                                                                                     scrut)))
                                                                           (\void ->
                                                                              case
                                                                                error
