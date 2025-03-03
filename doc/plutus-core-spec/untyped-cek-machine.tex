@@ -168,7 +168,8 @@ state.
  \EvalCEK(s, b, [V_1, \ldots, V_n]) =
   &   \begin{cases}
         \cekerror  & \text{if $r = \errorX$}\\
-        \inAppLeftFrame{W_m} \cons \cdots \cons \inAppLeftFrame{W_1} \cons s \return W & \text{if $r = (W|W_1,\ldots,W_m) \in \Inputs^{+}$}
+        \inAppLeftFrame{V^{\prime}_m} \cons \cdots \cons \inAppLeftFrame{V^{\prime}_1} \cons s \return V^{\prime}
+          & \text{if $r = (V^{\prime}|V^{\prime}_1,\ldots,V^{\prime}_m) \in \R^{+}$}
       \end{cases}\\
   &  \;\;\text{where $r = \Eval\,(b,[V_1, \ldots, V_n])$}\\
    \end{align*}
@@ -176,7 +177,7 @@ state.
   \label{fig:untyped-cek-builtins}
 \end{subfigure}
 
-  \caption{A CEK machine for Plutus Core \red{CHECK!! Ordering?  Are deferred applications values?}}
+  \caption{A CEK machine for Plutus Core}
 \label{fig:untyped-cek-machine}
 \end{figure}
   
