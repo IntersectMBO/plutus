@@ -406,12 +406,13 @@ findIndex pred' = go 0 . coerce
             )
 {-# INLINEABLE findIndex #-}
 
-makeLift ''List
-
-unzip :: List (a, b) -> (List a, List b)
-unzip (List l) =
-    let (l1, l2) = go l
-    in (List l1, List l2)
+unzip :: forall a b . List (a, b) -> (List a, List b)
+unzip l =
+    let (l1, l2) = go . coerce $ l
+    in
+        ( coerce @(BuiltinList BuiltinData) @(List a) l1
+        , coerce @(BuiltinList BuiltinData) @(List b) l2
+        )
   where
     go =
         B.caseList'
@@ -426,7 +427,7 @@ unzip (List l) =
 zipWith
     :: (UnsafeFromData a, UnsafeFromData b, ToData c)
     => (a -> b -> c) -> List a -> List b -> List c
-zipWith f (List l1) (List l2) = List $ go l1 l2
+zipWith f l1 l2 = coerce $ go (coerce l1) (coerce l2)
   where
     go l1' l2' =
         B.caseList'
@@ -449,11 +450,11 @@ zipWith f (List l1) (List l2) = List $ go l1 l2
 {-# INLINEABLE zipWith #-}
 
 head :: (UnsafeFromData a) => List a -> a
-head (List l) = unsafeFromBuiltinData $ B.head l
+head = unsafeFromBuiltinData . B.head . coerce
 {-# INLINEABLE head #-}
 
 last :: (UnsafeFromData a) => List a -> a
-last (List l) = unsafeFromBuiltinData $ go l
+last = unsafeFromBuiltinData . go . coerce
   where
     go =
         B.caseList
@@ -465,12 +466,15 @@ last (List l) = unsafeFromBuiltinData $ go l
             )
 {-# INLINEABLE last #-}
 
-tail :: List a -> List a
-tail (List l) = List $ B.tail l
+tail :: forall a . List a -> List a
+tail = coerce @(BuiltinList BuiltinData) @(List a) . B.tail . coerce
 {-# INLINEABLE tail #-}
 
-take :: Integer -> List a -> List a
-take n (List l) = List $ go n l
+take :: forall a . Integer -> List a -> List a
+take n =
+    coerce @(BuiltinList BuiltinData) @(List a)
+    . go n
+    . coerce @(List a) @(BuiltinList BuiltinData)
   where
     go n' =
         B.caseList'
@@ -482,8 +486,11 @@ take n (List l) = List $ go n l
             )
 {-# INLINEABLE take #-}
 
-drop :: Integer -> List a -> List a
-drop n (List l) = List $ go n l
+drop :: forall a . Integer -> List a -> List a
+drop n =
+    coerce @(BuiltinList BuiltinData) @(List a)
+    . go n
+    . coerce @(List a) @(BuiltinList BuiltinData)
   where
     go n' xs =
         if n' <= 0
@@ -497,8 +504,11 @@ drop n (List l) = List $ go n l
                     xs
 {-# INLINEABLE drop #-}
 
-dropWhile :: (UnsafeFromData a) => (a -> Bool) -> List a -> List a
-dropWhile pred1 (List l) = List $ go l
+dropWhile :: forall a . (UnsafeFromData a) => (a -> Bool) -> List a -> List a
+dropWhile pred1 =
+    coerce @(BuiltinList BuiltinData) @(List a)
+    . go
+    . coerce @(List a) @(BuiltinList BuiltinData)
   where
     go xs =
         B.caseList'
@@ -510,10 +520,10 @@ dropWhile pred1 (List l) = List $ go l
             xs
 {-# INLINEABLE dropWhile #-}
 
-splitAt :: Integer -> List a -> (List a, List a)
-splitAt n (List l) =
-    let (l1, l2) = go n l
-    in (List l1, List l2)
+splitAt :: forall a . Integer -> List a -> (List a, List a)
+splitAt n l =
+    let (l1, l2) = go n (coerce @_ @(BuiltinList BuiltinData) l)
+    in (coerce @_ @(List a) l1, coerce @_ @(List a) l2)
   where
     go n' xs =
         if n' <= 0
@@ -523,7 +533,7 @@ splitAt n (List l) =
                     (B.mkNil, B.mkNil)
                     (\h t ->
                         if B.equalsInteger n' 0
-                            then (B.mkNil, l)
+                            then (B.mkNil, coerce @_ @(BuiltinList BuiltinData) l)
                             else
                                 let (l1, l2) = go (B.subtractInteger n' 1) t
                                 in (BI.mkCons h l1, l2)
@@ -532,7 +542,7 @@ splitAt n (List l) =
 {-# INLINEABLE splitAt #-}
 
 elemBy :: (UnsafeFromData a) => (a -> a -> Bool) -> a -> List a -> Bool
-elemBy pred2 x (List l) = go l
+elemBy pred2 x = go . coerce
   where
     go =
         B.caseList'
@@ -544,7 +554,8 @@ elemBy pred2 x (List l) = go l
 {-# INLINEABLE elemBy #-}
 
 nubBy :: forall a . (UnsafeFromData a) => (a -> a -> Bool) -> List a -> List a
-nubBy pred2 (List l) = List $ go l B.mkNil
+nubBy pred2 l =
+    coerce @_ @(List a) $ go (coerce @_ @(BuiltinList BuiltinData) l) B.mkNil
   where
     go ys xs =
         B.caseList'
@@ -562,9 +573,9 @@ nub = nubBy (==)
 {-# INLINEABLE nub #-}
 
 partition :: (UnsafeFromData a) => (a -> Bool) -> List a -> (List a, List a)
-partition pred1 (List l) =
-    let (l1, l2) = go l
-    in (List l1, List l2)
+partition pred1 l =
+    let (l1, l2) = go (coerce l)
+    in (coerce l1, coerce l2)
   where
     go =
         B.caseList'
@@ -577,3 +588,5 @@ partition pred1 (List l) =
                     else (l1, h `BI.mkCons` l2)
             )
 {-# INLINEABLE partition #-}
+
+makeLift ''List
