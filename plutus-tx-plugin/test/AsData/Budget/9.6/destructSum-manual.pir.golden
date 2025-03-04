@@ -71,12 +71,12 @@ in
               (/\dead ->
                  let
                    !args : list data = sndPair {integer} {list data} tup
+                   !y : data
+                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                         (headList {data} (tailList {data} args))
                    !ds : data
                      = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                          (headList {data} args)
-                   !ds : data
-                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                         (headList {data} (tailList {data} args))
                  in
                  `$mInts`
                    {data}
@@ -84,7 +84,7 @@ in
                    (\(x : integer) (y : integer) (z : integer) (w : integer) ->
                       `$mInts`
                         {data}
-                        ds
+                        y
                         (\(x : integer)
                           (y : integer)
                           (z : integer)

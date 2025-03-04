@@ -127,9 +127,9 @@ unpack2
   :: (PlutusTx.UnsafeFromData a, PlutusTx.UnsafeFromData b)
   => BI.BuiltinList BI.BuiltinData -> (a, b)
 unpack2 args =
-  let ~x = PlutusTx.unsafeFromBuiltinData $ BI.head args
-      ~rest = BI.tail args
-      ~y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
+  let x = PlutusTx.unsafeFromBuiltinData $ BI.head args
+      rest = BI.tail args
+      y = PlutusTx.unsafeFromBuiltinData $ BI.head rest
    in (x, y)
 
 {-# COMPLETE ThisDManual, ThatDManual, TheseDManual #-}
