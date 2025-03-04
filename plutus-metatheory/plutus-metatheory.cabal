@@ -71,7 +71,7 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , process
     , text
@@ -656,7 +656,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based
