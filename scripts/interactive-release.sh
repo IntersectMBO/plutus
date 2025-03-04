@@ -133,14 +133,14 @@ open-plutus-pr() {
     "cardano-constitution"
   )
 
-
   local NEW_MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
   local OLD_MAJOR_VERSION=$(detect-old-version | cut -d'.' -f1,2)
   
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
-      -exec sed -i "s/\($PACKAGE\s*^>=$OLD_MAJOR_VERSION\)/$PACKAGE^>=$NEW_MAJOR_VERSION/" {} \;
+      -exec sed -i "s/$PACKAGE\s*^>=$OLD_MAJOR_VERSION/$PACKAGE^>=$NEW_MAJOR_VERSION/" {} \; \
+      -exec sed -i "s/\($PACKAGE:[^/^]*\)^>=$OLD_MAJOR_VERSION/\1^>=$NEW_MAJOR_VERSION/" {} \;
 
     pushd $PACKAGE > /dev/null
     scriv collect --version $VERSION || true
