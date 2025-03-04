@@ -331,57 +331,58 @@
                                                `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                unIData
                                                (headList {data} l))
-                                            (let
-                                              !x : data
-                                                = headList
-                                                    {data}
-                                                    (tailList {data} l)
-                                            in
-                                            Tuple2_match
-                                              {integer}
-                                              {integer}
-                                              (let
-                                                !tup : pair integer (list data)
-                                                  = unConstrData x
-                                                !index : integer
-                                                  = fstPair
-                                                      {integer}
-                                                      {list data}
-                                                      tup
-                                                !args : list data
-                                                  = sndPair
-                                                      {integer}
-                                                      {list data}
-                                                      tup
-                                              in
-                                              Bool_match
-                                                (ifThenElse
-                                                   {Bool}
-                                                   (equalsInteger 0 index)
-                                                   True
-                                                   False)
-                                                {all dead.
-                                                   Tuple2 integer integer}
-                                                (/\dead ->
-                                                   Tuple2
-                                                     {integer}
-                                                     {integer}
-                                                     (unIData
-                                                        (headList {data} args))
-                                                     (unIData
-                                                        (headList
-                                                           {data}
-                                                           (tailList
-                                                              {data}
-                                                              args))))
-                                                (/\dead ->
-                                                   traceError
-                                                     {Tuple2 integer integer}
-                                                     "PT1")
-                                                {all dead. dead})
-                                              {Rational}
-                                              (\(a : integer) (b : integer) ->
-                                                 unsafeRatio a b)))
+                                            ((let
+                                                 !tup : pair integer (list data)
+                                                   = unConstrData
+                                                       (headList
+                                                          {data}
+                                                          (tailList {data} l))
+                                                 !index : integer
+                                                   = fstPair
+                                                       {integer}
+                                                       {list data}
+                                                       tup
+                                                 !args : list data
+                                                   = sndPair
+                                                       {integer}
+                                                       {list data}
+                                                       tup
+                                               in
+                                               Tuple2_match
+                                                 {integer}
+                                                 {integer}
+                                                 (Bool_match
+                                                    (ifThenElse
+                                                       {Bool}
+                                                       (equalsInteger 0 index)
+                                                       True
+                                                       False)
+                                                    {all dead.
+                                                       Tuple2 integer integer}
+                                                    (/\dead ->
+                                                       Tuple2
+                                                         {integer}
+                                                         {integer}
+                                                         (unIData
+                                                            (headList
+                                                               {data}
+                                                               args))
+                                                         (unIData
+                                                            (headList
+                                                               {data}
+                                                               (tailList
+                                                                  {data}
+                                                                  args))))
+                                                    (/\dead ->
+                                                       traceError
+                                                         {Tuple2
+                                                            integer
+                                                            integer}
+                                                         "PT1")
+                                                    {all dead. dead}))
+                                               {Rational}
+                                               (\(a : integer) (b : integer) ->
+                                                  unsafeRatio a b)))
                                        (/\dead ->
                                           Bool_match
                                             (ifThenElse

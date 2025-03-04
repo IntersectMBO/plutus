@@ -319,23 +319,27 @@ letrec
                (/\dead -> x)
                (\(ipv : string) (ipv : List string) ->
                   /\dead ->
-                    Tuple2_match
-                      {List string}
-                      {List string}
-                      (let
+                    (let
                         !n : integer = divideInteger (go ds) 2
                       in
-                      Bool_match
-                        (ifThenElse
-                           {Bool}
-                           (lessThanEqualsInteger n 0)
-                           True
-                           False)
-                        {all dead. Tuple2 (List string) (List string)}
-                        (/\dead ->
-                           Tuple2 {List string} {List string} (Nil {string}) ds)
-                        (/\dead -> go {string} n ds)
-                        {all dead. dead})
+                      Tuple2_match
+                        {List string}
+                        {List string}
+                        (Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (lessThanEqualsInteger n 0)
+                              True
+                              False)
+                           {all dead. Tuple2 (List string) (List string)}
+                           (/\dead ->
+                              Tuple2
+                                {List string}
+                                {List string}
+                                (Nil {string})
+                                ds)
+                           (/\dead -> go {string} n ds)
+                           {all dead. dead}))
                       {string}
                       (\(ipv : List string) (ipv : List string) ->
                          appendString

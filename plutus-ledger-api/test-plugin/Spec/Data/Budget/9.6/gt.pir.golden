@@ -537,8 +537,7 @@ in
     (\k a -> list (pair data data))
       bytestring
       ((\k a -> list (pair data data)) bytestring integer)) ->
-  Bool_match
-    (let
+  (let
       !m : list (pair data data)
         = map
             {bytestring}
@@ -604,7 +603,7 @@ in
                l
                r)
     in
-    go m)
+    Bool_match (go m))
     {all dead. Bool}
     (/\dead ->
        Bool_match

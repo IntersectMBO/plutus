@@ -74,33 +74,34 @@ defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
 defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                         :: Bool
-    , _coTypecheck                      :: Bool
-    , _coPedantic                       :: Bool
-    , _coVerbose                        :: Bool
-    , _coDebug                          :: Bool
-    , _coDatatypes                      :: DatatypeCompilationOpts
+    _coOptimize                            :: Bool
+    , _coTypecheck                         :: Bool
+    , _coPedantic                          :: Bool
+    , _coVerbose                           :: Bool
+    , _coDebug                             :: Bool
+    , _coDatatypes                         :: DatatypeCompilationOpts
     -- Simplifier passes
-    , _coMaxSimplifierIterations        :: Int
-    , _coDoSimplifierUnwrapCancel       :: Bool
-    , _coDoSimplifierCaseReduce         :: Bool
-    , _coDoSimplifierRewrite            :: Bool
-    , _coDoSimplifierBeta               :: Bool
-    , _coDoSimplifierInline             :: Bool
-    , _coDoSimplifierKnownCon           :: Bool
-    , _coDoSimplifierCaseOfCase         :: Bool
-    , _coDoSimplifierEvaluateBuiltins   :: Bool
-    , _coDoSimplifierStrictifyBindings  :: Bool
-    , _coDoSimplifierRemoveDeadBindings :: Bool
-    , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
-    , _coInlineConstants                :: Bool
-    , _coInlineFix                      :: Bool
+    , _coMaxSimplifierIterations           :: Int
+    , _coDoSimplifierUnwrapCancel          :: Bool
+    , _coDoSimplifierCaseReduce            :: Bool
+    , _coDoSimplifierRewrite               :: Bool
+    , _coDoSimplifierBeta                  :: Bool
+    , _coDoSimplifierInline                :: Bool
+    , _coDoSimplifierLetFloatFromScrutinee :: Bool
+    , _coDoSimplifierKnownCon              :: Bool
+    , _coDoSimplifierCaseOfCase            :: Bool
+    , _coDoSimplifierEvaluateBuiltins      :: Bool
+    , _coDoSimplifierStrictifyBindings     :: Bool
+    , _coDoSimplifierRemoveDeadBindings    :: Bool
+    , _coInlineHints                       :: InlineHints PLC.Name (Provenance a)
+    , _coInlineConstants                   :: Bool
+    , _coInlineFix                         :: Bool
     -- Profiling
-    , _coProfile                        :: Bool
-    , _coRelaxedFloatin                 :: Bool
-    , _coCaseOfCaseConservative         :: Bool
+    , _coProfile                           :: Bool
+    , _coRelaxedFloatin                    :: Bool
+    , _coCaseOfCaseConservative            :: Bool
     -- | Whether to try and preserve the logging beahviour of the program.
-    , _coPreserveLogging                :: Bool
+    , _coPreserveLogging                   :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -117,6 +118,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
   , _coDoSimplifierRewrite = True
+  , _coDoSimplifierLetFloatFromScrutinee = True
   , _coDoSimplifierKnownCon = True
   , _coDoSimplifierCaseOfCase = True
   , _coDoSimplifierBeta = True

@@ -517,6 +517,7 @@ library plutus-ir
     PlutusIR.Transform.Inline.Inline
     PlutusIR.Transform.Inline.Utils
     PlutusIR.Transform.KnownCon
+    PlutusIR.Transform.LetFloatFromScrutinee
     PlutusIR.Transform.LetFloatIn
     PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge

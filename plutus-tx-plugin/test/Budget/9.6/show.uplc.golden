@@ -133,9 +133,9 @@
                                                    , (\ipv
                                                        ipv ->
                                                         delay
-                                                          (case
-                                                             ((\n ->
-                                                                 force
+                                                          ((\n ->
+                                                              case
+                                                                (force
                                                                    (force
                                                                       (force
                                                                          ifThenElse
@@ -154,16 +154,16 @@
                                                                                   go
                                                                                   n
                                                                                   ds))))))
-                                                                (divideInteger
-                                                                   (go ds)
-                                                                   2))
-                                                             [ (\ipv
-                                                                 ipv ->
-                                                                  appendString
-                                                                    (concatBuiltinStrings
-                                                                       ipv)
-                                                                    (concatBuiltinStrings
-                                                                       ipv)) ])) ])) ])
+                                                                [ (\ipv
+                                                                    ipv ->
+                                                                     appendString
+                                                                       (concatBuiltinStrings
+                                                                          ipv)
+                                                                       (concatBuiltinStrings
+                                                                          ipv)) ])
+                                                             (divideInteger
+                                                                (go ds)
+                                                                2))) ])) ])
                                       (\x -> s s x))))
                            ((\s -> s s)
                               (\s ds ->

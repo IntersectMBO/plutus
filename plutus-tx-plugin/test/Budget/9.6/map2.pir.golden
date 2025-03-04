@@ -214,8 +214,7 @@ in
              let
                !tl' : list (pair data data) = go tl
              in
-             Bool_match
-               (let
+             (let
                  !k : data = fstPair {data} {data} hd
                in
                letrec
@@ -236,7 +235,7 @@ in
                             (/\dead -> go)
                             {all dead. dead})
                in
-               go nt)
+               Bool_match (go nt))
                {all dead. list (pair data data)}
                (/\dead -> tl')
                (/\dead -> mkCons {pair data data} hd tl')

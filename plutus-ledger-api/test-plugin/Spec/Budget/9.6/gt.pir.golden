@@ -758,8 +758,7 @@ in
     (\k v -> List (Tuple2 k v))
       bytestring
       ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-  Bool_match
-    (let
+  (let
       !m :
          List
            (Tuple2
@@ -783,7 +782,7 @@ in
         in
         go mp
     in
-    go m)
+    Bool_match (go m))
     {all dead. Bool}
     (/\dead ->
        Bool_match

@@ -25,9 +25,9 @@
                                                  tl ->
                                                   (\tl' ->
                                                      force
-                                                       (case
-                                                          ((\k ->
-                                                              force
+                                                       ((\k ->
+                                                           case
+                                                             (force
                                                                 ((\s ->
                                                                     s s)
                                                                    (\s
@@ -64,14 +64,13 @@
                                                                       (\x ->
                                                                          x)))
                                                                 nt)
-                                                             (force
-                                                                (force fstPair)
-                                                                hd))
-                                                          [ (delay tl')
-                                                          , (delay
-                                                               (force mkCons
-                                                                  hd
-                                                                  tl')) ]))
+                                                             [ (delay tl')
+                                                             , (delay
+                                                                  (force mkCons
+                                                                     hd
+                                                                     tl')) ])
+                                                          (force (force fstPair)
+                                                             hd)))
                                                     (force
                                                        (s s (delay (\x -> x)))
                                                        tl))))

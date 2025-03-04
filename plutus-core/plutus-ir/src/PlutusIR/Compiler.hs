@@ -27,6 +27,7 @@ module PlutusIR.Compiler (
     coDoSimplifierBeta,
     coDoSimplifierInline,
     coDoSimplifierEvaluateBuiltins,
+    coDoSimplifierLetFloatFromScrutinee,
     coDoSimplifierStrictifyBindings,
     coDoSimplifierRewrite,
     coDoSimplifierKnownCon,
@@ -76,6 +77,7 @@ import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
+import PlutusIR.Transform.LetFloatFromScrutinee qualified as LetFloatFromScrutinee
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -143,6 +145,7 @@ simplifierIteration suffix = do
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
       , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
+      , mwhen (opts ^. coDoSimplifierLetFloatFromScrutinee) $ LetFloatFromScrutinee.floatTermPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo

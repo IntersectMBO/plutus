@@ -587,165 +587,171 @@
       ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
   in
   \(d : data) ->
-    ScriptContext_match
-      (let
+    (let
         !tup : pair integer (list data) = unConstrData d
         !index : integer = fstPair {integer} {list data} tup
         !args : list data = sndPair {integer} {list data} tup
       in
-      Bool_match
-        (ifThenElse {Bool} (equalsInteger 0 index) True False)
-        {all dead. ScriptContext}
-        (/\dead ->
-           ScriptContext
-             (let
-               !tup : pair integer (list data)
-                 = unConstrData (headList {data} args)
-               !index : integer = fstPair {integer} {list data} tup
-               !args : list data = sndPair {integer} {list data} tup
-             in
-             Bool_match
-               (ifThenElse {Bool} (equalsInteger 0 index) True False)
-               {all dead. TxInfo}
-               (/\dead ->
-                  let
-                    !l : list data = tailList {data} args
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                    !l : list data = tailList {data} l
-                  in
-                  TxInfo
-                    (let
-                      !d : data = headList {data} args
-                    in
-                    go (unListData d))
-                    (let
-                      !d : data = headList {data} l
-                    in
-                    go (unListData d))
-                    (let
-                      !d : data = headList {data} l
-                    in
-                    go (unListData d))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {bytestring}
-                       {(\k v -> List (Tuple2 k v)) bytestring integer}
-                       unBData
-                       `$fUnsafeFromDataValue`
-                       (headList {data} l))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {bytestring}
-                       {(\k v -> List (Tuple2 k v)) bytestring integer}
-                       unBData
-                       `$fUnsafeFromDataValue`
-                       (headList {data} l))
-                    (let
-                      !d : data = headList {data} l
-                    in
-                    go (unListData d))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {StakingCredential}
-                       {integer}
-                       `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                       unIData
-                       (headList {data} l))
-                    (let
-                      !tup : pair integer (list data)
-                        = unConstrData (headList {data} l)
-                      !index : integer = fstPair {integer} {list data} tup
-                      !args : list data = sndPair {integer} {list data} tup
-                    in
-                    Bool_match
-                      (ifThenElse {Bool} (equalsInteger 0 index) True False)
-                      {all dead. Interval integer}
-                      (/\dead ->
-                         Interval
-                           {integer}
-                           (let
-                             !tup : pair integer (list data)
-                               = unConstrData (headList {data} args)
-                             !index : integer
-                               = fstPair {integer} {list data} tup
-                             !args : list data
-                               = sndPair {integer} {list data} tup
-                           in
-                           Bool_match
-                             (ifThenElse
-                                {Bool}
-                                (equalsInteger 0 index)
-                                True
-                                False)
-                             {all dead. LowerBound integer}
-                             (/\dead ->
-                                LowerBound
-                                  {integer}
-                                  (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+      ScriptContext_match
+        (Bool_match
+           (ifThenElse {Bool} (equalsInteger 0 index) True False)
+           {all dead. ScriptContext}
+           (/\dead ->
+              ScriptContext
+                (let
+                  !tup : pair integer (list data)
+                    = unConstrData (headList {data} args)
+                  !index : integer = fstPair {integer} {list data} tup
+                  !args : list data = sndPair {integer} {list data} tup
+                in
+                Bool_match
+                  (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                  {all dead. TxInfo}
+                  (/\dead ->
+                     let
+                       !l : list data = tailList {data} args
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                       !l : list data = tailList {data} l
+                     in
+                     TxInfo
+                       (let
+                         !d : data = headList {data} args
+                       in
+                       go (unListData d))
+                       (let
+                         !d : data = headList {data} l
+                       in
+                       go (unListData d))
+                       (let
+                         !d : data = headList {data} l
+                       in
+                       go (unListData d))
+                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                          {bytestring}
+                          {(\k v -> List (Tuple2 k v)) bytestring integer}
+                          unBData
+                          `$fUnsafeFromDataValue`
+                          (headList {data} l))
+                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                          {bytestring}
+                          {(\k v -> List (Tuple2 k v)) bytestring integer}
+                          unBData
+                          `$fUnsafeFromDataValue`
+                          (headList {data} l))
+                       (let
+                         !d : data = headList {data} l
+                       in
+                       go (unListData d))
+                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                          {StakingCredential}
+                          {integer}
+                          `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                          unIData
+                          (headList {data} l))
+                       (let
+                         !tup : pair integer (list data)
+                           = unConstrData (headList {data} l)
+                         !index : integer = fstPair {integer} {list data} tup
+                         !args : list data = sndPair {integer} {list data} tup
+                       in
+                       Bool_match
+                         (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                         {all dead. Interval integer}
+                         (/\dead ->
+                            Interval
+                              {integer}
+                              (let
+                                !tup : pair integer (list data)
+                                  = unConstrData (headList {data} args)
+                                !index : integer
+                                  = fstPair {integer} {list data} tup
+                                !args : list data
+                                  = sndPair {integer} {list data} tup
+                              in
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 0 index)
+                                   True
+                                   False)
+                                {all dead. LowerBound integer}
+                                (/\dead ->
+                                   LowerBound
                                      {integer}
-                                     unIData
-                                     (headList {data} args))
-                                  (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                     (headList {data} (tailList {data} args))))
-                             (/\dead -> traceError {LowerBound integer} "PT1")
-                             {all dead. dead})
-                           (let
-                             !tup : pair integer (list data)
-                               = unConstrData
-                                   (headList {data} (tailList {data} args))
-                             !index : integer
-                               = fstPair {integer} {list data} tup
-                             !args : list data
-                               = sndPair {integer} {list data} tup
-                           in
-                           Bool_match
-                             (ifThenElse
-                                {Bool}
-                                (equalsInteger 0 index)
-                                True
-                                False)
-                             {all dead. UpperBound integer}
-                             (/\dead ->
-                                UpperBound
-                                  {integer}
-                                  (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                     (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                        {integer}
+                                        unIData
+                                        (headList {data} args))
+                                     (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                        (headList
+                                           {data}
+                                           (tailList {data} args))))
+                                (/\dead ->
+                                   traceError {LowerBound integer} "PT1")
+                                {all dead. dead})
+                              (let
+                                !tup : pair integer (list data)
+                                  = unConstrData
+                                      (headList {data} (tailList {data} args))
+                                !index : integer
+                                  = fstPair {integer} {list data} tup
+                                !args : list data
+                                  = sndPair {integer} {list data} tup
+                              in
+                              Bool_match
+                                (ifThenElse
+                                   {Bool}
+                                   (equalsInteger 0 index)
+                                   True
+                                   False)
+                                {all dead. UpperBound integer}
+                                (/\dead ->
+                                   UpperBound
                                      {integer}
-                                     unIData
-                                     (headList {data} args))
-                                  (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
-                                     (headList {data} (tailList {data} args))))
-                             (/\dead -> traceError {UpperBound integer} "PT1")
-                             {all dead. dead}))
-                      (/\dead -> traceError {Interval integer} "PT1")
-                      {all dead. dead})
-                    (let
-                      !d : data = headList {data} l
-                    in
-                    go (unListData d))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {ScriptPurpose}
-                       {data}
-                       `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                       `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                       (headList {data} l))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {bytestring}
-                       {data}
-                       unBData
-                       `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                       (headList {data} l))
-                    (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                       (headList {data} (tailList {data} l))))
-               (/\dead -> traceError {TxInfo} "PT1")
-               {all dead. dead})
-             (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                (headList {data} (tailList {data} args))))
-        (/\dead -> traceError {ScriptContext} "PT1")
-        {all dead. dead})
+                                     (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                        {integer}
+                                        unIData
+                                        (headList {data} args))
+                                     (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                        (headList
+                                           {data}
+                                           (tailList {data} args))))
+                                (/\dead ->
+                                   traceError {UpperBound integer} "PT1")
+                                {all dead. dead}))
+                         (/\dead -> traceError {Interval integer} "PT1")
+                         {all dead. dead})
+                       (let
+                         !d : data = headList {data} l
+                       in
+                       go (unListData d))
+                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                          {ScriptPurpose}
+                          {data}
+                          `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                          `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                          (headList {data} l))
+                       (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                          {bytestring}
+                          {data}
+                          unBData
+                          `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                          (headList {data} l))
+                       (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                          (headList {data} (tailList {data} l))))
+                  (/\dead -> traceError {TxInfo} "PT1")
+                  {all dead. dead})
+                (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                   (headList {data} (tailList {data} args))))
+           (/\dead -> traceError {ScriptContext} "PT1")
+           {all dead. dead}))
       {Unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
          Bool_match

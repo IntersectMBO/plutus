@@ -47,9 +47,7 @@ let
          (`$dUnsafeFromData` : (\a -> data -> a) a)
          (ds : k)
          (ds : (\k a -> list (pair data data)) k a) ->
-          Maybe_match
-            {data}
-            (let
+          (let
               !k : data = `$dToData` ds
             in
             letrec
@@ -72,7 +70,7 @@ let
                          (/\dead -> go)
                          {all dead. dead})
             in
-            go ds)
+            Maybe_match {data} (go ds))
             {all dead. Maybe a}
             (\(a : data) -> /\dead -> Just {a} (`$dUnsafeFromData` a))
             (/\dead -> Nothing {a})

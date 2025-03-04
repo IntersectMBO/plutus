@@ -32,9 +32,7 @@ in
       bytestring
       ((\k a -> list (pair data data)) bytestring integer))
  (cur : bytestring) ->
-  Maybe_match
-    {data}
-    (let
+  (let
       !k : data = bData cur
     in
     letrec
@@ -57,7 +55,7 @@ in
                  (/\dead -> go)
                  {all dead. dead})
     in
-    go value)
+    Maybe_match {data} (go value))
     {integer}
     (\(a : data) ->
        let
