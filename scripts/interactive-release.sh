@@ -133,13 +133,14 @@ open-plutus-pr() {
     "cardano-constitution"
   )
 
-  local MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
 
+  local NEW_MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
+  local OLD_MAJOR_VERSION=$(detect-old-version | cut -d'.' -f1,2)
+  
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
-      -exec sed -i "s/\([^,:]*.[ \t]*$PACKAGE[^-A-Za-z0-1][^^]*\).*/\1^>=$MAJOR_VERSION/" {} \; \
-      -exec sed -i "s/\([^,:]*.[ \t]*$PACKAGE$\)/\1 ^>=$MAJOR_VERSION/" {} \;
+      -exec sed -i "s/\($PACKAGE\s*^>=$OLD_MAJOR_VERSION\)/$PACKAGE^>=$NEW_MAJOR_VERSION/" {} \;
 
     pushd $PACKAGE > /dev/null
     scriv collect --version $VERSION || true
@@ -150,7 +151,7 @@ open-plutus-pr() {
   pre-commit run cabal-fmt || true # pre-commit will fail but will modify the files in place, hence the second git add . below
   git add .
   git commit -m "Release $VERSION" || true
-  git push --force --set-upstream origin $PR_BRANCH
+  # git push --force --set-upstream origin $PR_BRANCH
 
   local PR_URL=$(gh pr create \
     --title "Release $VERSION" \
