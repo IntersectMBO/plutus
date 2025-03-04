@@ -151,7 +151,7 @@ open-plutus-pr() {
   pre-commit run cabal-fmt || true # pre-commit will fail but will modify the files in place, hence the second git add . below
   git add .
   git commit -m "Release $VERSION" || true
-  # git push --force --set-upstream origin $PR_BRANCH
+  git push --force --set-upstream origin $PR_BRANCH
 
   local PR_URL=$(gh pr create \
     --title "Release $VERSION" \
