@@ -54,7 +54,7 @@ benchExpModInteger _gen =
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     inputs (fmap (\n -> -n) inputs) moduli
+     (fmap (\n -> 20*p+400*n+33) inputs) (fmap (\n -> n) inputs) moduli
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
