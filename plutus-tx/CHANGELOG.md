@@ -1,4 +1,30 @@
 
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Added
+
+- `PlutusTx.Function.fix`, Plinth's equivalent of `Data.Function.fix`.
+
+- Module `PlutusTx.Optimize.SpaceTime`, containing utilities for space-time tradeoff,
+  such as recursion unrolling.
+
+- Added `PlutusTx.Data.List.null`.
+
+- Added `PlutusTx.Optimize.Inline.inline`. This works like `GHC.Magic.inline`, and can be used
+  in the form of `inline f` or `inline (f args)`.
+
+- Added more functions to PlutusTx.Data.List.
+
+## Changed
+
+-
+- Remove un-needed dervied Typeable instances.
+
+- Allow `PlutusTx.Optimize.Inline.inline` to inline local bindings.
+
+- Removes the constructor id check from the code `AsData` generates for product types, resulting in better performance.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 
