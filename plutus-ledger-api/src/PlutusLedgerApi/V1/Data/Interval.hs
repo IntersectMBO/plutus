@@ -12,9 +12,6 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
--- AsData generates constraints on the type variables for 'Interval'
--- which in this case are redunant.
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- | A type for intervals and associated functions.
 module PlutusLedgerApi.V1.Data.Interval (

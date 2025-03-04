@@ -390,6 +390,12 @@ caseNoBranch = Case () integer tag1 []
 caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
 caseNonTag = Case () integer (mkConstant @Integer () 1) []
 
+-- | For testing that an accidental exception will get caught.
+headSingletonException :: Term TyName Name DefaultUni DefaultFun ()
+headSingletonException
+    = Apply () (TyInst () (Builtin () HeadList) $ mkTyBuiltin @_ @Bool ())
+    $ mkConstant () [errorWithoutStackTrace "catch me if you can" :: Bool]
+
 -- Running the tests
 
 goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
@@ -477,6 +483,12 @@ namesAndTests =
    , ("caseNonTag", caseNonTag)
    ]
 
+-- | An extension of 'namesAndTests' that only works with the CEK machine and not the CK one.
+namesAndTestsCek :: [(String, Term TyName Name DefaultUni DefaultFun ())]
+namesAndTestsCek
+    = ("headSingletonException", headSingletonException)
+    : namesAndTests
+
 test_golden :: TestTree
 test_golden = testGroup "golden"
               [ testGroup "CK"  $ fmap (uncurry goldenVsEvaluatedCK)  namesAndTests
@@ -485,7 +497,7 @@ test_golden = testGroup "golden"
               -- duplicates removed).  We should also add the typed tests to the
               -- conformance suite and remove them from here once we've done
               -- that.
-              , testGroup "CEK" $ fmap (uncurry goldenVsEvaluatedCEK) namesAndTests
-              , testGroup "Typechecking" $ fmap (uncurry goldenVsTypechecked) namesAndTests
+              , testGroup "CEK" $ fmap (uncurry goldenVsEvaluatedCEK) namesAndTestsCek
+              , testGroup "Typechecking" $ fmap (uncurry goldenVsTypechecked) namesAndTestsCek
               , testGroup "Typechecking CK output" $ fmap (uncurry goldenVsTypecheckedEvaluatedCK) namesAndTests
               ]

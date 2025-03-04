@@ -129,86 +129,84 @@ program
                                                                                                                                                      fstPair)
                                                                                                                                                   cse))
                                                                                                                                             (unConstrData
-                                                                                                                                               ((\scrut ->
-                                                                                                                                                   (\cse ->
+                                                                                                                                               ((\l ->
+                                                                                                                                                   (\l ->
                                                                                                                                                       (\ds ->
-                                                                                                                                                         (\cse ->
-                                                                                                                                                            (\ds ->
-                                                                                                                                                               force
-                                                                                                                                                                 headList
-                                                                                                                                                                 (force
-                                                                                                                                                                    tailList
-                                                                                                                                                                    cse))
+                                                                                                                                                         (\ds ->
+                                                                                                                                                            force
+                                                                                                                                                              headList
                                                                                                                                                               (force
-                                                                                                                                                                 headList
-                                                                                                                                                                 cse))
+                                                                                                                                                                 tailList
+                                                                                                                                                                 l))
                                                                                                                                                            (force
-                                                                                                                                                              tailList
-                                                                                                                                                              cse))
+                                                                                                                                                              headList
+                                                                                                                                                              l))
                                                                                                                                                         (unIData
                                                                                                                                                            (force
                                                                                                                                                               headList
-                                                                                                                                                              cse)))
+                                                                                                                                                              l)))
                                                                                                                                                      (force
-                                                                                                                                                        (force
-                                                                                                                                                           sndPair)
-                                                                                                                                                        (unConstrData
-                                                                                                                                                           scrut)))
-                                                                                                                                                  ((\tup ->
-                                                                                                                                                      force
-                                                                                                                                                        (force
-                                                                                                                                                           (force
-                                                                                                                                                              ifThenElse
-                                                                                                                                                              (equalsInteger
-                                                                                                                                                                 5
+                                                                                                                                                        tailList
+                                                                                                                                                        l))
+                                                                                                                                                  (force
+                                                                                                                                                     (force
+                                                                                                                                                        sndPair)
+                                                                                                                                                     (unConstrData
+                                                                                                                                                        ((\tup ->
+                                                                                                                                                            force
+                                                                                                                                                              (force
                                                                                                                                                                  (force
-                                                                                                                                                                    (force
-                                                                                                                                                                       fstPair)
-                                                                                                                                                                    tup))
-                                                                                                                                                              (delay
-                                                                                                                                                                 (delay
-                                                                                                                                                                    ((\l ->
+                                                                                                                                                                    ifThenElse
+                                                                                                                                                                    (equalsInteger
+                                                                                                                                                                       5
+                                                                                                                                                                       (force
+                                                                                                                                                                          (force
+                                                                                                                                                                             fstPair)
+                                                                                                                                                                          tup))
+                                                                                                                                                                    (delay
+                                                                                                                                                                       (delay
+                                                                                                                                                                          ((\l ->
+                                                                                                                                                                              (\ds ->
+                                                                                                                                                                                 force
+                                                                                                                                                                                   headList
+                                                                                                                                                                                   (force
+                                                                                                                                                                                      tailList
+                                                                                                                                                                                      l))
+                                                                                                                                                                                (unIData
+                                                                                                                                                                                   (force
+                                                                                                                                                                                      headList
+                                                                                                                                                                                      l)))
+                                                                                                                                                                             (force
+                                                                                                                                                                                (force
+                                                                                                                                                                                   sndPair)
+                                                                                                                                                                                tup))))
+                                                                                                                                                                    (delay
+                                                                                                                                                                       (delay
+                                                                                                                                                                          error)))))
+                                                                                                                                                           (unConstrData
+                                                                                                                                                              ((\l ->
+                                                                                                                                                                  (\l ->
+                                                                                                                                                                     (\ds ->
                                                                                                                                                                         (\ds ->
                                                                                                                                                                            force
                                                                                                                                                                              headList
                                                                                                                                                                              (force
                                                                                                                                                                                 tailList
                                                                                                                                                                                 l))
-                                                                                                                                                                          (unIData
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
-                                                                                                                                                                                l)))
-                                                                                                                                                                       (force
                                                                                                                                                                           (force
-                                                                                                                                                                             sndPair)
-                                                                                                                                                                          tup))))
-                                                                                                                                                              (delay
-                                                                                                                                                                 (delay
-                                                                                                                                                                    error)))))
-                                                                                                                                                     (unConstrData
-                                                                                                                                                        ((\cse ->
-                                                                                                                                                            (\ds ->
-                                                                                                                                                               (\cse ->
-                                                                                                                                                                  (\ds ->
-                                                                                                                                                                     force
-                                                                                                                                                                       headList
+                                                                                                                                                                             headList
+                                                                                                                                                                             l))
                                                                                                                                                                        (force
-                                                                                                                                                                          tailList
-                                                                                                                                                                          cse))
+                                                                                                                                                                          headList
+                                                                                                                                                                          l))
                                                                                                                                                                     (force
-                                                                                                                                                                       headList
-                                                                                                                                                                       cse))
+                                                                                                                                                                       tailList
+                                                                                                                                                                       l))
                                                                                                                                                                  (force
-                                                                                                                                                                    tailList
-                                                                                                                                                                    cse))
-                                                                                                                                                              (force
-                                                                                                                                                                 headList
-                                                                                                                                                                 cse))
-                                                                                                                                                           (force
-                                                                                                                                                              (force
-                                                                                                                                                                 sndPair)
-                                                                                                                                                              (unConstrData
-                                                                                                                                                                 ds))))))))
+                                                                                                                                                                    (force
+                                                                                                                                                                       sndPair)
+                                                                                                                                                                    (unConstrData
+                                                                                                                                                                       ds))))))))))
                                                                                                                                          [ (\cparams ->
                                                                                                                                               delay
                                                                                                                                                 (force
@@ -818,15 +816,7 @@ program
                                                                                                                                 (constr 3
                                                                                                                                    [ (constr 1
                                                                                                                                         [ cse
-                                                                                                                                        , (constr 1
-                                                                                                                                             [ (constr 0
-                                                                                                                                                  [ (constr 0
-                                                                                                                                                       [  ])
-                                                                                                                                                  , (constr 1
-                                                                                                                                                       [ cse
-                                                                                                                                                       , cse ]) ])
-                                                                                                                                             , (constr 0
-                                                                                                                                                  [  ]) ]) ]) ]))
+                                                                                                                                        , cse ]) ]))
                                                                                                                              (constr 3
                                                                                                                                 [ (constr 1
                                                                                                                                      [ cse
@@ -845,7 +835,15 @@ program
                                                                                                                           (constr 3
                                                                                                                              [ (constr 1
                                                                                                                                   [ cse
-                                                                                                                                  , cse ]) ]))
+                                                                                                                                  , (constr 1
+                                                                                                                                       [ (constr 0
+                                                                                                                                            [ (constr 0
+                                                                                                                                                 [  ])
+                                                                                                                                            , (constr 1
+                                                                                                                                                 [ cse
+                                                                                                                                                 , cse ]) ])
+                                                                                                                                       , (constr 0
+                                                                                                                                            [  ]) ]) ]) ]))
                                                                                                                        (constr 1
                                                                                                                           [ (constr 3
                                                                                                                                [ (constr 1
@@ -876,16 +874,16 @@ program
                                                                                                                          [  ])
                                                                                                                     , (constr 1
                                                                                                                          [ cse
-                                                                                                                         , (constr 1
-                                                                                                                              [ cse
-                                                                                                                              , (constr 0
-                                                                                                                                   [  ]) ]) ]) ]))
+                                                                                                                         , cse ]) ]))
                                                                                                               (constr 0
                                                                                                                  [ (constr 1
                                                                                                                       [  ])
                                                                                                                  , (constr 1
                                                                                                                       [ cse
-                                                                                                                      , cse ]) ]))
+                                                                                                                      , (constr 1
+                                                                                                                           [ cse
+                                                                                                                           , (constr 0
+                                                                                                                                [  ]) ]) ]) ]))
                                                                                                            (constr 1
                                                                                                               [ (constr 0
                                                                                                                    [ (constr 0
@@ -934,33 +932,33 @@ program
                                                                                       (cse
                                                                                          1))
                                                                                    (cse
-                                                                                      10))
+                                                                                      4))
                                                                                 (cse
-                                                                                   1))
+                                                                                   10))
                                                                              (constr 0
                                                                                 [ (constr 1
                                                                                      [  ])
                                                                                 , cse ]))
                                                                           (cse
-                                                                             5))
-                                                                       (cse 2))
-                                                                    (constr 0
-                                                                       [ (constr 1
-                                                                            [])
-                                                                       , (constr 1
-                                                                            [ 1
-                                                                            , (constr 0
-                                                                                 [  ]) ]) ]))
-                                                                 (cse 100))
-                                                              (cse 10))
-                                                           (cse 4))
-                                                        (unsafeRatio 4))
-                                                     (unsafeRatio 0))
-                                                  (unsafeRatio 1))
+                                                                             2))
+                                                                       (cse 1))
+                                                                    (cse 10))
+                                                                 (constr 0
+                                                                    [ (constr 1
+                                                                         [])
+                                                                    , (constr 1
+                                                                         [ 1
+                                                                         , (constr 0
+                                                                              [  ]) ]) ]))
+                                                              (cse 100))
+                                                           (cse 5))
+                                                        (unsafeRatio 3))
+                                                     (unsafeRatio 1))
+                                                  (unsafeRatio 0))
                                                (constr 1 [0, (constr 0 [])]))
-                                            (unsafeRatio 51))
+                                            (unsafeRatio 4))
                                          (unsafeRatio 9))
-                                      (unsafeRatio 3))
+                                      (unsafeRatio 51))
                                    ((\s -> s s)
                                       (\s arg ->
                                          delay

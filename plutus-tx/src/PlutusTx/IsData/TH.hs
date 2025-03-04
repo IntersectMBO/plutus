@@ -10,7 +10,7 @@ module PlutusTx.IsData.TH (
   mkUnsafeConstrMatchPattern,
   mkConstrPartsMatchPattern,
   mkUnsafeConstrPartsMatchPattern,
-  mkAsDataMatchingFunction,
+  AsDataProdType (..),
 ) where
 
 import Data.Foldable as Foldable (foldl')
@@ -20,7 +20,8 @@ import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 
-import PlutusTx.Builtins as Builtins hiding (drop)
+import PlutusTx.AsData.Internal (wrapUnsafeDataAsConstr, wrapUnsafeUncons)
+import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.ErrorCodes (reconstructCaseError)
@@ -56,90 +57,43 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
     pat = [p| ($ixMatchPat, $extractArgsPat) |]
   in pat
 
+-- | If generating pattern synonyms for a product type declared with 'asData',
+-- we can avoid the index match, as we know that the type only has one constructor.
+data AsDataProdType
+  = IsAsDataProdType
+  | IsNotAsDataProdType
+
 -- TODO: safe match for the whole thing? not needed atm
 
--- | Generate a function that matches on a 'BuiltinData' value and decodes it as a product type.
-mkAsDataMatchingFunction
-  :: TH.Name
-  -- ^ The name of the type
+mkUnsafeConstrMatchPattern
+  :: AsDataProdType
+  -> Integer
   -> [TH.Name]
-  -- ^ Type variables of the type
-  -> TH.Name
-  -- ^ The name of the constructor
-  -> [TH.Type]
-  -- ^ Types of the fields
+  -> TH.PatQ
+mkUnsafeConstrMatchPattern isProduct conIx extractFieldNames =
+  case isProduct of
+    IsAsDataProdType ->
+      [p| (wrapUnsafeDataAsConstr ->
+            (BI.snd ->
+              $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+            )
+          )
+      |]
+    IsNotAsDataProdType ->
+      [p|
+        (wrapUnsafeDataAsConstr ->
+          (Builtins.pairToPair ->
+            $(mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames)
+          )
+        )
+      |]
+
+mkUnsafeConstrPartsMatchPattern
+  :: AsDataProdType
+  -> Integer
   -> [TH.Name]
-  -- ^ The names of the fields
-  -> TH.Q (TH.Dec, TH.Dec)
-mkAsDataMatchingFunction name typeVars consName fieldTypes fields = do
-      -- Make a binding nonstrict if it is used once (so that the inliner can inline
-      -- it unconditionally).
-      -- Make a binding strict if it used more than once (so that it is evaluated
-      -- only once).
-  let strict = TH.BangP . TH.VarP
-      nonstrict = TH.TildeP . TH.VarP
-      numFields = length fields
-  funcName <- TH.newName $ "matchOn" <> TH.nameBase name
-  builtinData <- TH.newName "builtinData"
-  asConstrN <- TH.newName "asConstr"
-  constrArgsN <- TH.newName "constrArgs"
-  restNs <- traverse (\i -> TH.newName $ "rest" <> show i) [0 .. numFields - 2]
-  fieldNs <- traverse (\i -> TH.newName $ "field" <> show i) [0 .. numFields - 1]
-  argPat <- TH.conP consName [pure $ TH.VarP builtinData]
-  let restDecs =
-        flip fmap (zip [0..] $ zip restNs (constrArgsN : restNs)) $ \(i, (resti, restj)) ->
-          -- the last `rest` is used once, and other `rest`s are each used twice
-          let maybeStrict = if i == length restNs - 1 then nonstrict else strict
-          in TH.ValD
-              (maybeStrict resti)
-              (TH.NormalB $ TH.AppE (TH.VarE 'BI.tail) (TH.VarE restj))
-              []
-      fieldDecs =
-          flip fmap (zip fieldNs (constrArgsN : restNs)) $ \(fieldi, restj) ->
-              TH.ValD
-                (nonstrict fieldi) -- fields are each used once
-                (TH.NormalB
-                  $ TH.AppE
-                      (TH.VarE 'unsafeFromBuiltinData)
-                      (TH.AppE
-                        (TH.VarE 'BI.head)
-                        (TH.VarE restj)
-                      )
-                )
-                []
-      decs =
-        [ TH.ValD
-            (nonstrict asConstrN) -- asConstr is used once
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.unsafeDataAsConstr) (TH.VarE builtinData))
-            []
-        , TH.ValD
-            (strict constrArgsN) -- constrArgs is used twice
-            (TH.NormalB $ TH.AppE (TH.VarE 'BI.snd) (TH.VarE asConstrN))
-            []
-        ]
-        <> fieldDecs
-        <> restDecs
-      resultExpr =
-        TH.TupE
-        $ Just . TH.VarE
-        <$> fieldNs
-      body = TH.NormalB $ TH.LetE decs resultExpr
-      clause = TH.Clause [argPat] body []
-      functionDef = TH.FunD funcName [clause]
-      tupleType = foldl TH.AppT (TH.TupleT numFields) fieldTypes
-      tType = foldl TH.AppT (TH.ConT name) $ TH.VarT <$> typeVars
-      constraints = fmap (\ty -> TH.AppT (TH.ConT ''UnsafeFromData) (TH.VarT ty)) typeVars
-      typeBody = TH.AppT (TH.AppT TH.ArrowT tType) tupleType
-      typeBodyWithQuantification = TH.ForallT [] constraints typeBody
-      functionType = TH.SigD funcName typeBodyWithQuantification
-    in pure (functionType, functionDef)
-
-mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrMatchPattern conIx extractFieldNames =
-  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
-
-mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
+  -> TH.PatQ
+mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
   let
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
@@ -150,8 +104,12 @@ mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
       where
         go []     = [p| _ |]
         go [x]    = [p| (BI.head -> $x) |]
-        go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
-    pat = [p| ($ixMatchPat, $extractArgsPat) |]
+        go (x:xs) = [p| (wrapUnsafeUncons -> ($x, $(go xs))) |]
+    pat =
+      -- We can safely omit the index match if we know that the type is a product type
+      case isProduct of
+        IsAsDataProdType    -> [p| $extractArgsPat |]
+        IsNotAsDataProdType -> [p| ($ixMatchPat, $extractArgsPat) |]
   in pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
@@ -201,7 +159,7 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
     -- Build the constructor application, assuming that all the arguments are in scope
     let app = foldl' (\h v -> [| $h $(TH.varE v) |]) (TH.conE name) argNames
 
-    TH.match (mkUnsafeConstrPartsMatchPattern (fromIntegral index) argNames) (TH.normalB app) []
+    TH.match (mkUnsafeConstrPartsMatchPattern IsNotAsDataProdType (fromIntegral index) argNames) (TH.normalB app) []
 
 unsafeFromDataClause :: [(TH.ConstructorInfo, Int)] -> TH.Q TH.Clause
 unsafeFromDataClause indexedCons = do

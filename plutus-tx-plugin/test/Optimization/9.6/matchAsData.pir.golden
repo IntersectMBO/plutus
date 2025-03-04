@@ -30,10 +30,8 @@ in
             let
               !ds : data = headList {data} ds
               !ds : list data = tailList {data} ds
-              !a : integer = unIData ds
-              !ds : integer = unIData (headList {data} ds)
             in
-            a)
+            unIData ds)
          (/\dead ->
             Tuple2_match
               {integer}

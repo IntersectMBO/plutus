@@ -400,12 +400,14 @@ trivialType = \case
 
 shouldUnconditionallyInline ::
   (InliningConstraints tyname name uni fun) =>
+  -- | Whether we know that the binding is safe to inline. If so, bypass the purity check.
+  Bool ->
   Strictness ->
   name ->
   Term tyname name uni fun ann ->
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann Bool
-shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
+shouldUnconditionallyInline safe s n rhs body = preUnconditional ||^ postUnconditional
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
@@ -414,7 +416,7 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
     preUnconditional = do
       isTermPure <- checkPurity rhs
-      nameUsedAtMostOnce n &&^ effectSafe body s n isTermPure
+      nameUsedAtMostOnce n &&^ (pure safe ||^ effectSafe body s n isTermPure)
 
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
     -- purity]. This is the case where we don't know that the number of occurrences is
@@ -422,4 +424,7 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
       inlineConstants <- view iiInlineConstants
-      pure $ isBindingPure && sizeIsAcceptable inlineConstants rhs && costIsAcceptable rhs
+      pure $
+        (safe || isBindingPure)
+          && sizeIsAcceptable inlineConstants rhs
+          && costIsAcceptable rhs

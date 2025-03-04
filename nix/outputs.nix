@@ -32,6 +32,9 @@ let
   metatheory-site = import ./metatheory-site.nix
     { inherit inputs self pkgs lib agda-with-stdlib; };
 
+  hydra-required-job = utils.makeHydraRequiredJob
+    { inherit self pkgs; };
+
   project = import ./project.nix
     { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
 
@@ -80,7 +83,6 @@ let
     static-haskell-packages //
     extra-artifacts;
 
-
   non-profiled-shells = rec {
     default = ghc96;
     ghc810 = mkShell project.projectVariants.ghc810;
@@ -97,15 +99,18 @@ let
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
       (packages) //
-      { devShells = non-profiled-shells; };
+      { devShells = non-profiled-shells; } //
+      { required = hydra-required-job; };
     "x86_64-darwin" =
       (project-variants-hydra-jobs) //
-      { devShells = non-profiled-shells; };
+      { devShells = non-profiled-shells; } //
+      { required = hydra-required-job; };
     "aarch64-linux" =
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
-      { devShells = non-profiled-shells; };
+      { devShells = non-profiled-shells; } //
+      { required = hydra-required-job; };
   };
 
   flattened-ci-jobs = utils.flattenDerivationTree ":" nested-ci-jobs;
