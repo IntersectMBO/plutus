@@ -5,26 +5,35 @@ We begin with some notation which will be used throughout the document.
 \subsection{Sets}
 \label{sec:notation-sets}
 \begin{itemize}
+    
+  \item $\N = \{0,1,2,3,\ldots\}$.%
+    \nomenclature[Aaa1]{$\N$}{$\{0,1,2,3,\ldots\}$}
+
+  \item $\Nplus = \{1,2,3,\ldots\}$.%
+    \nomenclature[Aaa2]{$\Nplus$}{$\{1,2,3,\ldots\}$}
+
   \item The symbol $\disj$ denotes a disjoint union of sets;  for emphasis we often use this
     to denote the union of sets which we know to be disjoint.%
-    \nomenclature[Ayy]{$\disj$}{Disjoint union of sets}%
+    \nomenclature[Aa1]{$\disj$}{Disjoint union of sets}%
 
   \item Given a set $X$, $X^*$ denotes the set of finite sequences of elements of $X$:
     $$
-    X^*= \bigdisj{\{X^n: n \in \mathbb{N}\}}.
+    X^* = \bigdisj{\{X^n: n \in \N\}}
     $$%
-    \nomenclature[Ayy]{$X^*$}{The set of all finite sequences of elements of a set $X$}
-  \item $\N = \{0,1,2,3,\ldots\}$.%
-    \nomenclature[An1]{$\N$}{$\{0,1,2,3,\ldots\}$}
-
-  \item $\Nplus = \{1,2,3,\ldots\}$.%
-    \nomenclature[An2]{$\Nplus$}{$\{1,2,3,\ldots\}$}
-
-  \item $\Nab{a}{b} = \{n \in \N: a \leq n \leq b\}$.%
-    \nomenclature[An3]{$\Nab{a}{b}$}{$\{n \in \N: a \leq n \leq b\}$}
+    and $X^+$ denotes the set of nonempty finite sequences of elements of $X$:
+    $$
+    X^+ = \bigdisj{\{X^n: n \in \Nplus\}}.
+    $$
+    We will sometimes write elements of $X^+$ in the form $(x|x_1,\ldots,x_n)$ with $n \geq 0$.
+    \nomenclature[Aa2]{$X^*$}{The set of all finite sequences of elements of a set $X$}%
+    \nomenclature[Aa3]{$X^+$}{The set of all nonempty finite sequences of elements of a set $X$}%
+    \nomenclature[Aa4]{$(x \vert x_1,\ldots,x_n)$}{A member of $X^+$}% nomencl doesn't like |
+ 
+ \item $\Nab{a}{b} = \{n \in \N: a \leq n \leq b\}$.%
+    \nomenclature[Aaa3]{$\Nab{a}{b}$}{$\{n \in \N: a \leq n \leq b\}$}
 
   \item $\B = \Nab{0}{255}$, the set of 8-bit bytes.%
-    \nomenclature[Ab1]{$\B$}{$\{n \in \Z: 0 \leq n \leq 255\}$}%
+    \nomenclature[Aaa4]{$\B$}{$\{n \in \Z: 0 \leq n \leq 255\}$}%
 
   \item $\B^*$ is the set of all bytestrings.%
     \nomenclature[Ab2]{$\B^*$}{The set of all bytestrings}
@@ -41,8 +50,8 @@ We begin with some notation which will be used throughout the document.
   \item $\mathbb{F}_q$ denotes a finite field with $q$ elements ($q$ a prime power).%
     \nomenclature[Af]{$\mathbb{F}_q$}{The finite field with $q$ elements}
 
-  \item $\mathbb{F}_q^*$ denotes the multiplicative group of nonzero elements of $\mathbb{F}_q$.%
-    \nomenclature[Af]{$\mathbb{F}_q^*$}{The multiplicative group of $\mathbb{F}_q$}%
+  \item $\units{\mathbb{F}_q}$ denotes the multiplicative group of nonzero elements of $\mathbb{F}_q$.%
+    \nomenclature[Af]{$\units{\mathbb{F}_q}$}{The multiplicative group of $\mathbb{F}_q$}%
 
   \item $\U$ denotes the set of Unicode scalar values, as defined in~\cite[Definition D76]{Unicode-standard}.%
     \nomenclature[Au1]{$\U$}{The set of Unicode scalar values}%
@@ -99,7 +108,7 @@ We begin with some notation which will be used throughout the document.
 
 We make frequent use of bytestrings and bitstrings and for the sake of
 conciseness we occasionally use special notation.  We also define conversion
-functions between bytestrings and bistrings
+functions between bytestrings and bitstrings
 
 \begin{itemize}
 \item We typically index the bytes in bytestrings starting from the
