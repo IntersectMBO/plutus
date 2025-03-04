@@ -1,15 +1,15 @@
-# This workflow builds the plutus-tx-template using the current version of the plutus code.
+# This workflow builds the plinth-template using the current version of the plutus code.
 # 
-# It ensures that the plutus-tx-template repository stays working even if there 
+# It ensures that the plinth-template repository stays working even if there 
 # are changes in plutus. It checks out both the current commit of plutus and the 
-# master branch of plutus-tx-template. Then, it creates a cabal.project.local for 
-# plutus-tx-template that adjusts the plutus version. Finally, it double-checks 
+# master branch of plinth-template. Then, it creates a cabal.project.local for 
+# plinth-template that adjusts the plutus version. Finally, it double-checks 
 # that everything still builds correctly using cabal inside the devx shell.
 #
 # This workflow runs on all pull requests.
 
 
-name: "🏛️ PlutusTx Template"
+name: "🏛️ Plinth Template"
 
 on:
   pull_request:
@@ -19,21 +19,21 @@ jobs:
     name: Build
     runs-on: [ubuntu-latest]
     steps:
-      - name: Checkout plutus-tx-template Repo
+      - name: Checkout plinth-template Repo
         uses: actions/checkout@main
         with:
-          repository: IntersectMBO/plutus-tx-template
-          path: plutus-tx-template
+          repository: IntersectMBO/plinth-template
+          path: plinth-template
 
       - name: Checkout plutus Repo
         uses: actions/checkout@main
         with:
-          path: plutus-tx-template/plutus
+          path: plinth-template/plutus
 
       - name: Overwrite cabal.project.local
         uses: DamianReeves/write-file-action@master
         with:
-          path: plutus-tx-template/cabal.project.local
+          path: plinth-template/cabal.project.local
           write-mode: overwrite
           contents: |
             packages:
@@ -50,9 +50,9 @@ jobs:
 
       - name: Build Project With Docker
         run: |
-          cd plutus-tx-template
+          cd plinth-template
           docker run \
-            -v ./.:/workspaces/plutus-tx-template \
-            -w /workspaces/plutus-tx-template \
+            -v ./.:/workspaces/plinth-template \
+            -w /workspaces/plinth-template \
             -i ghcr.io/input-output-hk/devx-devcontainer:x86_64-linux.ghc96-iog \
             bash -ic "cabal update && cabal build all"
