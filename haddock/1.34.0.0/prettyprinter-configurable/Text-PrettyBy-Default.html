@@ -1,0 +1,371 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Text.PrettyBy.Default</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >prettyprinter-configurable-1.34.0.0: Configurable pretty-printing</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Text.PrettyBy.Default.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Text.PrettyBy.Default</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Default rendering to string types.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:layoutDef"
+	      >layoutDef</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:SimpleDocStream" title="Prettyprinter"
+	      >SimpleDocStream</a
+	      > ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Render"
+	      >Render</a
+	      > str <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:render"
+		  >render</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+		  >Doc</a
+		  > ann &#8594; str</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:display"
+	      >display</a
+	      > &#8759; &#8704; str a. (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Pretty" title="Prettyprinter"
+	      >Pretty</a
+	      > a, <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+	      >Render</a
+	      > str) &#8658; a &#8594; str</li
+	    ><li class="src short"
+	    ><a href="#v:displayBy"
+	      >displayBy</a
+	      > &#8759; &#8704; str a config. (<a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config a, <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+	      >Render</a
+	      > str) &#8658; config &#8594; a &#8594; str</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:layoutDef" class="def"
+	    >layoutDef</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:SimpleDocStream" title="Prettyprinter"
+	    >SimpleDocStream</a
+	    > ann <a href="src/Text.PrettyBy.Default.html#layoutDef" class="link"
+	    >Source</a
+	    > <a href="#v:layoutDef" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A default layout for default rendering.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Render" class="def"
+	    >Render</a
+	    > str <span class="keyword"
+	    >where</span
+	    > <a href="src/Text.PrettyBy.Default.html#Render" class="link"
+	    >Source</a
+	    > <a href="#t:Render" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class for rendering <code
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+		>Doc</a
+		></code
+	      >s as string types.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:render" class="def"
+	      >render</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann &#8594; str <a href="src/Text.PrettyBy.Default.html#render" class="link"
+	      >Source</a
+	      > <a href="#v:render" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Render a <code
+		><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+		  >Doc</a
+		  ></code
+		> as a string type.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Render"
+	    >Instances</h4
+	    ><details id="i:Render" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Render:Render:1"
+		      ></span
+		      > <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+		      >Render</a
+		      > <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text.html#t:Text" title="Data.Text"
+		      >Text</a
+		      ></span
+		    > <a href="src/Text.PrettyBy.Default.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:Render" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Render:Render:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Default.html"
+			>Text.PrettyBy.Default</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:render"
+			  >render</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+			  >Doc</a
+			  > ann &#8594; <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text.html#t:Text" title="Data.Text"
+			  >Text</a
+			  > <a href="src/Text.PrettyBy.Default.html#render" class="link"
+			  >Source</a
+			  > <a href="#v:render" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Render:Render:2"
+		      ></span
+		      > <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+		      >Render</a
+		      > <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+		      >Text</a
+		      ></span
+		    > <a href="src/Text.PrettyBy.Default.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:Render" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Render:Render:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Default.html"
+			>Text.PrettyBy.Default</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:render"
+			  >render</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+			  >Doc</a
+			  > ann &#8594; <a href="https://hackage.haskell.org/package/text-2.0.2/docs/Data-Text-Lazy.html#t:Text" title="Data.Text.Lazy"
+			  >Text</a
+			  > <a href="src/Text.PrettyBy.Default.html#render" class="link"
+			  >Source</a
+			  > <a href="#v:render" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Render:Render:3"
+		      ></span
+		      > a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Char.html#t:Char" title="Data.Char"
+		      >Char</a
+		      > &#8658; <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+		      >Render</a
+		      > [a]</span
+		    > <a href="src/Text.PrettyBy.Default.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:Render" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Render:Render:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Default.html"
+			>Text.PrettyBy.Default</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:render"
+			  >render</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+			  >Doc</a
+			  > ann &#8594; [a] <a href="src/Text.PrettyBy.Default.html#render" class="link"
+			  >Source</a
+			  > <a href="#v:render" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:display" class="def"
+	    >display</a
+	    > &#8759; &#8704; str a. (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Pretty" title="Prettyprinter"
+	    >Pretty</a
+	    > a, <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+	    >Render</a
+	    > str) &#8658; a &#8594; str <a href="src/Text.PrettyBy.Default.html#display" class="link"
+	    >Source</a
+	    > <a href="#v:display" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print and render a value as a string type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:displayBy" class="def"
+	    >displayBy</a
+	    > &#8759; &#8704; str a config. (<a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config a, <a href="Text-PrettyBy-Default.html#t:Render" title="Text.PrettyBy.Default"
+	    >Render</a
+	    > str) &#8658; config &#8594; a &#8594; str <a href="src/Text.PrettyBy.Default.html#displayBy" class="link"
+	    >Source</a
+	    > <a href="#v:displayBy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print and render a value as a string type in a configurable way.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
