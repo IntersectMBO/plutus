@@ -46,9 +46,7 @@ import GHC.Core.Opt.OccurAnal qualified as GHC
 import GHC.Core.Opt.Simplify qualified as GHC
 import GHC.Core.Opt.Simplify.Env qualified as GHC
 import GHC.Core.Opt.Simplify.Monad qualified as GHC
-#if MIN_VERSION_ghc(9,6,0)
 import GHC.Core.Rules.Config qualified as GHC
-#endif
 import GHC.Core.Unfold qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
@@ -197,7 +195,6 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
 mkSimplPass dflags logger =
   -- See Note [Making sure unfoldings are present]
-#if MIN_VERSION_ghc(9,6,0)
   -- Changed in 9.6
   GHC.CoreDoSimplify $ GHC.SimplifyOpts
     { GHC.so_dump_core_sizes = False
@@ -207,9 +204,6 @@ mkSimplPass dflags logger =
     , GHC.so_hpt_rules = GHC.emptyRuleBase
     , GHC.so_top_env_cfg = GHC.TopEnvConfig 0 0
     }
-#else
-  GHC.CoreDoSimplify 1 simplMode
-#endif
     where
       simplMode = GHC.SimplMode
         { GHC.sm_names = ["Ensure unfoldings are present"]
@@ -223,7 +217,6 @@ mkSimplPass dflags logger =
         , GHC.sm_inline = False
         , GHC.sm_case_case = False
         , GHC.sm_eta_expand = False
-#if MIN_VERSION_ghc(9,6,0)
         , GHC.sm_float_enable = GHC.FloatDisabled
         , GHC.sm_do_eta_reduction = False
         , GHC.sm_arity_opts = GHC.ArityOpts False False
@@ -231,10 +224,6 @@ mkSimplPass dflags logger =
         , GHC.sm_case_folding = False
         , GHC.sm_case_merge = False
         , GHC.sm_co_opt_opts = GHC.OptCoercionOpts False
-#else
-        , GHC.sm_logger = logger
-        , GHC.sm_dflags = dflags
-#endif
         }
 
 {- Note [Marker resolution]
@@ -382,11 +371,7 @@ emitRuntimeError codeTy e = do
     let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
-#if MIN_VERSION_ghc(9,6,0)
     pure $ GHC.mkImpossibleExpr (GHC.mkTyConApp tc [codeTy]) shown
-#else
-    pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
-#endif
 
 -- | Compile the core expression that is surrounded by a 'plc' marker,
 -- and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,

@@ -27,13 +27,10 @@ import GHC.Core.Multiplicity qualified as GHC
 import GHC.Core.TyCo.Rep qualified as GHC
 import GHC.Num.Integer qualified
 import GHC.Plugins qualified as GHC
+import GHC.Tc.Utils.TcType qualified as GHC
 import GHC.Types.CostCentre qualified as GHC
 import GHC.Types.Id.Make qualified as GHC
 import GHC.Types.Tickish qualified as GHC
-
-#if MIN_VERSION_ghc(9,6,0)
-import GHC.Tc.Utils.TcType qualified as GHC
-#endif
 
 import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool qualified
@@ -1208,11 +1205,7 @@ compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
               defCompiled <- compileExpr d
               pure (GHC.addDefault rest (Just d), defCompiled)
             Nothing -> do
-#if MIN_VERSION_ghc(9,6,0)
               let d = GHC.mkImpossibleExpr t "unreachable alternative"
-#else
-              let d = GHC.mkImpossibleExpr t
-#endif
               defCompiled <- compileExpr d
               pure (GHC.addDefault alts (Just d), defCompiled)
           defName <- PLC.freshName "defaultBody"
