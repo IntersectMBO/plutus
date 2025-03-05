@@ -1,0 +1,858 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Pretty.Default</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Default.html#prettyPlcDef"
+	><span class="hs-identifier"
+	  >prettyPlcDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Default.html#displayPlcDef"
+	><span class="hs-identifier"
+	  >displayPlcDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Default.html#prettyPlcDebug"
+	><span class="hs-identifier"
+	  >prettyPlcDebug</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Default.html#displayPlcDebug"
+	><span class="hs-identifier"
+	  >displayPlcDebug</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Default.html#displayPlcCondensedErrorClassic"
+	><span class="hs-identifier"
+	  >displayPlcCondensedErrorClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.Plc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty.Plc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pretty-print a value in the default mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="local-6989586621681552107"
+      ><span id="local-6989586621681552109"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Default.html#prettyPlcDef"
+	    ><span class="hs-identifier hs-type"
+	      >prettyPlcDef</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552107"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552107"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Doc</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552109"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="prettyPlcDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyPlcDef :: forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="PlutusCore.Pretty.Default.html#prettyPlcDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyPlcDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc ann
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcClassicDef"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Render a value to 'String' in the default mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="local-6989586621681552113"
+      ><span id="local-6989586621681552114"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcDef"
+	    ><span class="hs-identifier hs-type"
+	      >displayPlcDef</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552113"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#Render"
+	    ><span class="hs-identifier hs-type"
+	      >Render</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552114"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552113"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552114"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="displayPlcDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >displayPlcDef :: forall a str. (PrettyPlc a, Render str) =&gt; a -&gt; str
+</span
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >displayPlcDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; str
+forall str ann. Render str =&gt; Doc ann -&gt; str
+forall ann. Doc ann -&gt; str
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; str) -&gt; (a -&gt; Doc Any) -&gt; a -&gt; str
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcClassicDef"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Pretty-print a value in the debug mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="local-6989586621681552147"
+      ><span id="local-6989586621681552148"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Default.html#prettyPlcDebug"
+	    ><span class="hs-identifier hs-type"
+	      >prettyPlcDebug</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552147"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552147"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >Doc</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552148"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="prettyPlcDebug"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyPlcDebug :: forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	  ><a href="PlutusCore.Pretty.Default.html#prettyPlcDebug"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prettyPlcDebug</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc ann
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcClassicDebug"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicDebug</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Render a value to 'String' in the debug mode using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621681552152"
+      ><span id="local-6989586621681552153"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcDebug"
+	    ><span class="hs-identifier hs-type"
+	      >displayPlcDebug</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552152"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#Render"
+	    ><span class="hs-identifier hs-type"
+	      >Render</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552153"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552152"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552153"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="displayPlcDebug"
+      ><span class="annot"
+	><span class="annottext"
+	  >displayPlcDebug :: forall a str. (PrettyPlc a, Render str) =&gt; a -&gt; str
+</span
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcDebug"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >displayPlcDebug</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; str
+forall str ann. Render str =&gt; Doc ann -&gt; str
+forall ann. Doc ann -&gt; str
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; str) -&gt; (a -&gt; Doc Any) -&gt; a -&gt; str
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcClassicDebug"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcClassicDebug</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Render an error to 'String' in the condensed manner using the classic view.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="local-6989586621681552158"
+      ><span id="local-6989586621681552159"
+	><span class="annot"
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcCondensedErrorClassic"
+	    ><span class="hs-identifier hs-type"
+	      >displayPlcCondensedErrorClassic</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	    ><span class="hs-identifier hs-type"
+	      >PrettyPlc</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552158"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#Render"
+	    ><span class="hs-identifier hs-type"
+	      >Render</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552159"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552158"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681552159"
+	    ><span class="hs-identifier hs-type"
+	      >str</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="displayPlcCondensedErrorClassic"
+      ><span class="annot"
+	><span class="annottext"
+	  >displayPlcCondensedErrorClassic :: forall a str. (PrettyPlc a, Render str) =&gt; a -&gt; str
+</span
+	  ><a href="PlutusCore.Pretty.Default.html#displayPlcCondensedErrorClassic"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >displayPlcCondensedErrorClassic</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; str
+forall str ann. Render str =&gt; Doc ann -&gt; str
+forall ann. Doc ann -&gt; str
+</span
+	><a href="../../prettyprinter-configurable/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; str) -&gt; (a -&gt; Doc Any) -&gt; a -&gt; str
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PrettyConfigPlcOptions -&gt; PrettyConfigPlc) -&gt; a -&gt; Doc Any
+forall a ann.
+PrettyPlc a =&gt;
+(PrettyConfigPlcOptions -&gt; PrettyConfigPlc) -&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcCondensedErrorBy"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcCondensedErrorBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlcOptions -&gt; PrettyConfigPlc
+</span
+	><a href="PlutusCore.Pretty.Plc.html#defPrettyConfigPlcClassic"
+	><span class="hs-identifier hs-var"
+	  >defPrettyConfigPlcClassic</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

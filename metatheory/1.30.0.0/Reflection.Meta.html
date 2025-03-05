@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Reflection.Meta</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Metavariables used in the reflection machinery</a>
+<a id="156" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="230" class="Symbol">{-#</a> <a id="234" class="Keyword">OPTIONS</a> <a id="242" class="Pragma">--cubical-compatible</a> <a id="263" class="Pragma">--safe</a> <a id="270" class="Symbol">#-}</a>
+
+<a id="275" class="Keyword">module</a> <a id="282" href="Reflection.Meta.html" class="Module">Reflection.Meta</a> <a id="298" class="Keyword">where</a>
+
+<a id="305" class="Keyword">import</a> <a id="312" href="Data.Nat.Properties.html" class="Module">Data.Nat.Properties</a> <a id="332" class="Symbol">as</a> <a id="335" class="Module">ℕₚ</a>
+<a id="338" class="Keyword">open</a> <a id="343" class="Keyword">import</a> <a id="350" href="Function.html" class="Module">Function</a>
+<a id="359" class="Keyword">open</a> <a id="364" class="Keyword">import</a> <a id="371" href="Relation.Nullary.Decidable.html" class="Module">Relation.Nullary.Decidable</a> <a id="398" class="Keyword">using</a> <a id="404" class="Symbol">(</a><a id="405" href="Relation.Nullary.Decidable.Core.html#3645" class="Function">map′</a><a id="409" class="Symbol">)</a>
+<a id="411" class="Keyword">open</a> <a id="416" class="Keyword">import</a> <a id="423" href="Relation.Binary.html" class="Module">Relation.Binary</a>
+<a id="439" class="Keyword">import</a> <a id="446" href="Relation.Binary.Construct.On.html" class="Module">Relation.Binary.Construct.On</a> <a id="475" class="Symbol">as</a> <a id="478" class="Module">On</a>
+<a id="481" class="Keyword">open</a> <a id="486" class="Keyword">import</a> <a id="493" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a>
+
+<a id="532" class="Keyword">open</a> <a id="537" class="Keyword">import</a> <a id="544" href="Agda.Builtin.Reflection.html" class="Module">Agda.Builtin.Reflection</a> <a id="568" class="Keyword">public</a>
+  <a id="577" class="Keyword">using</a> <a id="583" class="Symbol">(</a><a id="584" href="Agda.Builtin.Reflection.html#2457" class="Postulate">Meta</a><a id="588" class="Symbol">)</a> <a id="590" class="Keyword">renaming</a> <a id="599" class="Symbol">(</a><a id="600" href="Agda.Builtin.Reflection.html#2626" class="Primitive">primMetaToNat</a> <a id="614" class="Symbol">to</a> <a id="617" class="Primitive">toℕ</a><a id="620" class="Symbol">)</a>
+
+<a id="623" class="Keyword">open</a> <a id="628" class="Keyword">import</a> <a id="635" href="Agda.Builtin.Reflection.Properties.html" class="Module">Agda.Builtin.Reflection.Properties</a> <a id="670" class="Keyword">public</a>
+  <a id="679" class="Keyword">renaming</a> <a id="688" class="Symbol">(</a><a id="689" href="Agda.Builtin.Reflection.Properties.html#230" class="Primitive">primMetaToNatInjective</a> <a id="712" class="Symbol">to</a> <a id="715" class="Primitive">toℕ-injective</a><a id="728" class="Symbol">)</a>
+
+<a id="731" class="Comment">-- Equality of metas is decidable.</a>
+
+<a id="_≈_"></a><a id="767" href="Reflection.Meta.html#767" class="Function Operator">_≈_</a> <a id="771" class="Symbol">:</a> <a id="773" href="Relation.Binary.Core.html#891" class="Function">Rel</a> <a id="777" href="Agda.Builtin.Reflection.html#2457" class="Postulate">Meta</a> <a id="782" class="Symbol">_</a>
+<a id="784" href="Reflection.Meta.html#767" class="Function Operator">_≈_</a> <a id="788" class="Symbol">=</a> <a id="790" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a> <a id="794" href="Function.Base.html#6294" class="Function Operator">on</a> <a id="797" href="Reflection.Meta.html#617" class="Primitive">toℕ</a>
+
+<a id="_≈?_"></a><a id="802" href="Reflection.Meta.html#802" class="Function Operator">_≈?_</a> <a id="807" class="Symbol">:</a> <a id="809" href="Relation.Binary.Definitions.html#4584" class="Function">Decidable</a> <a id="819" href="Reflection.Meta.html#767" class="Function Operator">_≈_</a>
+<a id="823" href="Reflection.Meta.html#802" class="Function Operator">_≈?_</a> <a id="828" class="Symbol">=</a> <a id="830" href="Relation.Binary.Construct.On.html#1793" class="Function">On.decidable</a> <a id="843" href="Reflection.Meta.html#617" class="Primitive">toℕ</a> <a id="847" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a> <a id="851" href="Data.Nat.Properties.html#2538" class="Function Operator">ℕₚ._≟_</a>
+
+<a id="859" class="Keyword">infix</a> <a id="865" class="Number">4</a> <a id="867" href="Reflection.Meta.html#871" class="Function Operator">_≟_</a>
+<a id="_≟_"></a><a id="871" href="Reflection.Meta.html#871" class="Function Operator">_≟_</a> <a id="875" class="Symbol">:</a> <a id="877" href="Relation.Binary.Definitions.html#4892" class="Function">DecidableEquality</a> <a id="895" href="Agda.Builtin.Reflection.html#2457" class="Postulate">Meta</a>
+<a id="900" href="Reflection.Meta.html#900" class="Bound">m</a> <a id="902" href="Reflection.Meta.html#871" class="Function Operator">≟</a> <a id="904" href="Reflection.Meta.html#904" class="Bound">n</a> <a id="906" class="Symbol">=</a> <a id="908" href="Relation.Nullary.Decidable.Core.html#3645" class="Function">map′</a> <a id="913" class="Symbol">(</a><a id="914" href="Reflection.Meta.html#715" class="Primitive">toℕ-injective</a> <a id="928" class="Symbol">_</a> <a id="930" class="Symbol">_)</a> <a id="933" class="Symbol">(</a><a id="934" href="Relation.Binary.PropositionalEquality.Core.html#1139" class="Function">cong</a> <a id="939" href="Reflection.Meta.html#617" class="Primitive">toℕ</a><a id="942" class="Symbol">)</a> <a id="944" class="Symbol">(</a><a id="945" href="Reflection.Meta.html#900" class="Bound">m</a> <a id="947" href="Reflection.Meta.html#802" class="Function Operator">≈?</a> <a id="950" href="Reflection.Meta.html#904" class="Bound">n</a><a id="951" class="Symbol">)</a>
+</pre></body></html>
