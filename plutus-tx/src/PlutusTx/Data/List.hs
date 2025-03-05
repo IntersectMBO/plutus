@@ -136,16 +136,25 @@ instance Haskell.Semigroup  (List a) where
 instance Haskell.Monoid (List a) where
     mempty = coerce @(BuiltinList BuiltinData) B.mkNil
 
+-- | Convert a data-backed list to a sums of products list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 toSOP :: (UnsafeFromData a) => List a -> [a]
 toSOP = go . coerce
   where
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
 {-# INLINEABLE toSOP #-}
 
+-- | Convert a sums of products list to a data-backed list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to encode to 'BuiltinData'.
 fromSOP :: (ToData a) => [a] -> List a
 fromSOP = coerce . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
 {-# INLINEABLE fromSOP #-}
 
+-- | Find the first element that satisfies a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
 find pred' = go . coerce
   where
@@ -161,6 +170,9 @@ find pred' = go . coerce
             )
 {-# INLINEABLE find #-}
 
+-- | Find the indices of all elements that satisfy a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> List Integer
 findIndices pred' = go 0 . coerce
   where
@@ -177,6 +189,9 @@ findIndices pred' = go 0 . coerce
             )
 {-# INLINEABLE findIndices #-}
 
+-- | Filter a list using a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
 filter pred1 = go . coerce
   where
@@ -189,6 +204,10 @@ filter pred1 = go . coerce
             )
 {-# INLINEABLE filter #-}
 
+-- | Map a function over a list and discard the results that are 'Nothing'.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData', or if the result of applying
+-- 'f' is expensive to encode to 'BuiltinData'.
 mapMaybe :: (UnsafeFromData a, ToData b) => (a -> Maybe b) -> List a -> List b
 mapMaybe f = go . coerce
   where
@@ -202,6 +221,9 @@ mapMaybe f = go . coerce
             )
 {-# INLINEABLE mapMaybe #-}
 
+-- | Check if any element in the list satisfies a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 any :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
 any pred1 = go . coerce
   where
@@ -213,6 +235,9 @@ any pred1 = go . coerce
             )
 {-# INLINEABLE any #-}
 
+-- | Check if all elements in the list satisfy a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
 all pred1 = go . coerce
   where
@@ -224,6 +249,9 @@ all pred1 = go . coerce
             )
 {-# INLINEABLE all #-}
 
+-- | Fold a list using a monoid.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
 foldMap f = go . coerce
   where
@@ -235,8 +263,13 @@ foldMap f = go . coerce
                 in f h' <> go t
             )
 {-# INLINEABLE map #-}
+
+-- | Map a function over a list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData', or if the result of applying
+-- 'f' is expensive to encode to 'BuiltinData'.
 map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
-map f = coerce . go . coerce
+map f = coerce go
   where
     go =
         B.caseList'
@@ -248,6 +281,7 @@ map f = coerce . go . coerce
             )
 {-# INLINEABLE foldMap #-}
 
+-- | Get the length of a list.
 length :: List a -> Integer
 length (List l) = go l 0
   where
@@ -257,7 +291,9 @@ length (List l) = go l 0
             (\_ t -> B.addInteger 1 . go t)
 {-# INLINEABLE length #-}
 
--- | Plutus Tx version of 'Data.Monoid.mconcat'.
+-- | Concatenate a list of monoids.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 mconcat :: (Monoid a, UnsafeFromData a) => List a -> a
 mconcat = go . coerce
   where
@@ -269,12 +305,16 @@ mconcat = go . coerce
             )
 {-# INLINABLE mconcat #-}
 
+-- | Get the first element of a list and the rest of the list.
 uncons :: (UnsafeFromData a) => List a -> Maybe (a, List a)
 uncons (List l) = do
     (h, t) <- B.uncons l
     pure (unsafeFromBuiltinData h, List t)
 {-# INLINEABLE uncons #-}
 
+-- | Check if all elements in the list are 'True'.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 and :: List Bool -> Bool
 and = go . coerce
   where
@@ -286,6 +326,9 @@ and = go . coerce
             )
 {-# INLINEABLE and #-}
 
+-- | Check if any element in the list is 'True'.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 or :: List Bool -> Bool
 or = go . coerce
   where
@@ -297,21 +340,29 @@ or = go . coerce
             )
 {-# INLINEABLE or #-}
 
+-- | Check if an element is in the list.
+-- Note: this function can leverage the better performance of equality checks
+-- for 'BuiltinData'.
 elem :: (ToData a) => a -> List a -> Bool
 elem x = go . coerce
   where
     go =
-        B.caseList'
+        let x' = toBuiltinData x
+        in B.caseList'
             False
             (\h t ->
-                toBuiltinData x == h || go t
+                x' == h || go t
             )
 {-# INLINEABLE elem #-}
 
+-- | Check if an element is not in the list.
 notElem :: (ToData a) => a -> List a -> Bool
 notElem x = not . elem x
 {-# INLINEABLE notElem #-}
 
+-- | Fold a list from the right.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
 foldr f z = go z . coerce
   where
@@ -323,6 +374,9 @@ foldr f z = go z . coerce
             )
 {-# INLINEABLE foldr #-}
 
+-- | Fold a list from the left.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 foldl :: (UnsafeFromData a) => (b -> a -> b) -> b -> List a -> b
 foldl f z = go z . coerce
   where
@@ -335,18 +389,22 @@ foldl f z = go z . coerce
             )
 {-# INLINEABLE foldl #-}
 
+-- | Flatten a list of lists into a single list.
 concat :: List (List a) -> List a
 concat = foldr append mempty
 {-# INLINEABLE concat #-}
 
+-- | Map a function over a list and concatenate the results.
 concatMap :: (UnsafeFromData a) => (a -> List b) -> List a -> List b
 concatMap = foldMap
 {-# INLINEABLE concatMap #-}
 
+-- | Get the first element of a list if it is not empty.
 listToMaybe :: (UnsafeFromData a) => List a -> Maybe a
 listToMaybe (List l) = unsafeFromBuiltinData <$> B.headMaybe l
 {-# INLINEABLE listToMaybe #-}
 
+-- | Get the element of a list if it has exactly one element.
 uniqueElement :: (UnsafeFromData a) => List a -> Maybe a
 uniqueElement (List l) = do
     (h, t) <- B.uncons l
@@ -355,6 +413,10 @@ uniqueElement (List l) = do
         else Nothing
 {-# INLINEABLE uniqueElement #-}
 
+-- | Get the element at a given index.
+-- Warning: this is a partial function and will fail if the index is negative or
+-- greater than the length of the list.
+-- Note: this function has the same precedence as (!!) from 'PlutusTx.List'.
 infixl 9 !!
 (!!) :: (UnsafeFromData a) => List a -> Integer -> a
 (List l) !! n =
@@ -372,6 +434,7 @@ infixl 9 !!
             )
 {-# INLINABLE (!!) #-}
 
+-- | Append two lists in reverse order.
 revAppend :: List a -> List a -> List a
 revAppend (List l) (List l') = List $ rev l l'
   where
@@ -382,10 +445,12 @@ revAppend (List l) (List l') = List $ rev l l'
             l1
 {-# INLINEABLE revAppend #-}
 
+-- | Reverse a list.
 reverse :: List a -> List a
 reverse l = revAppend l mempty
 {-# INLINEABLE reverse #-}
 
+-- | Replicate a value n times.
 replicate :: (ToData a) =>  Integer -> a -> List a
 replicate n (toBuiltinData -> x) = coerce $ go n
   where
@@ -395,6 +460,9 @@ replicate n (toBuiltinData -> x) = coerce $ go n
             else BI.mkCons x (go (B.subtractInteger n' 1))
 {-# INLINEABLE replicate #-}
 
+-- | Find the index of the first element that satisfies a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
 findIndex pred' = go 0 . coerce
   where
@@ -406,6 +474,7 @@ findIndex pred' = go 0 . coerce
             )
 {-# INLINEABLE findIndex #-}
 
+-- | Split a list of pairs into a pair of lists.
 unzip :: forall a b . List (a, b) -> (List a, List b)
 unzip =
     coerce go
@@ -421,6 +490,10 @@ unzip =
             )
 {-# INLINEABLE unzip #-}
 
+-- | Zip two lists together using a function.
+-- Warning: this function can be very inefficient if the lists contain elements
+-- that are expensive to decode from 'BuiltinData', or if the result of applying
+-- 'f' is expensive to encode to 'BuiltinData'.
 zipWith
     :: (UnsafeFromData a, UnsafeFromData b, ToData c)
     => (a -> b -> c) -> List a -> List b -> List c
@@ -447,6 +520,8 @@ zipWith f = coerce go
             l1'
 {-# INLINEABLE zipWith #-}
 
+-- | Return the head of a list.
+-- Warning: this is a partial function and will fail if the list is empty.
 head :: forall a . (UnsafeFromData a) => List a -> a
 head =
     coerce
@@ -455,6 +530,8 @@ head =
         (unsafeFromBuiltinData . B.head)
 {-# INLINEABLE head #-}
 
+-- | Return the last element of a list.
+-- Warning: this is a partial function and will fail if the list is empty.
 last :: forall a . (UnsafeFromData a) => List a -> a
 last =
     coerce
@@ -473,10 +550,13 @@ last =
             )
 {-# INLINEABLE last #-}
 
+-- | Return the tail of a list.
+-- Warning: this is a partial function and will fail if the list is empty.
 tail :: forall a . List a -> List a
 tail = coerce @(BuiltinList BuiltinData) @(List a) . B.tail . coerce
 {-# INLINEABLE tail #-}
 
+-- | Take the first n elements from the list.
 take :: forall a . Integer -> List a -> List a
 take n = coerce $ go n
   where
@@ -491,6 +571,7 @@ take n = coerce $ go n
             )
 {-# INLINEABLE take #-}
 
+-- | Drop the first n elements from the list.
 drop :: forall a . Integer -> List a -> List a
 drop n = coerce $ go n
   where
@@ -501,12 +582,15 @@ drop n = coerce $ go n
             else
                 B.caseList'
                     B.mkNil
-                    (\_ t ->
-                        go (B.subtractInteger n' 1) t
+                    (\_ ->
+                        go (B.subtractInteger n' 1)
                     )
                     xs
 {-# INLINEABLE drop #-}
 
+-- | Drop elements from the list while the predicate holds.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 dropWhile :: forall a . (UnsafeFromData a) => (a -> Bool) -> List a -> List a
 dropWhile pred1 =
     coerce @_ @(List a -> List a) $ go
@@ -521,6 +605,7 @@ dropWhile pred1 =
             xs
 {-# INLINEABLE dropWhile #-}
 
+-- | Split a list at a given index.
 splitAt :: forall a . Integer -> List a -> (List a, List a)
 splitAt n l =
     coerce $ go n (coerce @_ @(BuiltinList BuiltinData) l)
@@ -541,6 +626,9 @@ splitAt n l =
                     xs
 {-# INLINEABLE splitAt #-}
 
+-- | Check if an element satisfying a binary predicate is in the list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 elemBy :: (UnsafeFromData a) => (a -> a -> Bool) -> a -> List a -> Bool
 elemBy pred2 x = go . coerce
   where
@@ -552,6 +640,9 @@ elemBy pred2 x = go . coerce
             )
 {-# INLINEABLE elemBy #-}
 
+-- | Removes elements from the list that satisfy a binary predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 nubBy :: forall a . (UnsafeFromData a) => (a -> a -> Bool) -> List a -> List a
 nubBy pred2 l =
     coerce @_ @(List a) $ go (coerce @_ @(BuiltinList BuiltinData) l) B.mkNil
@@ -567,10 +658,16 @@ nubBy pred2 l =
             ys
 {-# INLINEABLE nubBy #-}
 
+-- | Removes duplicate elements from the list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 nub :: (Eq a, UnsafeFromData a) => List a -> List a
 nub = nubBy (==)
 {-# INLINEABLE nub #-}
 
+-- | Partition a list into two lists based on a predicate.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
 partition :: (UnsafeFromData a) => (a -> Bool) -> List a -> (List a, List a)
 partition pred1 l =
     coerce $ go (coerce l)
