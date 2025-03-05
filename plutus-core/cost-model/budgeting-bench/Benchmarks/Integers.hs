@@ -54,7 +54,7 @@ benchExpModInteger _gen =
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     (fmap (\n -> 20*(p+99)*p+332341241*p+n) inputs)
+     (fmap (\n -> (pow 2 1000)*n) inputs)
      (fmap (\n -> n) inputs)
      moduli
 
