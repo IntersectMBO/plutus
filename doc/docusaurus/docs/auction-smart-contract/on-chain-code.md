@@ -24,7 +24,7 @@ She would like to create and deploy an auction smart contract with the following
 
 Plinth is a subset of Haskell, used to write on-chain code, also known as validators or scripts.
 A Plinth program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plinth code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plutus-tx-template/blob/main/src/AuctionValidator.hs).
+The full Plinth code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plinth-template/blob/main/src/AuctionValidator.hs).
 
 <!-- will need to update the link and file location for the new docs platform implementation -->
 
