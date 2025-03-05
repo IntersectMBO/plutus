@@ -135,6 +135,9 @@ test-suite plutus-tx-plugin-tests
     IsData.Spec
     Lib
     Lift.Spec
+    List.Properties1
+    List.Properties2
+    List.Semantics
     List.Spec
     Optimization.Spec
     Plugin.Basic.Spec
