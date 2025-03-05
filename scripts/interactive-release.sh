@@ -234,7 +234,7 @@ generate-release-notes() {
 
 publish-gh-release() {
   for EXEC in uplc pir plc; do 
-    nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
+    nix build ".#musl64-$EXEC"
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
   local NOTES_FILE=$(mktemp)
