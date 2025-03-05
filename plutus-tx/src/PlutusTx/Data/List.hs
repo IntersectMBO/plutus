@@ -407,13 +407,10 @@ findIndex pred' = go 0 . coerce
 {-# INLINEABLE findIndex #-}
 
 unzip :: forall a b . List (a, b) -> (List a, List b)
-unzip l =
-    let (l1, l2) = go . coerce $ l
-    in
-        ( coerce @(BuiltinList BuiltinData) @(List a) l1
-        , coerce @(BuiltinList BuiltinData) @(List b) l2
-        )
+unzip =
+    coerce go
   where
+    go :: BuiltinList BuiltinData -> (BuiltinList BuiltinData, BuiltinList BuiltinData)
     go =
         B.caseList'
             (B.mkNil, B.mkNil)
@@ -427,8 +424,9 @@ unzip l =
 zipWith
     :: (UnsafeFromData a, UnsafeFromData b, ToData c)
     => (a -> b -> c) -> List a -> List b -> List c
-zipWith f l1 l2 = coerce $ go (coerce l1) (coerce l2)
+zipWith f = coerce go
   where
+    go :: BuiltinList BuiltinData -> BuiltinList BuiltinData -> BuiltinList BuiltinData
     go l1' l2' =
         B.caseList'
             B.mkNil
@@ -449,13 +447,22 @@ zipWith f l1 l2 = coerce $ go (coerce l1) (coerce l2)
             l1'
 {-# INLINEABLE zipWith #-}
 
-head :: (UnsafeFromData a) => List a -> a
-head = unsafeFromBuiltinData . B.head . coerce
+head :: forall a . (UnsafeFromData a) => List a -> a
+head =
+    coerce
+        @(BuiltinList BuiltinData -> a)
+        @(List a -> a)
+        (unsafeFromBuiltinData . B.head)
 {-# INLINEABLE head #-}
 
-last :: (UnsafeFromData a) => List a -> a
-last = unsafeFromBuiltinData . go . coerce
+last :: forall a . (UnsafeFromData a) => List a -> a
+last =
+    coerce
+        @(BuiltinList BuiltinData -> a)
+        @(List a -> a)
+        (unsafeFromBuiltinData . go)
   where
+    go :: BuiltinList BuiltinData -> BuiltinData
     go =
         B.caseList
             (\() -> traceError lastEmptyListError)
@@ -471,11 +478,9 @@ tail = coerce @(BuiltinList BuiltinData) @(List a) . B.tail . coerce
 {-# INLINEABLE tail #-}
 
 take :: forall a . Integer -> List a -> List a
-take n =
-    coerce @(BuiltinList BuiltinData) @(List a)
-    . go n
-    . coerce @(List a) @(BuiltinList BuiltinData)
+take n = coerce $ go n
   where
+    go :: Integer -> BuiltinList BuiltinData -> BuiltinList BuiltinData
     go n' =
         B.caseList'
             B.mkNil
@@ -487,11 +492,9 @@ take n =
 {-# INLINEABLE take #-}
 
 drop :: forall a . Integer -> List a -> List a
-drop n =
-    coerce @(BuiltinList BuiltinData) @(List a)
-    . go n
-    . coerce @(List a) @(BuiltinList BuiltinData)
+drop n = coerce $ go n
   where
+    go :: Integer -> BuiltinList BuiltinData -> BuiltinList BuiltinData
     go n' xs =
         if n' <= 0
             then xs
@@ -506,24 +509,21 @@ drop n =
 
 dropWhile :: forall a . (UnsafeFromData a) => (a -> Bool) -> List a -> List a
 dropWhile pred1 =
-    coerce @(BuiltinList BuiltinData) @(List a)
-    . go
-    . coerce @(List a) @(BuiltinList BuiltinData)
+    coerce @_ @(List a -> List a) $ go
   where
+    go :: BuiltinList BuiltinData -> BuiltinList BuiltinData
     go xs =
         B.caseList'
             B.mkNil
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in if pred1 h' then go t else xs
+                if pred1 (unsafeFromBuiltinData h) then go t else xs
             )
             xs
 {-# INLINEABLE dropWhile #-}
 
 splitAt :: forall a . Integer -> List a -> (List a, List a)
 splitAt n l =
-    let (l1, l2) = go n (coerce @_ @(BuiltinList BuiltinData) l)
-    in (coerce @_ @(List a) l1, coerce @_ @(List a) l2)
+    coerce $ go n (coerce @_ @(BuiltinList BuiltinData) l)
   where
     go n' xs =
         if n' <= 0
@@ -548,8 +548,7 @@ elemBy pred2 x = go . coerce
         B.caseList'
             False
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in pred2 h' x || go t
+                pred2 (unsafeFromBuiltinData h) x || go t
             )
 {-# INLINEABLE elemBy #-}
 
@@ -561,7 +560,7 @@ nubBy pred2 l =
         B.caseList'
             B.mkNil
             (\h t ->
-                if elemBy pred2 (unsafeFromBuiltinData h) (fromBuiltinList xs)
+                if elemBy pred2 (unsafeFromBuiltinData h) (coerce xs)
                     then go t xs
                     else BI.mkCons h (go t (BI.mkCons h xs))
             )
@@ -574,8 +573,7 @@ nub = nubBy (==)
 
 partition :: (UnsafeFromData a) => (a -> Bool) -> List a -> (List a, List a)
 partition pred1 l =
-    let (l1, l2) = go (coerce l)
-    in (coerce l1, coerce l2)
+    coerce $ go (coerce l)
   where
     go =
         B.caseList'
