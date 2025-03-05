@@ -47,6 +47,7 @@ common lang
     -fno-strictness
 
 common ghc-version-support
+  -- This is only used for the plugin tests.
   -- See the section on GHC versions in CONTRIBUTING
   if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
