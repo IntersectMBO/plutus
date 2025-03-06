@@ -47,7 +47,7 @@ benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      p = (pow 2 255) - 19
+      p = (pow 2 255) + 400
 --      d = p `div` 20
       inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
       moduli = [p]
@@ -55,7 +55,8 @@ benchExpModInteger _gen =
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
      (fmap (\n -> n) inputs)
-     (fmap (\n -> (pow 2 1000)*n) inputs)
+     (fmap (\n -> n) inputs)
+--     (fmap (\n -> (pow 2 1000)*n) inputs)
      moduli
 
 makeBenchmarks :: StdGen -> [Benchmark]
