@@ -44,6 +44,10 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
+common ghc-version-support
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
+    buildable: False
+
 library
   import:          lang, os-support
   hs-source-dirs:  src
@@ -52,7 +56,7 @@ library
     , base
     , directory
     , filepath
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-testlib
     , tasty
     , tasty-expected-failure
@@ -76,7 +80,7 @@ test-suite haskell-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.40
+    , plutus-core         ^>=1.42
 
 test-suite haskell-steppable-conformance
   import:         lang, os-support
@@ -88,10 +92,10 @@ test-suite haskell-steppable-conformance
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.40
+    , plutus-core         ^>=1.42
 
 test-suite agda-conformance
-  import:         lang, os-support
+  import:         lang, os-support, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
@@ -101,6 +105,6 @@ test-suite agda-conformance
     , aeson
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.40
+    , plutus-core         ^>=1.42
     , plutus-metatheory
     , transformers

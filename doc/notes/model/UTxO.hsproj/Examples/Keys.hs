@@ -4,10 +4,10 @@
 module Examples.Keys
 where
 
-import "cryptonite" Crypto.PubKey.ECC.ECDSA
+import "crypton" Crypto.PubKey.ECC.ECDSA
 import Crypto.PubKey.ECC.Generate
 import Crypto.PubKey.ECC.Types
-import "cryptonite" Crypto.Random
+import "crypton" Crypto.Random
 
 import Data.Map (Map)
 import Data.Map qualified as Map

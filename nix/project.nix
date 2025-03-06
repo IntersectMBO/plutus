@@ -1,6 +1,5 @@
 # editorconfig-checker-disable-file
-
-{ repoRoot, inputs, pkgs, system, lib }:
+{ inputs, pkgs, lib, agda-with-stdlib, r-with-packages }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }: {
@@ -12,18 +11,9 @@ let
 
     src = ../.;
 
-    shell = {
-      withHoogle = true;
-      # We would expect R to be pulled in automatically as it's a dependency of
-      # plutus-core, but it appears it is not, so we need to be explicit about
-      # the dependency on R here. Adding it as a buildInput will ensure it's
-      # added to the pkg-config env var.
-      buildInputs = [ pkgs.R ];
-    };
-
     flake.variants = {
       ghc96 = { }; # Alias for the default project
-      ghc96-profiled.modules = [{
+      profiled.modules = [{
         enableProfiling = true;
         enableLibraryProfiling = true;
       }];
@@ -32,7 +22,7 @@ let
       ghc910.compiler-nix-name = "ghc910";
     };
 
-    inputMap = { "https://chap.intersectmbo.org/" = inputs.iogx.inputs.CHaP; };
+    inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
 
     sha256map = {
       "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" =
@@ -47,26 +37,26 @@ let
           # I can't figure out a way to apply this as a blanket change for all the
           # components in the package, oh well
           plutus-metatheory.components.library.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
           plutus-metatheory.components.exes.plc-agda.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
           plutus-metatheory.components.tests.test-NEAT.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
 
           plutus-executables.components.exes.uplc.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
 
           plutus-executables.components.tests.test-simple.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
           plutus-executables.components.tests.test-detailed.build-tools =
-            [ repoRoot.nix.agda.agda-with-stdlib ];
+            [ agda-with-stdlib ];
 
           plutus-core.components.benchmarks.update-cost-model = {
-            build-tools = [ repoRoot.nix.r-with-packages ];
+            build-tools = [ r-with-packages ];
           };
 
           plutus-core.components.benchmarks.cost-model-test = {
-            build-tools = [ repoRoot.nix.r-with-packages ];
+            build-tools = [ r-with-packages ];
           };
 
           plutus-cert.components.library.build-tools =
@@ -77,7 +67,8 @@ let
             let
               ocamlPkgs = pkgs.ocaml-ng.ocamlPackages_4_10;
               coqPkgs = pkgs.coqPackages_8_13;
-            in with ocamlPkgs;
+            in
+            with ocamlPkgs;
             with coqPkgs; [
               pkgs.perl
               ocaml
@@ -131,9 +122,5 @@ let
     ];
   });
 
-  project = lib.iogx.mkHaskellProject {
-    inherit cabalProject;
-    shellArgs = repoRoot.nix.shell;
-  };
-
-in project
+in
+cabalProject

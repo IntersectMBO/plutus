@@ -23,6 +23,7 @@ module PlutusCore.Test (
   rethrow,
   runTPlc,
   runUPlc,
+  runUPlcFull,
   runUPlcLogs,
   ppCatch,
   ppCatchReadable,
@@ -153,8 +154,8 @@ isSerialisable (Some (ValueOf uni0 x0)) = go uni0 x0 where
     go TPLC.DefaultUniString _ = True
     go TPLC.DefaultUniUnit _ = True
     go TPLC.DefaultUniBool _ = True
-    go (TPLC.DefaultUniProtoList `TPLC.DefaultUniApply` uniA) xs =
-        all (go uniA) xs
+    go (TPLC.DefaultUniProtoList `TPLC.DefaultUniApply` uniA) xs = all (go uniA) xs
+    go (TPLC.DefaultUniProtoArray `TPLC.DefaultUniApply` uniA) xs = all (go uniA) xs
     go (TPLC.DefaultUniProtoPair `TPLC.DefaultUniApply` uniA `TPLC.DefaultUniApply` uniB) (x, y) =
         go uniA x && go uniB y
     go (f `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _ `TPLC.DefaultUniApply` _) _ =

@@ -27,6 +27,7 @@ import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Transform.Simplifier
 
+import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
@@ -92,16 +93,17 @@ data DbgOptions =
 
 ---------------- Main commands -----------------
 
-data Command = Apply       ApplyOptions
-             | ApplyToData ApplyOptions
-             | Benchmark   BenchmarkOptions
-             | Convert     ConvertOptions
-             | Optimise    OptimiseOptions
-             | Print       PrintOptions
-             | Example     ExampleOptions
-             | Eval        EvalOptions
-             | Dbg         DbgOptions
-             | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
+data Command = Apply           ApplyOptions
+             | ApplyToFlatData ApplyOptions
+             | ApplyToCborData ApplyOptions
+             | Benchmark       BenchmarkOptions
+             | Convert         ConvertOptions
+             | Optimise        OptimiseOptions
+             | Print           PrintOptions
+             | Example         ExampleOptions
+             | Eval            EvalOptions
+             | Dbg             DbgOptions
+             | DumpModel       (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
@@ -214,14 +216,23 @@ plutusOpts = hsubparser $
              "output a script consisting of (... ((f g1) g2) ... gn); " <>
              "for example, 'uplc apply --if flat Validator.flat " <>
              "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
-    <> command "apply-to-data"
-           (info (ApplyToData <$> applyOpts)
+    <> command "apply-to-flat-data"
+           (info (ApplyToFlatData <$> applyOpts)
             (progDesc $ "Given a list f d1 d2 ... dn where f is an " <>
              "Untyped Plutus Core script and d1,...,dn are files " <>
              "containing flat-encoded data ojbects, output a script " <>
              "consisting of f applied to the data objects; " <>
-             "for example, 'uplc apply-to-data --if " <>
+             "for example, 'uplc apply-to-flat-data --if " <>
              "flat Validator.flat Datum.flat Redeemer.flat Context.flat " <>
+             "--of flat -o Script.flat'."))
+    <> command "apply-to-cbor-data"
+           (info (ApplyToCborData <$> applyOpts)
+            (progDesc $ "Given a list f d1 d2 ... dn where f is an " <>
+             "Untyped Plutus Core script and d1,...,dn are files " <>
+             "containing CBOR-encoded data ojbects, output a script " <>
+             "consisting of f applied to the data objects; " <>
+             "for example, 'uplc apply-to-cbor-data --if " <>
+             "flat Validator.flat Datum.cbor Redeemer.cbor Context.cbor " <>
              "--of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
@@ -333,8 +344,8 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 
 -- | Apply a UPLC program to script to a list of flat-encoded Data objects and
 -- output the result.
-runApplyToData :: ApplyOptions -> IO ()
-runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+runApplyToFlatData :: ApplyOptions -> IO ()
+runApplyToFlatData (ApplyOptions inputfiles ifmt outp ofmt mode) =
   case inputfiles  of
     [] -> errorWithoutStackTrace "No input files"
     p:ds -> do
@@ -349,6 +360,25 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
                      case unflat bs of
                        Left err          -> fail ("Error reading " ++ show path ++ ": " ++ show err)
                        Right (d :: Data) -> pure $ UPLC.Program () ver $ mkConstant () d
+
+-- | Apply a UPLC program to script to a list of CBOR-encoded flat-encoded Data
+-- objects and output the result.
+runApplyToCborData :: ApplyOptions -> IO ()
+runApplyToCborData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+  case inputfiles  of
+    [] -> errorWithoutStackTrace "No input files"
+    p:ds -> do
+         prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
+         args <- mapM (getCborDataObject version) ds
+         let prog' = void prog
+             appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog':args)
+         writeProgram outp ofmt mode appliedScript
+             where getCborDataObject :: UPLC.Version -> FilePath -> IO (UplcProg ())
+                   getCborDataObject ver path = do
+                     bs <- BSL.readFile path
+                     case  deserialiseOrFail bs :: Either DeserialiseFailure Data
+                       of Left err -> fail ("Cannot decode CBOR object " ++ show path ++ ":" ++ show err)
+                          Right d  -> pure $ UPLC.Program () ver $ mkConstant () d
 
 ---------------- Benchmarking ----------------
 
@@ -487,14 +517,15 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply       opts       -> runApply             opts
-        ApplyToData opts       -> runApplyToData       opts
-        Benchmark   opts       -> runBenchmark         opts
-        Eval        opts       -> runEval              opts
-        Dbg         opts       -> runDbg               opts
-        Example     opts       -> runUplcPrintExample  opts
-        Optimise    opts       -> runOptimisations     opts
-        Print       opts       -> runPrint   @UplcProg opts
-        Convert     opts       -> runConvert @UplcProg opts
-        DumpModel   opts       -> runDumpModel         opts
+        Apply           opts   -> runApply             opts
+        ApplyToFlatData opts   -> runApplyToFlatData   opts
+        ApplyToCborData opts   -> runApplyToCborData   opts
+        Benchmark       opts   -> runBenchmark         opts
+        Eval            opts   -> runEval              opts
+        Dbg             opts   -> runDbg               opts
+        Example         opts   -> runUplcPrintExample  opts
+        Optimise        opts   -> runOptimisations     opts
+        Print           opts   -> runPrint   @UplcProg opts
+        Convert         opts   -> runConvert @UplcProg opts
+        DumpModel       opts   -> runDumpModel         opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

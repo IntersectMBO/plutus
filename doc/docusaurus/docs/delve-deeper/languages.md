@@ -8,7 +8,7 @@ Untyped Plutus Core (UPLC) is the assembly-like language that runs in Cardano no
 The Cardano node ships with a UPLC evaluator, which is a [CEK machine](https://en.wikipedia.org/wiki/CEK_Machine).
 
 UPLC is a low-level programming language, and is not intended to be written or modified by hand.
-Besides Plutus Tx, several other high-level languages are designed to target UPLC.
+Besides Plinth, several other high-level languages are designed to target UPLC.
 These languages can be grouped into three categories:
 
 - Standalone DSLs, which are entirely new languages
@@ -83,7 +83,7 @@ For instance, a program that tests whether one integer is less than another can 
 This is achieved by leveraging the host language's compiler frontend, which might include lexer, parser, type checker, AST and optimization passes, while developing a custom backend for the new language.
 By reusing the host language's ASTs, programs maintain simple and regular types without the need for custom AST construction, which is often necessary in eDSLs.
 
-A case in point is Plutus Tx, which is a subset of Haskell, and its compiler is a GHC plugin.
+A case in point is Plinth, which is a subset of Haskell, and its compiler is a GHC plugin.
 It reuses GHC components like the parser and type checker, and transforms GHC Core (GHC's intermediate representation) into UPLC.
 Alternatively, meta-programming methods can be used to access and manipulate the host language's AST, such as quotes and splices[^2].
 
@@ -95,7 +95,7 @@ Additionally, the desugaring process might transform code in such a way that it 
 Furthermore, complications arise when the new language and the host language do not exactly agree on semantics or evaluation strategies.
 This disparity can lead to behaviors where the same code might act differently when compiled and executed in the host language versus the new language.
 It can also result in idioms that work well in the host language being inappropriate for the new language.
-For example, while guarded recursion is a useful idiom in Haskell, it might not be suitable for Plutus Tx due to Plutus Tx's use of call-by-value evaluation.
+For example, while guarded recursion is a useful idiom in Haskell, it might not be suitable for Plinth due to Plinth's use of call-by-value evaluation.
 
 Another drawback of using a subset of a language is that, determining whether a program conforms to the allowed subset typically doesn't happen at type checking time, but at target code generation time.
 This not only delays error detection compared to eDSLs, but makes it harder to produce clear error messages, since by target code generation time, the AST may have already been transformed and optimized, obscuring its connection to the original source code.
@@ -104,7 +104,7 @@ This not only delays error detection compared to eDSLs, but makes it harder to p
 
 | Language | Category |
 | ------ | ---------- |
-| Plutus Tx | Subset of Haskell |
+| Plinth | Subset of Haskell |
 | [Aiken](https://aiken-lang.org/) | Standalone DSL |
 | [Helios](https://github.com/HeliosLang/compiler) | Standalone DSL |
 | [OpShin](https://github.com/OpShin/opshin) | Subset of Python |
@@ -114,8 +114,8 @@ This not only delays error detection compared to eDSLs, but makes it harder to p
 
 ---
 
-[^1]: This statement is not entirely true for Plutus Tx, a subset of Haskell.
+[^1]: This statement is not entirely true for Plinth, a subset of Haskell.
 Due to certain GHC-specific technical limitations, it can't easily reuse many functions and operations from the `base` library, so it ships with its own standard library instead.
-Nevertheless, the `<` operator in Plutus Tx's standard library still has the type `Integer -> Integer -> Bool`.
+Nevertheless, the `<` operator in Plinth's standard library still has the type `Integer -> Integer -> Bool`.
 
 [^2]: For further reading, check out [_Everything old is new again: Quoted Domain Specific Languages_](https://homepages.inf.ed.ac.uk/wadler/topics/qdsl.html).

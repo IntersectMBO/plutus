@@ -32,6 +32,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , counting
     , tallying
     , restricting
+    , restrictingLarge
     , restrictingEnormous
     , enormousBudget
     -- * Emitter modes

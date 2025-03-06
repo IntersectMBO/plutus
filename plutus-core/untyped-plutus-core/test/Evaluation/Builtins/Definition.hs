@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -32,7 +33,6 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Examples.Builtins
@@ -54,24 +54,26 @@ import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Test
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.Exception
+import Control.Exception (evaluate, try)
 import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
 import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
-import Data.Proxy
+import Data.Proxy (Proxy (..))
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
-import Hedgehog hiding (Opaque, Size, Var)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
+import Hedgehog (forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
-import Test.Tasty
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.QuickCheck qualified as QC
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
@@ -101,7 +103,7 @@ test_IntegerDistribution =
         \(AsArbitraryBuiltin (i :: Integer)) ->
             let magnitudes = magnitudesPositive nextInterestingBound highInterestingBound
                 (low, high) =
-                    maybe (error $ "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
+                    maybe (error "Panic: unknown integer") (bimap (* signum i) (* signum i)) $
                       find ((>= abs i) . snd) magnitudes
                 bounds = map snd magnitudes
                 isInteresting = i `elem` concat
@@ -368,6 +370,30 @@ test_IdBuiltinList =
             typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?=
                 Right (EvaluationSuccess xsTerm)
 
+test_BuiltinArray :: TestTree
+test_BuiltinArray =
+  testGroup "BuiltinArray" [
+    testCase "listToArray" do
+      let listOfInts = mkConstant @[Integer] @DefaultUni () [1..10]
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let term = apply () (tyInst () (builtin () ListToArray) integer) listOfInts
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess arrayOfInts)
+    , testCase "lengthOfArray" do
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let expectedLength = mkConstant @Integer @DefaultUni () 10
+          term = apply () (tyInst () (builtin () LengthOfArray) integer) arrayOfInts
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess expectedLength)
+    , testCase "indexArray" do
+      let arrayOfInts = mkConstant @(Vector Integer) @DefaultUni () (Vector.fromList [1..10])
+      let index = mkConstant @Integer @DefaultUni () 5
+          expectedValue = mkConstant @Integer @DefaultUni () 6
+          term = mkIterAppNoAnn (tyInst () (builtin () IndexArray) integer) [arrayOfInts, index]
+      typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term @?=
+          Right (EvaluationSuccess expectedValue)
+  ]
+
 test_BuiltinPair :: TestTree
 test_BuiltinPair =
     testCase "BuiltinPair" $ do
@@ -497,16 +523,33 @@ test_TrackCostsRetaining =
                         ]
                 assertBool err $ expected > actual
 
+typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assertion
+typecheckAndEvalToOutOfEx term =
+    let evalRestricting params = fst . runCekNoEmit params restrictingLarge
+    in case typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting term of
+        Right (Left (ErrorWithCause (OperationalEvaluationError (CekOutOfExError _)) _)) ->
+            pure ()
+        err -> assertFailure $ "Expected a 'CekOutOfExError' but got: " ++ displayPlc err
+
 test_SerialiseDataImpossible :: TestTree
 test_SerialiseDataImpossible =
-    testCase "Serialising an impossible 'Data' object finishes" $ do
+    testCase "Serialising an impossible 'Data' object runs out of budget and finishes" $ do
         let dataLoop :: Term TyName Name DefaultUni DefaultFun ()
-            dataLoop = Apply () (Builtin () SerialiseData) $ mkConstant () loop where
-                loop = List [loop]
-            budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
-            evalRestricting params = unsafeSplitStructuralOperational . fst . runCekNoEmit params budgetMode
-        typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting dataLoop @?=
-            Right EvaluationFailure
+            dataLoop =
+                let loop = List [loop]
+                in Apply () (Builtin () SerialiseData) $ mkConstant () loop
+        typecheckAndEvalToOutOfEx dataLoop
+
+test_fixId :: TestTree
+test_fixId =
+    testCase "'fix id' runs out of budget and finishes" $ do
+        let fixId :: Term TyName Name DefaultUni DefaultFun ()
+            fixId =
+                mkIterAppNoAnn (mkIterInstNoAnn Plc.fix [integer, integer])
+                    [ tyInst () Plc.idFun (TyFun () integer integer)
+                    , mkConstant @Integer () 42
+                    ]
+        typecheckAndEvalToOutOfEx fixId
 
 -- | If the first char is an opening paren and the last chat is a closing paren, then remove them.
 -- This is useful for rendering a term-as-a-test-name in CLI, since currently we wrap readably
@@ -1178,6 +1221,7 @@ test_definition =
         , test_ExpensivePlus
         , test_BuiltinList
         , test_IdBuiltinList
+        , test_BuiltinArray
         , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData
@@ -1195,6 +1239,7 @@ test_definition =
         , test_TrackCostsRetaining
 #endif
         , test_SerialiseDataImpossible
+        , test_fixId
         , runTestNestedHere
             [ test_Integer
             , test_String

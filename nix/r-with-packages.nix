@@ -1,4 +1,4 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ pkgs }:
 
 pkgs.rWrapper.override {
   packages = [

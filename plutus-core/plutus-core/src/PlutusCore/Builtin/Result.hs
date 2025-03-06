@@ -188,10 +188,12 @@ _UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
 _UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
 {-# INLINE _UnliftingErrorVia #-}
 
+-- | See Note [Structural vs operational errors within builtins]
 _StructuralUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
 _StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralEvaluationError
 {-# INLINE _StructuralUnliftingError #-}
 
+-- | See Note [Structural vs operational errors within builtins]
 _OperationalUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
 _OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEvaluationError
 {-# INLINE _OperationalUnliftingError #-}

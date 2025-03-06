@@ -120,7 +120,7 @@ nonStrictifyB = \case
 -- Out of a binding `(vardecl x = rhs)`, make a "strictifier" binding: `(strict vardecl x = x)`
 mkStrictifierB :: Binding tyname name uni fun a -> Binding tyname name uni fun a
 mkStrictifierB = \case
-    TermBind x _ d _ -> TermBind x Strict d (mkVar x d)
+    TermBind x _ d _ -> TermBind x Strict d (mkVar d)
     b                -> b
 
 thunkRecursionsStep

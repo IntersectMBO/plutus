@@ -331,7 +331,7 @@ Always define `Pretty` explicitly (when you need it). It's okay to delegate to t
 
 ==== Reasoning
 
-The derived version of `Show` is always useful as a way of seeing the explicit strucuture of a value as a Haskell value.
+The derived version of `Show` is always useful as a way of seeing the explicit structure of a value as a Haskell value.
 Defining `Show` can mean that this is no longer true, and you can't do a better job than the derived version.
 
 We use `Pretty` always for human-readable output, because it's actually friendly to layout and the derived `Show` instance is not usually human friendly.

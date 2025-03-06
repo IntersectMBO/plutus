@@ -1,6 +1,9 @@
-# This workflow builds the Docusaurus site on pull_request.
-# It also publishes the site on push to master to:
+# This workflow builds and deploys the Docusaurus site.
+# 
+# This workflow builds the site on pull requests, and it also automatically deploys 
+# the site on push to master or on workflow dispatch to: 
 # https://plutus.cardano.intersectmbo.org/docs
+
 
 name: "🦕 Docusaurus Site" 
 
@@ -28,8 +31,8 @@ jobs:
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Site 
-        if: github.event_name == 'push'
-        uses: JamesIves/github-pages-deploy-action@v4.7.2
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           folder: doc/docusaurus/build
           target-folder: docs

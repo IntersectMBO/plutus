@@ -20,6 +20,7 @@ module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
 import PlutusPrelude
+import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
 import PlutusTx.Builtins (mkNilOpaque, useFromOpaque, useToOpaque)
 import PlutusTx.Code
@@ -30,6 +31,8 @@ import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
+import PlutusTx.Function qualified
+import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
@@ -407,6 +410,10 @@ compileMarkedExpr locStr codeTy origE = do
           , 'GHC.Num.Integer.integerNegate
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
+          , 'PlutusTx.AsData.Internal.wrapTail
+          , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
+          , 'PlutusTx.Function.fix
+          , 'PlutusTx.Optimize.Inline.inline
           , 'useToOpaque
           , 'useFromOpaque
           , 'mkNilOpaque
@@ -420,7 +427,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccOpts = CompileOptions {
                 coProfile=_posProfile opts
                 ,coCoverage=coverage
-                ,coRemoveTrace=_posRemoveTrace opts},
+                ,coRemoveTrace=_posRemoveTrace opts
+                ,coInlineFix=_posInlineFix opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,
@@ -431,7 +439,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccBuiltinsInfo = def,
             ccBuiltinCostModel = def,
             ccDebugTraceOn = _posDumpCompilationTrace opts,
-            ccRewriteRules = makeRewriteRules opts
+            ccRewriteRules = makeRewriteRules opts,
+            ccSafeToInline = False
             }
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
@@ -487,9 +496,10 @@ runCompiler moduleName opts expr = do
             -- In fact, this instructs the inliner to inline *any* binding inside a destructor,
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
-            PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      ->
-                AlwaysInline `elem` fmap annInline (toList ann)
+            PIR.DatatypeComponent PIR.Destructor _ -> AlwaysInline
+            _ | AlwaysInline `elem` fmap annInline (toList ann) -> AlwaysInline
+              | SafeToInline `elem` fmap annInline (toList ann) -> SafeToInline
+              | otherwise -> MayInline
 
     rewriteRules <- asks ccRewriteRules
 
@@ -520,6 +530,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierRemoveDeadBindings)
                  & set (PIR.ccOpts . PIR.coInlineConstants)
                     (opts ^. posInlineConstants)
+                 & set (PIR.ccOpts . PIR.coInlineFix)
+                    (opts ^. posInlineFix)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)

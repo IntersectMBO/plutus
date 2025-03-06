@@ -164,7 +164,7 @@ data StakingCredential
   = StakingHash Credential
   | StakingPtr
 
--- | Check that a data type used in an unused construtor of a used data type doesn't get eliminated.
+-- | Check that a data type used in an unused constructor of a used data type doesn't get eliminated.
 stakingCredential :: CompiledCode StakingCredential
 stakingCredential = plc (Proxy @"StakingCredential") StakingPtr
 

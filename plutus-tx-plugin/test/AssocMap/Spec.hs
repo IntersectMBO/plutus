@@ -780,10 +780,10 @@ goldenTests =
     , goldenUPlcReadable "map2" map2
     , goldenEvalCekCatch "map2" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
     , goldenBudget "map2-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
-    , goldenPirReadable "map3" map2
-    , goldenUPlcReadable "map3" map2
-    , goldenEvalCekCatch "map3" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
-    , goldenBudget "map3-budget" $ map2 `unsafeApplyCode` (liftCodeDef 100)
+    , goldenPirReadable "map3" map3
+    , goldenUPlcReadable "map3" map3
+    , goldenEvalCekCatch "map3" $ [map3 `unsafeApplyCode` (liftCodeDef 100)]
+    , goldenBudget "map3-budget" $ map3 `unsafeApplyCode` (liftCodeDef 100)
     ]
 
 propertyTests :: TestTree
