@@ -1,19 +1,12 @@
-{-# LANGUAGE CPP                        #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskellQuotes      #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 
--- Due to CPP
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
@@ -29,7 +22,6 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
-import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
 import PlutusTx.Optimize.Inline qualified
@@ -53,7 +45,6 @@ import GHC.Types.TyThing qualified as GHC
 import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
@@ -83,11 +74,8 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
-import Data.Text qualified as Text
-import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
@@ -193,7 +181,7 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 
 -- | A simplifier pass, implemented by GHC
 mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
-mkSimplPass dflags logger =
+mkSimplPass dflags _logger =
   -- See Note [Making sure unfoldings are present]
   -- Changed in 9.6
   GHC.CoreDoSimplify $ GHC.SimplifyOpts
