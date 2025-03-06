@@ -42,7 +42,6 @@ import GHC.Core.Rules.Config qualified as GHC
 import GHC.Core.Unfold qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
-import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
@@ -127,7 +126,7 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
       install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
       install args rest = do
           -- create simplifier pass to be placed at the front
-          simplPass <- mkSimplPass <$> GHC.getDynFlags <*> GHC.getLogger
+          simplPass <- mkSimplPass <$> GHC.getDynFlags
           -- instantiate our plugin pass
           pluginPass <- mkPluginPass <$> case parsePluginOptions args of
               Success opts -> pure opts
@@ -180,8 +179,8 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 -}
 
 -- | A simplifier pass, implemented by GHC
-mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
-mkSimplPass dflags _logger =
+mkSimplPass :: GHC.DynFlags -> GHC.CoreToDo
+mkSimplPass dflags =
   -- See Note [Making sure unfoldings are present]
   -- Changed in 9.6
   GHC.CoreDoSimplify $ GHC.SimplifyOpts
