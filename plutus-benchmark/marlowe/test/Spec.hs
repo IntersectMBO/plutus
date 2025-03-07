@@ -74,7 +74,7 @@ main = withUtf8 $ do
           \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
             hPutStrLn writeHandle $
               List.intercalate "\t" [show cpu, show mem, show size]
-    , Lib.goldenUplcMeasurements "budgets" goldenFileData actualFileData \writeHandle ->
+    , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
         for_
           (dataSemanticsMeasures <> dataRolePayoutMeasures)
           \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->

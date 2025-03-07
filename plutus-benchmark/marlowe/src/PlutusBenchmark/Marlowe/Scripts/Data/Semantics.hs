@@ -54,27 +54,19 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 import PlutusLedgerApi.Data.V2 qualified as Data
-import PlutusLedgerApi.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash), Extended (..),
-                           Interval (..), LowerBound (..), POSIXTime (..), POSIXTimeRange,
-                           ScriptContext (ScriptContext, scriptContextPurpose), ScriptHash (..),
-                           ScriptPurpose (Spending), SerialisedScript,
-                           TxInInfo (TxInInfo, txInInfoOutRef, txInInfoResolved),
-                           TxInfo (TxInfo, txInfoInputs, txInfoOutputs, txInfoValidRange),
-                           UpperBound (..), serialiseCompiledCode)
-import PlutusLedgerApi.V2.Contexts (findDatum, findDatumHash, txSignedBy, valueSpent)
+import PlutusLedgerApi.V2 (Datum (Datum), DatumHash (DatumHash), Extended (..), Interval (..),
+                           LowerBound (..), POSIXTime (..), POSIXTimeRange, ScriptHash (..),
+                           SerialisedScript, UpperBound (..), serialiseCompiledCode)
 import PlutusLedgerApi.V2.Data.Contexts qualified as Data
-import PlutusLedgerApi.V2.Data.Tx qualified as Data
-import PlutusLedgerApi.V2.Tx (OutputDatum (OutputDatumHash),
-                              TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
                                             BuiltinData, BuiltinString, BuiltinUnit,
                                             Enum (fromEnum), Eq (..), Functor (fmap), Integer,
-                                            Maybe (..), Ord ((>)), Semigroup ((<>)), all, any,
-                                            check, elem, filter, find, foldMap, null, otherwise,
-                                            snd, toBuiltin, ($), (&&), (.), (/=), (||))
+                                            Maybe (..), Ord ((>)), Semigroup ((<>)), all, check,
+                                            elem, foldMap, null, otherwise, snd, toBuiltin, ($),
+                                            (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -82,7 +74,7 @@ import Data.ByteString.Short qualified as SBS
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1.Address qualified as Address (scriptHashAddress)
 import PlutusLedgerApi.V1.Value qualified as Val
-import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
+import PlutusLedgerApi.V2 qualified as Ledger (Address)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as B
