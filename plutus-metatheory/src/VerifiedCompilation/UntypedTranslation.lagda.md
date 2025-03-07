@@ -19,12 +19,15 @@ open import VerifiedCompilation.UntypedViews using (Pred; ListPred)
 open import Utils as U using (Maybe)
 open import RawU using (TmCon; tmCon; decTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Data.List using (List; [_])
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; eq?)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE)
+open import Data.Sum using (_⊎_;inj₁; inj₂)
+
 ```
 The generic type of a Translation is that it matches one (or more) patterns on the left to one
 (or more) patterns on the right. If there are decision procedures to identify those patterns,
@@ -33,183 +36,142 @@ we can build a decision procedure to apply them recursivley down the AST structu
 ```
 Relation = { X : Set } → {{_ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
 
-data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
-  istranslation : {ast ast' : X ⊢} → R ast ast' → Translation R ast ast'
-  var : {x : X} → Translation R (` x) (` x) -- We assume we won't want to translate variables individually?
+data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁
+
+data TransMatch (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
+  var : {x : X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
   ƛ   : {x x' : Maybe X ⊢}
            → Translation R x x'
            ----------------------
-           →  Translation R (ƛ x) (ƛ x')
+           → TransMatch R (ƛ x) (ƛ x')
   app : {f t f' t' : X ⊢} →
         Translation R f f' →
         Translation R t t' →
-        Translation R (f · t) (f' · t')
+        TransMatch R (f · t) (f' · t')
   force : {t t' : X ⊢} →
         Translation R t t' →
-        Translation R (force t) (force t')
+        TransMatch R (force t) (force t')
   delay : {t t' : X ⊢} →
         Translation R t t' →
-        Translation R (delay t) (delay t')
-  con : {tc : TmCon} → Translation R {X} (con tc) (con tc)
+        TransMatch R (delay t) (delay t')
+  con : {tc : TmCon} → TransMatch R {X} (con tc) (con tc)
   constr : {xs xs' : List (X ⊢)} { n : ℕ }
                 → Pointwise (Translation R) xs xs'
                   ------------------------
-                → Translation R (constr n xs) (constr n xs')
+                → TransMatch R (constr n xs) (constr n xs')
   case : {p p' : X ⊢} {alts alts' : List (X ⊢)}
                 → Pointwise (Translation R) alts alts' -- recursive translation for the other case patterns
                 → Translation R p p'
                 ------------------------
-                → Translation R (case p alts) (case p' alts')
-  builtin : {b : Builtin} → Translation R {X} (builtin b) (builtin b)
-  error : Translation R {X} error error
+                → TransMatch R (case p alts) (case p' alts')
+  builtin : {b : Builtin} → TransMatch R {X} (builtin b) (builtin b)
+  error : TransMatch R {X} error error
+
+
+data Translation R {X} where
+  istranslation : {ast ast' : X ⊢} → R ast ast' → Translation R ast ast'
+  match : {ast ast' : X ⊢} → TransMatch R ast ast' → Translation R ast ast'
 ```
 For the decision procedure we have the rather dissapointing 110 lines to demonstrate to Agda that,
-having determine that we aren't in the translation pattern, we are in fact, still not in the translation pattern
+having determined that we aren't in the translation pattern, we are in fact, still not in the translation pattern
 for each pair of term types.
 
 ```
 open import Data.Product
 
+untypedIx : {X : Set} → X ⊢ → ℕ
+untypedIx (` x) = 1
+untypedIx (ƛ t) = 2
+untypedIx (t · t₁) = 3
+untypedIx (force t) = 4
+untypedIx (delay t) = 5
+untypedIx (con x) = 6
+untypedIx (constr i xs) = 7
+untypedIx (case t ts) = 8
+untypedIx (builtin b) = 9
+untypedIx error = 10
+
+matchIx : {R : Relation}{X : Set}{{ _ : DecEq X}}{a b : X ⊢} → TransMatch R a b → untypedIx a ≡ untypedIx b
+matchIx var = refl
+matchIx (ƛ x) = refl
+matchIx (app x x₁) = refl
+matchIx (force x) = refl
+matchIx (delay x) = refl
+matchIx con = refl
+matchIx (constr x) = refl
+matchIx (case x x₁) = refl
+matchIx builtin = refl
+matchIx error = refl
+
 translation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
   → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
-  → Binary.Decidable (Translation R {X'})
+  → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
   → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
-  → Binary.Decidable (Pointwise (Translation R {X'}))
-decPointwiseTranslation? isR? [] [] = yes Pointwise.[]
-decPointwiseTranslation? isR? [] (x ∷ ys) = no (λ ())
-decPointwiseTranslation? isR? (x ∷ xs) [] = no (λ ())
+  → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
+decPointwiseTranslation? isR? [] [] = proof Pointwise.[]
+decPointwiseTranslation? {X' = X'} isR? [] (x ∷ ys) = ce {X = List X'} [] (x ∷ ys)
+decPointwiseTranslation? {X' = X'} isR? (x ∷ xs) [] = ce {X' = List X'} (x ∷ xs) []
 decPointwiseTranslation? isR? (x ∷ xs) (y ∷ ys)
     with translation? isR? x y | decPointwiseTranslation? isR? xs ys
-... | yes p | yes q = yes (p Pointwise.∷ q)
-... | yes _ | no ¬q = no λ where (_ Pointwise.∷ xs~ys) → ¬q xs~ys
-... | no ¬p | _     = no λ where (x∼y Pointwise.∷ _) → ¬p x∼y
+... | proof p | proof q = proof (p Pointwise.∷ q)
+... | proof _ | ce before after = ce before after
+... | ce before after | _     = ce before after
 
-translation? {{de}} isR? ast ast' with (isR? ast ast')
-... | yes p = yes (istranslation p)
-translation? isR? (` x) ast' | no ¬p with (` x) ≟ ast'
-... | yes refl = yes var
-... | no ¬x=x = no λ {
-                (istranslation xx) → ¬p xx;
-                var → ¬x=x refl
-                }
-translation? isR? (ƛ ast) (ƛ ast') | no ¬p with translation? isR? ast ast'
-... | yes p = yes (ƛ p)
-... | no ¬pp = no (λ { (istranslation x) → ¬p x ; (ƛ xxx) → ¬pp xxx})
-translation? isR? (ƛ ast) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (ast'' · ast''') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (force ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (delay ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (case ast'' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ƛ ast) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
+translation? {_} ⦃ de ⦄ isR? ast ast' with (untypedIx ast) Data.Nat.≟ (untypedIx ast')
+translation? {X} ⦃ de ⦄ isR? (` x) (` x₁) | yes _ with x ≟ x₁
+... | yes refl = proof (match var)
+... | no x≠x₁ with isR? {X} (` x) (` x₁)
+...                  | yes p = proof (istranslation p)
+...                  | no ¬p = ce (` x) (` x₁)
+translation? {_} ⦃ de ⦄ isR? (ƛ ast) (ƛ ast') | yes _ with translation? isR? ast ast'
+...                  | proof t = proof (match (ƛ t))
+...                  | ce b a with isR? (ƛ ast) (ƛ ast')
+...                               | yes p = proof (istranslation p)
+...                               | no ¬p = ce (ƛ ast) (ƛ ast')
+translation? {_} ⦃ de ⦄ isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? isR? ast ast')
+...                  | ce b a = ce b a
+...                  | proof t with (translation? isR? ast₁ ast₁')
+...                               | proof r = proof (match (app t r))
+...                               | ce b a = ce b a
+translation? {_} ⦃ de ⦄ isR? (force ast) (force ast') | yes _ with translation? isR? ast ast'
+...                  | proof t = proof (match (force t))
+...                  | ce b a with isR? (force ast) (force ast')
+...                               | yes p = proof (istranslation p)
+...                               | no ¬p = ce b a
+translation? {_} ⦃ de ⦄ isR? (delay ast) (delay ast') | yes _ with translation? isR? ast ast'
+...                  | proof t = proof (match (delay t))
+...                  | ce b a with isR? (delay ast) (delay ast')
+...                               | yes p = proof (istranslation p)
+...                               | no ¬p = ce b a
+translation? {X} ⦃ de ⦄ isR? (con x) (con x₁) | yes _ with x ≟ x₁
+...                  | yes refl = proof (match con)
+...                  | no x≠x₁ with isR? {X} (con x) (con x₁)
+...                                   | yes p = proof (istranslation p)
+...                                   | no ¬p = ce {X = X ⊢} {X' = X ⊢} (con x) (con x₁)
+translation? {_} ⦃ de ⦄ isR? (constr i xs) (constr i₁ xs₁) | yes _ with (decToPCE (i ≟ i₁) {constr i xs} {constr i₁ xs₁})
+...                  | ce b a = ce b a
+...                  | proof refl with (decPointwiseTranslation? isR? xs xs₁)
+...                                    | ce b a = ce b a
+...                                    | proof t = proof (match (constr t))
+translation? {_} ⦃ de ⦄ isR? (case ast ts) (case ast' ts₁) | yes _ with (translation? isR? ast ast')
+...                  | ce b a = ce b a
+...                  | proof pa with (decPointwiseTranslation? isR? ts ts₁)
+...                                    | ce b a = ce b a
+...                                    | proof t = proof (match (case t pa))
+translation? {X} ⦃ de ⦄ isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
+... | yes refl = proof (match builtin)
+... | no b≠b₁ with isR? {X} (builtin b) (builtin b₁)
+...                  | yes p = proof (istranslation p)
+...                  | no ¬p = ce {X = X ⊢} {X' = X ⊢} (builtin b) (builtin b₁)
+translation? {_} ⦃ de ⦄ isR? error error | yes _ = proof (match error)
+translation? {_} ⦃ de ⦄ isR? ast ast' | no ast≠ast' with isR? ast ast'
+...                  | yes p = proof (istranslation p)
+...                  | no ¬p = ce ast ast'
 
-translation? isR? (ast · ast₁) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (ast' · ast'') | no ¬p  with (translation? isR? ast ast') ×-dec (translation? isR? ast₁ ast'')
-... | yes (p , q) = yes (app p q)
-... | no ¬ppqq = no λ { (istranslation x) → ¬p x ; (app ppp ppp₁) → ¬ppqq (ppp , ppp₁)}
-translation? isR? (ast · ast₁) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (ast · ast₁) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (force ast) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (force ast') | no ¬p with translation? isR? ast ast'
-... | yes p = yes (force p)
-... | no ¬pp = no λ { (istranslation x) → ¬p x ; (force xxx) → ¬pp xxx }
-translation? isR? (force ast) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (force ast) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (delay ast) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (delay ast') | no ¬p with translation? isR? ast ast'
-... | yes p = yes (delay p)
-... | no ¬pp = no λ { (istranslation x) → ¬p x ; (delay xxx) → ¬pp xxx }
-translation? isR? (delay ast) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (delay ast) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (con x) (` x₁) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (con x₁) | no ¬p with x ≟ x₁
-... | yes refl = yes con
-... | no ¬x≟x₁ = no λ { (istranslation xx) → ¬p xx ; con → ¬x≟x₁ refl }
-translation? isR? (con x) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (con x) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (constr i xs) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (constr i₁ xs₁) | no ¬p with (i ≟ i₁) ×-dec (decPointwiseTranslation? isR? xs xs₁)
-... | yes (refl , pxs) = yes (constr pxs)
-... | no ¬ixs = no λ { (istranslation x) → ¬p x ; (constr x) → ¬ixs (refl , x) }
-translation? isR? (constr i xs) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (constr i xs) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (case ast ts) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) (case ast' ts₁) | no ¬p with (translation? isR? ast ast') ×-dec (decPointwiseTranslation? isR? ts ts₁)
-... | yes ( pa , pts ) = yes (case pts pa)
-... | no ¬papts = no λ { (istranslation x) → ¬p x ; (case x xxx) → ¬papts (xxx , x) }
-translation? isR? (case ast ts) (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (case ast ts) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? (builtin b) (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? (builtin b) (builtin b₁) | no ¬p with b ≟ b₁
-... | yes refl = yes builtin
-... | no ¬b=b₁ = no λ { (istranslation x) → ¬p x ; builtin → ¬b=b₁ refl }
-translation? isR? (builtin b) error | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-
-translation? isR? error (` x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (ƛ ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (ast' · ast'') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (force ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (delay ast') | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (con x) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (constr i xs) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (case ast' ts) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error (builtin b) | no ¬p = no λ { (istranslation x₁) → ¬p x₁ }
-translation? isR? error error | no ¬p = yes error
 ```
 # Relations between Translations
 
@@ -226,20 +188,21 @@ convert-pointwise : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y'
 convert-pointwise f Pointwise.[] = Pointwise.[]
 convert-pointwise {R = R} {S = S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R =  R} {S = S} f p
 
+
 {-# TERMINATING #-}
 convert : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y' : Y ⊢} → R y y' → S y y') → (Translation R {{deX}} x x' → Translation S {{deX}} x x')
 convert f (Translation.istranslation xx') = Translation.istranslation (f xx')
-convert f Translation.var = Translation.var
-convert f (Translation.ƛ xx') = Translation.ƛ (convert f xx')
-convert f (Translation.app xx' xx'') = Translation.app (convert f xx') (convert f xx'')
-convert f (Translation.force xx') = Translation.force (convert f xx')
-convert f (Translation.delay xx') = Translation.delay (convert f xx')
-convert f Translation.con = Translation.con
-convert {R = R} {S = S} f (Translation.constr x) = Translation.constr (convert-pointwise {R = Translation R} {S = Translation S} (convert f) x)
-convert f (case Pointwise.[] xx') = case Pointwise.[] (convert f xx')
-convert {R = R} {S = S} f (case (x∼y Pointwise.∷ x) xx') = Translation.case (convert-pointwise {R = Translation R} {S = Translation S} (convert f) (x∼y Pointwise.∷ x)) (convert f xx')
-convert f Translation.builtin = Translation.builtin
-convert f Translation.error = Translation.error
+convert f (match var) = match var
+convert f (match (ƛ x)) = match (ƛ (convert f x))
+convert f (match (app x x₁)) = match (app (convert f x) (convert f x₁))
+convert f (match (force x)) = match (force (convert f x))
+convert f (match (delay x)) = match (delay (convert f x))
+convert f (match con) = match con
+convert {R = R} {S = S} f (match (constr x)) = match (constr (convert-pointwise {R = Translation R} {S = Translation S} (convert f) x))
+convert f (match (case Pointwise.[] xx')) = match (case Pointwise.[] (convert f xx'))
+convert {R = R} {S = S} f (match (case (x∼y Pointwise.∷ x) x₁)) = match (case (convert-pointwise {R = Translation R} {S = Translation S} (convert f) (x∼y Pointwise.∷ x)) (convert f x₁))
+convert f (match builtin) = match builtin
+convert f (match error) = match error
 
 pointwise-reflexive : (∀ {X : Set} {{deX : DecEq X}} {x : X ⊢} → Translation R {{deX}} x x) → (∀ {X : Set} {{deX : DecEq X}} {xs : List (X ⊢)} → Pointwise (Translation R {{deX}}) xs xs)
 pointwise-reflexive f {xs = List.[]} = Pointwise.[]
@@ -247,14 +210,15 @@ pointwise-reflexive f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive
 
 {-# TERMINATING #-}
 reflexive : {{deX : DecEq X}} → Translation R {{deX}} x x
-reflexive {x = ` x} = var
-reflexive {x = ƛ x} = ƛ reflexive
-reflexive {x = x · x₁} = app reflexive reflexive
-reflexive {x = force x} = force reflexive
-reflexive {x = delay x} = delay reflexive
-reflexive {x = con x} = con
-reflexive {x = constr i xs} = constr (pointwise-reflexive reflexive)
-reflexive {x = case x ts} = case (pointwise-reflexive reflexive) reflexive
-reflexive {x = builtin b} = builtin
-reflexive {x = error} = error
+reflexive {x = ` x} = match var
+reflexive {x = ƛ x} = match (ƛ reflexive)
+reflexive {x = x · x₁} = match (app reflexive reflexive)
+reflexive {x = force x} = match (force reflexive)
+reflexive {x = delay x} = match (delay reflexive)
+reflexive {x = con x} = match con
+reflexive {x = constr i xs} = match (constr (pointwise-reflexive reflexive))
+reflexive {x = case x ts} = match (case (pointwise-reflexive reflexive) reflexive)
+reflexive {x = builtin b} = match builtin
+reflexive {x = error} = match error
+
 ```
