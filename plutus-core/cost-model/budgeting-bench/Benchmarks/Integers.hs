@@ -57,8 +57,8 @@ benchExpModInteger _gen =
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
      (fmap (\n -> n) inputs)
-     (fmap (\n -> n) inputs)
---     (fmap (\n -> (pow 2 1000)*n) inputs)
+--     (fmap (\n -> n) inputs)
+     (fmap (\n -> (pow 2 1000)*n) inputs)
      moduli
 
 makeBenchmarks :: StdGen -> [Benchmark]
