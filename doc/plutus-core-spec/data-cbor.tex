@@ -26,7 +26,7 @@ the CBOR standard~\cite{rfc8949-CBOR}, but with some refinements. Specifically
   bytes long.  Any encoding of a bytestring using our scheme is valid according
   to the CBOR specification, but the CBOR specification permits some encodings
   which we do not accept. The purpose of the size restriction is to prevent
-  arbitrary data from bring stored on the blockchain.
+  arbitrary data from being stored on the blockchain.
 \item Large integers (less than $-2^{64}$ or greater than $2^{64}-1$) are
   encoded via the restricted bytestring encoding; other integers are encoded as
   normal. Again, our restricted encodings are compatible with the CBOR
