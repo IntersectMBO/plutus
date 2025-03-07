@@ -182,7 +182,6 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 mkSimplPass :: GHC.DynFlags -> GHC.CoreToDo
 mkSimplPass dflags =
   -- See Note [Making sure unfoldings are present]
-  -- Changed in 9.6
   GHC.CoreDoSimplify $ GHC.SimplifyOpts
     { GHC.so_dump_core_sizes = False
     , GHC.so_iterations = 1
