@@ -167,11 +167,9 @@ benchCaseData =
                [ bgroup "1"
                  [ bgroup "1"
                    [ bgroup "1"
-                     [ bgroup "1"
-                       [ benchDefault
-                         (showMemoryUsage d)
-                         (mkApp6' name [unit] caseConstr caseMap caseList caseI caseB d)
-                       ]
+                     [ benchDefault
+                       (showMemoryUsage d)
+                       (mkApp6' name [unit] caseConstr caseMap caseList caseI caseB d)
                      ]
                    ]
                  ]
