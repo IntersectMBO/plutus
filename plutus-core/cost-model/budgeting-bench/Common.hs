@@ -99,6 +99,11 @@ integer = mkTyBuiltin @_ @Integer ()
 bytestring :: uni `HasTypeLevel` BS.ByteString => Type TyName uni ()
 bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
+unit :: uni `HasTypeLevel` () => Type TyName uni ()
+unit = mkTyBuiltin @_ @() ()
+
+list :: uni `HasTypeLevel` [] => Type TyName uni () -> Type TyName uni ()
+list t = TyApp () (mkTyBuiltin @_ @[] ()) t
 
 -- To make monomorphic terms, make tys equal to [] in the mkApp functions
 

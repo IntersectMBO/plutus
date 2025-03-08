@@ -133,6 +133,23 @@ benchSerialiseData =
     -- does the internal structure of a Data object influence serialisation
     -- time?  What causes a Data object to be quick or slow to serialise?
 
+{-
+benchCaseData :: Benchmark
+benchCaseData =
+  let _name = CaseData
+  {- benchmark
+   caseData
+   (lam x (lam y (con unit ())))
+   (lam x (con unit ()))
+   (lam x (con unit ()))
+   (lam x (con unit ()))
+   (lam x (con unit ()))
+  d
+  -- Should be Six
+  -}
+  in undefined
+-}
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
     [ benchChooseData

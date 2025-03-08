@@ -1,14 +1,22 @@
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
+
 module Benchmarks.Lists (makeBenchmarks) where
 
 import Common
 import Generators
 
 import PlutusCore
+import PlutusCore.Compiler.Erase (eraseTerm)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
+import Control.DeepSeq (force)
 import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+                                                    ListCostedByLength (..))
 import System.Random (StdGen, randomR)
 
 
@@ -119,6 +127,35 @@ benchDropList gen =
     in createTwoTermBuiltinBenchElementwiseWithWrappers
            (IntegerCostedLiterally, id) name [bytestring] inputs
 
+benchCaseList :: StdGen -> Benchmark
+benchCaseList gen =
+    let name = CaseList
+        y = Name "y" (Unique 1)
+        ys = Name "ys" (Unique 2)
+        mkCase1 ty = LamAbs () y ty (mkConstant () ())  -- lam x ()
+        mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ())) -- lam x (lam xs ())
+        -- Two different types of inputs, just to make sure there's no difference
+        intInputs = take 100 $ intLists gen
+        bsInputs  = take 100 $ byteStringLists seedA
+        mkApp3' !fun !tys term1 term2 (force -> !z) =
+          eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () z]
+          where instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+        mkBMs ty inputs =
+          let case1 = mkCase1 ty
+              case2 = mkCase2 ty
+          in [ bgroup "1"
+               [ bgroup "1"
+                 [ benchDefault
+                   (showMemoryUsage $ ListCostedByLength x)
+                   (mkApp3' name [ty, unit] case1 case2 x)
+                 ]
+               ]
+             | x <- inputs ]
+    in bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
+
+  -- benchmark caseList (con unit ()) (lam x (lam y (con unit ()))) l
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ benchChooseList gen
                      , benchMkCons gen
@@ -126,4 +163,5 @@ makeBenchmarks gen = [ benchChooseList gen
                      , benchNonEmptyList gen TailList
                      , benchNullList gen
                      , benchDropList gen
+                     , benchCaseList gen
                      ]
