@@ -1,46 +1,82 @@
-{ repoRoot, inputs, pkgs, system, lib }:
-
-cabalProject:
+{ inputs, pkgs, lib, project, agda-with-stdlib, r-with-packages }:
 
 let
 
-  # We need some environment variables from the various ocaml and coq pacakges
-  # that the certifier code needs.
-  # Devshell doesn't run setup hooks from other packages, so just extract
-  # the correct values of the environment variables from the haskell.nix
-  # shell and use those.
-  certEnv = pkgs.runCommand "cert-env"
-    {
-      nativeBuildInputs = cabalProject.shell.nativeBuildInputs;
-      buildInputs = cabalProject.shell.buildInputs;
-    }
-    ''
-      echo "export COQPATH=$COQPATH" >> $out
-      echo "export OCAMLPATH=$OCAMLPATH" >> $out
-      echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
-      echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
-    '';
+  tools = project.tools {
+    # "latest" cabal would be 3.14.1.0 which breaks haddock generation.
+    # TODO update cabal version once haddock generation is fixed upstream.
+    cabal = "3.12.1.0";
+    cabal-fmt = "latest";
+    haskell-language-server = "latest";
+    fourmolu = "latest";
+    hlint = "latest";
+    stylish-haskell = "latest";
+  };
 
+  pre-commit-check = inputs.pre-commit-hooks.lib.${pkgs.system}.run {
+    src = ../.;
+    hooks = {
+      nixpkgs-fmt = {
+        enable = true;
+        package = pkgs.nixpkgs-fmt;
+      };
+      cabal-fmt = {
+        enable = true;
+        package = tools.cabal-fmt;
+      };
+      stylish-haskell = {
+        enable = true;
+        package = tools.stylish-haskell;
+        args = [ "--config" ".stylish-haskell.yaml" ];
+      };
+      fourmolu = {
+        enable = false;
+        package = tools.fourmolu;
+        args = [ "--mode" "inplace" ];
+      };
+      hlint = {
+        enable = false;
+        package = tools.hlint;
+        args = [ "--hint" ".hlint.yaml" ];
+      };
+      shellcheck = {
+        enable = false;
+        package = pkgs.shellcheck;
+      };
+      prettier = {
+        enable = false;
+        package = pkgs.prettier;
+      };
+      editorconfig-checker = {
+        enable = true;
+        args = [ "-config" ".editorconfig" ];
+        package = pkgs.editorconfig-checker;
+      };
+    };
+  };
 
-  # Underlying benchmarking library used by plutus-benchmark and tasty-papi
-  papi-pkgs = lib.optional pkgs.hostPlatform.isLinux pkgs.papi;
+  linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
+    pkgs.papi
+  ];
 
+  common-pkgs = [
+    agda-with-stdlib
+    r-with-packages
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
 
-  all-pkgs = [
-    repoRoot.nix.agda.agda-with-stdlib
+    tools.haskell-language-server
+    tools.stylish-haskell
+    tools.fourmolu
+    tools.cabal
+    tools.hlint
+    tools.cabal-fmt
 
-    # R environment
-    repoRoot.nix.r-with-packages
-    pkgs.R
-
-    # LaTeX environment
     pkgs.texliveFull
-
-    # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
     pkgs.plantuml
     pkgs.jq
     pkgs.yq
+    pkgs.github-cli
     pkgs.gnused
     pkgs.awscli2
     pkgs.act
@@ -49,74 +85,53 @@ let
     pkgs.scriv
     pkgs.fswatch
     pkgs.yarn
-
-    # This is used to get `taskset` for ./scripts/ci-plutus-benchmark.sh, but
-    # it's not available on macOS.
-    pkgs.util-linux
-
-    # TODO lickcheker is broke in nixpkgs-usnstable, remove this when it's fixed
-    # pkgs.linkchecker
-    inputs.nixpkgs-2405.legacyPackages.linkchecker
-
-    # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
     pkgs.upx
-
-    # Needed for the cabal CLI to download under https
     pkgs.curl
-
-    # Node JS
+    pkgs.bash
+    pkgs.git
+    pkgs.which
     pkgs.nodejs_20
   ];
 
+  locale-archive-hook =
+    lib.optionalString (pkgs.stdenv.hostPlatform.libc == "glibc")
+      "export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive";
+
+  full-shell = project.shellFor {
+    name = "plutus-shell-${project.args.compiler-nix-name}";
+
+    buildInputs = lib.concatLists [
+      common-pkgs
+      linux-pkgs
+      pre-commit-check.enabledPackages
+    ];
+
+    withHoogle = true;
+
+    shellHook = ''
+      ${pre-commit-check.shellHook}
+      ${locale-archive-hook}
+      export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
+      echo -e "\n🤟 Welcome to Plutus 🤟"
+    '';
+  };
+
+
+  quick-shell = project.shellFor {
+    name = "plutus-shell-${project.args.compiler-nix-name}";
+    tools = { cabal = "latest"; };
+  };
+
+
+  shell = {
+    ghc8107 = quick-shell;
+    ghc966 = full-shell;
+    ghc984 = quick-shell;
+    ghc9101 = quick-shell;
+  }.${project.args.compiler-nix-name};
+
 in
 
-{
-  name = "plutus";
-
-
-  welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
-
-
-  packages = lib.concatLists [ all-pkgs papi-pkgs ];
-
-
-  scripts.assemble-changelog = {
-    description = "Assembles the changelog for PACKAGE at VERSION";
-    exec = repoRoot.scripts."assemble-changelog.sh";
-    group = "changelog";
-  };
-
-
-  scripts.prepare-release = {
-    description = "Prepares to release PACKAGEs at VERSION";
-    exec = repoRoot.scripts."prepare-release.sh";
-    group = "changelog";
-  };
-
-
-  scripts.update-version = {
-    description = "Updates the version for PACKAGE to VERSION";
-    exec = repoRoot.scripts."update-version.sh";
-    group = "changelog";
-  };
-
-
-  shellHook = ''
-    ${builtins.readFile certEnv}
-    ${repoRoot.nix.agda.shell-hook-exports}
-  '';
-
-
-  preCommit = {
-    stylish-haskell.enable = true;
-    cabal-fmt.enable = true;
-    shellcheck.enable = false;
-    editorconfig-checker.enable = true;
-    nixpkgs-fmt.enable = true;
-    optipng.enable = true;
-    # fourmolu.enable = true;
-    hlint.enable = false;
-  };
-}
+shell

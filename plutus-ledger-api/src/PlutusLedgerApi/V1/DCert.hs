@@ -16,7 +16,6 @@ module PlutusLedgerApi.V1.DCert
     ) where
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
@@ -71,7 +70,7 @@ data DCert
     DCertGenesis
   | -- | Another really terse Digest
     DCertMir
-    deriving stock (Eq, Ord, Show, Generic, Typeable)
+    deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData, HasBlueprintDefinition)
     deriving Pretty via (PrettyShow DCert)
 

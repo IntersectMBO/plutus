@@ -238,6 +238,12 @@ builtinNames = [
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
+    , 'Builtins.drop
+
+    , ''Builtins.BuiltinArray
+    , 'Builtins.lengthOfArray
+    , 'Builtins.listToArray
+    , 'Builtins.indexArray
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
@@ -459,6 +465,12 @@ defineBuiltinTerms = do
             PLC.MkNilData -> defineBuiltinInl 'Builtins.mkNilData
             PLC.MkNilPairData -> defineBuiltinInl 'Builtins.mkNilPairData
             PLC.MkCons -> defineBuiltinInl 'Builtins.mkCons
+            PLC.DropList -> defineBuiltinInl 'Builtins.drop
+
+            -- Arrays
+            PLC.LengthOfArray -> defineBuiltinInl 'Builtins.lengthOfArray
+            PLC.ListToArray -> defineBuiltinInl 'Builtins.listToArray
+            PLC.IndexArray -> defineBuiltinInl 'Builtins.indexArray
 
             -- Data
             PLC.ChooseData -> defineBuiltinInl 'Builtins.chooseData
@@ -597,9 +609,7 @@ defineBuiltinTerms = do
 
             PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
 
-defineBuiltinTypes
-    :: CompilingDefault uni fun m ann
-    => m ()
+defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinByteString . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BS.ByteString
     defineBuiltinType ''Integer . ($> annMayInline) $ PLC.toTypeAst $ Proxy @Integer
@@ -609,6 +619,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinData . ($> annMayInline) $ PLC.toTypeAst $ Proxy @PLC.Data
     defineBuiltinType ''Builtins.BuiltinPair . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
     defineBuiltinType ''Builtins.BuiltinList . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
+    defineBuiltinType ''Builtins.BuiltinArray . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoArray)
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G1_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G1.Element
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G2_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G2.Element
     defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.Pairing.MlResult
@@ -617,7 +628,7 @@ defineBuiltinTypes = do
 lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
     ghcName <- lookupGhcName name
-    maybeTerm <- PIR.lookupTerm annMayInline (LexName ghcName)
+    maybeTerm <- PIR.lookupTerm (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)

@@ -30,7 +30,7 @@ test_names :: TestTree
 test_names = testGroup "names"
     [ T.test_scopingGood "beta-reduction" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . beta
-    , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+    , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalOk T.PrerenameYes $
         pure . caseReduce
     , T.test_scopingGood "commuteFnWithConst" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . commuteFnWithConst
@@ -46,7 +46,7 @@ test_names = testGroup "names"
       -- promises) due to the lack of marking in it (or initial renaming of the entire program,
       -- which would perform marking too).
       T.test_scopingBad "inlining" genTerm T.BindingRemovalOk T.PrerenameYes $
-        Inline.inline True mempty def
+        Inline.inline True def def
     , T.test_scopingGood
         "match-against-known-constructor"
         genTerm

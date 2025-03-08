@@ -1,6 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -27,6 +26,8 @@ import Data.ByteString qualified as BS
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Data.Word (Word8)
 import GHC.Natural
 import Hedgehog hiding (Opaque, Var, eval)
@@ -119,6 +120,10 @@ genConstant tr
     , Just HRefl <- eqTypeRep trList' (typeRep @ListCostedByLength) =
         case genConstant trElem of
           SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
+    | trArray `App` trElem <- tr
+    , Just HRefl <- eqTypeRep trArray (typeRep @Vector) =
+        case genConstant trElem of
+          SomeGen genElem -> SomeGen $ fmap Vector.fromList $ Gen.list (Range.linear 0 10) genElem
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl

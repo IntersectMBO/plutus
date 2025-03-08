@@ -19,10 +19,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Data.Int (Int64)
 import Data.Map qualified as Map
 import Data.Maybe
+import GHC.Stack (HasCallStack)
 
 -- | Example values of costs for @PlutusV3@, in expected ledger order.
 -- Suitable to be used in testing.
-costModelParamsForTesting :: [(V3.ParamName, Int64)]
+costModelParamsForTesting :: HasCallStack => [(V3.ParamName, Int64)]
 costModelParamsForTesting = Map.toList $ fromJust $
     Common.extractCostModelParamsLedgerOrder mCostModel
 
@@ -30,7 +31,7 @@ costModelParamsForTesting = Map.toList $ fromJust $
 mCostModel :: MCostModel
 mCostModel =
     -- nothing to clear because v4 does not exist (yet).
-    (toMCostModel defaultCekCostModelForTesting) & builtinCostModel %~ clearBuiltinCostModel'
+    toMCostModel defaultCekCostModelForTesting & builtinCostModel %~ clearBuiltinCostModel'
 
 {- | Assign to `mempty` those CEK constructs that @PlutusV3@ introduces (indirectly by introducing
 a ledger language version with those CEK constructs).
@@ -85,6 +86,10 @@ clearBuiltinCostModel r = r
                , paramFindFirstSetBit = mempty
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
+               , paramDropList = mempty
+               , paramLengthOfArray = mempty
+               , paramListToArray = mempty
+               , paramIndexArray = mempty
                }
 
 
@@ -93,6 +98,7 @@ clearBuiltinCostModel r = r
 clearBuiltinCostModel' :: (m ~ MBuiltinCostModel) => m -> m
 clearBuiltinCostModel' r = r
                { -- , paramIntegerToByteString = mempty -- Required for V2
-               -- , paramByteStringToInteger = mempty -- Required for V2
+                 -- , paramByteStringToInteger = mempty -- Required for V2
                  paramExpModInteger = mempty
+               , paramDropList = mempty
                }

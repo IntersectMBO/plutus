@@ -20,11 +20,11 @@ She would like to create and deploy an auction smart contract with the following
 - once a new bid is made, the previous highest bid (if exists) is immediately refunded
 - there is a deadline for placing bids; once the deadline has passed, new bids are no longer accepted, the asset can be transferred to the highest bidder (or to the seller if there are no bids), and the highest bid (if exists) can be transferred to the seller.
 
-# Plutus Tx Code
+# Plinth Code
 
-Plutus Tx is a subset of Haskell, used to write on-chain code, also known as validators or scripts.
-A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plutus Tx code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plutus-tx-template/blob/main/src/AuctionValidator.hs).
+Plinth is a subset of Haskell, used to write on-chain code, also known as validators or scripts.
+A Plinth program is compiled into Plutus Core, which is interpreted on-chain.
+The full Plinth code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plinth-template/blob/main/src/AuctionValidator.hs).
 
 <!-- will need to update the link and file location for the new docs platform implementation -->
 
@@ -36,7 +36,7 @@ First, let's define the following data types and instances for the validator:
 
 The purpose of `makeLift` and `makeIsDataSchemaIndexed` will be explained later.
 
-Writing a Plutus Tx validator script for a smart contract often involves the following data types:
+Writing a Plinth validator script for a smart contract often involves the following data types:
 
 ### 1. Contract parameters
 
@@ -62,12 +62,11 @@ This type contains the information of the transaction that the validator can ins
 In our example, our validator verifies several conditions of the transaction; e.g., if it is a new bid, then it must be submitted before the auction's end time; the previous highest bid must be refunded to the previous bidder, etc.
 
 Different [ledger language versions](../working-with-scripts/ledger-language-version.md) use different script context types.
-In this example we are writing a Plutus V2 scripts, so we import the `ScriptContext` data type from `PlutusLedgerApi.V2.Contexts`.
-It can be easily adapted for Plutus V1 or V3.
+In this example we are writing a Plutus V3 scripts, so we import the `ScriptContext` data type from `PlutusLedgerApi.V3.Contexts`.
 
 > :pushpin: **NOTE**
 >
-> When writing a Plutus validator using Plutus Tx, it is advisable to turn off Haskell's `Prelude`.
+> When writing a Plutus validator using Plinth, it is advisable to turn off Haskell's `Prelude`. One way of doing it is the GHC extension `NoImplicitPrelude` enabled in the module header.
 > Usage of most functions and methods in `Prelude` should be replaced by their counterparts in the `plutus-tx` library, e.g., instead of the `==` from `base`, use `PlutusTx.Eq.==`.
 
 ## Main Validator Function
@@ -103,7 +102,7 @@ On the other hand, by using the `txInfoValidRange` interval, the same interval i
 If the current time when the transaction is validated is outside of the interval, the transaction is rejected immediately without running the script.
 
 Also note the tilde (`~`) in `~validBidTime = ...`.
-When writing Plutus Tx it is [advisable](../using-plutus-tx/compiling-plutus-tx.md) to turn on the `Strict` extension, which generally improves script performance.
+When writing Plinth it is [advisable](../using-plinth/compiling-plinth.md) to turn on the `Strict` extension, which generally improves script performance.
 Doing so makes all bindings strict, which means, in this particular case, without the `~`, `validBidTime` would be evaluated even if the redeemer matches the `Payout` case, which doesn't need this condition.
 Doing so results in unnecessary work or even unexpected evaluation failures.
 The `~` makes `validBidTime` non-strict, i.e., only evaluated when used.
@@ -137,13 +136,13 @@ These conditions are similar to the ones already explained, so their details are
 
 ### Compiling the validator
 
-Finally, we need to compile the validator written in Plutus Tx into Plutus Core, using the Plutus Tx compiler:
+Finally, we need to compile the validator written in Plinth into Plutus Core, using the Plinth compiler:
 
 <LiteralInclude file="AuctionValidator.hs" language="haskell" title="Compiling the validator" start="-- BLOCK8" end="-- BLOCK9" />
 
-The type of a compiled Plutus V2 spending validator should be `CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)`, as explained in [Plutus Ledger Language Version](../working-with-scripts/ledger-language-version.md).
+The type of a compiled Plutus V3 spending validator should be `CompiledCode (BuiltinData -> BuiltinUnit)`, as explained in [Plutus Ledger Language Version](../working-with-scripts/ledger-language-version.md).
 The call to `PlutusTx.unsafeFromBuiltinData` is the reason we need the `PlutusTx.unstableMakeIsData` shown before, which derives `UnsafeFromData` instances.
-And instead of returning a `Bool`, it simply returns `()`, and the validation succeeds if the script evaluates without error.
+And instead of returning a `Bool`, it returns `BuiltinUnit`, and the validation succeeds if the script evaluates without error.
 
 Note that `AuctionParams` is _not_ an argument of the compiled validator.
 `AuctionParams` contains contract properties that don't change, so it is simply built into the validator by partial application.
@@ -153,5 +152,5 @@ The partial application is done via `PlutusTx.unsafeApplyCode`.
 >
 > It is worth noting that we must call `PlutusTx.compile` on the entire `auctionUntypedValidator`, rather than applying it to `params` before compiling, as in `$$(PlutusTx.compile [||auctionUntypedValidator params||])`.
 > The latter won't work, because everything being compiled (inside `[||...||]`) must be known at compile time, but we won't be able to access `params` until runtime.
-> Instead, once we have the `params` at runtime, we use `liftCode` to lift it into a Plutus Core term before calling `unsafeApplyCode`.
+> Instead, once we have the `params` value at runtime, we use `liftCodeDef` or `liftCode` to lift it into a Plutus Core term before calling `unsafeApplyCode`.
 > This is the reason why we need the `Lift` instance for `AuctionParams`, derived via `PlutusTx.makeLift`.

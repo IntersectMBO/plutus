@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.37.0.0
+version:         1.42.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -49,6 +49,7 @@ library
     PlutusTx
     PlutusTx.Applicative
     PlutusTx.AsData
+    PlutusTx.AsData.Internal
     PlutusTx.AssocMap
     PlutusTx.Base
     PlutusTx.Blueprint
@@ -84,6 +85,7 @@ library
     PlutusTx.Eq
     PlutusTx.ErrorCodes
     PlutusTx.Foldable
+    PlutusTx.Function
     PlutusTx.Functor
     PlutusTx.Integer
     PlutusTx.IsData
@@ -95,6 +97,8 @@ library
     PlutusTx.Maybe
     PlutusTx.Monoid
     PlutusTx.Numeric
+    PlutusTx.Optimize.Inline
+    PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
@@ -133,7 +137,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.37
+    , plutus-core            ^>=1.42
     , plutus-core:plutus-ir
     , prettyprinter
     , serialise
@@ -141,6 +145,7 @@ library
     , text
     , th-abstraction
     , th-compat
+    , vector                 ^>=0.13.2
 
   default-extensions: Strict
 
@@ -167,10 +172,10 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.37
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.37
+    , plutus-tx                        ^>=1.42
     , prettyprinter
     , tagged
     , tasty
@@ -217,9 +222,9 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.37
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.37
+    , plutus-tx                        ^>=1.42
     , pretty-show
     , serialise
     , tasty

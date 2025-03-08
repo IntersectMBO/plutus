@@ -48,4 +48,4 @@ A simple script would be one that checks whether the spending transaction is sig
 This would mirror the functionality of simple public key outputs.
 However, scripts allow us to implement a wide range of useful logic on the blockchain.
 
-To learn more about writing scripts, see [Using Plutus Tx](../category/using-plutus-tx) and [Working with scripts](../category/working-with-scripts).
+To learn more about writing scripts, see [Using Plinth](../category/using-plinth) and [Working with scripts](../category/working-with-scripts).

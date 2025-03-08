@@ -865,6 +865,26 @@
         ]
       }
     },
+    "Map_Integer_Bool": {
+      "dataType": "map",
+      "keys": {
+        "dataType": "integer"
+      },
+      "values": {
+        "oneOf": [
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 0
+          },
+          {
+            "dataType": "constructor",
+            "fields": [],
+            "index": 1
+          }
+        ]
+      }
+    },
     "Map_ScriptPurpose_Redeemer": {
       "dataType": "map",
       "keys": {
@@ -1093,6 +1113,22 @@
         }
       ]
     },
+    "MintValue": {
+      "title": "MintValue",
+      "dataType": "map",
+      "keys": {
+        "$ref": "#/definitions/CurrencySymbol"
+      },
+      "values": {
+        "dataType": "map",
+        "keys": {
+          "$ref": "#/definitions/TokenName"
+        },
+        "values": {
+          "$ref": "#/definitions/Integer"
+        }
+      }
+    },
     "MyParams": {
       "title": "Title for the MyParams definition",
       "description": "Description for the MyParams definition",
@@ -1103,6 +1139,9 @@
         },
         {
           "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Map_Integer_Bool"
         },
         {
           "$ref": "#/definitions/DCert"
@@ -1670,7 +1709,7 @@
           "$ref": "#/definitions/Lovelace"
         },
         {
-          "$ref": "#/definitions/Value"
+          "$ref": "#/definitions/MintValue"
         },
         {
           "$ref": "#/definitions/List_TxCert"

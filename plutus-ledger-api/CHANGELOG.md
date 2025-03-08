@@ -1,4 +1,24 @@
 
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Changed
+
+-
+- Remove un-needed dervied Typeable instances.
+
+<a id='changelog-1.39.0.0'></a>
+# 1.39.0.0 — 2024-12-20
+
+## Added
+
+- New data-backed versions of multiple modules in the ledger-api. These can be found in the `.../Data/` directories.
+
+## Changed
+
+- The `ScriptContext` types (`V1`, `V2` and `V3`) are now fully data-backed, meaning that all types contained in the data-backed version of the `ScriptContext` are also data-backed, except `Maybe` and `Bool`.
+- In the case of the `V1` script context, in addition to `Maybe` and `Bool`, the pair type `(,)` is also kept as a SoP.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 

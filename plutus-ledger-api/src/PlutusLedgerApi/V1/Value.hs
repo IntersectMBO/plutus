@@ -65,7 +65,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import Data.Function ((&))
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -267,7 +267,7 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
  -}
 newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
-    deriving stock (Generic, Data, Typeable, Haskell.Show)
+    deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
@@ -596,7 +596,7 @@ eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) 
 {-# INLINABLE eq #-}
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow Lovelace)
   deriving anyclass (HasBlueprintDefinition)
   deriving newtype

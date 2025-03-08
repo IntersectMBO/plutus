@@ -18,7 +18,7 @@ Most of the `test-vector-*` test case have been generated using `OpenSSL
       DER-encoded binary form.  The ECDSA algorithm involves a random number `k`
       which is generated anew for each signature, and each value of `k` produces
       a different signature, so repeating this step will (with very high
-      probabilty) generate a different signature every time: all of these are
+      probability) generate a different signature every time: all of these are
       valid signatures for the given keypair and message.
       
    5. Look at the contents of `sig.txt` using `dumpasn1 sig.txt`.  This will produce output similar

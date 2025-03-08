@@ -20,7 +20,6 @@ module PlutusLedgerApi.V1.Address
   ) where
 
 import Control.DeepSeq (NFData)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
@@ -39,7 +38,7 @@ data Address = Address
   , addressStakingCredential :: Maybe StakingCredential
   -- ^ the staking credential
   }
-  deriving stock (Eq, Ord, Show, Generic, Typeable)
+  deriving stock (Eq, Ord, Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance Pretty Address where

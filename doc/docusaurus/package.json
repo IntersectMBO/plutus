@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "docusaurus build --no-minify",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -31,7 +31,11 @@
   },
   "resolutions": {
     "cheerio": "1.0.0-rc.12",
-    "cross-spawn": "7.0.5"
+    "cross-spawn": "7.0.5",
+    "nanoid": "3.3.8",
+    "path-to-regexp": "3.3.0",
+    "katex": "0.16.21",
+    "dompurify": "3.2.4"
   },
   "browserslist": {
     "production": [

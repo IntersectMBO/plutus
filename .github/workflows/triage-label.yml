@@ -1,4 +1,4 @@
-# Whenever a new issue is opened, this job adds the "status: needs triage" 
+# Whenever a new issue is opened, this workflow adds the "status: needs triage" 
 # label, unless the issue already has one of the INTERNAL_LABELS.
   
 name: "🏷️ Triage Label"

@@ -56,6 +56,7 @@ monoData = testNested "monomorphic" [
   , goldenPirReadable "recordWithStrictField" recordWithStrictField
   , goldenPirReadable "unusedWrapper" unusedWrapper
   , goldenPirReadable "nonValueCase" nonValueCase
+  , goldenPirReadable "stakingCredential" stakingCredential
   , goldenPirReadable "strictDataMatch" strictDataMatch
   , goldenPirReadable "synonym" synonym
   ]
@@ -156,6 +157,16 @@ unusedWrapper = plc (Proxy @"unusedWrapper") ((\x (y, z) -> x (z, y)) mkT (1, 2)
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Integer)
 nonValueCase = plc (Proxy @"nonValueCase") (\(x :: MyEnum) -> case x of { Enum1 -> 1::Integer ; Enum2 -> Builtins.error (); })
+
+data Credential
+  = PubKeyCredential
+data StakingCredential
+  = StakingHash Credential
+  | StakingPtr
+
+-- | Check that a data type used in an unused constructor of a used data type doesn't get eliminated.
+stakingCredential :: CompiledCode StakingCredential
+stakingCredential = plc (Proxy @"StakingCredential") StakingPtr
 
 -- Bang patterns on data types do nothing: fields are already strict
 data StrictTy a = StrictTy !a !a

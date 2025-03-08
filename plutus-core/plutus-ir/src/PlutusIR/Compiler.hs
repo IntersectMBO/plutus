@@ -30,6 +30,8 @@ module PlutusIR.Compiler (
     coDoSimplifierStrictifyBindings,
     coDoSimplifierRewrite,
     coDoSimplifierKnownCon,
+    coInlineConstants,
+    coInlineFix,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,

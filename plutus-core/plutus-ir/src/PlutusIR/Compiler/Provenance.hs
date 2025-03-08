@@ -8,6 +8,7 @@ module PlutusIR.Compiler.Provenance where
 
 import PlutusIR
 
+import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
 
 import Data.Hashable
@@ -47,6 +48,11 @@ instance Ord a => Monoid (Provenance a) where
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
 noProvenance = MultipleSources S.empty
+
+instance AnnInline a => AnnInline (Provenance a) where
+    annAlwaysInline = Original annAlwaysInline
+    annSafeToInline = Original annSafeToInline
+    annMayInline = Original annMayInline
 
 data DatatypeComponent = Constructor
                        | ConstructorType

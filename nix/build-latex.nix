@@ -1,4 +1,4 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ pkgs }:
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]
@@ -17,8 +17,8 @@ let
   filteredAttrs = builtins.removeAttrs attrs [ "texInputs" ];
 
   buildDir = ".nix-build";
-in
 
+in
 pkgs.stdenv.mkDerivation (filteredAttrs // {
 
   buildInputs = [ tex ] ++ buildInputs;

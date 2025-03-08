@@ -12,6 +12,7 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 
+import Control.Lens (view)
 import Control.Monad
 import Control.Monad.Error.Lens
 import Control.Monad.Trans
@@ -20,6 +21,7 @@ import Data.List.NonEmpty hiding (length)
 import Data.Set qualified as Set
 
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as Function
@@ -88,16 +90,19 @@ mkFixpoint bs = do
             Just fun -> pure fun
             Nothing  -> lift $ throwing _Error $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
 
+    inlineFix <- view (ccOpts . coInlineConstants)
+
     -- See Note [Extra definitions while compiling let-bindings]
     let
         arity = fromIntegral $ length funs
         fixByKey = FixBy
         fixNKey = FixpointCombinator arity
+        ann = if inlineFix then annAlwaysInline else annMayInline
 
     let mkFixByDef = do
           name <- liftQuote $ toProgramName fixByKey
           let (fixByTerm, fixByType) = Function.fixByAndType
-          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
+          pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
 
     let mkFixNDef = do
           name <- liftQuote $ toProgramName fixNKey
@@ -106,10 +111,10 @@ mkFixpoint bs = do
                   then pure (Function.fixAndType, mempty)
                   -- fixN depends on fixBy
                   else do
-                      fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
+                      fixBy <- lookupOrDefineTerm fixByKey mkFixByDef
                       pure (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
-          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
-    fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
+          pure (PLC.Def (PLC.VarDecl ann name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
+    fixN <- lookupOrDefineTerm fixNKey mkFixNDef
 
     liftQuote $ case funs of
         -- Takes a list of function defs and function bodies and turns them into a Scott-encoded tuple, which

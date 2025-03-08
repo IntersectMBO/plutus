@@ -10,7 +10,9 @@ import Distribution.Types.BuildInfo qualified as D
 import Distribution.Types.ComponentLocalBuildInfo qualified as D
 import Distribution.Types.LocalBuildInfo qualified as D
 import Distribution.Verbosity qualified as D
-
+#if MIN_VERSION_Cabal(3,14,1)
+import Distribution.Utils.Path qualified as D
+#endif
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -38,7 +40,7 @@ that level of granularity in our choice of agda compilation. Instead, we invoke 
 on the entire source tree, and only once, using src/Main.ladga as our compilation target.
 
 Again if more than one .lagda.md file was modified, and we run cabal build, we only need to
-invoke agda once, with all subsequent invokations being noops, but still kind of slow.
+invoke agda once, with all subsequent invocations being noops, but still kind of slow.
 This is why we use the agdaProgramStatus IORef: to cut down compilation times.
 
 Finally, the order in which the modules are listed in exposed-modules matters a lot!
@@ -111,11 +113,19 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
     runAgda :: D.Verbosity -> IO ()
     runAgda verb =
       D.runProgram verb agdaProgram
-        [ "--compile-dir", D.buildDir lbi
+        [ "--compile-dir", compileDir
         , "--compile"
         , "--ghc-dont-call-ghc"
         , "src/Main.lagda.md"
         ]
+
+#if MIN_VERSION_Cabal(3,14,1)
+    compileDir :: FilePath
+    compileDir = D.getSymbolicPath (D.buildDir lbi)
+#else
+    compileDir :: FilePath
+    compileDir = D.buildDir lbi
+#endif
 
     agdaProgram :: D.ConfiguredProgram
     agdaProgram = D.simpleConfiguredProgram "agda" (D.FoundOnSystem "agda")

@@ -33,8 +33,8 @@ module Witness (
   validate
 ) where
 
-import "cryptonite" Crypto.Hash
-import "cryptonite" Crypto.PubKey.ECC.ECDSA
+import "crypton" Crypto.Hash
+import "crypton" Crypto.PubKey.ECC.ECDSA
 import Data.ByteArray qualified as BA
 import Data.ByteString.Char8 qualified as BS
 import Language.Haskell.TH

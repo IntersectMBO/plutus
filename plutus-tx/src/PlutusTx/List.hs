@@ -43,6 +43,7 @@ module PlutusTx.List (
     partition,
     sort,
     sortBy,
+    elemBy,
     ) where
 
 import PlutusTx.Bool (Bool (..), not, otherwise, (||))
@@ -355,7 +356,6 @@ nub :: (Eq a) => [a] -> [a]
 nub = nubBy (==)
 {-# INLINABLE nub #-}
 
--- | Plutus Tx version of 'Data.List.elemBy'.
 elemBy :: forall a. (a -> a -> Bool) -> a -> [a] -> Bool
 elemBy eq y = go
   where

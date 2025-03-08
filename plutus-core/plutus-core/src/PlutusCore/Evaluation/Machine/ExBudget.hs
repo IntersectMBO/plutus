@@ -140,6 +140,7 @@ module PlutusCore.Evaluation.Machine.ExBudget
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
     , LowerInitialCharacter
+    , largeBudget
     , enormousBudget
     ) where
 
@@ -205,6 +206,12 @@ newtype ExRestrictingBudget = ExRestrictingBudget
     } deriving stock (Show, Eq)
       deriving newtype (Semigroup, Monoid)
       deriving newtype (Pretty, PrettyBy config, NFData)
+
+-- | When we want to just evaluate the program that is intended to run out of budget we use the
+-- 'Restricting' mode with this big budget designed to make the CEK machine terminate in a
+-- fraction of a second on the reference machine.
+largeBudget :: ExRestrictingBudget
+largeBudget = ExRestrictingBudget $ ExBudget (2 * 10 ^ (11 :: Int)) (10 ^ (10 :: Int))
 
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.

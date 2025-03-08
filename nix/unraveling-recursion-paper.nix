@@ -1,19 +1,19 @@
-{ repoRoot, inputs, pkgs, system, lib }:
+{ self, pkgs, lib, build-latex, agda-with-stdlib }:
 
 let
-  artifacts = pkgs.runCommand
-    "FIR-compiler"
+  artifacts = pkgs.runCommand "FIR-compiler"
     {
       buildInputs = [ pkgs.zip ];
-      src = inputs.self + /doc/papers/unraveling-recursion/code;
-    }
-    ''
-      mkdir -p $out
-      cd $src
-      zip -r $out/compiler.zip .
-    '';
+      src = self + /doc/papers/unraveling-recursion/code;
+    } ''
+    mkdir -p $out
+    cd $src
+    zip -r $out/compiler.zip .
+  '';
+
 in
-repoRoot.nix.build-latex {
+
+build-latex {
   name = "unraveling-recursion-paper";
 
   texFiles = [ "unraveling-recursion.tex" ];
@@ -21,27 +21,23 @@ repoRoot.nix.build-latex {
   texInputs = {
     # more than we need at the moment, but doesn't cost much to include it
     inherit (pkgs.texlive)
-      scheme-small
-      collection-bibtexextra
-      collection-latex
-      collection-latexextra
-      collection-luatex
-      collection-fontsextra
-      collection-fontsrecommended
-      collection-mathscience
-      acmart
-      bibtex
-      biblatex;
+      scheme-small collection-bibtexextra collection-latex collection-latexextra
+      collection-luatex collection-fontsextra collection-fontsrecommended
+      collection-mathscience acmart bibtex biblatex;
   };
 
-  buildInputs = [
-    repoRoot.nix.agda.agda-with-stdlib
-    pkgs.zip
-  ];
+  buildInputs = [ agda-with-stdlib pkgs.zip ];
 
-  src = lib.sourceFilesBySuffices
-    (inputs.self + /doc/papers/unraveling-recursion)
-    [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
+  src =
+    lib.sourceFilesBySuffices (self + /doc/papers/unraveling-recursion) [
+      ".tex"
+      ".bib"
+      ".agda"
+      ".lagda"
+      ".cls"
+      ".bst"
+      ".pdf"
+    ];
 
   preBuild = ''
     for file in *.lagda; do

@@ -195,9 +195,9 @@ EOF
 # Then for each package-version we produce a different sed substitution.
 
 
-NUM_FILES=$(find "${OUTPUT_DIR}" -type f -name "*.html" | wc -l)
+NUM_FILES=$(find "${OUTPUT_DIR}" -type f -name "*.html" -or -name "doc-index.json" | wc -l)
 echo "Applying sed to ${NUM_FILES} files"
-time find "${OUTPUT_DIR}" -name "*.html" | xargs sed -i -E -f "${BUILD_DIR}/sedscript.txt"
+time find "${OUTPUT_DIR}" -name "*.html" -or -name "doc-index.json" | xargs sed -i -E -f "${BUILD_DIR}/sedscript.txt"
 
 
 echo "Checking that all hrefs to /nix/store were replaced"

@@ -1,61 +1,54 @@
--- Budget tests for Marlowe scripts
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
-import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
-
+import Data.Foldable (for_)
+import Data.List qualified as List
+import Lib qualified
+import Main.Utf8 (withUtf8)
+import PlutusBenchmark.Common (checkGoldenFileExists)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
-import PlutusBenchmark.Marlowe.Types qualified as M
-import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Test (goldenUEvalBudget)
-import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
-import PlutusTx.Code (CompiledCode)
-import PlutusTx.Test
-import UntypedPlutusCore (NamedDeBruijn)
-import UntypedPlutusCore.Core.Type qualified as UPLC
-
-mkBudgetTest ::
-    CompiledCode a
-    -> M.Benchmark
-    -> (String, UPLC.Program NamedDeBruijn DefaultUni DefaultFun ())
-mkBudgetTest validator bm@M.Benchmark{..} =
-  let benchName = show $ txInfoId $ scriptContextTxInfo bScriptContext
-  in
-    (benchName, benchmarkToUPLC validator bm)
-
--- Make a set of golden tests with results stored in a given subdirectory
--- inside a subdirectory determined by the GHC version.
-runTestGhc :: [FilePath] -> [TestNested] -> TestTree
-runTestGhc path = runTestNested (["marlowe", "test"] ++ path) . pure . testNestedGhc
+import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
+import System.FilePath ((</>))
+import System.IO (hPutStrLn)
+import Test.Tasty (defaultMain)
+import UntypedPlutusCore.Size qualified as UPLC
 
 main :: IO ()
-main = do
+main = withUtf8 do
+  let dir = "marlowe" </> "test"
+      goldenFile = dir </> "budgets.golden.tsv"
+      actualFile = dir </> "budgets.actual.tsv"
+  checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
 
-  -- Read the semantics benchmark files.
-  semanticsMBench <- either error id <$> semanticsBenchmarks
+  -- Measure ExCPU, ExMemory, and UPLC.Size for each "semantics" benchmark
+  semanticsMeasures <-
+    semanticsBenchmarks >>= \case
+      Left err -> fail $ "Error generating semantics benchmarks: " <> show err
+      Right semantics ->
+        traverse
+          Lib.measureProgram
+          [benchmarkToUPLC marloweValidator bench | bench <- semantics]
 
-  -- Read the role payout benchmark files.
-  rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
+  -- Measure ExCPU, ExMemory, and UPLC.Size for each "role payout" benchmark
+  rolePayoutMeasures <-
+    rolePayoutBenchmarks >>= \case
+      Left err -> fail $ "Error generating role payout benchmarks: " <> show err
+      Right rolePayout ->
+        traverse
+          Lib.measureProgram
+          [benchmarkToUPLC rolePayoutValidator bench | bench <- rolePayout]
 
-  let allTests :: TestTree
-      allTests =
-        testGroup "plutus-benchmark Marlowe tests"
-            [ runTestGhc ["semantics"] $
-                goldenSize "semantics" marloweValidator
-                  : [ goldenUEvalBudget name [value]
-                    | bench <- semanticsMBench
-                    , let (name, value) = mkBudgetTest marloweValidator bench
-                    ]
-            , runTestGhc ["role-payout"] $
-                goldenSize "role-payout" rolePayoutValidator
-                  : [ goldenUEvalBudget name [value]
-                    | bench <- rolePayoutMBench
-                    , let (name, value) = mkBudgetTest rolePayoutValidator bench
-                    ]
-            ]
-  defaultMain allTests
+  -- Write the measures to the actual file
+  defaultMain do
+    Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
+      for_
+        (semanticsMeasures <> rolePayoutMeasures)
+        \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+          hPutStrLn writeHandle $
+            List.intercalate "\t" [show cpu, show mem, show size]

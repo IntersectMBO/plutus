@@ -5,6 +5,18 @@
 # On push to master, this workflows publishes to:
 # https://plutus.cardano.intersectmbo.org/metatheory/master
 
+# This workflow builds and deploys the Metatheory site.
+# 
+# When this workflow is triggered manually via workflow dispatch, it builds and then 
+# publishes the site according to the 'ref' input:
+# https://plutus.cardano.intersectmbo.org/metatheory/$version
+# And optionally (if the 'latest' flag is set) to: 
+# https://plutus.cardano.intersectmbo.org/metatheory/latest
+#
+# This workflow also builds and publishes the site on push to master to:
+# https://plutus.cardano.intersectmbo.org/metatheory/master
+
+
 name: "🔮 Metatheory Site"
 
 on:
@@ -54,12 +66,12 @@ jobs:
 
       - name: Build Site
         run: | 
-          nix build --accept-flake-config .#plutus-metatheory-site
+          nix build --accept-flake-config .#metatheory-site
           mkdir _metatheory
           cp -RL result/* _metatheory
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.6.9
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           folder: _metatheory
           target-folder: metatheory/${{ inputs.destination || github.ref_name }}
@@ -67,7 +79,7 @@ jobs:
 
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.6.9
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           folder: _metatheory
           target-folder: metatheory/latest

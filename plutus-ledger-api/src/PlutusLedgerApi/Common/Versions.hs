@@ -101,14 +101,20 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
+  ((PlutusV1, futurePV), Set.fromList [
+          ListToArray, IndexArray, LengthOfArray
+          ]),
   ((PlutusV2, vasilPV), Set.fromList [
           SerialiseData
           ]),
   ((PlutusV2, valentinePV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ]),
-  ((PlutusV2, changPlus1PV), Set.fromList [
+  ((PlutusV2, plominPV), Set.fromList [
           IntegerToByteString, ByteStringToInteger
+          ]),
+  ((PlutusV2, futurePV), Set.fromList [
+          ListToArray, IndexArray, LengthOfArray
           ]),
   ((PlutusV3, changPV), Set.fromList [
           Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
@@ -120,7 +126,7 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
           Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
           ]),
-  ((PlutusV3, changPlus1PV), Set.fromList [
+  ((PlutusV3, plominPV), Set.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
@@ -128,7 +134,8 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV3, futurePV), Set.fromList [
           ExpModInteger,
-          CaseList, CaseData
+          CaseList, CaseData, DropList,
+          ListToArray, IndexArray, LengthOfArray
           ])
   ]
 

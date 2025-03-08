@@ -1,6 +1,8 @@
 -- | The internal module of the renamer that defines the actual algorithms,
 -- but not the user-facing API.
 
+{-# LANGUAGE ConstraintKinds #-}
+
 module UntypedPlutusCore.Rename.Internal
     ( module Export
     , renameTermM
@@ -14,11 +16,14 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename.Monad as Export
 
+import Control.Monad.Reader (MonadReader)
+
+type MonadRename m = (MonadQuote m, MonadReader (Renaming TermUnique) m)
 
 -- | Rename a 'Term' in the 'RenameM' monad.
 renameTermM
-    :: (HasUniques (Term name uni fun ann), MonadQuote m)
-    => Term name uni fun ann -> ScopedRenameT m (Term name uni fun ann)
+    :: (MonadRename m, HasUniques (Term name uni fun ann))
+    => Term name uni fun ann -> m (Term name uni fun ann)
 renameTermM (LamAbs ann name body)  =
      withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTermM body
 renameTermM (Apply ann fun arg)        = Apply ann <$> renameTermM fun <*> renameTermM arg
@@ -33,6 +38,6 @@ renameTermM bi@Builtin{}               = pure bi
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM
-    :: (HasUniques (Program name uni fun ann), MonadQuote m)
-    => Program name uni fun ann -> ScopedRenameT m (Program name uni fun ann)
+    :: (MonadRename m, HasUniques (Program name uni fun ann))
+    => Program name uni fun ann -> m (Program name uni fun ann)
 renameProgramM (Program ann ver term) = Program ann ver <$> renameTermM term
