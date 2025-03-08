@@ -145,7 +145,12 @@ benchSerialiseData =
 benchCaseData :: Benchmark
 benchCaseData =
   let name = CaseData
-      inputs = take 100 dataSample
+      inputs =
+        (take 100 $ filter isConstr dataSample)
+        ++ (take 100 $ filter isMap dataSample)
+        ++ (take 100 $ filter isList dataSample)
+        ++ (take 100 $ filter isI dataSample)
+        ++ (take 100 $ filter isB dataSample)
       y = Name "y" (Unique 1)
       ys = Name "ys" (Unique 2)
       -- lam y (con unit ())
