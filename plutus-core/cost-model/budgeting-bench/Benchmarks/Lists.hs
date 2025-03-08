@@ -14,11 +14,12 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 import Control.DeepSeq (force)
 import Criterion.Main
 import Data.ByteString (ByteString)
+import Debug.Trace (trace)
 import Hedgehog qualified as H
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     ListCostedByLength (..))
+import PlutusCore.Pretty qualified as PP
 import System.Random (StdGen, randomR)
-
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
    behaviour of the list functions should be independent of the sizes and types
@@ -79,11 +80,11 @@ benchChooseList gen =
         intInputs = take 10 $ intLists gen
         bsInputs  = take 10 $ byteStringLists seedA
         mkBMs tys inputs = [ bgroup (showMemoryUsage x)
-                           [ bgroup (showMemoryUsage r1)
-                            [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
-                            | r2 <- results2 ]
-                           | r1 <- results1 ]
-                          | x <- inputs ]
+                             [ bgroup (showMemoryUsage r1)
+                               [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
+                               | r2 <- results2 ]
+                             | r1 <- results1 ]
+                           | x <- inputs ]
     in bgroup (show name) (mkBMs [integer,bytestring] intInputs
                             ++ mkBMs [bytestring,bytestring] bsInputs)
 
@@ -132,13 +133,15 @@ benchCaseList gen =
     let name = CaseList
         y = Name "y" (Unique 1)
         ys = Name "ys" (Unique 2)
-        mkCase1 ty = LamAbs () y ty (mkConstant () ())  -- lam x ()
-        mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ())) -- lam x (lam xs ())
+        -- lam y (con unit ())
+        mkCase1 ty = LamAbs () y ty (mkConstant () ())
+        -- lam y (lam ys (con unit ()))
+        mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ()))
         -- Two different types of inputs, just to make sure there's no difference
-        intInputs = take 100 $ intLists gen
-        bsInputs  = take 100 $ byteStringLists seedA
-        mkApp3' !fun !tys term1 term2 (force -> !z) =
-          eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () z]
+        intInputs = take 100 $ intLists gen          -- Make these bigger
+        bsInputs  = take 100 $ byteStringLists seedA -- Make these bigger
+        mkApp3' !fun !tys term1 term2 (force -> !l) =
+          eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]
           where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
         mkBMs ty inputs =
@@ -147,12 +150,18 @@ benchCaseList gen =
           in [ bgroup "1"
                [ bgroup "1"
                  [ benchDefault
-                   (showMemoryUsage $ ListCostedByLength x)
-                   (mkApp3' name [ty, unit] case1 case2 x)
+                   (showMemoryUsage $ ListCostedByLength l)
+                   (mkApp3' name [ty, unit] case1 case2 l)
                  ]
                ]
-             | x <- inputs ]
-    in bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
+             | l <- inputs ]
+        test :: PlainTerm DefaultUni DefaultFun
+        test = mkApp3' name [integer, unit]
+               (mkCase1 integer)
+               (mkCase2 integer)
+               [1,2,3,4,5,6,7,8,9::Integer]
+    in trace (show $ PP.prettyPlcClassic test) $
+       bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
 
   -- benchmark caseList (con unit ()) (lam x (lam y (con unit ()))) l
 

@@ -21,7 +21,7 @@ import UntypedPlutusCore as UPLC hiding (Constr)
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
-import Criterion.Main
+import Criterion.Main (Benchmark, bench, bgroup, whnf)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 
@@ -102,8 +102,19 @@ bytestring = mkTyBuiltin @_ @BS.ByteString ()
 unit :: uni `HasTypeLevel` () => Type TyName uni ()
 unit = mkTyBuiltin @_ @() ()
 
+tydata :: uni `HasTypeLevel` Data => Type TyName uni ()
+tydata = mkTyBuiltin @_ @Data ()
+
 list :: uni `HasTypeLevel` [] => Type TyName uni () -> Type TyName uni ()
 list t = TyApp () (mkTyBuiltin @_ @[] ()) t
+
+pair ::
+  uni `HasTypeLevel` (,)
+  => Type TyName uni ()
+  -> Type TyName uni ()
+  -> Type TyName uni ()
+pair a b = TyApp () (TyApp () typair a) b
+  where typair = mkTyBuiltin @_ @(,) ()
 
 -- To make monomorphic terms, make tys equal to [] in the mkApp functions
 

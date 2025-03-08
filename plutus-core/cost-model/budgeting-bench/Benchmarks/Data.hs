@@ -1,4 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Benchmarks.Data (makeBenchmarks) where
 
@@ -6,10 +9,16 @@ import Common
 import Generators
 
 import PlutusCore hiding (Constr)
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
+import Control.DeepSeq (force)
 import Criterion.Main
+import Debug.Trace (trace)
 import System.Random (StdGen)
+
+import PlutusCore.Pretty qualified as PP
 
 {- | Benchmarks for builtins operating on Data.  Recall that Data is defined by
 
@@ -20,7 +29,6 @@ import System.Random (StdGen)
          | I Integer
          | B ByteString
 -}
-
 
 isConstr :: Data -> Bool
 isConstr = \case {Constr {} -> True; _ -> False}
@@ -133,22 +141,53 @@ benchSerialiseData =
     -- does the internal structure of a Data object influence serialisation
     -- time?  What causes a Data object to be quick or slow to serialise?
 
-{-
+
 benchCaseData :: Benchmark
 benchCaseData =
-  let _name = CaseData
-  {- benchmark
-   caseData
-   (lam x (lam y (con unit ())))
-   (lam x (con unit ()))
-   (lam x (con unit ()))
-   (lam x (con unit ()))
-   (lam x (con unit ()))
-  d
-  -- Should be Six
-  -}
-  in undefined
--}
+  let name = CaseData
+      inputs = take 100 dataSample
+      y = Name "y" (Unique 1)
+      ys = Name "ys" (Unique 2)
+      -- lam y (con unit ())
+      mkCase1 ty = LamAbs () y ty (mkConstant () ())
+      -- lam y (lam ys (con unit ()))
+      mkCase2 ty1 ty2 = LamAbs () y ty1 (LamAbs () ys ty2 (mkConstant () ()))
+      mkApp6' !fun !tys term1 term2 term3 term4 term5 (force -> !d) =
+        eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, term3, term4, term5, mkConstant () d]
+        where instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+      mkBMs l =
+        let caseConstr = mkCase2 integer (list tydata)
+            caseMap    = mkCase1 (list (pair tydata tydata))
+            caseList   = mkCase1 (list tydata)
+            caseI      = mkCase1 integer
+            caseB      = mkCase1 bytestring
+        in [ bgroup "1"
+             [ bgroup "1"
+               [ bgroup "1"
+                 [ bgroup "1"
+                   [ bgroup "1"
+                     [ bgroup "1"
+                       [ benchDefault
+                         (showMemoryUsage d)
+                         (mkApp6' name [unit] caseConstr caseMap caseList caseI caseB d)
+                       ]
+                     ]
+                   ]
+                 ]
+               ]
+             ]
+           | d <- l ]
+      test :: PlainTerm DefaultUni DefaultFun
+      test = mkApp6' name [unit]
+             (mkCase2 integer (list tydata))
+             (mkCase1 (list (pair tydata tydata)))
+             (mkCase1 (list tydata))
+             (mkCase1 integer)
+             (mkCase1 bytestring)
+             (I 5)
+  in trace (show $ PP.prettyPlcClassic test) $
+     bgroup (show name) $ mkBMs inputs
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -165,4 +204,5 @@ makeBenchmarks gen =
     , benchUnBData
     , benchEqualsData
     , benchSerialiseData
+    , benchCaseData
     ]
