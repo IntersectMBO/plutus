@@ -1172,6 +1172,26 @@
             "type": "constant_cost"
         }
     },
+    "caseList": {
+        "cpu": {
+            "arguments": 100000000000,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+    "caseData": {
+        "cpu": {
+            "arguments": 100000000000,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "dropList": {
         "cpu": {
             "arguments": {

@@ -2028,7 +2028,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE caseListDenotation #-}
         in makeBuiltinMeaning
             caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
+            (runCostingFunThreeArguments . paramCaseList)
 
     toBuiltinMeaning _ver CaseData =
         let caseDataDenotation
@@ -2048,7 +2048,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE caseDataDenotation #-}
         in makeBuiltinMeaning
             caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
+            (runCostingFunSixArguments . paramCaseData)
 
     toBuiltinMeaning _semvar DropList =
         let dropListDenotation

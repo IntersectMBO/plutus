@@ -188,8 +188,8 @@ data BuiltinCostModelBase f =
     , paramRipemd_160                      :: f ModelOneArgument
     -- Batch 6
     , paramExpModInteger                   :: f ModelThreeArguments
-    -- , paramCaseList here
-    -- , paramCaseData here
+    , paramCaseList                        :: f ModelThreeArguments
+    , paramCaseData                        :: f ModelSixArguments
     , paramDropList                        :: f ModelTwoArguments
     }
     deriving stock (Generic)
