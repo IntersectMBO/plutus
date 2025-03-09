@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-module Benchmarks.Lists (makeBenchmarks) where
+module Benchmarks.Lists where
 
 import Common
 import Generators
@@ -47,6 +47,12 @@ makeListOfByteStringLists seed ((count, size):rest) =
 intLists :: StdGen -> [[Integer]]
 intLists gen = makeListOfIntegerLists gen [(count,size) | count <- [0..7], size <- [1..7]]
 
+biggerIntLists :: StdGen -> [[Integer]]
+biggerIntLists gen =
+  makeListOfIntegerLists gen [ (count,size) |
+                               count <- [0, 10, 20, 50, 100, 500, 1000],
+                               size <- [1..7]]
+
 -- Make a list of n integers whose value is less than or equal to m
 intMaxList :: Integer -> Integer -> StdGen -> [Integer]
 intMaxList 0 _ _ = []
@@ -59,6 +65,12 @@ nonEmptyIntLists gen = makeListOfIntegerLists gen [(count,size) | count <- [1..7
 byteStringLists :: H.Seed -> [[ByteString]]
 byteStringLists seed =
     makeListOfByteStringLists seed [(count,size) | count <- [0..7], size <- [0, 500..3000]]
+
+biggerByteStringLists :: H.Seed -> [[ByteString]]
+biggerByteStringLists seed =
+    makeListOfByteStringLists seed [(count,size) |
+                                     count <- [0, 10, 20, 50, 100, 500, 1000],
+                                     size <- [0, 500..3000]]
 
 nonEmptyByteStringLists :: H.Seed -> [[ByteString]]
 nonEmptyByteStringLists seed =
@@ -144,8 +156,9 @@ benchCaseList gen =
         -- lam y (lam ys (con unit ()))
         mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ()))
         -- Two different types of inputs, just to make sure there's no difference
-        intInputs = take 100 $ intLists gen          -- MAKE THESE BIGGER
-        bsInputs  = take 100 $ byteStringLists seedA -- MAKE THESE BIGGER
+        -- Use `take` just in case we make the list bigger later
+        intInputs = take 100 $ biggerIntLists gen
+        bsInputs  = take 100 $ biggerByteStringLists seedA
         -- Like mkApp3, but the first two arguments are terms (in fact values)
         mkApp3' !fun !tys term1 term2 (force -> !l) =
           eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]
