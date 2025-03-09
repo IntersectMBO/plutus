@@ -49,9 +49,9 @@ intLists gen = makeListOfIntegerLists gen [(count,size) | count <- [0..7], size 
 
 biggerIntLists :: StdGen -> [[Integer]]
 biggerIntLists gen =
-  makeListOfIntegerLists gen [ (count,size) |
-                               count <- [0, 10, 20, 50, 100, 500, 1000],
-                               size <- [1..7]]
+  makeListOfIntegerLists gen [ (count,size)
+                             | count <- [0, 10, 20, 50, 100, 500, 1000]
+                             , size <- [1..7] ]
 
 -- Make a list of n integers whose value is less than or equal to m
 intMaxList :: Integer -> Integer -> StdGen -> [Integer]
@@ -68,9 +68,9 @@ byteStringLists seed =
 
 biggerByteStringLists :: H.Seed -> [[ByteString]]
 biggerByteStringLists seed =
-    makeListOfByteStringLists seed [(count,size) |
-                                     count <- [0, 10, 20, 50, 100, 500, 1000],
-                                     size <- [0, 500..3000]]
+    makeListOfByteStringLists seed [ (count,size)
+                                   | count <- [0, 10, 20, 50, 100, 500, 1000]
+                                   , size <- [0, 500..3000] ]
 
 nonEmptyByteStringLists :: H.Seed -> [[ByteString]]
 nonEmptyByteStringLists seed =
