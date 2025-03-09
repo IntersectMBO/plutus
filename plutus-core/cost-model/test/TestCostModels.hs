@@ -437,5 +437,11 @@ main =
               , $(genTest 2 "rotateByteString")    Everywhere
               , $(genTest 1 "countSetBits")
               , $(genTest 1 "findFirstSetBit")
+
+              -- Batch 6
+              , $(genTest 2 "dropList") Everywhere
+              , $(genTest 3 "caseList")
+              , $(genTest 6 "caseData")
+
               ]
 

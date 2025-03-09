@@ -160,7 +160,7 @@ benchCaseList gen =
         intInputs = take 100 $ biggerIntLists gen
         bsInputs  = take 100 $ biggerByteStringLists seedA
         -- Like mkApp3, but the first two arguments are terms (in fact values)
-        mkApp3' !fun !tys term1 term2 (force -> !l) =
+        mkApp3' !fun !tys !term1 !term2 (force -> !l) =
           eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]
           where instantiated = mkIterInstNoAnn (builtin () fun) tys
 

@@ -1126,7 +1126,7 @@
     },
     "caseList": {
         "cpu": {
-            "arguments": 2321940,
+            "arguments": 2280674,
             "type": "constant_cost"
         },
         "memory": {
@@ -1136,7 +1136,7 @@
     },
     "caseData": {
         "cpu": {
-            "arguments": 4128103,
+            "arguments": 4101428,
             "type": "constant_cost"
         },
         "memory": {

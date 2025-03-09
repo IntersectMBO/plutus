@@ -166,7 +166,7 @@ benchCaseData =
       -- lam y (lam ys (con unit ()))
       mkCase2 ty1 ty2 = LamAbs () y ty1 (LamAbs () ys ty2 (mkConstant () ()))
       -- Like mkApp6, but the first five arguments are terms (in fact values)
-      mkApp6' !fun !tys term1 term2 term3 term4 term5 (force -> !d) =
+      mkApp6' !fun !tys !term1 !term2 !term3 !term4 !term5 (force -> !d) =
         eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, term3, term4, term5, mkConstant () d]
         where instantiated = mkIterInstNoAnn (builtin () fun) tys
 
