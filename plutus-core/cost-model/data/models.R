@@ -398,29 +398,44 @@ modelFun <- function(path) {
         return (mk.result(m, "constant_cost"))
     }
 
-   linearInX <- function (fname) {
+    # Try to account for extra work after the builtin returns (eg, for
+    # `caseList` and `caseData`) by discarding the overhead twice (which is not
+    # perfect because the arity of a returned deferred appication may not be the
+    # same as the arity of the builtin, and indeed may not be the same for all
+    # return values).
+    constantModel2 <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.upper.outliers () %>%
+            discard.overhead () %>%
+            discard.overhead ()
+        m <- lm(t ~ 1, filtered)
+        return (mk.result(m, "constant_cost"))
+    }
+
+    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
         return (mk.result(m, "linear_in_x"))
-   }
+    }
 
-   linearInY <- function (fname) {
+    linearInY <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ y_mem, filtered)
         return (mk.result(m, "linear_in_y"))
-   }
+    }
 
-   linearInZ <- function (fname) {
+    linearInZ <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ z_mem, filtered)
         return (mk.result(m, "linear_in_z"))
-   }
+    }
 
     ##### Integers #####
 
@@ -654,28 +669,28 @@ modelFun <- function(path) {
 
     ##### Lists #####
 
-    chooseListModel <- constantModel ("ChooseList")
-    mkConsModel     <- constantModel ("MkCons")
-    headListModel   <- constantModel ("HeadList")
-    tailListModel   <- constantModel ("TailList")
-    nullListModel   <- constantModel ("NullList")
-    dropListModel   <- linearInX     ("DropList")
-    caseListModel   <- constantModel ("CaseList")
+    chooseListModel <- constantModel  ("ChooseList")
+    mkConsModel     <- constantModel  ("MkCons")
+    headListModel   <- constantModel  ("HeadList")
+    tailListModel   <- constantModel  ("TailList")
+    nullListModel   <- constantModel  ("NullList")
+    dropListModel   <- linearInX      ("DropList")
+    caseListModel   <- constantModel2 ("CaseList")
 
     ##### Data #####
 
-    chooseDataModel   <- constantModel ("ChooseData")
-    constrDataModel   <- constantModel ("ConstrData")
-    mapDataModel      <- constantModel ("MapData" )
-    listDataModel     <- constantModel ("ListData")
-    iDataModel        <- constantModel ("IData")
-    bDataModel        <- constantModel ("BData")
-    unConstrDataModel <- constantModel ("UnConstrData")
-    unMapDataModel    <- constantModel ("UnMapData")
-    unListDataModel   <- constantModel ("UnListData")
-    unIDataModel      <- constantModel ("UnIData")
-    unBDataModel      <- constantModel ("UnBData")
-    caseDataModel     <- constantModel ("CaseData")
+    chooseDataModel   <- constantModel  ("ChooseData")
+    constrDataModel   <- constantModel  ("ConstrData")
+    mapDataModel      <- constantModel  ("MapData" )
+    listDataModel     <- constantModel  ("ListData")
+    iDataModel        <- constantModel  ("IData")
+    bDataModel        <- constantModel  ("BData")
+    unConstrDataModel <- constantModel  ("UnConstrData")
+    unMapDataModel    <- constantModel  ("UnMapData")
+    unListDataModel   <- constantModel  ("UnListData")
+    unIDataModel      <- constantModel  ("UnIData")
+    unBDataModel      <- constantModel  ("UnBData")
+    caseDataModel     <- constantModel2 ("CaseData")
 
     ## The equalsData builtin is tricky because it uses the Eq instance for
     ## Data, which can't call costing functions for embedded Integers and Text
