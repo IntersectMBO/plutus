@@ -1,10 +1,9 @@
 -- editorconfig-checker-disable-file
-
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
-module Evaluation.Builtins.Bitwise (
+-- | Tests for [CIP-0123](https://cips.cardano.org/cip/CIP-0123).
+module Evaluation.Builtins.Bitwise2 (
   shiftHomomorphism,
   rotateHomomorphism,
   csbHomomorphism,
