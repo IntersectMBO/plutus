@@ -33,7 +33,7 @@ costing functions involves a number of steps.
   eventually some community process will be developed for adding new builtins
   and approving their implementations and costing functions, but this is not
   feasible at the moment.)
-  
+
   For experimentation you can run the benchmarks locally with `cabal run
   plutus-core:cost-model-budgeting-bench -- --csv <file>`; a subset of the
   benchmarks can be run using Criterion's `-p` option and this can be useful
@@ -66,10 +66,13 @@ costing functions involves a number of steps.
   `builtinCostModelB.json` which are used for evaluating scripts prior to the
   Chang hard fork: data for new builtins can (if fact, must) be added to these
   files, but the existing content must bnot be changed.  The CSV file containing
-  the benchmark results used to generate the cost model should be checked in in
-  [`plutus-core/cost-model/data/benching.csv`](./data/benching.csv); this is not
-  strictly necessary but it can be useful to have the raw data available if the
-  details of the cost model need to be looked at at some later time.
+  the benchmark results used to generate the cost model should be checked in to
+  the repository; this is not strictly necessary but it can be useful to have
+  the raw data available if the details of the cost model need to be looked at
+  at some later time.  The benchmarking results used to generate the current cost
+  model (March 2025) are checked in in
+  [`plutus-core/cost-model/data/benching-conway.csv`](./data/benching-conway.csv)
+  and any new results should be added to the end of that file.
 
 * When the rest of the `plutus-core` package is compiled, the contents of
   `builtCostModelC.json` are read and used by some Template Haskell code to
@@ -327,7 +330,7 @@ function: experimentation may be needed to achieve this.
 Once the benchmark is in its final form, run it on the benchmarking machine as
 described in the first section of this document. Type the name of the benchmark
 in the "extra arguments" field under "Run workflow" on GitHub and append the
-results to an existing CSV file (such as `benching.csv`) containing earlier
+results to an existing CSV file (such as `benching-conway.csv`) containing earlier
 benchmark results for the rest of the builtin functions.  It is probably
 worthwhile to run some other costing benchmarks as well to check that the
 results are at least approximately consistent with the previous ones.
