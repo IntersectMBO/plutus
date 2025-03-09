@@ -873,8 +873,8 @@ modelFun <- function(path) {
         findFirstSetBitModel                 = findFirstSetBitModel,
         ripemd_160Model                      = ripemd_160Model,
         expModIntegerModel                   = expModIntegerModel,
-        caseListModel                        = caseListModel
-        caseDataModel                        = caseDataModel
+        caseListModel                        = caseListModel,
+        caseDataModel                        = caseDataModel,
         dropListModel                        = dropListModel
         )
 
