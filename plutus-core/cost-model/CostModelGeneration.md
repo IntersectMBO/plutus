@@ -61,15 +61,18 @@ costing functions involves a number of steps.
 
 * The specific cost model data to be used by the Plutus Core evaluator should be
   checked in to git in the file
-  [`plutus-core/cost-model/data/builtinCostModel.json`](./data/builtinCostModel.json).
-  The CSV file containing the benchmark results used to generate the cost model
-  should be checked in in
+  [`plutus-core/cost-model/data/builtinCostModelC.json`](./data/builtinCostModelC.json).
+  There are also files called `builtinCostModelA.json` and
+  `builtinCostModelB.json` which are used for evaluating scripts prior to the
+  Chang hard fork: data for new builtins can (if fact, must) be added to these
+  files, but the existing content must bnot be changed.  The CSV file containing
+  the benchmark results used to generate the cost model should be checked in in
   [`plutus-core/cost-model/data/benching.csv`](./data/benching.csv); this is not
-  strictly necessary but it can be useful to have the raw data available if
-  the details of the cost model need to be looked at at some later time.
+  strictly necessary but it can be useful to have the raw data available if the
+  details of the cost model need to be looked at at some later time.
 
 * When the rest of the `plutus-core` package is compiled, the contents of
-  `builtCostModel.json` are read and used by some Template Haskell code to
+  `builtCostModelC.json` are read and used by some Template Haskell code to
   construct Haskell functions which implement the cost models.
 
 * To ensure consistency, `cabal bench plutus-core:cost-model-test` runs some
@@ -126,7 +129,10 @@ For documentation on how to add a new built-in type, see
 described here will only add a new built-in function to Plutus Core: to make a
 new function available from Haskell more work will be required in the
 [`plutus-tx`](https://github.com/IntersectMBO/plutus/tree/master/plutus-tx)
-codebase.
+codebase.  We describe the process for a single builtin here, but sometimes you
+may want to add several new builtins at a time: in this case, you can add all of
+the new builtins in each step at once instead of repeating the entire process to
+add them one by one.
 
 When adding a new builtin, **PLEASE ADD ALL NEW CODE AFTER THE CODE FOR EXISTING
 BUILTINS SO THAT CONSTRUCTORS AND FUNCTION CLAUSES APPEAR IN THE HISTORICAL
@@ -286,7 +292,7 @@ transformation.  Similarly, the names of the
 `ModelMinSize` type are converted to `slope` and `intercept`.  In
 many cases you should be able to see what the JSON should look like by
 looking at existing entries in
-[`builtinCostModel.json`](./data/builtinCostModel.json), but in case
+[`builtinCostModelC.json`](./data/builtinCostModelC.json), but in case
 of difficulty try the alternative method mentioned in the "Modifying
 the Cost Model" note.
 
@@ -317,14 +323,17 @@ range of inputs in order to get a good idea of the worst-case behaviour of the
 function: experimentation may be needed to achieve this.
 
 Once the benchmark is in its final form, run it on the benchmarking machine as
-described in the first section of this document. Either run the full set of
-benchmarks and use the resulting CSV file in the later steps or type the name(s)
-of the benchmark(s) in the "extra arguments" field under "Run workflow" on
-GitHub and append the results to an existing CSV file (such as `benching.csv`)
-containing earlier benchmark results for the rest of the builtin functions.  If
-the latter method (which will be much faster) is used it is advisable to run
-some other costing benchmarks as well to check that the results are at least
-approximately consistent with the previous ones.
+described in the first section of this document. Type the name of the benchmark
+in the "extra arguments" field under "Run workflow" on GitHub and append the
+results to an existing CSV file (such as `benching.csv`) containing earlier
+benchmark results for the rest of the builtin functions.  It is probably
+worthwhile to run some other costing benchmarks as well to check that the
+results are at least approximately consistent with the previous ones.
+
+(You can also leave the "extra arguments" field blank to run the entire set of
+benchmarks, but this will take a very long time and you probably only want to do
+it if you need an entirely new cost model.  Most of the time we only want to
+extend an existing cost model.)
 
 
 #### Step 6: update the R code
@@ -456,26 +465,22 @@ how to do this) and then run the tests with `cabal bench
 plutus-core:cost-model-test`.
 
 
-#### Step 9: update the cost model JSON file
+#### Step 9: update the cost model JSON files
 
 Once the previous steps have been carried out, proceed as described in the first
-section: feed the results of the costing benchmarks to `generate-cost-model` to
-produce a new JSON cost model file (which will contain sensible coefficients for
-the costing functions for the new builtin in place of the arbitray ones we added
-in Step 3), and check it in along with a CSV file containing a full set of
-benchmark results which can be used to reproduce it.
+section: feed the CSV file containing the updated benchmark results (see Step 5)
+to `generate-cost-model` to produce a new JSON cost model file, which will
+contain sensible coefficients for the costing functions for the new builtin in
+place of the arbitrary ones we added in Step 3.  The CSV file which is consumed
+by `generate-cost-model` _must_ contain benchmark results for every builtin, but
+when you're adding one or more new builtins you'll only be interested in the
+JSON output for the relavent functions: this should be extracted and appended to
+the three `builtinCostModelA/B/C.json` files.  Once this is done, check in the
+extended CSV file and the three JSON files and make sure that everything builds
+and that all tests pass.
 
-If you're confident that the evaluator hasn't changed too much since
-the cost model was last fully updated it may be possible to save time
-by using the `-p` option just to run the benchmark for the new
-builtin: the results can then be manually inserted into the CSV file
-containing the figures for the other builtins.  If you do this then
-you may wish to re-run some subset of the benchmarks to check that
-things haven't changed too much.
-
-(In future we hope to make this process easier to carry out, and
-perhaps also to provide some mechanism to allow external contributors
-can run benchmarks on their own machine and have the results re-scaled
-to be compatible with our reference machine, thereby removing (or at
-least lessening) the necessity for Cardano developers to do the
-benchmarking).
+(In future we hope to make this process easier to carry out, and perhaps also to
+provide some mechanism to allow external contributors can run benchmarks on
+their own machine and have the results re-scaled to be compatible with our
+reference machine, thereby removing (or at least lessening) the necessity for
+Cardano developers to do the benchmarking).
