@@ -147,7 +147,10 @@ arity <- function(name) {
         "ExpModInteger" = 3,
         "CaseList" = 3,
         "CaseData" = 6,
-        "DropList" = 2
+        "DropList" = 2,
+        "LengthOfArray" = 1,
+        "ListToArray" = 1,
+        "IndexArray" = 2
         )
 }
 
@@ -784,6 +787,10 @@ modelFun <- function(path) {
     countSetBitsModel         <- linearInX ("CountSetBits")
     findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
 
+    ## Arrays - TEMPORARY, but probably right
+    lengthOfArrayModel        <- constantModel ("LengthOfArray")
+    listToArrayModel          <- constantModel ("ListToArray")
+    indexArrayModel           <- constantModel ("IndexArray")
 
 ##### Models to be returned to Haskell #####
 
@@ -875,7 +882,10 @@ modelFun <- function(path) {
         expModIntegerModel                   = expModIntegerModel,
         caseListModel                        = caseListModel,
         caseDataModel                        = caseDataModel,
-        dropListModel                        = dropListModel
+        dropListModel                        = dropListModel,
+        lengthOfArrayModel                   = lengthOfArrayModel,
+        listToArrayModel                     = listToArrayModel,
+        indexArrayModel                      = indexArrayModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
