@@ -188,7 +188,9 @@ be less than 128; typically you should use the smallest unused number.
 The existing tags **must not be changed** since changing them would
 prevent existing scripts from being decoded properly.
 
-4. The new builtin should now  automatically become available in Plutus Core.
+4. The new builtin should now automatically become available in Plutus Core.  At
+   this point it is safe to merge the code, although the new builtin will be
+   prohibitively expensive for real-world usage.
 
 5. Further work will be required to make the builtin accessible from Haskell.
 See [`PlutusTx.Builtins`](../../plutus-tx/src/PlutusTx/Builtins.hs) for examples
@@ -201,12 +203,12 @@ to check that the semantics of the new builtin are correct.
 ### Adding the costing functions for a new built-in function
 
 After the above steps have been carried out the new builtin will be available in
-Plutus Core, but will not incur any charges when it is called.  To fix this we
-have to add a costing function of a suitable shape and replace the
-`unimplementedCostingFun` in the definition of the function.  **ONCE YOU START
-THIS PROCESS, DO NOT MERGE ANY CODE UNTIL THE PROCESS IS COMPLETE**: merging
-incomplete costing code can lead to cryptic errors (especially in the code
-implementing the Haskell/R interface) which can be very difficult to diagnose.
+Plutus Core, but will have a very high cost.  To fix this we have to add a
+costing function of a suitable shape and replace the `unimplementedCostingFun`
+in the definition of the function.  **ONCE YOU START THIS PROCESS, DO NOT MERGE
+ANY CODE UNTIL THE PROCESS IS COMPLETE**: merging incomplete costing code can
+lead to cryptic errors (especially in the code implementing the Haskell/R
+interface) which can be very difficult to diagnose.
 
 #### Step 1: add the basic type of the costing function to the cost model type
 
