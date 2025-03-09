@@ -128,11 +128,11 @@ new function available from Haskell more work will be required in the
 [`plutus-tx`](https://github.com/IntersectMBO/plutus/tree/master/plutus-tx)
 codebase.
 
-When adding a new builtin, **please add all new code after the code for existing
-builtins so that constructors and function clauses appear in the historical
-order in which they were implemented**.  It is tempting to group code for
-related builtins together, but it's difficult to do this consistently and it can
-make it difficult to keep track of where everything is.
+When adding a new builtin, **PLEASE ADD ALL NEW CODE AFTER THE CODE FOR EXISTING
+BUILTINS SO THAT CONSTRUCTORS AND FUNCTION CLAUSES APPEAR IN THE HISTORICAL
+ORDER IN WHICH THEY WERE IMPLEMENTED**.  It's tempting to group code for related
+builtins together, but it's difficult to do this consistently and it can make it
+difficult to keep track of where everything is.
 
 ### Adding a new function
 
@@ -197,8 +197,8 @@ to check that the semantics of the new builtin are correct.
 After the above steps have been carried out the new builtin will be available in
 Plutus Core, but will not incur any charges when it is called.  To fix this we
 have to add a costing function of a suitable shape and replace the
-`unimplementedCostingFun` in the definition of the function.  **Once you start
-this process, do not merge any code until the process is complete**: merging
+`unimplementedCostingFun` in the definition of the function.  **ONCE YOU START
+THIS PROCESS, DO NOT MERGE ANY CODE UNTIL THE PROCESS IS COMPLETE**: merging
 incomplete costing code can lead to cryptic errors (especially in the code
 implementing the Haskell/R interface) which can be very difficult to diagnose.
 
