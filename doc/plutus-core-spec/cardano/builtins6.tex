@@ -48,6 +48,7 @@ $$
   \begin{cases}
      \modfn(a^e,m) & \text{if $m > 0$ and $e \geq 0$}\\
      \min\{r \in \N: ra^{-e} \equiv 1\pmod{m}\}\  & \text{if $m > 0, e < 0$ and $\mathrm{gcd}(a,m) = 1$}\\
+     0 & \text{if $m=0$}\\
      \errorX & \text{otherwise.}
   \end{cases}
 $$ 
