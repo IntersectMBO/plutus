@@ -19,22 +19,29 @@ infrastructure that supports built-in functions has changed or if the
 implementation of a particular builtin has changed.  Updating the CPU time
 costing functions involves a number of steps.
 
-* Run `cabal run plutus-core:cost-model-budgeting-bench -- --csv <file>` on the
-  reference machine.  This will run Criterion benchmarks for the built-in
-  functions and will take many hours.  Each function is run many times with a
-  selection of inputs of different sizes.  The benchmarks for the builtins are
-  small, executing single Plutus Core terms on the CEK machine.  The results of
-  the benchmarks (execution times versus sizes of inputs) are stored in CSV
-  format in the file named in the `--csv` option, which is mandatory.  (To keep
-  the cost model consistent we currently require that all benchmarks are run on
-  a particular machine that is only available to the Plutus Core developers;
+* Use the [`CostModel Benchmark`
+  action](https://github.com/IntersectMBO/plutus/actions/workflows/cost-model-benchmark.yml)
+  on GitHub to run the costing benchmarks on the reference machine.  This will
+  run Criterion benchmarks for the built-in functions and will take many hours.
+  Each function is run many times with a selection of inputs of different sizes.
+  The benchmarks for the builtins are small, executing single Plutus Core terms
+  on the CEK machine.  The results of the benchmarks (execution times versus
+  sizes of inputs) are stored in CSV format in a file called `results.zip` which
+  can be downloaded once the benchmarking action is complete. (To keep the cost
+  model consistent we currently require that all benchmarks are run on a
+  particular machine that is only available to the Plutus Core developers;
   eventually some community process will be developed for adding new builtins
   and approving their implementations and costing functions, but this is not
   feasible at the moment.)
+  
+  For experimentation you can run the benchmarks locally with `cabal run
+  plutus-core:cost-model-budgeting-bench -- --csv <file>`; a subset of the
+  benchmarks can be run using Criterion's `-p` option and this can be useful
+  when testing costing benchmarks.
 
 * Change directory to `plutus-core/cost-model/data/` and run `cabal run
-  plutus-core:generate-cost-model -- --csv <file>`, where `<file>` is the CSV file
-  produced by `cost-model-budgeting-bench`.  This runs some R code in
+  plutus-core:generate-cost-model -- --csv <file>`, where `<file>` is the CSV
+  file produced in the previous step.  This runs some R code in
   [`plutus-core/cost-model/data/models.R`](./data/models.R) which fits a linear
   model to the data for each builtin; the general form of the model for each
   builtin is coded into `models.R`. Certain checks are performed during this
@@ -121,6 +128,11 @@ new function available from Haskell more work will be required in the
 [`plutus-tx`](https://github.com/IntersectMBO/plutus/tree/master/plutus-tx)
 codebase.
 
+When adding a new builtin, **please add all new code after the code for existing
+builtins so that constructors and function clauses appear in the historical
+order in which they were implemented**.  It is tempting to group code for
+related builtins together, but it's difficult to do this consistently and it can
+make it difficult to keep track of where everything is.
 
 ### Adding a new function
 
@@ -184,8 +196,11 @@ to check that the semantics of the new builtin are correct.
 
 After the above steps have been carried out the new builtin will be available in
 Plutus Core, but will not incur any charges when it is called.  To fix this we
-have to add a costing function of a suitable shape and replace the `unimplementedCostingFun` in
-the definition of the function.
+have to add a costing function of a suitable shape and replace the
+`unimplementedCostingFun` in the definition of the function.  **Once you start
+this process, do not merge any code until the process is complete**: merging
+incomplete costing code can lead to cryptic errors (especially in the code
+implementing the Haskell/R interface) which can be very difficult to diagnose.
 
 #### Step 1: add the basic type of the costing function to the cost model type
 
@@ -301,16 +316,15 @@ processed by R code added in Step 6 below.  The benchmark should aim to cover a 
 range of inputs in order to get a good idea of the worst-case behaviour of the
 function: experimentation may be needed to achieve this.
 
-Once the benchmark is in its final form, run it using `cabal run
-plutus-core:cost-model-budgeting-bench -- --csv <file>` as described in the
-first section of this document. Either run the full set of benchmarks and save
-the full output in a CSV file or run the new benchmark alone using `cabal run
-plutus-core:cost-model-budgeting-bench -- --csv <file> <benchmark name>` to run
-the benchmark on its own and then add the output in `<file>` results to a CSV
-file (such as `benching.csv`) containing earlier benchmark results for the rest
-of the builtin functions.  If the latter method (which will be much faster) is
-used it is advisable to run some other costing benchmarks as well to check that
-the results are at least approximately consistent with the previous ones.
+Once the benchmark is in its final form, run it on the benchmarking machine as
+described in the first section of this document. Either run the full set of
+benchmarks and use the resulting CSV file in the later steps or type the name(s)
+of the benchmark(s) in the "extra arguments" field under "Run workflow" on
+GitHub and append the results to an existing CSV file (such as `benching.csv`)
+containing earlier benchmark results for the rest of the builtin functions.  If
+the latter method (which will be much faster) is used it is advisable to run
+some other costing benchmarks as well to check that the results are at least
+approximately consistent with the previous ones.
 
 
 #### Step 6: update the R code
