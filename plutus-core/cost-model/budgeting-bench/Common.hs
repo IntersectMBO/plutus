@@ -21,7 +21,7 @@ import UntypedPlutusCore as UPLC hiding (Constr)
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
-import Criterion.Main
+import Criterion.Main (Benchmark, bench, bgroup, whnf)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 
@@ -99,6 +99,22 @@ integer = mkTyBuiltin @_ @Integer ()
 bytestring :: uni `HasTypeLevel` BS.ByteString => Type TyName uni ()
 bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
+unit :: uni `HasTypeLevel` () => Type TyName uni ()
+unit = mkTyBuiltin @_ @() ()
+
+tydata :: uni `HasTypeLevel` Data => Type TyName uni ()
+tydata = mkTyBuiltin @_ @Data ()
+
+list :: uni `HasTypeLevel` [] => Type TyName uni () -> Type TyName uni ()
+list t = TyApp () (mkTyBuiltin @_ @[] ()) t
+
+pair ::
+  uni `HasTypeLevel` (,)
+  => Type TyName uni ()
+  -> Type TyName uni ()
+  -> Type TyName uni ()
+pair a b = TyApp () (TyApp () typair a) b
+  where typair = mkTyBuiltin @_ @(,) ()
 
 -- To make monomorphic terms, make tys equal to [] in the mkApp functions
 
@@ -167,7 +183,7 @@ mkApp6
        , uni `HasTermLevel` d, uni `HasTermLevel` e, uni `HasTermLevel` f
        , NFData a, NFData b, NFData c, NFData d, NFData e, NFData f
        )
-    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f -> PlainTerm uni fun
 mkApp6 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]

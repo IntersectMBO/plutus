@@ -145,7 +145,12 @@ arity <- function(name) {
         "CountSetBits" = 1,
         "FindFirstSetBit" = 1,
         "ExpModInteger" = 3,
-        "DropList" = 2
+        "CaseList" = 3,
+        "CaseData" = 6,
+        "DropList" = 2,
+        "LengthOfArray" = 1,
+        "ListToArray" = 1,
+        "IndexArray" = 2
         )
 }
 
@@ -655,6 +660,7 @@ modelFun <- function(path) {
     tailListModel   <- constantModel ("TailList")
     nullListModel   <- constantModel ("NullList")
     dropListModel   <- linearInX     ("DropList")
+    caseListModel   <- constantModel ("CaseList")
 
     ##### Data #####
 
@@ -669,7 +675,7 @@ modelFun <- function(path) {
     unListDataModel   <- constantModel ("UnListData")
     unIDataModel      <- constantModel ("UnIData")
     unBDataModel      <- constantModel ("UnBData")
-
+    caseDataModel     <- constantModel ("CaseData")
 
     ## The equalsData builtin is tricky because it uses the Eq instance for
     ## Data, which can't call costing functions for embedded Integers and Text
@@ -781,6 +787,10 @@ modelFun <- function(path) {
     countSetBitsModel         <- linearInX ("CountSetBits")
     findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
 
+    ## Arrays - TEMPORARY, but probably right
+    lengthOfArrayModel        <- constantModel ("LengthOfArray")
+    listToArrayModel          <- constantModel ("ListToArray")
+    indexArrayModel           <- constantModel ("IndexArray")
 
 ##### Models to be returned to Haskell #####
 
@@ -870,7 +880,12 @@ modelFun <- function(path) {
         findFirstSetBitModel                 = findFirstSetBitModel,
         ripemd_160Model                      = ripemd_160Model,
         expModIntegerModel                   = expModIntegerModel,
-        dropListModel                        = dropListModel
+        caseListModel                        = caseListModel,
+        caseDataModel                        = caseDataModel,
+        dropListModel                        = dropListModel,
+        lengthOfArrayModel                   = lengthOfArrayModel,
+        listToArrayModel                     = listToArrayModel,
+        indexArrayModel                      = indexArrayModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
