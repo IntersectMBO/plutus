@@ -122,10 +122,11 @@ costing functions involves a number of steps.
 This section describes the somewhat involved process of updating the cost model
 when a new built-in function is added to Plutus Core. For concreteness we show
 how to add a new builtin `xorByteString` and how to extend the cost model to
-cover it.  This is quite a simple example, but serves to illustrate all of the
-steps that need to be taken to update the cost model.  For full technical
-details of how to add a new built-in function see the extensive notes on "How to
-add a built-in function" in
+cover it [in fact there's now a real builtin with this name, but the
+instructions still apply].  This is quite a simple example, but serves to
+illustrate all of the steps that need to be taken to update the cost model.  For
+full technical details of how to add a new built-in function see the extensive
+notes on "How to add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
 [`Universe.Core`](../plutus-core/src/Universe/Core.hs).  Note that the procedure
@@ -329,11 +330,12 @@ function: experimentation may be needed to achieve this.
 
 Once the benchmark is in its final form, run it on the benchmarking machine as
 described in the first section of this document. Type the name of the benchmark
-in the "extra arguments" field under "Run workflow" on GitHub and append the
-results to an existing CSV file (such as `benching-conway.csv`) containing earlier
-benchmark results for the rest of the builtin functions.  It is probably
-worthwhile to run some other costing benchmarks as well to check that the
-results are at least approximately consistent with the previous ones.
+(like "XorByteString") in the "extra arguments" field under "Run workflow" on
+GitHub and append the results to an existing CSV file (such as
+`benching-conway.csv`) containing earlier benchmark results for the rest of the
+builtin functions.  It is probably worthwhile to run some other costing
+benchmarks as well to check that the results are at least approximately
+consistent with the previous ones.
 
 (You can also leave the "extra arguments" field blank to run the entire set of
 benchmarks, but this will take a very long time and you probably only want to do
