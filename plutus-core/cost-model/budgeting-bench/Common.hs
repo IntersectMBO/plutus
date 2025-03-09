@@ -183,7 +183,7 @@ mkApp6
        , uni `HasTermLevel` d, uni `HasTermLevel` e, uni `HasTermLevel` f
        , NFData a, NFData b, NFData c, NFData d, NFData e, NFData f
        )
-    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
+    => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f -> PlainTerm uni fun
 mkApp6 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]

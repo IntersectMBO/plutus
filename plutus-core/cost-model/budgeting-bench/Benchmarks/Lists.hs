@@ -9,16 +9,13 @@ import Generators
 
 import PlutusCore
 import PlutusCore.Compiler.Erase (eraseTerm)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
 import Control.DeepSeq (force)
 import Criterion.Main
 import Data.ByteString (ByteString)
-import Debug.Trace (trace)
 import Hedgehog qualified as H
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
-                                                    ListCostedByLength (..))
-import PlutusCore.Pretty qualified as PP
 import System.Random (StdGen, randomR)
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
@@ -128,6 +125,15 @@ benchDropList gen =
     in createTwoTermBuiltinBenchElementwiseWithWrappers
            (IntegerCostedLiterally, id) name [bytestring] inputs
 
+
+{- Benchmark `caseList (con unit ()) (lam x (lam y (con unit ()))) l` to minimise
+the amount of extra work the evaluator has to do to compute the final result
+after the builtin returns (which will be included in the cost of the builtin)..
+We can't re-use the functions that we use for other benchmarks because the term
+arguments have to be treated separately, so there's quite a bit of extra
+machinery in here; it seems unlikely to be more generally useful, so for the
+time being it's kept local to this function.
+-}
 benchCaseList :: StdGen -> Benchmark
 benchCaseList gen =
     let name = CaseList
@@ -138,8 +144,9 @@ benchCaseList gen =
         -- lam y (lam ys (con unit ()))
         mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ()))
         -- Two different types of inputs, just to make sure there's no difference
-        intInputs = take 100 $ intLists gen          -- Make these bigger
-        bsInputs  = take 100 $ byteStringLists seedA -- Make these bigger
+        intInputs = take 100 $ intLists gen          -- MAKE THESE BIGGER
+        bsInputs  = take 100 $ byteStringLists seedA -- MAKE THESE BIGGER
+        -- Like mkApp3, but the first two arguments are terms (in fact values)
         mkApp3' !fun !tys term1 term2 (force -> !l) =
           eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]
           where instantiated = mkIterInstNoAnn (builtin () fun) tys
@@ -147,23 +154,18 @@ benchCaseList gen =
         mkBMs ty inputs =
           let case1 = mkCase1 ty
               case2 = mkCase2 ty
-          in [ bgroup "1"
+          in [ bgroup "1" -- Fake size for term arguments
                [ bgroup "1"
                  [ benchDefault
-                   (showMemoryUsage $ ListCostedByLength l)
+                   -- Strictly it might be better to cost the list by length
+                   -- here, but it's constant time anyway so it shouldn't
+                   -- matter.
+                   (showMemoryUsage l)
                    (mkApp3' name [ty, unit] case1 case2 l)
                  ]
                ]
              | l <- inputs ]
-        test :: PlainTerm DefaultUni DefaultFun
-        test = mkApp3' name [integer, unit]
-               (mkCase1 integer)
-               (mkCase2 integer)
-               [1,2,3,4,5,6,7,8,9::Integer]
-    in trace (show $ PP.prettyPlcClassic test) $
-       bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
-
-  -- benchmark caseList (con unit ()) (lam x (lam y (con unit ()))) l
+    in bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ benchChooseList gen

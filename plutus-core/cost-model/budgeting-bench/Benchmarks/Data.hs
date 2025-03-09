@@ -15,10 +15,7 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
 import Control.DeepSeq (force)
 import Criterion.Main
-import Debug.Trace (trace)
 import System.Random (StdGen)
-
-import PlutusCore.Pretty qualified as PP
 
 {- | Benchmarks for builtins operating on Data.  Recall that Data is defined by
 
@@ -141,22 +138,34 @@ benchSerialiseData =
     -- does the internal structure of a Data object influence serialisation
     -- time?  What causes a Data object to be quick or slow to serialise?
 
-
+{- Benchmark `caseData`.  The first argument is `lam x. lam y. ()` and the next
+   four are all `lam x. ()` (and the final one is a `data` object). This is to
+   minimise the amount of extra work that the evaluator has to do after the
+   builtin returns (which will be included in the cost of the builtin). We can't
+   re-use the functions that we use for other benchmarks because the term
+   arguments whave to be treated separately, so there's quite a bit of extra
+   machinery in here; it seems unlikely to be more generally useful, so for the
+   time being it's kept local to this function. -}
+{- Experiments show that the function takes the about ame amount of time for each
+   constructor, even for `Constr` which might be expected to take longer because
+   it has two arguments. -}
 benchCaseData :: Benchmark
 benchCaseData =
   let name = CaseData
-      inputs =
-        (take 100 $ filter isConstr dataSample)
-        ++ (take 100 $ filter isMap dataSample)
-        ++ (take 100 $ filter isList dataSample)
-        ++ (take 100 $ filter isI dataSample)
-        ++ (take 100 $ filter isB dataSample)
+      -- Thirty data objects for each constructor, in separate batches so that
+      -- we can check that they all take about the same amount of time.
+      inputs = (take 30 $ filter isConstr dataSample)
+               ++ (take 30 $ filter isMap dataSample)
+               ++ (take 30 $ filter isList dataSample)
+               ++ (take 30 $ filter isI dataSample)
+               ++ (take 30 $ filter isB dataSample)
       y = Name "y" (Unique 1)
       ys = Name "ys" (Unique 2)
       -- lam y (con unit ())
       mkCase1 ty = LamAbs () y ty (mkConstant () ())
       -- lam y (lam ys (con unit ()))
       mkCase2 ty1 ty2 = LamAbs () y ty1 (LamAbs () ys ty2 (mkConstant () ()))
+      -- Like mkApp6, but the first five arguments are terms (in fact values)
       mkApp6' !fun !tys term1 term2 term3 term4 term5 (force -> !d) =
         eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, term3, term4, term5, mkConstant () d]
         where instantiated = mkIterInstNoAnn (builtin () fun) tys
@@ -167,7 +176,7 @@ benchCaseData =
             caseList   = mkCase1 (list tydata)
             caseI      = mkCase1 integer
             caseB      = mkCase1 bytestring
-        in [ bgroup "1"
+        in [ bgroup "1"  -- Fake size for term arguments
              [ bgroup "1"
                [ bgroup "1"
                  [ bgroup "1"
@@ -181,16 +190,7 @@ benchCaseData =
                ]
              ]
            | d <- l ]
-      test :: PlainTerm DefaultUni DefaultFun
-      test = mkApp6' name [unit]
-             (mkCase2 integer (list tydata))
-             (mkCase1 (list (pair tydata tydata)))
-             (mkCase1 (list tydata))
-             (mkCase1 integer)
-             (mkCase1 bytestring)
-             (I 5)
-  in trace (show $ PP.prettyPlcClassic test) $
-     bgroup (show name) $ mkBMs inputs
+  in bgroup (show name) $ mkBMs inputs
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
