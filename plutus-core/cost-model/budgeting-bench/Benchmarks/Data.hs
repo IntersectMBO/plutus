@@ -50,7 +50,7 @@ isB = \case {B {} -> True; _ -> False}
 -- fortunately 'chooseData' is parametric in its last five arguments so we can
 -- just give it integers for those.
 benchChooseData :: Benchmark
-benchChooseData = bgroup (show name) [mkBM d | d <- take 100 dataSample]
+benchChooseData = bgroup (show name) [mkBM d | d <- take 30 dataSample]
                   where name = ChooseData
                         mkBM d = benchDefault (showMemoryUsage d) $
                                  mkApp6 name [integer] d (111::Integer) (222::Integer)
