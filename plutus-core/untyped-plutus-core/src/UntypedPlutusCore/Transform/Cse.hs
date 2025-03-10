@@ -6,7 +6,7 @@
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
-import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
+import PlutusCore (DefaultFun, DefaultUni, MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
@@ -20,16 +20,20 @@ import Control.Monad (join, void)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
 import Control.Monad.Trans.State.Strict (State, evalState, get, put)
+import Data.Coerce (coerce)
 import Data.Foldable as Foldable (foldl')
 import Data.Hashable (Hashable)
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
-import Data.List.Extra (isSuffixOf, sortOn)
+import Data.List.Extra (intercalate, isSuffixOf, sortOn)
 import Data.Ord (Down (..))
 import Data.Proxy (Proxy (..))
 import Data.Traversable (for)
 import Data.Tuple.Extra (snd3, thd3)
+import Debug.Trace qualified as Debug
 import PlutusCore.Arity (builtinArity)
+import PlutusCore.Pretty (display)
+import Unsafe.Coerce (unsafeCoerce)
 
 {- Note [CSE]
 
@@ -231,6 +235,15 @@ cse builtinSemanticsVariant t0 = do
           . join
           . Map.elems
           $ countOccs builtinSemanticsVariant annotated
+  {-
+  Debug.traceM $ "Common subexpressions:\n" ++ intercalate "\n---\n"
+        [ display (term, path)
+        | e <- commonSubexprs
+        , let term :: Term Name DefaultUni DefaultFun ()
+              term = unsafeCoerce (void e)
+              path = show (reverse (fst (termAnn e)))
+        ]
+  -}
   result <- mkCseTerm commonSubexprs annotated
   recordSimplification t0 CSE result
   return result
@@ -362,10 +375,14 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
     candidatePath = fst (termAnn (ccAnnotatedTerm c))
 
+    showTerm = display @String @(Term Name DefaultUni DefaultFun ()) . unsafeCoerce
+
     substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
     substCseVarForTerm t =
       if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
-        then Var (termAnn t) (ccFreshName c)
+        then
+          Debug.trace ("\nSubstituting\n" ++ showTerm currTerm) $
+            Var (termAnn t) (ccFreshName c)
         else t
       where
         currTerm = void t

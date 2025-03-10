@@ -73,6 +73,8 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Time (getCurrentTime)
+import Debug.Trace qualified as Debug
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -531,24 +533,39 @@ runCompiler moduleName opts expr = do
                 (opts ^. posInlineConstants)
 
     -- GHC.Core -> Pir translation.
+    Debug.traceM "\n=== Before GHC.Core -> Pir translation."
+    Debug.traceShowM =<< liftIO getCurrentTime
+
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
     let pirP = PIR.Program noProvenance plcVersion pirT
     when (opts ^. posDumpPir) . liftIO $
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
+
+    Debug.traceM "\n=== After GHC.Core -> Pir translation."
+    Debug.traceShowM =<< liftIO getCurrentTime
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
     when (opts ^. posDumpPir) . liftIO $
         dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
+    Debug.traceM "\n=== After Pir -> (Simplified) Pir pass."
+    Debug.traceShowM =<< liftIO getCurrentTime
+
     -- (Simplified) Pir -> Plc translation.
     plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
     when (opts ^. posDumpPlc) . liftIO $
         dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
+    Debug.traceM "\n=== After (Simplified) Pir -> Plc translation."
+    Debug.traceShowM =<< liftIO getCurrentTime
+
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
+
+    Debug.traceM "\n=== Before Plc -> UPlc translation."
+    Debug.traceShowM =<< liftIO getCurrentTime
 
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
@@ -557,6 +574,11 @@ runCompiler moduleName opts expr = do
             (UPLC.UnrestrictedProgram $ void dbP)
             "untyped PLC program"
             (moduleName ++ ".uplc-flat")
+
+
+    Debug.traceM "\n=== After Plc -> UPlc translation."
+    Debug.traceShowM =<< liftIO getCurrentTime
+
     -- Discard the Provenance information at this point, just keep the SrcSpans
     -- TODO: keep it and do something useful with it
     pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)

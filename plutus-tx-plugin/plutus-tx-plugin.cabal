@@ -90,6 +90,7 @@ library
     , prettyprinter
     , template-haskell
     , text
+    , time
     , uniplate
 
 executable gen-plugin-opts-doc
