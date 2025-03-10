@@ -420,8 +420,8 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
-    Evaluation.Builtins.Bitwise1
-    Evaluation.Builtins.Bitwise2
+    Evaluation.Builtins.Bitwise.CIP0122
+    Evaluation.Builtins.Bitwise.CIP0123
     Evaluation.Builtins.BLS12_381
     Evaluation.Builtins.BLS12_381.TestClasses
     Evaluation.Builtins.BLS12_381.Utils

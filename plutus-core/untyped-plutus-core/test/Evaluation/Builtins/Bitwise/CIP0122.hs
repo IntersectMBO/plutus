@@ -2,8 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [CIP-0122](https://cips.cardano.org/cip/CIP-0122).
-module Evaluation.Builtins.Bitwise1 (
+-- | Tests for [CIP-0122](https://cips.cardano.org/cip/CIP-0122) (the first
+-- batch of bitwise builtins)
+module Evaluation.Builtins.Bitwise.CIP0122 (
   abelianSemigroupLaws,
   abelianMonoidLaws,
   idempotenceLaw,

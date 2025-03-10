@@ -1,9 +1,9 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
--- | Tests for [CIP-0123](https://cips.cardano.org/cip/CIP-0123).
-module Evaluation.Builtins.Bitwise2 (
+-- | Tests for [CIP-0123](https://cips.cardano.org/cip/CIP-0123)(the second
+-- batch of bitwise builtins).
+module Evaluation.Builtins.Bitwise.CIP0123 (
   shiftHomomorphism,
   rotateHomomorphism,
   csbHomomorphism,
@@ -142,8 +142,8 @@ ffsXor = property $ do
         ]
   evaluatesToConstant @Integer (negate 1) rhs
 
--- | If we replicate any byte any (positive) number of times, the first set bit should be the same as
--- in the case where we replicated it exactly once.
+-- | If we replicate any byte any (positive) number of times, the first set bit
+-- should be the same as in the case where we replicated it exactly once.
 ffsReplicate :: Property
 ffsReplicate = property $ do
   n <- forAll . Gen.integral . Range.linear 1 $ 512
@@ -236,8 +236,8 @@ csbXor = property $ do
         ]
   evaluatesToConstant @Integer 0 rhs
 
--- | There should exist a monoid homomorphism between natural number addition and function composition for
--- shifts over a fixed bytestring argument.
+-- | There should exist a monoid homomorphism between natural number addition
+-- and function composition for shifts over a fixed bytestring argument.
 shiftHomomorphism :: [TestTree]
 shiftHomomorphism = [
   testPropertyNamed "zero shift is identity" "zero_shift_id" $
