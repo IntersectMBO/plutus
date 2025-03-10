@@ -135,6 +135,7 @@ import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
 
 import PlutusLedgerApi.Data.V2 qualified as V2
+import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
@@ -571,7 +572,7 @@ PlutusTx.asData
       , txInfoReferenceInputs :: List TxInInfo
       , txInfoOutputs :: List V2.TxOut
       , txInfoFee :: V2.Lovelace
-      , txInfoMint :: V2.Value
+      , txInfoMint :: V3.MintValue
       , -- \^ The 'Value' minted by this transaction.
         --
         -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
@@ -640,7 +641,7 @@ hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
-  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
+  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toSOPList txInfoData)
  where
   f (_, ds') = ds' PlutusTx.== ds
 

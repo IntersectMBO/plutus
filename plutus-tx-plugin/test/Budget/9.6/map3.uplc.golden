@@ -8,7 +8,7 @@
                    (\`$dToData` ->
                       (\goList
                         n ->
-                         (\unsafeFromList ->
+                         (\unsafeFromSOPList ->
                             (\nt ->
                                (\goLeft ->
                                   (\nt ->
@@ -215,7 +215,7 @@
                                                                    hd))))
                                                      (\x -> s s x))
                                                 (delay (\x -> x))))))
-                                    (unsafeFromList
+                                    (unsafeFromSOPList
                                        (\i -> iData i)
                                        (\i -> iData i)
                                        (constr 1
@@ -296,7 +296,7 @@
                                                        hd))))
                                          (\x -> s s x))
                                     (delay (\x -> x))))
-                              (unsafeFromList
+                              (unsafeFromSOPList
                                  (\i -> iData i)
                                  (\i -> iData i)
                                  (constr 1
