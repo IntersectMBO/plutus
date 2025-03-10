@@ -5,81 +5,99 @@
  */
 
 /* cyrillic-ext */
+
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZJhiI2B.woff2)
-    format("woff2");
-  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
-    U+FE2E-FE2F;
+  src: url("/fonts/DMSans-Regular.ttf");
 }
+
 /* cyrillic */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZthiI2B.woff2)
-    format("woff2");
+  src: url("/fonts/DMSans-Regular.ttf");
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
 /* greek-ext */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZNhiI2B.woff2)
-    format("woff2");
-  unicode-range: U+1F00-1FFF;
+  src: url("/fonts/DMSans-Regular.ttf");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
 /* greek */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZxhiI2B.woff2)
-    format("woff2");
-  unicode-range: U+0370-03FF;
+  src: url("/fonts/DMSans-Regular.ttf");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
 /* vietnamese */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZBhiI2B.woff2)
-    format("woff2");
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
-    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
-    U+1EA0-1EF9, U+20AB;
+  src: url("/fonts/DMSans-Regular.ttf");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
 /* latin-ext */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZFhiI2B.woff2)
-    format("woff2");
-  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
-    U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url("/fonts/DMSans-Regular.ttf");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
 /* latin */
 @font-face {
-  font-family: "Inter";
+  font-family: "DM Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2)
-    format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
-    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url("/fonts/DMSans-Regular.ttf");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/DMSans-SemiBold.ttf");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/DMSans-Bold.ttf");
+}
+
+@font-face {
+  font-family: "DM Sans";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/DMSans-Light.ttf");
+}
+
 /* cyrillic-ext */
 @font-face {
   font-family: "Source Code Pro";
@@ -160,15 +178,19 @@
 /* You can override the default Infima variables here. */
 :root {
   --color-plutus-white: #ffffff;
-  --color-plutus-black: #1c1c1c;
+  --color-plutus-black: #0f0f0f;
   --color-plutus-green: #c2f71c;
   --color-plutus-red: #f93a36;
   --color-plutus-orange: #ff7347;
   --color-plutus-yellow: #ffbe3c;
 
   --color-plutus-blue-bg: #eef9fd;
-  --color-plutus-blue: #4bb4d5;
+  --color-plutus-dark-red: #de5930;
   --color-plutus-blue-2: #4b6fd5;
+
+  --color-white-smoke: #f3f3f3;
+  --color-platinum: #d7d9d8;
+  --color-grey: #808080;
 
   --color-plutus-grey-0: #fafafa;
   --color-plutus-grey-4: #f5f5f5;
@@ -180,46 +202,46 @@
   --color-plutus-grey-24: #393939;
   --color-plutus-grey-28: #1c1c1c;
 
-  --ifm-font-family-base: "Inter";
+  --ifm-font-family-base: "DM Sans", sans-serif;
   --ifm-font-family-monospace: "Source Code Pro";
 
-  --ifm-color-primary: var(--color-plutus-blue);
-  --ifm-color-primary-dark: var(--color-plutus-blue);
-  --ifm-color-primary-darker: var(--color-plutus-blue);
-  --ifm-color-primary-darkest: var(--color-plutus-blue);
+  --ifm-color-primary: var(--color-plutus-dark-red);
+  --ifm-color-primary-dark: var(--color-plutus-dark-red);
+  --ifm-color-primary-darker: var(--color-plutus-dark-red);
+  --ifm-color-primary-darkest: var(--color-plutus-dark-red);
 
-  --ifm-link-color: var(--color-plutus-blue);
+  --ifm-link-color: var(--color-plutus-dark-red);
   --ifm-link-hover-color: var(--color-plutus-blue-2);
   --ifm-link-hover-decoration: var(--color-plutus-blue-2);
-  --ifm-menu-color-active: var(--color-plutus-grey-28);
+  --ifm-menu-color-active: var(--color-grey);
   --ifm-navbar-link-hover-color: #61676f;
-  --ifm-breadcrumb-color-active: var(--color-plutus-grey-28);
+  --ifm-breadcrumb-color-active: var(--color-grey);
 
-  --ifm-navbar-search-input-placeholder-color: var(--color-plutus-grey-24);
+  --ifm-navbar-search-input-placeholder-color: var(--color-grey);
 
-  --ifm-color-secondary: var(--color-plutus-grey);
-  --ifm-color-secondary-light: var(--color-plutus-grey-12);
-  --ifm-color-secondary-dark: var(--color-plutus-grey-16);
-  --ifm-color-secondary-lighter: var(--color-plutus-grey-8);
-  --ifm-color-secondary-darker: var(--color-plutus-grey-20);
-  --ifm-color-secondary-lightest: var(--color-plutus-grey-4);
-  --ifm-color-secondary-darkest: var(--color-plutus-grey-24);
+  --ifm-color-secondary: var(--color-grey);
+  --ifm-color-secondary-light: var(--color-platinum);
+  --ifm-color-secondary-dark: var(--color-grey);
+  --ifm-color-secondary-lighter: var(--color-white-smoke);
+  --ifm-color-secondary-darker: var(--color-grey);
+  --ifm-color-secondary-lightest: var(--color-white-smoke);
+  --ifm-color-secondary-darkest: var(--color-grey);
 
   --ifm-navbar-height: 70px;
 }
 
 :root:root {
-  --aa-primary-color-rgb: 75, 180, 213;
+  --aa-primary-color-rgb: 222, 89, 48;
 }
 
 html[data-theme="dark"] {
-  --ifm-color-primary: var(--color-plutus-blue);
-  --ifm-link-color: var(--color-plutus-blue);
-  --ifm-link-hover-color: var(--color-plutus-blue);
-  --ifm-link-hover-decoration: var(--color-plutus-blue);
-  --ifm-menu-color-active: var(--color-plutus-blue);
-  --ifm-navbar-link-hover-color: var(--color-plutus-blue);
-  --ifm-breadcrumb-color-active: var(--color-plutus-blue);
+  --ifm-color-primary: var(--color-plutus-dark-red);
+  --ifm-link-color: var(--color-plutus-dark-red);
+  --ifm-link-hover-color: var(--color-plutus-dark-red);
+  --ifm-link-hover-decoration: var(--color-plutus-dark-red);
+  --ifm-menu-color-active: var(--color-plutus-dark-red);
+  --ifm-navbar-link-hover-color: var(--color-plutus-dark-red);
+  --ifm-breadcrumb-color-active: var(--color-plutus-dark-red);
 
   --ifm-navbar-search-input-placeholder-color: var(--color-plutus-grey-8);
 
@@ -230,8 +252,8 @@ html[data-theme="dark"] {
 }
 
 html[data-theme="dark"] body {
-  --aa-primary-color-rgb: 75, 180, 213;
-  --aa-muted-color-rgb: 75, 180, 213;
+  --aa-primary-color-rgb: 222, 89, 48;
+  --aa-muted-color-rgb: 222, 89, 48;
   --aa-background-color-rgb: 0, 0, 0;
 }
 
@@ -357,8 +379,8 @@ html[data-theme="dark"] .csv-table-overflow-marker::after {
 /* Footer */
 
 .footer {
-  background: #193d47;
-  color: #758b91;
+  background: #3b0005;
+  color: var(--color-white-smoke);
   font-size: 0.875rem;
   font-weight: 500;
   padding: 32px 0;
@@ -366,7 +388,7 @@ html[data-theme="dark"] .csv-table-overflow-marker::after {
 }
 
 .footer a {
-  color: #bac5c8;
+  color: var(--color-white-smoke);
   font-size: 1rem;
 }
 
