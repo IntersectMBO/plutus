@@ -22,27 +22,27 @@ tests =
     [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
     , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
     , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
+    , goldenBudget "onlyUseFirstField" (onlyUseFirstField `unsafeApplyCode` inp)
     , goldenPirReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
     , goldenUPlcReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
     , goldenEvalCekCatch "onlyUseFirstField-manual" [onlyUseFirstFieldManual `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField-budget-manual" (onlyUseFirstFieldManual `unsafeApplyCode` inp)
+    , goldenBudget "onlyUseFirstField-manual" (onlyUseFirstFieldManual `unsafeApplyCode` inp)
     , goldenPirReadable "patternMatching" patternMatching
     , goldenUPlcReadable "patternMatching" patternMatching
     , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
-    , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
+    , goldenBudget "patternMatching" (patternMatching `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields" recordFields
     , goldenUPlcReadable "recordFields" recordFields
     , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
-    , goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
+    , goldenBudget "recordFields" (recordFields `unsafeApplyCode` inp)
     , goldenPirReadable "destructSum" destructSum
     , goldenUPlcReadable "destructSum" destructSum
     , goldenEvalCekCatch "destructSum" [destructSum `unsafeApplyCode` inpSum]
-    , goldenBudget "destructSum-budget" (destructSum `unsafeApplyCode` inpSum)
+    , goldenBudget "destructSum" (destructSum `unsafeApplyCode` inpSum)
     , goldenPirReadable "destructSum-manual" destructSumManual
     , goldenUPlcReadable "destructSum-manual" destructSumManual
     , goldenEvalCekCatch "destructSum-manual" [destructSumManual `unsafeApplyCode` inpSumM]
-    , goldenBudget "destructSum-budget-manual" (destructSumManual `unsafeApplyCode` inpSumM)
+    , goldenBudget "destructSum-manual" (destructSumManual `unsafeApplyCode` inpSumM)
     ]
 
 -- A function that only accesses the first field of `Ints`.
