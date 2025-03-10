@@ -65,7 +65,7 @@ costing functions involves a number of steps.
   There are also files called `builtinCostModelA.json` and
   `builtinCostModelB.json` which are used for evaluating scripts prior to the
   Chang hard fork: data for new builtins can (if fact, must) be added to these
-  files, but the existing content must bnot be changed.  The CSV file containing
+  files, but the existing content must not be changed.  The CSV file containing
   the benchmark results used to generate the cost model should be checked in to
   the repository; this is not strictly necessary but it can be useful to have
   the raw data available if the details of the cost model need to be looked at
