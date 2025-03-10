@@ -1,0 +1,1395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Text.PrettyBy.Fixity</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >prettyprinter-configurable-1.33.1.0: Configurable pretty-printing</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Text.PrettyBy.Fixity.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Text.PrettyBy.Fixity</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Configurable precedence-aware pretty-printing.</p
+	  ><p
+	  >Look into <code
+	    >test/Expr.hs</code
+	    > for an extended example.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    >module <a href="Text-PrettyBy-Monad.html"
+	      >Text.PrettyBy.Monad</a
+	      ></li
+	    ><li class="src short"
+	    >module <a href="Text-Fixity.html"
+	      >Text.Fixity</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasRenderContext"
+	      >HasRenderContext</a
+	      > config <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:renderContext"
+		  >renderContext</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+		  >Lens'</a
+		  > config <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+		  >RenderContext</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MonadPrettyContext"
+	      >MonadPrettyContext</a
+	      > config env m = (<a href="Text-PrettyBy-Monad.html#t:MonadPretty" title="Text.PrettyBy.Monad"
+	      >MonadPretty</a
+	      > config env m, <a href="Text-PrettyBy-Fixity.html#t:HasRenderContext" title="Text.PrettyBy.Fixity"
+	      >HasRenderContext</a
+	      > config)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Sole"
+	      >Sole</a
+	      > a = <a href="#v:Sole"
+	      >Sole</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unSole"
+		  >unSole</a
+		  > &#8759; a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:InContextM"
+	      >InContextM</a
+	      > config a = <a href="#v:InContextM"
+	      >InContextM</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unInContextM"
+		  >unInContextM</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+		  >Reader</a
+		  > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+		  >Sole</a
+		  > config) a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:AnyToDoc"
+	      >AnyToDoc</a
+	      > config ann = &#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:runInContextM"
+	      >runInContextM</a
+	      > &#8759; config &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+	      >InContextM</a
+	      > config a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:inContextM"
+	      >inContextM</a
+	      > &#8759; (a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+	      >InContextM</a
+	      > config (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)) &#8594; config &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:unitDocM"
+	      >unitDocM</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:encloseM"
+	      >encloseM</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:withPrettyIn"
+	      >withPrettyIn</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; ((&#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config a &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	      >Direction</a
+	      > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann) &#8594; m r) &#8594; m r</li
+	    ><li class="src short"
+	    ><a href="#v:withPrettyAt"
+	      >withPrettyAt</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	      >Direction</a
+	      > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	      >AnyToDoc</a
+	      > config ann &#8594; m r) &#8594; m r</li
+	    ><li class="src short"
+	    ><a href="#v:compoundDocM"
+	      >compoundDocM</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; ((&#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config a &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	      >Direction</a
+	      > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann) &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:sequenceDocM"
+	      >sequenceDocM</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	      >Direction</a
+	      > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	      >AnyToDoc</a
+	      > config ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:infixDocM"
+	      >infixDocM</a
+	      > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	      >Fixity</a
+	      > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	      >AnyToDoc</a
+	      > config ann &#8594; <a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	      >AnyToDoc</a
+	      > config ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:juxtPrettyM"
+	      >juxtPrettyM</a
+	      > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	      >MonadPrettyContext</a
+	      > config env m, <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config a, <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	      >PrettyBy</a
+	      > config b) &#8658; a &#8594; b &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	      >Doc</a
+	      > ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  >module <a href="Text-PrettyBy-Monad.html"
+	    >Text.PrettyBy.Monad</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  >module <a href="Text-Fixity.html"
+	    >Text.Fixity</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasRenderContext" class="def"
+	    >HasRenderContext</a
+	    > config <span class="keyword"
+	    >where</span
+	    > <a href="src/Text.PrettyBy.Fixity.html#HasRenderContext" class="link"
+	    >Source</a
+	    > <a href="#t:HasRenderContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A constraint for &quot;<code
+	      ><a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+		>RenderContext</a
+		></code
+	      > is a part of <code
+	      >config</code
+	      >&quot;.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:renderContext" class="def"
+	      >renderContext</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+	      >Lens'</a
+	      > config <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+	      >RenderContext</a
+	      > <a href="src/Text.PrettyBy.Fixity.html#renderContext" class="link"
+	      >Source</a
+	      > <a href="#v:renderContext" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasRenderContext"
+	    >Instances</h4
+	    ><details id="i:HasRenderContext" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasRenderContext:HasRenderContext:1"
+		      ></span
+		      > <a href="Text-PrettyBy-Fixity.html#t:HasRenderContext" title="Text.PrettyBy.Fixity"
+		      >HasRenderContext</a
+		      > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+		      >RenderContext</a
+		      ></span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:HasRenderContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasRenderContext:HasRenderContext:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:renderContext"
+			  >renderContext</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+			  >Lens'</a
+			  > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+			  >RenderContext</a
+			  > <a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+			  >RenderContext</a
+			  > <a href="src/Text.PrettyBy.Fixity.html#renderContext" class="link"
+			  >Source</a
+			  > <a href="#v:renderContext" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MonadPrettyContext" class="def"
+	    >MonadPrettyContext</a
+	    > config env m = (<a href="Text-PrettyBy-Monad.html#t:MonadPretty" title="Text.PrettyBy.Monad"
+	    >MonadPretty</a
+	    > config env m, <a href="Text-PrettyBy-Fixity.html#t:HasRenderContext" title="Text.PrettyBy.Fixity"
+	    >HasRenderContext</a
+	    > config) <a href="src/Text.PrettyBy.Fixity.html#MonadPrettyContext" class="link"
+	    >Source</a
+	    > <a href="#t:MonadPrettyContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A constraint for &quot;<code
+	      >m</code
+	      > is a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		>Monad</a
+		></code
+	      > supporting configurable precedence-aware pretty-printing&quot;.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Sole" class="def"
+	    >Sole</a
+	    > a <a href="src/Text.PrettyBy.Fixity.html#Sole" class="link"
+	    >Source</a
+	    > <a href="#t:Sole" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      >newtype</code
+	      > wrapper around <code
+	      >a</code
+	      > introduced for its <code
+	      ><a href="Text-PrettyBy-Monad.html#t:HasPrettyConfig" title="Text.PrettyBy.Monad"
+		>HasPrettyConfig</a
+		></code
+	      > instance.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Sole" class="def"
+		  >Sole</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unSole" class="def"
+			  >unSole</a
+			  > &#8759; a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Sole"
+	    >Instances</h4
+	    ><details id="i:Sole" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sole:HasPrettyConfig:1"
+		      ></span
+		      > <a href="Text-PrettyBy-Monad.html#t:HasPrettyConfig" title="Text.PrettyBy.Monad"
+		      >HasPrettyConfig</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+		      >Sole</a
+		      > config) config</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:Sole" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >It's not possible to have <code
+		      >HasPrettyConfig config config</code
+		      >, because that would mean that every
+ environment is a pretty-printing config on its own, which doesn't make sense. We could have an
+ OVERLAPPABLE instance, but I'd rather not.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sole:HasPrettyConfig:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyConfig"
+			  >prettyConfig</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/microlens-0.4.13.1/docs/Lens-Micro-Type.html#t:Lens-39-" title="Lens.Micro.Type"
+			  >Lens'</a
+			  > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) config <a href="src/Text.PrettyBy.Monad.html#prettyConfig" class="link"
+			  >Source</a
+			  > <a href="#v:prettyConfig" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sole:MonadReader:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+		      >Sole</a
+		      > config) (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:Sole" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sole:MonadReader:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config &#8594; <a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config &#8594; a) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InContextM" class="def"
+	    >InContextM</a
+	    > config a <a href="src/Text.PrettyBy.Fixity.html#InContextM" class="link"
+	    >Source</a
+	    > <a href="#t:InContextM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A monad for precedence-aware pretty-printing.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InContextM" class="def"
+		  >InContextM</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unInContextM" class="def"
+			  >unInContextM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+			  >Reader</a
+			  > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InContextM"
+	    >Instances</h4
+	    ><details id="i:InContextM" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InContextM:Applicative:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:InContextM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InContextM:Applicative:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config (a &#8594; b) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config c <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InContextM:Functor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:InContextM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InContextM:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InContextM:Monad:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:InContextM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InContextM:Monad:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; (a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config b <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InContextM:MonadReader:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+		      >Sole</a
+		      > config) (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:InContextM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InContextM:MonadReader:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config &#8594; <a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:Sole" title="Text.PrettyBy.Fixity"
+			  >Sole</a
+			  > config &#8594; a) &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InContextM:IsString:5"
+		      ></span
+		      > (<a href="Text-PrettyBy-Fixity.html#t:HasRenderContext" title="Text.PrettyBy.Fixity"
+		      >HasRenderContext</a
+		      > config, doc <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		      >~</a
+		      > <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+		      >Doc</a
+		      > ann) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:IsString" title="Data.String"
+		      >IsString</a
+		      > (<a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		      >InContextM</a
+		      > config doc)</span
+		    > <a href="src/Text.PrettyBy.Fixity.html#line-67" class="link"
+		    >Source</a
+		    > <a href="#t:InContextM" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A string written in the <code
+		      ><a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			>InContextM</a
+			></code
+		      > monad gets enclosed with <code
+		      ><a href="Text-PrettyBy-Fixity.html#v:unitDocM" title="Text.PrettyBy.Fixity"
+			>unitDocM</a
+			></code
+		      > automatically.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InContextM:IsString:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Text-PrettyBy-Fixity.html"
+			>Text.PrettyBy.Fixity</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromString"
+			  >fromString</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+			  >InContextM</a
+			  > config doc <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromString" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:AnyToDoc" class="def"
+	    >AnyToDoc</a
+	    > config ann = &#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann <a href="src/Text.PrettyBy.Fixity.html#AnyToDoc" class="link"
+	    >Source</a
+	    > <a href="#t:AnyToDoc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of a general <code
+	      >config</code
+	      >-based pretty-printer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runInContextM" class="def"
+	    >runInContextM</a
+	    > &#8759; config &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+	    >InContextM</a
+	    > config a &#8594; a <a href="src/Text.PrettyBy.Fixity.html#runInContextM" class="link"
+	    >Source</a
+	    > <a href="#v:runInContextM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Run <code
+	      ><a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+		>InContextM</a
+		></code
+	      > by supplying a <code
+	      >config</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inContextM" class="def"
+	    >inContextM</a
+	    > &#8759; (a &#8594; <a href="Text-PrettyBy-Fixity.html#t:InContextM" title="Text.PrettyBy.Fixity"
+	    >InContextM</a
+	    > config (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann)) &#8594; config &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann <a href="src/Text.PrettyBy.Fixity.html#inContextM" class="link"
+	    >Source</a
+	    > <a href="#v:inContextM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Takes a monadic pretty-printer and turns it into one that receives a <code
+	      >config</code
+	      > explicitly.
+ Useful for defining instances of <code
+	      ><a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+		>PrettyBy</a
+		></code
+	      > monadically when writing precedence-aware
+ pretty-printing code (and since all functions below are monadic, it's currenty the only option).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unitDocM" class="def"
+	    >unitDocM</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#unitDocM" class="link"
+	    >Source</a
+	    > <a href="#v:unitDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Call <code
+	      ><a href="Text-PrettyBy-Fixity.html#v:encloseM" title="Text.PrettyBy.Fixity"
+		>encloseM</a
+		></code
+	      > on <code
+	      ><a href="Text-Fixity.html#v:unitFixity" title="Text.Fixity"
+		>unitFixity</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:encloseM" class="def"
+	    >encloseM</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#encloseM" class="link"
+	    >Source</a
+	    > <a href="#v:encloseM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Enclose a <code
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+		>Doc</a
+		></code
+	      > in parentheses if required or leave it as is. The need for enclosing is
+ determined from an outer <code
+	      ><a href="Text-Fixity.html#t:RenderContext" title="Text.Fixity"
+		>RenderContext</a
+		></code
+	      > (stored in the environment of the monad) and the inner
+ fixity provided as an argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withPrettyIn" class="def"
+	    >withPrettyIn</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; ((&#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config a &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	    >Direction</a
+	    > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) &#8594; m r) &#8594; m r <a href="src/Text.PrettyBy.Fixity.html#withPrettyIn" class="link"
+	    >Source</a
+	    > <a href="#v:withPrettyIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Instantiate a supplied continuation with a precedence-aware pretty-printer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withPrettyAt" class="def"
+	    >withPrettyAt</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	    >Direction</a
+	    > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	    >AnyToDoc</a
+	    > config ann &#8594; m r) &#8594; m r <a href="src/Text.PrettyBy.Fixity.html#withPrettyAt" class="link"
+	    >Source</a
+	    > <a href="#v:withPrettyAt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Instantiate a supplied continuation with a pretty-printer specialized to supplied
+ <code
+	      ><a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+		>Fixity</a
+		></code
+	      > and <code
+	      ><a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+		>Direction</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compoundDocM" class="def"
+	    >compoundDocM</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; ((&#8704; a. <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config a &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	    >Direction</a
+	    > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#compoundDocM" class="link"
+	    >Source</a
+	    > <a href="#v:compoundDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Instantiate a supplied continuation with a pretty-printer and apply <code
+	      ><a href="Text-PrettyBy-Fixity.html#v:encloseM" title="Text.PrettyBy.Fixity"
+		>encloseM</a
+		></code
+	      >,
+ specialized to supplied <code
+	      ><a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+		>Fixity</a
+		></code
+	      >, to the result.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sequenceDocM" class="def"
+	    >sequenceDocM</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+	    >Direction</a
+	    > &#8594; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	    >AnyToDoc</a
+	    > config ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#sequenceDocM" class="link"
+	    >Source</a
+	    > <a href="#v:sequenceDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Instantiate a supplied continuation with a pretty-printer specialized to supplied
+ <code
+	      ><a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+		>Fixity</a
+		></code
+	      > and <code
+	      ><a href="Text-Fixity-Internal.html#t:Direction" title="Text.Fixity.Internal"
+		>Direction</a
+		></code
+	      > and apply <code
+	      ><a href="Text-PrettyBy-Fixity.html#v:encloseM" title="Text.PrettyBy.Fixity"
+		>encloseM</a
+		></code
+	      > specialized to the provided fixity to the result.
+ This can be useful for pretty-printing a sequence of values (possibly consisting of a single
+ value).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:infixDocM" class="def"
+	    >infixDocM</a
+	    > &#8759; <a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m &#8658; <a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+	    >Fixity</a
+	    > &#8594; (<a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	    >AnyToDoc</a
+	    > config ann &#8594; <a href="Text-PrettyBy-Fixity.html#t:AnyToDoc" title="Text.PrettyBy.Fixity"
+	    >AnyToDoc</a
+	    > config ann &#8594; <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#infixDocM" class="link"
+	    >Source</a
+	    > <a href="#v:infixDocM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Instantiate a supplied continuation with two pretty-printers (one is going in the <code
+	      ><a href="Text-Fixity-Internal.html#v:ToTheLeft" title="Text.Fixity.Internal"
+		>ToTheLeft</a
+		></code
+	      >
+ direction, the other is in the <code
+	      ><a href="Text-Fixity-Internal.html#v:ToTheRight" title="Text.Fixity.Internal"
+		>ToTheRight</a
+		></code
+	      > direction) specialized to supplied <code
+	      ><a href="Text-Fixity.html#t:Fixity" title="Text.Fixity"
+		>Fixity</a
+		></code
+	      >
+ and apply <code
+	      ><a href="Text-PrettyBy-Fixity.html#v:encloseM" title="Text.PrettyBy.Fixity"
+		>encloseM</a
+		></code
+	      >, specialized to the same fixity, to the result.
+ The idea is that to the outside an infix operator has the same inner fixity as
+ it has the outer fixity to inner subexpressions.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:juxtPrettyM" class="def"
+	    >juxtPrettyM</a
+	    > &#8759; (<a href="Text-PrettyBy-Fixity.html#t:MonadPrettyContext" title="Text.PrettyBy.Fixity"
+	    >MonadPrettyContext</a
+	    > config env m, <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config a, <a href="Text-PrettyBy-Internal.html#t:PrettyBy" title="Text.PrettyBy.Internal"
+	    >PrettyBy</a
+	    > config b) &#8658; a &#8594; b &#8594; m (<a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/Prettyprinter.html#t:Doc" title="Prettyprinter"
+	    >Doc</a
+	    > ann) <a href="src/Text.PrettyBy.Fixity.html#juxtPrettyM" class="link"
+	    >Source</a
+	    > <a href="#v:juxtPrettyM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print two things with a space between them. The fixity of the context in which the
+ arguments get pretty-printed is set to <code
+	      ><a href="Text-Fixity.html#v:juxtFixity" title="Text.Fixity"
+		>juxtFixity</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
