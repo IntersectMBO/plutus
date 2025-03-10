@@ -1,14 +1,13 @@
-# This workflow runs the nightly cardano-constitution tests.
+# This workflow runs the cardano-constitution tests.
 #
-# This workflow runs daily at 2am, and it can also be triggered manually.
+# This workflow runs on all pull requests.
 
 
 name: "🗽 Cardano Constitution Tests"
 
 on:
   workflow_dispatch: 
-  schedule:
-    - cron: 0 2 * * * 
+  pull_request:
 
 jobs:
   run:
