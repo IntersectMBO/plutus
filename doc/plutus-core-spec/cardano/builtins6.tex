@@ -46,9 +46,11 @@ $\mathsf{expMod}: \Z \times \Z \times \Z \rightarrow \Z_{\errorX}$ is given by
 $$
 \mathsf{expMod}(a,e,m) =
   \begin{cases}
-     \modfn(a^e,m) & \text{if $m > 0$ and $e \geq 0$}\\
-     \min\{r \in \N: ra^{-e} \equiv 1\pmod{m}\}\  & \text{if $m > 0, e < 0$ and $\mathrm{gcd}(a,m) = 1$}\\
-     \errorX & \text{otherwise.}
+     \modfn(a^e,m) & \text{if $m > 1$ and $e \geq 0$}\\
+     \min\{r \in \N: ra^{-e} \equiv 1\pmod{m}\}\  & \text{if $m > 1, e < 0$ and $\mathrm{gcd}(a,m) = 1$}\\
+     \errorX & \text{if $m>1,e<0$, and $\mathrm{gcd}(a,m) \neq 1$}\\
+     0 & \text{if $m=1$}\\
+     \errorX & \text{if $m \leq 0$.}
   \end{cases}
 $$ 
 
