@@ -147,7 +147,7 @@ currencyLongListOptions =
 {-# INLINEABLE currencyLongListOptions #-}
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.unsafeFromList . ListTx.map (fmap AssocMap.unsafeFromList)
+listsToValue = Value . AssocMap.unsafeFromSOPList . ListTx.map (fmap AssocMap.unsafeFromSOPList)
 
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
 valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue

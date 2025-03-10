@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Data.AssocMap (
@@ -16,8 +17,8 @@ module PlutusTx.Data.AssocMap (
   null,
   toList,
   toBuiltinList,
-  safeFromList,
-  unsafeFromList,
+  safeFromSOPList,
+  unsafeFromSOPList,
   unsafeFromBuiltinList,
   noDuplicateKeys,
   all,
@@ -25,16 +26,20 @@ module PlutusTx.Data.AssocMap (
   union,
   unionWith,
   keys,
+  elems,
   map,
   mapThese,
   foldr,
   ) where
 
+import Data.Coerce (coerce)
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Data.List (List)
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List qualified as List
+import PlutusTx.List qualified as SOP.List
 import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
 import PlutusTx.Prelude qualified
 import PlutusTx.These
@@ -196,14 +201,14 @@ null :: forall k a. Map k a -> Bool
 null (Map m) = P.null m
 {-# INLINEABLE null #-}
 
--- | Create an `Map` from a list of key-value pairs.
+-- | Create an `Map` from a sums of products list of key-value pairs.
 -- In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
-safeFromList :: forall k a . (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
-safeFromList =
+safeFromSOPList :: forall k a . (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
+safeFromSOPList =
   Map
     . toOpaque
-    . List.foldr (uncurry go) []
+    . SOP.List.foldr (uncurry go) []
   where
     go :: k -> a -> [(BuiltinData, BuiltinData)] -> [(BuiltinData, BuiltinData)]
     go k v [] = [(P.toBuiltinData k, P.toBuiltinData v)]
@@ -211,18 +216,18 @@ safeFromList =
       if P.toBuiltinData k == k'
         then (P.toBuiltinData k, P.toBuiltinData v) : go k v rest
         else (k', v') : go k v rest
-{-# INLINEABLE safeFromList #-}
+{-# INLINEABLE safeFromSOPList #-}
 
--- | Unsafely create an 'Map' from a list of pairs.
+-- | Unsafely create an 'Map' from a sums of products list of pairs.
 -- This should _only_ be applied to lists which have been checked to not
 -- contain duplicate keys, otherwise the resulting 'Map' will contain
 -- conflicting entries (two entries sharing the same key), and therefore be ill-defined.
-unsafeFromList :: (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
-unsafeFromList =
+unsafeFromSOPList :: (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
+unsafeFromSOPList =
   Map
     . toOpaque
     . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
-{-# INLINEABLE unsafeFromList #-}
+{-# INLINEABLE unsafeFromSOPList #-}
 
 -- | Check if the `Map` is well-defined. Warning: this operation is O(n^2).
 noDuplicateKeys :: forall k a. Map k a -> Bool
@@ -424,9 +429,23 @@ keys' = go
              in BI.mkCons k (go tl)
         )
 
-keys :: forall k a. Map k a -> BI.BuiltinList BuiltinData
-keys (Map m) = keys' m
+keys :: forall k a. Map k a -> List k
+keys = Data.List.fromBuiltinList . keys' . coerce
 {-# INLINEABLE keys #-}
+
+elems :: forall k a . Map k a -> List a
+elems = Data.List.fromBuiltinList . go . coerce
+  where
+    go
+      :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+      -> BI.BuiltinList BuiltinData
+    go =
+      P.caseList'
+        P.mkNil
+        ( \hd tl ->
+            BI.mkCons (BI.snd hd) (go tl)
+        )
+{-# INLINEABLE elems #-}
 
 mapThese
   :: forall v k a b

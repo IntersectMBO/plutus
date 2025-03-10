@@ -2,6 +2,7 @@ module Main where
 
 import Spec.Budget qualified
 import Spec.Data.Budget qualified
+import Spec.Data.MintValue.V3 qualified
 import Spec.Data.ScriptContext qualified
 import Spec.Data.Value qualified
 import Spec.MintValue.V3 qualified
@@ -25,6 +26,7 @@ tests =
     , Spec.Data.Budget.tests
     , Spec.Data.ScriptContext.tests
     , Spec.Data.Value.test_EqValue
+    , Spec.Data.MintValue.V3.tests
     , Spec.ReturnUnit.V1.tests
     , Spec.ReturnUnit.V2.tests
     , Spec.ReturnUnit.V3.tests

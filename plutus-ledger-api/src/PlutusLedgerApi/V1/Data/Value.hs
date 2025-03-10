@@ -90,6 +90,7 @@ import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
+import PlutusTx.Data.List (List)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
@@ -397,7 +398,7 @@ currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
 {-# INLINEABLE currencySymbolValueOf #-}
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
-symbols :: Value -> BuiltinList BuiltinData
+symbols :: Value -> List CurrencySymbol
 symbols (Value mp) = Map.keys mp
 {-# INLINEABLE symbols #-}
 

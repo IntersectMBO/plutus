@@ -86,7 +86,7 @@ map2 =
         \n ->
           let m1 :: Data.AssocMap.Map Integer Integer
               m1 =
-                Data.AssocMap.unsafeFromList
+                Data.AssocMap.unsafeFromSOPList
                   [ (n PlutusTx.+ 1, 1)
                   , (n PlutusTx.+ 2, 2)
                   , (n PlutusTx.+ 3, 3)
@@ -94,7 +94,7 @@ map2 =
                   , (n PlutusTx.+ 5, 5)
                   ]
               m2 =
-                Data.AssocMap.unsafeFromList
+                Data.AssocMap.unsafeFromSOPList
                   [ (n PlutusTx.+ 3, 33)
                   , (n PlutusTx.+ 4, 44)
                   , (n PlutusTx.+ 6, 66)
@@ -113,7 +113,7 @@ map3 =
         [||
         \n ->
           let m1 =
-                Data.AssocMap.unsafeFromList
+                Data.AssocMap.unsafeFromSOPList
                   [ (n PlutusTx.+ 1, 1)
                   , (n PlutusTx.+ 2, 2)
                   , (n PlutusTx.+ 3, 3)
@@ -121,7 +121,7 @@ map3 =
                   , (n PlutusTx.+ 5, 5)
                   ]
               m2 =
-                Data.AssocMap.unsafeFromList
+                Data.AssocMap.unsafeFromSOPList
                   [ (n PlutusTx.+ 3, 30)
                   , (n PlutusTx.+ 4, 40)
                   , (n PlutusTx.+ 6, 60)
@@ -352,7 +352,7 @@ semanticsToAssocMap = AssocMap.unsafeFromList . toListS
 semanticsToDataAssocMap
   :: (P.ToData k, P.ToData v)
   => AssocMapS k v -> Data.AssocMap.Map k v
-semanticsToDataAssocMap = Data.AssocMap.unsafeFromList . toListS
+semanticsToDataAssocMap = Data.AssocMap.unsafeFromSOPList . toListS
 
 assocMapToSemantics :: AssocMap.Map k v -> AssocMapS k v
 assocMapToSemantics = unsafeFromListS . AssocMap.toList
@@ -495,7 +495,7 @@ safeFromListSpec :: Property
 safeFromListSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = AssocMap.safeFromList . toListS $ assocMapS
-      dataAssocMap = Data.AssocMap.safeFromList . toListS $ assocMapS
+      dataAssocMap = Data.AssocMap.safeFromSOPList . toListS $ assocMapS
   assocMapS ~~ assocMap
   assocMapS ~~ dataAssocMap
 
@@ -503,7 +503,7 @@ unsafeFromListSpec :: Property
 unsafeFromListSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = AssocMap.unsafeFromList . toListS $ assocMapS
-      dataAssocMap = Data.AssocMap.unsafeFromList . toListS $ assocMapS
+      dataAssocMap = Data.AssocMap.unsafeFromSOPList . toListS $ assocMapS
   assocMapS ~~ assocMap
   assocMapS ~~ dataAssocMap
 
