@@ -109,7 +109,7 @@ mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> [abs x | x < 
 
 filterQuantities :: (Integer -> [Integer]) -> Map CurrencySymbol (Map TokenName Integer) -> Value
 filterQuantities mapQuantity values =
-  Value (Map.unsafeFromSOPList (foldr filterTokenQuantities [] (Map.toList values)))
+  Value (Map.unsafeFromSOPList (foldr filterTokenQuantities [] (Map.toSOPList values)))
   where
     {-# INLINEABLE filterTokenQuantities #-}
     filterTokenQuantities
@@ -117,7 +117,7 @@ filterQuantities mapQuantity values =
       -> [(CurrencySymbol, Map TokenName Integer)]
       -> [(CurrencySymbol, Map TokenName Integer)]
     filterTokenQuantities (currency, tokenQuantities) =
-      case concatMap (traverse mapQuantity) (Map.toList tokenQuantities) of
+      case concatMap (traverse mapQuantity) (Map.toSOPList tokenQuantities) of
         []         -> id
         quantities -> ((currency, Map.unsafeFromSOPList quantities) :)
 {-# INLINEABLE filterQuantities #-}

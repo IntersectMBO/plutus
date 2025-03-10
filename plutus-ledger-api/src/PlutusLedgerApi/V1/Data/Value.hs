@@ -461,10 +461,10 @@ Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 -}
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
-flattenValue v = goOuter [] (Map.toList $ getValue v)
+flattenValue v = goOuter [] (Map.toSOPList $ getValue v)
  where
   goOuter acc []             = acc
-  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
+  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toSOPList m)) tl
 
   goInner _ acc [] = acc
   goInner cs acc ((tn, a) : tl)

@@ -15,7 +15,7 @@ module PlutusTx.Data.AssocMap (
   singleton,
   empty,
   null,
-  toList,
+  toSOPList,
   toDataList,
   toBuiltinList,
   safeFromSOPList,
@@ -89,7 +89,7 @@ instance
   , P.UnsafeFromData k
   , P.UnsafeFromData a
   ) => Pretty (Map k a) where
-  pretty = pretty . toList
+  pretty = pretty . toSOPList
 
 -- | Look up the value corresponding to the key.
 -- If the `Map` is not well-defined, the result is the value associated with
@@ -386,8 +386,8 @@ unionWith f (Map ls) (Map rs) =
 
 -- | Convert the `Map` to a list of key-value pairs. This operation is O(n).
 -- See 'toBuiltinList' for a more efficient alternative.
-toList :: (P.UnsafeFromData k, P.UnsafeFromData a) => Map k a -> [(k, a)]
-toList d = go (toBuiltinList d)
+toSOPList :: (P.UnsafeFromData k, P.UnsafeFromData a) => Map k a -> [(k, a)]
+toSOPList d = go (toBuiltinList d)
   where
     go =
       P.caseList'
@@ -396,7 +396,7 @@ toList d = go (toBuiltinList d)
             (P.unsafeFromBuiltinData (BI.fst hd), P.unsafeFromBuiltinData (BI.snd hd))
               : go tl
         )
-{-# INLINEABLE toList #-}
+{-# INLINEABLE toSOPList #-}
 
 -- | Convert the `Map` to a `P.BuiltinList` of key-value pairs. This operation is O(1).
 toBuiltinList :: Map k a -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)

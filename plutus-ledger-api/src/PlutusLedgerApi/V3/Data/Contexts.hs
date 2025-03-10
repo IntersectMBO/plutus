@@ -641,7 +641,7 @@ hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
-  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
+  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toSOPList txInfoData)
  where
   f (_, ds') = ds' PlutusTx.== ds
 

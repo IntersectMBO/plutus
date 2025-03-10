@@ -101,7 +101,7 @@ map2 =
                   , (n PlutusTx.+ 7, 77)
                   ]
               m = Data.AssocMap.unionWith (PlutusTx.+) m1 m2
-           in Data.AssocMap.toList m
+           in Data.AssocMap.toSOPList m
         ||]
     )
 
@@ -129,7 +129,7 @@ map3 =
                   ]
               m = Data.AssocMap.union m1 m2
               f = these id id (PlutusTx.+)
-           in PlutusTx.fmap (PlutusTx.fmap f) (Data.AssocMap.toList m)
+           in PlutusTx.fmap (PlutusTx.fmap f) (Data.AssocMap.toSOPList m)
         ||]
     )
 
@@ -168,7 +168,7 @@ dataInsertProgram
 dataInsertProgram =
   $$(compile
     [|| \k v m ->
-      PlutusTx.sort $ Data.AssocMap.toList $ Data.AssocMap.insert k v m
+      PlutusTx.sort $ Data.AssocMap.toSOPList $ Data.AssocMap.insert k v m
     ||])
 
 deleteProgram
@@ -192,7 +192,7 @@ dataDeleteProgram
 dataDeleteProgram =
   $$(compile
     [|| \k m ->
-      PlutusTx.sort $ Data.AssocMap.toList $ Data.AssocMap.delete k m
+      PlutusTx.sort $ Data.AssocMap.toSOPList $ Data.AssocMap.delete k m
     ||])
 
 allProgram
@@ -259,7 +259,7 @@ dataUnionProgram
 dataUnionProgram =
   $$(compile
     [|| \m1 m2 ->
-      PlutusTx.sort $ Data.AssocMap.toList $ Data.AssocMap.union m1 m2
+      PlutusTx.sort $ Data.AssocMap.toSOPList $ Data.AssocMap.union m1 m2
     ||])
 
 unionWithProgram
@@ -283,7 +283,7 @@ dataUnionWithProgram
 dataUnionWithProgram =
   $$(compile
     [|| \m1 m2 ->
-      PlutusTx.sort $ Data.AssocMap.toList $ Data.AssocMap.unionWith (\x _ -> x) m1 m2
+      PlutusTx.sort $ Data.AssocMap.toSOPList $ Data.AssocMap.unionWith (\x _ -> x) m1 m2
     ||])
 
 encodedDataAssocMap
@@ -307,7 +307,7 @@ mDecodedDataAssocMap
     )
 mDecodedDataAssocMap =
   $$(compile
-    [|| fmap (PlutusTx.sort . Data.AssocMap.toList) . P.fromBuiltinData . P.toBuiltinData
+    [|| fmap (PlutusTx.sort . Data.AssocMap.toSOPList) . P.fromBuiltinData . P.toBuiltinData
     ||])
 
 mDecodedAssocMap
@@ -327,7 +327,7 @@ decodedDataAssocMap
     )
 decodedDataAssocMap =
   $$(compile
-    [|| PlutusTx.sort . Data.AssocMap.toList . P.unsafeFromBuiltinData . P.toBuiltinData
+    [|| PlutusTx.sort . Data.AssocMap.toSOPList . P.unsafeFromBuiltinData . P.toBuiltinData
     ||])
 
 decodedAssocMap
@@ -360,7 +360,7 @@ assocMapToSemantics = unsafeFromListS . AssocMap.toList
 dataAssocMapToSemantics
   :: (P.UnsafeFromData k, P.UnsafeFromData v)
   => Data.AssocMap.Map k v -> AssocMapS k v
-dataAssocMapToSemantics = unsafeFromListS . Data.AssocMap.toList
+dataAssocMapToSemantics = unsafeFromListS . Data.AssocMap.toSOPList
 
 nullS :: AssocMapS k v -> Bool
 nullS (AssocMapS l) = null l

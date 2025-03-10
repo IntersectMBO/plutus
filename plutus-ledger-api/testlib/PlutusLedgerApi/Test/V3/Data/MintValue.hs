@@ -38,7 +38,7 @@ listsToMintValue = coerce . Map.unsafeFromSOPList . List.map (fmap (Map.unsafeFr
 
 -- | Convert a 'MintValue' to its list representation.
 mintValueToLists :: MintValue -> [(CurrencySymbol, [(TokenName, Integer)])]
-mintValueToLists = List.map (fmap Map.toList) . Map.toList . coerce
+mintValueToLists = List.map (fmap Map.toSOPList) . Map.toSOPList . coerce
 
 newtype Quantity = Quantity {unQuantity :: Integer}
   deriving newtype (Arbitrary, Show)
