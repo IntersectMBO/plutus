@@ -638,20 +638,28 @@ test_Integer = testNestedM "Integer" $ do
 
 test_ExpModInteger :: TestNested
 test_ExpModInteger = testNestedM "ExpMod" $ do
-    evals @Integer 1 b [] [cons @Integer 500, cons @Integer 0, cons @Integer 500] -- base:X, exp: zero, mod: X(strictpos)
-    evals @Integer 0 b [] [cons @Integer 500, cons @Integer 5, cons @Integer 500] -- base:X, exp: strictpos, mod: X(strictpos)
-    evals @Integer 1 b [] [one , cons @Integer (-3), cons @Integer 4] -- base:1, exp: * , mod: strictpos
-    evals @Integer 2 b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 3] -- base:*, exp: neg, mod: prime
+    evals @Integer 1 b [] [int 500, zero, int 500] -- base:X, exp: zero, mod: X(strictpos)
+    evals @Integer 0 b [] [int 500, int 5, int 500] -- base:X, exp: strictpos, mod: X(strictpos)
+    evals @Integer 1 b [] [one , int (-3), int 4] -- base:1, exp: * , mod: strictpos
+    evals @Integer 2 b [] [int 2, int (-3), int 3] -- base:*, exp: neg, mod: prime
     -- base is co-prime with mod and exponent is negative
-    evals @Integer 4 b [] [cons @Integer 4, cons @Integer (-5), cons @Integer 9]
-    fails "mod-zero" b [] [one, one, cons @Integer 0] -- base:*, exp:*, mod: 0
-    fails "mod-neg" b [] [one, one, cons @Integer (-3)] -- base:*, exp:*, mod: neg
+    evals @Integer 4 b [] [int 4, int (-5), int 9]
+    -- Always return 0 when modulus is 1.
+    evals @Integer 0 b [] [zero, zero, one] -- base:0, exp: zero, mod:1
+    evals @Integer 0 b [] [zero, one, one] -- base:0, exp: 1, mod:1
+    evals @Integer 0 b [] [zero, int (-1), one] -- base:0, exp: neg, mod:1
+    evals @Integer 0 b [] [int 500, int 222, one] -- base:*, exp: strictpos, mod:1
+    evals @Integer 0 b [] [int 500, int (-1777), one] -- base:*, exp: neg, mod:1
+    fails "mod-zero" b [] [one, one, zero] -- base:*, exp:*, mod: 0
+    fails "mod-neg" b [] [one, one, int (-3)] -- base:*, exp:*, mod: neg
     -- base and mod are not co-prime, negative exponent
-    fails "exp-neg-non-inverse1" b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 4]
+    fails "exp-neg-non-inverse1" b [] [int 2, int (-3), int 4]
     -- mod is prime, but base&mod are not co-prime, negative exponent
-    fails "exp-neg-non-inverse2" b [] [cons @Integer 500, cons @Integer (-5), cons @Integer 5]
+    fails "exp-neg-non-inverse2" b [] [int 500, int (-5), int 5]
   where
-    one = cons @Integer 1
+    int = cons @Integer
+    zero = int 0
+    one = int 1
     b = ExpModInteger
 
 -- | Test all string-like builtins
