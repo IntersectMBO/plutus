@@ -3,9 +3,12 @@ module Benchmarks.Integers (makeBenchmarks) where
 import Common
 import Generators
 
-import Criterion.Main
 import PlutusCore
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog (..))
+
+
+import Criterion.Main
+import GHC.Num.Integer
 import System.Random (StdGen)
 
 ---------------- Integer builtins ----------------
@@ -43,6 +46,7 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
+{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
@@ -60,6 +64,32 @@ benchExpModInteger _gen =
 --     (fmap (\n -> n) inputs)
      (fmap (\n -> (pow 2 1000)*n) inputs)
      moduli
+-}
+
+
+{- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
+ as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
+ benchmark with b and m varying over quite a large range, but a fixed for each m.
+-}
+
+benchExpModInteger :: StdGen -> Benchmark
+benchExpModInteger _gen =
+  let fun = ExpModInteger
+      pow (a::Integer) (b::Integer) = a^b
+      moduli = fmap (\n -> pow 2 (40*n) - 11) [1..25]
+      -- ^ Approximately [2^40, 2^80, ..., 2^1000], but we don't want powers of 2
+      -- as = fmap (\n -> n `div` 3) moduli
+      bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
+      -- ^ Largest number less than modulus with binary expansion 1111...1
+      -- Should be about worst case
+
+  in bgroup (show fun)
+     [bgroup (showMemoryUsage (IntegerCostedByLog (z `div` 3)))
+       [bgroup (showMemoryUsage (IntegerCostedByLog y))
+         [mkBM x y z | x <- [z `div` 3] ] | y <- bs ] | z <- moduli ]
+  where mkBM x y z =
+          benchDefault (showMemoryUsage (IntegerCostedByLog z)) $
+          mkApp3 ExpModInteger [] x y z
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
