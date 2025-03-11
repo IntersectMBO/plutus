@@ -14,12 +14,15 @@ in
 \(d : data) ->
   Bool_match
     (let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
-      !ds : data = headList {data} constrArgs
-      !ds : data = headList {data} rest
       !tup : pair integer (list data)
-        = unConstrData (headList {data} (tailList {data} rest))
+        = unConstrData
+            (headList
+               {data}
+               (tailList
+                  {data}
+                  (tailList
+                     {data}
+                     (sndPair {integer} {list data} (unConstrData d)))))
     in
     Bool_match
       (ifThenElse
@@ -31,30 +34,27 @@ in
       (/\dead ->
          let
            !l : list data = sndPair {integer} {list data} tup
-           !ds : data = headList {data} l
-           !ds : Maybe data
-             = let
-               !tup : pair integer (list data)
-                 = unConstrData (headList {data} (tailList {data} l))
-               !index : integer = fstPair {integer} {list data} tup
-               !args : list data = sndPair {integer} {list data} tup
-             in
-             Bool_match
-               (ifThenElse {Bool} (equalsInteger 1 index) True False)
-               {all dead. Maybe data}
-               (/\dead -> Nothing {data})
-               (/\dead ->
-                  Bool_match
-                    (ifThenElse {Bool} (equalsInteger 0 index) True False)
-                    {all dead. Maybe data}
-                    (/\dead -> Just {data} (headList {data} args))
-                    (/\dead -> traceError {Maybe data} "PT1")
-                    {all dead. dead})
-               {all dead. dead}
          in
          Maybe_match
            {data}
-           ds
+           (let
+             !tup : pair integer (list data)
+               = unConstrData (headList {data} (tailList {data} l))
+             !index : integer = fstPair {integer} {list data} tup
+             !args : list data = sndPair {integer} {list data} tup
+           in
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger 1 index) True False)
+             {all dead. Maybe data}
+             (/\dead -> Nothing {data})
+             (/\dead ->
+                Bool_match
+                  (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                  {all dead. Maybe data}
+                  (/\dead -> Just {data} (headList {data} args))
+                  (/\dead -> traceError {Maybe data} "PT1")
+                  {all dead. dead})
+             {all dead. dead})
            {all dead. Bool}
            (\(ds : data) -> /\dead -> True)
            (/\dead -> False)

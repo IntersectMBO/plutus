@@ -1,4 +1,20 @@
 
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Changed
+
+- Changed the default value of compiler flag `PlutusTx.Plugin:preserve-logging` to true.
+
+- The Plinth compiler now inlines fixed point operators by default. This can be turned
+  off by using `no-inline-fix` or `conservative-optimisation`.
+
+- The Plinth inliner now inlines local bindings (in addition to top-level bindings)
+  with `INLINE` pragmas.
+
+- `AsData` now avoids creating strict dead bindings (which were previously created for
+  unused fields).
+
 <a id='changelog-1.38.0.0'></a>
 # 1.38.0.0 — 2024-12-09
 

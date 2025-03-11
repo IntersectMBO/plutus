@@ -76,6 +76,7 @@ let
     pkgs.plantuml
     pkgs.jq
     pkgs.yq
+    pkgs.github-cli
     pkgs.gnused
     pkgs.awscli2
     pkgs.act

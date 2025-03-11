@@ -473,7 +473,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         _ <- unCompileType trep
 
                         -- get the right constructor
-                        maybeConstructors <- lookupConstructors () tyName
+                        maybeConstructors <- lookupConstructors tyName
                         constrs <- case maybeConstructors of
                             Nothing -> Prelude.throw $ LiftMissingDataCons tyName
                             Just cs -> pure cs

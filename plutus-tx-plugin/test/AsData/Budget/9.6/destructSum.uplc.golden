@@ -30,116 +30,95 @@
                                                   (delay
                                                      (delay
                                                         ((\l ->
-                                                            (\ds ->
-                                                               (\ds ->
-                                                                  (\`$mInts` ->
-                                                                     `$mInts`
-                                                                       ds
-                                                                       (\x
-                                                                         y
-                                                                         z
-                                                                         w ->
-                                                                          `$mInts`
-                                                                            ds
-                                                                            (\x
-                                                                              y
-                                                                              z
-                                                                              w ->
-                                                                               (\int1_ ->
-                                                                                  (\int2_ ->
-                                                                                     (\int3_ ->
-                                                                                        (\int4_ ->
-                                                                                           constrData
-                                                                                             0
-                                                                                             (force
-                                                                                                mkCons
-                                                                                                (iData
-                                                                                                   int1_)
-                                                                                                (force
-                                                                                                   mkCons
-                                                                                                   (iData
-                                                                                                      int2_)
-                                                                                                   (force
-                                                                                                      mkCons
-                                                                                                      (iData
-                                                                                                         int3_)
-                                                                                                      (force
-                                                                                                         mkCons
-                                                                                                         (iData
-                                                                                                            int4_)
-                                                                                                         [  ])))))
-                                                                                          (addInteger
-                                                                                             w
-                                                                                             w))
-                                                                                       (addInteger
-                                                                                          z
-                                                                                          z))
-                                                                                    (addInteger
-                                                                                       y
-                                                                                       y))
+                                                            (\`$mInts` ->
+                                                               `$mInts`
+                                                                 (force headList
+                                                                    l)
+                                                                 (\x
+                                                                   y
+                                                                   z
+                                                                   w ->
+                                                                    `$mInts`
+                                                                      (force
+                                                                         headList
+                                                                         (force
+                                                                            tailList
+                                                                            l))
+                                                                      (\x
+                                                                        y
+                                                                        z
+                                                                        w ->
+                                                                         constrData
+                                                                           0
+                                                                           (force
+                                                                              mkCons
+                                                                              (iData
                                                                                  (addInteger
                                                                                     x
                                                                                     x))
-                                                                            (\void ->
-                                                                               case
-                                                                                 error
-                                                                                 [ error ])))
-                                                                    (\scrut
-                                                                      cont
-                                                                      fail ->
-                                                                       case
-                                                                         ((\constrArgs ->
-                                                                             (\rest ->
-                                                                                (\rest ->
-                                                                                   constr 0
-                                                                                     [ (unIData
-                                                                                          (force
-                                                                                             headList
-                                                                                             constrArgs))
-                                                                                     , (unIData
-                                                                                          (force
-                                                                                             headList
-                                                                                             rest))
-                                                                                     , (unIData
-                                                                                          (force
-                                                                                             headList
-                                                                                             rest))
-                                                                                     , (unIData
-                                                                                          (force
-                                                                                             headList
-                                                                                             (force
-                                                                                                tailList
-                                                                                                rest))) ])
+                                                                              (force
+                                                                                 mkCons
+                                                                                 (iData
+                                                                                    (addInteger
+                                                                                       y
+                                                                                       y))
+                                                                                 (force
+                                                                                    mkCons
+                                                                                    (iData
+                                                                                       (addInteger
+                                                                                          z
+                                                                                          z))
+                                                                                    (force
+                                                                                       mkCons
+                                                                                       (iData
+                                                                                          (addInteger
+                                                                                             w
+                                                                                             w))
+                                                                                       [  ])))))
+                                                                      (\void ->
+                                                                         case
+                                                                           error
+                                                                           [ error ])))
+                                                              (\scrut
+                                                                cont
+                                                                fail ->
+                                                                 (\l ->
+                                                                    (\l ->
+                                                                       (\l ->
+                                                                          cont
+                                                                            (unIData
+                                                                               (force
+                                                                                  headList
+                                                                                  l))
+                                                                            (unIData
+                                                                               (force
+                                                                                  headList
+                                                                                  l))
+                                                                            (unIData
+                                                                               (force
+                                                                                  headList
+                                                                                  l))
+                                                                            (unIData
+                                                                               (force
+                                                                                  headList
                                                                                   (force
                                                                                      tailList
-                                                                                     rest))
-                                                                               (force
-                                                                                  tailList
-                                                                                  constrArgs))
-                                                                            (force
-                                                                               (force
-                                                                                  sndPair)
-                                                                               (unConstrData
-                                                                                  scrut)))
-                                                                         [ (\int
-                                                                             int
-                                                                             int
-                                                                             int ->
-                                                                              cont
-                                                                                int
-                                                                                int
-                                                                                int
-                                                                                int) ])
-                                                                    (\void ->
-                                                                       case
-                                                                         error
-                                                                         [ error ]))
-                                                                 (force headList
-                                                                    (force
-                                                                       tailList
-                                                                       l)))
-                                                              (force headList
-                                                                 l))
+                                                                                     l))))
+                                                                         (force
+                                                                            tailList
+                                                                            l))
+                                                                      (force
+                                                                         tailList
+                                                                         l))
+                                                                   (force
+                                                                      (force
+                                                                         sndPair)
+                                                                      (unConstrData
+                                                                         scrut)))
+                                                              (\void ->
+                                                                 case
+                                                                   error
+                                                                   [error]))
                                                            (force
                                                               (force sndPair)
                                                               cse))))

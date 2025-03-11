@@ -4,13 +4,13 @@ sidebar_position: 5
 
 # Generating Keys and Addresses
 
-The best way to setup your environment is with the [plutus-tx-template](https://github.com/IntersectMBO/plutus-tx-template) repository. See its [README](https://github.com/IntersectMBO/plutus-tx-template?tab=readme-ov-file#plutus-tx-template) for complete instructions on how to get up and running using Docker, Nix, or a custom approach.
+The best way to setup your environment is with the [plinth-template](https://github.com/IntersectMBO/plinth-template) repository. See its [README](https://github.com/IntersectMBO/plinth-template?tab=readme-ov-file#plinth-template) for complete instructions on how to get up and running using Docker, Nix, or a custom approach.
 
 Make sure you also have [NodeJS](https://nodejs.org/en) and [yarn](https://yarnpkg.com/) (or [npm](https://github.com/npm/cli), which comes with `NodeJS`) installed.
 Then, create a separate `off-chain` directory, initialize `package.json`, and install the required dependencies:
 
 ```
-git clone git@github.com:IntersectMBO/plutus-tx-template.git on-chain
+git clone git@github.com:IntersectMBO/plinth-template.git on-chain
 mkdir off-chain && cd $_
 yarn init -y
 yarn add @meshsdk/core

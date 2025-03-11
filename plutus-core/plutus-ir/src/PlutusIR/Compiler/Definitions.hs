@@ -243,29 +243,27 @@ recordAlias name = liftDef @key @uni @fun @ann $ DefT $ modify $ over aliases (S
 
 lookupTerm ::
   (MonadDefs key uni fun ann m) =>
-  ann ->
   key ->
   m (Maybe (Term TyName Name uni fun ann))
-lookupTerm x name = do
+lookupTerm name = do
   DefState{_termDefs = ds, _aliases = as} <- liftDef $ DefT get
   pure $ case Map.lookup name ds of
-    Just (def, _) | not (Set.member name as) -> Just $ mkVar x $ PLC.defVar def
+    Just (def, _) | not (Set.member name as) -> Just $ mkVar (PLC.defVar def)
     _                                        -> Nothing
 
 lookupOrDefineTerm ::
   (MonadDefs key uni fun ann m) =>
-  ann ->
   key ->
   m (TermDefWithStrictness uni fun ann, Set.Set key) ->
   m (Term TyName Name uni fun ann)
-lookupOrDefineTerm x name mdef = do
-  mTerm <- lookupTerm x name
+lookupOrDefineTerm name mdef = do
+  mTerm <- lookupTerm name
   case mTerm of
     Just t -> pure t
     Nothing -> do
       (def, deps) <- mdef
       defineTerm name def deps
-      pure $ mkVar x $ PLC.defVar def
+      pure $ mkVar (PLC.defVar def)
 
 lookupType :: (MonadDefs key uni fun ann m) => ann -> key -> m (Maybe (Type TyName uni ann))
 lookupType x name = do
@@ -294,13 +292,12 @@ lookupOrDefineType x name mdef = do
 
 lookupConstructors ::
   (MonadDefs key uni fun ann m) =>
-  ann ->
   key ->
   m (Maybe [Term TyName Name uni fun ann])
-lookupConstructors x name = do
+lookupConstructors name = do
   ds <- liftDef $ DefT $ use datatypeDefs
   pure $ case Map.lookup name ds of
-    Just (PLC.Def{PLC.defVal = (Datatype _ _ _ _ constrs)}, _) -> Just $ fmap (mkVar x) constrs
+    Just (PLC.Def{PLC.defVal = (Datatype _ _ _ _ constrs)}, _) -> Just $ fmap mkVar constrs
     Nothing                                                    -> Nothing
 
 lookupDestructor ::

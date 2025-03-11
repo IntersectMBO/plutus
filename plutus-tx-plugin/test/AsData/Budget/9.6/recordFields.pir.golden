@@ -1,69 +1,54 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
-  !matchOnInts : data -> Tuple4 integer integer integer integer
-    = \(ds : data) ->
-        let
-          !constrArgs : list data
-            = sndPair {integer} {list data} (unConstrData ds)
-          !rest : list data = tailList {data} constrArgs
-          !rest : list data = tailList {data} rest
-        in
-        Tuple4
-          {integer}
-          {integer}
-          {integer}
-          {integer}
-          (unIData (headList {data} constrArgs))
-          (unIData (headList {data} rest))
-          (unIData (headList {data} rest))
-          (unIData (headList {data} (tailList {data} rest)))
+  !`$mInts` :
+     all r.
+       data ->
+       (integer -> integer -> integer -> integer -> r) ->
+       (unit -> r) ->
+       r
+    = /\r ->
+        \(scrut : data)
+         (cont : integer -> integer -> integer -> integer -> r)
+         (fail : unit -> r) ->
+          let
+            !l : list data = sndPair {integer} {list data} (unConstrData scrut)
+            !l : list data = tailList {data} l
+            !l : list data = tailList {data} l
+          in
+          cont
+            (unIData (headList {data} l))
+            (unIData (headList {data} l))
+            (unIData (headList {data} l))
+            (unIData (headList {data} (tailList {data} l)))
   !int : data -> integer
     = \(ds : data) ->
-        Tuple4_match
+        `$mInts`
           {integer}
-          {integer}
-          {integer}
-          {integer}
-          (matchOnInts ds)
-          {integer}
-          (\(int : integer) (int : integer) (int : integer) (int : integer) ->
-             int)
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
   !int : data -> integer
     = \(ds : data) ->
-        Tuple4_match
+        `$mInts`
           {integer}
-          {integer}
-          {integer}
-          {integer}
-          (matchOnInts ds)
-          {integer}
-          (\(int : integer) (int : integer) (int : integer) (int : integer) ->
-             int)
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
   !int : data -> integer
     = \(ds : data) ->
-        Tuple4_match
+        `$mInts`
           {integer}
-          {integer}
-          {integer}
-          {integer}
-          (matchOnInts ds)
-          {integer}
-          (\(int : integer) (int : integer) (int : integer) (int : integer) ->
-             int)
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
   !int : data -> integer
     = \(ds : data) ->
-        Tuple4_match
+        `$mInts`
           {integer}
-          {integer}
-          {integer}
-          {integer}
-          (matchOnInts ds)
-          {integer}
-          (\(int : integer) (int : integer) (int : integer) (int : integer) ->
-             int)
+          ds
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
   data Bool | Bool_match where
     True : Bool
     False : Bool

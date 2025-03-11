@@ -1,4 +1,25 @@
 
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Added
+
+- Switch from `cryptonite` library to `crypton` (a drop in replacement).
+
+- DropList builtin functionality
+- Costing model for the DropList builtin
+
+- A new type `BuiltinArray`.
+- Three functions for working with `BuiltinArray` values:
+  - `listToArray` (converts a list to a `BuiltinArray`)
+  - `indexArray` (returns an element of a `BuiltinArray` by index)
+  - `lengthOfArray` (returns the length of a `BuiltinArray`)
+
+## Fixed
+
+- Fixed a bug in Plutus IR's dead code elimination pass that could incorrectly remove
+  live data constructors or destructors.
+
 <a id='changelog-1.40.0.0'></a>
 # 1.40.0.0 — 2025-01-16
 

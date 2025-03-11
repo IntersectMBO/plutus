@@ -31,18 +31,19 @@
                             (lessThanInteger x y)
                             (constr 0 [])
                             (constr 1 [])))
-                    (case cse [(\int int int int -> int)]))
-                 (case cse [(\int int int int -> int)]))
-              (case cse [(\int int int int -> int)]))
-           (case cse [(\int int int int -> int)]))
-        ((\constrArgs ->
-            (\rest ->
-               (\rest ->
-                  constr 0
-                    [ (unIData (force headList constrArgs))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList rest))
-                    , (unIData (force headList (force tailList rest))) ])
-                 (force tailList rest))
-              (force tailList constrArgs))
-           (force (force sndPair) (unConstrData d)))))
+                    (cse (\ds ds ds ds -> ds) (\void -> error)))
+                 (cse (\ds ds ds ds -> ds) (\void -> error)))
+              (cse (\ds ds ds ds -> ds) (\void -> error)))
+           (cse (\ds ds ds ds -> ds) (\void -> error)))
+        (\cont fail ->
+           (\l ->
+              (\l ->
+                 (\l ->
+                    cont
+                      (unIData (force headList l))
+                      (unIData (force headList l))
+                      (unIData (force headList l))
+                      (unIData (force headList (force tailList l))))
+                   (force tailList l))
+                (force tailList l))
+             (force (force sndPair) (unConstrData d)))))

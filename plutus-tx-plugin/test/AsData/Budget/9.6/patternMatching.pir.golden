@@ -9,43 +9,29 @@ let
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
         ifThenElse {Bool} (lessThanInteger x y) True False
-  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
-    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
 in
 \(d : data) ->
-  Tuple4_match
-    {integer}
-    {integer}
-    {integer}
-    {integer}
-    (let
-      !constrArgs : list data = sndPair {integer} {list data} (unConstrData d)
-      !rest : list data = tailList {data} constrArgs
-      !rest : list data = tailList {data} rest
-    in
-    Tuple4
-      {integer}
-      {integer}
-      {integer}
-      {integer}
-      (unIData (headList {data} constrArgs))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} rest))
-      (unIData (headList {data} (tailList {data} rest))))
-    {integer}
-    (\(int : integer) (int : integer) (int : integer) (int : integer) ->
-       addInteger
-         (addInteger
-            (addInteger (addInteger (addInteger int int) int) int)
-            (Bool_match
-               (lessThanInteger (addInteger int int) (addInteger int int))
-               {all dead. integer}
-               (/\dead -> addInteger int int)
-               (/\dead -> addInteger int int)
-               {all dead. dead}))
-         (Bool_match
-            (lessThanInteger (addInteger int int) (addInteger int int))
-            {all dead. integer}
-            (/\dead -> addInteger int int)
-            (/\dead -> addInteger int int)
-            {all dead. dead}))
+  let
+    !l : list data = sndPair {integer} {list data} (unConstrData d)
+    !l : list data = tailList {data} l
+    !l : list data = tailList {data} l
+    !x : integer = unIData (headList {data} l)
+    !y : integer = unIData (headList {data} l)
+    !z : integer = unIData (headList {data} l)
+    !w : integer = unIData (headList {data} (tailList {data} l))
+  in
+  addInteger
+    (addInteger
+       (addInteger (addInteger (addInteger x y) z) w)
+       (Bool_match
+          (lessThanInteger (addInteger y z) (addInteger x w))
+          {all dead. integer}
+          (/\dead -> addInteger x z)
+          (/\dead -> addInteger y w)
+          {all dead. dead}))
+    (Bool_match
+       (lessThanInteger (addInteger z y) (addInteger w x))
+       {all dead. integer}
+       (/\dead -> addInteger z x)
+       (/\dead -> addInteger w y)
+       {all dead. dead})

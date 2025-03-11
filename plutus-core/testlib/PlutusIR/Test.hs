@@ -87,10 +87,12 @@ instance
 
 instance PLC.AnnInline PLC.SrcSpan where
   annAlwaysInline = PLC.SrcSpan mempty 0 0 0 0
+  annSafeToInline = PLC.SrcSpan mempty 0 0 0 0
   annMayInline = PLC.SrcSpan mempty 0 0 0 0
 
 instance PLC.AnnInline PLC.SrcSpans where
   annAlwaysInline = mempty
+  annSafeToInline = mempty
   annMayInline = mempty
 
 pTermAsProg :: Parser (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)

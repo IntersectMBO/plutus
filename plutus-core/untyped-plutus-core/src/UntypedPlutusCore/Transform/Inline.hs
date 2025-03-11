@@ -290,15 +290,16 @@ maybeAddSubst body a n rhs0 = do
 
   -- Check whether we've been told specifically to inline this
   hints <- view iiHints
-  let hinted = shouldInline hints a n
-
-  if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs)
-    else
-      ifM
-        (shouldUnconditionallyInline n rhs body)
-        (extendAndDrop (Done $ dupable rhs))
-        (pure $ Just rhs)
+  case shouldInline hints a n of
+    AlwaysInline ->
+      -- if we've been told specifically, then do it right away
+      extendAndDrop (Done $ dupable rhs)
+    hint ->
+      let safeToInline = hint == SafeToInline
+       in ifM
+            (shouldUnconditionallyInline safeToInline n rhs body)
+            (extendAndDrop (Done $ dupable rhs))
+            (pure $ Just rhs)
   where
     extendAndDrop ::
       forall b.
@@ -308,11 +309,13 @@ maybeAddSubst body a n rhs0 = do
 
 shouldUnconditionallyInline ::
   (InliningConstraints name uni fun) =>
+  -- | Whether we know that the binding is safe to inline. If so, bypass the purity check.
+  Bool ->
   name ->
   Term name uni fun a ->
   Term name uni fun a ->
   InlineM name uni fun a Bool
-shouldUnconditionallyInline n rhs body = do
+shouldUnconditionallyInline safe n rhs body = do
   isTermPure <- checkPurity rhs
   inlineConstants <- view iiInlineConstants
   preUnconditional isTermPure ||^ postUnconditional inlineConstants isTermPure
@@ -322,12 +325,13 @@ shouldUnconditionallyInline n rhs body = do
     -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
     -- isn't doing any substantial work.
     -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
-    preUnconditional isTermPure = nameUsedAtMostOnce n &&^ effectSafe body n isTermPure
+    preUnconditional isTermPure =
+      nameUsedAtMostOnce n &&^ (pure safe ||^ effectSafe body n isTermPure)
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
     -- purity]. This is the case where we don't know that the number of occurrences is
     -- exactly one, so there's no point checking if the term is immediately evaluated.
     postUnconditional inlineConstants isTermPure =
-      pure isTermPure &&^ acceptable inlineConstants rhs
+      pure (safe || isTermPure) &&^ acceptable inlineConstants rhs
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity :: PLC.ToBuiltinMeaning uni fun => Term name uni fun a -> InlineM name uni fun a Bool
@@ -478,7 +482,7 @@ fullyApplyAndBetaReduce info args0 = do
         name ->
         Term name uni fun a ->
         InlineM name uni fun a Bool
-      safeToBetaReduce a arg = shouldUnconditionallyInline a arg rhsBody
+      safeToBetaReduce a arg = shouldUnconditionallyInline False a arg rhsBody
   go rhsBody (info ^. varBinders) args0
 
 {- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
@@ -507,4 +511,3 @@ inlineSaturatedApp t
               rhsPure <- checkPurity rhs
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t
-

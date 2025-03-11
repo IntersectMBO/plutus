@@ -6,9 +6,9 @@
 module AsData.Budget.Spec where
 
 import System.FilePath
-
 import Test.Tasty.Extras
 
+import AsData.Budget.Types
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
@@ -16,45 +16,51 @@ import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
-import AsData.Budget.Types
-
-
 tests :: TestNested
 tests =
   testNested ("AsData" </> "Budget") . pure $ testNestedGhc
     [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
     , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
     , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
+    , goldenBudget "onlyUseFirstField" (onlyUseFirstField `unsafeApplyCode` inp)
+    , goldenPirReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
+    , goldenUPlcReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
+    , goldenEvalCekCatch "onlyUseFirstField-manual" [onlyUseFirstFieldManual `unsafeApplyCode` inp]
+    , goldenBudget "onlyUseFirstField-manual" (onlyUseFirstFieldManual `unsafeApplyCode` inp)
     , goldenPirReadable "patternMatching" patternMatching
     , goldenUPlcReadable "patternMatching" patternMatching
     , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
-    , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
+    , goldenBudget "patternMatching" (patternMatching `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields" recordFields
     , goldenUPlcReadable "recordFields" recordFields
     , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
-    , goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
-    , goldenPirReadable "recordFields-manual" recordFieldsManual
-    , goldenUPlcReadable "recordFields-manual" recordFieldsManual
-    , goldenEvalCekCatch "recordFields-manual" [recordFieldsManual `unsafeApplyCode` inp]
-    , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
+    , goldenBudget "recordFields" (recordFields `unsafeApplyCode` inp)
     , goldenPirReadable "destructSum" destructSum
     , goldenUPlcReadable "destructSum" destructSum
     , goldenEvalCekCatch "destructSum" [destructSum `unsafeApplyCode` inpSum]
-    , goldenBudget "destructSum-budget" (destructSum `unsafeApplyCode` inpSum)
+    , goldenBudget "destructSum" (destructSum `unsafeApplyCode` inpSum)
     , goldenPirReadable "destructSum-manual" destructSumManual
     , goldenUPlcReadable "destructSum-manual" destructSumManual
     , goldenEvalCekCatch "destructSum-manual" [destructSumManual `unsafeApplyCode` inpSumM]
-    , goldenBudget "destructSum-budget-manual" (destructSumManual `unsafeApplyCode` inpSumM)
+    , goldenBudget "destructSum-manual" (destructSumManual `unsafeApplyCode` inpSumM)
     ]
 
 -- A function that only accesses the first field of `Ints`.
--- TODO: the compiled code currently accesses all fields.
 onlyUseFirstField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 onlyUseFirstField =
   $$( compile
         [||
-        \d -> let ints = PlutusTx.unsafeFromBuiltinData d in int1 ints
+        \d -> case PlutusTx.unsafeFromBuiltinData d of
+                Ints {int1 = x} -> x
+        ||]
+    )
+
+onlyUseFirstFieldManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+onlyUseFirstFieldManual =
+  $$( compile
+        [||
+        \d -> case PlutusTx.unsafeFromBuiltinData d of
+                IntsManual {int1Manual = x} -> x
         ||]
     )
 
@@ -112,41 +118,6 @@ recordFields =
                                           else
                                             int4 ints
                                               `PlutusTx.addInteger` int2 ints
-                                      )
-        ||]
-    )
-
--- This is much more efficient than `recordFields` since the manually written
--- field accessors are more CSE-friendly.
-recordFieldsManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
-recordFieldsManual =
-  $$( compile
-        [||
-        \d ->
-          let ints = PlutusTx.unsafeFromBuiltinData d
-              x = int1Manual ints
-              y = int2Manual ints
-              z = int3Manual ints
-              w = int4Manual ints
-           in x
-                `PlutusTx.addInteger` y
-                `PlutusTx.addInteger` z
-                `PlutusTx.addInteger` w
-                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
-                                          (y `PlutusTx.addInteger` z)
-                                          (x `PlutusTx.addInteger` w)
-                                          then x `PlutusTx.addInteger` z
-                                          else y `PlutusTx.addInteger` w
-                                      )
-                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
-                                          (int3Manual ints `PlutusTx.addInteger` int2Manual ints)
-                                          (int4Manual ints `PlutusTx.addInteger` int1Manual ints)
-                                          then
-                                            int3Manual ints
-                                              `PlutusTx.addInteger` int1Manual ints
-                                          else
-                                            int4Manual ints
-                                              `PlutusTx.addInteger` int2Manual ints
                                       )
         ||]
     )

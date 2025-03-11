@@ -10,7 +10,6 @@ let
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~reconstructCaseError : string = "PT1"
   !snd : all a b. pair a b -> b = sndPair
-  !tail : all a. list a -> list a = tailList
   data Unit | Unit_match where
     Unit : Unit
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
@@ -25,6 +24,8 @@ let
           in
           error {a} unitval
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  !tail : all a. list a -> list a = tailList
+  ~wrapTail : all a. list a -> list a = tail
   ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
     = /\a b ->
@@ -46,7 +47,7 @@ let
                  {a}
                  {b}
                  (`$dUnsafeFromData` (head {data} args))
-                 (`$dUnsafeFromData` (head {data} (tail {data} args))))
+                 (`$dUnsafeFromData` (head {data} (wrapTail {data} args))))
             (/\dead -> traceError {Tuple2 a b} reconstructCaseError)
             {all dead. dead}
   ~`$fUnsafeFromDataTuple2` :

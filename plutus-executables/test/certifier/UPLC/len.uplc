@@ -1,0 +1,210 @@
+(program
+  1.1.0
+  [
+    (lam
+      fix1-0
+      [
+        [
+          [
+            (force
+              (delay
+                (lam
+                  Nil-1
+                  (lam
+                    Cons-2
+                    (lam
+                      List_match-3
+                      [
+                        (lam
+                          inc-4
+                          [
+                            (lam
+                              tup-5
+                              [
+                                (lam
+                                  incList-6
+                                  [
+                                    (lam incList-7 (force incList-7))
+                                    [ incList-6 (delay (lam x-8 x-8)) ]
+                                  ]
+                                )
+                                [ (force tup-5) (lam arg_0-9 arg_0-9) ]
+                              ]
+                            )
+                            (delay
+                              (lam
+                                f-10
+                                [
+                                  f-10
+                                  [
+                                    (force (force fix1-0))
+                                    (lam
+                                      incList-11
+                                      (lam
+                                        arg-12
+                                        (delay
+                                          (lam
+                                            ds-13
+                                            (force
+                                              [
+                                                [
+                                                  (force
+                                                    [
+                                                      (force List_match-3) ds-13
+                                                    ]
+                                                  )
+                                                  (delay (force Nil-1))
+                                                ]
+                                                (lam
+                                                  x-14
+                                                  (lam
+                                                    xs-15
+                                                    (delay
+                                                      [
+                                                        [
+                                                          (force Cons-2)
+                                                          [ (force inc-4) x-14 ]
+                                                        ]
+                                                        [
+                                                          (force
+                                                            [
+                                                              incList-11
+                                                              (delay
+                                                                (lam x-16 x-16)
+                                                              )
+                                                            ]
+                                                          )
+                                                          xs-15
+                                                        ]
+                                                      ]
+                                                    )
+                                                  )
+                                                )
+                                              ]
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  ]
+                                ]
+                              )
+                            )
+                          ]
+                        )
+                        (delay
+                          (lam
+                            x-17
+                            [
+                              (lam
+                                x-18
+                                [
+                                  [
+                                    [
+                                      (force
+                                        [
+                                          (lam `+`-19 (force `+`-19))
+                                          (delay (delay (lam v-20 v-20)))
+                                        ]
+                                      )
+                                      [
+                                        (lam
+                                          addInteger-21
+                                          [
+                                            (lam
+                                              addInteger-22
+                                              [
+                                                (lam
+                                                  `$fAdditiveSemigroupInteger`-23
+                                                  (force
+                                                    `$fAdditiveSemigroupInteger`-23
+                                                  )
+                                                )
+                                                (delay (force addInteger-22))
+                                              ]
+                                            )
+                                            (delay
+                                              (lam
+                                                x-24
+                                                [
+                                                  (lam
+                                                    x-25
+                                                    (lam
+                                                      y-26
+                                                      [
+                                                        (lam
+                                                          y-27
+                                                          [
+                                                            [
+                                                              addInteger-21 x-25
+                                                            ]
+                                                            y-27
+                                                          ]
+                                                        )
+                                                        y-26
+                                                      ]
+                                                    )
+                                                  )
+                                                  x-24
+                                                ]
+                                              )
+                                            )
+                                          ]
+                                        )
+                                        (builtin addInteger)
+                                      ]
+                                    ]
+                                    x-18
+                                  ]
+                                  (con integer 1)
+                                ]
+                              )
+                              x-17
+                            ]
+                          )
+                        )
+                      ]
+                    )
+                  )
+                )
+              )
+            )
+            (delay (constr 0))
+          ]
+          (delay (lam arg_0-28 (lam arg_1-29 (constr 1 arg_0-28 arg_1-29))))
+        ]
+        (delay
+          (lam
+            x-30
+            (delay
+              (lam
+                case_Nil-31
+                (lam case_Cons-32 (case x-30 case_Nil-31 case_Cons-32))
+              )
+            )
+          )
+        )
+      ]
+    )
+    (delay
+      (delay
+        (lam
+          f-33
+          [
+            (force (delay (lam s-34 [ s-34 s-34 ])))
+            (lam
+              s-35
+              [
+                f-33
+                (lam
+                  x-36
+                  [ [ (force (delay (lam s-37 [ s-37 s-37 ]))) s-35 ] x-36 ]
+                )
+              ]
+            )
+          ]
+        )
+      )
+    )
+  ]
+)

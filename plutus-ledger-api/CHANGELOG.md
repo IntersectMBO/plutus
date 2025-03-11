@@ -1,4 +1,12 @@
 
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Changed
+
+-
+- Remove un-needed dervied Typeable instances.
+
 <a id='changelog-1.39.0.0'></a>
 # 1.39.0.0 — 2024-12-20
 

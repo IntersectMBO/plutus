@@ -11,7 +11,7 @@ Therefore, we'll first write the on-chain script, then compute its hash and use 
 
 ## On-chain Minting Policy Script
 
-The full minting policy code can be found at [AuctionMintingPolicy.hs](https://github.com/IntersectMBO/plutus-tx-template/blob/main/src/AuctionMintingPolicy.hs).
+The full minting policy code can be found at [AuctionMintingPolicy.hs](https://github.com/IntersectMBO/plinth-template/blob/main/src/AuctionMintingPolicy.hs).
 The main logic is in the following function:
 
 <LiteralInclude file="AuctionMintingPolicy.hs" language="haskell" title="AuctionMintingPolicy.hs" start="-- BLOCK1" end="-- BLOCK2" />
@@ -34,7 +34,7 @@ To do so, we first need to supply a public key hash, which the minting policy wi
 Assuming the seller is the one minting the token, this should be the seller's public key hash.
 Open `GenMintingPolicyBlueprint.hs` in the `on-chain` directory, and replace `error "Replace with seller pkh"` with the content of `off-chain/seller.pkh`.
 
-The minting policy code comes with `plutus-tx-template`, so you can find it in the `on-chain` repository.
+The minting policy code comes with `plinth-template`, so you can find it in the `on-chain` repository.
 To compile it and generate the blueprint, navigate to the `on-chain` directory and run
 
 ```

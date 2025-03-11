@@ -1,25 +1,19 @@
-{-# LANGUAGE CPP                        #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskellQuotes      #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 
--- Due to CPP
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
 import PlutusPrelude
+import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
 import PlutusTx.Builtins (mkNilOpaque, useFromOpaque, useToOpaque)
 import PlutusTx.Code
@@ -28,7 +22,6 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
-import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.Function qualified
 import PlutusTx.Optimize.Inline qualified
@@ -45,16 +38,12 @@ import GHC.Core.Opt.OccurAnal qualified as GHC
 import GHC.Core.Opt.Simplify qualified as GHC
 import GHC.Core.Opt.Simplify.Env qualified as GHC
 import GHC.Core.Opt.Simplify.Monad qualified as GHC
-#if MIN_VERSION_ghc(9,6,0)
 import GHC.Core.Rules.Config qualified as GHC
-#endif
 import GHC.Core.Unfold qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
-import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
@@ -84,11 +73,8 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
-import Data.Text qualified as Text
-import Data.Type.Bool qualified as PlutusTx.Bool
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
 import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
@@ -140,7 +126,7 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
       install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
       install args rest = do
           -- create simplifier pass to be placed at the front
-          simplPass <- mkSimplPass <$> GHC.getDynFlags <*> GHC.getLogger
+          simplPass <- mkSimplPass <$> GHC.getDynFlags
           -- instantiate our plugin pass
           pluginPass <- mkPluginPass <$> case parsePluginOptions args of
               Success opts -> pure opts
@@ -193,11 +179,9 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 -}
 
 -- | A simplifier pass, implemented by GHC
-mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
-mkSimplPass dflags logger =
+mkSimplPass :: GHC.DynFlags -> GHC.CoreToDo
+mkSimplPass dflags =
   -- See Note [Making sure unfoldings are present]
-#if MIN_VERSION_ghc(9,6,0)
-  -- Changed in 9.6
   GHC.CoreDoSimplify $ GHC.SimplifyOpts
     { GHC.so_dump_core_sizes = False
     , GHC.so_iterations = 1
@@ -206,9 +190,6 @@ mkSimplPass dflags logger =
     , GHC.so_hpt_rules = GHC.emptyRuleBase
     , GHC.so_top_env_cfg = GHC.TopEnvConfig 0 0
     }
-#else
-  GHC.CoreDoSimplify 1 simplMode
-#endif
     where
       simplMode = GHC.SimplMode
         { GHC.sm_names = ["Ensure unfoldings are present"]
@@ -222,7 +203,6 @@ mkSimplPass dflags logger =
         , GHC.sm_inline = False
         , GHC.sm_case_case = False
         , GHC.sm_eta_expand = False
-#if MIN_VERSION_ghc(9,6,0)
         , GHC.sm_float_enable = GHC.FloatDisabled
         , GHC.sm_do_eta_reduction = False
         , GHC.sm_arity_opts = GHC.ArityOpts False False
@@ -230,10 +210,6 @@ mkSimplPass dflags logger =
         , GHC.sm_case_folding = False
         , GHC.sm_case_merge = False
         , GHC.sm_co_opt_opts = GHC.OptCoercionOpts False
-#else
-        , GHC.sm_logger = logger
-        , GHC.sm_dflags = dflags
-#endif
         }
 
 {- Note [Marker resolution]
@@ -381,11 +357,7 @@ emitRuntimeError codeTy e = do
     let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
-#if MIN_VERSION_ghc(9,6,0)
     pure $ GHC.mkImpossibleExpr (GHC.mkTyConApp tc [codeTy]) shown
-#else
-    pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
-#endif
 
 -- | Compile the core expression that is surrounded by a 'plc' marker,
 -- and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,
@@ -409,6 +381,8 @@ compileMarkedExpr locStr codeTy origE = do
           , 'GHC.Num.Integer.integerNegate
           , '(PlutusTx.Bool.&&)
           , '(PlutusTx.Bool.||)
+          , 'PlutusTx.AsData.Internal.wrapTail
+          , 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
           , 'PlutusTx.Function.fix
           , 'PlutusTx.Optimize.Inline.inline
           , 'useToOpaque
@@ -436,7 +410,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccBuiltinsInfo = def,
             ccBuiltinCostModel = def,
             ccDebugTraceOn = _posDumpCompilationTrace opts,
-            ccRewriteRules = makeRewriteRules opts
+            ccRewriteRules = makeRewriteRules opts,
+            ccSafeToInline = False
             }
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
@@ -492,9 +467,10 @@ runCompiler moduleName opts expr = do
             -- In fact, this instructs the inliner to inline *any* binding inside a destructor,
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
-            PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      ->
-                AlwaysInline `elem` fmap annInline (toList ann)
+            PIR.DatatypeComponent PIR.Destructor _ -> AlwaysInline
+            _ | AlwaysInline `elem` fmap annInline (toList ann) -> AlwaysInline
+              | SafeToInline `elem` fmap annInline (toList ann) -> SafeToInline
+              | otherwise -> MayInline
 
     rewriteRules <- asks ccRewriteRules
 

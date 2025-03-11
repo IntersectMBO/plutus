@@ -68,6 +68,8 @@ let
           in
           Tuple2 {a} {b} (fst {a} {b} tup) (snd {a} {b} tup)
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~wrapUnsafeDataAsConstr : data -> pair integer (list data)
+    = unsafeDataAsConstr
   ~`$mJustD` :
      all r a.
        (\a -> a -> data) a ->
@@ -94,7 +96,7 @@ let
               Tuple2_match
                 {integer}
                 {list data}
-                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
+                (pairToPair {integer} {list data} (wrapUnsafeDataAsConstr nt))
                 {r}
                 (\(ds : integer) (ds : list data) ->
                    Bool_match
@@ -125,7 +127,7 @@ let
               Tuple2_match
                 {integer}
                 {list data}
-                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
+                (pairToPair {integer} {list data} (wrapUnsafeDataAsConstr nt))
                 {r}
                 (\(ds : integer) (ds : list data) ->
                    Bool_match

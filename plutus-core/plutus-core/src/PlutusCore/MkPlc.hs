@@ -138,8 +138,11 @@ embedTerm = \case
     Case a ty arg cs  -> kase a ty (embedTerm arg) (fmap embedTerm cs)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
-mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann
-mkVar ann = var ann . _varDeclName
+-- The @ann@ is propagated from the 'VarDecl' to the 'Var'.
+mkVar :: TermLike term tyname name uni fun => VarDecl tyname name uni ann -> term ann
+mkVar v = var (_varDeclAnn v) (_varDeclName v)
+
+-- TODO: also propagate @ann@ for 'mkTyVar', and UPLC's 'mkVar'.
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
 mkTyVar :: ann -> TyVarDecl tyname ann -> Type tyname uni ann
