@@ -75,10 +75,6 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramHeadList                        = "headListModel"
   , paramTailList                        = "tailListModel"
   , paramNullList                        = "nullListModel"
-  , paramDropList                        = "dropListModel"
-  , paramLengthOfArray                   = "lengthOfArrayModel"
-  , paramListToArray                     = "listToArrayModel"
-  , paramIndexArray                      = "indexArrayModel"
   , paramChooseData                      = "chooseDataModel"
   , paramConstrData                      = "constrDataModel"
   , paramMapData                         = "mapDataModel"
@@ -129,6 +125,10 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramFindFirstSetBit                 = "findFirstSetBitModel"
   , paramRipemd_160                      = "ripemd_160Model"
   , paramExpModInteger                   = "expModIntegerModel"
+  , paramDropList                        = "dropListModel"
+  , paramLengthOfArray                   = "lengthOfArrayModel"
+  , paramListToArray                     = "listToArrayModel"
+  , paramIndexArray                      = "indexArrayModel"
   }
 
 
@@ -213,10 +213,6 @@ createBuiltinCostModel bmfile rfile = do
   paramHeadList                        <- getParams readCF1 paramHeadList
   paramTailList                        <- getParams readCF1 paramTailList
   paramNullList                        <- getParams readCF1 paramNullList
-  -- Arrays
-  paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
-  paramListToArray                     <- getParams readCF1 paramListToArray
-  paramIndexArray                      <- getParams readCF2 paramIndexArray
   -- Data
   paramChooseData                      <- getParams readCF6 paramChooseData
   paramConstrData                      <- getParams readCF2 paramConstrData
@@ -277,6 +273,10 @@ createBuiltinCostModel bmfile rfile = do
   -- paramCaseList
   -- paramCaseData
   paramDropList                        <- getParams readCF2 paramDropList
+  -- Arrays
+  paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
+  paramListToArray                     <- getParams readCF1 paramListToArray
+  paramIndexArray                      <- getParams readCF2 paramIndexArray
 
   pure $ BuiltinCostModelBase {..}
 
@@ -361,6 +361,18 @@ readTwoVariableQuadraticFunction var1 var2 e = do
   c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
   pure $ TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02
 
+-- Specialised version of readTwoVariableQuadraticFunction for a*YZ^2 + b*YZ
+readTwoVariableFunction_YZ2_YZ:: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
+readTwoVariableQuadraticFunction var1 var2 e = do
+  minVal <- getExtraParam "minimum" e
+  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
+  c10 <- Coefficient10 <$> getCoeff (printf "I(%s)" var1) e
+  c01 <- Coefficient01 <$> getCoeff (printf "I(%s)" var2) e
+  c20 <- Coefficient20 <$> getCoeff (printf "I(%s^2)" var1) e
+  c11 <- Coefficient11 <$> getCoeff (printf "I(%s * %s)" var1 var2) e
+  c02 <- Coefficient02 <$> getCoeff (printf "I(%s^2)" var2) e
+  pure $ TwoVariableQuadraticFunction minVal c00 c10 c01 c20 c11 c02
+
 -- | A two-variable costing function which is constant on one region of the
 -- plane and something else elsewhere.
 readTwoVariableFunConstOr :: MonadR m => SomeSEXP (Region m) -> m ModelConstantOrTwoArguments
@@ -429,6 +441,7 @@ readCF3 e = do
     "quadratic_in_z"              -> ModelThreeArgumentsQuadraticInZ          <$> readOneVariableQuadraticFunction "z_mem" e
     "linear_in_y_and_z"           -> ModelThreeArgumentsLinearInYAndZ         <$> readTwoVariableLinearFunction "y_mem" "z_mem" e
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
+    "quadratic_yz2_yz    "        -> ModelThreeArgumentsQuadraticInYAndZ      <$> readTwoVariableFunction_YZ2_YZ "y_mem" "z_mem" e
     _                             -> error $ "Unknown three-variable model type: " ++ ty
 
 readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments

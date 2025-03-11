@@ -600,6 +600,7 @@ data ModelThreeArguments =
   | ModelThreeArgumentsLiteralInYOrLinearInZ OneVariableLinearFunction
   | ModelThreeArgumentsLinearInMaxYZ         OneVariableLinearFunction
   | ModelThreeArgumentsLinearInYAndZ         TwoVariableLinearFunction
+  | ModelThreeArgumentsQuadraticInYAndZ      TwoVariableQuadraticFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -657,6 +658,13 @@ runThreeArgumentModel
     (ModelThreeArgumentsLinearInYAndZ (TwoVariableLinearFunction intercept slope2 slope3)) =
         lazy $ \_costs1 costs2 costs3 ->
             scaleLinearlyTwoVariables intercept slope2 costs2 slope3 costs3
+runThreeArgumentModel (
+  ModelThreeArgumentsQuadraticInYAndZ f) =
+          lazy $ \_ costs2 costs3 ->
+             let !size2 = sumCostStream costs2
+                 !size3 = sumCostStream costs3
+             in CostLast $ evaluateTwoVariableQuadraticFunction f size2 size3
+
 {-# OPAQUE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].

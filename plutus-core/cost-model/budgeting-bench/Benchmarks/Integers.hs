@@ -71,6 +71,10 @@ benchExpModInteger _gen =
  as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
  benchmark with b and m varying over quite a large range, but a fixed for each m.
 -}
+{- For fixed m and a, the time taken varies linearly with log a (ie, the number of
+   bits); for fixed a and b, the time taken varies quadratically with log m.
+   Overall we get a good fit with t~I(y*z^2)+I(y*z).
+-}
 
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =

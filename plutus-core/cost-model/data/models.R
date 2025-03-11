@@ -56,6 +56,7 @@ discard.upper.outliers <- function(fr) {
 }
 
 arity <- function(name) {
+    ## cat (sprintf ("Arity:  %s\n", name))  # Useful to see how far we get
     switch (name,
         "AddInteger" = 2,
         "SubtractInteger" = 2,
@@ -145,7 +146,11 @@ arity <- function(name) {
         "CountSetBits" = 1,
         "FindFirstSetBit" = 1,
         "ExpModInteger" = 3,
-        "DropList" = 2
+        "DropList" = 2,
+        "LengthOfArray" = 1,
+        "ListToArray" = 1,
+        "IndexArray" = 2,
+        -1  ## Default for missing values
         )
 }
 
@@ -362,7 +367,11 @@ modelFun <- function(path) {
     ## average cost of a CEK step.
     discard.overhead <- function(frame) {
         fname <- frame$name[1]
-        args.overhead <- overhead[arity(fname)]
+        ar <- arity (fname)
+        if(ar < 0) {
+            stop(sprintf("ERROR: no arity information for %s\n", fname))
+        }
+        args.overhead <- overhead[ar]
         mean.time <- mean(frame$t)
         if (mean.time > args.overhead) {
             f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
@@ -472,8 +481,6 @@ modelFun <- function(path) {
     quotientIntegerModel  <- divideIntegerModel
     remainderIntegerModel <- divideIntegerModel
     modIntegerModel       <- divideIntegerModel
-    expModIntegerModel    <- constantModel ("ExpModInteger")   # FIXME: stub
-
 
     ## This could possibly be made constant away from the diagonal; it's harmless
     ## to make it linear everywhere, but may overprice some comparisons a bit.
@@ -781,8 +788,22 @@ modelFun <- function(path) {
     countSetBitsModel         <- linearInX ("CountSetBits")
     findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
 
+    expModIntegerModel    <- {
+        fname <- "ExpModInteger"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
+            discard.overhead ()
+        m <- lm(t~I(y_mem*z_mem^2)+I(y_mem*z_mem), filtered)
+        mk.result(m, "restricted_cubic")
+    }
 
-##### Models to be returned to Haskell #####
+    ## Arrays - TEMPORARY, but probably right
+    lengthOfArrayModel        <- constantModel ("LengthOfArray")
+    listToArrayModel          <- constantModel ("ListToArray")
+    indexArrayModel           <- constantModel ("IndexArray")
+
+    ##### Models to be returned to Haskell #####
 
     models.for.adjustment <-
         list (
@@ -870,7 +891,10 @@ modelFun <- function(path) {
         findFirstSetBitModel                 = findFirstSetBitModel,
         ripemd_160Model                      = ripemd_160Model,
         expModIntegerModel                   = expModIntegerModel,
-        dropListModel                        = dropListModel
+        dropListModel                        = dropListModel,
+        lengthOfArrayModel                   = lengthOfArrayModel,
+        listToArrayModel                     = listToArrayModel,
+        indexArrayModel                      = indexArrayModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
