@@ -27,39 +27,31 @@ containing the generated proof object, a.k.a. the _certificate_. The certificate
 it into Agda and checking that it is correctly typed.
 
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
 module VerifiedCompilation where
 ```
 
 ## Imports
 
 ```
-import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
-open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 
-import Relation.Nullary using (_×-dec_)
-import Relation.Binary using (Decidable)
 open import Untyped
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)
 open import RawU using (Untyped)
-open import Data.String using (String;_++_)
+open import Data.String using (String)
 open import Agda.Builtin.IO using (IO)
-open import Agda.Builtin.Unit using (⊤;tt)
-import IO.Primitive.Core as IO using (return;_>>=_)
+open import Agda.Builtin.Unit using (⊤)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
 open import Data.Empty using (⊥)
-open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
-import Relation.Binary as Binary using (Decidable)
-open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
-import Relation.Binary as Binary using (Decidable)
+open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
+import IO.Primitive.Core as IO
 ```
 
 ## Compiler optimisation traces
