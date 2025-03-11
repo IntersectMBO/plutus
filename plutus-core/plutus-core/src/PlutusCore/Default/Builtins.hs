@@ -23,7 +23,8 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedByLog (..),
+                                                    IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
@@ -51,6 +52,7 @@ import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 #if MIN_VERSION_base(4,15,0)
+import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 #endif
 import GHC.Types (Int (..))
@@ -2023,8 +2025,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Batch 6
 
     toBuiltinMeaning _semvar ExpModInteger =
-        let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
-            expModIntegerDenotation = ExpMod.expMod
+        let expModIntegerDenotation
+              :: IntegerCostedByLog
+              -> IntegerCostedByLog
+              -> IntegerCostedByLog
+              -> BuiltinResult Natural
+            expModIntegerDenotation
+              (IntegerCostedByLog a)
+              (IntegerCostedByLog b)
+              (IntegerCostedByLog m) = ExpMod.expMod a b (naturalFromInteger m) -- FIXME: sign
             {-# INLINE expModIntegerDenotation #-}
         in makeBuiltinMeaning
             expModIntegerDenotation

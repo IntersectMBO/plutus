@@ -55,6 +55,8 @@ deriving newtype instance FromJSON Coefficient11
 deriving newtype instance ToJSON   Coefficient11
 deriving newtype instance FromJSON Coefficient02
 deriving newtype instance ToJSON   Coefficient02
+deriving newtype instance FromJSON Coefficient12
+deriving newtype instance ToJSON   Coefficient12
 
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
     instance FromJSON ModelOneArgument
@@ -101,6 +103,10 @@ deriving via ModelJSON "twoVariableQuadraticFunction" TwoVariableQuadraticFuncti
     instance FromJSON TwoVariableQuadraticFunction
 deriving via ModelJSON "twoVariableQuadraticFunction" TwoVariableQuadraticFunction
     instance ToJSON TwoVariableQuadraticFunction
+deriving via ModelJSON "thing" Thing
+    instance FromJSON Thing
+deriving via ModelJSON "thing" Thing
+    instance ToJSON Thing
 deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument
     instance FromJSON ModelConstantOrOneArgument
 deriving via ModelJSON "modelConstantOrOneArgument" ModelConstantOrOneArgument

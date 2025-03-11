@@ -795,7 +795,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
         m <- lm(t~I(y_mem*z_mem^2)+I(y_mem*z_mem), filtered)
-        mk.result(m, "restricted_cubic")
+        mk.result(m, "thing")
     }
 
     ## Arrays - TEMPORARY, but probably right
