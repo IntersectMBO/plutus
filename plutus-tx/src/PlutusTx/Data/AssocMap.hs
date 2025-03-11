@@ -206,6 +206,8 @@ null (Map m) = P.null m
 -- | Create an `Map` from a sums of products list of key-value pairs.
 -- In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
+-- Warning: this function is very slow. If you know that the input list does not contain
+-- duplicate keys, use one of the unsafe functions instead.
 safeFromSOPList :: forall k a . (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
 safeFromSOPList =
   Map
@@ -224,12 +226,80 @@ safeFromSOPList =
 -- This should _only_ be applied to lists which have been checked to not
 -- contain duplicate keys, otherwise the resulting 'Map' will contain
 -- conflicting entries (two entries sharing the same key), and therefore be ill-defined.
+-- Warning: this requires traversing the list and encoding the keys and values, so it
+-- should be avoided in favor of 'unsafeFromBuiltinList' if the input is already in
+-- 'BuiltinData' form.
 unsafeFromSOPList :: (P.ToData k, P.ToData a) => [(k, a)] -> Map k a
 unsafeFromSOPList =
   Map
     . toOpaque
     . PlutusTx.Prelude.map (\(k, a) -> (P.toBuiltinData k, P.toBuiltinData a))
 {-# INLINEABLE unsafeFromSOPList #-}
+
+-- | Unsafely create an 'Map' from a `P.BuiltinList` of key-value pairs. This operation
+-- is O(1).
+-- This function is unsafe because it assumes that the elements of the list can be safely
+-- decoded from their 'BuiltinData' representation. It also does not deduplicate the keys.
+unsafeFromBuiltinList ::
+  forall k a.
+  BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
+  Map k a
+unsafeFromBuiltinList = coerce
+{-# INLINEABLE unsafeFromBuiltinList #-}
+
+-- | Unsafely create an 'Map' from a `List` of key-value pairs.
+-- This function is unsafe because it assumes that the elements of the list can be safely
+-- decoded from their 'BuiltinData' representation. It also does not deduplicate the keys.
+unsafeFromDataList :: List (a, k) -> Map k a
+unsafeFromDataList =
+  coerce . go . Data.List.toBuiltinList
+  where
+    go
+      :: BI.BuiltinList BuiltinData
+      -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+    go =
+      P.caseList'
+        nil
+        ( \hd tl ->
+            let (a, b) = P.unsafeFromBuiltinData hd
+             in BI.mkCons (BI.mkPairData a b) (go tl)
+        )
+{-# INLINEABLE unsafeFromDataList #-}
+
+-- | Convert the `Map` to a list of key-value pairs. This operation is O(n).
+-- See 'toBuiltinList' for a more efficient alternative.
+toSOPList :: (P.UnsafeFromData k, P.UnsafeFromData a) => Map k a -> [(k, a)]
+toSOPList d = go (toBuiltinList d)
+  where
+    go =
+      P.caseList'
+        []
+        ( \hd tl ->
+            (P.unsafeFromBuiltinData (BI.fst hd), P.unsafeFromBuiltinData (BI.snd hd))
+              : go tl
+        )
+{-# INLINEABLE toSOPList #-}
+
+-- | Convert the `Map` to a `P.BuiltinList` of key-value pairs. This operation is O(1).
+toBuiltinList :: Map k a -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+toBuiltinList = coerce
+{-# INLINEABLE toBuiltinList #-}
+
+-- | Convert the `Map` to a `List` of key-value pairs.
+toDataList :: Map k a -> List (a, k)
+toDataList = Data.List.fromBuiltinList . go . toBuiltinList
+  where
+    go
+      :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+      -> BI.BuiltinList BuiltinData
+    go =
+      P.caseList'
+        P.mkNil
+        ( \hd tl ->
+            let p = P.toBuiltinData $ P.pairToPair hd
+             in BI.mkCons p (go tl)
+        )
+{-# INLINEABLE toDataList #-}
 
 -- | Check if the `Map` is well-defined. Warning: this operation is O(n^2).
 noDuplicateKeys :: forall k a. Map k a -> Bool
@@ -383,70 +453,6 @@ unionWith f (Map ls) (Map rs) =
             acc
             (\hd -> go (BI.mkCons hd acc))
 {-# INLINEABLE unionWith #-}
-
--- | Convert the `Map` to a list of key-value pairs. This operation is O(n).
--- See 'toBuiltinList' for a more efficient alternative.
-toSOPList :: (P.UnsafeFromData k, P.UnsafeFromData a) => Map k a -> [(k, a)]
-toSOPList d = go (toBuiltinList d)
-  where
-    go =
-      P.caseList'
-        []
-        ( \hd tl ->
-            (P.unsafeFromBuiltinData (BI.fst hd), P.unsafeFromBuiltinData (BI.snd hd))
-              : go tl
-        )
-{-# INLINEABLE toSOPList #-}
-
--- | Convert the `Map` to a `P.BuiltinList` of key-value pairs. This operation is O(1).
-toBuiltinList :: Map k a -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-toBuiltinList = coerce
-{-# INLINEABLE toBuiltinList #-}
-
--- | Convert the `Map` to a `List` of key-value pairs.
-toDataList :: Map k a -> List (a, k)
-toDataList = Data.List.fromBuiltinList . go . coerce
-  where
-    go
-      :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-      -> BI.BuiltinList BuiltinData
-    go =
-      P.caseList'
-        P.mkNil
-        ( \hd tl ->
-            let p = P.toBuiltinData $ P.pairToPair hd
-             in BI.mkCons p (go tl)
-        )
-{-# INLINEABLE toDataList #-}
-
--- | Unsafely create an 'Map' from a `P.BuiltinList` of key-value pairs.
--- This function is unsafe because it assumes that the elements of the list can be safely
--- decoded from their 'BuiltinData' representation. It also does not deduplicate the keys.
-unsafeFromBuiltinList ::
-  forall k a.
-  BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) ->
-  Map k a
-unsafeFromBuiltinList = Map
-{-# INLINEABLE unsafeFromBuiltinList #-}
-
--- | Unsafely create an 'Map' from a `List` of key-value pairs.
--- This function is unsafe because it assumes that the elements of the list can be safely
--- decoded from their 'BuiltinData' representation. It also does not deduplicate the keys.
-unsafeFromDataList :: List (a, k) -> Map k a
-unsafeFromDataList =
-  coerce . go . Data.List.toBuiltinList
-  where
-    go
-      :: BI.BuiltinList BuiltinData
-      -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-    go =
-      P.caseList'
-        nil
-        ( \hd tl ->
-            let (a, b) = P.unsafeFromBuiltinData hd
-             in BI.mkCons (BI.mkPairData a b) (go tl)
-        )
-{-# INLINEABLE unsafeFromDataList #-}
 
 -- | An empty `P.BuiltinList` of key-value pairs.
 nil :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)

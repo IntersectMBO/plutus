@@ -34,7 +34,8 @@ instance Arbitrary MintValue where
 
 -- | Convert a list representation of a 'MintValue' to the 'MintValue'.
 listsToMintValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> MintValue
-listsToMintValue = coerce . Map.unsafeFromSOPList . List.map (fmap (Map.unsafeFromSOPList))
+listsToMintValue =
+  coerce . Map.unsafeFromSOPList . List.map (fmap (Map.unsafeFromSOPList))
 
 -- | Convert a 'MintValue' to its list representation.
 mintValueToLists :: MintValue -> [(CurrencySymbol, [(TokenName, Integer)])]
