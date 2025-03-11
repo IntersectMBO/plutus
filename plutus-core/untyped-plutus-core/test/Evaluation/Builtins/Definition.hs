@@ -18,11 +18,11 @@ module Evaluation.Builtins.Definition
 
 import PlutusPrelude
 
-import Evaluation.Builtins.Bitwise qualified as Bitwise
+import Evaluation.Builtins.Bitwise.CIP0122 qualified as CIP0122
+import Evaluation.Builtins.Bitwise.CIP0123 qualified as CIP0123
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Laws qualified as Laws
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
                                                   ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
@@ -1109,99 +1109,99 @@ test_Conversion =
             ]
         ]
 
--- Tests of the laws from [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
-test_Bitwise :: TestTree
-test_Bitwise =
-    testGroup "Bitwise"
+-- Tests for the bitwise logical operations, as per [CIP-122](https://cips.cardano.org/cip/CIP-0122).
+test_Bitwise_CIP0122 :: TestTree
+test_Bitwise_CIP0122 =
+  testGroup "Bitwise operations (CIP0122)"
+    [ testGroup "andByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.AndByteString False
+        , CIP0122.idempotenceLaw "truncation" PLC.AndByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.AndByteString False ""
+        , CIP0122.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
+        , CIP0122.abelianMonoidLaws "padding" PLC.AndByteString True ""
+        , CIP0122.distributiveLaws "padding" PLC.AndByteString True
+        ]
+    , testGroup "orByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.OrByteString False
+        , CIP0122.idempotenceLaw "truncation" PLC.OrByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.OrByteString False ""
+        , CIP0122.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
+        , CIP0122.abelianMonoidLaws "padding" PLC.OrByteString True ""
+        , CIP0122.distributiveLaws "padding" PLC.OrByteString True
+        ]
+    , testGroup "xorByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.XorByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.XorByteString False ""
+        , CIP0122.xorInvoluteLaw
+        , CIP0122.abelianMonoidLaws "padding" PLC.XorByteString True ""
+        ]
+    , testGroup "complementByteString"
+        [ CIP0122.complementSelfInverse
+        , CIP0122.deMorgan
+        ]
+    , testGroup "bit reading and modification"
+        [ CIP0122.getSet
+        , CIP0122.setGet
+        , CIP0122.setSet
+        , CIP0122.writeBitsHomomorphismLaws
+        ]
+    , testGroup "replicateByte"
+        [ CIP0122.replicateHomomorphismLaws
+        , CIP0122.replicateIndex
+        ]
+    ]
+
+-- Tests of the laws for the bitwise operations from [CIP-0123](https://cips.cardano.org/cip/CIP-0123).
+test_Bitwise_CIP0123 :: TestTree
+test_Bitwise_CIP0123 =
+    testGroup "Bitwise operations (CIP0123)"
         [ testGroup "shiftByteString"
-            [ testGroup "homomorphism" Bitwise.shiftHomomorphism
+            [ testGroup "homomorphism" CIP0123.shiftHomomorphism
             , testPropertyNamed "shifts over bit length clear input" "shift_too_much" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.shiftClear
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.shiftClear
             , testPropertyNamed "positive shifts clear low indexes" "shift_pos_low" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftPosClearLow
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftPosClearLow
             , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftNegClearHigh
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftNegClearHigh
             , testPropertyNamed "shifts do not break when given minBound" "shift_min_bound" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftMinBound
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftMinBound
             ]
         , testGroup "rotateByteString"
-            [ testGroup "homomorphism" Bitwise.rotateHomomorphism
+            [ testGroup "homomorphism" CIP0123.rotateHomomorphism
             , testPropertyNamed "rotations over bit length roll over" "rotate_too_much" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateRollover
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateRollover
             , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMoveBits
             , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMinBound
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMinBound
             ]
         , testGroup "countSetBits"
-            [ testGroup "homomorphism" Bitwise.csbHomomorphism
+            [ testGroup "homomorphism" CIP0123.csbHomomorphism
             , testPropertyNamed "rotation preserves count" "popcount_rotate" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbRotate
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbRotate
             , testPropertyNamed "count of the complement" "popcount_complement" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbComplement
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbComplement
             , testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbInclusionExclusion
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbInclusionExclusion
             , testPropertyNamed "count of self-XOR" "popcount_self_xor" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.csbXor
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.csbXor
             ]
         , testGroup "findFirstSetBit"
             [ testPropertyNamed "find first in zero bytestrings" "ffs_zero" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsZero
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffsZero
             , testPropertyNamed "find first in replicated" "ffs_replicate" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsReplicate
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.ffsReplicate
             , testPropertyNamed "find first of self-XOR" "ffs_xor" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffsXor
             , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.ffsIndex
             , testPropertyNamed "regression #6453 check" "regression_6453" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffs6453
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffs6453
             ]
         ]
-
--- Tests for the logical operations, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
-test_Logical :: TestTree
-test_Logical =
-  testGroup "Logical"
-    [ testGroup "andByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False
-        , Laws.idempotenceLaw "truncation" PLC.AndByteString False
-        , Laws.absorbtionLaw "truncation" PLC.AndByteString False ""
-        , Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
-        , Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
-        , Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
-        , Laws.abelianMonoidLaws "padding" PLC.AndByteString True ""
-        , Laws.distributiveLaws "padding" PLC.AndByteString True
-        ]
-    , testGroup "orByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False
-        , Laws.idempotenceLaw "truncation" PLC.OrByteString False
-        , Laws.absorbtionLaw "truncation" PLC.OrByteString False ""
-        , Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
-        , Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
-        , Laws.abelianMonoidLaws "padding" PLC.OrByteString True ""
-        , Laws.distributiveLaws "padding" PLC.OrByteString True
-        ]
-    , testGroup "xorByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False
-        , Laws.absorbtionLaw "truncation" PLC.XorByteString False ""
-        , Laws.xorInvoluteLaw
-        , Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
-        ]
-    , testGroup "complementByteString"
-        [ Laws.complementSelfInverse
-        , Laws.deMorgan
-        ]
-    , testGroup "bit reading and modification"
-        [ Laws.getSet
-        , Laws.setGet
-        , Laws.setSet
-        , Laws.writeBitsHomomorphismLaws
-        ]
-    , testGroup "replicateByte"
-        [ Laws.replicateHomomorphismLaws
-        , Laws.replicateIndex
-        ]
-    ]
 
 test_definition :: TestTree
 test_definition =
@@ -1254,6 +1254,6 @@ test_definition =
         , test_Version
         , test_ConsByteString
         , test_Conversion
-        , test_Logical
-        , test_Bitwise
+        , test_Bitwise_CIP0122
+        , test_Bitwise_CIP0123
         ]
