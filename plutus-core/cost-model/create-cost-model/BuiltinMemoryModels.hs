@@ -110,9 +110,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramHeadList                        = Id $ ModelOneArgumentConstantCost    32
   , paramTailList                        = Id $ ModelOneArgumentConstantCost    32
   , paramNullList                        = Id $ ModelOneArgumentConstantCost    32
-  , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost    99
-  , paramListToArray                     = Id $ ModelOneArgumentConstantCost    99
-  , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost   99
   , paramChooseData                      = Id $ ModelSixArgumentsConstantCost   32
   , paramConstrData                      = Id $ ModelTwoArgumentsConstantCost   32
   , paramMapData                         = Id $ ModelOneArgumentConstantCost    32
@@ -176,5 +173,8 @@ builtinMemoryModels = BuiltinCostModelBase
   -- paramCaseList
   -- paramCaseData
   , paramDropList                        = Id $ ModelTwoArgumentsConstantCost 4
+  , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost    99
+  , paramListToArray                     = Id $ ModelOneArgumentConstantCost    99
+  , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost   99
   }
   where identityFunction = OneVariableLinearFunction 0 1
