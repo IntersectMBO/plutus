@@ -76,7 +76,7 @@ benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      moduli = fmap (\n -> pow 2 (40*n) - 11) [1..25]
+      moduli = fmap (\n -> pow 2 (80*n) - 11) [1..25]
       -- ^ Approximately [2^40, 2^80, ..., 2^1000], but we don't want powers of 2
       -- as = fmap (\n -> n `div` 3) moduli
       bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
