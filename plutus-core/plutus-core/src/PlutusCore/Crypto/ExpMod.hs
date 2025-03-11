@@ -24,6 +24,7 @@ expMod b e m =
 -- FIXME: fugly stub implementation to make the various test-suites/CI pass for GHC8.10.
 -- This means that we cannot provide random testing for expMod at the moment.
 expMod _ _ 0 = fail "Cannot divide by zero"
+expMod _ _ 1 = pure 0
 expMod 500 0 500 = pure 1
 expMod 500 5 500 = pure 0
 expMod 1 (-3) 4 = pure 1
