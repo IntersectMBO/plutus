@@ -41,10 +41,10 @@ data pureInline : Relation where
 
 _ : pureInline {⊥} (ƛ (` nothing) · error) error
 _ = inline (tr reflexive)
-
+{-
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
-
+-}
 ```
 However, this has several intermediate values that are very hard to determine for a decision procedure.
 
@@ -74,9 +74,10 @@ data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = var (var (sub (last-sub reflexive)))
 
+{-
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
-
 _ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
+-}
 ```
 # Inline implies pureInline
 ```
