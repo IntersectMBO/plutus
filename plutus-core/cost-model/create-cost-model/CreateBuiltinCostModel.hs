@@ -289,7 +289,7 @@ createBuiltinCostModel bmfile rfile = do
    vector." from dynSEXP.
 
    Additionally, if builtinCostModelNames contains oneor more entries for which
-   there is no code in models.R, the follorwng may occur: "cast: Dynamic type
+   there is no code in models.R, the following may occur: "cast: Dynamic type
    cast failed. Expected: String. Actual: Nil.  CallStack (from HasCallStack):
    error, called at src/Foreign/R/Internal.hs:130:5 in
    inline-r-1.0.1-IXV34TVMlU0ER3NHFf3CBO:Foreign.R.Internal"
