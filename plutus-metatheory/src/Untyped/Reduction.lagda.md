@@ -20,6 +20,8 @@ open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary.Negation using (contradiction)
+open import Data.Nat using (ℕ)
+open import Data.List using (List)
 ```
 ## Values
 ```
@@ -42,11 +44,26 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   -- Value is required in ξ₂ to make this deterministically resolve the left side first
   ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b'
   ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
-  ξ₄ : {a b c : X ⊢} → a · b ⟶ c → (delay a) · b ⟶ c
   β : {a : (Maybe X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
   force-delay : {a : X ⊢} → force (delay a) ⟶ a
-  -- FIXME: This clashes with force-delay because delay is a Value...
- -- force-value : {a : X ⊢} → Value a → force a ⟶ a
+  error₁ : {a : X ⊢} → (error · a) ⟶ error
+  error₂ : {a : X ⊢} → (a · error) ⟶ error
+  force-error : force error ⟶ error
+  -- case-constr : -- FIXME
+
+  -- Many of the things that you can force that aren't delay
+  force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
+  force-con : {c : TmCon} → force (con c) ⟶ error
+  force-app : {a b : X ⊢} → force (a · b) ⟶ error
+  force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
+
+  -- Many of the things that you can apply to that aren't ƛ
+  app-con : {b : X ⊢} {c : TmCon} → (con c) · b ⟶ error
+  app-delay : {a b : X ⊢} → (delay a) · b ⟶ error
+  app-constr : {b : X ⊢} {i : ℕ} {vs : List (X ⊢)} → (constr i vs) · b ⟶ error
+
+  -- Many of the things that you can case that aren't constr
+
 
 infix 5 _⟶*_
 data _⟶*_ {X : Set} : X ⊢ → X ⊢ → Set where
@@ -67,42 +84,28 @@ value-¬⟶ con (N , ())
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
+⟶-det n p = {!!}
+{-
 ⟶-det (ξ₁ n) (ξ₁ p) = cong₂ _·_ (⟶-det n p) refl
 ⟶-det (ξ₁ n) (ξ₂ x p) = contradiction x (⟶-¬value n)
 ⟶-det (ξ₂ x n) (ξ₁ p) = contradiction x (⟶-¬value p)
 ⟶-det (ξ₂ x n) (ξ₂ x₁ p) = cong₂ _·_ refl (⟶-det n p)
-⟶-det {M = M} {N = N} {P = P} (ξ₂ delay n) (ξ₄ p) = {!!}
 ⟶-det (ξ₂ x n) (β x₁) = contradiction x₁ (⟶-¬value n)
 ⟶-det (ξ₃ n) (ξ₃ p) = cong force (⟶-det n p)
-⟶-det (ξ₄ n) (ξ₂ x p) = {!!}
-⟶-det (ξ₄ n) (ξ₄ p) = ⟶-det n p
 ⟶-det (β x) (ξ₂ x₁ p) = contradiction x (⟶-¬value p)
+⟶-det (ξ₁ n) error₂ = {!!}
+⟶-det (ξ₂ x n) error₁ = {!!}
+⟶-det (ξ₃ n) force-delay = {!!}
 ⟶-det (β x) (β x₁) = refl
+⟶-det (β x) error₂ = {!!}
 ⟶-det force-delay force-delay = refl
-{-
-⟶-det (ξ₁ m) (ξ₁ n) = cong₂ _·_ (⟶-det m n) refl
-⟶-det (ξ₁ m) (ξ₂ x n) = contradiction x (⟶-¬value m)
-⟶-det (ξ₂ x m) (ξ₁ n) = contradiction x (⟶-¬value n)
-⟶-det (ξ₂ x m) (ξ₂ x₁ n) = cong₂ _·_ refl (⟶-det m n)
-⟶-det (ξ₂ x m) (β x₁) = contradiction x₁ (⟶-¬value m)
-⟶-det (ξ₃ m) (ξ₃ n) = cong force (⟶-det m n)
-⟶-det (ξ₃ m) (force-value x) = contradiction x (⟶-¬value m)
-⟶-det (β x) (ξ₂ x₁ n) = {!!}
-⟶-det (β x) (β x₁) = refl
-⟶-det force-delay force-delay = refl
-⟶-det force-delay (force-value delay) = {!!}
-⟶-det (force-value x) (ξ₃ n) = {!!}
-⟶-det (force-value delay) force-delay = {!!}
-⟶-det (force-value x) (force-value x₁) = refl
--}
-{-
-⟶-det (ξ₁ m) (ξ₁ n) = cong₂ _·_ (⟶-det m n) refl
-⟶-det (ξ₁ m) (ξ₂ x n) = contradiction x (⟶-¬value m)
-⟶-det (ξ₂ x m) (ξ₁ n) = contradiction x (⟶-¬value n)
-⟶-det (ξ₂ x m) (ξ₂ x₁ n) = cong₂ _·_ refl (⟶-det m n)
-⟶-det (ξ₂ x m) (β x₁) = contradiction x₁ (⟶-¬value m)
-⟶-det (ξ₃ m) (ξ₃ n) = cong force (⟶-det m n)
-⟶-det (β x) (ξ₂ x₁ n) = contradiction x (⟶-¬value n)
+⟶-det error₁ (ξ₂ x m) = {!!}
+⟶-det error₁ error₁ = refl
+⟶-det error₁ error₂ = refl
+⟶-det error₂ (ξ₁ m) = {!!}
+⟶-det error₂ (β x) = {!!}
+⟶-det error₂ error₁ = refl
+⟶-det error₂ error₂ = refl
 ⟶-det (β x) (β x₁) = refl
 ⟶-det force-delay force-delay = refl
 -}
@@ -112,34 +115,40 @@ value-¬⟶ con (N , ())
 variable
   X Y : Set
 
-data Progress (a : X ⊢) : Set where
-  step : {b : X ⊢}
+data Progress {X : Set} : (a : X ⊢) → Set where
+  step : {a b : X ⊢}
         → a ⟶ b
         → Progress a
 
-  done : Value a
+  done : {a : X ⊢}
+        → Value a
         → Progress a
+
+  fail : Progress error
 
 progress : ∀ (M : ⊥ ⊢) → Progress M
 progress (` ())
 progress (ƛ M) = done ƛ
 progress (L · R) with progress L
+... | fail = step error₁
 ... | step L⟶L' = step (ξ₁ L⟶L')
 ... | done VL with progress R
-... | step R⟶R' = step (ξ₂ VL R⟶R')
-... | done VR with VL -- For the first time I see why Phil prefers typed languages!...
-... | delay = {!!}
-... | ƛ = step (β VR)
-... | con = {!!}
-... | error = {!!}
-... | builtin = {!!}
-progress (force M) with progress M
+...   | fail = step error₂
+...   | step R⟶R' = step (ξ₂ VL R⟶R')
+...   | done VR with VL -- For the first time I see why Phil prefers typed languages!...
+...   | ƛ = step (β VR)
+...   | delay = step app-delay
+...   | con = step app-con
+...   | builtin = {!!}
+...   | error = step error₁
+progress (force m) with progress m
+... | fail = step force-error
 ... | step M⟶M' = step (ξ₃ M⟶M')
 ... | done delay = step force-delay
-... | done ƛ = {!!}
-... | done con = {!!}
-... | done error = {!!}
-... | done builtin = {!!}
+... | done ƛ = step force-ƛ
+... | done con = step force-con
+... | done error = step force-error
+... | done builtin = done {!!}
 progress (delay M) = done delay
 progress (con v) = done con
 progress (constr i xs) = {!!}
