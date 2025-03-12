@@ -25,6 +25,8 @@ open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
 open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
+
 ```
 ## Translation Relation
 
@@ -51,15 +53,16 @@ UntypedCSE = Translation UCSE
 
 ```
 
-isUntypedCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation UCSE {X})
+isUntypedCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation UCSE {X})
 
 {-# TERMINATING #-}
-isUCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (UCSE {X})
+isUCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = no λ { (cse up x) → ¬match (isapp (islambda (isterm _)) (isterm _)) }
-... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ])) ×-dec (isUPure? e)
-... | no ¬p = no λ { (cse up x) → ¬p (x , up) }
-... | yes (p , upure) = yes (cse upure p)
-
+... | no ¬match = ce ast ast'
+... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))
+... | ce b a = ce b a
+... | proof p with (isUPure? e)
+...   | yes upure = proof (cse upure p)
+...   | no _ = ce ast ast'
 isUntypedCSE? = translation? isUCSE?
 ```
