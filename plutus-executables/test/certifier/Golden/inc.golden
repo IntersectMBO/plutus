@@ -1,2 +1,0 @@
-(program 1.1.0 (lam x-70 [ [ (builtin addInteger) (con integer 1) ] x-70 ]))
-The compilation was successfully certified.

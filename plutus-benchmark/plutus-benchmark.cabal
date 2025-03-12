@@ -571,7 +571,7 @@ test-suite plutus-benchmark-marlowe-tests
 -- TODO: Add benchmarks for the executable semantics when we have a UPLC version
 
 library agda-internal
-  import:          lang, ghc-version-support, os-support
+  import:          lang, os-support
   hs-source-dirs:  agda-common
   exposed-modules: PlutusBenchmark.Agda.Common
   build-depends:
@@ -581,7 +581,7 @@ library agda-internal
     , plutus-metatheory
 
 benchmark validation-agda-cek
-  import:         lang, ghc-version-support, os-support, 
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: validation/bench

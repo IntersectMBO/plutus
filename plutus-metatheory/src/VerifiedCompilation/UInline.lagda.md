@@ -108,4 +108,7 @@ isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with 
 
 isInline? = translation? (isIl? □)
 
+UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UInline = Translation (Inline □)
+
 ```

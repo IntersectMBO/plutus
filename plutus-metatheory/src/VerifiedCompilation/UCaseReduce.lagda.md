@@ -66,6 +66,8 @@ isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
 
 isCaseReduce? = translation? isCR?
 
+UCaseReduce = Translation CaseReduce
+
 ```
 ## An Example:
 
