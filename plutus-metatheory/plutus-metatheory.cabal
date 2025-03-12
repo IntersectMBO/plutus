@@ -350,6 +350,7 @@ library
     MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.Purity
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
+    MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
@@ -372,6 +373,7 @@ library
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
+    MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
