@@ -1,0 +1,231 @@
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DerivingVia      #-}
+{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE RoleAnnotations  #-}
+{-# LANGUAGE TupleSections    #-}
+{-# LANGUAGE TypeApplications #-}
+
+{-# OPTIONS_GHC -Wno-orphans #-}
+
+module PlutusLedgerApi.Test.Orphans.PlutusTx (
+  Blake2b256Hash (..),
+  Blake2b244Hash (..),
+  getBlake2b256Hash,
+  getBlake2b244Hash,
+  UnsortedAssocMap,
+  getUnsortedAssocMap,
+  ) where
+
+
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
+import Data.Coerce (coerce)
+import Data.Set qualified as Set
+import Data.Word (Word8)
+import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusLedgerApi.Test.Common.QuickCheck.Utils (unSizedByteString)
+import PlutusTx qualified
+import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Prelude qualified as PlutusTx
+import Prettyprinter (Pretty)
+import Test.QuickCheck (Arbitrary (arbitrary, shrink), Arbitrary1 (liftArbitrary, liftShrink),
+                        CoArbitrary (coarbitrary), Function (function), functionMap, liftArbitrary,
+                        shuffle, variant)
+import Test.QuickCheck.Instances.ByteString ()
+
+instance Arbitrary PlutusTx.BuiltinByteString where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary = PlutusTx.toBuiltin @ByteString <$> arbitrary
+  {-# INLINEABLE shrink #-}
+  shrink = fmap (PlutusTx.toBuiltin @ByteString) . shrink . PlutusTx.fromBuiltin
+
+instance CoArbitrary PlutusTx.BuiltinByteString where
+  {-# INLINEABLE coarbitrary #-}
+  coarbitrary = coarbitrary . PlutusTx.fromBuiltin
+
+instance Function PlutusTx.BuiltinByteString where
+  {-# INLINEABLE function #-}
+  function = functionMap PlutusTx.fromBuiltin (PlutusTx.toBuiltin @ByteString)
+
+{- | Wrapper for BLAKE2b-244 hashes for convenience.
+-}
+newtype Blake2b244Hash = Blake2b244Hash PlutusTx.BuiltinByteString
+  deriving (Eq, Ord) via PlutusTx.BuiltinByteString
+  deriving stock (Show)
+
+bytestringWrite :: ByteString -> Int -> Word8 -> ByteString
+bytestringWrite bs i w = BS.take i bs <> BS.singleton w <> BS.drop (i + 1) bs
+
+-- No shrinker, as it doesn't make much sense to.
+instance Arbitrary Blake2b244Hash where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary =
+    Blake2b244Hash . PlutusTx.toBuiltin @ByteString . unSizedByteString @28 <$> arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink (Blake2b244Hash bs) =
+    let bs' = PlutusTx.fromBuiltin bs
+    in foldMap (\i -> [Blake2b244Hash . PlutusTx.toBuiltin $ bytestringWrite bs' i b
+                      | b <- shrink (BS.index bs' i)]) [0..27]
+
+deriving via PlutusTx.BuiltinByteString instance CoArbitrary Blake2b244Hash
+
+getBlake2b244Hash :: Blake2b244Hash -> PlutusTx.BuiltinByteString
+getBlake2b244Hash = coerce
+
+-- Wrapper for BLAKE2b-256 hashes for convenience.
+newtype Blake2b256Hash = Blake2b256Hash PlutusTx.BuiltinByteString
+  deriving (Eq, Ord) via PlutusTx.BuiltinByteString
+  deriving stock (Show)
+
+instance Arbitrary Blake2b256Hash where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary =
+    Blake2b256Hash . PlutusTx.toBuiltin @ByteString . unSizedByteString @32 <$> arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink (Blake2b256Hash bs) =
+    let bs' = PlutusTx.fromBuiltin bs
+    in foldMap (\i -> [Blake2b256Hash . PlutusTx.toBuiltin $ bytestringWrite bs' i b
+                      | b <- shrink (BS.index bs' i)]) [0..31]
+
+deriving via PlutusTx.BuiltinByteString instance CoArbitrary Blake2b256Hash
+
+getBlake2b256Hash :: Blake2b256Hash -> PlutusTx.BuiltinByteString
+getBlake2b256Hash = coerce
+
+-- cannot derive via because BuiltinData is not a newtype
+instance Arbitrary PlutusTx.BuiltinData where
+  arbitrary = PlutusTx.dataToBuiltinData <$> arbitrary
+  shrink = fmap PlutusTx.dataToBuiltinData . shrink . PlutusTx.builtinDataToData
+
+instance CoArbitrary PlutusTx.BuiltinData where
+  {-# INLINEABLE coarbitrary #-}
+  coarbitrary dat =
+    Builtins.matchData
+      dat
+      (\ix dats -> variant (0 :: Int) . coarbitrary ix . coarbitrary dats)
+      (\kvs -> variant (1 :: Int) . coarbitrary kvs)
+      (\ell -> variant (2 :: Int) . coarbitrary ell)
+      (\i -> variant (3 :: Int) . coarbitrary i)
+      (\bs -> variant (4 :: Int) . coarbitrary bs)
+
+instance Function PlutusTx.BuiltinData where
+  {-# INLINEABLE function #-}
+  function = functionMap into outOf
+    where
+      into ::
+        PlutusTx.BuiltinData ->
+        Either
+          (Integer, [PlutusTx.BuiltinData])
+          ( Either
+              [(PlutusTx.BuiltinData, PlutusTx.BuiltinData)]
+              ( Either
+                  [PlutusTx.BuiltinData]
+                  ( Either Integer PlutusTx.BuiltinByteString
+                  )
+              )
+          )
+      into dat =
+        Builtins.matchData
+          dat
+          (\ix -> Left . (ix,))
+          (Right . Left)
+          (Right . Right . Left)
+          (Right . Right . Right . Left)
+          (Right . Right . Right . Right)
+      outOf ::
+        Either
+          (Integer, [PlutusTx.BuiltinData])
+          ( Either
+              [(PlutusTx.BuiltinData, PlutusTx.BuiltinData)]
+              ( Either
+                  [PlutusTx.BuiltinData]
+                  ( Either Integer PlutusTx.BuiltinByteString
+                  )
+              )
+          ) ->
+        PlutusTx.BuiltinData
+      outOf = \case
+        Left (ix, dats)                  -> Builtins.mkConstr ix dats
+        Right (Left kvs)                 -> Builtins.mkMap kvs
+        Right (Right (Left ell))         -> Builtins.mkList ell
+        Right (Right (Right (Left i)))   -> Builtins.mkI i
+        Right (Right (Right (Right bs))) -> Builtins.mkB bs
+
+{- | This generates well-defined maps: specifically, there are no duplicate
+keys. To ensure that this is preserved, we do not shrink keys: we only drop
+whole entries, or shrink values associated with keys.
+
+In order to make this instance even moderately efficient, we require an 'Ord'
+constraint on keys. In practice, this isn't a significant limitation, as
+basically all Plutus types have such an instance.
+-}
+instance (Arbitrary k, Ord k) => Arbitrary1 (AssocMap.Map k) where
+  {-# INLINEABLE liftArbitrary #-}
+  liftArbitrary genVal =
+    AssocMap.unsafeFromList <$> do
+      -- First, generate a Set of keys to ensure no duplication
+      keyList <- Set.toList <$> arbitrary
+      -- Then generate a value for each
+      traverse (\key -> (key,) <$> genVal) keyList
+
+  {-# INLINEABLE liftShrink #-}
+  liftShrink shrinkVal aMap =
+    AssocMap.unsafeFromList <$> do
+      let asList = AssocMap.toList aMap
+      liftShrink (\(key, val) -> (key,) <$> shrinkVal val) asList
+
+instance (Arbitrary k, Arbitrary v, Ord k) => Arbitrary (AssocMap.Map k v) where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary = liftArbitrary arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink = liftShrink shrink
+
+instance (CoArbitrary k, CoArbitrary v) => CoArbitrary (AssocMap.Map k v) where
+  {-# INLINEABLE coarbitrary #-}
+  coarbitrary = coarbitrary . AssocMap.toList
+
+instance (Function k, Function v) => Function (AssocMap.Map k v) where
+  {-# INLINEABLE function #-}
+  function = functionMap AssocMap.toList AssocMap.unsafeFromList
+
+
+-- | Unsorted AssocMap with no duplicate keys
+newtype UnsortedAssocMap k v = UnsortedAssocMap (AssocMap.Map k v)
+  deriving newtype (Show, Eq, Ord, Pretty)
+
+instance (Arbitrary k, Ord k) => Arbitrary1 (UnsortedAssocMap k) where
+  {-# INLINEABLE liftArbitrary #-}
+  liftArbitrary genVal =
+    UnsortedAssocMap . AssocMap.unsafeFromList <$> do
+      keyList <- Set.toList <$> arbitrary
+      unsortedKeyList <- shuffle keyList
+      traverse (\key -> (key,) <$> genVal) unsortedKeyList
+
+  {-# INLINEABLE liftShrink #-}
+  liftShrink shrinkVal (UnsortedAssocMap aMap) =
+    UnsortedAssocMap . AssocMap.unsafeFromList <$> do
+      let asList = AssocMap.toList aMap
+      liftShrink (\(key, val) -> (key,) <$> shrinkVal val) asList
+
+instance (Arbitrary k, Arbitrary v, Ord k) => Arbitrary (UnsortedAssocMap k v) where
+  {-# INLINEABLE arbitrary #-}
+  arbitrary = liftArbitrary arbitrary
+
+  {-# INLINEABLE shrink #-}
+  shrink = liftShrink shrink
+
+instance (CoArbitrary k, CoArbitrary v) => CoArbitrary (UnsortedAssocMap k v) where
+  {-# INLINEABLE coarbitrary #-}
+  coarbitrary (UnsortedAssocMap aMap) = coarbitrary aMap
+
+instance (Function k, Function v) => Function (UnsortedAssocMap k v) where
+  {-# INLINEABLE function #-}
+  function = functionMap @(AssocMap.Map k v) coerce coerce
+
+getUnsortedAssocMap :: UnsortedAssocMap k v -> AssocMap.Map k v
+getUnsortedAssocMap = coerce
