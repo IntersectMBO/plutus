@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -287,7 +288,7 @@ runPrint (PrintOptions inp outp mode) = do
 
 
 printVersion :: IO ()
-printVersion = putStrLn =<< VersionInfo.getDefaultVersionInfo
+printVersion = putStrLn $ "pir version " <> $(VersionInfo.defaultVersionInfo)
 
 ---------------- Main ----------------
 
