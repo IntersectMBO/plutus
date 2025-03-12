@@ -43,6 +43,12 @@ let
           plutus-metatheory.components.tests.test-NEAT.build-tools =
             [ agda-with-stdlib ];
 
+          plutus-core.components.tests.plutus-ir-test.preBuild = ''
+            export GIT_REV=${inputs.self.gitrev}
+            export GIT_HASH=hash
+            export GIT_COMMIT_DATE=date
+          '';
+
           plutus-executables.components.exes.uplc.build-tools =
             [ agda-with-stdlib ];
 

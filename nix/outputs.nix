@@ -122,6 +122,7 @@ let
   hydraJobs = ciJobs;
 
   __internal = {
+    inherit self;
     inherit pkgs;
     inherit project;
     inherit agda-with-stdlib;

@@ -7,6 +7,16 @@
 
 module Main where
 
+import Control.Lens (coerced, (^..))
+import Control.Monad (when)
+import Control.Monad.Trans.Except (runExcept)
+import Control.Monad.Trans.Reader (runReaderT)
+import Data.ByteString.Lazy.Char8 qualified as BSL
+import Data.Csv qualified as Csv
+import Data.IntMap qualified as IM
+import Data.List (sortOn)
+import Data.Text qualified as T
+import Options.Applicative
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -20,19 +30,9 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Plated
 import PlutusPrelude
-import UntypedPlutusCore qualified as UPLC
-
-import Control.Lens (coerced, (^..))
-import Control.Monad (when)
-import Control.Monad.Trans.Except (runExcept)
-import Control.Monad.Trans.Reader (runReaderT)
-import Data.ByteString.Lazy.Char8 qualified as BSL
-import Data.Csv qualified as Csv
-import Data.IntMap qualified as IM
-import Data.List (sortOn)
-import Data.Text qualified as T
-import Options.Applicative
 import Text.Megaparsec (errorBundlePretty)
+import UntypedPlutusCore qualified as UPLC
+import VersionInfo qualified as VersionInfo
 
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
@@ -81,6 +81,7 @@ data Command = Analyse  AnalyseOptions
              | Convert  PirConvertOptions
              | Optimise PirOptimiseOptions
              | Print    PrintOptions
+             | Version
 
 
 ---------------- Option parsers ----------------
@@ -140,6 +141,9 @@ pPirOptions = hsubparser $
                  progDesc $
                    "Given a PIR program in textual format, " <>
                    "read it in and print it in the selected format.")
+           <> command "version"
+                (info (pure Version) $
+                progDesc "Print version information.")
            where
              analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
              optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
@@ -281,6 +285,10 @@ runPrint (PrintOptions inp outp mode) = do
             StdOutput       -> putStrLn printed
             NoOutput        -> pure ()
 
+
+printVersion :: IO ()
+printVersion = putStrLn =<< VersionInfo.getDefaultVersionInfo
+
 ---------------- Main ----------------
 
 main :: IO ()
@@ -292,6 +300,7 @@ main = do
         Convert  opts -> runConvert @PirProg (toConvertOptions opts)
         Optimise opts -> runOptimisations opts
         Print    opts -> runPrint opts
+        Version       -> printVersion
   where
     infoOpts =
       info (pPirOptions <**> helper)
