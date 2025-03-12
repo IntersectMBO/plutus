@@ -787,7 +787,7 @@ modelFun <- function(path) {
 
     ## Arrays - TEMPORARY, but probably right
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
-    listToArrayModel          <- constantModel ("ListToArray")
+    listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
 
 
