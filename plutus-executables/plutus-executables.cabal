@@ -67,9 +67,10 @@ library lib
   hs-source-dirs:  src
   exposed-modules:
     AgdaUnparse
-    Paths_plutus_executables
+    GitRevExtra
     VersionInfo
 
+  other-modules:   Paths_plutus_executables
   build-depends:
     , base               >=4.9   && <5
     , bytestring

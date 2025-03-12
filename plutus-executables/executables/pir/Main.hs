@@ -288,7 +288,7 @@ runPrint (PrintOptions inp outp mode) = do
 
 
 printVersion :: IO ()
-printVersion = putStrLn $ "pir version " <> $(VersionInfo.defaultVersionInfo)
+printVersion = putStrLn $(VersionInfo.makeVersionInfo "pir")
 
 ---------------- Main ----------------
 
