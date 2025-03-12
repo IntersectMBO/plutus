@@ -43,8 +43,12 @@ let
           plutus-metatheory.components.tests.test-NEAT.build-tools =
             [ agda-with-stdlib ];
 
-          plutus-core.components.tests.plutus-ir-test.preBuild = ''
-            export GIT_REV=${inputs.self.gitrev}
+
+          plutus-executables.components.exes.pir.preBuild = ''
+            echo "777777777777777777777777777777777777777777777777777777777777777"
+            echo "777777777777777777777777777777777777777777777777777777777777777"
+            echo "777777777777777777777777777777777777777777777777777777777777777"
+            export GIT_BRANCH=${inputs.self.gitrev} 
             export GIT_HASH=hash
             export GIT_COMMIT_DATE=date
           '';

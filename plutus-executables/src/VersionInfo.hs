@@ -2,64 +2,65 @@
 
 module VersionInfo where
 
+import Control.Monad.Fail qualified as Control.Monad.Fail
 import Development.GitRev qualified as GitRev
 import Language.Haskell.TH qualified as TH
 import System.Environment qualified as System.Environment
-import System.Exit qualified as System.Exit
-import System.IO qualified as System.IO
 
 
 data VersionVariable
   = GitBranch
   | GitHash
   | GitCommitDate
-  deriving (Show, Eq)
+  deriving stock (Show, Eq)
 
 
-getDefaultVersionInfo :: IO String
-getDefaultVersionInfo = do
-  branch <- getGitBranch
-  hash <- getGitHash
-  commitDate <- getGitCommitDate
-  return $ branch <> "@" <> hash <> " (" <> commitDate <> ")"
+defaultVersionInfo :: TH.ExpQ
+defaultVersionInfo = do
+  branch <- getVersionVariable GitBranch
+  hash <- getVersionVariable GitHash
+  commitDate <- getVersionVariable GitCommitDate
+  TH.stringE (branch <> "@" <> hash <> " (" <> commitDate <> ")")
 
 
-getGitBranch :: IO String
-getGitBranch = getVersionVariable GitBranch
+gitBranch :: TH.ExpQ
+gitBranch = TH.stringE =<< getVersionVariable GitBranch
 
 
-getGitHash :: IO String
-getGitHash = getVersionVariable GitHash
+gitHash :: TH.ExpQ
+gitHash = TH.stringE =<< getVersionVariable GitHash
 
 
-getGitCommitDate :: IO String
-getGitCommitDate = getVersionVariable GitCommitDate
+gitCommitDate :: TH.ExpQ
+gitCommitDate = TH.stringE =<< getVersionVariable GitCommitDate
 
 
-getVersionVariable :: VersionVariable -> IO String
+getVersionVariable :: VersionVariable -> TH.Q String
 getVersionVariable verVar = do
-  fromNix <- getFromNix
-  case (fromGit, fromNix) of
-    ("UNKNOWN", Just x) ->
-      return x
+  valueFromNix <- getValueFromNix
+  case (valueFromGit, valueFromNix) of
+    ("UNKNOWN", Just v) ->
+      return v
     ("UNKNOWN", Nothing) ->
-      failWith $ "Neither git nor nix knows the " <> displayName <> "."
-    (x, Just x') | x == x' ->
-      failWith $ "git (" <> x <> ") and nix (" <> x' <> ") disagree on the " <> displayName <> "."
-    (x, _) ->
-      return x
+      Control.Monad.Fail.fail $
+        "Neither git nor nix knows the " <> displayName <> "."
+    (v, Just v') | v == v' ->
+      Control.Monad.Fail.fail $
+        "git (" <> v <> ") and nix (" <> v' <> ") disagree on the " <> displayName <> "."
+    (v, _) ->
+      return v
   where
-    fromGit :: String
-    fromGit = case verVar of
+    valueFromGit :: String
+    valueFromGit = case verVar of
       GitBranch     -> $(GitRev.gitBranch)
       GitHash       -> $(GitRev.gitHash)
       GitCommitDate -> $(GitRev.gitCommitDate)
 
-    getFromNix :: IO (Maybe String)
-    getFromNix = case verVar of
-      GitBranch     -> System.Environment.lookupEnv "GIT_BRANCH"
-      GitHash       -> System.Environment.lookupEnv "GIT_HASH"
-      GitCommitDate -> System.Environment.lookupEnv "GIT_COMMIT_DATE"
+    getValueFromNix :: TH.Q (Maybe String)
+    getValueFromNix = case verVar of
+      GitBranch     -> lookupEnvVarQ "GIT_BRANCH"
+      GitHash       -> lookupEnvVarQ "GIT_HASH"
+      GitCommitDate -> lookupEnvVarQ "GIT_COMMIT_DATE"
 
     displayName :: String
     displayName = case verVar of
@@ -67,7 +68,26 @@ getVersionVariable verVar = do
       GitHash       -> "commit hash"
       GitCommitDate -> "commit date"
 
-    failWith :: String -> IO a
-    failWith msg = do
-      System.IO.hPutStrLn System.IO.stderr msg
-      System.Exit.exitFailure
+    lookupEnvVarQ :: String -> TH.Q (Maybe String)
+    lookupEnvVarQ = TH.runIO . System.Environment.lookupEnv
+
+
+
+    -- failWith :: String -> a
+    -- failWith msg = do
+    --   System.IO.hPutStrLn System.IO.stderr msg
+    --   System.Exit.exitFailure
+
+    -- unsafeReadEnvVar :: String -> String
+    -- unsafeReadEnvVar
+    --   = System.Unsafe.IO.unsafeInterleaveIO
+    --   . System.Environment.getEnv
+
+
+
+-- getEnvQ :: String -> TH.ExpQ
+-- getEnvQ varName = do
+--   varVal <- TH.runIO (System.Environment.lookupEnv varName)
+--   [|Just varVal|]
+
+

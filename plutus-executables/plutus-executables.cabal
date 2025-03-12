@@ -67,6 +67,7 @@ library lib
   hs-source-dirs:  src
   exposed-modules:
     AgdaUnparse
+    Paths_plutus_executables
     VersionInfo
 
   build-depends:
