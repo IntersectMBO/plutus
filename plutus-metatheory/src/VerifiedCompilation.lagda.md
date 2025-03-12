@@ -60,6 +60,8 @@ import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
+
 ```
 
 ## Compiler optimisation traces
@@ -68,7 +70,7 @@ A `Trace` represents a sequence of optimisation transformations applied to a pro
 and a tag (`SimplifierTag`), where each pair represents the before and after of a transformation application and the
 tag indicates which transformation was applied.
 The `Transformation` type is a sum type that represents the possible transformations which are implemented in their
-respective modules. 
+respective modules.
 
 The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
 list of ASTs are in relation with one another according to the transformations implemented in the project.
@@ -102,37 +104,37 @@ data Transformation : SimplifierTag → Relation where
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
   cons
-    : {X : Set}{{_ : DecEq X}} 
+    : {X : Set}{{_ : DecEq X}}
     {tag : SimplifierTag} {x x' : X ⊢}
     {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE (Transformation tag)
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
-... | no ¬p = no λ { (isFlD x) → ¬p x }
-... | yes p = yes (isFlD p)
+... | ce b a = ce b a
+... | proof p = proof (isFlD p)
 isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
-... | no ¬p = no λ { (isFD x) → ¬p x }
-... | yes p = yes (isFD p)
+... | ce b a = ce b a
+... | proof p = proof (isFD p)
 isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
-... | no ¬p = no λ { (isCoC x) → ¬p x }
-... | yes p = yes (isCoC p)
-isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
-isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
+... | ce b a = ce b a
+... | proof p = proof (isCoC p)
+isTransformation? tag ast ast' | caseReduceT = proof caseReduceNotImplemented
+isTransformation? tag ast ast' | inlineT = proof inlineNotImplemented
 isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
-... | no ¬p = no λ { (isCSE x) → ¬p x }
-... | yes p = yes (isCSE p)
+... | ce b a = ce b a
+... | proof p = proof (isCSE p)
 
 isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
 isTrace? [] = yes empty
-isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
+isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
-... | yes pₜ with isTransformation? tag x₁ x₂
-...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-...                 | yes pₑ = yes (cons pₑ pₜ)
+... | yes pₜ with isTransformation? {X} tag x₁ x₂
+...                 | ce b a = no {!!}
+...                 | proof pₑ = yes (cons pₑ pₜ)
 
 
 ```
@@ -199,9 +201,9 @@ passed? nothing = false
 
 runCertifierMain : List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifierMain asts with runCertifier asts
-... | just (proof (yes a)) = 
+... | just (proof (yes a)) =
   putStrLn "The compilation was successfully certified."
-... | just (proof (no ¬a)) = 
+... | just (proof (no ¬a)) =
   putStrLn "The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate."
 ... | nothing =
   putStrLn "The certifier was unable to check the compilation. Please open a bug report at https://www.github.com/IntersectMBO/plutus."
