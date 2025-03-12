@@ -51,7 +51,7 @@ instance
     -- Always rendering the tag on the same line for more compact output, it's just a tiny integer
     -- anyway.
     Constr _ i es -> iterAppDocM $ \_ prettyArg ->
-      ("constr" <+> prettyArg i) :| [prettyArg es]
+      ("constr" <+> prettyArg i) :| [prettyArg (toList es)]
     Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
 
 instance

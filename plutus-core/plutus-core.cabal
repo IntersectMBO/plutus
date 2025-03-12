@@ -332,6 +332,7 @@ library
     , semigroups                  >=0.19.1
     , serialise
     , some
+    , strict-base
     , template-haskell
     , text
     , th-compat

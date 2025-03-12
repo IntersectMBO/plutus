@@ -60,6 +60,7 @@ import Control.Monad.Primitive
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
+import Data.Strict.List (List (..))
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word (Word64)
@@ -99,7 +100,7 @@ data Context uni fun ann
     | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 !(List (NTerm uni fun ann)) !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     | NoFrame
 
@@ -158,8 +159,8 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     pure $ case es of
-        (t : rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
-        []         -> Returning ctx $ VConstr i EmptyStack
+        (t :! rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
+        Nil         -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -196,8 +197,8 @@ returnCek (FrameAwaitFunValue ann arg ctx) fun =
 returnCek (FrameConstr ann env i todo done ctx) e = do
     let done' = ConsStack e done
     case todo of
-        (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        []             -> returnCek ctx $ VConstr i done'
+        (next :! todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
+        Nil             -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     -- If the index is larger than the max bound of an Int, or negative, then it's a bad index

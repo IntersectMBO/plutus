@@ -410,7 +410,7 @@ costIsAcceptable = \case
   Apply{} -> False
   -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
   -- the work for the elements at each use site.
-  Constr _ _ es -> case es of
+  Constr _ _ es -> case toList es of
     []  -> True
     [e] -> costIsAcceptable e
     _   -> False
@@ -434,7 +434,7 @@ sizeIsAcceptable inlineConstants = \case
   -- See Note [Differences from PIR inliner] 4
   LamAbs{} -> False
   -- Inlining constructors of size 1 or 0 seems okay
-  Constr _ _ es -> case es of
+  Constr _ _ es -> case toList es of
     []  -> True
     [e] -> sizeIsAcceptable inlineConstants e
     _   -> False

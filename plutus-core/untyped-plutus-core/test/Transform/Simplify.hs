@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -449,7 +450,7 @@ cseExpensive = plus arg arg'
   where
     plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
     con = mkConstant @Integer ()
-    mkArg = foldl1 plus . fmap (\i -> plus (con (2 * i)) (con (2 * i + 1)))
+    mkArg = foldl1 plus . map (\i -> plus (con (2 * i)) (con (2 * i + 1)))
     arg = mkArg [0 .. 200]
     arg' = mkArg [0 .. 200]
 

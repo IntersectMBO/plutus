@@ -29,6 +29,7 @@ import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Vector qualified as V
+import GHC.IsList qualified as GHC
 
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
@@ -60,7 +61,7 @@ compareTerm (Force _ t ) (Force _ t')         = compareTerm t t'
 compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
-compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
+compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact (GHC.toList es) (GHC.toList es'))
 compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact (V.toList cs) (V.toList cs'))
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False

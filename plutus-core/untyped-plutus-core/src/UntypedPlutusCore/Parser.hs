@@ -29,6 +29,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
 import Data.Vector qualified as V
+import GHC.IsList qualified as GHC
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
@@ -75,7 +76,9 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> many term
+      res <- UPLC.Constr sp
+          <$> (symbol "constr" *> lexeme Lex.decimal)
+          <*> (GHC.fromList <$> many term)
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
       pure res
 
