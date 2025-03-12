@@ -46,7 +46,7 @@ let
 
           plutus-executables.components.exes.pir.preBuild = ''
             export GIT_HASH=${inputs.self.sourceInfo.rev}
-            export GIT_COMMIT_DATE=${builtins.formatTime "%Y-%m-%dT%H:%M:%SZ" inputs.self.sourceInfo.lastModified}
+            export GIT_COMMIT_DATE=${lib.formatTime "%Y-%m-%dT%H:%M:%SZ" inputs.self.sourceInfo.lastModified}
           '';
 
           plutus-executables.components.exes.uplc.build-tools =
