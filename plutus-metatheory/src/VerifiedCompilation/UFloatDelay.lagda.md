@@ -31,6 +31,7 @@ open import Builtin using (Builtin)
 open import RawU using (TmCon)
 open import VerifiedCompilation.Purity using (UPure; isUPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
 
 variable
   X : Set
@@ -141,17 +142,22 @@ FloatDelay = Translation FlD
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FloatDelay {X})
+isFloatDelay? : {X : Set} {{de : DecEq X}} → MatchOrCE (FloatDelay {X})
 
 {-# TERMINATING #-}
-isFlD? : {X : Set} {{de : DecEq X}} → Binary.Decidable (FlD {X})
+isFlD? : {X : Set} {{de : DecEq X}} → MatchOrCE (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
-... | no ¬match = no λ { (floatdelay x x₁ x₂) → ¬match ((isapp (islambda (isterm _)) (isdelay (isterm _)))) }
+... | no ¬match = ce ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = no λ { (floatdelay x x₁ x₂) → ¬match ((isapp (islambda (isterm _)) (isterm _))) }
-... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁') ×-dec (isFloatDelay? t₂ t₂') ×-dec (isUPure? t₂')
-... | no ¬p = no λ { (floatdelay x₁ x₂ x₃) → ¬p ((x₁ , x₂ , x₃))}
-... | yes (p₁ , p₂ , pure) = yes (floatdelay p₁ p₂ pure)
+... | no ¬match = ce ast ast'
+... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁')
+...   | ce b a = ce b a
+...   | proof t₁=t₁' with (isFloatDelay? t₂ t₂')
+...     | ce b a = ce b a
+...     | proof t₂=t₂' with (isUPure? t₂')
+...     | no _ = ce ast ast'
+...     | yes puret₂' = proof (floatdelay t₁=t₁' t₂=t₂' puret₂')
+
 isFloatDelay? = translation? isFlD?
 
 ```
