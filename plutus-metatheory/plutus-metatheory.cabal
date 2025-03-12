@@ -47,17 +47,12 @@ common lang
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
-common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
-    buildable: False
-
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
 library
-  import:          lang, os-support, ghc-version-support
+  import:          lang, os-support
   hs-source-dirs:  src
   build-depends:
     , aeson
@@ -643,7 +638,7 @@ library
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
 
 executable plc-agda
-  import:         lang, os-support, ghc-version-support
+  import:         lang, os-support
   hs-source-dirs: exe
   main-is:        Main.hs
   build-depends:
@@ -651,7 +646,7 @@ executable plc-agda
     , plutus-metatheory
 
 test-suite test-NEAT
-  import:         lang, os-support, ghc-version-support
+  import:         lang, os-support
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs

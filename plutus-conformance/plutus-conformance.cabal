@@ -44,10 +44,6 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-common ghc-version-support
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
-    buildable: False
-
 library
   import:          lang, os-support
   hs-source-dirs:  src
@@ -95,7 +91,7 @@ test-suite haskell-steppable-conformance
     , plutus-core         ^>=1.42
 
 test-suite agda-conformance
-  import:         lang, os-support, ghc-version-support
+  import:         lang, os-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
