@@ -90,8 +90,8 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
-  -- isUInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UInline.UInline ast ast' → Transformation inlineT ast ast'
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
+  -- isUInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UInline.UInline ast ast' → Transformation inlineT ast ast'
   -- caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation caseReduceT ast ast'
   isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation caseReduceT ast ast'
 
