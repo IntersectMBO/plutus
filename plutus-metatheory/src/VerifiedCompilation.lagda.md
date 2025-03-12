@@ -45,6 +45,7 @@ import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
+import VerifiedCompilation.UInline as UInline
 open import Data.Empty using (⊥)
 open import VerifiedCompilation.Equality using (DecEq)
 open import VerifiedCompilation.UntypedTranslation using (Relation)
@@ -88,7 +89,7 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
-  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
+  isUInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UInline.UInline ast ast' → Transformation inlineT ast ast'
   caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation caseReduceT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
@@ -113,7 +114,9 @@ isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | no ¬p = no λ { (isCoC x) → ¬p x }
 ... | yes p = yes (isCoC p)
 isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
-isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
+isTransformation? tag ast ast' | inlineT with UInline.isInline? ast ast'
+... | no ¬p = no λ { (isUInline x) → ¬p x }
+... | yes p = yes (isUInline p)
 isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
 ... | no ¬p = no λ { (isCSE x) → ¬p x }
 ... | yes p = yes (isCSE p)

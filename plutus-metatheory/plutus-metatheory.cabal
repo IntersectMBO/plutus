@@ -358,6 +358,7 @@ library
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
     MAlonzo.Code.VerifiedCompilation.UForceDelay
+    MAlonzo.Code.VerifiedCompilation.UInline
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
     MAlonzo.Code.VerifiedCompilation.UntypedViews
     MAlonzo.RTE
@@ -370,6 +371,7 @@ library
     MAlonzo.Code.Agda.Builtin.Float
     MAlonzo.Code.Agda.Builtin.Int
     MAlonzo.Code.Agda.Builtin.IO
+    MAlonzo.Code.VerifiedCompilation.UInline
     MAlonzo.Code.Agda.Builtin.List
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Agda.Builtin.Nat
