@@ -25,7 +25,7 @@ open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE)
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; MatchOrCE)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
 
 ```
@@ -105,12 +105,12 @@ matchIx error = refl
 
 translation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
-  → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
+  → ({ X : Set } {{ _ : DecEq X}} → MatchOrCE (R {X}))
   → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
   : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
-  → ({ X : Set } {{ _ : DecEq X}} → Binary.Decidable (R {X}))
+  → ({ X : Set } {{ _ : DecEq X}} → MatchOrCE (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? isR? [] [] = proof Pointwise.[]
 decPointwiseTranslation? {X' = X'} isR? [] (x ∷ ys) = ce {X = List X'} [] (x ∷ ys)
@@ -125,13 +125,13 @@ translation? {_} ⦃ de ⦄ isR? ast ast' with (untypedIx ast) Data.Nat.≟ (unt
 translation? {X} ⦃ de ⦄ isR? (` x) (` x₁) | yes _ with x ≟ x₁
 ... | yes refl = proof (match var)
 ... | no x≠x₁ with isR? {X} (` x) (` x₁)
-...                  | yes p = proof (istranslation p)
-...                  | no ¬p = ce (` x) (` x₁)
+...   | proof p = proof (istranslation p)
+...   | ce b a = ce b a
 translation? {_} ⦃ de ⦄ isR? (ƛ ast) (ƛ ast') | yes _ with translation? isR? ast ast'
 ...                  | proof t = proof (match (ƛ t))
 ...                  | ce b a with isR? (ƛ ast) (ƛ ast')
-...                               | yes p = proof (istranslation p)
-...                               | no ¬p = ce (ƛ ast) (ƛ ast')
+...                               | proof p = proof (istranslation p)
+...                               | ce b a = ce b a
 translation? {_} ⦃ de ⦄ isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? isR? ast ast')
 ...                  | ce b a = ce b a
 ...                  | proof t with (translation? isR? ast₁ ast₁')
@@ -140,18 +140,18 @@ translation? {_} ⦃ de ⦄ isR? (ast · ast₁) (ast' · ast₁') | yes _ with 
 translation? {_} ⦃ de ⦄ isR? (force ast) (force ast') | yes _ with translation? isR? ast ast'
 ...                  | proof t = proof (match (force t))
 ...                  | ce b a with isR? (force ast) (force ast')
-...                               | yes p = proof (istranslation p)
-...                               | no ¬p = ce b a
+...                               | proof p = proof (istranslation p)
+...                               |  ce b a = ce b a
 translation? {_} ⦃ de ⦄ isR? (delay ast) (delay ast') | yes _ with translation? isR? ast ast'
 ...                  | proof t = proof (match (delay t))
 ...                  | ce b a with isR? (delay ast) (delay ast')
-...                               | yes p = proof (istranslation p)
-...                               | no ¬p = ce b a
+...                               | proof p = proof (istranslation p)
+...                               | ce b a = ce b a
 translation? {X} ⦃ de ⦄ isR? (con x) (con x₁) | yes _ with x ≟ x₁
 ...                  | yes refl = proof (match con)
 ...                  | no x≠x₁ with isR? {X} (con x) (con x₁)
-...                                   | yes p = proof (istranslation p)
-...                                   | no ¬p = ce {X = X ⊢} {X' = X ⊢} (con x) (con x₁)
+...                                   | proof p = proof (istranslation p)
+...                                   | ce b a = ce b a
 translation? {_} ⦃ de ⦄ isR? (constr i xs) (constr i₁ xs₁) | yes _ with (decToPCE (i ≟ i₁) {constr i xs} {constr i₁ xs₁})
 ...                  | ce b a = ce b a
 ...                  | proof refl with (decPointwiseTranslation? isR? xs xs₁)
@@ -165,12 +165,12 @@ translation? {_} ⦃ de ⦄ isR? (case ast ts) (case ast' ts₁) | yes _ with (t
 translation? {X} ⦃ de ⦄ isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
 ... | yes refl = proof (match builtin)
 ... | no b≠b₁ with isR? {X} (builtin b) (builtin b₁)
-...                  | yes p = proof (istranslation p)
-...                  | no ¬p = ce {X = X ⊢} {X' = X ⊢} (builtin b) (builtin b₁)
+...                  | proof p = proof (istranslation p)
+...                  | ce b a = ce b a
 translation? {_} ⦃ de ⦄ isR? error error | yes _ = proof (match error)
 translation? {_} ⦃ de ⦄ isR? ast ast' | no ast≠ast' with isR? ast ast'
-...                  | yes p = proof (istranslation p)
-...                  | no ¬p = ce ast ast'
+... | proof p = proof (istranslation p)
+... | ce b a = ce b a
 
 ```
 # Relations between Translations
