@@ -112,6 +112,7 @@ library
     PlutusTx.Trace
     PlutusTx.Traversable
     PlutusTx.Utils
+    PlutusTx.Utils.TH
 
   other-modules:
     PlutusTx.IsData.Instances

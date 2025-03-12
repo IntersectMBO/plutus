@@ -1,0 +1,9 @@
+\(d : data) ->
+  let
+    !tail : list data = tailList {data} (unListData d)
+    !s : integer = unIData (headList {data} tail)
+    !tail : list data = tailList {data} (tailList {data} (tailList {data} tail))
+    !s : integer = unIData (headList {data} tail)
+    !s : integer = unIData (headList {data} (tailList {data} tail))
+  in
+  addInteger (addInteger s s) s

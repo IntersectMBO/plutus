@@ -1,0 +1,13 @@
+(program
+   1.1.0
+   (\d ->
+      (\tail ->
+         (\s ->
+            (\tail ->
+               (\s ->
+                  (\s -> addInteger (addInteger s s) s)
+                    (unIData (force headList (force tailList tail))))
+                 (unIData (force headList tail)))
+              (force tailList (force tailList (force tailList tail))))
+           (unIData (force headList tail)))
+        (force tailList (unListData d))))
