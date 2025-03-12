@@ -13,7 +13,7 @@ module VerifiedCompilation.UForceDelay where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
+open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary using (_×-dec_)
 open import Data.Product using (_,_)
 import Relation.Binary as Binary using (Decidable)
@@ -61,21 +61,20 @@ data pureFD {X : Set} {{de : DecEq X}} : X ⊢ → X ⊢ → Set₁ where
   appfd⁻¹ : {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
 
 _ : pureFD {Maybe ⊥} (force (delay (` nothing))) (` nothing)
-_ = forcedelay (translationfd (Translation.match TransMatch.var))
+_ = forcedelay (translationfd Translation.var)
 
 forceappdelay : pureFD {Maybe ⊥} (force ((ƛ (delay (` nothing))) · (` nothing))) ((ƛ (` nothing)) · (` nothing))
-forceappdelay = (pushfd (translationfd (Translation.match
-                                         (TransMatch.delay (Translation.match TransMatch.var)))) (translationfd reflexive)) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation
-                                                                                                                                                          (forcedelay (translationfd (Translation.match TransMatch.var)))))) (Translation.match TransMatch.var))))
+forceappdelay = (pushfd (translationfd (Translation.delay Translation.var)) (translationfd reflexive)) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.istranslation
+                                                                                                                                                          (forcedelay (translationfd Translation.var)))) Translation.var))
 
 _ : pureFD {Maybe ⊥} (force (force (delay (delay error)))) error
-_ = translationfd (Translation.match (TransMatch.force (Translation.istranslation (forcedelay (translationfd reflexive))))) ⨾ forcedelay (translationfd (Translation.match TransMatch.error))
+_ = translationfd (Translation.force (Translation.istranslation (forcedelay (translationfd reflexive)))) ⨾ forcedelay (translationfd Translation.error)
 
 _ : pureFD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
-_ = (translationfd (Translation.match (TransMatch.force (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))))) ⨾ ((translationfd (Translation.match (TransMatch.force (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))))) ⨾ ( pushfd (translationfd reflexive) (translationfd reflexive) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((translationfd (Translation.match (TransMatch.force (Translation.istranslation (forcedelay (translationfd (Translation.match (TransMatch.delay (Translation.match TransMatch.var))))))))) ⨾ (forcedelay (translationfd (Translation.match TransMatch.var))))))) reflexive)))) reflexive))))))
+_ = (translationfd (Translation.force (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) ⨾ ((translationfd (Translation.force (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive))) ⨾ ( pushfd (translationfd reflexive) (translationfd reflexive) ⨾ ((translationfd (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive)) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.app (Translation.ƛ (Translation.istranslation ((translationfd (Translation.force (Translation.istranslation (forcedelay (translationfd (Translation.delay Translation.var)))))) ⨾ (forcedelay (translationfd Translation.var))))) reflexive)) reflexive)))))
 
 test4 : {X : Set} {{_ : DecEq X}} {N : Maybe (Maybe X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
-test4 = (translationfd (Translation.match (TransMatch.force (Translation.istranslation appfd)))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive ))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd reflexive))))) reflexive)))) reflexive)) ⨾ appfd⁻¹)))
+test4 = (translationfd (Translation.force (Translation.istranslation appfd))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.app (Translation.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))) reflexive )) ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.app (Translation.ƛ (Translation.istranslation (forcedelay (translationfd reflexive)))) reflexive)) reflexive) ⨾ appfd⁻¹)))
 
 data FD {X : Set} {{_ : DecEq X}} : ℕ → ℕ → X ⊢ → X ⊢ → Set₁ where
   forcefd : (n nₐ : ℕ) → {x x' : X ⊢}
@@ -94,26 +93,26 @@ data FD {X : Set} {{_ : DecEq X}} : ℕ → ℕ → X ⊢ → X ⊢ → Set₁ w
                   →  FD n (suc nₐ) (force (ƛ x)) (ƛ x')
 
 _ : FD {⊥} zero zero (force (ƛ (delay error) · error)) (ƛ error · error)
-_ = multiappliedfd zero zero (Translation.match TransMatch.error)
+_ = multiappliedfd zero zero Translation.error
      (multiabstractfd zero zero
-      (forcefd zero zero (lastdelay zero zero (Translation.match TransMatch.error))))
+      (forcefd zero zero (lastdelay zero zero Translation.error)))
 
 _ : FD {⊥} zero zero (force (delay error)) error
-_ = forcefd zero zero (lastdelay zero zero (Translation.match TransMatch.error))
+_ = forcefd zero zero (lastdelay zero zero Translation.error)
 
 _ : FD {⊥} zero zero (force (force (delay (delay error)))) error
 _ = forcefd zero zero
      (forcefd 1 zero
-      (delayfd 1 zero (lastdelay zero zero (Translation.match TransMatch.error))))
+      (delayfd 1 zero (lastdelay zero zero Translation.error)))
 
 _ : FD {Maybe ⊥} zero zero (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
 _ = forcefd zero zero
-     (multiappliedfd 1 zero (Translation.match TransMatch.var)
+     (multiappliedfd 1 zero Translation.var
       (multiabstractfd 1 zero
-       (multiappliedfd 1 zero (Translation.match TransMatch.var)
+       (multiappliedfd 1 zero Translation.var
         (multiabstractfd 1 zero
          (forcefd 1 zero
-          (delayfd 1 zero (lastdelay zero zero (Translation.match TransMatch.var))))))))
+          (delayfd 1 zero (lastdelay zero zero Translation.var)))))))
 
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD zero zero)
@@ -127,19 +126,19 @@ t' = ((ƛ (ƛ error)) · error) · error
 test-ffdd : FD {⊥} zero zero (force (force (delay (delay error)))) (error)
 test-ffdd = forcefd zero zero
      (forcefd 1 zero
-      (delayfd 1 zero (lastdelay zero zero (Translation.match TransMatch.error))))
+      (delayfd 1 zero (lastdelay zero zero Translation.error)))
 
 _ : pureFD t t'
-_ = (translationfd (Translation.match (TransMatch.force (Translation.istranslation appfd))))
+_ = (translationfd (Translation.force (Translation.istranslation appfd)))
                        ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive))
-                       ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((pushfd ((translationfd reflexive)) (translationfd reflexive))
-                                                         ⨾ translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd (Translation.match TransMatch.error)))))) (Translation.match TransMatch.error))))))) (Translation.match TransMatch.error)))
+                       ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.istranslation ((pushfd ((translationfd reflexive)) (translationfd reflexive))
+                                                         ⨾ translationfd (Translation.app (Translation.ƛ (Translation.istranslation (forcedelay (translationfd Translation.error)))) Translation.error)))) Translation.error)
                                         ⨾ appfd⁻¹))
 
 _ : pureFD {⊥} (force (ƛ (ƛ (delay error) · error) · error)) (ƛ (ƛ error · error) · error)
 _ = (pushfd (translationfd reflexive) (translationfd reflexive))
-      ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((pushfd (translationfd reflexive) (translationfd reflexive))
-                       ⨾ translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd (Translation.match TransMatch.error)))))) (Translation.match TransMatch.error))))))) (Translation.match TransMatch.error))))
+      ⨾ (translationfd (Translation.app (Translation.ƛ (Translation.istranslation ((pushfd (translationfd reflexive) (translationfd reflexive))
+                       ⨾ translationfd (Translation.app (Translation.ƛ (Translation.istranslation (forcedelay (translationfd Translation.error)))) Translation.error)))) Translation.error))
 
 ```
 
