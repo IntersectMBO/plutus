@@ -45,12 +45,8 @@ let
 
 
           plutus-executables.components.exes.pir.preBuild = ''
-            echo "777777777777777777777777777777777777777777777777777777777777777"
-            echo "777777777777777777777777777777777777777777777777777777777777777"
-            echo "777777777777777777777777777777777777777777777777777777777777777"
-            export GIT_BRANCH=${inputs.self.gitrev} 
-            export GIT_HASH=hash
-            export GIT_COMMIT_DATE=date
+            export GIT_HASH=${inputs.self.sourceInfo.rev}
+            export GIT_COMMIT_DATE=${builtins.formatTime "%Y-%m-%dT%H:%M:%SZ" inputs.self.sourceInfo.lastModified}
           '';
 
           plutus-executables.components.exes.uplc.build-tools =
