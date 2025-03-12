@@ -65,12 +65,17 @@ common os-support
 library lib
   import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
-  exposed-modules: AgdaUnparse
+  exposed-modules:
+    AgdaUnparse
+    VersionInfo
+
   build-depends:
     , base               >=4.9   && <5
     , bytestring
+    , gitrev
     , plutus-core        ^>=1.42
     , plutus-metatheory
+    , template-haskell
     , text
 
 executable pir
@@ -88,6 +93,7 @@ executable pir
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
+    , plutus-executables:lib
     , text
     , transformers
 
@@ -102,6 +108,7 @@ executable plc
     , optparse-applicative
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
+    , plutus-executables:lib
 
 executable uplc
   import:         lang, os-support, ghc-version-support
