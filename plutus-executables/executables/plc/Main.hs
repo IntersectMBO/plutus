@@ -5,6 +5,8 @@
 
 module Main (main) where
 
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables (version)
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Data
@@ -17,7 +19,6 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
-import VersionInfo qualified as VersionInfo
 
 import Data.ByteString.Lazy qualified as BSL (readFile)
 import Flat (unflat)
@@ -235,7 +236,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 ---------------- Version ----------------
 
 printVersion :: IO ()
-printVersion = putStrLn $(VersionInfo.makeVersionInfo "plc")
+printVersion = putStrLn $(gitAwareVersionInfo "pir" version)
 
 ---------------- Driver ----------------
 

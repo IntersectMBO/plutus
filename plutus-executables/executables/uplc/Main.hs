@@ -50,7 +50,8 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 import AgdaUnparse (agdaUnparse)
-import VersionInfo qualified as VersionInfo
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables (version)
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
@@ -520,7 +521,7 @@ runUplcPrintExample = runPrintExample getUplcExamples
 ----------------- Version -----------------------
 
 printVersion :: IO ()
-printVersion = putStrLn $(VersionInfo.makeVersionInfo "uplc")
+printVersion = putStrLn $(gitAwareVersionInfo "pir" version)
 
 ---------------- Driver ----------------
 
