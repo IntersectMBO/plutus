@@ -12,7 +12,7 @@ Usage:
 @
 module MyPrograms where
 
-import GitRevExtra (gitHash, gitCommitDate)
+import GitRev.Extras (gitHash, gitCommitDate)
 
 main :: IO ()
 main = do
@@ -46,7 +46,7 @@ haskellNix.cabalProject' {
 @
 -}
 
-module GitRevExtra
+module GitRev.Extras
   ( gitBranch
   , gitHash
   , gitCommitDate

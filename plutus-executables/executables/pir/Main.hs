@@ -8,6 +8,8 @@
 
 module Main where
 
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables (version)
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -23,7 +25,6 @@ import PlutusIR.Core.Plated
 import PlutusPrelude
 import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore qualified as UPLC
-import VersionInfo qualified as VersionInfo
 
 import Control.Lens (coerced, (^..))
 import Control.Monad (when)
@@ -289,7 +290,7 @@ runPrint (PrintOptions inp outp mode) = do
 
 
 printVersion :: IO ()
-printVersion = putStrLn $(VersionInfo.makeVersionInfo "pir")
+printVersion = putStrLn $(gitAwareVersionInfo "pir" version)
 
 ---------------- Main ----------------
 

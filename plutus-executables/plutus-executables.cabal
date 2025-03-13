@@ -73,22 +73,10 @@ library lib
     , plutus-metatheory
     , text
 
-library versioning
-  import:          lang
-  hs-source-dirs:  versioning
-  exposed-modules:
-    GitRevExtra
-    VersionInfo
-
-  other-modules:   Paths_plutus_executables
-  build-depends:
-    , base              >=4.9 && <5
-    , gitrev
-    , template-haskell
-
 executable pir
   import:         lang
   main-is:        pir/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
@@ -101,13 +89,13 @@ executable pir
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
-    , plutus-executables:versioning
     , text
     , transformers
 
 executable plc
   import:         lang
   main-is:        plc/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
@@ -116,11 +104,11 @@ executable plc
     , optparse-applicative
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
-    , plutus-executables:versioning
 
 executable uplc
   import:         lang, os-support, ghc-version-support
   main-is:        uplc/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
@@ -134,7 +122,6 @@ executable uplc
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
-    , plutus-executables:versioning
     , plutus-metatheory
     , prettyprinter
     , serialise
