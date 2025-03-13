@@ -9,14 +9,14 @@ module PlutusBenchmark.V3.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,
-                                TxOut, always, pattern NoOutputDatum, pattern ScriptContext,
-                                pattern SpendingScript, pattern TxInfo, pattern TxOut,
-                                pattern TxOutRef, txInfoCurrentTreasuryAmount, txInfoData,
-                                txInfoFee, txInfoId, txInfoInputs, txInfoMint, txInfoOutputs,
-                                txInfoProposalProcedures, txInfoRedeemers, txInfoReferenceInputs,
-                                txInfoSignatories, txInfoTreasuryDonation, txInfoTxCerts,
-                                txInfoValidRange, txInfoVotes, txInfoWdrl, txOutAddress, txOutDatum,
-                                txOutReferenceScript, txOutValue)
+                                TxOut, always, emptyMintValue, pattern NoOutputDatum,
+                                pattern ScriptContext, pattern SpendingScript, pattern TxInfo,
+                                pattern TxOut, pattern TxOutRef, txInfoCurrentTreasuryAmount,
+                                txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint,
+                                txInfoOutputs, txInfoProposalProcedures, txInfoRedeemers,
+                                txInfoReferenceInputs, txInfoSignatories, txInfoTreasuryDonation,
+                                txInfoTxCerts, txInfoValidRange, txInfoVotes, txInfoWdrl,
+                                txOutAddress, txOutDatum, txOutReferenceScript, txOutValue)
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
@@ -43,7 +43,7 @@ mkTxInfo i =
     , txInfoReferenceInputs = mempty
     , txInfoOutputs = Data.List.map mkTxOut (Data.List.fromSOP ([1 .. i] :: [Integer]))
     , txInfoFee = 10000
-    , txInfoMint = mempty
+    , txInfoMint = emptyMintValue
     , txInfoTxCerts = mempty
     , txInfoWdrl = Map.empty
     , txInfoValidRange = always

@@ -149,6 +149,13 @@ module PlutusLedgerApi.Data.V3 (
   V2.adaToken,
   V2.Lovelace (..),
 
+  -- *** Mint Value
+  MintValue.MintValue,
+  MintValue.emptyMintValue,
+  MintValue.mintValueToMap,
+  MintValue.mintValueMinted,
+  MintValue.mintValueBurned,
+
   -- *** Time
   V2.POSIXTime (..),
   V2.POSIXTimeRange,
@@ -227,7 +234,7 @@ module PlutusLedgerApi.Data.V3 (
 
   -- *** Association maps
   V2.Map,
-  V2.unsafeFromList,
+  V2.unsafeFromSOPList,
 
   -- *** Newtypes and hash types
   V2.ScriptHash (..),
@@ -257,6 +264,7 @@ module PlutusLedgerApi.Data.V3 (
 import PlutusLedgerApi.Common qualified as Common
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.V3.Data.Contexts qualified as Contexts
+import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
 import PlutusLedgerApi.V3.Data.Tx qualified as Tx
 import PlutusLedgerApi.V3.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V3.ParamName qualified as ParamName

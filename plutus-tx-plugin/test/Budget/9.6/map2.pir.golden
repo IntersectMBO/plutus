@@ -70,7 +70,7 @@ letrec
                (goList ds))
 in
 let
-  !unsafeFromList :
+  !unsafeFromSOPList :
      all k a.
        (\a -> a -> data) k ->
        (\a -> a -> data) a ->
@@ -110,7 +110,7 @@ in
 \(n : integer) ->
   let
     !nt : list (pair data data)
-      = unsafeFromList
+      = unsafeFromSOPList
           {integer}
           {integer}
           (\(i : integer) -> iData i)
@@ -180,7 +180,7 @@ in
   in
   let
     !nt : list (pair data data)
-      = unsafeFromList
+      = unsafeFromSOPList
           {integer}
           {integer}
           (\(i : integer) -> iData i)

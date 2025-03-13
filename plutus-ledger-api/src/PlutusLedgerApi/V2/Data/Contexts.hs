@@ -226,7 +226,7 @@ findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
 hashes
 -}
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
-findDatumHash ds TxInfo{txInfoData} = fst <$> find f (toList txInfoData)
+findDatumHash ds TxInfo{txInfoData} = fst <$> find f (toSOPList txInfoData)
  where
   f (_, ds') = ds' == ds
 {-# INLINEABLE findDatumHash #-}

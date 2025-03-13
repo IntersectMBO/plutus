@@ -90,6 +90,7 @@ import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
+import PlutusTx.Data.List (List)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
@@ -397,7 +398,7 @@ currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
 {-# INLINEABLE currencySymbolValueOf #-}
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
-symbols :: Value -> BuiltinList BuiltinData
+symbols :: Value -> List CurrencySymbol
 symbols (Value mp) = Map.keys mp
 {-# INLINEABLE symbols #-}
 
@@ -460,10 +461,10 @@ Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 -}
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
-flattenValue v = goOuter [] (Map.toList $ getValue v)
+flattenValue v = goOuter [] (Map.toSOPList $ getValue v)
  where
   goOuter acc []             = acc
-  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
+  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toSOPList m)) tl
 
   goInner _ acc [] = acc
   goInner cs acc ((tn, a) : tl)
