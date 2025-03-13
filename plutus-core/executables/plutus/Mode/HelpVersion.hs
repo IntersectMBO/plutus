@@ -5,7 +5,7 @@ module Mode.HelpVersion
     , runVersion
     ) where
 
-import Data.Version.Extras (makeVersionInfo)
+import Data.Version.Extras (gitAwareVersionInfo)
 import GetOpt
 import Paths_plutus_core (version)
 
@@ -17,4 +17,4 @@ usageHeader :: String
 usageHeader = "USAGE: plutus [--compile|--run|--bench|--debug] FILES..."
 
 runVersion :: IO ()
-runVersion = putStrLn $(makeVersionInfo "plutus" version)
+runVersion = putStrLn $(gitAwareVersionInfo "plutus" version)
