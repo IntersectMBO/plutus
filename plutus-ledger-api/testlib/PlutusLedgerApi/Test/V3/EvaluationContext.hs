@@ -88,6 +88,8 @@ clearBuiltinCostModel r = r
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
                , paramDropList = mempty
+               , paramCaseList = mempty
+               , paramCaseData = mempty
                , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty
@@ -102,4 +104,7 @@ clearBuiltinCostModel' r = r
                  -- , paramByteStringToInteger = mempty -- Required for V2
                  paramExpModInteger = mempty
                , paramDropList = mempty
+               , paramLengthOfArray = mempty
+               , paramListToArray = mempty
+               , paramIndexArray = mempty
                }
