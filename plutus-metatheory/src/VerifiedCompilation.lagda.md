@@ -111,7 +111,7 @@ data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE (Transformation tag)
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce b a = ce b a
@@ -128,13 +128,13 @@ isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
 ... | ce b a = ce b a
 ... | proof p = proof (isCSE p)
 
-isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
-isTrace? [] = yes empty
+isTrace? : {X : Set} {{_ : DecEq X}} → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
+isTrace? [] = proof empty
 isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
-... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
-... | yes pₜ with isTransformation? {X} tag x₁ x₂
-...                 | ce b a = no {!!}
-...                 | proof pₑ = yes (cons pₑ pₜ)
+... | ce b a = ce b a
+... | proof pₜ with isTransformation? {X} tag x₁ x₂
+...                 | ce b a = ce b a
+...                 | proof pₑ = proof (cons pₑ pₜ)
 
 
 ```
@@ -180,30 +180,30 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
 ... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
-data Proof : Set₁ where
-  proof
+data Cert : Set₂ where
+  cert
     : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
-    → Dec (Trace {X} result)
-    → Proof
+    → ProofOrCE(Trace {X} result)
+    → Cert
 
-runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
+runCertifier : (t : List (SimplifierTag × Untyped × Untyped)) → Maybe Cert
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
-... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
+... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
 
 open import Data.Bool.Base using (Bool; false; true)
 open import Agda.Builtin.Equality using (_≡_; refl)
 
-passed? : Maybe Proof → Bool
-passed? (just (proof (no ¬a))) = false
-passed? (just (proof (yes a))) = true
+passed? : Maybe Cert → Bool
+passed? (just (cert (ce _ _))) = false
+passed? (just (cert (proof _))) = true
 passed? nothing = false
 
 runCertifierMain : List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifierMain asts with runCertifier asts
-... | just (proof (yes a)) =
+... | just (cert (proof a)) =
   putStrLn "The compilation was successfully certified."
-... | just (proof (no ¬a)) =
+... | just (cert (ce b a)) =
   putStrLn "The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate."
 ... | nothing =
   putStrLn "The certifier was unable to check the compilation. Please open a bug report at https://www.github.com/IntersectMBO/plutus."
