@@ -3,6 +3,7 @@ module Main (main) where
 
 import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
 
+import Benchmarks.Arrays qualified
 import Benchmarks.Bitwise qualified
 import Benchmarks.Bool qualified
 import Benchmarks.ByteStrings qualified
@@ -53,6 +54,7 @@ main = do
         <> Benchmarks.Data.makeBenchmarks        gen
         <> Benchmarks.Integers.makeBenchmarks    gen
         <> Benchmarks.Lists.makeBenchmarks       gen
+        <> Benchmarks.Arrays.makeBenchmarks      gen
         <> Benchmarks.Misc.makeBenchmarks        gen
         <> Benchmarks.Pairs.makeBenchmarks       gen
         <> Benchmarks.Strings.makeBenchmarks     gen
