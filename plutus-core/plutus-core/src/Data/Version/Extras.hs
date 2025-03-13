@@ -17,12 +17,10 @@ gitAwareVersionInfo version = [| version' <> gitHash <> gitCommitDate |]
   where
     version' = Data.Version.showVersion version
 
-    gitCommitDate =
-      case $(GitRev.gitCommitDate) of
-        ""   -> ""
-        date -> " - " <> date
+    gitCommitDate = do
+      let commitDate = $(GitRev.gitCommitDate)
+      if null commitDate then "" else " - " <> commitDate
 
-    gitHash =
-      case $(GitRev.gitHash) of
-        ""     -> ""
-        branch -> " - git rev " <> branch
+    gitHash = do
+      let hash = $(GitRev.gitHash)
+      if null hash then "" else " - git rev " <> hash
