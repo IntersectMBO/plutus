@@ -1,5 +1,7 @@
 { lib }:
-{
+
+rec {
+
   flattenDerivationTree = separator: set:
     let
       recurse = name: name':
@@ -26,4 +28,23 @@
       meta.description = "All jobs required to pass CI";
       constituents = lib.collect lib.isDerivation clean-jobs;
     };
+
+
+  exportGitHashAndGitCommitDateEnvVars = { self }:
+    ''
+      export GIT_HASH=${self.sourceInfo.rev or "unknown"}
+      export GIT_COMMIT_DATE=${date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModified}
+    '';
+
+
+  date_YYYYMMDDHHmmSS_ToIso8601 = date:
+    let
+      year = lib.substring 0 4 ts;
+      month = lib.substring 4 2 ts;
+      day = lib.substring 6 2 ts;
+      hour = lib.substring 8 2 ts;
+      minute = lib.substring 10 2 ts;
+      second = lib.substring 12 2 ts;
+    in
+    "${year}-${month}-${day}T${hour}:${minute}:${second}Z";
 }

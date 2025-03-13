@@ -6,7 +6,7 @@ let
     name = "plutus";
 
     # We need the mkDefault here since compiler-nix-name will be overridden
-    # in the flake variants.
+    # in flake.variants.
     compiler-nix-name = lib.mkDefault "ghc96";
 
     src = ../.;
@@ -30,23 +30,28 @@ let
     };
 
     modules = [
-      # Common
       {
         packages = {
-          # plutus-metatheory needs agda with the stdlib around for the custom setup
-          # I can't figure out a way to apply this as a blanket change for all the
-          # components in the package, oh well
+
           plutus-metatheory.components.library.build-tools =
             [ agda-with-stdlib ];
+
           plutus-metatheory.components.exes.plc-agda.build-tools =
             [ agda-with-stdlib ];
+
           plutus-metatheory.components.tests.test-NEAT.build-tools =
             [ agda-with-stdlib ];
 
-
           plutus-executables.components.exes.pir.preBuild = ''
-            export GIT_HASH=${inputs.self.sourceInfo.rev}
-            export GIT_COMMIT_DATE=${inputs.self.sourceInfo.lastModified}
+            ${lib.exportGitHashAndGitCommitDateEnvVars}
+          '';
+
+          plutus-executables.components.exes.uplc.preBuild = ''
+            ${lib.exportGitHashAndGitCommitDateEnvVars}
+          '';
+
+          plutus-executables.components.exes.plc.preBuild = ''
+            ${lib.exportGitHashAndGitCommitDateEnvVars}
           '';
 
           plutus-executables.components.exes.uplc.build-tools =
@@ -54,38 +59,27 @@ let
 
           plutus-executables.components.tests.test-simple.build-tools =
             [ agda-with-stdlib ];
+
           plutus-executables.components.tests.test-detailed.build-tools =
             [ agda-with-stdlib ];
 
-          plutus-core.components.benchmarks.update-cost-model = {
-            build-tools = [ r-with-packages ];
-          };
+          plutus-core.components.benchmarks.update-cost-model.build-tools =
+            [ r-with-packages ];
 
-          plutus-core.components.benchmarks.cost-model-test = {
-            build-tools = [ r-with-packages ];
-          };
+          plutus-core.components.benchmarks.cost-model-test.build-tools =
+            [ r-with-packages ];
 
-          plutus-cert.components.library.build-tools =
-            # Needs to build both itself and its bundled deps.
-            # This needs both coq and ocaml packages, and only
-            # works with particular versions. Fortunately
-            # they're in nixpkgs.
-            let
-              ocamlPkgs = pkgs.ocaml-ng.ocamlPackages_4_10;
-              coqPkgs = pkgs.coqPackages_8_13;
-            in
-            with ocamlPkgs;
-            with coqPkgs; [
-              pkgs.perl
-              ocaml
-              ocamlbuild
-              findlib
-              coq
-              mathcomp
-              coq-ext-lib
-              ssreflect
-              equations
-            ];
+          plutus-cert.components.library.build-tools = [
+            pkgs.perl
+            pkgs.ocaml-ng.ocamlPackages_4_10.ocaml
+            pkgs.ocaml-ng.ocamlPackages_4_10.ocamlbuild
+            pkgs.coqPackages_8_13.findlib
+            pkgs.coqPackages_8_13.coq
+            pkgs.coqPackages_8_13.mathcomp
+            pkgs.coqPackages_8_13.coq-ext-lib
+            pkgs.coqPackages_8_13.ssreflect
+            pkgs.coqPackages_8_13.equations
+          ];
 
           plutus-core.components.tests.plutus-core-test.postInstall = ''
             wrapProgram $out/bin/plutus-core-test --set PATH ${
