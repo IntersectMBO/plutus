@@ -10,6 +10,7 @@ import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.Plugin ()
@@ -140,3 +141,37 @@ mkScriptContextEqualityOverheadCode sc =
   in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
+forwardWithStakeTrick :: StakingCredential -> ScriptContext -> ()
+forwardWithStakeTrick obsScriptCred ctx =
+  if (Data.List.any (\wdrlPair -> snd wdrlPair == obsScriptCred)) stakeCertPairs
+  then ()
+  else (error "not found")
+  where
+    info = scriptContextTxInfo ctx
+    stakeCertPairs = Map.toDataList (txInfoWdrl info)
+
+forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> BuiltinData -> BI.BuiltinUnit
+forwardWithStakeTrickManual r_stake_cred r_redeemer r_ctx =
+  let !wdrl = getCtxWdrl r_ctx
+      wdrlAtZero = BI.fst $ BI.head wdrl
+      wdrlAtOne = BI.fst $ BI.head $ BI.tail wdrl
+   in PlutusTx.traceIfFalse "staking validator expected in withdrawal map"
+         ( PlutusTx.equalsData r_stake_cred wdrlAtZero
+         || PlutusTx.equalsData r_stake_cred wdrlAtOne )
+  where
+    getCtxWdrl :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
+    getCtxWdrl d_ctx =
+      BI.unsafeDataAsMap
+      $ BI.head
+      $ BI.tail
+      $ BI.tail
+      $ BI.tail
+      $ BI.tail
+      $ BI.tail
+      $ BI.tail
+      $ BI.snd
+      $ BI.unsafeDataAsConstr
+      $ BI.head
+      $ BI.snd
+      $ BI.unsafeDataAsConstr d_ctx

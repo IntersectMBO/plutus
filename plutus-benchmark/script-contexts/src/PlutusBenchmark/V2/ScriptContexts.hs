@@ -139,3 +139,13 @@ mkScriptContextEqualityOverheadCode sc =
   in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
+forwardWithStakeTrick :: StakingCredential -> ScriptContext -> ()
+forwardWithStakeTrick obsScriptCred ctx =
+  if (any (\wdrlPair -> fst wdrlPair == obsScriptCred)) stakeCertPairs
+  then ()
+  else (error "not found")
+  where
+    info = scriptContextTxInfo ctx
+    stakeCertPairs = Map.toList (txInfoWdrl info)
+
