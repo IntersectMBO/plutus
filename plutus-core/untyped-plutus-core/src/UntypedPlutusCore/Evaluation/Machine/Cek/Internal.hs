@@ -23,7 +23,8 @@
 {-# LANGUAGE UnboxedTuples            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
