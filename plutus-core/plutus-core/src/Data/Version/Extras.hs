@@ -13,7 +13,7 @@ import Language.Haskell.TH qualified as TH
 gitAwareVersionInfo
   :: Data.Version.Version -- | The version, usually coming from Paths_<pkg>.version
   -> TH.ExpQ -- | A string that includes, if available, the git hash and the git commit date
-gitAwareVersionInfo execName version = [| version' <> gitHash <> gitCommitDate |]
+gitAwareVersionInfo version = [| version' <> gitHash <> gitCommitDate |]
   where
     version' = Data.Version.showVersion version
 
