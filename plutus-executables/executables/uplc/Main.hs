@@ -1,4 +1,5 @@
  -- editorconfig-checker-disable
+{-# LANGUAGE TemplateHaskell #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -49,6 +50,7 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 import AgdaUnparse (agdaUnparse)
+import VersionInfo qualified as VersionInfo
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
@@ -105,6 +107,7 @@ data Command = Apply           ApplyOptions
              | Dbg             DbgOptions
              | DumpModel       (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
+             | Version
 
 ---------------- Option parsers ----------------
 
@@ -263,6 +266,9 @@ plutusOpts = hsubparser $
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
             (progDesc "Print the signatures of the built-in functions."))
+    <> command "version"
+           (info (pure Version)
+             (progDesc "Print version information."))
     where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
 
@@ -511,6 +517,11 @@ runUplcPrintExample ::
     ExampleOptions -> IO ()
 runUplcPrintExample = runPrintExample getUplcExamples
 
+----------------- Version -----------------------
+
+printVersion :: IO ()
+printVersion = putStrLn $(VersionInfo.makeVersionInfo "uplc")
+
 ---------------- Driver ----------------
 
 main :: IO ()
@@ -529,3 +540,4 @@ main = do
         Convert         opts   -> runConvert @UplcProg opts
         DumpModel       opts   -> runDumpModel         opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures
+        Version                -> printVersion

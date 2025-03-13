@@ -19,7 +19,6 @@ makeVersionInfo execName = do
       <> version
       <> " - git rev "
       <> $(GitRevExtra.gitHash)
-      <> " ("
+      <> " - "
       <> $(GitRevExtra.gitCommitDate)
-      <> ")"
     |]

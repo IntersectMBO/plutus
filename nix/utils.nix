@@ -30,14 +30,14 @@ rec {
     };
 
 
-  exportGitHashAndGitCommitDateEnvVars = { self }:
+  exportGitHashAndGitCommitDateEnvVars = self:
     ''
       export GIT_HASH=${self.sourceInfo.rev or "unknown"}
-      export GIT_COMMIT_DATE=${date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModified}
+      export GIT_COMMIT_DATE=${date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModifiedDate}
     '';
 
 
-  date_YYYYMMDDHHmmSS_ToIso8601 = date:
+  date_YYYYMMDDHHmmSS_ToIso8601 = ts:
     let
       year = lib.substring 0 4 ts;
       month = lib.substring 4 2 ts;

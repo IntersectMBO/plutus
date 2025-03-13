@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
@@ -16,6 +17,7 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
+import VersionInfo qualified as VersionInfo
 
 import Data.ByteString.Lazy qualified as BSL (readFile)
 import Flat (unflat)
@@ -55,6 +57,7 @@ data Command = Apply       ApplyOptions
              | Eval        EvalOptions
              | DumpModel   (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
+             | Version
 
 ---------------- Option parsers ----------------
 
@@ -131,6 +134,9 @@ plutusOpts = hsubparser $
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
             (progDesc "Print the signatures of the built-in functions."))
+    <> command "version"
+           (info (pure Version)
+             (progDesc "Print version information."))
     where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
 
@@ -226,6 +232,11 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual       -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
+---------------- Version ----------------
+
+printVersion :: IO ()
+printVersion = putStrLn $(VersionInfo.makeVersionInfo "plc")
+
 ---------------- Driver ----------------
 
 main :: IO ()
@@ -243,3 +254,4 @@ main = do
         Convert     opts       -> runConvert @PlcProg opts
         DumpModel   opts       -> runDumpModel        opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures
+        Version                -> printVersion

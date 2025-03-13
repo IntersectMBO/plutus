@@ -1,5 +1,5 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, agda-with-stdlib, r-with-packages }:
+{ inputs, pkgs, lib, agda-with-stdlib, r-with-packages, utils }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }: {
@@ -43,15 +43,15 @@ let
             [ agda-with-stdlib ];
 
           plutus-executables.components.exes.pir.preBuild = ''
-            ${lib.exportGitHashAndGitCommitDateEnvVars}
+            ${utils.exportGitHashAndGitCommitDateEnvVars inputs.self}
           '';
 
           plutus-executables.components.exes.uplc.preBuild = ''
-            ${lib.exportGitHashAndGitCommitDateEnvVars}
+            ${utils.exportGitHashAndGitCommitDateEnvVars inputs.self}
           '';
 
           plutus-executables.components.exes.plc.preBuild = ''
-            ${lib.exportGitHashAndGitCommitDateEnvVars}
+            ${utils.exportGitHashAndGitCommitDateEnvVars inputs.self}
           '';
 
           plutus-executables.components.exes.uplc.build-tools =
@@ -73,7 +73,7 @@ let
             pkgs.perl
             pkgs.ocaml-ng.ocamlPackages_4_10.ocaml
             pkgs.ocaml-ng.ocamlPackages_4_10.ocamlbuild
-            pkgs.coqPackages_8_13.findlib
+            pkgs.ocaml-ng.ocamlPackages_4_10.findlib
             pkgs.coqPackages_8_13.coq
             pkgs.coqPackages_8_13.mathcomp
             pkgs.coqPackages_8_13.coq-ext-lib
