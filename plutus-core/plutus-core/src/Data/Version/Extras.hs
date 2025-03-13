@@ -11,12 +11,15 @@ import Language.Haskell.TH qualified as TH
 
 
 gitAwareVersionInfo :: String -> Data.Version.Version -> TH.ExpQ
-gitAwareVersionInfo execName version = [|
+gitAwareVersionInfo execName version =
+  [|
     execName <>
-    " version " <>
-    Data.Version.showVersion version <>
+    " " <>
+    version' <>
     " - git rev " <>
     $(GitRev.gitHash) <>
     " - " <>
     $(GitRev.gitCommitDate)
   |]
+  where
+    version' = Data.Version.showVersion version

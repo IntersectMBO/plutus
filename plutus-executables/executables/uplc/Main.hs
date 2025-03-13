@@ -51,7 +51,7 @@ import System.Console.Haskeline qualified as Repl
 
 import AgdaUnparse (agdaUnparse)
 import Data.Version.Extras (gitAwareVersionInfo)
-import Paths_plutus_executables (version)
+import Paths_plutus_executables qualified as Paths
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
@@ -108,7 +108,6 @@ data Command = Apply           ApplyOptions
              | Dbg             DbgOptions
              | DumpModel       (BuiltinSemanticsVariant PLC.DefaultFun)
              | PrintBuiltinSignatures
-             | Version
 
 ---------------- Option parsers ----------------
 
@@ -208,7 +207,7 @@ plutus ::
   ParserInfo Command
 plutus langHelpText =
     info
-      (plutusOpts <**> helper)
+      (plutusOpts <**> versioner <**> helper)
       (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
@@ -267,9 +266,6 @@ plutusOpts = hsubparser $
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
             (progDesc "Print the signatures of the built-in functions."))
-    <> command "version"
-           (info (pure Version)
-             (progDesc "Print version information."))
     where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
 
@@ -520,8 +516,8 @@ runUplcPrintExample = runPrintExample getUplcExamples
 
 ----------------- Version -----------------------
 
-printVersion :: IO ()
-printVersion = putStrLn $(gitAwareVersionInfo "pir" version)
+versioner :: Parser (a -> a)
+versioner = simpleVersioner $(gitAwareVersionInfo "pir" Paths.version)
 
 ---------------- Driver ----------------
 
@@ -541,4 +537,3 @@ main = do
         Convert         opts   -> runConvert @UplcProg opts
         DumpModel       opts   -> runDumpModel         opts
         PrintBuiltinSignatures -> runPrintBuiltinSignatures
-        Version                -> printVersion
