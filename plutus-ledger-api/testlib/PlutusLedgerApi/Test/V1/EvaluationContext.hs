@@ -16,13 +16,14 @@ import PlutusPrelude
 
 import Data.Int (Int64)
 import Data.Map qualified as Map
-import Data.Maybe
 
 -- | Example values of costs for @PlutusV1@, in expected ledger order.
 -- Suitable to be used in testing.
 costModelParamsForTesting :: [(V1.ParamName, Int64)]
-costModelParamsForTesting = Map.toList $ fromJust $
-    Common.extractCostModelParamsLedgerOrder mCostModel
+costModelParamsForTesting =
+  case Common.extractCostModelParamsLedgerOrder mCostModel
+  of Nothing -> error "V1.extractCostModelParamsLedgerOrder failed"
+     Just m  -> Map.toList m
 
 -- | The PlutusV1 "cost model" is constructed by the v2 "cost model", by clearing v2 introductions.
 mCostModel :: MCostModel

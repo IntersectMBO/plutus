@@ -25,7 +25,7 @@ import GHC.Stack (HasCallStack)
 costModelParamsForTesting :: HasCallStack => [(V3.ParamName, Int64)]
 costModelParamsForTesting =
   case Common.extractCostModelParamsLedgerOrder mCostModel
-  of Nothing -> error "extractCostModelParamsLedgerOrder failed"
+  of Nothing -> error "V3.extractCostModelParamsLedgerOrder failed"
      Just m  -> Map.toList m
 
 -- | The PlutusV3 "cost model" is constructed by the v4 "cost model", by clearing v4 introductions.
