@@ -10,7 +10,6 @@ module GitRevExtra
 import Control.Monad.Fail qualified as Control.Monad.Fail
 import Development.GitRev qualified as GitRev
 import Language.Haskell.TH qualified as TH
-import Paths_plutus_executables qualified as Paths_plutus_executables
 import System.Environment qualified as System.Environment
 
 
@@ -53,8 +52,10 @@ getVersionVariable verVar = do
   where
     valueFromGit :: String
     valueFromGit = case verVar of
-      GitHash       -> $(GitRev.gitHash)
-      GitCommitDate -> $(GitRev.gitCommitDate)
+      GitBranch      -> $(GitRev.gitBranch)
+      GitHash        -> $(GitRev.gitHash)
+      GitCommitDate  -> $(GitRev.gitCommitDate)
+      GitCommitCount -> $(GitRev.gitCommitCount)
 
     getValueFromEnv :: TH.Q (Maybe String)
     getValueFromEnv = lookupEnvQ envVarName
