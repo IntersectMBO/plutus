@@ -1,11 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-
-This module provides Template Haskell functions to retrieve git version information
+This module provides Template Haskell functions to retrieve git information
 (branch name, commit hash, commit date, and commit count) at compile time.
 It attempts to get these values by reading the .git folder.
 If the values are not available (e.g., when building outside of a git repository,
 or when building with Nix), it falls back to environment variables.
+Environment variables take precedence over git values.
+If the relevant env var is not set, it returns the empty string.
 
 Usage:
 
@@ -53,7 +55,6 @@ module Development.GitRev.Extras
   , gitCommitCount
   ) where
 
-import Control.Monad.Fail qualified as Control.Monad.Fail
 import Development.GitRev qualified as GitRev
 import Language.Haskell.TH qualified as TH
 import System.Environment qualified as System.Environment
@@ -94,9 +95,9 @@ getVersionVariable verVar = do
     ("UNKNOWN", Just v) ->
       return v
     ("UNKNOWN", Nothing) ->
-      noValueFound
-    (v, Just v') | v /= v' ->
-      inconsistentValues v v'
+      return ""
+    (_, Just v) ->
+      return v
     (v, _) ->
       return v
   where
@@ -117,34 +118,5 @@ getVersionVariable verVar = do
       GitCommitDate  -> "GIT_COMMIT_DATE"
       GitCommitCount -> "GIT_COMMIT_COUNT"
 
-    displayName :: String
-    displayName = case verVar of
-      GitBranch      -> "branch name"
-      GitHash        -> "commit hash"
-      GitCommitDate  -> "commit date"
-      GitCommitCount -> "commit count"
-
     lookupEnvQ :: String -> TH.Q (Maybe String)
     lookupEnvQ = TH.runIO . System.Environment.lookupEnv
-
-    inconsistentValues :: String -> String -> TH.Q String
-    inconsistentValues v v' =
-      Control.Monad.Fail.fail $
-        "Inconsistent values for the "
-          <> displayName
-          <> ": git reports "
-          <> v
-          <> " while the env var "
-          <> envVarName
-          <> " is set to "
-          <> v'
-          <> "."
-
-    noValueFound :: TH.Q String
-    noValueFound =
-      Control.Monad.Fail.fail $
-        "No value found for the "
-          <> displayName
-          <> " neither from git nor from the env var "
-          <> envVarName
-          <> "."
