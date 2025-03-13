@@ -1016,6 +1016,7 @@ executable print-cost-model
   import:         lang
   main-is:        Main.hs
   hs-source-dirs: cost-model/print-cost-model
+  other-modules:  Paths_plutus_core
   build-depends:
     , aeson
     , base         >=4.9   && <5
