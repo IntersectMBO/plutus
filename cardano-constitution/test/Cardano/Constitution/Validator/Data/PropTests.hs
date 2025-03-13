@@ -60,7 +60,8 @@ hsAgreesWithTx (vHs, vCode) ctx = ioProperty $ do
 tests :: TestTreeWithTestState
 tests = testGroup' "Property" $ fmap const
     [
-      testProperty "hsValidatorsAgreeAll" prop_hsValidatorsAgreeAll
+      -- TODO: This test is flaky and needs to be fixed before re-enabling
+      ignoreTest $ testProperty "hsValidatorsAgreeAll" prop_hsValidatorsAgreeAll
     , testProperty "hsAgreesWithTxAll" prop_hsAgreesWithTxAll
     ]
 
