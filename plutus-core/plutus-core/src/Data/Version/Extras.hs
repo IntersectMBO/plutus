@@ -6,7 +6,7 @@ module Data.Version.Extras
 
 
 import Data.Version qualified as Data.Version
-import GitRev.Extras qualified as GitRev.Extras
+import Development.GitRev.Extras qualified as GitRev
 import Language.Haskell.TH qualified as TH
 
 
@@ -16,7 +16,7 @@ gitAwareVersionInfo execName version = [|
     " version " <>
     Data.Version.showVersion version <>
     " - git rev " <>
-    $(GitRev.Extras.gitHash) <>
+    $(GitRev.gitHash) <>
     " - " <>
-    $(GitRev.Extras.gitCommitDate)
+    $(GitRev.gitCommitDate)
   |]
