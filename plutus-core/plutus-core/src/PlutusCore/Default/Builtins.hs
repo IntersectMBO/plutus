@@ -13,6 +13,9 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+#if !MIN_VERSION_base(4,15,0)
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+#endif
 
 module PlutusCore.Default.Builtins where
 
@@ -50,8 +53,8 @@ import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 #if MIN_VERSION_base(4,15,0)
 import GHC.Num.Integer (Integer (..))
-#endif
 import GHC.Types (Int (..))
+#endif
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 

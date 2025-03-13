@@ -6,6 +6,7 @@
 -- are redundant (which they are), but we don't care because it only exists
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
+{-# OPTIONS -Wwarn=unrecognised-pragmas #-}
 
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
@@ -21,7 +22,6 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}

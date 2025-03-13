@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP        #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE StrictData #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module PlutusCore.Builtin.Runtime where
 
