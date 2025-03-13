@@ -13,8 +13,8 @@ import PlutusTx as Tx
 import PlutusTx.Builtins.Internal as BI (BuiltinUnit (..))
 import UntypedPlutusCore as UPLC
 
+import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
-
 
 -- | Tests that all `ConstitutionValidator` implementations return the same output
 -- for the same random input **when run inside Haskell**.
