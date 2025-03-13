@@ -92,9 +92,6 @@ let
               lib.makeBinPath [ pkgs.diffutils ]
             }
           '';
-
-          # We want to build it but not run the tests in CI.
-          cardano-constitution.doCheck = false;
         };
       }
 

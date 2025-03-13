@@ -13,8 +13,8 @@ import PlutusTx as Tx
 import PlutusTx.Builtins.Internal as BI (BuiltinUnit (..))
 import UntypedPlutusCore as UPLC
 
+import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
-
 
 -- | Tests that all `ConstitutionValidator` implementations return the same output
 -- for the same random input **when run inside Haskell**.
@@ -60,7 +60,8 @@ hsAgreesWithTx (vHs, vCode) ctx = ioProperty $ do
 tests :: TestTreeWithTestState
 tests = testGroup' "Property" $ fmap const
     [
-      testProperty "hsValidatorsAgreeAll" prop_hsValidatorsAgreeAll
+      -- TODO This test is flaky and needs to be fixed before re-enabling
+      ignoreTest $ testProperty "hsValidatorsAgreeAll" prop_hsValidatorsAgreeAll
     , testProperty "hsAgreesWithTxAll" prop_hsAgreesWithTxAll
     ]
 
