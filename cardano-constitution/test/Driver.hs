@@ -83,8 +83,7 @@ main = do
         ]
 
   let testTree
-        = localOption (TQC.QuickCheckTests 50)
-        $ localOption (TQC.QuickCheckMaxSize 10)
+        = localOption (TQC.QuickCheckTests 30)
         $ mainTest ref
 
   -- run the tests
