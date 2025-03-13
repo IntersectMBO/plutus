@@ -89,7 +89,7 @@ library
     Data.List.Extras
     Data.MultiSet.Lens
     Data.Version.Extras
-    GitRev.Extras
+    Development.GitRev.Extras
     PlutusCore
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
