@@ -5,7 +5,7 @@
           (\go ->
              (\goList
                n ->
-                (\unsafeFromList ->
+                (\unsafeFromSOPList ->
                    (\nt ->
                       (\go ->
                          (\nt ->
@@ -77,7 +77,7 @@
                                                        tl))))
                                        (delay (\x -> x)))
                                     nt)))
-                           (unsafeFromList
+                           (unsafeFromSOPList
                               (\i -> iData i)
                               (\i -> iData i)
                               (constr 1
@@ -174,7 +174,7 @@
                                            (force (force sndPair) hd))))
                                 (\x -> s s x))
                            (delay (\x -> x))))
-                     (unsafeFromList
+                     (unsafeFromSOPList
                         (\i -> iData i)
                         (\i -> iData i)
                         (constr 1

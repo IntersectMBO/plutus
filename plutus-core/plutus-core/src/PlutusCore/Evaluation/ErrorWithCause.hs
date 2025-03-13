@@ -54,7 +54,7 @@ instance (PrettyBy config cause, PrettyBy config err) =>
 
 instance (PrettyPlc cause, PrettyPlc err) =>
             Show (ErrorWithCause err cause) where
-    show = render . prettyPlcReadableSimple
+    show = render . prettyPlcReadable
 
 deriving anyclass instance (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) =>
     Exception (ErrorWithCause err cause)

@@ -13,7 +13,7 @@ module VerifiedCompilation.UInline where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
+open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
 open import Untyped.RenamingSubstitution using (_[_])
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
@@ -43,7 +43,7 @@ _ : pureInline {⊥} (ƛ (` nothing) · error) error
 _ = inline (tr reflexive)
 
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
+_ = tr (Translation.match (TransMatch.app (Translation.istranslation (inline (tr reflexive))) reflexive)) ⨾ inline (tr reflexive)
 
 ```
 However, this has several intermediate values that are very hard to determine for a decision procedure.
@@ -76,7 +76,7 @@ _ = var (var (sub (last-sub reflexive)))
 
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
 
-_ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
+_ = Translation.match (TransMatch.app (Translation.istranslation (var (last-sub reflexive))) reflexive)
 ```
 # Inline implies pureInline
 ```
@@ -107,5 +107,8 @@ isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with 
 ... | no ¬p = no λ { (sub p) → ¬p p }
 
 isInline? = translation? (isIl? □)
+
+UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UInline = Translation (Inline □)
 
 ```

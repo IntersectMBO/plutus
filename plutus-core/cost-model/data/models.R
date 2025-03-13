@@ -661,7 +661,6 @@ modelFun <- function(path) {
     headListModel   <- constantModel ("HeadList")
     tailListModel   <- constantModel ("TailList")
     nullListModel   <- constantModel ("NullList")
-    dropListModel   <- linearInX     ("DropList")
 
     ##### Data #####
 
@@ -788,6 +787,7 @@ modelFun <- function(path) {
     countSetBitsModel         <- linearInX ("CountSetBits")
     findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
 
+
     expModIntegerModel    <- {
         fname <- "ExpModInteger"
         filtered <- data %>%
@@ -798,9 +798,11 @@ modelFun <- function(path) {
         mk.result(m, "thing")
     }
 
+    dropListModel   <- linearInX     ("DropList")
+
     ## Arrays - TEMPORARY, but probably right
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
-    listToArrayModel          <- constantModel ("ListToArray")
+    listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
 
     ##### Models to be returned to Haskell #####
