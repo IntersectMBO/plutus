@@ -118,6 +118,11 @@ test-suite plutus-tx-plugin-tests
     Array.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
+    AssocMap.Golden
+    AssocMap.Properties1
+    AssocMap.Properties2
+    AssocMap.Properties3
+    AssocMap.Semantics
     AssocMap.Spec
     Blueprint.Tests
     Blueprint.Tests.Lib

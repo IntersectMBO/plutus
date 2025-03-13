@@ -32,6 +32,10 @@ module PlutusTx.Data.AssocMap (
   map,
   mapThese,
   foldr,
+  filter,
+  mapWithKey,
+  mapMaybe,
+  mapMaybeWithKey,
   ) where
 
 import Data.Coerce (coerce)
@@ -42,7 +46,7 @@ import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List qualified as SOP.List
-import PlutusTx.Prelude hiding (all, any, foldr, map, null, toList, uncons)
+import PlutusTx.Prelude hiding (all, any, filter, foldr, map, mapMaybe, null, toList, uncons)
 import PlutusTx.Prelude qualified
 import PlutusTx.These
 import Prettyprinter (Pretty (..))
@@ -154,18 +158,17 @@ insert' k a = go
     go =
       P.caseList'
         nilCase
-        ( \hd tl ->
-            let k' = BI.fst hd
-             in if P.equalsData k k'
-                  then BI.mkCons (BI.mkPairData k a) tl
-                  else BI.mkCons hd (go tl)
+        ( \hd ->
+            if P.equalsData k (BI.fst hd)
+              then BI.mkCons (BI.mkPairData k a)
+              else BI.mkCons hd . go
         )
 
 -- | Delete a key value pair from the `Map`.
 -- If the `Map` is not well-defined, it deletes the pair associated with the
 -- left-most occurrence of the key in the list.
 delete :: forall k a. (P.ToData k) => k -> Map k a -> Map k a
-delete (P.toBuiltinData -> k) (Map m) = Map $ delete' k m
+delete (P.toBuiltinData -> k) = coerce $ delete' k
 {-# INLINEABLE delete #-}
 
 delete' ::
@@ -180,27 +183,29 @@ delete' k = go
     go =
       P.caseList'
         nil
-        ( \hd tl ->
-            let k' = BI.fst hd
-             in if P.equalsData k k'
-                  then tl
-                  else BI.mkCons hd (go tl)
+        ( \hd ->
+            if P.equalsData k (BI.fst hd)
+              then id
+              else BI.mkCons hd . go
         )
 
 -- | Create an `Map` with a single key-value pair.
 singleton :: forall k a. (P.ToData k, P.ToData a) => k -> a -> Map k a
 singleton (P.toBuiltinData -> k) (P.toBuiltinData -> a) =
-  Map $ BI.mkCons (BI.mkPairData k a) nil
+  coerce $ BI.mkCons (BI.mkPairData k a) nil
 {-# INLINEABLE singleton #-}
 
 -- | An empty `Map`.
 empty :: forall k a. Map k a
-empty = Map nil
+empty = coerce nil
 {-# INLINEABLE empty #-}
 
 -- | Check if the `Map` is empty.
 null :: forall k a. Map k a -> Bool
-null (Map m) = P.null m
+null =
+  coerce
+    @(BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool)
+    P.null
 {-# INLINEABLE null #-}
 
 -- | Create an `Map` from a sums of products list of key-value pairs.
@@ -310,36 +315,37 @@ noDuplicateKeys (Map m) = go m
       P.caseList'
         True
         ( \hd tl ->
-            let k = BI.fst hd
-             in if member' k tl then False else go tl
+            if member' (BI.fst hd) tl then False else go tl
         )
 {-# INLINEABLE noDuplicateKeys #-}
 
 --- | Check if all values in the `Map` satisfy the predicate.
 all :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
-all p (Map m) = go m
+all p = coerce go
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
     go =
       P.caseList'
         True
         ( \hd ->
-            let a = P.unsafeFromBuiltinData (BI.snd hd)
-             in if p a then go else \_ -> False
+            if p (P.unsafeFromBuiltinData (BI.snd hd))
+              then go
+              else \_ -> False
         )
 {-# INLINEABLE all #-}
 
 -- | Check if any value in the `Map` satisfies the predicate.
 any :: forall k a. (P.UnsafeFromData a) => (a -> Bool) -> Map k a -> Bool
-any p (Map m) = go m
+any p = coerce go
   where
     go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> Bool
     go =
       P.caseList'
         False
         ( \hd ->
-            let a = P.unsafeFromBuiltinData (BI.snd hd)
-             in if p a then \_ -> True else go
+            if p (P.unsafeFromBuiltinData (BI.snd hd))
+              then \_ -> True
+              else go
         )
 {-# INLINEABLE any #-}
 
@@ -467,9 +473,8 @@ keys' = go
     go =
       P.caseList'
         P.mkNil
-        ( \hd tl ->
-            let k = BI.fst hd
-             in BI.mkCons k (go tl)
+        ( \hd ->
+            BI.mkCons (BI.fst hd) . go
         )
 
 keys :: forall k a. Map k a -> List k
@@ -485,8 +490,8 @@ elems = Data.List.fromBuiltinList . go . coerce
     go =
       P.caseList'
         P.mkNil
-        ( \hd tl ->
-            BI.mkCons (BI.snd hd) (go tl)
+        ( \hd ->
+            BI.mkCons (BI.snd hd) . go
         )
 {-# INLINEABLE elems #-}
 
@@ -524,31 +529,114 @@ mapThese f (Map m) = (Map ls, Map rs)
 {-# INLINEABLE mapThese #-}
 
 map :: forall k a b. (P.UnsafeFromData a, P.ToData b) => (a -> b) -> Map k a -> Map k b
-map f (Map m) = Map $ go m
+map f = coerce go
   where
     go =
       P.caseList'
         nil
-        ( \hd tl ->
-            let k = BI.fst hd
-                v = BI.snd hd
+        ( \hd ->
+            let (k, v) = P.pairToPair hd
              in
               BI.mkCons
                 (BI.mkPairData k (P.toBuiltinData (f (P.unsafeFromBuiltinData v))))
-                (go tl)
+                . go
         )
 {-# INLINEABLE map #-}
 
-foldr :: forall a b k. (P.UnsafeFromData a) => (a -> b -> b) -> b -> Map k a -> b
-foldr f z (Map m) = go m
+foldr
+  :: forall a b k
+  . (P.UnsafeFromData a)
+  => (a -> b -> b) -> b -> Map k a -> b
+foldr f z = coerce go
   where
+    go :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> b
     go =
       P.caseList'
         z
-        ( \hd tl ->
-            let v = BI.snd hd
-             in f (P.unsafeFromBuiltinData v) (go tl)
+        ( \hd ->
+            f (P.unsafeFromBuiltinData (BI.snd hd)) . go
         )
 {-# INLINEABLE foldr #-}
+
+filter
+  :: forall k a
+  . (P.UnsafeFromData a)
+  => (a -> Bool) -> Map k a -> Map k a
+filter p = coerce go
+  where
+    go =
+      P.caseList'
+        nil
+        ( \hd ->
+            if p (P.unsafeFromBuiltinData (BI.snd hd))
+              then BI.mkCons hd . go
+              else go
+        )
+{-# INLINEABLE filter #-}
+
+mapWithKey
+  :: forall k a b
+  . (P.UnsafeFromData k, P.UnsafeFromData a, P.ToData b)
+  => (k -> a -> b) -> Map k a -> Map k b
+mapWithKey f = coerce go
+  where
+    go =
+      P.caseList'
+        nil
+        ( \hd ->
+            let (k, v) = P.pairToPair hd
+             in
+              BI.mkCons
+                (BI.mkPairData k
+                  (P.toBuiltinData
+                    (f
+                      (P.unsafeFromBuiltinData k)
+                      (P.unsafeFromBuiltinData v)
+                    )
+                  )
+                )
+                . go
+        )
+{-# INLINEABLE mapWithKey #-}
+
+mapMaybe
+  :: forall k a b
+  . (P.UnsafeFromData a, P.ToData b)
+  => (a -> Maybe b) -> Map k a -> Map k b
+mapMaybe f = coerce go
+  where
+    go =
+      P.caseList'
+        nil
+        ( \hd ->
+            let (k, v) = P.pairToPair hd
+             in case f (P.unsafeFromBuiltinData v) of
+                  Just v' ->
+                    BI.mkCons
+                      (BI.mkPairData k (P.toBuiltinData v'))
+                    . go
+                  Nothing -> go
+        )
+{-# INLINEABLE mapMaybe #-}
+
+mapMaybeWithKey
+  :: forall k a b
+  . (P.UnsafeFromData k, P.UnsafeFromData a, P.ToData b)
+  => (k -> a -> Maybe b) -> Map k a -> Map k b
+mapMaybeWithKey f = coerce go
+  where
+    go =
+      P.caseList'
+        nil
+        ( \hd ->
+            let (k, v) = P.pairToPair hd
+             in case f (P.unsafeFromBuiltinData k) (P.unsafeFromBuiltinData v) of
+                  Just v' ->
+                    BI.mkCons
+                      (BI.mkPairData k (P.toBuiltinData v'))
+                    . go
+                  Nothing -> go
+        )
+{-# INLINEABLE mapMaybeWithKey #-}
 
 makeLift ''Map
