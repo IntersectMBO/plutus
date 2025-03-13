@@ -99,4 +99,7 @@ clearBuiltinCostModel' r = r
                  -- , paramByteStringToInteger = mempty -- Required for V2
                  paramExpModInteger = mempty
                , paramDropList = mempty
+               , paramLengthOfArray = mempty
+               , paramListToArray = mempty
+               , paramIndexArray = mempty
                }

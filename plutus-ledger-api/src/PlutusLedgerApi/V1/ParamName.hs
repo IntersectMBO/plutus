@@ -181,12 +181,6 @@ data ParamName =
   | VerifyEd25519Signature'cpu'arguments'intercept
   | VerifyEd25519Signature'cpu'arguments'slope
   | VerifyEd25519Signature'memory'arguments
-  | LengthOfArray'cpu'arguments
-  | LengthOfArray'memory'arguments
-  | ListToArray'cpu'arguments
-  | ListToArray'memory'arguments
-  | IndexArray'cpu'arguments
-  | IndexArray'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
 
