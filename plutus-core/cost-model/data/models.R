@@ -145,11 +145,8 @@ arity <- function(name) {
         "CountSetBits" = 1,
         "FindFirstSetBit" = 1,
         "ExpModInteger" = 3,
-<<<<<<< HEAD
         "CaseList" = 3,
         "CaseData" = 6,
-=======
->>>>>>> master
         "DropList" = 2,
         "LengthOfArray" = 1,
         "ListToArray" = 1,
@@ -672,7 +669,6 @@ modelFun <- function(path) {
 
     ##### Lists #####
 
-<<<<<<< HEAD
     chooseListModel <- constantModel  ("ChooseList")
     mkConsModel     <- constantModel  ("MkCons")
     headListModel   <- constantModel  ("HeadList")
@@ -680,13 +676,6 @@ modelFun <- function(path) {
     nullListModel   <- constantModel  ("NullList")
     dropListModel   <- linearInX      ("DropList")
     caseListModel   <- constantModel2 ("CaseList")
-=======
-    chooseListModel <- constantModel ("ChooseList")
-    mkConsModel     <- constantModel ("MkCons")
-    headListModel   <- constantModel ("HeadList")
-    tailListModel   <- constantModel ("TailList")
-    nullListModel   <- constantModel ("NullList")
->>>>>>> master
 
     ##### Data #####
 
@@ -813,20 +802,12 @@ modelFun <- function(path) {
     countSetBitsModel         <- linearInX ("CountSetBits")
     findFirstSetBitModel      <- linearInX ("FindFirstSetBit")
 
-<<<<<<< HEAD
-    ## Arrays - TEMPORARY, but probably right
-    lengthOfArrayModel        <- constantModel ("LengthOfArray")
-    listToArrayModel          <- constantModel ("ListToArray")
-    indexArrayModel           <- constantModel ("IndexArray")
-=======
     dropListModel   <- linearInX     ("DropList")
 
     ## Arrays - TEMPORARY, but probably right
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
-
->>>>>>> master
 
 ##### Models to be returned to Haskell #####
 
