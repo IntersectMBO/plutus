@@ -1,6 +1,50 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-{-# LANGUAGE TemplateHaskell #-}
+{-
+This module provides Template Haskell functions to retrieve git version information
+(branch name, commit hash, commit date, and commit count) at compile time.
+It attempts to get these values by reading the .git folder.
+If the values are not available (e.g., when building outside of a git repository,
+or when building with Nix), it falls back to environment variables.
+
+Usage:
+
+@
+module MyPrograms where
+
+import GitRevExtra (gitHash, gitCommitDate)
+
+main :: IO ()
+main = do
+  -- Falls back to reading the GIT_BRANCH env var
+  putStrLn $ "git branch: " <> $(gitBranch)
+
+  -- Falls back to reading the GIT_BRANCH env var
+  putStrLn $ "git rev: " <> $(gitHash)
+
+  -- Falls back to reading the GIT_COMMIT_DATE env var
+  putStrLn $ "git commit date: " <> $(gitCommitDate)
+
+  -- Falls back to reading the GIT_COMMIT_COUNT env var
+  putStrLn $ "git commit count: " <> $(gitCommitCount)
+@
+
+When building with haskell.nix, this snippet can be used to inject the env vars:
+
+@
+haskellNix.cabalProject' {
+  ...
+  modules = [{
+    packages = {
+      <package>.components.exes.<exe>.preBuild = ''
+        export GIT_HASH=${inputs.self.sourceInfo.rev or "unknown"}
+        export GIT_COMMIT_DATE=${inputs.self.sourceInfo.lastModifiedDate}
+      '';
+    };
+  }];
+};
+@
+-}
 
 module GitRevExtra
   ( gitBranch
