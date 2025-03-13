@@ -231,7 +231,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 ---------------- Version ----------------
 
 versioner :: Parser (a -> a)
-versioner = simpleVersioner $(gitAwareVersionInfo "pir" Paths.version)
+versioner = simpleVersioner $(gitAwareVersionInfo "plc" Paths.version)
 
 ---------------- Driver ----------------
 

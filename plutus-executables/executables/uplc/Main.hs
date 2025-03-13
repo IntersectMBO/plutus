@@ -517,7 +517,7 @@ runUplcPrintExample = runPrintExample getUplcExamples
 ----------------- Version -----------------------
 
 versioner :: Parser (a -> a)
-versioner = simpleVersioner $(gitAwareVersionInfo "pir" Paths.version)
+versioner = simpleVersioner $(gitAwareVersionInfo "uplc" Paths.version)
 
 ---------------- Driver ----------------
 
