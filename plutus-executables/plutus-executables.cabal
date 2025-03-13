@@ -65,20 +65,26 @@ common os-support
 library lib
   import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
+  exposed-modules: AgdaUnparse
+  build-depends:
+    , base               >=4.9   && <5
+    , bytestring
+    , plutus-core        ^>=1.42
+    , plutus-metatheory
+    , text
+
+library versioning
+  import:          lang
+  hs-source-dirs:  versioning
   exposed-modules:
-    AgdaUnparse
     GitRevExtra
     VersionInfo
 
   other-modules:   Paths_plutus_executables
   build-depends:
-    , base               >=4.9   && <5
-    , bytestring
+    , base              >=4.9 && <5
     , gitrev
-    , plutus-core        ^>=1.42
-    , plutus-metatheory
     , template-haskell
-    , text
 
 executable pir
   import:         lang
@@ -95,7 +101,7 @@ executable pir
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
-    , plutus-executables:lib
+    , plutus-executables:versioning
     , text
     , transformers
 
@@ -110,7 +116,7 @@ executable plc
     , optparse-applicative
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
-    , plutus-executables:lib
+    , plutus-executables:versioning
 
 executable uplc
   import:         lang, os-support, ghc-version-support
@@ -128,6 +134,7 @@ executable uplc
     , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
+    , plutus-executables:versioning
     , plutus-metatheory
     , prettyprinter
     , serialise
