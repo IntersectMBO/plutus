@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module GitRevExtra
   ( gitBranch
   , gitHash
@@ -21,18 +23,22 @@ data VersionVariable
   deriving stock (Show, Eq)
 
 
+-- | Falls back to reading the GIT_BRANCH env var.
 gitBranch :: TH.ExpQ
 gitBranch = TH.stringE =<< getVersionVariable GitBranch
 
 
+-- | Falls back to reading the GIT_HASH env var.
 gitHash :: TH.ExpQ
 gitHash = TH.stringE =<< getVersionVariable GitHash
 
 
+-- | Falls back to reading the GIT_COMMIT_DATE env var.
 gitCommitDate :: TH.ExpQ
 gitCommitDate = TH.stringE =<< getVersionVariable GitCommitDate
 
 
+-- | Falls back to reading the GIT_COMMIT_COUNT env var.
 gitCommitCount :: TH.ExpQ
 gitCommitCount = TH.stringE =<< getVersionVariable GitCommitCount
 
