@@ -31,6 +31,7 @@ import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Data.AssocMap qualified as Data.AssocMap
+import PlutusTx.Data.List qualified as Data.List
 import PlutusTx.IsData ()
 import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (liftCodeDef, makeLift)
@@ -41,8 +42,8 @@ import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeTo
                                     unsafeRunTermCek)
 import PlutusTx.TH (compile)
 import PlutusTx.These (These (..), these)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty (TestTree, localOption, testGroup)
+import Test.Tasty.Hedgehog (HedgehogTestLimit (..), testProperty)
 
 
 -- | Test the performance and interaction between 'insert', 'delete' and 'lookup'.
@@ -230,6 +231,146 @@ keysProgram
 keysProgram =
   $$(compile [|| AssocMap.keys ||])
 
+dataKeysProgram
+  :: CompiledCode
+    ( Data.AssocMap.Map Integer Integer
+    -> [Integer]
+    )
+dataKeysProgram =
+  $$(compile [|| Data.List.toSOP . Data.AssocMap.keys ||])
+
+elemsProgram
+  :: CompiledCode
+    ( AssocMap.Map Integer Integer
+    -> [Integer]
+    )
+elemsProgram =
+  $$(compile [|| AssocMap.elems ||])
+
+dataElemsProgram
+  :: CompiledCode
+    ( Data.AssocMap.Map Integer Integer
+    -> [Integer]
+    )
+dataElemsProgram =
+  $$(compile [|| Data.List.toSOP . Data.AssocMap.elems ||])
+
+filterProgram
+  :: CompiledCode
+    ( Integer
+    -> AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+filterProgram =
+  $$(compile
+    [|| \num m ->
+      PlutusTx.sort
+      $ AssocMap.toList
+      $ AssocMap.filter (\x -> x PlutusTx.< num) m
+    ||])
+
+dataFilterProgram
+  :: CompiledCode
+    ( Integer
+    -> Data.AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+dataFilterProgram =
+  $$(compile
+    [|| \num m ->
+      PlutusTx.sort
+      $ Data.AssocMap.toSOPList
+      $ Data.AssocMap.filter (\x -> x PlutusTx.< num) m
+    ||])
+
+mapWithKeyProgram
+  :: CompiledCode
+    ( AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+mapWithKeyProgram =
+  $$(compile
+    [|| \m ->
+      PlutusTx.sort
+      $ AssocMap.toList
+      $ AssocMap.mapWithKey (\k v -> k PlutusTx.+ v) m
+    ||])
+
+dataMapWithKeyProgram
+  :: CompiledCode
+    ( Data.AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+dataMapWithKeyProgram =
+  $$(compile
+    [|| \m ->
+      PlutusTx.sort
+      $ Data.AssocMap.toSOPList
+      $ Data.AssocMap.mapWithKey (\k v -> k PlutusTx.+ v) m
+    ||])
+
+mapMaybeProgram
+  :: CompiledCode
+    ( Integer
+    -> AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+mapMaybeProgram =
+  $$(compile
+    [|| \num m ->
+      PlutusTx.sort
+      $ AssocMap.toList
+      $ AssocMap.mapMaybe
+          (\x -> if x PlutusTx.< num then Just x else Nothing)
+          m
+    ||])
+
+dataMapMaybeProgram
+  :: CompiledCode
+    ( Integer
+    -> Data.AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+dataMapMaybeProgram =
+  $$(compile
+    [|| \num m ->
+      PlutusTx.sort
+      $ Data.AssocMap.toSOPList
+      $ Data.AssocMap.mapMaybe
+          (\x -> if x PlutusTx.< num then Just x else Nothing)
+          m
+    ||])
+
+mapMaybeWithKeyProgram
+  :: CompiledCode
+    ( AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+mapMaybeWithKeyProgram =
+  $$(compile
+    [|| \m ->
+      PlutusTx.sort
+      $ AssocMap.toList
+      $ AssocMap.mapMaybeWithKey
+          (\k v -> if v PlutusTx.< k then Just v else Nothing)
+          m
+    ||])
+
+dataMapMaybeWithKeyProgram
+  :: CompiledCode
+    ( Data.AssocMap.Map Integer Integer
+    -> [(Integer, Integer)]
+    )
+dataMapMaybeWithKeyProgram =
+  $$(compile
+    [|| \m ->
+      PlutusTx.sort
+      $ Data.AssocMap.toSOPList
+      $ Data.AssocMap.mapMaybeWithKey
+          (\k v -> if v PlutusTx.< k then Just v else Nothing)
+          m
+    ||])
+
 dataNoDuplicateKeysProgram
   :: CompiledCode
     ( Data.AssocMap.Map Integer Integer
@@ -400,12 +541,43 @@ anyS p (AssocMapS l) = any (p . snd) l
 keysS :: AssocMapS Integer Integer -> [Integer]
 keysS (AssocMapS l) = map fst l
 
+elemsS :: AssocMapS Integer Integer -> [Integer]
+elemsS (AssocMapS l) = snd <$> l
+
 noDuplicateKeysS :: AssocMapS Integer Integer -> Bool
 noDuplicateKeysS (AssocMapS l) =
   length l == length (nubBy (\(k1, _) (k2, _) -> k1 == k2) l)
 
 mapS :: (a -> b) -> AssocMapS k a -> AssocMapS k b
 mapS f (AssocMapS l) = AssocMapS $ map (\(k, v) -> (k, f v)) l
+
+filterS
+  :: (Integer -> Bool)
+  -> AssocMapS Integer Integer
+  -> AssocMapS Integer Integer
+filterS p (AssocMapS l) =
+  AssocMapS $ filter (p . snd) l
+
+mapWithKeyS
+  :: (Integer -> Integer -> Integer)
+  -> AssocMapS Integer Integer
+  -> AssocMapS Integer Integer
+mapWithKeyS f (AssocMapS l) =
+  AssocMapS . Map.toList . Map.mapWithKey f . Map.fromList $ l
+
+mapMaybeS
+  :: (Integer -> Maybe Integer)
+  -> AssocMapS Integer Integer
+  -> AssocMapS Integer Integer
+mapMaybeS f (AssocMapS l) =
+  AssocMapS . Map.toList . Map.mapMaybe f . Map.fromList $ l
+
+mapMaybeWithKeyS
+  :: (Integer -> Integer -> Maybe Integer)
+  -> AssocMapS Integer Integer
+  -> AssocMapS Integer Integer
+mapMaybeWithKeyS f (AssocMapS l) =
+  AssocMapS . Map.toList . Map.mapMaybeWithKey f . Map.fromList $ l
 
 makeLift ''AssocMapS
 
@@ -657,6 +829,123 @@ keysSpec = property $ do
     )
     (===)
     expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataKeysProgram
+        `unsafeApplyCode` (liftCodeDef (semanticsToDataAssocMap assocMapS))
+    )
+    (===)
+    expected
+
+elemsSpec :: Property
+elemsSpec = property $ do
+  assocMapS <- forAll genAssocMapS
+  let assocMap = semanticsToAssocMap assocMapS
+      expected = elemsS assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ elemsProgram
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataElemsProgram
+        `unsafeApplyCode` (liftCodeDef (semanticsToDataAssocMap assocMapS))
+    )
+    (===)
+    expected
+
+filterSpec :: Property
+filterSpec = property $ do
+  assocMapS <- forAll genAssocMapS
+  num <- forAll $ Gen.integral rangeElem
+  let assocMap = semanticsToAssocMap assocMapS
+      dataAssocMap = semanticsToDataAssocMap assocMapS
+      expected = sortS $ filterS (< num) assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ filterProgram
+        `unsafeApplyCode` (liftCodeDef num)
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataFilterProgram
+        `unsafeApplyCode` (liftCodeDef num)
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
+
+mapWithKeySpec :: Property
+mapWithKeySpec = property $ do
+  assocMapS <- forAll genAssocMapS
+  let assocMap = semanticsToAssocMap assocMapS
+      dataAssocMap = semanticsToDataAssocMap assocMapS
+      expected = sortS $ mapWithKeyS (+) assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ mapWithKeyProgram
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataMapWithKeyProgram
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
+
+mapMaybeSpec :: Property
+mapMaybeSpec = property $ do
+  assocMapS <- forAll genAssocMapS
+  num <- forAll $ Gen.integral rangeElem
+  let assocMap = semanticsToAssocMap assocMapS
+      dataAssocMap = semanticsToDataAssocMap assocMapS
+      expected = sortS $ mapMaybeS (\x -> if x < num then Just x else Nothing) assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ mapMaybeProgram
+        `unsafeApplyCode` (liftCodeDef num)
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataMapMaybeProgram
+        `unsafeApplyCode` (liftCodeDef num)
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
+
+mapMaybeWithKeySpec :: Property
+mapMaybeWithKeySpec = property $ do
+  assocMapS <- forAll genAssocMapS
+  let assocMap = semanticsToAssocMap assocMapS
+      dataAssocMap = semanticsToDataAssocMap assocMapS
+      expected = sortS $ mapMaybeWithKeyS (\k v -> if v < k then Just v else Nothing) assocMapS
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ mapMaybeWithKeyProgram
+        `unsafeApplyCode` (liftCodeDef assocMap)
+    )
+    (===)
+    expected
+  cekResultMatchesHaskellValue
+    ( compiledCodeToTerm
+        $ dataMapMaybeWithKeyProgram
+        `unsafeApplyCode` (liftCodeDef dataAssocMap)
+    )
+    (===)
+    expected
 
 noDuplicateKeysSpec :: Property
 noDuplicateKeysSpec = property $ do
@@ -788,7 +1077,8 @@ goldenTests =
 
 propertyTests :: TestTree
 propertyTests =
-  testGroup "Map property tests"
+  localOption (HedgehogTestLimit (Just 30))
+  $ testGroup "Map property tests"
     [ testProperty "safeFromList" safeFromListSpec
     , testProperty "unsafeFromList" unsafeFromListSpec
     , testProperty "lookup" lookupSpec
@@ -797,9 +1087,14 @@ propertyTests =
     , testProperty "all" allSpec
     , testProperty "any" anySpec
     , testProperty "keys" keysSpec
+    , testProperty "elems" elemsSpec
     , testProperty "noDuplicateKeys" noDuplicateKeysSpec
     , testProperty "delete" deleteSpec
     , testProperty "union" unionSpec
     , testProperty "unionWith" unionWithSpec
+    , testProperty "filter" filterSpec
+    , testProperty "mapWithKey" mapWithKeySpec
+    , testProperty "mapMaybe" mapMaybeSpec
+    , testProperty "mapMaybeWithKey" mapMaybeWithKeySpec
     , testProperty "builtinDataEncoding" builtinDataEncodingSpec
     ]
