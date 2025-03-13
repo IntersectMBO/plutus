@@ -215,7 +215,8 @@ memoryUsageBits :: Integer -> CostingInteger
 -- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
 -- keep this special case for the time being though.
 memoryUsageBits 0 = 1
-memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i)) + 1
+-- memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i)) + 1
+memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8) + 1
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
 {-# OPAQUE memoryUsageBits #-}
