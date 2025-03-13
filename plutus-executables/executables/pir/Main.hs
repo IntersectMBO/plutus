@@ -9,7 +9,7 @@
 module Main where
 
 import Data.Version.Extras (gitAwareVersionInfo)
-import Paths_plutus_executables (version)
+import Paths_plutus_executables qualified as Paths
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -84,7 +84,6 @@ data Command = Analyse  AnalyseOptions
              | Convert  PirConvertOptions
              | Optimise PirOptimiseOptions
              | Print    PrintOptions
-             | Version
 
 
 ---------------- Option parsers ----------------
@@ -144,9 +143,6 @@ pPirOptions = hsubparser $
                  progDesc $
                    "Given a PIR program in textual format, " <>
                    "read it in and print it in the selected format.")
-           <> command "version"
-                (info (pure Version) $
-                progDesc "Print version information.")
            where
              analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
              optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
@@ -289,8 +285,8 @@ runPrint (PrintOptions inp outp mode) = do
             NoOutput        -> pure ()
 
 
-printVersion :: IO ()
-printVersion = putStrLn $(gitAwareVersionInfo "pir" version)
+versioner :: Parser (a -> a)
+versioner = simpleVersioner $(gitAwareVersionInfo "pir" Paths.version)
 
 ---------------- Main ----------------
 
@@ -303,10 +299,9 @@ main = do
         Convert  opts -> runConvert @PirProg (toConvertOptions opts)
         Optimise opts -> runOptimisations opts
         Print    opts -> runPrint opts
-        Version       -> printVersion
   where
     infoOpts =
-      info (pPirOptions <**> helper)
+      info (pPirOptions <**> versioner <**> helper)
            ( fullDesc
            <> header "PIR tool"
            <> progDesc ("This program provides a number of utilities for dealing with "
