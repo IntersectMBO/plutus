@@ -8,16 +8,6 @@
 
 module Main where
 
-import Control.Lens (coerced, (^..))
-import Control.Monad (when)
-import Control.Monad.Trans.Except (runExcept)
-import Control.Monad.Trans.Reader (runReaderT)
-import Data.ByteString.Lazy.Char8 qualified as BSL
-import Data.Csv qualified as Csv
-import Data.IntMap qualified as IM
-import Data.List (sortOn)
-import Data.Text qualified as T
-import Options.Applicative
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -34,6 +24,17 @@ import PlutusPrelude
 import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore qualified as UPLC
 import VersionInfo qualified as VersionInfo
+
+import Control.Lens (coerced, (^..))
+import Control.Monad (when)
+import Control.Monad.Trans.Except (runExcept)
+import Control.Monad.Trans.Reader (runReaderT)
+import Data.ByteString.Lazy.Char8 qualified as BSL
+import Data.Csv qualified as Csv
+import Data.IntMap qualified as IM
+import Data.List (sortOn)
+import Data.Text qualified as T
+import Options.Applicative
 
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
