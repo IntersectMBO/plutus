@@ -98,7 +98,7 @@ convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
-convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
+convTyCon _                                           = error "unsupported builtin type application"
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
