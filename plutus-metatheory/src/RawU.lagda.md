@@ -14,6 +14,14 @@ of Universes.
 module RawU where
 ```
 
+## TODO: add the rest of the builtins
+
+After the metatheory is synced with the rest of the codebase, remove the following pragma:
+
+```
+{-# FOREIGN GHC {-# OPTIONS_GHC -Wno-incomplete-patterns #-} #-}
+```
+
 ## Imports
 
 ```
