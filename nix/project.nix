@@ -92,6 +92,13 @@ let
               lib.makeBinPath [ pkgs.diffutils ]
             }
           '';
+
+          plutus-core.components.exes.plutus.preBuild = ''
+            ${utils.exportGitHashAndGitCommitDateEnvVars inputs.self}
+          '';
+
+          plutus-core.components.exes.plutus.ghcOptions =
+            [ "-fexternal-interpreter" ];
         };
       }
 
