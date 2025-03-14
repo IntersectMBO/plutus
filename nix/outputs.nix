@@ -36,7 +36,7 @@ let
     { inherit self pkgs; };
 
   project = import ./project.nix
-    { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
+    { inherit inputs pkgs lib agda-with-stdlib r-with-packages utils; };
 
   mkShell = project: import ./shell.nix
     { inherit inputs pkgs lib project agda-with-stdlib r-with-packages; };
@@ -122,6 +122,7 @@ let
   hydraJobs = ciJobs;
 
   __internal = {
+    inherit self;
     inherit pkgs;
     inherit project;
     inherit agda-with-stdlib;
