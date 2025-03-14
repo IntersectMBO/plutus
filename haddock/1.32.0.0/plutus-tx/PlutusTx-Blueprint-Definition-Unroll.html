@@ -1,0 +1,1037 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Definition.Unroll</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.32.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Definition.Unroll.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Definition.Unroll</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:UnrollAll"
+	      >UnrollAll</a
+	      > xs &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Unroll"
+	      >Unroll</a
+	      > (p &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Break"
+	      >Break</a
+	      > e (rep &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:NoGeneric"
+	      >NoGeneric</a
+	      > t <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:GUnroll"
+	      >GUnroll</a
+	      > (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Insert"
+	      >Insert</a
+	      > x xs <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Prepend"
+	      >Prepend</a
+	      > x xs <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > <a href="#t:Concat"
+	      >Concat</a
+	      > (as &#8759; [k]) (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type family</span
+	      > (as &#8759; [k]) <a href="#t:-43--43-"
+	      >++</a
+	      > (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	      >where ...</span
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Unrollable"
+	      >Unrollable</a
+	      > ts <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:unroll"
+		  >unroll</a
+		  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+		  >Definitions</a
+		  > ts</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deriveDefinitions"
+	      >deriveDefinitions</a
+	      > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrollable" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >Unrollable</a
+	      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >UnrollAll</a
+	      > ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	      >Definitions</a
+	      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	      >UnrollAll</a
+	      > ts)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:UnrollAll" class="def"
+	    >UnrollAll</a
+	    > xs &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#UnrollAll" class="link"
+	    >Source</a
+	    > <a href="#t:UnrollAll" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >UnrollAll</a
+		  > '[] = '[]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >UnrollAll</a
+		  > (x ': xs) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Concat" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Concat</a
+		  > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > x) (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >UnrollAll</a
+		  > xs)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Unroll" class="def"
+	    >Unroll</a
+	    > (p &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll" class="link"
+	    >Source</a
+	    > <a href="#t:Unroll" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unroll a type into a list of all nested types (including the type itself).</p
+	    ><p
+	    >If a type doesn't have a generic representation, then this type family gets &quot;stuck&quot;.
+  The good news is that for the purpose of deriving schema definitions, we only need to
+  consider types that are either end-user defined (and therefore have a generic representation) or
+  built-in types that we explicitly list here as terminals in order not to get &quot;stuck&quot;.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > = '[<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  > = '[<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  > = '[<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  > = '[<a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		  >BuiltinData</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		  >BuiltinUnit</a
+		  > = '[<a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		  >BuiltinUnit</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinString</a
+		  > = '[<a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinString</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		  >BuiltinList</a
+		  > a) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		  >BuiltinPair</a
+		  > a b) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > a <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinByteString</a
+		  > = '[<a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinByteString</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > [a] = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > (a, b) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > a <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		  >Maybe</a
+		  > a) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > p = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Prepend" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Prepend</a
+		  > p (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:NoGeneric" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >NoGeneric</a
+		  > p) (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		  >Rep</a
+		  > p)))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Break" class="def"
+	    >Break</a
+	    > e (rep &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Break" class="link"
+	    >Source</a
+	    > <a href="#t:Break" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Detect stuck type family: <a href="https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors"
+	      >https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors</a
+	      ></p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > _ (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:M1" title="GHC.Generics"
+		  >M1</a
+		  > a b c) = <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:M1" title="GHC.Generics"
+		  >M1</a
+		  > a b c</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > _ (f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+		  >:*:</a
+		  > g) = f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+		  >:*:</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > _ (f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+		  >:+:</a
+		  > g) = f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+		  >:+:</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > _ (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:K1" title="GHC.Generics"
+		  >K1</a
+		  > a b) = <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:K1" title="GHC.Generics"
+		  >K1</a
+		  > a b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > e <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+		  >U1</a
+		  > = <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+		  >U1</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Break" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Break</a
+		  > e x = e</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:NoGeneric" class="def"
+	    >NoGeneric</a
+	    > t <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#NoGeneric" class="link"
+	    >Source</a
+	    > <a href="#t:NoGeneric" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:NoGeneric" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >NoGeneric</a
+		  > x = <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#t:TypeError" title="GHC.TypeLits"
+		  >TypeError</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#v:Text" title="GHC.TypeLits"
+		  >Text</a
+		  > &quot;No instance for &quot; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#v::-60--62-:" title="GHC.TypeLits"
+		  >:&lt;&gt;:</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-TypeLits.html#v:ShowType" title="GHC.TypeLits"
+		  >ShowType</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		  >Generic</a
+		  > x))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:GUnroll" class="def"
+	    >GUnroll</a
+	    > (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#GUnroll" class="link"
+	    >Source</a
+	    > <a href="#t:GUnroll" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unroll a generic representation of a type into a list of all nested types.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:M1" title="GHC.Generics"
+		  >M1</a
+		  > _ _ f) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > f</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > (f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+		  >:*:</a
+		  > g) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > f <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > (f <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+		  >:+:</a
+		  > g) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > f <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > g</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:K1" title="GHC.Generics"
+		  >K1</a
+		  > _ c) = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Unroll</a
+		  > c</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:GUnroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >GUnroll</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+		  >U1</a
+		  > = '[]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Insert" class="def"
+	    >Insert</a
+	    > x xs <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Insert" class="link"
+	    >Source</a
+	    > <a href="#t:Insert" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Insert <code
+	      >x</code
+	      > into <code
+	      >xs</code
+	      > unless it's already there.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Insert" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Insert</a
+		  > x '[] = '[x]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Insert" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Insert</a
+		  > x (x : xs) = x ': xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Insert" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Insert</a
+		  > x (y : xs) = y ': <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Insert" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Insert</a
+		  > x xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Prepend" class="def"
+	    >Prepend</a
+	    > x xs <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Prepend" class="link"
+	    >Source</a
+	    > <a href="#t:Prepend" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Prepend" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Prepend</a
+		  > x '[] = '[x]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Prepend" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Prepend</a
+		  > x (x : xs) = x ': xs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Prepend" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Prepend</a
+		  > x (y : xs) = x ': (y ': xs)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > <a id="t:Concat" class="def"
+	    >Concat</a
+	    > (as &#8759; [k]) (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Concat" class="link"
+	    >Source</a
+	    > <a href="#t:Concat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Concatenates two type-level lists</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Concat" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Concat</a
+		  > '[] bs = bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Concat" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Concat</a
+		  > as '[] = as</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Concat" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Concat</a
+		  > (a : as) bs = a ': <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Concat" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Concat</a
+		  > as bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type family</span
+	    > (as &#8759; [k]) <a id="t:-43--43-" class="def"
+	    >++</a
+	    > (bs &#8759; [k]) &#8759; [k] <span class="keyword"
+	    >where ...</span
+	    > <span class="fixity"
+	    >infixr 5</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#%2B%2B" class="link"
+	    >Source</a
+	    > <a href="#t:-43--43-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Concatenates two type-level lists removing duplicates.</p
+	    ></div
+	  ><div class="subs equations"
+	  ><p class="caption"
+	    >Equations</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>'[] <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > bs = bs</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>as <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > '[] = as</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>(a : as) <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > bs = <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Insert" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >Insert</a
+		  > a (as <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:-43--43-" title="PlutusTx.Blueprint.Definition.Unroll"
+		  >++</a
+		  > bs)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Unrollable" class="def"
+	    >Unrollable</a
+	    > ts <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Unrollable" class="link"
+	    >Source</a
+	    > <a href="#t:Unrollable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This class and its two instances are used internally to derive
+<code
+	      ><a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+		>Definitions</a
+		></code
+	      > for a given list of types.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:unroll" class="def"
+	      >unroll</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	      >Definitions</a
+	      > ts <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#unroll" class="link"
+	      >Source</a
+	      > <a href="#v:unroll" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Unrollable"
+	    >Instances</h4
+	    ><details id="i:Unrollable" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Unrollable:Unrollable:1"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrollable" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unrollable</a
+		      > ('[] &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >])</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#line-155" class="link"
+		    >Source</a
+		    > <a href="#t:Unrollable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Unrollable:Unrollable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Unroll.html"
+			>PlutusTx.Blueprint.Definition.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unroll"
+			  >unroll</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+			  >Definitions</a
+			  > '[] <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#unroll" class="link"
+			  >Source</a
+			  > <a href="#v:unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Unrollable:Unrollable:2"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrollable" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unrollable</a
+		      > ts, <a href="PlutusTx-Blueprint-Definition-Id.html#t:AsDefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+		      >AsDefinitionId</a
+		      > t, <a href="PlutusTx-Blueprint-Class.html#t:HasSchema" title="PlutusTx.Blueprint.Class"
+		      >HasSchema</a
+		      > t ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrollable" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unrollable</a
+		      > (t ': ts)</span
+		    > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#line-158" class="link"
+		    >Source</a
+		    > <a href="#t:Unrollable" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Unrollable:Unrollable:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Definition-Unroll.html"
+			>PlutusTx.Blueprint.Definition.Unroll</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unroll"
+			  >unroll</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+			  >Definitions</a
+			  > (t ': ts) <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#unroll" class="link"
+			  >Source</a
+			  > <a href="#v:unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deriveDefinitions" class="def"
+	    >deriveDefinitions</a
+	    > &#8759; &#8704; ts. <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unrollable" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >Unrollable</a
+	    > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >UnrollAll</a
+	    > ts) &#8658; <a href="PlutusTx-Blueprint-Definition-Internal.html#t:Definitions" title="PlutusTx.Blueprint.Definition.Internal"
+	    >Definitions</a
+	    > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:UnrollAll" title="PlutusTx.Blueprint.Definition.Unroll"
+	    >UnrollAll</a
+	    > ts) <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#deriveDefinitions" class="link"
+	    >Source</a
+	    > <a href="#v:deriveDefinitions" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
