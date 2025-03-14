@@ -1,4 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 module Benchmarks.Data (makeBenchmarks) where
 
@@ -6,8 +9,11 @@ import Common
 import Generators
 
 import PlutusCore hiding (Constr)
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
+import Control.DeepSeq (force)
 import Criterion.Main
 import System.Random (StdGen)
 
@@ -20,7 +26,6 @@ import System.Random (StdGen)
          | I Integer
          | B ByteString
 -}
-
 
 isConstr :: Data -> Bool
 isConstr = \case {Constr {} -> True; _ -> False}
@@ -45,7 +50,7 @@ isB = \case {B {} -> True; _ -> False}
 -- fortunately 'chooseData' is parametric in its last five arguments so we can
 -- just give it integers for those.
 benchChooseData :: Benchmark
-benchChooseData = bgroup (show name) [mkBM d | d <- take 100 dataSample]
+benchChooseData = bgroup (show name) [mkBM d | d <- take 30 dataSample]
                   where name = ChooseData
                         mkBM d = benchDefault (showMemoryUsage d) $
                                  mkApp6 name [integer] d (111::Integer) (222::Integer)
@@ -133,6 +138,60 @@ benchSerialiseData =
     -- does the internal structure of a Data object influence serialisation
     -- time?  What causes a Data object to be quick or slow to serialise?
 
+{- Benchmark `caseData`.  The first argument is `lam x. lam y. ()` and the next
+   four are all `lam x. ()` (and the final one is a `data` object). This is to
+   minimise the amount of extra work that the evaluator has to do after the
+   builtin returns (which will be included in the cost of the builtin). We can't
+   re-use the functions that we use for other benchmarks because the term
+   arguments whave to be treated separately, so there's quite a bit of extra
+   machinery in here; it seems unlikely to be more generally useful, so for the
+   time being it's kept local to this function. -}
+{- Experiments show that the function takes the about ame amount of time for each
+   constructor, even for `Constr` which might be expected to take longer because
+   it has two arguments. -}
+benchCaseData :: Benchmark
+benchCaseData =
+  let name = CaseData
+      -- Thirty data objects for each constructor, in separate batches so that
+      -- we can check that they all take about the same amount of time.
+      inputs = (take 30 $ filter isConstr dataSample)
+               ++ (take 30 $ filter isMap dataSample)
+               ++ (take 30 $ filter isList dataSample)
+               ++ (take 30 $ filter isI dataSample)
+               ++ (take 30 $ filter isB dataSample)
+      y = Name "y" (Unique 1)
+      ys = Name "ys" (Unique 2)
+      -- lam y (con unit ())
+      mkCase1 ty = LamAbs () y ty (mkConstant () ())
+      -- lam y (lam ys (con unit ()))
+      mkCase2 ty1 ty2 = LamAbs () y ty1 (LamAbs () ys ty2 (mkConstant () ()))
+      -- Like mkApp6, but the first five arguments are terms (in fact values)
+      mkApp6' !fun !tys !term1 !term2 !term3 !term4 !term5 (force -> !d) =
+        eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, term3, term4, term5, mkConstant () d]
+        where instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+      mkBMs l =
+        let caseConstr = mkCase2 integer (list tydata)
+            caseMap    = mkCase1 (list (pair tydata tydata))
+            caseList   = mkCase1 (list tydata)
+            caseI      = mkCase1 integer
+            caseB      = mkCase1 bytestring
+        in [ bgroup "1"  -- Fake size for term arguments
+             [ bgroup "1"
+               [ bgroup "1"
+                 [ bgroup "1"
+                   [ bgroup "1"
+                     [ benchDefault
+                       (showMemoryUsage d)
+                       (mkApp6' name [unit] caseConstr caseMap caseList caseI caseB d)
+                     ]
+                   ]
+                 ]
+               ]
+             ]
+           | d <- l ]
+  in bgroup (show name) $ mkBMs inputs
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
     [ benchChooseData
@@ -148,4 +207,5 @@ makeBenchmarks gen =
     , benchUnBData
     , benchEqualsData
     , benchSerialiseData
+    , benchCaseData
     ]

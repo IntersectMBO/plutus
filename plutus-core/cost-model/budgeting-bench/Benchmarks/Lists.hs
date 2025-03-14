@@ -1,16 +1,22 @@
-module Benchmarks.Lists (makeBenchmarks) where
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
+
+module Benchmarks.Lists where
 
 import Common
 import Generators
 
 import PlutusCore
+import PlutusCore.Compiler.Erase (eraseTerm)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 
+import Control.DeepSeq (force)
 import Criterion.Main
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..))
 import System.Random (StdGen, randomR)
-
 
 {- Some functions for generating lists of sizes integers/bytestrings The time
    behaviour of the list functions should be independent of the sizes and types
@@ -41,6 +47,12 @@ makeListOfByteStringLists seed ((count, size):rest) =
 intLists :: StdGen -> [[Integer]]
 intLists gen = makeListOfIntegerLists gen [(count,size) | count <- [0..7], size <- [1..7]]
 
+biggerIntLists :: StdGen -> [[Integer]]
+biggerIntLists gen =
+  makeListOfIntegerLists gen [ (count,size)
+                             | count <- [0, 10, 20, 50, 100, 500, 1000]
+                             , size <- [1..7] ]
+
 -- Make a list of n integers whose value is less than or equal to m
 intMaxList :: Integer -> Integer -> StdGen -> [Integer]
 intMaxList 0 _ _ = []
@@ -53,6 +65,12 @@ nonEmptyIntLists gen = makeListOfIntegerLists gen [(count,size) | count <- [1..7
 byteStringLists :: H.Seed -> [[ByteString]]
 byteStringLists seed =
     makeListOfByteStringLists seed [(count,size) | count <- [0..7], size <- [0, 500..3000]]
+
+biggerByteStringLists :: H.Seed -> [[ByteString]]
+biggerByteStringLists seed =
+    makeListOfByteStringLists seed [ (count,size)
+                                   | count <- [0, 10, 20, 50, 100, 500, 1000]
+                                   , size <- [0, 500..3000] ]
 
 nonEmptyByteStringLists :: H.Seed -> [[ByteString]]
 nonEmptyByteStringLists seed =
@@ -71,11 +89,11 @@ benchChooseList gen =
         intInputs = take 10 $ intLists gen
         bsInputs  = take 10 $ byteStringLists seedA
         mkBMs tys inputs = [ bgroup (showMemoryUsage x)
-                           [ bgroup (showMemoryUsage r1)
-                            [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
-                            | r2 <- results2 ]
-                           | r1 <- results1 ]
-                          | x <- inputs ]
+                             [ bgroup (showMemoryUsage r1)
+                               [ benchDefault (showMemoryUsage r2) $ mkApp3 name tys x r1 r2
+                               | r2 <- results2 ]
+                             | r1 <- results1 ]
+                           | x <- inputs ]
     in bgroup (show name) (mkBMs [integer,bytestring] intInputs
                             ++ mkBMs [bytestring,bytestring] bsInputs)
 
@@ -119,6 +137,49 @@ benchDropList gen =
     in createTwoTermBuiltinBenchElementwiseWithWrappers
            (IntegerCostedLiterally, id) name [bytestring] inputs
 
+
+{- Benchmark `caseList (con unit ()) (lam x (lam y (con unit ()))) l` to minimise
+the amount of extra work the evaluator has to do to compute the final result
+after the builtin returns (which will be included in the cost of the builtin)..
+We can't re-use the functions that we use for other benchmarks because the term
+arguments have to be treated separately, so there's quite a bit of extra
+machinery in here; it seems unlikely to be more generally useful, so for the
+time being it's kept local to this function.
+-}
+benchCaseList :: StdGen -> Benchmark
+benchCaseList gen =
+    let name = CaseList
+        y = Name "y" (Unique 1)
+        ys = Name "ys" (Unique 2)
+        -- lam y (con unit ())
+        mkCase1 ty = LamAbs () y ty (mkConstant () ())
+        -- lam y (lam ys (con unit ()))
+        mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ()))
+        -- Two different types of inputs, just to make sure there's no difference
+        -- Use `take` just in case we make the list bigger later
+        intInputs = take 100 $ biggerIntLists gen
+        bsInputs  = take 100 $ biggerByteStringLists seedA
+        -- Like mkApp3, but the first two arguments are terms (in fact values)
+        mkApp3' !fun !tys !term1 !term2 (force -> !l) =
+          eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]
+          where instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+        mkBMs ty inputs =
+          let case1 = mkCase1 ty
+              case2 = mkCase2 ty
+          in [ bgroup "1" -- Fake size for term arguments
+               [ bgroup "1"
+                 [ benchDefault
+                   -- Strictly it might be better to cost the list by length
+                   -- here, but it's constant time anyway so it shouldn't
+                   -- matter.
+                   (showMemoryUsage l)
+                   (mkApp3' name [ty, unit] case1 case2 l)
+                 ]
+               ]
+             | l <- inputs ]
+    in bgroup (show name) (mkBMs integer intInputs ++ mkBMs bytestring bsInputs)
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ benchChooseList gen
                      , benchMkCons gen
@@ -126,4 +187,5 @@ makeBenchmarks gen = [ benchChooseList gen
                      , benchNonEmptyList gen TailList
                      , benchNullList gen
                      , benchDropList gen
+                     , benchCaseList gen
                      ]

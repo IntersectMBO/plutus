@@ -1489,25 +1489,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
 
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
-
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
@@ -2030,6 +2011,25 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
 
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val (LastArg a b)
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            (runCostingFunThreeArguments . paramCaseList)
+
     toBuiltinMeaning _ver CaseData =
         let caseDataDenotation
                 :: Opaque val (Integer -> [Data] -> b)
@@ -2048,7 +2048,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE caseDataDenotation #-}
         in makeBuiltinMeaning
             caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
+            (runCostingFunSixArguments . paramCaseData)
 
     toBuiltinMeaning _semvar DropList =
         let dropListDenotation
