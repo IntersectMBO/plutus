@@ -4,11 +4,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Compiler.Let.Tests where
 
-import Control.Monad (join)
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (join, void)
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (Reader, runReader)
 import Data.Bifunctor
-import Data.Functor (void)
 import PlutusCore qualified as PLC
 import PlutusIR.Compiler (Provenance (..))
 import PlutusIR.Compiler qualified as PIR

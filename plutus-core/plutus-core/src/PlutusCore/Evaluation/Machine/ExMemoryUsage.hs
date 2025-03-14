@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module PlutusCore.Evaluation.Machine.ExMemoryUsage
     ( CostRose(..)

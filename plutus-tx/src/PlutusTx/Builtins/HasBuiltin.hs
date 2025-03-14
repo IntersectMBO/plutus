@@ -3,6 +3,7 @@
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module PlutusTx.Builtins.HasBuiltin where
 

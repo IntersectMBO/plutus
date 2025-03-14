@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fomit-interface-pragmas #-}
 module PlutusTx.Plugin.Utils where
 
