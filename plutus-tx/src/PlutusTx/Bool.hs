@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
+
 module PlutusTx.Bool (Bool(..), (&&), (||), not, otherwise) where
 
 {-

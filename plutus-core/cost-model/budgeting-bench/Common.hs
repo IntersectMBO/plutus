@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE ViewPatterns     #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module Common
 where
