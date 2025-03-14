@@ -7,10 +7,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
-
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 module Budget.Spec where
 
@@ -18,6 +16,7 @@ import Test.Tasty.Extras
 
 import Budget.WithGHCOptimisations qualified as WithGHCOptTest
 import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
+import Data.Set qualified as Set
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
@@ -29,6 +28,7 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Utils.TH
 
 AsData.asData [d|
   data MaybeD a = JustD a | NothingD
@@ -234,6 +234,11 @@ tests = testNested "Budget" . pure $ testNestedGhc
   , goldenUPlcReadable "monadicDo" monadicDo
   , goldenPirReadable "monadicDo" monadicDo
   , goldenEvalCekCatch "monadicDo" [monadicDo]
+
+  , goldenBudget "sumAtIndices" (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
+  , goldenUPlcReadable "sumAtIndices" compiledSumAtIndices
+  , goldenPirReadable "sumAtIndices" compiledSumAtIndices
+  , goldenEvalCekCatch "sumAtIndices" [compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput]
 
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
@@ -519,6 +524,24 @@ patternMatchExample x y = case x of
         Nothing -> Nothing
     Nothing -> Nothing
 
+sumAtIndices :: PlutusTx.BuiltinData -> Integer
+sumAtIndices d =
+  $( destructBuiltinList
+       "s"
+       (Set.fromList [1, 4, 5])
+       [t|Integer|]
+       'list
+       [|s1 PlutusTx.+ s4 PlutusTx.+ s5|]
+   )
+  where
+    list = BI.unsafeDataAsList d
+
+compiledSumAtIndices :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+compiledSumAtIndices = $$(compile [|| sumAtIndices ||])
+
+sumAtIndicesInput :: CompiledCode PlutusTx.BuiltinData
+sumAtIndicesInput = liftCodeDef (IsData.toBuiltinData ([0, 10, 20, 30, 40, 50, 60] :: [Integer]))
+
 {-
 Since upgrading to GHC 9.2.4, the optimized PIR for this test case contains
 an additional let-binding:
@@ -603,31 +626,31 @@ compiledNotNot =
             if PlutusTx.lessThanInteger 0 x then True else False
         ||]
     )
-    `PlutusTx.Code.unsafeApplyCode` liftCodeDef 1
+    `unsafeApplyCode` liftCodeDef 1
 
 matchAsData :: CompiledCode Integer
 matchAsData = $$(compile [||
   \case
     JustD a  -> a
     NothingD -> 1 ||])
-    `PlutusTx.Code.unsafeApplyCode` liftCodeDef (JustD 1)
+    `unsafeApplyCode` liftCodeDef (JustD 1)
 
 compiledAndWithGHCOpts :: CompiledCode Bool
 compiledAndWithGHCOpts =
   let code = $$(compile [|| WithGHCOptTest.f ||])
-   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        unsafeApplyCode code (liftCodeDef (4 :: Integer))
 
 compiledAndWithoutGHCOpts :: CompiledCode Bool
 compiledAndWithoutGHCOpts =
   let code = $$(compile [|| WithoutGHCOptTest.f ||])
-   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        unsafeApplyCode code (liftCodeDef (4 :: Integer))
 
 compiledAndWithLocal :: CompiledCode Bool
 compiledAndWithLocal =
   let f :: Integer -> Integer -> Bool
       f x y = (PlutusTx.&&) (x PlutusTx.< (3 :: Integer)) (y PlutusTx.< (3 :: Integer))
       code = $$(compile [|| f ||])
-   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
-        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
+   in flip unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        unsafeApplyCode code (liftCodeDef (4 :: Integer))
