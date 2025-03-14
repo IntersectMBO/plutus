@@ -1,4 +1,6 @@
+{-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Analysis.Spec where
 
@@ -20,15 +22,15 @@ goldenEvalOrder name tm =
 
 -- Should hit Unknown before trying to process the undefined. Shows
 -- that the computation is lazy
--- [ [ n m ] (constr 1 [undefined]) ]
+-- [ [ n m ] [undefined] ]
 dangerTerm :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 dangerTerm = runQuote $ do
   n <- freshName "n"
   m <- freshName "m"
   -- The UPLC term type is strict, so it's hard to hide an undefined in there
-  -- Take advantage of the fact that it's still using lazy lists for constr
+  -- Take advantage of the fact that it's still using lazy lists as constant
   -- arguments for now.
-  pure $ Apply () (Apply () (Var () n) (Var () m)) (Constr () 1 [undefined])
+  pure $ Apply () (Apply () (Var () n) (Var () m)) (mkConstant @[Integer] () [undefined])
 
 letFun :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letFun = runQuote $ do

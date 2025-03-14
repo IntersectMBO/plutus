@@ -24,6 +24,7 @@ import Flat
 import Flat.Decoder
 import Flat.Encoder
 import Flat.Encoder.Strict (sizeListWith)
+import GHC.IsList qualified as GHC
 import Universe
 
 {-
@@ -122,7 +123,7 @@ encodeTerm = \case
     Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
     Error    ann        -> encodeTermTag 6 <> encode ann
     Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
-    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
+    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm (GHC.toList es)
     Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
 
 decodeTerm
@@ -157,7 +158,7 @@ decodeTerm version builtinPred = go
                 Just e  -> fail e
         handleTerm 8 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
-            Constr   <$> decode <*> decode <*> decodeListWith go
+            Constr   <$> decode <*> decode <*> (GHC.fromList <$> decodeListWith go)
         handleTerm 9 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
             Case     <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
