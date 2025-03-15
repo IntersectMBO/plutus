@@ -437,7 +437,7 @@ toBuiltinsRuntime semvar cost =
     -- binding the @cost@ variable, which makes the optimizations useless.
     -- By using 'lazy' we tell GHC to create a separate thunk, which it can properly optimize,
     -- because the other bazillion things don't get in the way. We used to use an explicit
-    -- 'let'-binding marked with @OPAQUE@, but that turned out to be unreliable, because GHC
+    -- 'let'-binding marked with @NOINLINE@, but that turned out to be unreliable, because GHC
     -- feels free to turn it into a join point instead of a proper thunk.
     lazy . BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
 {-# INLINE toBuiltinsRuntime #-}
