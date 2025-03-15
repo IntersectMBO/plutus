@@ -1,15 +1,17 @@
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE DerivingStrategies       #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE FunctionalDependencies   #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
+
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-{-# LANGUAGE DerivingStrategies       #-}
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
 
 module PlutusTx.Builtins.HasOpaque where
 

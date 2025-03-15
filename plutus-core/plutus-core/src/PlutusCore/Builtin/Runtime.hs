@@ -89,8 +89,8 @@ instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
 
 builtinRuntimeFailure :: BuiltinError -> BuiltinRuntime val
 builtinRuntimeFailure = BuiltinCostedResult (ExBudgetLast mempty) . throwError
--- See Note [INLINE and OPAQUE on error-related definitions].
-{-# OPAQUE builtinRuntimeFailure #-}
+-- See Note [INLINE and NOINLINE on error-related definitions].
+{-# NOINLINE builtinRuntimeFailure #-}
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin :: fun -> BuiltinsRuntime fun val -> BuiltinRuntime val

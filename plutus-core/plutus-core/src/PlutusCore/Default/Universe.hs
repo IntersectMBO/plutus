@@ -129,7 +129,7 @@ instance GEq DefaultUni where
     -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
     -- recursive definition and we want two instead. The reason why we want two is because this
     -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
-    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
+    -- is hidden in the other function that is marked as @NOINLINE@ and is chosen by GHC as a
     -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
     -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
     -- very much and we've failed to settle on any other approach).
@@ -183,7 +183,7 @@ instance GEq DefaultUni where
 
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
         geqRec = geqStep
-        {-# OPAQUE geqRec #-}
+        {-# NOINLINE geqRec #-}
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
