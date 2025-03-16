@@ -313,15 +313,18 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
---  not enabled yet:
--- | DropList'memory'arguments'intercept
--- | DropList'memory'arguments'slope
--- | CaseList'cpu'arguments
--- | CaseList'memory'arguments
--- | CaseData'cpu'arguments
--- | CaseData'memory'arguments
--- | ExpModInteger'cpu'arguments
--- |  ExpModInteger'memory'arguments
+--    ExpModInteger'cpu'arguments
+--    ExpModInteger'memory'arguments
+--    DropList'cpu'arguments'intercept
+--    DropList'cpu'arguments'slope
+--    DropList'memory'arguments'intercept
+--    DropList'memory'arguments'slope
+--    LengthOfArray'cpu'arguments
+--    LengthOfArray'memory'arguments
+--    ListToArray'cpu'arguments
+--    ListToArray'memory'arguments
+--    IndexArray'cpu'arguments
+--    IndexArray'memory'arguments
 
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

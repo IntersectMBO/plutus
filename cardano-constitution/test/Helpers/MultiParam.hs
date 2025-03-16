@@ -63,7 +63,7 @@ multiParamProp' :: (Testable prop)
                -> Gen ParamValues
                -> ((Bool, ParamValues) -> prop)
                -> PropertyWithTestState
-multiParamProp' testNo gen extraGen finalProp ref = withMaxSuccess 100 $
+multiParamProp' testNo gen extraGen finalProp ref =
   TSQ.forAll (combine2Gen gen extraGen) $
    \(params',extraParams) -> monadicIO $ do
 
