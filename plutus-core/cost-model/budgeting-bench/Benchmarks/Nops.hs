@@ -77,6 +77,12 @@ data NopFun
     | Nop4o
     | Nop5o
     | Nop6o
+    | Nop1r  -- Return a HeadSpine object; inputs are terms to be applied
+    | Nop2r
+    | Nop3r
+    | Nop4r
+    | Nop5r
+    | Nop6r
     deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving anyclass (PrettyBy PrettyConfigPlc)
 
@@ -287,6 +293,45 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
+    -- Opaque Integers
+    toBuiltinMeaning _semvar Nop1r =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val ())
+             (\_ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunOneArgument . paramNop1)
+    toBuiltinMeaning _semvar Nop2r =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val ())
+             (\_ _ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunTwoArguments . paramNop2)
+    toBuiltinMeaning _semvar Nop3r =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val ())
+             (\_ _ _ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunThreeArguments . paramNop3)
+    toBuiltinMeaning _semvar Nop4r =
+        makeBuiltinMeaning
+             @(Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val ())
+             (\_ _ _ _ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunFourArguments . paramNop4)
+    toBuiltinMeaning _semvar Nop5r =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val ())
+             (\_ _ _ _ _ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunFiveArguments . paramNop5)
+    toBuiltinMeaning _semvar Nop6r =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer
+               -> Opaque val ())
+             (\_ _ _ _ _ _ -> fromValueOf DefaultUniUnit ())
+             (runCostingFunSixArguments . paramNop6)
+
 instance Default (BuiltinSemanticsVariant NopFun) where
     def = NopFunSemanticsVariantX
 
@@ -431,6 +476,7 @@ makeBenchmarks gen =
     ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i)
     ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c)
     ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o)
+    ++ mkBMs mkBmI (Nop1r, Nop2r, Nop3r, Nop4r, Nop5r, Nop6r)
    -- The subsidiary functions below make it a lot easier to see that we're
    -- benchmarking the right things with the right benchmarking functions.
    -- Maybe we could use some TH instead.

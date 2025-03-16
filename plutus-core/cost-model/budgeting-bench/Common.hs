@@ -84,7 +84,9 @@ benchWith
 -- the result, so e.g. 'evaluateCek' won't work properly because it returns a pair whose components
 -- won't be evaluated by 'whnf'. We can't use 'nf' because it does too much work: for instance if it
 -- gets back a 'Data' value it'll traverse all of it.
-benchWith params name term = bench name $ whnf (evaluateCekNoEmit params) term
+benchWith params name term =
+  bench name $
+    whnf (unsafeSplitStructuralOperational . evaluateCekNoEmit params) term
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
