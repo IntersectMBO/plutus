@@ -23,7 +23,7 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; inlineT)
 ```
 ## Translation Relation
 
@@ -87,26 +87,26 @@ postulate
 ## Decision Procedure
 
 ```
-isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □))
+isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Translation (Inline □) ast ast')
 
 {-# TERMINATING #-}
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline e)
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → (ast ast' : X ⊢) → ProofOrCE (Inline e ast ast')
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
-...     | yes p = yes (var p)
-...     | no ¬p = no λ { (var p) → ¬p p }
+...     | proof p = proof (var p)
+...     | ce t b a = ce t b a
 isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
-isIl? □ ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) }
-isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub t) → ¬ƛ (islambda (isterm _)) ; (sub p) → ¬ƛ (islambda (isterm _)) }
-isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = no (λ ())
+isIl? □ ast ast' | no ¬app | no ¬ƛ = ce inlineT ast ast'
+isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = ce inlineT ast ast'
+isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = ce inlineT (ƛ x) ast'
 isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? (x [ v ]) ast')
-... | yes t = yes (last-sub t)
-... | no ¬t = no λ { (last-sub t) → ¬t t }
+... | proof t = proof (last-sub t)
+... | ce t b a = ce t b a
 isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
-... | yes p = yes (sub p)
-... | no ¬p = no λ { (sub p) → ¬p p }
+... | proof p = proof (sub p)
+... | ce t b a = ce t b a
 
-isInline? = translation? (isIl? □)
+isInline? = translation? inlineT (isIl? □)
 
 UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 UInline = Translation (Inline □)
