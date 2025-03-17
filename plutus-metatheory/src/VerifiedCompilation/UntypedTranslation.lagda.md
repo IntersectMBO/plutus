@@ -135,10 +135,14 @@ translation? {_} ⦃ de ⦄ tag isR? (ƛ ast) (ƛ ast') | yes _ with translation
 ...                               | proof p = proof (istranslation p)
 ...                               | ce t b a = ce t b a
 translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? tag isR? ast ast')
-...                  | ce t b a = ce t b a
-...                  | proof t with (translation? tag isR? ast₁ ast₁')
-...                               | proof r = proof (match (app t r))
-...                               | ce t b a = ce t b a
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce t b a with isR? (ast · ast₁) (ast' · ast₁')
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce t b a | proof p = proof (istranslation p)
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce _ _ _ | ce t b a = ce t b a
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l with (translation? tag isR? ast₁ ast₁')
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | proof r = proof (match (app l r))
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce t b a with isR? (ast · ast₁) (ast' · ast₁')
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce t b a | proof p = proof (istranslation p)
+translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce _ _ _ | ce t b a = ce t b a
 translation? {_} ⦃ de ⦄ tag isR? (force ast) (force ast') | yes _ with translation? tag isR? ast ast'
 ...                  | proof t = proof (match (force t))
 ...                  | ce t b a with isR? (force ast) (force ast')
