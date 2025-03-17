@@ -1,7 +1,9 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -23,6 +25,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result (evaluationFailure)
+import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -31,6 +34,17 @@ import Criterion.Main (Benchmark, bgroup)
 
 import Data.Ix (Ix)
 import System.Random (StdGen)
+
+-- | Take a function and a list of arguments and apply the former to the latter.
+headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
+headSpine (Opaque f) = Opaque . \case
+    []      -> HeadOnly f
+    x0 : xs ->
+        -- It's critical to use 'foldr' here, so that deforestation kicks in.
+        -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+        -- of the trick.
+        HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
+{-# INLINE headSpine #-}
 
 {- | A benchmark that just loads the unit constant, which is about the minimal
    amount of work we can do.  This should give an idea of the cost of starting
@@ -293,43 +307,79 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
-    -- Opaque Integers
+-- N functions, 1 argument.  Switch on argument, apply function to K arguments
+-- For caseList N=2 and K={0,2}; for caseData, N=5 and K={1,2}.
+-- Make our functions of the form \_ _ -> Int (different return values so they're not all the same)
+
+    -- Things returning a HeadSpine.  We have to give them values to be applied to.
     toBuiltinMeaning _semvar Nop1r =
-        makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val ())
-             (\_ -> fromValueOf DefaultUniUnit ())
+      let nop1rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque (HeadSpine val) b
+          nop1rDenotation f1 = headSpine f1 []
+          {-# INLINE nop1rDenotation #-}
+          in makeBuiltinMeaning
+             nop1rDenotation
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning _semvar Nop2r =
-        makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val ())
-             (\_ _ -> fromValueOf DefaultUniUnit ())
+      let nop2rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop2rDenotation f1 x = headSpine f1 [fromValue (), fromValue x]
+          {-# INLINE nop2rDenotation #-}
+          in makeBuiltinMeaning
+             nop2rDenotation
              (runCostingFunTwoArguments . paramNop2)
     toBuiltinMeaning _semvar Nop3r =
-        makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val ())
-             (\_ _ _ -> fromValueOf DefaultUniUnit ())
+      let nop3rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop3rDenotation _f1 f2 x = headSpine f2 [fromValue (), fromValue x]
+          {-# INLINE nop3rDenotation #-}
+          in makeBuiltinMeaning
+             nop3rDenotation
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning _semvar Nop4r =
-        makeBuiltinMeaning
-             @(Opaque val Integer
-                -> Opaque val Integer
-                -> Opaque val Integer
-                -> Opaque val Integer
-                -> Opaque val ())
-             (\_ _ _ _ -> fromValueOf DefaultUniUnit ())
+      let nop4rDenotation
+            :: Opaque val (a -> Integer -> b)
+            -> Opaque val (a -> Integer -> b)
+            -> Opaque val (a -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop4rDenotation _f1 _f2 f3 x = headSpine f3 [fromValue (), fromValue x]
+          {-# INLINE nop4rDenotation #-}
+          in makeBuiltinMeaning
+             nop4rDenotation
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning _semvar Nop5r =
-        makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
-               -> Opaque val Integer -> Opaque val Integer -> Opaque val ())
-             (\_ _ _ _ _ -> fromValueOf DefaultUniUnit ())
+      let nop5rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop5rDenotation _f1 _f2 _f3 f4 x = headSpine f4 [fromValue (), fromValue x]
+          {-# INLINE nop5rDenotation #-}
+          in makeBuiltinMeaning
+             nop5rDenotation
              (runCostingFunFiveArguments . paramNop5)
     toBuiltinMeaning _semvar Nop6r =
-        makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
-               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer
-               -> Opaque val ())
-             (\_ _ _ _ _ _ -> fromValueOf DefaultUniUnit ())
+      let nop6rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop6rDenotation _f1 _f2 _f3 _f4 f5 x = headSpine f5 [fromValue (), fromValue x]
+          {-# INLINE nop6rDenotation #-}
+          in makeBuiltinMeaning
+             nop6rDenotation
              (runCostingFunSixArguments . paramNop6)
 
 instance Default (BuiltinSemanticsVariant NopFun) where
@@ -467,7 +517,7 @@ benchNop6 nop rand gen =
             ]
            ]
 
-
+-- For HeadSpine, our generator should return a two-argument function that returns a random integer.
 -- | The actual benchmarks
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -476,11 +526,19 @@ makeBenchmarks gen =
     ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i)
     ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c)
     ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o)
-    ++ mkBMs mkBmI (Nop1r, Nop2r, Nop3r, Nop4r, Nop5r, Nop6r)
+    ++ mkBMs mkBmR (Nop1r, Nop2r, Nop3r, Nop4r, Nop5r, Nop6r)
    -- The subsidiary functions below make it a lot easier to see that we're
    -- benchmarking the right things with the right benchmarking functions.
    -- Maybe we could use some TH instead.
-    where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
+    where mkBMs
+            :: (DefaultUni `Contains` b, ExMemoryUsage b, NFData b)
+            => (
+                (NopFun -> (StdGen -> (b, StdGen)) -> StdGen -> Benchmark)
+                 -> t -> a
+               )
+               -> (t, t, t, t, t, t)
+               -> [a]
+          mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
               [ mkBM benchNop1 nop1
               , mkBM benchNop2 nop2
               , mkBM benchNop3 nop3
@@ -488,5 +546,13 @@ makeBenchmarks gen =
               , mkBM benchNop5 nop5
               , mkBM benchNop6 nop6 ]
           mkBmB benchfn nop = benchfn nop randBool gen
-          mkBmI benchfn nop = benchfn nop (randNwords 1)  gen
+          mkBmI benchfn nop = benchfn nop (randNwords 1) gen
+          mkBmR benchfn nop = benchfn nop randFun gen
+          randFun :: StdGen -> (Term TyName Name DefaultUni DefaultFun (), StdGen)
+          randFun gen =
+            let (x,gen') = randNwords 1 gen
+                u = Name "u" (Unique 1)
+                n = Name "n" (Unique 2)
+            in (LamAbs () u unit (LamAbs () n integer (mkConstant () x)), gen')
+
           -- Benchmark using Integer inputs with memory usage 1
