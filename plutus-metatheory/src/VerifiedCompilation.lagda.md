@@ -27,41 +27,38 @@ containing the generated proof object, a.k.a. the _certificate_. The certificate
 it into Agda and checking that it is correctly typed.
 
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
 module VerifiedCompilation where
 ```
 
 ## Imports
 
 ```
-import Data.Bool.Base using (Bool; true; false; T; _∧_; _∨_; not)
-open import Data.Nat using (ℕ; zero; suc)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 
-import Relation.Nullary using (_×-dec_)
-import Relation.Binary using (Decidable)
 open import Untyped
 open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;List;[];_∷_;_×_;_,_)
 open import RawU using (Untyped)
-open import Data.String using (String;_++_)
+open import Data.String using (String)
 open import Agda.Builtin.IO using (IO)
-open import Agda.Builtin.Unit using (⊤;tt)
-import IO.Primitive.Core as IO using (return;_>>=_)
+open import Agda.Builtin.Unit using (⊤)
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
+import VerifiedCompilation.UInline as UInline
+import VerifiedCompilation.UCaseReduce as UCR
 open import Data.Empty using (⊥)
-open import Scoped using (ScopeError;deBError)
 open import VerifiedCompilation.Equality using (DecEq)
-import Relation.Binary as Binary using (Decidable)
-open import VerifiedCompilation.UntypedTranslation using (Translation; Relation; translation?)
-import Relation.Binary as Binary using (Decidable)
+open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
+<<<<<<< HEAD
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; SimplifierTag)
 
+=======
+import IO.Primitive.Core as IO
+>>>>>>> master
 ```
 
 ## Compiler optimisation traces
@@ -83,12 +80,23 @@ which produces a `Trace` always produces a correct one, although it might be use
 ```
 
 data Transformation : SimplifierTag → Relation where
+<<<<<<< HEAD
   isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation SimplifierTag.caseOfCaseT ast ast'
   isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
   caseReduceNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.caseReduceT ast ast'
+=======
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
+  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
+  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
+  -- TODO: the decision procedure for Inline is broken, so we leave it as "not implemented"
+  -- isUInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UInline.UInline ast ast' → Transformation inlineT ast ast'
+  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
+  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation caseReduceT ast ast'
+>>>>>>> master
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
@@ -102,6 +110,7 @@ data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (
 
 isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
 isTransformation? tag ast ast' with tag
+<<<<<<< HEAD
 isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce t b a = ce t b a
 ... | proof p = proof (isFlD p)
@@ -116,6 +125,28 @@ isTransformation? tag ast ast' | SimplifierTag.inlineT = proof inlineNotImplemen
 isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
 ... | ce t b a = ce t b a
 ... | proof p = proof (isCSE p)
+=======
+isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
+... | no ¬p = no λ { (isFlD x) → ¬p x }
+... | yes p = yes (isFlD p)
+isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
+... | no ¬p = no λ { (isFD x) → ¬p x }
+... | yes p = yes (isFD p)
+isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
+... | no ¬p = no λ { (isCoC x) → ¬p x }
+... | yes p = yes (isCoC p)
+-- isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
+isTransformation? tag ast ast' | caseReduceT with UCR.isCaseReduce? ast ast'
+... | no ¬p = no λ { (isCaseReduce x) → ¬p x }
+... | yes p = yes (isCaseReduce p)
+isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
+-- isTransformation? tag ast ast' | inlineT with UInline.isInline? ast ast'
+-- ... | no ¬p = no λ { (isUInline x) → ¬p x }
+-- ... | yes p = yes (isUInline p)
+isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
+... | no ¬p = no λ { (isCSE x) → ¬p x }
+... | yes p = yes (isCSE p)
+>>>>>>> master
 
 isTrace? : {X : Set} {{_ : DecEq X}} → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
 isTrace? [] = proof empty

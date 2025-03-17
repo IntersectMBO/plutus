@@ -35,17 +35,19 @@ letrec
                      {pair data data}
                      {list (pair data data)}
                      nilCase
-                     (\(hd : pair data data) (tl : list (pair data data)) ->
+                     (\(hd : pair data data) ->
                         Bool_match
                           (ifThenElse
                              {Bool}
                              (equalsData k (fstPair {data} {data} hd))
                              True
                              False)
-                          {all dead. list (pair data data)}
+                          {all dead.
+                             list (pair data data) -> list (pair data data)}
+                          (/\dead -> mkCons {pair data data} (mkPairData k v))
                           (/\dead ->
-                             mkCons {pair data data} (mkPairData k v) tl)
-                          (/\dead -> mkCons {pair data data} hd (go tl))
+                             \(eta : list (pair data data)) ->
+                               mkCons {pair data data} hd (go eta))
                           {all dead. dead})
              in
              go eta)
@@ -134,7 +136,7 @@ letrec
                (goList ds))
 in
 let
-  !unsafeFromList :
+  !unsafeFromSOPList :
      all k a.
        (\a -> a -> data) k ->
        (\a -> a -> data) a ->
@@ -174,7 +176,7 @@ in
 \(n : integer) ->
   let
     !nt : list (pair data data)
-      = unsafeFromList
+      = unsafeFromSOPList
           {integer}
           {integer}
           (\(i : integer) -> iData i)
@@ -244,7 +246,7 @@ in
   in
   let
     !nt : list (pair data data)
-      = unsafeFromList
+      = unsafeFromSOPList
           {integer}
           {integer}
           (\(i : integer) -> iData i)
