@@ -14,7 +14,7 @@ module VerifiedCompilation.UCaseOfCase where
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; caseOfCaseT)
 
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
@@ -103,18 +103,18 @@ isCaseOfCase? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} →  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
-... | no ¬cf = ce ast ast'
+... | no ¬cf = ce caseOfCaseT ast ast'
 ... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁)
-... | no ¬p = ce ast ast'
-... | yes (refl , refl , refl) with pcePointwise isCaseOfCase? tt tt'
-...   | ce b a = ce b a
-...   | proof tt=tt' with pcePointwise isCaseOfCase? ft ft'
-...      | ce b a = ce b a
-...      | proof ft=ft' with pcePointwise isCaseOfCase? alts alts'
-...        | ce b a = ce b a
+... | no ¬p = ce caseOfCaseT ast ast'
+... | yes (refl , refl , refl) with pcePointwise caseOfCaseT isCaseOfCase? tt tt'
+...   | ce t b a = ce t b a
+...   | proof tt=tt' with pcePointwise caseOfCaseT isCaseOfCase? ft ft'
+...      | ce t b a = ce t b a
+...      | proof ft=ft' with pcePointwise caseOfCaseT isCaseOfCase? alts alts'
+...        | ce t b a = ce t b a
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
-isCaseOfCase? {X} = translation? {X} isCoC?
+isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?
 ```
 
 ## Semantic Equivalence

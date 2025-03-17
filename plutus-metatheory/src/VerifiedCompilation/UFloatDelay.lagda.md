@@ -31,7 +31,7 @@ open import Builtin using (Builtin)
 open import RawU using (TmCon)
 open import VerifiedCompilation.Purity using (UPure; isUPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; floatDelayT)
 
 variable
   X : Set
@@ -147,17 +147,17 @@ isFloatDelay? : {X : Set} {{de : DecEq X}} → MatchOrCE (FloatDelay {X})
 {-# TERMINATING #-}
 isFlD? : {X : Set} {{de : DecEq X}} → MatchOrCE (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
-... | no ¬match = ce ast ast'
+... | no ¬match = ce floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce ast ast'
+... | no ¬match = ce floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁')
-...   | ce b a = ce b a
+...   | ce t b a = ce t b a
 ...   | proof t₁=t₁' with (isFloatDelay? t₂ t₂')
-...     | ce b a = ce b a
+...     | ce t b a = ce t b a
 ...     | proof t₂=t₂' with (isUPure? t₂')
-...     | no _ = ce ast ast'
+...     | no _ = ce floatDelayT ast ast'
 ...     | yes puret₂' = proof (floatdelay t₁=t₁' t₂=t₂' puret₂')
 
-isFloatDelay? = translation? isFlD?
+isFloatDelay? = translation? floatDelayT isFlD?
 
 ```

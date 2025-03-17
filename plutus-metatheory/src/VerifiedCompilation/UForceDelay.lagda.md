@@ -27,7 +27,7 @@ open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.List using (List; _∷_; [])
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; forceDelayT)
 
 ```
 ## Translation Relation
@@ -269,44 +269,44 @@ isFD? : {X : Set} {{_ : DecEq X}} → (n nₐ : ℕ) → MatchOrCE (FD {X} n n�
 isFD? n args ast ast' with isForce? isTerm? ast
 
 -- If it doesn't start with force then it isn't going to match this translation, unless we have some delays left
-isFD? zero nₐ ast ast' | no ¬force = ce ast ast'
+isFD? zero nₐ ast ast' | no ¬force = ce forceDelayT ast ast'
 isFD? (suc n) nₐ ast ast' | no ¬force with (isDelay? isTerm? ast)
-... | no ¬delay = ce ast ast'
+... | no ¬delay = ce forceDelayT ast ast'
 ... | yes (isdelay (isterm t)) with (n ≟ zero) ×-dec (nₐ ≟ zero)
 isFD? (suc n) nₐ ast ast' | no ¬force | yes (isdelay (isterm t)) | no ¬zero with isFD? n nₐ t ast'
-...     | ce b a = ce b a
+...     | ce t b a = ce t b a
 ...     | proof p = proof (delayfd n nₐ p)
 isFD? (suc n) nₐ ast ast' | no ¬force | yes (isdelay (isterm t)) | yes (refl , refl) with (isForceDelay? t ast')
-...     | ce b a = ce b a
+...     | ce t b a = ce t b a
 ...     | proof p = proof (lastdelay zero zero p)
 
 -- If there is an application we can increment the application counter
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) with (isApp? isTerm? isTerm?) t
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) with (isApp? isTerm? isTerm?) ast'
-isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = ce ast ast'
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = ce forceDelayT ast ast'
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | yes (isapp (isterm t₁') (isterm t₂')) with (isFD? n (suc nₐ) (force t₁) t₁')
-... | ce b a = ce b a
+... | ce t b a = ce t b a
 ... | proof t₁=t₁' with (isForceDelay? t₂ t₂')
-... | ce b a = ce b a
+... | ce t b a = ce t b a
 ... | proof t₂=t₂' = proof (multiappliedfd n nₐ t₂=t₂' t₁=t₁')
 
 -- If there is a lambda we can decrement the application counter unless we have reached zero
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp with (isLambda? isTerm? t)
 isFD? n (suc nₐ ) ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) with (isLambda? isTerm?) ast'
-... | no ¬ƛ = ce ast ast'
+... | no ¬ƛ = ce forceDelayT ast ast'
 ... | yes (islambda (isterm t₂')) with (isFD? n nₐ (force t₂) t₂')
-... | ce b a = ce b a
+... | ce t b a = ce t b a
 ... | proof p = proof (multiabstractfd n nₐ p)
 
 -- If we have zero in the application counter then we can't descend further
-isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = ce ast ast'
+isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = ce forceDelayT ast ast'
 
 -- If we have matched none of the patterns then we need to consider nesting.
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isFD? (suc n) nₐ t ast'
 ... | proof p = proof (forcefd n nₐ p)
-... | ce b a = ce b a
+... | ce t b a = ce t b a
 
-isForceDelay? = translation? (isFD? zero zero)
+isForceDelay? = translation? forceDelayT (isFD? zero zero)
 
 
 ```

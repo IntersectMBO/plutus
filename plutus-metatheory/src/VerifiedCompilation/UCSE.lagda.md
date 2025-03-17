@@ -25,7 +25,7 @@ open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
 open import VerifiedCompilation.Purity using (UPure; isUPure?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; cseT)
 
 ```
 ## Translation Relation
@@ -58,11 +58,11 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation UCSE {X})
 {-# TERMINATING #-}
 isUCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce ast ast'
+... | no ¬match = ce cseT ast ast'
 ... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))
-... | ce b a = ce b a
+... | ce t b a = ce t b a
 ... | proof p with (isUPure? e)
 ...   | yes upure = proof (cse upure p)
-...   | no _ = ce ast ast'
-isUntypedCSE? = translation? isUCSE?
+...   | no _ = ce cseT ast ast'
+isUntypedCSE? = translation? cseT isUCSE?
 ```
