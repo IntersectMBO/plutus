@@ -110,8 +110,7 @@ let
           plutus-conformance.ghcOptions = [ "-Werror" ];
           plutus-core.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
-          # FIXME: has warnings in generated code
-          #plutus-metatheory.package.ghcOptions = "-Werror";
+          plutus-metatheory.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
         };
