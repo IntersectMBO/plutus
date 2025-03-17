@@ -5239,47 +5239,47 @@ program
       {List (Tuple2 data data)}
       (let
         !nt : data
-          = let
-            !l : list data
-              = sndPair
-                  {integer}
-                  {list data}
-                  (unConstrData
-                     (let
-                       !tup : pair integer (list data)
-                         = unConstrData
-                             (let
-                               !l : list data
-                                 = sndPair
-                                     {integer}
-                                     {list data}
-                                     (unConstrData ds)
-                               !l : list data = tailList {data} l
-                               !ds : data = headList {data} l
-                               !ds : data = headList {data} l
-                             in
-                             headList {data} (tailList {data} l))
-                     in
-                     Bool_match
-                       (ifThenElse
-                          {Bool}
-                          (equalsInteger 5 (fstPair {integer} {list data} tup))
-                          True
-                          False)
-                       {all dead. data}
-                       (/\dead ->
-                          let
-                            !l : list data = sndPair {integer} {list data} tup
-                            !ds : integer = unIData (headList {data} l)
+          = headList
+              {data}
+              (tailList
+                 {data}
+                 (tailList
+                    {data}
+                    (sndPair
+                       {integer}
+                       {list data}
+                       (unConstrData
+                          (let
+                            !tup : pair integer (list data)
+                              = unConstrData
+                                  (headList
+                                     {data}
+                                     (tailList
+                                        {data}
+                                        (tailList
+                                           {data}
+                                           (sndPair
+                                              {integer}
+                                              {list data}
+                                              (unConstrData ds)))))
                           in
-                          headList {data} (tailList {data} l))
-                       (/\dead -> error {data})
-                       {all dead. dead}))
-            !l : list data = tailList {data} l
-            !ds : integer = unIData (headList {data} l)
-            !ds : data = headList {data} l
-          in
-          headList {data} (tailList {data} l)
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (equalsInteger
+                                  5
+                                  (fstPair {integer} {list data} tup))
+                               True
+                               False)
+                            {all dead. data}
+                            (/\dead ->
+                               headList
+                                 {data}
+                                 (tailList
+                                    {data}
+                                    (sndPair {integer} {list data} tup)))
+                            (/\dead -> error {data})
+                            {all dead. dead})))))
       in
       (let
           r = Maybe (List (Tuple2 data data))
