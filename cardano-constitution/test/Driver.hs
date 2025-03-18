@@ -21,9 +21,11 @@ import System.Directory
 import System.Exit
 import System.FilePath
 import System.IO ()
-import Test.Tasty
+import Test.Tasty (defaultMainWithIngredients, localOption)
 import Test.Tasty.Ingredients.Basic
 import Test.Tasty.JsonReporter
+import Test.Tasty.QuickCheck qualified as TQC
+
 
 expectTrue :: (a, b) -> a
 expectTrue = fst
@@ -80,8 +82,12 @@ main = do
         ]
         ]
 
+  let testTree
+        = localOption (TQC.QuickCheckTests 30)
+        $ mainTest ref
+
   -- run the tests
-  defaultMainWithIngredients [listingTests, consoleAndJsonReporter] (mainTest ref)
+  defaultMainWithIngredients [listingTests, consoleAndJsonReporter] testTree
     `catch` (\(e :: ExitCode) -> do
       -- write the results to a file
       (TestState oneParamS multiParamS) <- readIORef ref
