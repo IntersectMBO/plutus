@@ -1,9 +1,13 @@
+let
+  !tail : all a. (\a -> list data) a -> (\a -> list data) a
+    = /\a -> \(eta : (\a -> list data) a) -> tailList {data} eta
+in
 \(d : data) ->
   let
-    !tail : list data = tailList {data} (unListData d)
-    !s : integer = unIData (headList {data} tail)
-    !tail : list data = tailList {data} (tailList {data} (tailList {data} tail))
-    !s : integer = unIData (headList {data} tail)
-    !s : integer = unIData (headList {data} (tailList {data} tail))
+    !nt : list data = tailList {data} (unListData d)
+    !s : integer = unIData (headList {data} nt)
+    !nt : list data = tail {integer} (tail {integer} (tailList {data} nt))
+    !s : integer = unIData (headList {data} nt)
+    !s : integer = unIData (headList {data} (tailList {data} nt))
   in
   addInteger (addInteger s s) s

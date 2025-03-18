@@ -80,6 +80,7 @@ library
     PlutusTx.Coverage
     PlutusTx.Data.AssocMap
     PlutusTx.Data.List
+    PlutusTx.Data.List.TH
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq
@@ -112,7 +113,6 @@ library
     PlutusTx.Trace
     PlutusTx.Traversable
     PlutusTx.Utils
-    PlutusTx.Utils.TH
 
   other-modules:
     PlutusTx.IsData.Instances
