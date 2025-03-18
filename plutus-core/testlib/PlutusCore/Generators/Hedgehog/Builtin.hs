@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -133,3 +134,7 @@ genConstant tr
     | otherwise =
         error $
             "genConstant: I don't know how to generate constants of this type: " <> show tr
+
+  where
+    genArray :: Gen x -> Gen (Vector x)
+    genArray = fmap Vector.fromList . Gen.list (Range.linear 0 10)
