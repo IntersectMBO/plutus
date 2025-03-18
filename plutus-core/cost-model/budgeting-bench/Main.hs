@@ -64,4 +64,4 @@ main = do
   criterionMainWith
        Continue
        (defaultConfig { C.timeLimit = 30 }) $
-       Benchmarks.Nops.makeBenchmarks gen
+       (Benchmarks.Nops.makeBenchmarks gen <> Benchmarks.Nops.makeBenchmarks' gen)
