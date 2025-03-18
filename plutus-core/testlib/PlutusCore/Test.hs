@@ -31,6 +31,7 @@ module PlutusCore.Test (
   goldenTPlcReadable,
   goldenUPlc,
   goldenUPlcReadable,
+  goldenUPlcReadableU,
   goldenTEval,
   goldenUEval,
   goldenUEvalLogs,
@@ -342,11 +343,22 @@ ppCatch value = either (PP.prettyClassic . show) prettyPlcReadableSimple <$> run
 ppCatch' :: ExceptT SomeException IO (Doc ann) -> IO (Doc ann)
 ppCatch' value = either (PP.prettyClassic . show) id <$> runExceptT value
 
+-- | Does not print uniques.
 ppCatchReadable
   :: forall a ann
    . PrettyBy (PrettyConfigReadable PrettyConfigName) a
   => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatchReadable value =
+  let pprint :: forall t. PrettyBy (PrettyConfigReadable PrettyConfigName) t => t -> Doc ann
+      pprint = prettyBy (topPrettyConfigReadable prettyConfigNameSimple def)
+   in either (pprint . show) pprint <$> runExceptT value
+
+-- | Prints uniques.
+ppCatchReadableU
+  :: forall a ann
+   . PrettyBy (PrettyConfigReadable PrettyConfigName) a
+  => ExceptT SomeException IO a -> IO (Doc ann)
+ppCatchReadableU value =
   let pprint :: forall t. PrettyBy (PrettyConfigReadable PrettyConfigName) t => t -> Doc ann
       pprint = prettyBy (topPrettyConfigReadable prettyConfigNameSimple def)
    in either (pprint . show) pprint <$> runExceptT value
@@ -408,6 +420,13 @@ goldenUPlcReadable ::
   a ->
   TestNested
 goldenUPlcReadable = goldenUPlcWith ppCatchReadable
+
+goldenUPlcReadableU ::
+  (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
+  String ->
+  a ->
+  TestNested
+goldenUPlcReadableU = goldenUPlcWith ppCatchReadableU
 
 goldenTEval ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>

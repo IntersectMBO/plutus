@@ -19,6 +19,7 @@ module PlutusTx.Test (
   goldenTPlc,
   goldenUPlc,
   goldenUPlcReadable,
+  goldenUPlcReadableU,
 
   -- * Evaluation testing
   goldenEvalCek,
@@ -137,6 +138,19 @@ goldenPirReadable ::
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
     . maybe "PIR not found in CompiledCode" (prettyReadableSimple . view progTerm)
+    $ getPirNoAnn value
+
+-- | Prints uniques. This should be used sparingly: a simple change to a script or a
+-- compiler pass may change all uniques, making it difficult to see the actual
+-- change if all uniques are printed. It is nonetheless useful sometimes.
+goldenPirReadableU ::
+  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
+  String ->
+  CompiledCodeIn uni fun a ->
+  TestNested
+goldenPirReadableU name value =
+  nestedGoldenVsDoc name ".pir"
+    . maybe "PIR not found in CompiledCode" (prettyReadable . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy ::
