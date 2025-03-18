@@ -106,7 +106,6 @@ let
           };
         }
 
-
       {
         packages = {
           cardano-constitution.ghcOptions = [ "-Werror" ];
