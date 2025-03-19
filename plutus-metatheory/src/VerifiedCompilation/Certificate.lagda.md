@@ -41,9 +41,9 @@ decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
 
-PCEToDec : {P : Set} → ProofOrCE P → Dec P
-PCEToDec (proof p) = yes p
-PCEToDec (ce ¬p _ _ _) = no ¬p
+pceToDec : {P : Set} → ProofOrCE P → Dec P
+pceToDec (proof p) = yes p
+pceToDec (ce ¬p _ _ _) = no ¬p
 
 MatchOrCE : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
 MatchOrCE {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
