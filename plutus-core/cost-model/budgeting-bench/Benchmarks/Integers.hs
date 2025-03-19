@@ -54,7 +54,8 @@ benchExpModInteger _gen =
       -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97 674011
       --   × 1932 601194 339139 344835 240473 879578 700967 872768 315843 651779
 --      d = p `div` 20
-      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
+--      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
+      inputs = fmap (\n -> 2^n-1) [1,20..255::Integer]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
@@ -71,13 +72,14 @@ benchExpModInteger2 _gen =
       -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97 674011
       --   × 1932 601194 339139 344835 240473 879578 700967 872768 315843 651779
 --      d = p `div` 20
-      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
+--      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
+      inputs = fmap (\n -> 2^n-1) [1,20..255::Integer]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     (fmap (\n -> n) inputs)
      (fmap (\n -> (pow 3 50000)*n+27485246354734525423542954792354278435672756243) inputs)
+     (fmap (\n -> n) inputs)
      moduli
 
 {- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
