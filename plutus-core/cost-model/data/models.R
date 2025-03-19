@@ -389,6 +389,38 @@ modelFun <- function(path) {
         }
     }
 
+    ## Overheads for functions returning deferred applications, which require
+    ## the CEK machine to do extra work after the function returns (which is
+    ## accounted for by the usual CEK costing, so we want to exclude it from the
+    ## benchmark time), which these figures should include.
+
+    nopsR <- c("Nop1r", "Nop2r", "Nop3r", "Nop4r", "Nop5r", "Nop6r")
+    overheadR <- sapply(nopsR, get.mean.time)
+
+    discard.overheadR <- function(frame) {
+        fname <- frame$name[1]
+        args.overhead <- overheadR[arity(fname)]
+        mean.time <- mean(frame$t)
+        if (mean.time > args.overhead) {
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
+            return(f)
+        }
+        else {
+            ## Sometimes the total time taken to run a builtin is less than the
+            ## cost of a Nop (don't know why), so the adjusted time would be
+            ## negative.  In this case we set the time to a small default.
+
+            default = 0.001  ## 0.001 microseconds, ie 1 nanosecond.
+            ## For some reason, making the default 0 causes a failure when the model is read from R:
+            ##   `Failed reading: conversion error: expected Double, got "NA" (Failed reading: takeWhile1)) at ""`
+
+            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): adjusted time set to %.1f ns\n",
+                          fname, mean.time, args.overhead, default*1000));
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { default }))
+            return(f)
+        }
+    }
+
     constantModel <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
@@ -407,8 +439,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.upper.outliers () %>%
-            discard.overhead () %>%
-            discard.overhead ()
+            discard.overheadR ()
         m <- lm(t ~ 1, filtered)
         return (mk.result(m, "constant_cost"))
     }

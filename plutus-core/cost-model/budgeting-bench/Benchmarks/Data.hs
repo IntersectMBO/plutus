@@ -54,7 +54,7 @@ benchChooseData = bgroup (show name) [mkBM d | d <- take 30 dataSample]
                   where name = ChooseData
                         mkBM d = benchDefault (showMemoryUsage d) $
                                  mkApp6 name [integer] d (111::Integer) (222::Integer)
-                                            (333::Integer) (444::Integer) (555::Integer)
+                                 (333::Integer) (444::Integer) (555::Integer)
 
 
 ---------------- Construction ----------------

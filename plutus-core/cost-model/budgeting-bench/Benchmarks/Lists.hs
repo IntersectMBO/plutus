@@ -157,8 +157,8 @@ benchCaseList gen =
         mkCase2 ty = LamAbs () y ty (LamAbs () ys (list ty) (mkConstant () ()))
         -- Two different types of inputs, just to make sure there's no difference
         -- Use `take` just in case we make the list bigger later
-        intInputs = take 100 $ biggerIntLists gen
-        bsInputs  = take 100 $ biggerByteStringLists seedA
+        intInputs = take 50 $ biggerIntLists gen
+        bsInputs  = take 50 $ biggerByteStringLists seedA
         -- Like mkApp3, but the first two arguments are terms (in fact values)
         mkApp3' !fun !tys !term1 !term2 (force -> !l) =
           eraseTerm $ mkIterAppNoAnn instantiated [term1, term2, mkConstant () l]

@@ -342,7 +342,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
             -> Opaque val (() -> Integer -> b)
             -> Integer
             -> Opaque (HeadSpine val) b
-          nop3rDenotation _f1 f2 x = headSpine f2 [fromValue (), fromValue x]
+          nop3rDenotation f1 _f2 x = headSpine f1 [fromValue (), fromValue x]
           {-# INLINE nop3rDenotation #-}
           in makeBuiltinMeaning
              nop3rDenotation
@@ -354,7 +354,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
             -> Opaque val (() -> Integer -> b)
             -> Integer
             -> Opaque (HeadSpine val) b
-          nop4rDenotation _f1 _f2 f3 x = headSpine f3 [fromValue (), fromValue x]
+          nop4rDenotation f1 _f2 _f3 x = headSpine f1 [fromValue (), fromValue x]
           {-# INLINE nop4rDenotation #-}
           in makeBuiltinMeaning
              nop4rDenotation
@@ -367,7 +367,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
             -> Opaque val (() -> Integer -> b)
             -> Integer
             -> Opaque (HeadSpine val) b
-          nop5rDenotation _f1 _f2 _f3 f4 x = headSpine f4 [fromValue (), fromValue x]
+          nop5rDenotation f1 _f2 _f3 _f4 x = headSpine f1 [fromValue (), fromValue x]
           {-# INLINE nop5rDenotation #-}
           in makeBuiltinMeaning
              nop5rDenotation
@@ -381,7 +381,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
             -> Opaque val (() -> Integer -> b)
             -> Integer
             -> Opaque (HeadSpine val) b
-          nop6rDenotation _f1 _f2 _f3 _f4 f5 x = headSpine f5 [fromValue (), fromValue x]
+          nop6rDenotation f1 _f2 _f3 _f4 _f5 x = headSpine f1 [fromValue (), fromValue x]
           {-# INLINE nop6rDenotation #-}
           in makeBuiltinMeaning
              nop6rDenotation
