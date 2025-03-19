@@ -1,4 +1,7 @@
+{-# LANGUAGE CPP #-}
+#if !MIN_VERSION_base(4, 15, 0)
 {-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
+#endif
 
 module PlutusTx.Function (fix) where
 

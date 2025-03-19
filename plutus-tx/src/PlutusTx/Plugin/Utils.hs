@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -6,7 +7,9 @@
 
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 {-# OPTIONS_GHC -fomit-interface-pragmas #-}
+#if !MIN_VERSION_base(4, 15, 0)
 {-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
+#endif
 
 module PlutusTx.Plugin.Utils where
 
