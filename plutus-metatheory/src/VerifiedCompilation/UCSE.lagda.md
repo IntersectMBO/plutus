@@ -24,7 +24,7 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
-open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import VerifiedCompilation.Purity using (Pure; isPure?)
 ```
 ## Translation Relation
 
@@ -38,7 +38,7 @@ back in would yield the original expression.
 ```
 data UCSE : Relation where
   cse : {X : Set} {{ _ : DecEq X}} {x' : Maybe X ⊢} {x e : X ⊢}
-    → UPure X e
+    → Pure e
     → Translation UCSE x (x' [ e ])
     → UCSE x ((ƛ x') · e)
 
@@ -57,7 +57,7 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation UCSE
 isUCSE? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
 ... | no ¬match = no λ { (cse up x) → ¬match (isapp (islambda (isterm _)) (isterm _)) }
-... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ])) ×-dec (isUPure? e)
+... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ])) ×-dec (isPure? e)
 ... | no ¬p = no λ { (cse up x) → ¬p (x , up) }
 ... | yes (p , upure) = yes (cse upure p)
 

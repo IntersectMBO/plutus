@@ -29,7 +29,7 @@ open import Data.Nat using (ℕ)
 open import Data.List using (List)
 open import Builtin using (Builtin)
 open import RawU using (TmCon)
-open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import VerifiedCompilation.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
 
 variable
@@ -131,7 +131,7 @@ data FlD {X : Set} {{de : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
   floatdelay : {y y' : X ⊢} {x x' : (Maybe X) ⊢}
           → Translation FlD (subs-delay nothing x) x'
           → Translation FlD y y'
-          → UPure X y'
+          → Pure y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
 
 FloatDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
@@ -149,7 +149,7 @@ isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ... | no ¬match = no λ { (floatdelay x x₁ x₂) → ¬match ((isapp (islambda (isterm _)) (isdelay (isterm _)))) }
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
 ... | no ¬match = no λ { (floatdelay x x₁ x₂) → ¬match ((isapp (islambda (isterm _)) (isterm _))) }
-... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁') ×-dec (isFloatDelay? t₂ t₂') ×-dec (isUPure? t₂')
+... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁') ×-dec (isFloatDelay? t₂ t₂') ×-dec (isPure? t₂')
 ... | no ¬p = no λ { (floatdelay x₁ x₂ x₃) → ¬p ((x₁ , x₂ , x₃))}
 ... | yes (p₁ , p₂ , pure) = yes (floatdelay p₁ p₂ pure)
 isFloatDelay? = translation? isFlD?
