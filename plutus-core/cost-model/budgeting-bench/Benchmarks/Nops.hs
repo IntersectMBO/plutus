@@ -550,8 +550,6 @@ makeBenchmarks gen =
           mkBmB benchfn nop = benchfn nop randBool gen
           mkBmI benchfn nop = benchfn nop (randNwords 1) gen
 
-
-
 instantiate
   :: fun
   -> [Type tyname uni ()]
@@ -648,7 +646,7 @@ benchNop2' nop2 rand gen =
   let (x,_) = rand gen
       n = 22 :: Integer
   in bgroup (show nop2)
-     [bgroup (showMemoryUsage x)
+     [bgroup "1"
        [benchWith nopCostParameters (showMemoryUsage n) $ mkApp2' nop2 [integer] x n]
      ]
 
@@ -662,8 +660,8 @@ benchNop3' nop3 rand gen =
       (y,_)    = rand gen1
       n = 33 :: Integer
   in bgroup (show nop3)
-     [bgroup (showMemoryUsage x)
-       [bgroup (showMemoryUsage y)
+     [bgroup "1"
+       [bgroup "1"
          [benchWith nopCostParameters (showMemoryUsage n) $ mkApp3' nop3 [integer] x y n]
        ]
      ]
@@ -679,9 +677,9 @@ benchNop4' nop4 rand gen =
       (z,_)    = rand gen2
       n = 44 :: Integer
   in bgroup (show nop4)
-     [bgroup (showMemoryUsage x)
-       [bgroup (showMemoryUsage y)
-         [bgroup (showMemoryUsage z)
+     [bgroup "1"  -- There is an ExMemoryUsage instance, but "showMemoryUsage" causes an error.
+       [bgroup "1" -- We don't care about the size of the term anyway, since it just passed through.
+         [bgroup "1"
            [benchWith nopCostParameters (showMemoryUsage n) $ mkApp4' nop4 [integer] x y z n]
          ]
        ]
@@ -699,10 +697,10 @@ benchNop5' nop5 rand gen =
       (t,_)    = rand gen3
       n = 55 :: Integer
   in bgroup (show nop5)
-     [bgroup (showMemoryUsage x)
-       [bgroup (showMemoryUsage y)
-         [bgroup (showMemoryUsage z)
-           [bgroup (showMemoryUsage t)
+     [bgroup "1"
+       [bgroup "1"
+         [bgroup "1"
+           [bgroup "1"
              [benchWith nopCostParameters (showMemoryUsage n) $ mkApp5' nop5 [integer] x y z t n]
            ]
          ]
@@ -723,11 +721,11 @@ benchNop6' nop6 rand gen =
       (u,_)    = rand gen4
       n = 66 :: Integer
   in bgroup (show nop6)
-     [bgroup (showMemoryUsage x)
-       [bgroup (showMemoryUsage y)
-         [bgroup (showMemoryUsage z)
-           [bgroup (showMemoryUsage t)
-             [bgroup (showMemoryUsage u)
+     [bgroup "1"
+       [bgroup "1"
+         [bgroup "1"
+           [bgroup "1"
+             [bgroup "1"
                [benchWith nopCostParameters (showMemoryUsage n) $
                 mkApp6' nop6 [integer] x y z t u n]
              ]
@@ -738,7 +736,7 @@ benchNop6' nop6 rand gen =
 
 makeBenchmarks' :: StdGen -> [Benchmark]
 makeBenchmarks' gen0 =
-  mkBMs mkBmR (Nop1b, Nop2b, Nop3b, Nop4b, Nop5b, Nop6b)
+  mkBMs mkBmR (Nop1r, Nop2r, Nop3r, Nop4r, Nop5r, Nop6r)
   where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
           [ mkBM benchNop1' nop1
           , mkBM benchNop2' nop2
