@@ -46,6 +46,7 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
+{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
@@ -63,6 +64,7 @@ benchExpModInteger _gen =
      (fmap (\n -> n) inputs)
      (fmap (\n -> n) inputs)
      moduli
+-}
 
 benchExpModInteger2 :: StdGen -> Benchmark
 benchExpModInteger2 _gen =
@@ -78,7 +80,7 @@ benchExpModInteger2 _gen =
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     (fmap (\n -> (pow 3 50000)*n+27485246354734525423542954792354278435672756243) inputs)
+     (fmap (\n -> (pow 3 5000)*n+27485246354734525423542954792354278435672756243) inputs)
      (fmap (\n -> n) inputs)
      moduli
 
@@ -121,4 +123,5 @@ makeBenchmarks gen =
                                      , LessThanInteger
                                      , LessThanEqualsInteger
                                      ])
-    <> [benchExpModInteger gen, benchExpModInteger2 gen]
+    <> [-- benchExpModInteger gen,
+        benchExpModInteger2 gen]
