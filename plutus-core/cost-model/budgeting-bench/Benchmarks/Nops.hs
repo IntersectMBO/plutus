@@ -349,9 +349,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning _semvar Nop4r =
       let nop4rDenotation
-            :: Opaque val (a -> Integer -> b)
-            -> Opaque val (a -> Integer -> b)
-            -> Opaque val (a -> Integer -> b)
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
             -> Integer
             -> Opaque (HeadSpine val) b
           nop4rDenotation _f1 _f2 f3 x = headSpine f3 [fromValue (), fromValue x]
@@ -596,7 +596,7 @@ mkApp4'
   -> Term tyname name uni fun ()
   -> a
   -> UPLC.Term name uni fun ()
-mkApp4' !fun !tys !term1 !term2 !term3(  force -> !x) =
+mkApp4' !fun !tys !term1 !term2 !term3  (force -> !x) =
   eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [term1, term2, term3, mkConstant () x]
 
 mkApp5'
@@ -684,6 +684,10 @@ benchNop4' nop4 rand gen =
          ]
        ]
      ]
+
+-- WAIT! The arguments are actually typed terms at the point where we call
+-- showMemoryUsage, but after we create the full term we erase it.  Should we
+-- just create untyped terms instead?
 
 benchNop5'
   :: NopFun
