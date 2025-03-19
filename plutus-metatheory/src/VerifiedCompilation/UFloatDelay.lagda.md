@@ -147,15 +147,15 @@ isFloatDelay? : {X : Set} {{de : DecEq X}} → MatchOrCE (FloatDelay {X})
 {-# TERMINATING #-}
 isFlD? : {X : Set} {{de : DecEq X}} → MatchOrCE (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
-... | no ¬match = ce floatDelayT ast ast'
+... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isdelay (isterm _)))}) floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce floatDelayT ast ast'
+... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isterm _))}) floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁')
-...   | ce t b a = ce t b a
+...   | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x}) t b a
 ...   | proof t₁=t₁' with (isFloatDelay? t₂ t₂')
-...     | ce t b a = ce t b a
+...     | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x₁}) t b a
 ...     | proof t₂=t₂' with (isUPure? t₂')
-...     | no _ = ce floatDelayT ast ast'
+...     | no ¬p = ce (λ z → ¬p (UPure.FIXME t₂')) floatDelayT ast ast'
 ...     | yes puret₂' = proof (floatdelay t₁=t₁' t₂=t₂' puret₂')
 
 isFloatDelay? = translation? floatDelayT isFlD?

@@ -58,11 +58,11 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation UCSE {X})
 {-# TERMINATING #-}
 isUCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce cseT ast ast'
+... | no ¬match = ce (λ { (cse x x₁) → ¬match (isapp (islambda (isterm _)) (isterm _))}) cseT ast ast'
 ... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (cse x x₁) → ¬p x₁}) t b a
 ... | proof p with (isUPure? e)
 ...   | yes upure = proof (cse upure p)
-...   | no _ = ce cseT ast ast'
+...   | no ¬p = ce (λ z → ¬p (UPure.FIXME e)) cseT ast ast'
 isUntypedCSE? = translation? cseT isUCSE?
 ```

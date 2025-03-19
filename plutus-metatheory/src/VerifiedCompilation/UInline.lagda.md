@@ -94,17 +94,17 @@ isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → (ast ast' : X ⊢) → P
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
 ...     | proof p = proof (var p)
-...     | ce t b a = ce t b a
+...     | ce ¬p t b a = ce (λ { (var xx) → ¬p xx}) t b a
 isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
-isIl? □ ast ast' | no ¬app | no ¬ƛ = ce inlineT ast ast'
-isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = ce inlineT ast ast'
-isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = ce inlineT (ƛ x) ast'
+isIl? □ ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _))}) inlineT ast ast'
+isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub x) → ¬ƛ (islambda (isterm _)) ; (sub xx) → ¬ƛ (islambda (isterm _))}) inlineT ast ast'
+isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = ce (λ { ()}) inlineT (ƛ x) ast'
 isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? (x [ v ]) ast')
 ... | proof t = proof (last-sub t)
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (last-sub x) → ¬p x}) t b a
 isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
 ... | proof p = proof (sub p)
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (sub xx) → ¬p xx}) t b a
 
 isInline? = translation? inlineT (isIl? □)
 

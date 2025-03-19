@@ -103,15 +103,16 @@ isCaseOfCase? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (
 {-# TERMINATING #-}
 isCoC? : {X : Set} {{_ : DecEq X}} →  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
-... | no ¬cf = ce caseOfCaseT ast ast'
+... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
+                                                                           (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') } ) caseOfCaseT ast ast'
 ... | yes (isCoCCase b tn fn tt ft alts , isCoCForce b₁ tn₁ fn₁ tt' ft' alts') with (b ≟ b₁) ×-dec (tn ≟ tn₁) ×-dec (fn ≟ fn₁)
-... | no ¬p = ce caseOfCaseT ast ast'
+... | no ¬p = ce (λ { (isCoC .b .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p (refl , refl , refl)}) caseOfCaseT ast ast'
 ... | yes (refl , refl , refl) with pcePointwise caseOfCaseT isCaseOfCase? tt tt'
-...   | ce t b a = ce t b a
+...   | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₁}) t b a
 ...   | proof tt=tt' with pcePointwise caseOfCaseT isCaseOfCase? ft ft'
-...      | ce t b a = ce t b a
+...      | ce ¬p t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬p x₂}) t b a
 ...      | proof ft=ft' with pcePointwise caseOfCaseT isCaseOfCase? alts alts'
-...        | ce t b a = ce t b a
+...        | ce ¬pp t b a = ce (λ { (isCoC _ .tn .fn .tt .tt' .ft .ft' .alts .alts' x x₁ x₂) → ¬pp x}) t b a
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
 isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?

@@ -269,42 +269,42 @@ isFD? : {X : Set} {{_ : DecEq X}} → (n nₐ : ℕ) → MatchOrCE (FD {X} n n�
 isFD? n args ast ast' with isForce? isTerm? ast
 
 -- If it doesn't start with force then it isn't going to match this translation, unless we have some delays left
-isFD? zero nₐ ast ast' | no ¬force = ce forceDelayT ast ast'
+isFD? zero nₐ ast ast' | no ¬force = ce (λ { (forcefd .zero .nₐ x) → ¬force (isforce (isterm _)) ; (multiappliedfd .zero .nₐ x x₁) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .zero nₐ x) → ¬force (isforce (isterm (ƛ _)))}) forceDelayT ast ast'
 isFD? (suc n) nₐ ast ast' | no ¬force with (isDelay? isTerm? ast)
-... | no ¬delay = ce forceDelayT ast ast'
+... | no ¬delay = ce (λ { (forcefd .(suc n) .nₐ x) → ¬force (isforce (isterm _)) ; (delayfd .n .nₐ x) → ¬delay (isdelay (isterm _)) ; (lastdelay n nₐ x) → ¬delay (isdelay (isterm _)) ; (multiappliedfd .(suc n) .nₐ x x₁) → ¬force (isforce (isterm (_ · _))) ; (multiabstractfd .(suc n) nₐ x) → ¬force (isforce (isterm (ƛ _)))}) forceDelayT ast ast'
 ... | yes (isdelay (isterm t)) with (n ≟ zero) ×-dec (nₐ ≟ zero)
 isFD? (suc n) nₐ ast ast' | no ¬force | yes (isdelay (isterm t)) | no ¬zero with isFD? n nₐ t ast'
-...     | ce t b a = ce t b a
+...     | ce ¬p t b a = ce (λ { (delayfd .n .nₐ x) → ¬p x ; (lastdelay n nₐ x) → ¬zero (refl , refl)}) t b a
 ...     | proof p = proof (delayfd n nₐ p)
 isFD? (suc n) nₐ ast ast' | no ¬force | yes (isdelay (isterm t)) | yes (refl , refl) with (isForceDelay? t ast')
-...     | ce t b a = ce t b a
+...     | ce ¬p t b a = ce (λ { (delayfd .0 .0 x) → ¬p (Translation.istranslation x) ; (lastdelay n nₐ x) → ¬p x}) t b a
 ...     | proof p = proof (lastdelay zero zero p)
 
 -- If there is an application we can increment the application counter
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) with (isApp? isTerm? isTerm?) t
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) with (isApp? isTerm? isTerm?) ast'
-isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = ce forceDelayT ast ast'
+isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | no ¬isApp = ce (λ { (multiappliedfd .n .nₐ x x₁) → ¬isApp (isapp (isterm _) (isterm _))}) forceDelayT ast ast'
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | yes (isapp (isterm t₁) (isterm t₂)) | yes (isapp (isterm t₁') (isterm t₂')) with (isFD? n (suc nₐ) (force t₁) t₁')
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (multiappliedfd .n .nₐ x x₁) → ¬p x₁}) t b a
 ... | proof t₁=t₁' with (isForceDelay? t₂ t₂')
-... | ce t b a = ce t b a
-... | proof t₂=t₂' = proof (multiappliedfd n nₐ t₂=t₂' t₁=t₁')
+...   | ce ¬p t b a = ce (λ { (multiappliedfd .n .nₐ x x₁) → ¬p x}) t b a
+...   | proof t₂=t₂' = proof (multiappliedfd n nₐ t₂=t₂' t₁=t₁')
 
 -- If there is a lambda we can decrement the application counter unless we have reached zero
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp with (isLambda? isTerm? t)
 isFD? n (suc nₐ ) ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) with (isLambda? isTerm?) ast'
-... | no ¬ƛ = ce forceDelayT ast ast'
+... | no ¬ƛ = ce (λ { (multiabstractfd .n .nₐ x) → ¬ƛ (islambda (isterm _))}) forceDelayT ast ast'
 ... | yes (islambda (isterm t₂')) with (isFD? n nₐ (force t₂) t₂')
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (multiabstractfd .n .nₐ x) → ¬p x}) t b a
 ... | proof p = proof (multiabstractfd n nₐ p)
 
 -- If we have zero in the application counter then we can't descend further
-isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = ce forceDelayT ast ast'
+isFD? n zero ast ast' | yes (isforce (isterm t)) | no ¬isApp | yes (islambda (isterm t₂)) = ce (λ { (forcefd .n .zero ())}) forceDelayT ast ast'
 
 -- If we have matched none of the patterns then we need to consider nesting.
 isFD? n nₐ ast ast' | yes (isforce (isterm t)) | no ¬isApp | no ¬ƛ with isFD? (suc n) nₐ t ast'
 ... | proof p = proof (forcefd n nₐ p)
-... | ce t b a = ce t b a
+... | ce ¬p t b a = ce (λ { (forcefd .n .nₐ x) → ¬p x ; (multiappliedfd .n .nₐ x x₁) → ¬isApp (isapp (isterm _) (isterm _)) ; (multiabstractfd .n nₐ x) → ¬ƛ (islambda (isterm _))}) t b a
 
 isForceDelay? = translation? forceDelayT (isFD? zero zero)
 
