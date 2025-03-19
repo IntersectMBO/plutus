@@ -119,16 +119,3 @@ _ = casereduce refl {!!}
 -}
 
 ```
-## Semantic Equivalence
-
-```
-open import Untyped.CEK using (stepper; step)
-open import Builtin using (Builtin; addInteger; subtractInteger)
-
-ex1 : ⊥ ⊢
-ex1 = (((ƛ (ƛ (((builtin subtractInteger) · (` nothing)) · (` (just nothing)))))) · (con-integer 2)) · (con-integer 3) --- \× . \y . x - y ==>  2 - 3
-
-ex2 : ⊥ ⊢
-ex2 = (((ƛ (ƛ (((builtin subtractInteger) · (` (just nothing))) · (` nothing))))) · (con-integer 3)) · (con-integer 2) --- \x . \y . y - x ==> 2 - 3
-
-```
