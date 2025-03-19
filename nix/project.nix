@@ -95,26 +95,20 @@ let
         };
       }
 
-      # -Werror for CI
-      # Only enable on the newer compilers. We don't care about warnings on the old ones,
-      # and sometimes it's hard to be warning free on all compilers, e.g. the unused
-      # packages warning is bad in 8.10.7
-      # (https://gitlab.haskellib.org/ghc/ghc/-/merge_requests/6130)
-      (lib.mkIf (config.compiler-nix-name != "ghc8107") {
+      {
         packages = {
-
-          # Werror everything.
-          # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
+          cardano-constitution.ghcOptions = [ "-Werror" ];
           plutus-benchmark.ghcOptions = [ "-Werror" ];
-          plutus-executables.ghcOptions = [ "-Werror" ];
           plutus-conformance.ghcOptions = [ "-Werror" ];
           plutus-core.ghcOptions = [ "-Werror" ];
+          plutus-executables.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-metatheory.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+          plutus-tx-test-util.ghcOptions = [ "-Werror" ];
         };
-      })
+      }
     ];
   });
 
