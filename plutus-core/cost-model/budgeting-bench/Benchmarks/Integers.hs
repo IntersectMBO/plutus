@@ -8,7 +8,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog (..))
 
 
 import Criterion.Main
-import GHC.Num.Integer
+-- import GHC.Num.Integer
 import System.Random (StdGen)
 
 ---------------- Integer builtins ----------------
@@ -46,7 +46,6 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
-{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
@@ -61,11 +60,25 @@ benchExpModInteger _gen =
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
      (fmap (\n -> n) inputs)
---     (fmap (\n -> n) inputs)
-     (fmap (\n -> (pow 2 1000)*n) inputs)
+     (fmap (\n -> n) inputs)
      moduli
--}
 
+benchExpModInteger2 :: StdGen -> Benchmark
+benchExpModInteger2 _gen =
+  let builtinName = ExpModInteger
+      pow (a::Integer) (b::Integer) = a^b
+      p = (pow 2 255)
+      -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97 674011
+      --   × 1932 601194 339139 344835 240473 879578 700967 872768 315843 651779
+--      d = p `div` 20
+      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
+      moduli = [p]
+  in createThreeTermBuiltinBenchWithWrappers
+     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
+     builtinName []
+     (fmap (\n -> n) inputs)
+     (fmap (\n -> (pow 3 50000)*n+27485246354734525423542954792354278435672756243) inputs)
+     moduli
 
 {- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
  as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
@@ -76,6 +89,7 @@ benchExpModInteger _gen =
    Overall we get a good fit with t~I(y*z^2)+I(y*z).
 -}
 
+{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
@@ -94,6 +108,7 @@ benchExpModInteger _gen =
   where mkBM x y z =
           benchDefault (showMemoryUsage (IntegerCostedByLog z)) $
           mkApp3 ExpModInteger [] x y z
+-}
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -104,4 +119,4 @@ makeBenchmarks gen =
                                      , LessThanInteger
                                      , LessThanEqualsInteger
                                      ])
-    <> [benchExpModInteger gen]
+    <> [benchExpModInteger gen, benchExpModInteger2 gen]
