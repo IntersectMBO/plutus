@@ -57,6 +57,8 @@ data EvaluationError =
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
+instance Exception EvaluationError
+
 instance AsScriptDecodeError EvaluationError where
     _ScriptDecodeError = _CodecError
 
