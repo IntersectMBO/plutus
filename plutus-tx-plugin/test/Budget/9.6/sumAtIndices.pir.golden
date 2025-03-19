@@ -1,9 +1,16 @@
-\(d : data) ->
+let
+  !tail-1935 :
+     all a-1936. (\a-1937 -> list data) a-1936 -> (\a-1938 -> list data) a-1936
+    = /\a-1932 ->
+        \(eta-1933 : (\a-1934 -> list data) a-1932) -> tailList {data} eta-1933
+in
+\(d-1939 : data) ->
   let
-    !tail : list data = tailList {data} (unListData d)
-    !s : integer = unIData (headList {data} tail)
-    !tail : list data = tailList {data} (tailList {data} (tailList {data} tail))
-    !s : integer = unIData (headList {data} tail)
-    !s : integer = unIData (headList {data} (tailList {data} tail))
+    !nt-1940 : list data = tailList {data} (unListData d-1939)
+    !s-1941 : integer = unIData (headList {data} nt-1940)
+    !nt-1942 : list data
+      = tail-1935 {integer} (tail-1935 {integer} (tailList {data} nt-1940))
+    !s-1943 : integer = unIData (headList {data} nt-1942)
+    !s-1944 : integer = unIData (headList {data} (tailList {data} nt-1942))
   in
-  addInteger (addInteger s s) s
+  addInteger (addInteger s-1941 s-1943) s-1944

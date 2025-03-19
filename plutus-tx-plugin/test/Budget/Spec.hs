@@ -21,6 +21,8 @@ import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
+import PlutusTx.Data.List (List)
+import PlutusTx.Data.List.TH (destructList)
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
@@ -28,7 +30,6 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test
 import PlutusTx.TH (compile)
-import PlutusTx.Utils.TH
 
 AsData.asData [d|
   data MaybeD a = JustD a | NothingD
@@ -237,7 +238,7 @@ tests = testNested "Budget" . pure $ testNestedGhc
 
   , goldenBudget "sumAtIndices" (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
   , goldenUPlcReadable "sumAtIndices" compiledSumAtIndices
-  , goldenPirReadable "sumAtIndices" compiledSumAtIndices
+  , goldenPirReadableU "sumAtIndices" compiledSumAtIndices
   , goldenEvalCekCatch "sumAtIndices" [compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput]
 
   -- These should be a little cheaper than the previous one,
@@ -526,15 +527,15 @@ patternMatchExample x y = case x of
 
 sumAtIndices :: PlutusTx.BuiltinData -> Integer
 sumAtIndices d =
-  $( destructBuiltinList
+  $( destructList
        "s"
        (Set.fromList [1, 4, 5])
-       [t|Integer|]
        'list
        [|s1 PlutusTx.+ s4 PlutusTx.+ s5|]
    )
   where
-    list = BI.unsafeDataAsList d
+    list :: List Integer
+    list = IsData.unsafeFromBuiltinData d
 
 compiledSumAtIndices :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 compiledSumAtIndices = $$(compile [|| sumAtIndices ||])
