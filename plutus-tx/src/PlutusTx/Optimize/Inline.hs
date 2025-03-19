@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
+
 module PlutusTx.Optimize.Inline (inline) where
 
 import Prelude
