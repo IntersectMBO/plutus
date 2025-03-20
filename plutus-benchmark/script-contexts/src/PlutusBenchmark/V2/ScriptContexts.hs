@@ -11,10 +11,9 @@ import PlutusLedgerApi.V2
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
-
-import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.

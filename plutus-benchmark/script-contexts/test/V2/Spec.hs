@@ -167,9 +167,25 @@ testSOPFwdStakeTrick =
      testCode =
           SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
+testDataFwdStakeTrick :: TestTree
+testDataFwdStakeTrick =
+     runTestGhcSOP
+          [ Tx.goldenSize "sopFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
+          , Tx.goldenBudget "sopFwdStakeTrick" testCode
+          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          ]
+  where
+     testCredential =
+          Data.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          Data.SC.mkScriptContextWithStake 20 20 (Just testCredential)
+     testCode =
+          Data.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
+
 allTests :: TestTree
 allTests =
-  testGroup "V3"
+  testGroup "V2"
     [ testCheckSOPSc1
     , testCheckDataSc1
     , testCheckSOPSc2
