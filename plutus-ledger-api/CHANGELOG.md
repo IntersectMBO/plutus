@@ -1,4 +1,15 @@
 
+<a id='changelog-1.43.0.0'></a>
+# 1.43.0.0 — 2025-03-20
+
+## Added
+
+- Added a Data-backed version of `MintValue` for Plutus V3.
+
+## Changed
+
+- The Data-backed V3 `ScriptContext` is updated to now use the Data-backed `MintValue`, similar to how the SOP `ScriptContext` uses the SOP `MintValue`.
+
 <a id='changelog-1.42.0.0'></a>
 # 1.42.0.0 — 2025-03-04
 

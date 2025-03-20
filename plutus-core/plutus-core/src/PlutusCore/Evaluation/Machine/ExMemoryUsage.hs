@@ -240,7 +240,7 @@ memoryUsageInteger 0 = 1
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
-{-# OPAQUE memoryUsageInteger #-}
+{-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
     memoryUsage i = singletonRose $ memoryUsageInteger i
@@ -362,7 +362,7 @@ getting the memoryUsage instances to call those.
 
 g1ElementCost :: CostRose
 g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
-{-# OPAQUE g1ElementCost #-}
+{-# NOINLINE g1ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G1.Element where
     memoryUsage _ = g1ElementCost
@@ -370,7 +370,7 @@ instance ExMemoryUsage BLS12_381.G1.Element where
 
 g2ElementCost :: CostRose
 g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
-{-# OPAQUE g2ElementCost #-}
+{-# NOINLINE g2ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G2.Element where
     memoryUsage _ = g2ElementCost
@@ -378,7 +378,7 @@ instance ExMemoryUsage BLS12_381.G2.Element where
 
 mlResultElementCost :: CostRose
 mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
-{-# OPAQUE mlResultElementCost #-}
+{-# NOINLINE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
     memoryUsage _ = mlResultElementCost

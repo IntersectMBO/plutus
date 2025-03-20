@@ -862,7 +862,7 @@ enterComputeCek = computeCek
         resetCounter ctr
     -- It's very important for this definition not to get inlined. Inlining it caused performance to
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# OPAQUE spendAccumulatedBudget #-}
+    {-# NOINLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.

@@ -113,3 +113,4 @@ plutus-pab/test-node/alonzo-purple/db
 *.stacks
 .nvimrc
 release-*
+.worktrees

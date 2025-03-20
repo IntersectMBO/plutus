@@ -1,4 +1,21 @@
 
+<a id='changelog-1.43.0.0'></a>
+# 1.43.0.0 — 2025-03-20
+
+## Added
+
+- Added more standard library functions to `Data.List`.
+
+- Added new conversion functions from Data-backed `Map` and Data-backed `List`.
+
+- New `Data.AssocMap` library functions: `filter`, `mapWithKey`, `mapMaybe` and `mapMaybeWithKey`.
+
+## Changed
+
+- The conversion functions between `Data.AssocMap.Map` and different kinds of lists are now named according to which type of list they support.
+
+- Slightly improved the performance of some of the existing `Data.AssocMap` functions.
+
 <a id='changelog-1.42.0.0'></a>
 # 1.42.0.0 — 2025-03-04
 

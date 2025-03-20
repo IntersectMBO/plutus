@@ -40,24 +40,24 @@ same object in the heap) the underlying implementation may notice that and
 return immediately.  The code below attempts to avoid this by producing a
 completely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
 indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
-OPAQUE suffices, but that's perhaps a bit too fragile).
+NOINLINE suffices, but that's perhaps a bit too fragile).
 -}
 
 incInteger :: Integer -> Integer
 incInteger n = n+1
-{-# OPAQUE incInteger #-}
+{-# NOINLINE incInteger #-}
 
 decInteger :: Integer -> Integer
 decInteger n = n-1
-{-# OPAQUE decInteger #-}
+{-# NOINLINE decInteger #-}
 
 copyInteger :: Integer -> Integer
 copyInteger = decInteger . incInteger
-{-# OPAQUE copyInteger #-}
+{-# NOINLINE copyInteger #-}
 
 copyByteString :: BS.ByteString -> BS.ByteString
 copyByteString = BS.copy
-{-# OPAQUE copyByteString #-}
+{-# NOINLINE copyByteString #-}
 
 copyData :: Data -> Data
 copyData =
@@ -67,7 +67,7 @@ copyData =
      List l     -> List (map copyData l)
      I n        -> I $ copyInteger n
      B b        -> B $ copyByteString b
-{-# OPAQUE copyData #-}
+{-# NOINLINE copyData #-}
 
 pairWith :: (a -> b) -> [a] -> [(a,b)]
 pairWith f = fmap (\a -> (a, f a))
