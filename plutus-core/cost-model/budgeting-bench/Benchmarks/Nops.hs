@@ -754,7 +754,7 @@ makeBenchmarks' gen0 =
         randFun :: StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen)
         -- \(u:unit) -> \(n:integer) -> x (random integer)
         randFun gen =
-          let (x,gen') = randNwords 1 gen
+          let (_x,gen') = randNwords 1 gen
               u = Name "u" (Unique 1)
               n = Name "n" (Unique 2)
           in (LamAbs () u unit (LamAbs () n integer (mkConstant () ())), gen')
