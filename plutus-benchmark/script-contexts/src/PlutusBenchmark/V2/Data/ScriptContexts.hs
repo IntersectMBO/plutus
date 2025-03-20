@@ -152,13 +152,18 @@ forwardWithStakeTrick obsScriptCred ctx =
     stakeCertPairs = Map.toDataList (txInfoWdrl info)
 
 forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> BuiltinData -> BI.BuiltinUnit
-forwardWithStakeTrickManual r_stake_cred r_redeemer r_ctx =
+forwardWithStakeTrickManual r_stake_cred _r_redeemer r_ctx =
   let !wdrl = getCtxWdrl r_ctx
       wdrlAtZero = BI.fst $ BI.head wdrl
       wdrlAtOne = BI.fst $ BI.head $ BI.tail wdrl
-   in PlutusTx.traceIfFalse "staking validator expected in withdrawal map"
-         ( PlutusTx.equalsData r_stake_cred wdrlAtZero
-         || PlutusTx.equalsData r_stake_cred wdrlAtOne )
+   in if
+        ( PlutusTx.traceIfFalse "staking validator expected in withdrawal map"
+          ( PlutusTx.equalsData r_stake_cred wdrlAtZero
+          || PlutusTx.equalsData r_stake_cred wdrlAtOne
+          )
+        )
+        then BI.unitval
+        else PlutusTx.traceError "not found"
   where
     getCtxWdrl :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     getCtxWdrl d_ctx =

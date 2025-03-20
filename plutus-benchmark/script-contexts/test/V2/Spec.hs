@@ -151,6 +151,22 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
                    ]
     ]
 
+testSOPFwdStakeTrick :: TestTree
+testSOPFwdStakeTrick =
+     runTestGhcSOP
+          [ Tx.goldenSize "sopFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
+          , Tx.goldenBudget "sopFwdStakeTrick" testCode
+          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          ]
+  where
+     testCredential =
+          SOP.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          SOP.SC.mkScriptContextWithStake 20 20 (Just testCredential)
+     testCode =
+          SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
+
 allTests :: TestTree
 allTests =
   testGroup "V3"
@@ -160,4 +176,5 @@ allTests =
     , testCheckDataSc2
     , testCheckSOPScEquality
     , testCheckDataScEquality
+    , testSOPFwdStakeTrick
     ]
