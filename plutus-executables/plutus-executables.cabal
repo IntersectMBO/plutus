@@ -76,6 +76,7 @@ library lib
 executable pir
   import:         lang
   main-is:        pir/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
@@ -94,6 +95,7 @@ executable pir
 executable plc
   import:         lang
   main-is:        plc/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5
@@ -106,6 +108,7 @@ executable plc
 executable uplc
   import:         lang, os-support, ghc-version-support
   main-is:        uplc/Main.hs
+  other-modules:  Paths_plutus_executables
   hs-source-dirs: executables
   build-depends:
     , base                             >=4.9   && <5

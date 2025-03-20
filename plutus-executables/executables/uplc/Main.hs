@@ -1,4 +1,5 @@
  -- editorconfig-checker-disable
+{-# LANGUAGE TemplateHaskell #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -49,6 +50,8 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 import AgdaUnparse (agdaUnparse)
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables qualified as Paths
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
@@ -204,7 +207,7 @@ plutus ::
   ParserInfo Command
 plutus langHelpText =
     info
-      (plutusOpts <**> helper)
+      (plutusOpts <**> versioner <**> helper)
       (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
@@ -510,6 +513,11 @@ handleDbg cekTrans = \case
 runUplcPrintExample ::
     ExampleOptions -> IO ()
 runUplcPrintExample = runPrintExample getUplcExamples
+
+----------------- Version -----------------------
+
+versioner :: Parser (a -> a)
+versioner = simpleVersioner $(gitAwareVersionInfo Paths.version)
 
 ---------------- Driver ----------------
 

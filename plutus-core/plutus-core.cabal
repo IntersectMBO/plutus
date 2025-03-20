@@ -88,6 +88,8 @@ library
     Data.Either.Extras
     Data.List.Extras
     Data.MultiSet.Lens
+    Data.Version.Extras
+    Development.GitRev.Extras
     PlutusCore
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
@@ -311,6 +313,7 @@ library
     , flat                        ^>=0.6
     , free
     , ghc-prim
+    , gitrev
     , hashable                    >=1.4
     , hedgehog                    >=1.0
     , index-envs
@@ -678,6 +681,7 @@ executable plutus
     Mode.ListExamples
     Mode.PrintBuiltins
     Mode.PrintCostModel
+    Paths_plutus_core
     Types
 
   build-depends:
