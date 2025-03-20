@@ -113,11 +113,11 @@ $\iota=\iota_{\pbasize{\pba}}$, the element of $b$'s signature which describes
 what kind of ``argument'' $b$ currently expects.  The definition is completed by
 induction on the structure of $\pba$:
 \begin{enumerate}
-\item $\pba=\mathtt{(builtin}\ b \mathtt{)}$ is always well-formed.
-\item $\pba=\mathtt{[}\pba'\ V\mathtt{]}$ is well-formed if $\pba'$ is
-  well-formed and $\iota \in \Unihash$ or $\iota \in \Var_*$ (equivalently, $\iota \notin \QVar$).
-\item $\pba=\mathtt{(force}\ \pba'\mathtt{)}$ is well-formed if $\pba'$ is
-  well-formed and $\iota \in \QVar$.
+\item $\pba=\mathtt{(builtin}\ b \mathtt{)}$ is always well formed.
+\item $\pba=\mathtt{[}\pba'\ V\mathtt{]}$ is well formed if $\pba'$ is
+  well formed and $\iota \in \Unihash$ or $\iota = \star$ (equivalently, $\iota \notin \QVar$).
+\item $\pba=\mathtt{(force}\ \pba'\mathtt{)}$ is well formed if $\pba'$ is
+  well formed and $\iota \in \QVar$.
 \end{enumerate}
 
 \kwxm{Note that apart from type names all of this stuff is meta-notation that is
