@@ -14,29 +14,60 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Untyped.RenamingSubstitution using (_[_])
 open import Data.Maybe using (Maybe; just; nothing)
 open import RawU using (TmCon)
-open import Builtin using (Builtin;equals;decBuiltin)
+open import Builtin using (Builtin; equals; decBuiltin; arity)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary.Negation using (contradiction)
-open import Data.Nat using (ℕ)
-open import Data.List using (List)
+open import Data.Nat using (ℕ; zero; suc; _<_; _≟_)
+open import Data.List using (List; []; _∷_)
+open import Untyped.CEK using (BUILTIN'; lookup?)
+open import Data.List.Relation.Unary.All using (All)
 ```
 ## Values
 ```
 
 data Value {X : Set} : X ⊢ → Set where
-  delay : { a : X ⊢} → Value (delay a)
-  ƛ : { a : (Maybe X) ⊢ } → Value (ƛ a)
+  delay : {a : X ⊢} → Value (delay a)
+  ƛ : {a : (Maybe X) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
   builtin : {b : Builtin} → Value (builtin b)
--- constr ??? - when all of its arguments are values
+  constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
   error : Value error
+
+```
+## Saturation
+
+Builtins have a defined arity, and then reduce once this is satisfied.
+```
+
+saturation : {X : Set} → X ⊢ → Maybe (ℕ × ℕ)
+saturation (builtin b) = just (((arity b), zero))
+saturation (t · _) with saturation t
+... | nothing = nothing
+... | just (arity , apps) = just (arity , suc apps)
+saturation (force t) with saturation t
+... | nothing = nothing
+... | just (arity , apps) = just (arity , suc apps)
+saturation _ = nothing
+
 
 ```
 ## Reduction Steps
 ```
+
+iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
+iterApp x [] = x
+iterApp x (v ∷ vs) = iterApp (x · v) vs
+
+variable
+  X Y : Set
+
+-- FIXME: This can use the function from CEK but
+-- it will require building the correct BApp type...
+postulate
+  reduceBuiltin : X ⊢ → X ⊢
 
 infix 5 _⟶_
 data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
@@ -49,7 +80,16 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   error₁ : {a : X ⊢} → (error · a) ⟶ error
   error₂ : {a : X ⊢} → (a · error) ⟶ error
   force-error : force error ⟶ error
-  -- case-constr : -- FIXME
+
+  -- Builtins that are saturated will reduce
+  sat-builtin : {b : Builtin} {arity args : ℕ} {t a : X ⊢}
+              → saturation t ≡ just (arity , args)
+              → arity ≡ args
+              → (t · a) ⟶ reduceBuiltin (t · a)
+
+  case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
+              → lookup? i ts ≡ just t
+              → case (constr i vs) ts ⟶ iterApp t vs
 
   -- Many of the things that you can force that aren't delay
   force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
@@ -76,44 +116,21 @@ tran-⟶* (trans x a→b) refl = trans x a→b
 tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x₁ b→c))
 
 value-¬⟶ : ∀ {X : Set}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
-value-¬⟶ delay (N , ())
-value-¬⟶ ƛ (N , ())
-value-¬⟶ con (N , ())
+value-¬⟶ delay = λ ()
+value-¬⟶ ƛ = λ ()
+value-¬⟶ con = λ ()
+value-¬⟶ builtin = λ ()
+value-¬⟶ error = λ ()
 
 ⟶-¬value : ∀ {X : Set}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
-{-
-⟶-det (ξ₁ n) (ξ₁ p) = cong₂ _·_ (⟶-det n p) refl
-⟶-det (ξ₁ n) (ξ₂ x p) = contradiction x (⟶-¬value n)
-⟶-det (ξ₂ x n) (ξ₁ p) = contradiction x (⟶-¬value p)
-⟶-det (ξ₂ x n) (ξ₂ x₁ p) = cong₂ _·_ refl (⟶-det n p)
-⟶-det (ξ₂ x n) (β x₁) = contradiction x₁ (⟶-¬value n)
-⟶-det (ξ₃ n) (ξ₃ p) = cong force (⟶-det n p)
-⟶-det (β x) (ξ₂ x₁ p) = contradiction x (⟶-¬value p)
-⟶-det (ξ₁ n) error₂ = {!!}
-⟶-det (ξ₂ x n) error₁ = {!!}
-⟶-det (ξ₃ n) force-delay = {!!}
-⟶-det (β x) (β x₁) = refl
-⟶-det (β x) error₂ = {!!}
-⟶-det force-delay force-delay = refl
-⟶-det error₁ (ξ₂ x m) = {!!}
-⟶-det error₁ error₁ = refl
-⟶-det error₁ error₂ = refl
-⟶-det error₂ (ξ₁ m) = {!!}
-⟶-det error₂ (β x) = {!!}
-⟶-det error₂ error₁ = refl
-⟶-det error₂ error₂ = refl
-⟶-det (β x) (β x₁) = refl
-⟶-det force-delay force-delay = refl
--}
+
 ```
 ## Progress
 ```
-variable
-  X Y : Set
 
 data Progress {X : Set} : (a : X ⊢) → Set where
   step : {a b : X ⊢}
@@ -136,6 +153,7 @@ progress (L · R) with progress L
 ...   | fail = step error₂
 ...   | step R⟶R' = step (ξ₂ VL R⟶R')
 ...   | done VR with VL -- For the first time I see why Phil prefers typed languages!...
+...   | constr allV = step app-constr
 ...   | ƛ = step (β VR)
 ...   | delay = step app-delay
 ...   | con = step app-con
@@ -149,10 +167,19 @@ progress (force m) with progress m
 ... | done con = step force-con
 ... | done error = step force-error
 ... | done builtin = done {!!}
+... | done (constr vA) = step force-constr
 progress (delay M) = done delay
 progress (con v) = done con
 progress (constr i xs) = {!!}
-progress (case x ts) = {!!}
+progress (case (ƛ x) ts) = {!!}
+progress (case (x · x₁) ts) = {!!}
+progress (case (force x) ts) = {!!}
+progress (case (delay x) ts) = {!!}
+progress (case (con x) ts) = {!!}
+progress (case (constr i xs) ts) = {!!}
+progress (case (case x ts₁) ts) = {!!}
+progress (case (builtin b) ts) = {!!}
+progress (case error ts) = {!!}
 progress (builtin b) = done builtin
 progress error = done error
 

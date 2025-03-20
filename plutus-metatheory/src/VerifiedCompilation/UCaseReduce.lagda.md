@@ -31,15 +31,12 @@ open import RawU using (tag2TyTag; tmCon)
 open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
+open import Untyped.Reduction using (iterApp)
 ```
 
 ## Translation Relation
 
 ```
-iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
-iterApp x [] = x
-iterApp x (v ∷ vs) = iterApp (x · v) vs
-
 data CaseReduce : Relation where
   casereduce : {X : Set} {{_ : DecEq X}} {x : X ⊢} { x' : X ⊢} {vs xs : List (X ⊢)} {i : ℕ}
                          → lookup? i xs ≡ just x
@@ -118,7 +115,6 @@ _ = casereduce refl {!!}
 ## Semantic Equivalence
 
 ```
-open import VerifiedCompilation.SemanticEquivalence using (SemanticallyEquivalent; Equiv; eq)
 open import Untyped.CEK using (stepper; step)
 open import Builtin using (Builtin; addInteger; subtractInteger)
 
@@ -128,10 +124,4 @@ ex1 = (((ƛ (ƛ (((builtin subtractInteger) · (` nothing)) · (` (just nothing)
 ex2 : ⊥ ⊢
 ex2 = (((ƛ (ƛ (((builtin subtractInteger) · (` (just nothing))) · (` nothing))))) · (con-integer 3)) · (con-integer 2) --- \x . \y . y - x ==> 2 - 3
 
-_ : Equiv ex1 ex2
-_ = eq {!!}
-
-equiv : SemanticallyEquivalent CaseReduce
-equiv {x = (case (constr i xs) vs)} {x' = x'} {p = casereduce lookup t} with stepper 10000000 (Untyped.CEK.ε Untyped.CEK.; Untyped.CEK.[] ▻ (case (constr i xs) vs))
-... | s = eq {n = 10000000} {!!}
 ```
