@@ -64,24 +64,25 @@
                            delay
                              (caseList'
                                 []
-                                (\hd tl ->
+                                (\hd ->
                                    force
                                      (force
                                         (force ifThenElse
                                            (equalsData
                                               k
                                               (force (force fstPair) hd))
-                                           (delay (delay tl))
+                                           (delay (delay (\x -> x)))
                                            (delay
                                               (delay
-                                                 (force mkCons
-                                                    hd
-                                                    (force
-                                                       (s s (delay (\x -> x)))
-                                                       tl)))))))))
-                        (delay (\x -> x)))
-                     nt)
-                  (iData (addInteger 5 n))))
+                                                 (\eta ->
+                                                    force mkCons
+                                                      hd
+                                                      (force
+                                                         (s s (delay (\x -> x)))
+                                                         eta)))))))))
+                        (delay (\x -> x))))
+                  (iData (addInteger 5 n))
+                  nt))
             ((\z ->
                 (\go eta ->
                    go eta)
@@ -108,8 +109,7 @@
                                                          delay
                                                            (caseList'
                                                               nilCase
-                                                              (\hd
-                                                                tl ->
+                                                              (\hd ->
                                                                  force
                                                                    (force
                                                                       (force
@@ -126,20 +126,20 @@
                                                                                   mkCons
                                                                                   (mkPairData
                                                                                      k
-                                                                                     a)
-                                                                                  tl)))
+                                                                                     a))))
                                                                          (delay
                                                                             (delay
-                                                                               (force
-                                                                                  mkCons
-                                                                                  hd
-                                                                                  (force
-                                                                                     (s
-                                                                                        s
-                                                                                        (delay
-                                                                                           (\x ->
-                                                                                              x)))
-                                                                                     tl)))))))))
+                                                                               (\eta ->
+                                                                                  force
+                                                                                    mkCons
+                                                                                    hd
+                                                                                    (force
+                                                                                       (s
+                                                                                          s
+                                                                                          (delay
+                                                                                             (\x ->
+                                                                                                x)))
+                                                                                       eta)))))))))
                                                       (delay (\x -> x)))
                                                    ds)
                                                 (force mkCons

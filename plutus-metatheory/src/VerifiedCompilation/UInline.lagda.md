@@ -13,7 +13,7 @@ module VerifiedCompilation.UInline where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
+open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
 open import Untyped.RenamingSubstitution using (_[_])
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
@@ -108,5 +108,8 @@ isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with 
 ... | no ¬p = no λ { (sub p) → ¬p p }
 
 isInline? = translation? (isIl? □)
+
+UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UInline = Translation (Inline □)
 
 ```

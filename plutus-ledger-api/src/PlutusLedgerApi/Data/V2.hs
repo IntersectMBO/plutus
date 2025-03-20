@@ -158,7 +158,13 @@ module PlutusLedgerApi.Data.V2 (
 
   -- *** Association maps
   Map,
-  unsafeFromList,
+  unsafeFromDataList,
+  unsafeFromBuiltinList,
+  unsafeFromSOPList,
+  safeFromSOPList,
+  toSOPList,
+  toDataList,
+  toBuiltinList,
 
   -- *** Newtypes and hash types
   V1.ScriptHash (..),
@@ -192,7 +198,8 @@ import PlutusLedgerApi.V2.Data.Tx qualified as Tx
 import PlutusLedgerApi.V2.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V2.ParamName qualified as ParamName
 
-import PlutusTx.Data.AssocMap (Map, unsafeFromList)
+import PlutusTx.Data.AssocMap (Map, safeFromSOPList, toBuiltinList, toDataList, toSOPList,
+                               unsafeFromBuiltinList, unsafeFromDataList, unsafeFromSOPList)
 
 {-| An alias to the Plutus ledger language this module exposes at runtime.
  MAYBE: Use CPP '__FILE__' + some TH to automate this.

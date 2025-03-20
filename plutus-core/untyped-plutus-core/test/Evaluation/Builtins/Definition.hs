@@ -18,11 +18,11 @@ module Evaluation.Builtins.Definition
 
 import PlutusPrelude
 
-import Evaluation.Builtins.Bitwise qualified as Bitwise
+import Evaluation.Builtins.Bitwise.CIP0122 qualified as CIP0122
+import Evaluation.Builtins.Bitwise.CIP0123 qualified as CIP0123
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Conversion qualified as Conversion
-import Evaluation.Builtins.Laws qualified as Laws
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
                                                   ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
@@ -499,6 +499,7 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
+#if MIN_VERSION_base(4,15,0)
     test_TrackCostsWith "retaining" 10000 $ \term -> do
         let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
             -- 'DList'.
@@ -522,6 +523,19 @@ test_TrackCostsRetaining =
                         , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
+#else
+    -- FIXME: @effectfully
+    -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>
+    -- TrackCosts: retaining:                                                             FAIL (0.51s)
+    -- untyped-plutus-core/test/Evaluation/Builtins/Definition.hs:482:
+    -- Too many elements picked up by GC
+    -- Expected at most: 5
+    -- But got: 6
+    -- The result was: [6829,0,0,0,0,3173]
+    -- Use -p '/TrackCosts: retaining/' to rerun this test only.
+    testCase "TrackCosts: retaining" $ do
+        assertBool "dummy" $ not . null $ DList.singleton 'x' -- Avoid 'redundant-imports' warning
+#endif
 
 typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assertion
 typecheckAndEvalToOutOfEx term =
@@ -638,20 +652,28 @@ test_Integer = testNestedM "Integer" $ do
 
 test_ExpModInteger :: TestNested
 test_ExpModInteger = testNestedM "ExpMod" $ do
-    evals @Integer 1 b [] [cons @Integer 500, cons @Integer 0, cons @Integer 500] -- base:X, exp: zero, mod: X(strictpos)
-    evals @Integer 0 b [] [cons @Integer 500, cons @Integer 5, cons @Integer 500] -- base:X, exp: strictpos, mod: X(strictpos)
-    evals @Integer 1 b [] [one , cons @Integer (-3), cons @Integer 4] -- base:1, exp: * , mod: strictpos
-    evals @Integer 2 b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 3] -- base:*, exp: neg, mod: prime
+    evals @Integer 1 b [] [int 500, zero, int 500] -- base:X, exp: zero, mod: X(strictpos)
+    evals @Integer 0 b [] [int 500, int 5, int 500] -- base:X, exp: strictpos, mod: X(strictpos)
+    evals @Integer 1 b [] [one , int (-3), int 4] -- base:1, exp: * , mod: strictpos
+    evals @Integer 2 b [] [int 2, int (-3), int 3] -- base:*, exp: neg, mod: prime
     -- base is co-prime with mod and exponent is negative
-    evals @Integer 4 b [] [cons @Integer 4, cons @Integer (-5), cons @Integer 9]
-    fails "mod-zero" b [] [one, one, cons @Integer 0] -- base:*, exp:*, mod: 0
-    fails "mod-neg" b [] [one, one, cons @Integer (-3)] -- base:*, exp:*, mod: neg
+    evals @Integer 4 b [] [int 4, int (-5), int 9]
+    -- Always return 0 when modulus is 1.
+    evals @Integer 0 b [] [zero, zero, one] -- base:0, exp: zero, mod:1
+    evals @Integer 0 b [] [zero, one, one] -- base:0, exp: 1, mod:1
+    evals @Integer 0 b [] [zero, int (-1), one] -- base:0, exp: neg, mod:1
+    evals @Integer 0 b [] [int 500, int 222, one] -- base:*, exp: strictpos, mod:1
+    evals @Integer 0 b [] [int 500, int (-1777), one] -- base:*, exp: neg, mod:1
+    fails "mod-zero" b [] [one, one, zero] -- base:*, exp:*, mod: 0
+    fails "mod-neg" b [] [one, one, int (-3)] -- base:*, exp:*, mod: neg
     -- base and mod are not co-prime, negative exponent
-    fails "exp-neg-non-inverse1" b [] [cons @Integer 2, cons @Integer (-3), cons @Integer 4]
+    fails "exp-neg-non-inverse1" b [] [int 2, int (-3), int 4]
     -- mod is prime, but base&mod are not co-prime, negative exponent
-    fails "exp-neg-non-inverse2" b [] [cons @Integer 500, cons @Integer (-5), cons @Integer 5]
+    fails "exp-neg-non-inverse2" b [] [int 500, int (-5), int 5]
   where
-    one = cons @Integer 1
+    int = cons @Integer
+    zero = int 0
+    one = int 1
     b = ExpModInteger
 
 -- | Test all string-like builtins
@@ -1109,99 +1131,99 @@ test_Conversion =
             ]
         ]
 
--- Tests of the laws from [CIP-0123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
-test_Bitwise :: TestTree
-test_Bitwise =
-    testGroup "Bitwise"
+-- Tests for the bitwise logical operations, as per [CIP-122](https://cips.cardano.org/cip/CIP-0122).
+test_Bitwise_CIP0122 :: TestTree
+test_Bitwise_CIP0122 =
+  testGroup "Bitwise operations (CIP0122)"
+    [ testGroup "andByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.AndByteString False
+        , CIP0122.idempotenceLaw "truncation" PLC.AndByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.AndByteString False ""
+        , CIP0122.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
+        , CIP0122.abelianMonoidLaws "padding" PLC.AndByteString True ""
+        , CIP0122.distributiveLaws "padding" PLC.AndByteString True
+        ]
+    , testGroup "orByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.OrByteString False
+        , CIP0122.idempotenceLaw "truncation" PLC.OrByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.OrByteString False ""
+        , CIP0122.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
+        , CIP0122.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
+        , CIP0122.abelianMonoidLaws "padding" PLC.OrByteString True ""
+        , CIP0122.distributiveLaws "padding" PLC.OrByteString True
+        ]
+    , testGroup "xorByteString"
+        [ CIP0122.abelianSemigroupLaws "truncation" PLC.XorByteString False
+        , CIP0122.absorbtionLaw "truncation" PLC.XorByteString False ""
+        , CIP0122.xorInvoluteLaw
+        , CIP0122.abelianMonoidLaws "padding" PLC.XorByteString True ""
+        ]
+    , testGroup "complementByteString"
+        [ CIP0122.complementSelfInverse
+        , CIP0122.deMorgan
+        ]
+    , testGroup "bit reading and modification"
+        [ CIP0122.getSet
+        , CIP0122.setGet
+        , CIP0122.setSet
+        , CIP0122.writeBitsHomomorphismLaws
+        ]
+    , testGroup "replicateByte"
+        [ CIP0122.replicateHomomorphismLaws
+        , CIP0122.replicateIndex
+        ]
+    ]
+
+-- Tests of the laws for the bitwise operations from [CIP-0123](https://cips.cardano.org/cip/CIP-0123).
+test_Bitwise_CIP0123 :: TestTree
+test_Bitwise_CIP0123 =
+    testGroup "Bitwise operations (CIP0123)"
         [ testGroup "shiftByteString"
-            [ testGroup "homomorphism" Bitwise.shiftHomomorphism
+            [ testGroup "homomorphism" CIP0123.shiftHomomorphism
             , testPropertyNamed "shifts over bit length clear input" "shift_too_much" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.shiftClear
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.shiftClear
             , testPropertyNamed "positive shifts clear low indexes" "shift_pos_low" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftPosClearLow
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftPosClearLow
             , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftNegClearHigh
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftNegClearHigh
             , testPropertyNamed "shifts do not break when given minBound" "shift_min_bound" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.shiftMinBound
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftMinBound
             ]
         , testGroup "rotateByteString"
-            [ testGroup "homomorphism" Bitwise.rotateHomomorphism
+            [ testGroup "homomorphism" CIP0123.rotateHomomorphism
             , testPropertyNamed "rotations over bit length roll over" "rotate_too_much" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateRollover
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateRollover
             , testPropertyNamed "rotations move bits but don't change them" "rotate_move" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMoveBits
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMoveBits
             , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.rotateMinBound
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMinBound
             ]
         , testGroup "countSetBits"
-            [ testGroup "homomorphism" Bitwise.csbHomomorphism
+            [ testGroup "homomorphism" CIP0123.csbHomomorphism
             , testPropertyNamed "rotation preserves count" "popcount_rotate" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbRotate
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbRotate
             , testPropertyNamed "count of the complement" "popcount_complement" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbComplement
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbComplement
             , testPropertyNamed "inclusion-exclusion" "popcount_inclusion_exclusion" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.csbInclusionExclusion
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.csbInclusionExclusion
             , testPropertyNamed "count of self-XOR" "popcount_self_xor" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.csbXor
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.csbXor
             ]
         , testGroup "findFirstSetBit"
             [ testPropertyNamed "find first in zero bytestrings" "ffs_zero" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsZero
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffsZero
             , testPropertyNamed "find first in replicated" "ffs_replicate" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsReplicate
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.ffsReplicate
             , testPropertyNamed "find first of self-XOR" "ffs_xor" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffsXor
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffsXor
             , testPropertyNamed "found index set, lower indices clear" "ffs_index" $
-                mapTestLimitAtLeast 50 (`div` 20) Bitwise.ffsIndex
+                mapTestLimitAtLeast 50 (`div` 20) CIP0123.ffsIndex
             , testPropertyNamed "regression #6453 check" "regression_6453" $
-                mapTestLimitAtLeast 99 (`div` 10) Bitwise.ffs6453
+                mapTestLimitAtLeast 99 (`div` 10) CIP0123.ffs6453
             ]
         ]
-
--- Tests for the logical operations, as per [CIP-122](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122)
-test_Logical :: TestTree
-test_Logical =
-  testGroup "Logical"
-    [ testGroup "andByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.AndByteString False
-        , Laws.idempotenceLaw "truncation" PLC.AndByteString False
-        , Laws.absorbtionLaw "truncation" PLC.AndByteString False ""
-        , Laws.leftDistributiveLaw "truncation" "itself" PLC.AndByteString PLC.AndByteString False
-        , Laws.leftDistributiveLaw "truncation" "OR" PLC.AndByteString PLC.OrByteString False
-        , Laws.leftDistributiveLaw "truncation" "XOR" PLC.AndByteString PLC.XorByteString False
-        , Laws.abelianMonoidLaws "padding" PLC.AndByteString True ""
-        , Laws.distributiveLaws "padding" PLC.AndByteString True
-        ]
-    , testGroup "orByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.OrByteString False
-        , Laws.idempotenceLaw "truncation" PLC.OrByteString False
-        , Laws.absorbtionLaw "truncation" PLC.OrByteString False ""
-        , Laws.leftDistributiveLaw "truncation" "itself" PLC.OrByteString PLC.OrByteString False
-        , Laws.leftDistributiveLaw "truncation" "AND" PLC.OrByteString PLC.AndByteString False
-        , Laws.abelianMonoidLaws "padding" PLC.OrByteString True ""
-        , Laws.distributiveLaws "padding" PLC.OrByteString True
-        ]
-    , testGroup "xorByteString"
-        [ Laws.abelianSemigroupLaws "truncation" PLC.XorByteString False
-        , Laws.absorbtionLaw "truncation" PLC.XorByteString False ""
-        , Laws.xorInvoluteLaw
-        , Laws.abelianMonoidLaws "padding" PLC.XorByteString True ""
-        ]
-    , testGroup "complementByteString"
-        [ Laws.complementSelfInverse
-        , Laws.deMorgan
-        ]
-    , testGroup "bit reading and modification"
-        [ Laws.getSet
-        , Laws.setGet
-        , Laws.setSet
-        , Laws.writeBitsHomomorphismLaws
-        ]
-    , testGroup "replicateByte"
-        [ Laws.replicateHomomorphismLaws
-        , Laws.replicateIndex
-        ]
-    ]
 
 test_definition :: TestTree
 test_definition =
@@ -1226,18 +1248,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-#if MIN_VERSION_base(4,15,0)
-        -- FIXME: @effectfully
-        -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>
-        -- TrackCosts: retaining:                                                             FAIL (0.51s)
-        -- untyped-plutus-core/test/Evaluation/Builtins/Definition.hs:482:
-        -- Too many elements picked up by GC
-        -- Expected at most: 5
-        -- But got: 6
-        -- The result was: [6829,0,0,0,0,3173]
-        -- Use -p '/TrackCosts: retaining/' to rerun this test only.
         , test_TrackCostsRetaining
-#endif
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere
@@ -1254,6 +1265,6 @@ test_definition =
         , test_Version
         , test_ConsByteString
         , test_Conversion
-        , test_Logical
-        , test_Bitwise
+        , test_Bitwise_CIP0122
+        , test_Bitwise_CIP0123
         ]

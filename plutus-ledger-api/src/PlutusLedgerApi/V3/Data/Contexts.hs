@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE NamedFieldPuns    #-}
@@ -12,6 +13,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
+#if !MIN_VERSION_base(4,15,0)
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+#endif
 
 module PlutusLedgerApi.V3.Data.Contexts (
   ColdCommitteeCredential (..),
@@ -135,6 +139,7 @@ import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
 
 import PlutusLedgerApi.Data.V2 qualified as V2
+import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
@@ -571,7 +576,7 @@ PlutusTx.asData
       , txInfoReferenceInputs :: List TxInInfo
       , txInfoOutputs :: List V2.TxOut
       , txInfoFee :: V2.Lovelace
-      , txInfoMint :: V2.Value
+      , txInfoMint :: V3.MintValue
       , -- \^ The 'Value' minted by this transaction.
         --
         -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
@@ -640,7 +645,7 @@ hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
-  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
+  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toSOPList txInfoData)
  where
   f (_, ds') = ds' PlutusTx.== ds
 

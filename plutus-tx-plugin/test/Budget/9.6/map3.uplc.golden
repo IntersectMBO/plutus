@@ -8,7 +8,7 @@
                    (\`$dToData` ->
                       (\goList
                         n ->
-                         (\unsafeFromList ->
+                         (\unsafeFromSOPList ->
                             (\nt ->
                                (\goLeft ->
                                   (\nt ->
@@ -215,7 +215,7 @@
                                                                    hd))))
                                                      (\x -> s s x))
                                                 (delay (\x -> x))))))
-                                    (unsafeFromList
+                                    (unsafeFromSOPList
                                        (\i -> iData i)
                                        (\i -> iData i)
                                        (constr 1
@@ -296,7 +296,7 @@
                                                        hd))))
                                          (\x -> s s x))
                                     (delay (\x -> x))))
-                              (unsafeFromList
+                              (unsafeFromSOPList
                                  (\i -> iData i)
                                  (\i -> iData i)
                                  (constr 1
@@ -397,8 +397,7 @@
                                         delay
                                           (caseList'
                                              nilCase
-                                             (\hd
-                                               tl ->
+                                             (\hd ->
                                                 force
                                                   (force
                                                      (force
@@ -413,20 +412,20 @@
                                                               (force mkCons
                                                                  (mkPairData
                                                                     k
-                                                                    v)
-                                                                 tl)))
+                                                                    v))))
                                                         (delay
                                                            (delay
-                                                              (force
-                                                                 mkCons
-                                                                 hd
-                                                                 (force
-                                                                    (s
-                                                                       s
-                                                                       (delay
-                                                                          (\x ->
-                                                                             x)))
-                                                                    tl)))))))))
+                                                              (\eta ->
+                                                                 force
+                                                                   mkCons
+                                                                   hd
+                                                                   (force
+                                                                      (s
+                                                                         s
+                                                                         (delay
+                                                                            (\x ->
+                                                                               x)))
+                                                                      eta)))))))))
                                      (delay (\x -> x)))
                                   eta)
                                (force mkCons (mkPairData k v) []))

@@ -16,8 +16,8 @@ letrec
         {pair data data}
         {integer}
         0
-        (\(hd : pair data data) (tl : list (pair data data)) ->
-           addInteger (unIData (sndPair {data} {data} hd)) (go tl))
+        (\(hd : pair data data) (eta : list (pair data data)) ->
+           addInteger (unIData (sndPair {data} {data} hd)) (go eta))
 in
 let
   data Bool | Bool_match where
@@ -59,9 +59,5 @@ in
     in
     go value)
     {integer}
-    (\(a : data) ->
-       let
-         !ds : (\k a -> list (pair data data)) bytestring integer = unMapData a
-       in
-       go ds)
+    (\(a : data) -> go (unMapData a))
     0

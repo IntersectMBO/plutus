@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -7,8 +8,12 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-} -- needed for asData pattern synonyms
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+#if !MIN_VERSION_base(4,15,0)
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+#endif
 
 module PlutusLedgerApi.V2.Data.Tx (
   -- * Transactions

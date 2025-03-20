@@ -35,7 +35,11 @@
     "nanoid": "3.3.8",
     "path-to-regexp": "3.3.0",
     "katex": "0.16.21",
-    "dompurify": "3.2.4"
+    "dompurify": "3.2.4",
+    "prismjs": "1.30.0",
+    "@babel/runtime-corejs3": "7.26.10",
+    "@babel/runtime": "7.26.10",
+    "@babel/helpers": "7.26.10"
   },
   "browserslist": {
     "production": [

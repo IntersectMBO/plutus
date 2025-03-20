@@ -5,7 +5,7 @@
 # 1. Open a new Release PR in plutus
 # 2. Review and approve the Release PR in plutus, do not merge it yet
 # 3. Open and merge a new Plutus Release PR in CHaP 
-# 4. Open and merge a new Plutus Update PR in plutus-tx-template
+# 4. Open and merge a new Plutus Update PR in plinth-template
 # 5. Merge the original Release PR in plutus 
 # 6. Publish the release on GitHub 
 # 7. Deploy the Haddock site for the new release 
@@ -133,14 +133,14 @@ open-plutus-pr() {
     "cardano-constitution"
   )
 
-
   local NEW_MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
   local OLD_MAJOR_VERSION=$(detect-old-version | cut -d'.' -f1,2)
   
   for PACKAGE in "${RELEASE_PACKAGES[@]}"; do
     find . -name "?*.cabal" \
       -exec sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal" \; \
-      -exec sed -i "s/\($PACKAGE\s*^>=$OLD_MAJOR_VERSION\)/$PACKAGE^>=$NEW_MAJOR_VERSION/" {} \;
+      -exec sed -i "s/$PACKAGE\s*^>=$OLD_MAJOR_VERSION/$PACKAGE^>=$NEW_MAJOR_VERSION/" {} \; \
+      -exec sed -i "s/\($PACKAGE:[^/^]*\)^>=$OLD_MAJOR_VERSION/\1^>=$NEW_MAJOR_VERSION/" {} \;
 
     pushd $PACKAGE > /dev/null
     scriv collect --version $VERSION || true
@@ -184,7 +184,7 @@ open-chap-pr() {
   cd cardano-haskell-packages
   git checkout -b $PR_BRANCH
   tell "Running ./scripts/add-from-github.sh with COMMIT_SHA=$COMMIT_SHA"
-  local RELEASE_PACKAGES=(plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin plutus-executables cardano-constitution)
+  local RELEASE_PACKAGES=(plutus-core plutus-ledger-api plutus-tx plutus-tx-plugin)
   ./scripts/add-from-github.sh https://github.com/IntersectMBO/plutus $COMMIT_SHA ${RELEASE_PACKAGES[@]}
   git push --force --set-upstream origin $PR_BRANCH
   local PR_URL=$(gh pr create \
@@ -234,7 +234,7 @@ generate-release-notes() {
 
 publish-gh-release() {
   for EXEC in uplc pir plc; do 
-    nix build ".#hydraJobs.x86_64-linux.musl64.ghc96.$EXEC"
+    nix build ".#musl64-$EXEC"
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
   local NOTES_FILE=$(mktemp)
@@ -246,7 +246,7 @@ publish-gh-release() {
 
 
 check-and-open-plutus-tx-pr() {
-  maybe-open-pr IntersectMBO/plutus-tx-template "bump-plutus-$VERSION" open-plutus-tx-pr
+  maybe-open-pr IntersectMBO/plinth-template "bump-plutus-$VERSION" open-plutus-tx-pr
 }
 
 
@@ -257,12 +257,12 @@ merge-plutus-pr() {
 
 
 open-plutus-tx-pr() {
-  tell "Starting a workflow to bump the plutus version in plutus-tx-template"
+  tell "Starting a workflow to bump the plutus version in plinth-template"
   gh workflow run bump-plutus-version.yml \
-    --repo IntersectMBO/plutus-tx-template \
+    --repo IntersectMBO/plinth-template \
     --field version=$VERSION 
-  tell "This workflow will create branch bump-plutus-$VERSION in plutus-tx-template"
-  local RUN_URL=$(get-workflow-run-url IntersectMBO/plutus-tx-template bump-plutus-version.yml)
+  tell "This workflow will create branch bump-plutus-$VERSION in plinth-template"
+  local RUN_URL=$(get-workflow-run-url IntersectMBO/plinth-template bump-plutus-version.yml)
   tell "Follow the workflow progress at $RUN_URL"
 }
     
@@ -331,14 +331,14 @@ print-status() {
   fi 
   echo 
 
-  PR_URL=$(get-pr-url IntersectMBO/plutus-tx-template "bump-plutus-$VERSION") 
-  PR_STATE=$(get-pr-state "IntersectMBO/plutus-tx-template" "bump-plutus-$VERSION") 
+  PR_URL=$(get-pr-url IntersectMBO/plinth-template "bump-plutus-$VERSION") 
+  PR_STATE=$(get-pr-state "IntersectMBO/plinth-template" "bump-plutus-$VERSION") 
   if [[ $PR_STATE == "MERGED" ]]; then 
-    echo -e "[4] ✅ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE at $PR_URL"
+    echo -e "[4] ✅ Open and merge a new Plutus Update PR in plinth-template\n       PR $PR_STATE at $PR_URL"
   elif [[ $PR_STATE == "OPEN" ]]; then 
-    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE but not MERGED at $PR_URL"
+    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plinth-template\n       PR $PR_STATE but not MERGED at $PR_URL"
   else 
-    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plutus-tx-template\n       PR $PR_STATE\n       Follow the workflow at https://github.com/IntersectMBO/plutus-tx-template/actions/workflows/bump-plutus-version.yml"
+    echo -e "[4] ❌ Open and merge a new Plutus Update PR in plinth-template\n       PR $PR_STATE\n       Follow the workflow at https://github.com/IntersectMBO/plinth-template/actions/workflows/bump-plutus-version.yml"
   fi   
   echo 
   
