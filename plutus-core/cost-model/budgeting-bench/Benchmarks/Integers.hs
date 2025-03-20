@@ -80,9 +80,11 @@ benchExpModInteger2 _gen =
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     (fmap (\n -> (pow 3 (5000+n)) + n + 27485246354734525423542954792354278435672756243) inputs)
+     (fmap (\n -> (pow 3 6000) + 9*n + 27485246354734525423542954792354278435672756243) inputs)
      (fmap (\n -> n) inputs)
      moduli
+-- 1669877/248/256
+
 
 {- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
  as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
