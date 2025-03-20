@@ -7,12 +7,13 @@
 
 module ByteStringLiterals.Spec (tests) where
 
+import ByteStringLiterals.Lib qualified as Lib
 import Data.ByteString (ByteString)
 import Data.Char (chr)
 import Data.Foldable (for_)
 import Data.String (fromString)
 import Data.Text.Encoding qualified as TE
-import PlutusCore (someValue)
+import PlutusCore (DefaultUni (..), Some (..), ValueOf (..), someValue)
 import PlutusTx (CompiledCode, getPlcNoAnn)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinByteStringHex, BuiltinByteStringUtf8,
                           fromBuiltin)
@@ -21,8 +22,7 @@ import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString, stringToBuiltinBy
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
-import UntypedPlutusCore (DefaultFun, DefaultUni, NamedDeBruijn, Program (_progTerm),
-                          Term (Constant))
+import UntypedPlutusCore (DefaultFun, NamedDeBruijn, Program (_progTerm), Term (Constant))
 
 tests :: TestTree
 tests =
@@ -36,6 +36,7 @@ tests =
         , test_CompileBuiltinByteStringLiteral_utf8
         , test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringUtf8
         , test_CompileBuiltinByteStringLiteral_hex
+        , test_CompileBuiltinByteStringLiteral2_hex
         , test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex
         ]
     ]
@@ -188,6 +189,13 @@ test_CompileBuiltinByteStringLiteral_hex =
           \0f0e0d0c0b0a09080706050403020100"
           ||]
       )
+
+test_CompileBuiltinByteStringLiteral2_hex :: TestTree
+test_CompileBuiltinByteStringLiteral2_hex =
+  testCase "BuiltinByteStringHex" $
+    term $$(compile [||Lib.hex||])
+      @?= Constant () (Some (ValueOf DefaultUniByteString "\240"))
+
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex :: TestTree
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =
   testCase "stringToBuiltinByteStringHex" do
