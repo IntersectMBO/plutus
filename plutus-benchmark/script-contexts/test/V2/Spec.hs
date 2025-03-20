@@ -163,7 +163,7 @@ testSOPFwdStakeTrick =
      testCredential =
           SOP.SC.mkStakingCredential "someCredential"
      testScriptContext =
-          SOP.SC.mkScriptContextWithStake 20 20 (Just testCredential)
+          SOP.SC.mkScriptContextWithStake 20 1 (Just testCredential)
      testCode =
           SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
@@ -179,9 +179,25 @@ testDataFwdStakeTrick =
      testCredential =
           Data.SC.mkStakingCredential "someCredential"
      testScriptContext =
-          Data.SC.mkScriptContextWithStake 20 20 (Just testCredential)
+          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
      testCode =
           Data.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
+
+testDataFwdStakeTrickManual :: TestTree
+testDataFwdStakeTrickManual =
+     runTestGhcSOP
+          [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testCode
+          , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
+          , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
+          ]
+  where
+     testCredential =
+          Data.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+     testCode =
+          Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
 
 allTests :: TestTree
 allTests =
@@ -194,4 +210,5 @@ allTests =
     , testCheckDataScEquality
     , testSOPFwdStakeTrick
     , testDataFwdStakeTrick
+    , testDataFwdStakeTrickManual
     ]

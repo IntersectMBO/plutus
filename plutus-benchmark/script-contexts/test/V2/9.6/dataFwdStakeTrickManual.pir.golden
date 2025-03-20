@@ -1,0 +1,182 @@
+(let
+    data Unit | Unit_match where
+      Unit : Unit
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+  in
+  \(r_stake_cred : data) (r_ctx : data) ->
+    let
+      !wdrl : list (pair data data)
+        = unMapData
+            (headList
+               {data}
+               (tailList
+                  {data}
+                  (tailList
+                     {data}
+                     (tailList
+                        {data}
+                        (tailList
+                           {data}
+                           (tailList
+                              {data}
+                              (tailList
+                                 {data}
+                                 (sndPair
+                                    {integer}
+                                    {list data}
+                                    (unConstrData
+                                       (headList
+                                          {data}
+                                          (sndPair
+                                             {integer}
+                                             {list data}
+                                             (unConstrData r_ctx))))))))))))
+      !wdrlAtZero : data
+        = fstPair {data} {data} (headList {pair data data} wdrl)
+      !wdrlAtOne : data
+        = fstPair
+            {data}
+            {data}
+            (headList {pair data data} (tailList {pair data data} wdrl))
+    in
+    Bool_match
+      (Bool_match
+         (Bool_match
+            (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtZero) True False)
+            {all dead. Bool}
+            (/\dead -> True)
+            (/\dead ->
+               ifThenElse {Bool} (equalsData r_stake_cred wdrlAtOne) True False)
+            {all dead. dead})
+         {all dead. Bool}
+         (/\dead -> True)
+         (/\dead ->
+            trace {Bool} "staking validator expected in withdrawal map" False)
+         {all dead. dead})
+      {all dead. Unit}
+      (/\dead -> Unit)
+      (/\dead -> let !x : Unit = trace {Unit} "not found" Unit in error {Unit})
+      {all dead. dead})
+  (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
+  (Constr 0
+     [ Constr 0
+         [ List []
+         , List []
+         , List
+             [ Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 1)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 2)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 3)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 4)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 5)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 6)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 7)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 8)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 9)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 10)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 11)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 12)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 13)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 14)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 15)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 16)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 17)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 18)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 19)])]
+                 , Constr 0 []
+                 , Constr 1 [] ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                 , Map [(B #, Map [(B #, I 20)])]
+                 , Constr 0 []
+                 , Constr 1 [] ] ]
+         , Map []
+         , Map []
+         , List []
+         , Map
+             [ (Constr 0 [Constr 0 [B #746573744372656431]], I 1)
+             , ( Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]]
+             , I 10000 ) ]
+         , Constr 0
+             [ Constr 0 [Constr 0 [], Constr 1 []]
+             , Constr 0 [Constr 2 [], Constr 1 []] ]
+         , List []
+         , Map []
+         , Map []
+         , Constr 0 [B #] ]
+     , Constr 1 [Constr 0 [Constr 0 [B #], I 0]] ])

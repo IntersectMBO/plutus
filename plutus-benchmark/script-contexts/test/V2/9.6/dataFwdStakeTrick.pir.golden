@@ -471,25 +471,6 @@
          , List []
          , Map
              [ (Constr 0 [Constr 0 [B #746573744372656431]], I 1)
-             , (Constr 0 [Constr 0 [B #746573744372656432]], I 2)
-             , (Constr 0 [Constr 0 [B #746573744372656433]], I 3)
-             , (Constr 0 [Constr 0 [B #746573744372656434]], I 4)
-             , (Constr 0 [Constr 0 [B #746573744372656435]], I 5)
-             , (Constr 0 [Constr 0 [B #746573744372656436]], I 6)
-             , (Constr 0 [Constr 0 [B #746573744372656437]], I 7)
-             , (Constr 0 [Constr 0 [B #746573744372656438]], I 8)
-             , (Constr 0 [Constr 0 [B #746573744372656439]], I 9)
-             , (Constr 0 [Constr 0 [B #74657374437265643130]], I 10)
-             , (Constr 0 [Constr 0 [B #74657374437265643131]], I 11)
-             , (Constr 0 [Constr 0 [B #74657374437265643132]], I 12)
-             , (Constr 0 [Constr 0 [B #74657374437265643133]], I 13)
-             , (Constr 0 [Constr 0 [B #74657374437265643134]], I 14)
-             , (Constr 0 [Constr 0 [B #74657374437265643135]], I 15)
-             , (Constr 0 [Constr 0 [B #74657374437265643136]], I 16)
-             , (Constr 0 [Constr 0 [B #74657374437265643137]], I 17)
-             , (Constr 0 [Constr 0 [B #74657374437265643138]], I 18)
-             , (Constr 0 [Constr 0 [B #74657374437265643139]], I 19)
-             , (Constr 0 [Constr 0 [B #74657374437265643230]], I 20)
              , ( Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]]
              , I 10000 ) ]
          , Constr 0

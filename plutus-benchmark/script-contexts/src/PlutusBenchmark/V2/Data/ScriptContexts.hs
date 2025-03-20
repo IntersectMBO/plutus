@@ -215,8 +215,8 @@ mkForwardWithStakeTrickCode cred ctx =
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
 
-forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> BuiltinData -> BI.BuiltinUnit
-forwardWithStakeTrickManual r_stake_cred _r_redeemer r_ctx =
+forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> ()
+forwardWithStakeTrickManual r_stake_cred r_ctx =
   let !wdrl = getCtxWdrl r_ctx
       wdrlAtZero = BI.fst $ BI.head wdrl
       wdrlAtOne = BI.fst $ BI.head $ BI.tail wdrl
@@ -226,7 +226,7 @@ forwardWithStakeTrickManual r_stake_cred _r_redeemer r_ctx =
           || PlutusTx.equalsData r_stake_cred wdrlAtOne
           )
         )
-        then BI.unitval
+        then ()
         else PlutusTx.traceError "not found"
   where
     getCtxWdrl :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
@@ -245,3 +245,14 @@ forwardWithStakeTrickManual r_stake_cred _r_redeemer r_ctx =
       $ BI.snd
       $ BI.unsafeDataAsConstr d_ctx
 {-# INLINABLE forwardWithStakeTrickManual #-}
+
+mkForwardWithStakeTrickManualCode
+  :: StakingCredential
+  -> ScriptContext
+  -> PlutusTx.CompiledCode ()
+mkForwardWithStakeTrickManualCode cred ctx =
+  let c = PlutusTx.toBuiltinData cred
+      sc = PlutusTx.toBuiltinData ctx
+  in $$(PlutusTx.compile [|| forwardWithStakeTrickManual ||])
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
