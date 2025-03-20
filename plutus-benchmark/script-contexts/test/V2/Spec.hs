@@ -170,10 +170,10 @@ testSOPFwdStakeTrick =
 testDataFwdStakeTrick :: TestTree
 testDataFwdStakeTrick =
      runTestGhcSOP
-          [ Tx.goldenSize "sopFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
-          , Tx.goldenBudget "sopFwdStakeTrick" testCode
-          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          [ Tx.goldenSize "dataFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrick" testCode
+          , Tx.goldenBudget "dataFwdStakeTrick" testCode
+          , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
           ]
   where
      testCredential =
@@ -193,4 +193,5 @@ allTests =
     , testCheckSOPScEquality
     , testCheckDataScEquality
     , testSOPFwdStakeTrick
+    , testDataFwdStakeTrick
     ]

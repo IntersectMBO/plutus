@@ -191,7 +191,7 @@ mkScriptContextEqualityOverheadCode sc =
 
 forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrick obsScriptCred ctx =
-  if (Data.List.any (\wdrlPair -> PlutusTx.fst wdrlPair PlutusTx.== obsScriptCred')) stakeCertPairs
+  if (Data.List.any (\cert -> cert PlutusTx.== obsScriptCred')) stakeCertPairs
     then ()
     else (PlutusTx.error ())
   where
@@ -200,8 +200,8 @@ forwardWithStakeTrick obsScriptCred ctx =
     ctx' :: ScriptContext
     ctx' = PlutusTx.unsafeFromBuiltinData ctx
     info = scriptContextTxInfo ctx'
-    stakeCertPairs :: Data.List.List (StakingCredential, Integer)
-    stakeCertPairs = Map.toDataList (txInfoWdrl info)
+    stakeCertPairs :: Data.List.List StakingCredential
+    stakeCertPairs = Map.keys (txInfoWdrl info)
 {-# INLINABLE forwardWithStakeTrick #-}
 
 mkForwardWithStakeTrickCode
