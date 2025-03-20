@@ -1,10 +1,12 @@
 # This workflow runs the desired benchmarks on demand.
 #
 # This workflow triggers whenever a comment is created in any PR.
-# If the comment has this format: "/benchmark NAME"
+# If the comment has this format: "/benchmark NAME [GHC]"
 # The this workflow will run the benchmark with the given NAME, first against 
 # the current branch and then comparing the results against the master branch.
-
+# If the optional [GHC] is provided, the benchmark will be run with the given 
+# GHC version (one of ghc810, ghc96, ghc98, ghc910), otherwise the default GHC 
+# version (ghc96) will be used.
 
 name: "🚀 Manual Benchmark"
 
@@ -46,13 +48,14 @@ jobs:
         uses: actions/github-script@main
         with:
           script: |
-            const regex = /^\/benchmark\s*([^\s]*)\s*$/;
+            const regex = /^\/benchmark\s*([^\s]*)\s*(ghc810|ghc96|ghc98|ghc910)?\s*$/;
             const comment = context.payload.comment.body;
             const match = comment.match(regex)
-            if (match !== null && match.length == 2 && match[1] !== '') {
+            if (match !== null && match.length == 3 && match[1] !== '') {
               core.setOutput('benchmark', match[1]);
+              core.setOutput('ghc', match[2] || 'ghc96');
             } else {
-              core.setFailed(`Unable to extract benchmark name from comment '${comment}'`);
+              core.setFailed(`Unable to extract benchmark name and ghc version from comment '${comment}'`);
             }
 
       - name: Extract Branch Name
@@ -117,7 +120,10 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+          nix develop .#${{ steps.extract-benchmark.outputs.ghc }} \ 
+            --no-warn-dirty \
+            --accept-flake-config \
+            --command bash ./scripts/ci-plutus-benchmark.sh 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           PR_NUMBER: ${{ github.event.issue.number }}
