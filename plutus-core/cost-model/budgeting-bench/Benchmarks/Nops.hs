@@ -637,7 +637,7 @@ benchNop1'
   -> Benchmark
 benchNop1' nop1 _rand _gen =
   let n = 11 :: Integer
-  in bgroup (show nop1) [benchWith nopCostParameters (showMemoryUsage n) $ mkApp1' nop1 [integer] n]
+  in bgroup (show nop1) [benchWith nopCostParameters (showMemoryUsage n) $ mkApp1' nop1 [unit] n]
 
 benchNop2'
   :: NopFun
@@ -649,7 +649,7 @@ benchNop2' nop2 rand gen =
       n = 22 :: Integer
   in bgroup (show nop2)
      [bgroup "1"
-       [benchWith nopCostParameters (showMemoryUsage n) $ mkApp2' nop2 [integer] x n]
+       [benchWith nopCostParameters (showMemoryUsage n) $ mkApp2' nop2 [unit] x n]
      ]
 
 benchNop3'
@@ -664,7 +664,7 @@ benchNop3' nop3 rand gen =
   in bgroup (show nop3)
      [bgroup "1"
        [bgroup "1"
-         [benchWith nopCostParameters (showMemoryUsage n) $ mkApp3' nop3 [integer] x y n]
+         [benchWith nopCostParameters (showMemoryUsage n) $ mkApp3' nop3 [unit] x y n]
        ]
      ]
 
@@ -682,7 +682,7 @@ benchNop4' nop4 rand gen =
      [bgroup "1"  -- There is an ExMemoryUsage instance, but "showMemoryUsage" causes an error.
        [bgroup "1" -- We don't care about the size of the term anyway, since it just passed through.
          [bgroup "1"
-           [benchWith nopCostParameters (showMemoryUsage n) $ mkApp4' nop4 [integer] x y z n]
+           [benchWith nopCostParameters (showMemoryUsage n) $ mkApp4' nop4 [unit] x y z n]
          ]
        ]
      ]
@@ -707,7 +707,7 @@ benchNop5' nop5 rand gen =
        [bgroup "1"
          [bgroup "1"
            [bgroup "1"
-             [benchWith nopCostParameters (showMemoryUsage n) $ mkApp5' nop5 [integer] x y z t n]
+             [benchWith nopCostParameters (showMemoryUsage n) $ mkApp5' nop5 [unit] x y z t n]
            ]
          ]
        ]
@@ -733,7 +733,7 @@ benchNop6' nop6 rand gen =
            [bgroup "1"
              [bgroup "1"
                [benchWith nopCostParameters (showMemoryUsage n) $
-                mkApp6' nop6 [integer] x y z t u n]
+                mkApp6' nop6 [unit] x y z t u n]
              ]
            ]
          ]
@@ -757,6 +757,6 @@ makeBenchmarks' gen0 =
           let (x,gen') = randNwords 1 gen
               u = Name "u" (Unique 1)
               n = Name "n" (Unique 2)
-          in (LamAbs () u unit (LamAbs () n integer (mkConstant () x)), gen')
+          in (LamAbs () u unit (LamAbs () n integer (mkConstant () ())), gen')
 
 
