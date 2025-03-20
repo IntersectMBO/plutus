@@ -106,21 +106,21 @@ let
           };
         }
 
-      {
-        packages = {
-          cardano-constitution.ghcOptions = [ "-Werror" ];
-          plutus-benchmark.ghcOptions = [ "-Werror" ];
-          plutus-conformance.ghcOptions = [ "-Werror" ];
-          plutus-core.ghcOptions = [ "-Werror" ];
-          plutus-executables.ghcOptions = [ "-Werror" ];
-          plutus-ledger-api.ghcOptions = [ "-Werror" ];
-          plutus-metatheory.ghcOptions = [ "-Werror" ];
-          plutus-tx.ghcOptions = [ "-Werror" ];
-          plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-          plutus-tx-test-util.ghcOptions = [ "-Werror" ];
-        };
-      }
-    ];
-  });
+        {
+          packages = {
+            cardano-constitution.ghcOptions = [ "-Werror" ];
+            plutus-benchmark.ghcOptions = [ "-Werror" ];
+            plutus-conformance.ghcOptions = [ "-Werror" ];
+            plutus-core.ghcOptions = [ "-Werror" ];
+            plutus-executables.ghcOptions = [ "-Werror" ];
+            plutus-ledger-api.ghcOptions = [ "-Werror" ];
+            plutus-metatheory.ghcOptions = [ "-Werror" ];
+            plutus-tx.ghcOptions = [ "-Werror" ];
+            plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+            plutus-tx-test-util.ghcOptions = [ "-Werror" ];
+          };
+        }
+      ];
+    });
 in
 cabalProject
