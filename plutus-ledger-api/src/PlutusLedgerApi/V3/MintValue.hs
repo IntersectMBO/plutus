@@ -28,7 +28,7 @@ where
 import PlutusTx.Prelude
 
 import Control.DeepSeq (NFData)
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Value (CurrencySymbol, TokenName, Value (..))
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..))
@@ -58,7 +58,7 @@ Users should project 'MintValue' into 'Value' using 'mintValueMinted' or 'mintVa
 
 -- | A 'MintValue' represents assets that are minted and burned in a transaction.
 newtype MintValue = UnsafeMintValue (Map CurrencySymbol (Map TokenName Integer))
-  deriving stock (Generic, Data, Typeable, Haskell.Show)
+  deriving stock (Generic, Data, Haskell.Show)
   deriving anyclass (NFData)
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving (Pretty) via (PrettyShow MintValue)
@@ -129,3 +129,4 @@ filterQuantities mapQuantity values =
 -- TH Splices --------------------------------------------------------------------------------------
 
 $(makeLift ''MintValue)
+

@@ -70,7 +70,7 @@ tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
         n <- freshName $ "arg_" <> showText i
         pure $ VarDecl ann n ty
     let selectedTy  = elTys !! ind
-        selectedArg = mkVar ann $ args !! ind
+        selectedArg = mkVar $ args !! ind
         selector    = mkIterLamAbs args selectedArg
 
     pure
@@ -164,7 +164,7 @@ prodNConstructor arity = runQuote $ do
         -- \case
         lamAbs () caseArg caseTy $
         -- case arg_1 .. arg_n
-        mkIterAppNoAnn (var () caseArg) $ fmap (mkVar ()) args
+        mkIterAppNoAnn (var () caseArg) $ fmap mkVar args
 
 -- | Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
 --
@@ -185,7 +185,7 @@ prodNAccessor arity index = runQuote $ do
     args <- for [0..(arity -1)] $ \i -> do
         n <- liftQuote $ freshName $ "arg_" <> showText i
         pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
-    let selectedArg = mkVar () $ args !! index
+    let selectedArg = mkVar $ args !! index
 
     tupleArg <- liftQuote $ freshName "tuple"
     pure $

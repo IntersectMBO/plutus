@@ -14,6 +14,7 @@ module PlutusTx.Compiler.Types (
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
+import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 
 import PlutusIR.Analysis.Builtins qualified as PIR
@@ -56,14 +57,15 @@ data CompileContext uni fun = CompileContext {
     ccFlags            :: GHC.DynFlags,
     ccFamInstEnvs      :: GHC.FamInstEnvs,
     ccNameInfo         :: NameInfo,
-    ccScope            :: Scope uni,
+    ccScope            :: Scope uni fun,
     ccBlackholed       :: Set.Set GHC.Name,
     ccCurDef           :: Maybe LexName,
     ccModBreaks        :: Maybe GHC.ModBreaks,
     ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun,
     ccBuiltinCostModel :: PLC.CostingPart uni fun,
     ccDebugTraceOn     :: Bool,
-    ccRewriteRules     :: PIR.RewriteRules uni fun
+    ccRewriteRules     :: PIR.RewriteRules uni fun,
+    ccSafeToInline     :: Bool
     }
 
 data CompileState = CompileState
@@ -226,9 +228,12 @@ appropriately.
 We keep the scope in a `Reader` monad, so any modifications are only local.
 -}
 
-data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
+data Scope uni fun =
+    Scope
+        (Map.Map GHC.Name (PLCVar uni, Maybe (PIRTerm uni fun)))
+        (Map.Map GHC.Name PLCTyVar)
 
-initialScope :: Scope uni
+initialScope :: Scope uni fun
 initialScope = Scope Map.empty Map.empty
 
 withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a

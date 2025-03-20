@@ -38,7 +38,6 @@ import Control.Lens (Lens', lens)
 import Data.Map (Map)
 import Data.Maybe (isJust)
 import Data.String (IsString)
-import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
 
@@ -63,7 +62,7 @@ You may want to add checks for its invariants.
 See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TxId = TxId {getTxId :: PlutusTx.BuiltinByteString}
-  deriving stock (Eq, Ord, Generic, Typeable)
+  deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
   deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
   deriving

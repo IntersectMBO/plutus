@@ -24,7 +24,7 @@ She would like to create and deploy an auction smart contract with the following
 
 Plinth is a subset of Haskell, used to write on-chain code, also known as validators or scripts.
 A Plinth program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plinth code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plutus-tx-template/blob/main/src/AuctionValidator.hs).
+The full Plinth code for the auction smart contract can be found at [AuctionValidator.hs](https://github.com/IntersectMBO/plinth-template/blob/main/src/AuctionValidator.hs).
 
 <!-- will need to update the link and file location for the new docs platform implementation -->
 
@@ -102,7 +102,7 @@ On the other hand, by using the `txInfoValidRange` interval, the same interval i
 If the current time when the transaction is validated is outside of the interval, the transaction is rejected immediately without running the script.
 
 Also note the tilde (`~`) in `~validBidTime = ...`.
-When writing Plinth it is [advisable](../using-plinth/compiling-plutus-tx.md) to turn on the `Strict` extension, which generally improves script performance.
+When writing Plinth it is [advisable](../using-plinth/compiling-plinth.md) to turn on the `Strict` extension, which generally improves script performance.
 Doing so makes all bindings strict, which means, in this particular case, without the `~`, `validBidTime` would be evaluated even if the redeemer matches the `Payout` case, which doesn't need this condition.
 Doing so results in unnecessary work or even unexpected evaluation failures.
 The `~` makes `validBidTime` non-strict, i.e., only evaluated when used.

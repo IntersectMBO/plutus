@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -27,14 +26,12 @@ import GHC.Core.Multiplicity qualified as GHC
 import GHC.Core.TyCo.Rep qualified as GHC
 import GHC.Num.Integer qualified
 import GHC.Plugins qualified as GHC
+import GHC.Tc.Utils.TcType qualified as GHC
 import GHC.Types.CostCentre qualified as GHC
 import GHC.Types.Id.Make qualified as GHC
 import GHC.Types.Tickish qualified as GHC
 
-#if MIN_VERSION_ghc(9,6,0)
-import GHC.Tc.Utils.TcType qualified as GHC
-#endif
-
+import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool qualified
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
@@ -75,7 +72,7 @@ import PlutusCore.Subst qualified as PLC
 import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
-import Control.Monad.Reader (ask, asks)
+import Control.Monad.Reader (ask, asks, local)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -87,6 +84,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable (for)
+import Data.Tuple.Extra
 import Data.Word (Word8)
 
 
@@ -271,7 +269,7 @@ compileAlt (GHC.Alt alt vars body) instArgTys defaultBody =
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
+    GHC.DataAlt _ -> withVarsScoped ((, Nothing) <$> vars) $ \vars' -> do
       b <- compileExpr body
       delayed <- delay b
       return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
@@ -562,16 +560,25 @@ hoistExpr ::
   GHC.CoreExpr ->
   m (PIRTerm uni fun)
 hoistExpr var t = do
+  wrapUnsafeDataAsConstrName <-
+    lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
   let name = GHC.getName var
       lexName = LexName name
+
+      -- See Note [Compiling AsData Matchers and Their Invocations]
+      isAsDataMatcher =
+        any
+          ((== wrapUnsafeDataAsConstrName) . GHC.getName @GHC.Var)
+          (universeBi t)
       -- If the original ID has an "always inline" pragma, then
       -- propagate that to PIR so that the PIR inliner will deal
       -- with it.
-      hasInlinePragma = GHC.isInlinePragma $ GHC.idInlinePragma var
-      ann = if hasInlinePragma then annAlwaysInline else annMayInline
+      ann =
+        (if hasAlwaysInlinePragma var then annAlwaysInline else annMayInline)
+          { annIsAsDataMatcher = isAsDataMatcher }
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
-  maybeDef <- PIR.lookupTerm annMayInline lexName
+  maybeDef <- PIR.lookupTerm lexName
   let addSpan = case getVarSourceSpan var of
         Nothing  -> id
         Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
@@ -583,13 +590,13 @@ hoistExpr var t = do
       -- See Note [Occurrences of recursive names]
       PIR.defineTerm
         lexName
-        (PIR.Def var' (PIR.mkVar ann var', PIR.Strict))
+        (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
       t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-      pure $ PIR.mkVar ann var'
+      pure $ PIR.mkVar var'
 
 maybeProfileRhs :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
@@ -765,7 +772,12 @@ entryExitTracing lamName displayName e ty =
 compileExpr :: CompilingDefault uni fun m ann => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
-  CompileContext {ccScope = scope, ccModBreaks = maybeModBreaks, ccBuiltinsInfo = binfo} <- ask
+  CompileContext
+    { ccScope = scope
+    , ccModBreaks = maybeModBreaks
+    , ccBuiltinsInfo = binfo
+    , ccSafeToInline = safeToInline
+    } <- ask
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
@@ -805,7 +817,13 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         case GHC.collectArgs (strip e') of
           (strip -> GHC.Var f, args) ->
             case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding f) of
-              Nothing -> compileExpr e'
+              Nothing ->
+                case lookupName scope (GHC.getName f) of
+                  -- If `f` is locally bound, and its definition has already been compiled,
+                  -- we use it directly.
+                  -- This only supports `inline f`, not `inline (f x1 ... xn)`.
+                  Just (_var, Just def) | null args -> pure def
+                  _                                 -> compileExpr e'
               Just unfolding
                 -- `f` is recursive. We do not inline recursive bindings.
                 | any (== f) (universeBi unfolding) -> compileExpr e'
@@ -955,7 +973,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
                                                   "Unbounded ranges are not supported.")
     -- locally bound vars
-    GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
+    GHC.Var (lookupName scope . GHC.getName -> Just (var, _def)) -> pure $ PIR.mkVar var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
@@ -975,7 +993,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       -- Defined names, including builtin names
       let lexName = LexName $ GHC.getName n
       modifyCurDeps (\d -> Set.insert lexName d)
-      maybeDef <- PIR.lookupTerm annMayInline lexName
+      maybeDef <- PIR.lookupTerm lexName
       case maybeDef of
         Just term -> pure term
         Nothing ->
@@ -990,15 +1008,39 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                   GHC.<+> GHC.ppr n
                   GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                   GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
-
     -- arg can be a type here, in which case it's a type instantiation
-    l `GHC.App` GHC.Type t ->
-      -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
-      if GHC.isRuntimeRepKindedTy t
-      then compileExpr l
-      else PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
+    l `GHC.App` GHC.Type t -> do
+      l' <- compileExpr l
+      fmap
+        ( -- If the head of the application is an `AsData` matcher, propagate the
+          -- `annIsAsDataMatcher` annotation to the whole application.
+          -- See Note [Compiling AsData Matchers and Their Invocations]
+          if annIsAsDataMatcher (PIR.termAnn l')
+            then fmap (\ann -> ann{annIsAsDataMatcher = True})
+            else id
+        )
+        ( -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
+          if GHC.isRuntimeRepKindedTy t
+            then pure l'
+            else PIR.TyInst annMayInline <$> pure l' <*> compileTypeNorm t
+        )
     -- otherwise it's a normal application
-    l `GHC.App` arg -> PIR.Apply annMayInline <$> compileExpr l <*> compileExpr arg
+    l `GHC.App` arg -> do
+      l' <- compileExpr l
+      let isAsDataMatcher = annIsAsDataMatcher (PIR.termAnn l')
+      fmap
+        ( -- If the head of the application is an `AsData` matcher, propagate the
+          -- `annIsAsDataMatcher` annotation to the whole application.
+          -- See Note [Compiling AsData Matchers and Their Invocations]
+          if isAsDataMatcher
+            then fmap (\ann -> ann{annIsAsDataMatcher = True})
+            else id
+        )
+        ( -- If the head of the application is an `AsData` matcher, set `safeToInline`
+          -- to True and continue.
+          (if isAsDataMatcher then local (\c -> c{ccSafeToInline = True}) else id)
+            (PIR.Apply annMayInline <$> pure l' <*> compileExpr arg)
+        )
     -- if we're biding a type variable it's a type abstraction
     GHC.Lam b@(GHC.isTyVar -> True) body ->
       -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
@@ -1006,7 +1048,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       then compileExpr body
       else mkTyAbsScoped b $ compileExpr body
     -- otherwise it's a normal lambda
-    GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
+    GHC.Lam b body -> do
+      let ann = if safeToInline then annSafeToInline else annMayInline
+      mkLamAbsScoped ann b $ compileExpr body
     GHC.Let (GHC.NonRec b rhs) body -> do
       -- the binding is in scope for the body, but not for the arg
       rhs' <- compileExpr rhs
@@ -1037,7 +1081,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         body' <- compileExpr body
         pure $ PIR.Let annMayInline PIR.NonRec binds body'
     GHC.Let (GHC.Rec bs) body ->
-      withVarsScoped (fmap fst bs) $ \vars -> do
+      withVarsScoped (fmap (second (const Nothing)) bs) $ \vars -> do
         -- the bindings are scope in both the body and the args
         -- TODO: this is a bit inelegant matching the vars back up
         binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
@@ -1080,122 +1124,129 @@ compileCase ::
   GHC.Type ->
   [GHC.CoreAlt] ->
   m (PIRTerm uni fun)
-compileCase isDead rewriteConApps binfo scrutinee binder t alts = case alts of
-  [GHC.Alt con bs body]
-    -- See Note [Evaluation-only cases]
-    | all (`isDead` body) bs -> do
-      -- See Note [At patterns]
-      scrutinee' <- compileExpr scrutinee
-      withVarScoped binder $ \v -> do
-        body' <- compileExpr body
+compileCase isDead rewriteConApps binfo scrutinee binder t alts = do
+  wrapTailName <- lookupGhcName 'PlutusTx.AsData.Internal.wrapTail
+  let -- See Note [Compiling AsData Matchers and Their Invocations]
+      isWrapTailApp =
+        case GHC.collectArgs (strip scrutinee) of
+          (strip -> GHC.Var f, _args) -> GHC.getName f == wrapTailName
+          _                           -> False
+      binderAnn
+        | hasAlwaysInlinePragma binder = annAlwaysInline
+        | isWrapTailApp = annSafeToInline
+        | otherwise = annMayInline
+  case alts of
+    [GHC.Alt con bs body]
+      -- See Note [Evaluation-only cases]
+      | all (`isDead` body) bs -> do
         -- See Note [At patterns]
-        let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
-        pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
-    | rewriteConApps
-    , GHC.DataAlt dataCon <- con -> do
-        -- Attempt to rewrite constructor applications, since sometimes they cannot be
-        -- compiled (e.g., opaque constructors).
-        -- For example, this rewrites
+        scrutinee' <- compileExpr scrutinee
+        withVarScoped binder binderAnn (Just scrutinee') $ \v -> do
+          body' <- compileExpr body
+          -- See Note [At patterns]
+          let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
+          pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
+      | rewriteConApps
+      , GHC.DataAlt dataCon <- con -> do
+          -- Attempt to rewrite constructor applications, since sometimes they cannot be
+          -- compiled (e.g., opaque constructors).
+          -- For example, this rewrites
 
-        -- ```
-        -- case scrut of b {BuiltinList xs} -> ...BuiltinList @BuiltinData xs...
-        -- ```
-        --
-        -- into
-        --
-        -- ```
-        -- case scrut of b {BuiltinList xs} -> ...b...
-        -- ```
-        --
-        -- after which `xs` is hopefully dead, and we can then compile it using the
-        -- `all (`isDead` body) bs` branch of `compileCase`.
-        let f (GHC.collectArgs -> (GHC.Var (GHC.isDataConId_maybe -> Just dataCon'), args0))
-              | dataCon == dataCon'
-              -- Discard type arguments
-              , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
-              , length bs == length args
-              , and (zipWith (==) bs args) =
-                GHC.Var binder
-            f other = other
-            -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
-            isDead' b = not . any (== b) . universeBi
-        -- If some binders are still alive, we have to give up (rather than trying to rewrite
-        -- constructor applications again, which will loop), hence `False`.
-        compileCase isDead' False binfo scrutinee binder t [GHC.Alt con bs (transform f body)]
-  _ -> do
-      -- See Note [At patterns]
-      scrutinee' <- compileExpr scrutinee
-      let scrutineeType = GHC.varType binder
+          -- ```
+          -- case scrut of b {BuiltinList xs} -> ...BuiltinList @BuiltinData xs...
+          -- ```
+          --
+          -- into
+          --
+          -- ```
+          -- case scrut of b {BuiltinList xs} -> ...b...
+          -- ```
+          --
+          -- after which `xs` is hopefully dead, and we can then compile it using the
+          -- `all (`isDead` body) bs` branch of `compileCase`.
+          let f (GHC.collectArgs -> (GHC.Var (GHC.isDataConId_maybe -> Just dataCon'), args0))
+                | dataCon == dataCon'
+                -- Discard type arguments
+                , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
+                , length bs == length args
+                , and (zipWith (==) bs args) =
+                  GHC.Var binder
+              f other = other
+              -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
+              isDead' b = not . any (== b) . universeBi
+          -- If some binders are still alive, we have to give up (rather than trying to rewrite
+          -- constructor applications again, which will loop), hence `False`.
+          compileCase isDead' False binfo scrutinee binder t [GHC.Alt con bs (transform f body)]
+    _ -> do
+        -- See Note [At patterns]
+        scrutinee' <- compileExpr scrutinee
+        let scrutineeType = GHC.varType binder
 
-      -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
-      withVarScoped binder $ \v -> do
-        (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
-          Just (tc, argTys) -> pure (tc, argTys)
-          Nothing ->
-            throwSd UnsupportedError $
-              "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
-        dcs <- getDataCons tc
+        -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
+        withVarScoped binder binderAnn (Just scrutinee') $ \v -> do
+          (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
+            Just (tc, argTys) -> pure (tc, argTys)
+            Nothing ->
+              throwSd UnsupportedError $
+                "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
+          dcs <- getDataCons tc
 
-        -- it's important to instantiate the match before alts compilation
-        match <- getMatchInstantiated scrutineeType
-        let matched = PIR.Apply annMayInline match scrutinee'
+          -- it's important to instantiate the match before alts compilation
+          match <- getMatchInstantiated scrutineeType
+          let matched = PIR.Apply annMayInline match scrutinee'
 
-        let (rest, mdef) = GHC.findDefault alts
-        -- This does two things:
-        -- 1. Ensure that every set of alternatives has a DEFAULT alt (See Note [We always need DEFAULT])
-        -- 2. Compile the body of the DEFAULT alt ahead of time so it can be shared (See Note [Sharing DEFAULT bodies])
-        (alts', defCompiled) <- case mdef of
-          Just d -> do
-            defCompiled <- compileExpr d
-            pure (GHC.addDefault rest (Just d), defCompiled)
-          Nothing -> do
-#if MIN_VERSION_ghc(9,6,0)
-            let d = GHC.mkImpossibleExpr t "unreachable alternative"
-#else
-            let d = GHC.mkImpossibleExpr t
-#endif
-            defCompiled <- compileExpr d
-            pure (GHC.addDefault alts (Just d), defCompiled)
-        defName <- PLC.freshName "defaultBody"
+          let (rest, mdef) = GHC.findDefault alts
+          -- This does two things:
+          -- 1. Ensure that every set of alternatives has a DEFAULT alt (See Note [We always need DEFAULT])
+          -- 2. Compile the body of the DEFAULT alt ahead of time so it can be shared (See Note [Sharing DEFAULT bodies])
+          (alts', defCompiled) <- case mdef of
+            Just d -> do
+              defCompiled <- compileExpr d
+              pure (GHC.addDefault rest (Just d), defCompiled)
+            Nothing -> do
+              let d = GHC.mkImpossibleExpr t "unreachable alternative"
+              defCompiled <- compileExpr d
+              pure (GHC.addDefault alts (Just d), defCompiled)
+          defName <- PLC.freshName "defaultBody"
 
-        -- See Note [Case expressions and laziness]
-        compiledAlts <- forM dcs $ \dc -> do
-          let alt = GHC.findAlt (GHC.DataAlt dc) alts'
-              -- these are the instantiated type arguments, e.g. for the data constructor Just when
-              -- matching on Maybe Int it is [Int] (crucially, not [a])
-              instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
-          case alt of
-            Just a -> do
-              -- pass in the body to use for default alternatives, see Note [Sharing DEFAULT bodies]
-              (nonDelayedAlt, delayedAlt) <- compileAlt a instArgTys (PIR.Var annMayInline defName)
-              return (nonDelayedAlt, delayedAlt)
-            Nothing -> throwSd CompilationError $ "No alternative for:" GHC.<+> GHC.ppr dc
-        let
-          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure binfo mempty nonDelayed
-          lazyCase = not (and isPureAlt || length dcs == 1)
-          branches =
-            compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
-              if lazyCase then delayedAlt else nonDelayedAlt
+          -- See Note [Case expressions and laziness]
+          compiledAlts <- forM dcs $ \dc -> do
+            let alt = GHC.findAlt (GHC.DataAlt dc) alts'
+                -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                -- matching on Maybe Int it is [Int] (crucially, not [a])
+                instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
+            case alt of
+              Just a -> do
+                -- pass in the body to use for default alternatives, see Note [Sharing DEFAULT bodies]
+                (nonDelayedAlt, delayedAlt) <- compileAlt a instArgTys (PIR.Var annMayInline defName)
+                return (nonDelayedAlt, delayedAlt)
+              Nothing -> throwSd CompilationError $ "No alternative for:" GHC.<+> GHC.ppr dc
+          let
+            isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure binfo mempty nonDelayed
+            lazyCase = not (and isPureAlt || length dcs == 1)
+            branches =
+              compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
+                if lazyCase then delayedAlt else nonDelayedAlt
 
-        -- See Note [Scott encoding of datatypes]
-        -- we need this for the default case body
-        originalResultType <- compileTypeNorm t
-        -- See Note [Scott encoding of datatypes]
-        -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
-        resultType <- maybeDelayType lazyCase originalResultType
-        let instantiated = PIR.TyInst annMayInline matched resultType
+          -- See Note [Scott encoding of datatypes]
+          -- we need this for the default case body
+          originalResultType <- compileTypeNorm t
+          -- See Note [Scott encoding of datatypes]
+          -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
+          resultType <- maybeDelayType lazyCase originalResultType
+          let instantiated = PIR.TyInst annMayInline matched resultType
 
-        let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
-        -- See Note [Case expressions and laziness]
-        mainCase <- maybeForce lazyCase applied
+          let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
+          -- See Note [Case expressions and laziness]
+          mainCase <- maybeForce lazyCase applied
 
-        let binds =
-              [ -- See Note [At patterns]
-                PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
-              , -- Bind the default body, see Note [Sharing DEFAULT bodies]
-                PIR.TermBind annMayInline PIR.NonStrict (PIR.VarDecl annMayInline defName originalResultType) defCompiled
-              ]
-        pure $ PIR.mkLet annMayInline PIR.NonRec binds mainCase
+          let binds =
+                [ -- See Note [At patterns]
+                  PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
+                , -- Bind the default body, see Note [Sharing DEFAULT bodies]
+                  PIR.TermBind annMayInline PIR.NonStrict (PIR.VarDecl annMayInline defName originalResultType) defCompiled
+                ]
+          pure $ PIR.mkLet annMayInline PIR.NonRec binds mainCase
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -1338,6 +1389,9 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
+hasAlwaysInlinePragma :: GHC.Var -> Bool
+hasAlwaysInlinePragma = GHC.isInlinePragma . GHC.idInlinePragma
+
 -- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is
 -- important because GHC inserts calls to it when it sees negations, even negations
 -- of literals (unless NegativeLiterals is on, which it usually isn't). So we directly
@@ -1377,7 +1431,7 @@ defineFix = do
 lookupIntegerNegate :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
 lookupIntegerNegate = do
   ghcName <- lookupGhcName 'GHC.Num.Integer.integerNegate
-  PIR.lookupTerm annMayInline (LexName ghcName) >>= \case
+  PIR.lookupTerm (LexName ghcName) >>= \case
     Just t -> pure t
     Nothing -> throwPlain $
       CompilationError "Cannot find the definition of integerNegate. Please file a bug report."

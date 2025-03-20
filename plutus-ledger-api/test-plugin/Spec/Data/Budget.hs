@@ -50,7 +50,9 @@ compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
 mkValue =
-    Value . Map.unsafeFromList . fmap (bimap toSymbol (Map.unsafeFromList . fmap (first toToken)))
+    Value
+    . Map.unsafeFromSOPList
+    . fmap (bimap toSymbol (Map.unsafeFromSOPList . fmap (first toToken)))
 
 toSymbol :: Integer -> CurrencySymbol
 toSymbol = currencySymbol . fromString . show

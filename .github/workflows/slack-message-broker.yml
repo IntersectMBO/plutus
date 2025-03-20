@@ -20,7 +20,7 @@ on:
       - "🔮 Metatheory Site"
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
-      - "🏛️ PlutusTx Template"
+      - "🏛️ Plinth Template"
 
 jobs:
   Send:

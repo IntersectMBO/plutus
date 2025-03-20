@@ -90,3 +90,26 @@ allow-newer:
 -- allow-newer: *:plutus-ledger-api
 -- allow-older: *:nothunks
 
+if impl (ghc >= 9.12)
+  allow-newer:
+    -- https://github.com/phadej/vec/issues/118
+    , bin:base
+    , fin:base
+    , ral:base
+
+    -- https://github.com/well-typed/cborg/pull/339
+    , cborg:base
+    , cborg:ghc-prim
+    , serialise:base
+    , serialise:ghc-prim
+
+    -- https://github.com/haskellari/tree-diff/issues/97
+    , tree-diff:base
+    , tree-diff:time
+
+    -- https://github.com/typeclasses/hex-text/issues/9
+    , hex-text:base
+
+    -- Currently locked to nothunks ^>= 0.2 but ^>=0.3 would make this
+    -- un-needed.
+    , nothunks:time

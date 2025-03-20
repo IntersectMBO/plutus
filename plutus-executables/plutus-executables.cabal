@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.34.0.0
+version:         1.42.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -52,19 +52,24 @@ common lang
   if impl(ghc >=9.8)
     ghc-options: -Wno-x-partial
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
+    buildable: False
+
 -- This means that we no longer support uplc/plc/pir on Windows
 common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
 library lib
-  import:          lang, os-support
+  import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
   exposed-modules: AgdaUnparse
   build-depends:
     , base               >=4.9   && <5
     , bytestring
-    , plutus-core        ^>=1.40
+    , plutus-core        ^>=1.42
     , plutus-metatheory
     , text
 
@@ -80,7 +85,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -95,11 +100,11 @@ executable plc
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
 
 executable uplc
-  import:         lang, os-support
+  import:         lang, os-support, ghc-version-support
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
@@ -111,7 +116,7 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.40
+    , plutus-core                      ^>=1.42
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
     , plutus-metatheory
@@ -123,7 +128,7 @@ executable uplc
 -- build-tool-depends: Agda:agda
 
 test-suite test-simple
-  import:             lang, os-support
+  import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/simple
@@ -138,7 +143,7 @@ test-suite test-simple
     , plutus-executables:uplc
 
 test-suite test-detailed
-  import:             lang, os-support
+  import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/detailed
@@ -146,8 +151,26 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.40
+    , plutus-core        ^>=1.42
     , plutus-metatheory
+    , process
+    , tasty
+    , tasty-hunit
+    , text
+
+  build-tool-depends:
+    , plutus-executables:plc
+    , plutus-executables:uplc
+
+test-suite test-certifier
+  import:             lang, os-support, ghc-version-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  hs-source-dirs:     test/certifier
+  build-depends:
+    , base
+    , filepath
+    , plutus-core:plutus-core-testlib
     , process
     , tasty
     , tasty-hunit

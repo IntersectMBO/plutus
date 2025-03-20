@@ -100,7 +100,7 @@ printmode :: Parser PrintMode
 printmode = option auto
   (  long "print-mode"
   <> metavar "MODE"
-  <> value Simple
+  <> value Classic
   <> showDefault
   <> help
     ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassic, "

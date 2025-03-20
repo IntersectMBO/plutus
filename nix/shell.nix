@@ -76,6 +76,7 @@ let
     pkgs.plantuml
     pkgs.jq
     pkgs.yq
+    pkgs.github-cli
     pkgs.gnused
     pkgs.awscli2
     pkgs.act
@@ -94,6 +95,9 @@ let
     pkgs.nodejs_20
   ];
 
+  locale-archive-hook =
+    lib.optionalString (pkgs.stdenv.hostPlatform.libc == "glibc")
+      "export LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive";
 
   full-shell = project.shellFor {
     name = "plutus-shell-${project.args.compiler-nix-name}";
@@ -108,6 +112,7 @@ let
 
     shellHook = ''
       ${pre-commit-check.shellHook}
+      ${locale-archive-hook}
       export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
       echo -e "\n🤟 Welcome to Plutus 🤟"
     '';

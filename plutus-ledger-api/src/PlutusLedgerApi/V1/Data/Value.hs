@@ -70,7 +70,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import Data.Function ((&))
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -90,6 +90,7 @@ import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
+import PlutusTx.Data.List (List)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
@@ -119,7 +120,7 @@ newtype CurrencySymbol = CurrencySymbol
       -- ^ using hex encoding
     )
     via LedgerBytes
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -153,7 +154,7 @@ You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -- editorconfig-checker-disable-file
 -}
 newtype TokenName = TokenName {unTokenName :: PlutusTx.BuiltinByteString}
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -220,7 +221,7 @@ adaToken = TokenName emptyByteString
 
 -- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
 newtype AssetClass = AssetClass {unAssetClass :: (CurrencySymbol, TokenName)}
-  deriving stock (Generic, Data, Typeable)
+  deriving stock (Generic, Data)
   deriving newtype
     ( Haskell.Eq
     , Haskell.Ord
@@ -290,7 +291,7 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
 -}
 newtype Value = Value {getValue :: Map CurrencySymbol (Map TokenName Integer)}
-  deriving stock (Generic, Typeable, Haskell.Show)
+  deriving stock (Generic, Haskell.Show)
   deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
   deriving Pretty via (PrettyShow Value)
 
@@ -397,7 +398,7 @@ currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
 {-# INLINEABLE currencySymbolValueOf #-}
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
-symbols :: Value -> BuiltinList BuiltinData
+symbols :: Value -> List CurrencySymbol
 symbols (Value mp) = Map.keys mp
 {-# INLINEABLE symbols #-}
 
@@ -460,10 +461,10 @@ Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
 Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 -}
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
-flattenValue v = goOuter [] (Map.toList $ getValue v)
+flattenValue v = goOuter [] (Map.toSOPList $ getValue v)
  where
   goOuter acc []             = acc
-  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
+  goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toSOPList m)) tl
 
   goInner _ acc [] = acc
   goInner cs acc ((tn, a) : tl)
@@ -723,7 +724,7 @@ eq (Value currs1) (Value currs2) =
 {-# INLINEABLE eq #-}
 
 newtype Lovelace = Lovelace {getLovelace :: Integer}
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow Lovelace)
   deriving anyclass (HasBlueprintDefinition)
   deriving newtype

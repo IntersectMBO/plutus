@@ -1181,11 +1181,8 @@
             "type": "linear_in_x"
         },
         "memory": {
-            "arguments": {
-                "intercept": 4,
-                "slope": 0
-            },
-            "type": "linear_in_y"
+            "arguments": 4,
+            "type": "constant_cost"
         }
     }
 }

@@ -377,7 +377,7 @@ processSingleBinding
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
+    (TermBind _ s v@(VarDecl ann n _) rhs0) -> do
         -- we want to do unconditional inline if possible
         maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
@@ -398,7 +398,7 @@ processSingleBinding body = \case
                         -- have unique names
                         (MkVarInfo s (Done (dupable rhs)))
                 pure $ Just $ TermBind ann s v rhs
-    (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
+    (TypeBind _ v@(TyVarDecl ann n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
     b -> -- Just process all the subterms
@@ -422,15 +422,16 @@ maybeAddSubst body ann s n rhs0 = do
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
-    let hinted = shouldInline hints ann n
-
-    if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs)
-    else
-        ifM
-            (shouldUnconditionallyInline s n rhs body)
-            (extendAndDrop (Done $ dupable rhs))
-            (pure $ Just rhs)
+    case shouldInline hints ann n of
+      AlwaysInline ->
+        -- if we've been told specifically, then do it right away
+        extendAndDrop (Done $ dupable rhs)
+      hint ->
+        let safeToInline = hint == SafeToInline
+         in ifM
+              (shouldUnconditionallyInline safeToInline s n rhs body)
+              (extendAndDrop (Done $ dupable rhs))
+              (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun ann

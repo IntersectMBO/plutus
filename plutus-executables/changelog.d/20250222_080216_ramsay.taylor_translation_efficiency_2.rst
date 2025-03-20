@@ -1,0 +1,4 @@
+Fixed
+-----
+
+- Impossibly long certification of the Marlowe semantics example now takes ~20s

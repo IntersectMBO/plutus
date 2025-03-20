@@ -115,45 +115,51 @@ in
                        {pair data data}
                        {list (pair data data)}
                        nilCase
-                       (\(hd : pair data data) (tl : list (pair data data)) ->
+                       (\(hd : pair data data) ->
                           Bool_match
                             (ifThenElse
                                {Bool}
                                (equalsData k (fstPair {data} {data} hd))
                                True
                                False)
-                            {all dead. list (pair data data)}
+                            {all dead.
+                               list (pair data data) -> list (pair data data)}
+                            (/\dead -> mkCons {pair data data} (mkPairData k a))
                             (/\dead ->
-                               mkCons {pair data data} (mkPairData k a) tl)
-                            (/\dead -> mkCons {pair data data} hd (go tl))
+                               \(eta : list (pair data data)) ->
+                                 mkCons {pair data data} hd (go eta))
                             {all dead. dead})
                in
                go ds)
           (mkCons {pair data data} (mkPairData (iData n) (I 0)) [])
           (`$fEnumBool_$cenumFromTo` 1 10)
     !nt : list (pair data data)
-      = let
-        !k : data = iData (addInteger 5 n)
-      in
-      letrec
-        ~go : list (pair data data) -> list (pair data data)
-          = caseList'
-              {pair data data}
-              {list (pair data data)}
-              []
-              (\(hd : pair data data) (tl : list (pair data data)) ->
-                 Bool_match
-                   (ifThenElse
-                      {Bool}
-                      (equalsData k (fstPair {data} {data} hd))
-                      True
-                      False)
-                   {all dead. list (pair data data)}
-                   (/\dead -> tl)
-                   (/\dead -> mkCons {pair data data} hd (go tl))
-                   {all dead. dead})
-      in
-      go nt
+      = (let
+            !k : data = iData (addInteger 5 n)
+          in
+          letrec
+            ~go : list (pair data data) -> list (pair data data)
+              = caseList'
+                  {pair data data}
+                  {list (pair data data)}
+                  []
+                  (\(hd : pair data data) ->
+                     Bool_match
+                       (ifThenElse
+                          {Bool}
+                          (equalsData k (fstPair {data} {data} hd))
+                          True
+                          False)
+                       {all dead.
+                          list (pair data data) -> list (pair data data)}
+                       (/\dead -> \(x : list (pair data data)) -> x)
+                       (/\dead ->
+                          \(eta : list (pair data data)) ->
+                            mkCons {pair data data} hd (go eta))
+                       {all dead. dead})
+          in
+          go)
+          nt
   in
   Tuple5
     {Maybe integer}

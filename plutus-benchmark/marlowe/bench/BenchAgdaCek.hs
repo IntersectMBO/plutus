@@ -1,5 +1,4 @@
-{- | Benchmarks for the Agda CEK machine based on some Marlowe examples. -}
-
+-- | Benchmarks for the Agda CEK machine based on some Marlowe examples.
 module Main where
 
 import PlutusBenchmark.Agda.Common (benchProgramAgdaCek)

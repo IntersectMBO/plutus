@@ -1,7 +1,4 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -32,9 +29,7 @@ import PlutusTx.PIRTypes
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
-#if MIN_VERSION_ghc(9,4,0)
 import GHC.Core.Reduction qualified as GHC
-#endif
 import GHC.Plugins qualified as GHC
 
 import PlutusIR qualified as PIR
@@ -78,11 +73,7 @@ compileTypeNorm :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRType un
 compileTypeNorm ty = do
   CompileContext{ccFamInstEnvs = envs} <- ask
   -- See Note [Type families and normalizing types]
-#if MIN_VERSION_ghc(9,4,0)
   let (GHC.Reduction _ ty') = GHC.normaliseType envs GHC.Representational ty
-#else
-  let (_, ty') = GHC.normaliseType envs GHC.Representational ty
-#endif
   compileType ty'
 
 -- | Compile a type.
@@ -97,11 +88,7 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
       Nothing ->
         throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
     (GHC.splitFunTy_maybe -> Just r) -> case r of
-#if MIN_VERSION_ghc(9,6,0)
       (_t, _m, i, o) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
-#else
-      (_m, i, o)     -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
-#endif
     (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
       PIR.mkIterTyApp
         <$> compileTyCon tc
@@ -316,7 +303,7 @@ getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm u
 getConstructors tc = do
   -- make sure the constructors have been created
   _ <- compileTyCon tc
-  maybeConstrs <- PIR.lookupConstructors annMayInline (LexName $ GHC.getName tc)
+  maybeConstrs <- PIR.lookupConstructors (LexName $ GHC.getName tc)
   case maybeConstrs of
     Just constrs -> pure constrs
     Nothing ->
