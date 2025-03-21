@@ -29,7 +29,7 @@ open import Data.Nat using (ℕ)
 open import Data.List using (List)
 open import Builtin using (Builtin)
 open import RawU using (TmCon)
-open import VerifiedCompilation.Purity using (Pure; isPure?)
+open import Untyped.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
 
 variable

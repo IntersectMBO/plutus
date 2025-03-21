@@ -5,7 +5,7 @@ layout: page
 
 # Definitions of Purity for Terms
 ```
-module VerifiedCompilation.Purity where
+module Untyped.Purity where
 
 ```
 ## Imports
