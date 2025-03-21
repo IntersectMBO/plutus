@@ -736,130 +736,138 @@
         (/\dead -> traceError {ScriptContext} "PT1")
         {all dead. dead})
       {Unit}
-      (\(ipv : TxInfo) (ipv : ScriptPurpose) ->
+      (\(ds : TxInfo)
+        (ds : ScriptPurpose) ->
          TxInfo_match
-           ipv
+           ds
            {Unit}
-           (\(ipv : List TxInInfo)
-             (ipv : List TxInInfo)
-             (ipv : List TxOut)
-             (ipv :
+           (\(ds : List TxInInfo)
+             (ds : List TxInInfo)
+             (ds : List TxOut)
+             (ds :
                 (\k v -> List (Tuple2 k v))
                   bytestring
                   ((\k v -> List (Tuple2 k v)) bytestring integer))
-             (ipv :
+             (ds :
                 (\k v -> List (Tuple2 k v))
                   bytestring
                   ((\k v -> List (Tuple2 k v)) bytestring integer))
-             (ipv : List DCert)
-             (ipv : (\k v -> List (Tuple2 k v)) StakingCredential integer)
-             (ipv : Interval integer)
-             (ipv : List bytestring)
-             (ipv : (\k v -> List (Tuple2 k v)) ScriptPurpose data)
-             (ipv : (\k v -> List (Tuple2 k v)) bytestring data)
-             (ipv : bytestring) ->
-              let
-                !obsScriptCred' : StakingCredential
-                  = `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                      obsScriptCred
-              in
-              letrec
-                !go : List (Tuple2 StakingCredential integer) -> Bool
-                  = \(ds : List (Tuple2 StakingCredential integer)) ->
-                      List_match
-                        {Tuple2 StakingCredential integer}
-                        ds
-                        {all dead. Bool}
-                        (/\dead -> False)
-                        (\(x : Tuple2 StakingCredential integer)
-                          (xs : List (Tuple2 StakingCredential integer)) ->
-                           /\dead ->
-                             Bool_match
-                               (Tuple2_match
-                                  {StakingCredential}
-                                  {integer}
-                                  x
-                                  {Bool}
-                                  (\(ipv : StakingCredential) (ipv : integer) ->
-                                     StakingCredential_match
-                                       ipv
-                                       {Bool}
-                                       (\(l : Credential) ->
-                                          StakingCredential_match
-                                            obsScriptCred'
-                                            {Bool}
-                                            (\(r : Credential) ->
-                                               Credential_match
-                                                 l
-                                                 {Bool}
-                                                 (\(l : bytestring) ->
-                                                    Credential_match
-                                                      r
+             (ds : List DCert)
+             (ds : (\k v -> List (Tuple2 k v)) StakingCredential integer)
+             (ds : Interval integer)
+             (ds : List bytestring)
+             (ds : (\k v -> List (Tuple2 k v)) ScriptPurpose data)
+             (ds : (\k v -> List (Tuple2 k v)) bytestring data)
+             (ds : bytestring) ->
+              Bool_match
+                (let
+                  !k :
+                     StakingCredential
+                    = `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                        obsScriptCred
+                in
+                letrec
+                  !go : List (Tuple2 StakingCredential integer) -> Bool
+                    = \(ds : List (Tuple2 StakingCredential integer)) ->
+                        List_match
+                          {Tuple2 StakingCredential integer}
+                          ds
+                          {all dead. Bool}
+                          (/\dead -> False)
+                          (\(ds : Tuple2 StakingCredential integer)
+                            (xs' : List (Tuple2 StakingCredential integer)) ->
+                             /\dead ->
+                               Tuple2_match
+                                 {StakingCredential}
+                                 {integer}
+                                 ds
+                                 {Bool}
+                                 (\(c' : StakingCredential) (i : integer) ->
+                                    Bool_match
+                                      (StakingCredential_match
+                                         c'
+                                         {Bool}
+                                         (\(l : Credential) ->
+                                            StakingCredential_match
+                                              k
+                                              {Bool}
+                                              (\(r : Credential) ->
+                                                 Credential_match
+                                                   l
+                                                   {Bool}
+                                                   (\(l : bytestring) ->
+                                                      Credential_match
+                                                        r
+                                                        {Bool}
+                                                        (\(r : bytestring) ->
+                                                           equalsByteString l r)
+                                                        (\(ipv : bytestring) ->
+                                                           False))
+                                                   (\(a : bytestring) ->
+                                                      Credential_match
+                                                        r
+                                                        {Bool}
+                                                        (\(ipv : bytestring) ->
+                                                           False)
+                                                        (\(a' : bytestring) ->
+                                                           equalsByteString
+                                                             a
+                                                             a')))
+                                              (\(ipv : integer)
+                                                (ipv : integer)
+                                                (ipv : integer) ->
+                                                 False))
+                                         (\(a : integer)
+                                           (b : integer)
+                                           (c : integer) ->
+                                            StakingCredential_match
+                                              k
+                                              {Bool}
+                                              (\(ipv : Credential) -> False)
+                                              (\(a' : integer)
+                                                (b' : integer)
+                                                (c' : integer) ->
+                                                 Bool_match
+                                                   (ifThenElse
                                                       {Bool}
-                                                      (\(r : bytestring) ->
-                                                         equalsByteString l r)
-                                                      (\(ipv : bytestring) ->
-                                                         False))
-                                                 (\(a : bytestring) ->
-                                                    Credential_match
-                                                      r
-                                                      {Bool}
-                                                      (\(ipv : bytestring) ->
-                                                         False)
-                                                      (\(a' : bytestring) ->
-                                                         equalsByteString
-                                                           a
-                                                           a')))
-                                            (\(ipv : integer)
-                                              (ipv : integer)
-                                              (ipv : integer) ->
-                                               False))
-                                       (\(a : integer)
-                                         (b : integer)
-                                         (c : integer) ->
-                                          StakingCredential_match
-                                            obsScriptCred'
-                                            {Bool}
-                                            (\(ipv : Credential) -> False)
-                                            (\(a' : integer)
-                                              (b' : integer)
-                                              (c' : integer) ->
-                                               Bool_match
-                                                 (ifThenElse
-                                                    {Bool}
-                                                    (equalsInteger a a')
-                                                    True
-                                                    False)
-                                                 {all dead. Bool}
-                                                 (/\dead ->
-                                                    Bool_match
-                                                      (ifThenElse
-                                                         {Bool}
-                                                         (equalsInteger b b')
-                                                         True
-                                                         False)
-                                                      {all dead. Bool}
-                                                      (/\dead ->
-                                                         ifThenElse
+                                                      (equalsInteger a a')
+                                                      True
+                                                      False)
+                                                   {all dead. Bool}
+                                                   (/\dead ->
+                                                      Bool_match
+                                                        (ifThenElse
                                                            {Bool}
-                                                           (equalsInteger c c')
+                                                           (equalsInteger b b')
                                                            True
                                                            False)
-                                                      (/\dead -> False)
-                                                      {all dead. dead})
-                                                 (/\dead -> False)
-                                                 {all dead. dead}))))
-                               {all dead. Bool}
-                               (/\dead -> True)
-                               (/\dead -> go xs)
-                               {all dead. dead})
-                        {all dead. dead}
-              in
-              Bool_match
-                (go ipv)
+                                                        {all dead. Bool}
+                                                        (/\dead ->
+                                                           ifThenElse
+                                                             {Bool}
+                                                             (equalsInteger
+                                                                c
+                                                                c')
+                                                             True
+                                                             False)
+                                                        (/\dead -> False)
+                                                        {all dead. dead})
+                                                   (/\dead -> False)
+                                                   {all dead. dead})))
+                                      {all dead. Bool}
+                                      (/\dead -> True)
+                                      (/\dead -> go xs')
+                                      {all dead. dead}))
+                          {all dead. dead}
+                in
+                go ds)
                 {all dead. Unit}
                 (/\dead -> Unit)
-                (/\dead -> error {Unit})
+                (/\dead ->
+                   let
+                     !x : Unit = trace {Unit} "not found" Unit
+                   in
+                   error {Unit})
                 {all dead. dead})))
   (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
   (Constr 0

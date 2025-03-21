@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -194,16 +195,11 @@ mkScriptContextEqualityOverheadCode sc =
 
 forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrick obsScriptCred ctx =
-  if (PlutusTx.any (\wdrlPair -> PlutusTx.fst wdrlPair PlutusTx.== obsScriptCred')) stakeCertPairs
-    then ()
-    else (PlutusTx.error ())
-  where
-    obsScriptCred' :: StakingCredential
-    obsScriptCred' = PlutusTx.unsafeFromBuiltinData obsScriptCred
-    ctx' :: ScriptContext
-    ctx' = PlutusTx.unsafeFromBuiltinData ctx
-    info = scriptContextTxInfo ctx'
-    stakeCertPairs = Map.toList (txInfoWdrl info)
+  case PlutusTx.unsafeFromBuiltinData ctx of
+    ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
+      if Map.member (PlutusTx.unsafeFromBuiltinData obsScriptCred) txInfoWdrl
+        then ()
+        else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}
 
 mkForwardWithStakeTrickCode
