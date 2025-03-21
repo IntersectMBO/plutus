@@ -416,6 +416,7 @@ test-suite untyped-plutus-core-test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Analysis.Spec
+    Analysis.Spec.Lib
     DeBruijn.FlatNatWord
     DeBruijn.Scope
     DeBruijn.Spec
