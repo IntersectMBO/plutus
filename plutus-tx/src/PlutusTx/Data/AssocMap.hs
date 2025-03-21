@@ -291,7 +291,7 @@ toBuiltinList = coerce
 {-# INLINEABLE toBuiltinList #-}
 
 -- | Convert the `Map` to a `List` of key-value pairs.
-toDataList :: Map k a -> List (a, k)
+toDataList :: Map k a -> List (k, a)
 toDataList = Data.List.fromBuiltinList . go . toBuiltinList
   where
     go

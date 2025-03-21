@@ -151,13 +151,64 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
                    ]
     ]
 
+testSOPFwdStakeTrick :: TestTree
+testSOPFwdStakeTrick =
+     runTestGhcSOP
+          [ Tx.goldenSize "sopFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
+          , Tx.goldenBudget "sopFwdStakeTrick" testCode
+          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          ]
+  where
+     testCredential =
+          SOP.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          SOP.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+     testCode =
+          SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
+
+testDataFwdStakeTrick :: TestTree
+testDataFwdStakeTrick =
+     runTestGhcSOP
+          [ Tx.goldenSize "dataFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrick" testCode
+          , Tx.goldenBudget "dataFwdStakeTrick" testCode
+          , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
+          ]
+  where
+     testCredential =
+          Data.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+     testCode =
+          Data.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
+
+testDataFwdStakeTrickManual :: TestTree
+testDataFwdStakeTrickManual =
+     runTestGhcSOP
+          [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testCode
+          , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
+          , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
+          ]
+  where
+     testCredential =
+          Data.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+     testCode =
+          Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
+
 allTests :: TestTree
 allTests =
-  testGroup "V3"
+  testGroup "V2"
     [ testCheckSOPSc1
     , testCheckDataSc1
     , testCheckSOPSc2
     , testCheckDataSc2
     , testCheckSOPScEquality
     , testCheckDataScEquality
+    , testSOPFwdStakeTrick
+    , testDataFwdStakeTrick
+    , testDataFwdStakeTrickManual
     ]

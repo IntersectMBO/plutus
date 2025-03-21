@@ -11,6 +11,7 @@ import PlutusLedgerApi.V2
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -20,6 +21,16 @@ mkScriptContext :: Int -> ScriptContext
 mkScriptContext i =
   ScriptContext
     (mkTxInfo i)
+    (Spending (TxOutRef (TxId "") 0))
+
+mkScriptContextWithStake
+  :: Int
+  -> Int
+  -> Maybe StakingCredential
+  -> ScriptContext
+mkScriptContextWithStake i j cred =
+  ScriptContext
+    (mkTxInfoWithStake i j cred)
     (Spending (TxOutRef (TxId "") 0))
 
 
@@ -38,6 +49,42 @@ mkTxInfo i = TxInfo {
   txInfoData=Map.empty,
   txInfoId=TxId ""
   }
+
+mkTxInfoWithStake
+  :: Int
+  -> Int
+  -> Maybe StakingCredential
+  -> TxInfo
+mkTxInfoWithStake i j cred =
+  (mkTxInfo i) { txInfoWdrl = mkStakeMap j cred }
+
+-- | A very crude deterministic generator for maps of stake credentials with size
+-- approximately proportional to the input integer. If a specific credential is provided, it
+-- is inserted at the end of the map.
+mkStakeMap
+  :: Int
+  -> Maybe StakingCredential
+  -> Map.Map StakingCredential Integer
+mkStakeMap j mCred =
+  Map.unsafeFromList
+  $ genValues
+  <> maybe [] (\cred -> [(cred, 10000)]) mCred
+  where
+    genValues =
+      (\i ->
+        ( mkStakingCredential ("testCred" <> show i)
+        , fromIntegral i
+        )
+      )
+      <$> [1..j]
+
+mkStakingCredential :: String -> StakingCredential
+mkStakingCredential str =
+  StakingHash
+  . PubKeyCredential
+  . PubKeyHash
+  . stringToBuiltinByteString
+  $ str
 
 mkTxOut :: Int -> TxOut
 mkTxOut i = TxOut {
@@ -139,3 +186,29 @@ mkScriptContextEqualityOverheadCode sc =
   in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
+forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
+forwardWithStakeTrick obsScriptCred ctx =
+  if (PlutusTx.any (\wdrlPair -> PlutusTx.fst wdrlPair PlutusTx.== obsScriptCred')) stakeCertPairs
+    then ()
+    else (PlutusTx.error ())
+  where
+    obsScriptCred' :: StakingCredential
+    obsScriptCred' = PlutusTx.unsafeFromBuiltinData obsScriptCred
+    ctx' :: ScriptContext
+    ctx' = PlutusTx.unsafeFromBuiltinData ctx
+    info = scriptContextTxInfo ctx'
+    stakeCertPairs = Map.toList (txInfoWdrl info)
+{-# INLINABLE forwardWithStakeTrick #-}
+
+mkForwardWithStakeTrickCode
+  :: StakingCredential
+  -> ScriptContext
+  -> PlutusTx.CompiledCode ()
+mkForwardWithStakeTrickCode cred ctx =
+  let c = PlutusTx.toBuiltinData cred
+      sc = PlutusTx.toBuiltinData ctx
+  in $$(PlutusTx.compile [|| forwardWithStakeTrick ||])
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+
