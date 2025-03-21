@@ -201,7 +201,7 @@ forwardWithStakeTrick obsScriptCred ctx =
     ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
       if Map.member (PlutusTx.unsafeFromBuiltinData obsScriptCred) txInfoWdrl
         then ()
-        else PlutusTx.error ()
+        else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}
 
 mkForwardWithStakeTrickCode

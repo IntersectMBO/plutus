@@ -64,7 +64,11 @@
                                                (unConstrData ctx))))))))))))))
         {all dead. Unit}
         (/\dead -> Unit)
-        (/\dead -> error {Unit})
+        (/\dead ->
+           let
+             !x : Unit = trace {Unit} "not found" Unit
+           in
+           error {Unit})
         {all dead. dead})
   (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
   (Constr 0
