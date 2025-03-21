@@ -28,6 +28,9 @@ open import Relation.Binary.PropositionalEquality.Core using (trans; _≢_; subs
 open import Data.Empty using (⊥)
 open import Function.Base using (case_of_)
 open import Untyped.CEK using (lookup?)
+open import VerifiedCompilation.UntypedViews using (isDelay?; isTerm?; isdelay; isterm)
+-- FIXME: This moves to Untyped.Reduction in a different PR...
+open import VerifiedCompilation.UCaseReduce using (iterApp)
 ```
 ## Untyped Purity
 
@@ -51,14 +54,13 @@ sat-det : {X : Set} {arity args arity₁ args₁ : ℕ} {t t₁ : X ⊢}
 sat-det sat-t sat-t₁ refl = trans (sym sat-t) sat-t₁
 
 data Pure {X : Set} : (X ⊢) → Set where
-    force : {t : X ⊢} → Pure t → Pure (force t)
+    force : {t : X ⊢} → Pure t → Pure (force (delay t))
 
     constr : {i : ℕ} {xs : List (X ⊢)} → All Pure xs → Pure (constr i xs)
     -- case applied to constr would reduce, and possibly be pure.
     case : {i : ℕ} {t : X ⊢}{vs ts : List (X ⊢)}
            → lookup? i ts ≡ just t
-           → Pure t
-           → All Pure vs
+           → Pure (iterApp t vs)
            → Pure (case (constr i vs) ts)
     -- case applied to anything else is Unknown
 
@@ -115,9 +117,11 @@ isPure? (con x · r) | nothing = no λ { (unsat-builtin sat-l≡just _ _) → co
 isPure? (constr i xs · r) | nothing = no λ { (unsat-builtin sat-l≡just _ _) → contradiction (trans (sym sat-l) sat-l≡just) (λ ()) }
 isPure? (case l ts · r) | nothing = no λ { (unsat-builtin sat-l≡just _ _) → contradiction (trans (sym sat-l) sat-l≡just) (λ ()) }
 isPure? (error · r) | nothing = no λ { (unsat-builtin sat-l≡just _ _) → contradiction (trans (sym sat-l) sat-l≡just) (λ ()) }
-isPure? (force t) with isPure? t
-... | yes p = yes (force p)
-... | no ¬p = no λ { (force x) → ¬p x }
+isPure? (force t) with isDelay? (isTerm?) t
+... | no ¬delay = no λ { (force x) → ¬delay (isdelay (isterm _))}
+... | yes (isdelay (isterm tt)) with isPure? tt
+...    | yes p = yes (force p)
+...    | no ¬p = no λ { (force x) → ¬p x }
 isPure? (delay t) = yes delay
 isPure? (con x) = yes con
 isPure? (constr i xs) with allPure? xs
@@ -129,11 +133,11 @@ isPure? (case (t · t₁) ts) = no (λ ())
 isPure? (case (force t) ts) = no (λ ())
 isPure? (case (delay t) ts) = no (λ ())
 isPure? (case (con x) ts) = no (λ ())
-isPure? (case (constr i vs) ts) with lookup? i ts in lookup≡i
-... | nothing = no λ { (case lookup≡just x x₁) → contradiction (trans (sym lookup≡i) lookup≡just) (λ ()) }
-... | just t with (isPure? t) ×-dec (allPure? vs)
-...   | yes (pt , pvs) = yes (case lookup≡i pt pvs)
-...   | no ¬p = no λ { (case lookup≡i₁ pt pvs) → contradiction (subst (λ x → Pure x) (just-injective (trans (sym lookup≡i₁) lookup≡i)) pt , pvs) ¬p }
+isPure? (case (constr i vs) ts) with lookup? i ts in lookup-i
+... | nothing = no λ { (case lookup≡just pt·vs) → contradiction (trans (sym lookup-i) lookup≡just) λ () }
+... | just t with isPure? (iterApp t vs)
+...   | yes pt·vs = yes (case lookup-i pt·vs)
+...   | no ¬p = no λ { (case lookup≡just pt·vs) → contradiction (subst (λ x → Pure (iterApp x vs)) (just-injective (trans (sym lookup≡just) lookup-i)) pt·vs) ¬p }
 isPure? (case (case t ts₁) ts) = no (λ ())
 isPure? (case (builtin b) ts) = no (λ ())
 isPure? (case error ts) = no (λ ())

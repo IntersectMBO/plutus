@@ -86,7 +86,7 @@ library
     Untyped
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
-  -- But cabal-fmt reorders modules alphabetically, so we use two 
+  -- But cabal-fmt reorders modules alphabetically, so we use two
   -- exposed-modules subsets to work around that. See Setup.hs
   exposed-modules:
     MAlonzo.Code.Agda.Builtin.Bool
@@ -188,6 +188,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -451,6 +452,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
