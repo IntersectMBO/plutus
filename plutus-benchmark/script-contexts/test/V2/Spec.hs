@@ -179,7 +179,7 @@ testDataFwdStakeTrick =
      testCredential =
           Data.SC.mkStakingCredential "someCredential"
      testScriptContext =
-          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+          Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
      testCode =
           Data.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
@@ -195,7 +195,7 @@ testDataFwdStakeTrickManual =
      testCredential =
           Data.SC.mkStakingCredential "someCredential"
      testScriptContext =
-          Data.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+          Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
      testCode =
           Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
 

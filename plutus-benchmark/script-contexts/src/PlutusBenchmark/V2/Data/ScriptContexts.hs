@@ -28,7 +28,7 @@ mkScriptContext i =
 mkScriptContextWithStake
   :: Integer
   -> Integer
-  -> Maybe StakingCredential
+  -> Maybe (StakingCredential, Int)
   -> ScriptContext
 mkScriptContextWithStake i j cred =
   ScriptContext
@@ -54,22 +54,25 @@ mkTxInfo i = TxInfo {
 mkTxInfoWithStake
   :: Integer
   -> Integer
-  -> Maybe StakingCredential
+  -> Maybe (StakingCredential, Int)
   -> TxInfo
 mkTxInfoWithStake i j cred =
   (mkTxInfo i) { txInfoWdrl = mkStakeMap j cred }
 
 -- | A very crude deterministic generator for maps of stake credentials with size
 -- approximately proportional to the input integer. If a specific credential is provided, it
--- is inserted at the end of the map.
+-- is inserted at the provided index.
 mkStakeMap
   :: Integer
-  -> Maybe StakingCredential
+  -> Maybe (StakingCredential, Int)
   -> Map.Map StakingCredential Integer
 mkStakeMap j mCred =
   Map.unsafeFromSOPList
-  $ genValues
-  <> maybe [] (\cred -> [(cred, 10000)]) mCred
+  $ case mCred of
+      Just (cred, ix) ->
+        insertAt cred ix genValues
+      Nothing ->
+        genValues
   where
     genValues =
       (\i ->
@@ -78,6 +81,8 @@ mkStakeMap j mCred =
         )
       )
       <$> [1..j]
+    insertAt x i xs =
+      take i xs <> [(x, 1000)] <> drop i xs
 
 mkStakingCredential :: String -> StakingCredential
 mkStakingCredential str =
