@@ -219,16 +219,24 @@ forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrickManual r_stake_cred r_ctx =
   let !wdrl = getCtxWdrl r_ctx
       wdrlAtZero = BI.fst $ BI.head wdrl
-      wdrlAtOne = BI.fst $ BI.head $ BI.tail wdrl
+      !rest = BI.tail wdrl
+      wdrlAtOne = BI.fst $ BI.head $ rest
    in if
-        ( PlutusTx.traceIfFalse "staking validator expected in withdrawal map"
-          ( PlutusTx.equalsData r_stake_cred wdrlAtZero
-          || PlutusTx.equalsData r_stake_cred wdrlAtOne
-          )
+        ( PlutusTx.equalsData r_stake_cred wdrlAtZero
+        || PlutusTx.equalsData r_stake_cred wdrlAtOne
         )
         then ()
-        else PlutusTx.traceError "not found"
+        else lookForCred rest
   where
+    lookForCred :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> ()
+    lookForCred =
+      PlutusTx.caseList
+        (\() -> PlutusTx.traceError "not found")
+        (\p tl ->
+          if PlutusTx.equalsData r_stake_cred (BI.fst p)
+            then ()
+            else lookForCred tl
+        )
     getCtxWdrl :: BuiltinData -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
     getCtxWdrl d_ctx =
       BI.unsafeDataAsMap
