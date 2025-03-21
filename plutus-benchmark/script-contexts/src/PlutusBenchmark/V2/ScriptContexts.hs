@@ -11,7 +11,7 @@ import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V2
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
-import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
@@ -114,7 +114,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if PlutusTx.length (txInfoOutputs txi) `B.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
@@ -168,7 +168,7 @@ for comparison.
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
-  if PlutusTx.equalsData d d
+  if B.equalsData d d
   then ()
   else PlutusTx.traceError "The argument is not equal to itself"
 {-# INLINABLE scriptContextEqualityData #-}
@@ -197,9 +197,19 @@ forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrick obsScriptCred ctx =
   case PlutusTx.unsafeFromBuiltinData ctx of
     ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
-      if Map.member (PlutusTx.unsafeFromBuiltinData obsScriptCred) txInfoWdrl
-        then ()
-        else PlutusTx.traceError "not found"
+      let obsScriptCred' = PlutusTx.unsafeFromBuiltinData obsScriptCred
+          txInfoWdrl' = Map.toList txInfoWdrl
+          wdrlAtZero = PlutusTx.fst $ PlutusTx.head txInfoWdrl'
+          rest = PlutusTx.tail txInfoWdrl'
+          wdrlAtOne = PlutusTx.fst $ PlutusTx.head $ rest
+      in
+        if obsScriptCred' PlutusTx.== wdrlAtZero
+          || obsScriptCred' PlutusTx.== wdrlAtOne
+          then ()
+          else
+            if Map.member obsScriptCred' txInfoWdrl
+              then ()
+              else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}
 
 mkForwardWithStakeTrickCode

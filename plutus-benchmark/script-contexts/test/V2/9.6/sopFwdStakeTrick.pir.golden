@@ -443,6 +443,52 @@
     !equalsByteString : bytestring -> bytestring -> Bool
       = \(x : bytestring) (y : bytestring) ->
           ifThenElse {Bool} (equalsByteString x y) True False
+    !`$fEqStakingCredential_$c==` :
+       StakingCredential -> StakingCredential -> Bool
+      = \(ds : StakingCredential) (ds : StakingCredential) ->
+          StakingCredential_match
+            ds
+            {Bool}
+            (\(l : Credential) ->
+               StakingCredential_match
+                 ds
+                 {Bool}
+                 (\(r : Credential) ->
+                    Credential_match
+                      l
+                      {Bool}
+                      (\(l : bytestring) ->
+                         Credential_match
+                           r
+                           {Bool}
+                           (\(r : bytestring) -> equalsByteString l r)
+                           (\(ipv : bytestring) -> False))
+                      (\(a : bytestring) ->
+                         Credential_match
+                           r
+                           {Bool}
+                           (\(ipv : bytestring) -> False)
+                           (\(a' : bytestring) -> equalsByteString a a')))
+                 (\(ipv : integer) (ipv : integer) (ipv : integer) -> False))
+            (\(a : integer) (b : integer) (c : integer) ->
+               StakingCredential_match
+                 ds
+                 {Bool}
+                 (\(ipv : Credential) -> False)
+                 (\(a' : integer) (b' : integer) (c' : integer) ->
+                    Bool_match
+                      (ifThenElse {Bool} (equalsInteger a a') True False)
+                      {all dead. Bool}
+                      (/\dead ->
+                         Bool_match
+                           (ifThenElse {Bool} (equalsInteger b b') True False)
+                           {all dead. Bool}
+                           (/\dead ->
+                              ifThenElse {Bool} (equalsInteger c c') True False)
+                           (/\dead -> False)
+                           {all dead. dead})
+                      (/\dead -> False)
+                      {all dead. dead}))
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
     !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> Bool
@@ -736,8 +782,7 @@
         (/\dead -> traceError {ScriptContext} "PT1")
         {all dead. dead})
       {Unit}
-      (\(ds : TxInfo)
-        (ds : ScriptPurpose) ->
+      (\(ds : TxInfo) (ds : ScriptPurpose) ->
          TxInfo_match
            ds
            {Unit}
@@ -759,115 +804,104 @@
              (ds : (\k v -> List (Tuple2 k v)) ScriptPurpose data)
              (ds : (\k v -> List (Tuple2 k v)) bytestring data)
              (ds : bytestring) ->
+              let
+                !wdrlAtZero : StakingCredential
+                  = Tuple2_match
+                      {StakingCredential}
+                      {integer}
+                      (List_match
+                         {Tuple2 StakingCredential integer}
+                         ds
+                         {all dead. Tuple2 StakingCredential integer}
+                         (/\dead ->
+                            traceError {Tuple2 StakingCredential integer} "PT8")
+                         (\(x : Tuple2 StakingCredential integer)
+                           (ds : List (Tuple2 StakingCredential integer)) ->
+                            /\dead -> x)
+                         {all dead. dead})
+                      {StakingCredential}
+                      (\(a : StakingCredential) (ds : integer) -> a)
+                !rest : List (Tuple2 StakingCredential integer)
+                  = List_match
+                      {Tuple2 StakingCredential integer}
+                      ds
+                      {all dead. List (Tuple2 StakingCredential integer)}
+                      (/\dead ->
+                         traceError
+                           {List (Tuple2 StakingCredential integer)}
+                           "PT9")
+                      (\(ds : Tuple2 StakingCredential integer)
+                        (as : List (Tuple2 StakingCredential integer)) ->
+                         /\dead -> as)
+                      {all dead. dead}
+                !wdrlAtOne : StakingCredential
+                  = Tuple2_match
+                      {StakingCredential}
+                      {integer}
+                      (List_match
+                         {Tuple2 StakingCredential integer}
+                         rest
+                         {all dead. Tuple2 StakingCredential integer}
+                         (/\dead ->
+                            traceError {Tuple2 StakingCredential integer} "PT8")
+                         (\(x : Tuple2 StakingCredential integer)
+                           (ds : List (Tuple2 StakingCredential integer)) ->
+                            /\dead -> x)
+                         {all dead. dead})
+                      {StakingCredential}
+                      (\(a : StakingCredential) (ds : integer) -> a)
+                !obsScriptCred' : StakingCredential
+                  = `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                      obsScriptCred
+              in
+              letrec
+                !go : List (Tuple2 StakingCredential integer) -> Bool
+                  = \(ds : List (Tuple2 StakingCredential integer)) ->
+                      List_match
+                        {Tuple2 StakingCredential integer}
+                        ds
+                        {all dead. Bool}
+                        (/\dead -> False)
+                        (\(ds : Tuple2 StakingCredential integer)
+                          (xs' : List (Tuple2 StakingCredential integer)) ->
+                           /\dead ->
+                             Tuple2_match
+                               {StakingCredential}
+                               {integer}
+                               ds
+                               {Bool}
+                               (\(c' : StakingCredential) (i : integer) ->
+                                  Bool_match
+                                    (`$fEqStakingCredential_$c==`
+                                       c'
+                                       obsScriptCred')
+                                    {all dead. Bool}
+                                    (/\dead -> True)
+                                    (/\dead -> go xs')
+                                    {all dead. dead}))
+                        {all dead. dead}
+              in
               Bool_match
-                (let
-                  !k :
-                     StakingCredential
-                    = `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                        obsScriptCred
-                in
-                letrec
-                  !go : List (Tuple2 StakingCredential integer) -> Bool
-                    = \(ds : List (Tuple2 StakingCredential integer)) ->
-                        List_match
-                          {Tuple2 StakingCredential integer}
-                          ds
-                          {all dead. Bool}
-                          (/\dead -> False)
-                          (\(ds : Tuple2 StakingCredential integer)
-                            (xs' : List (Tuple2 StakingCredential integer)) ->
-                             /\dead ->
-                               Tuple2_match
-                                 {StakingCredential}
-                                 {integer}
-                                 ds
-                                 {Bool}
-                                 (\(c' : StakingCredential) (i : integer) ->
-                                    Bool_match
-                                      (StakingCredential_match
-                                         c'
-                                         {Bool}
-                                         (\(l : Credential) ->
-                                            StakingCredential_match
-                                              k
-                                              {Bool}
-                                              (\(r : Credential) ->
-                                                 Credential_match
-                                                   l
-                                                   {Bool}
-                                                   (\(l : bytestring) ->
-                                                      Credential_match
-                                                        r
-                                                        {Bool}
-                                                        (\(r : bytestring) ->
-                                                           equalsByteString l r)
-                                                        (\(ipv : bytestring) ->
-                                                           False))
-                                                   (\(a : bytestring) ->
-                                                      Credential_match
-                                                        r
-                                                        {Bool}
-                                                        (\(ipv : bytestring) ->
-                                                           False)
-                                                        (\(a' : bytestring) ->
-                                                           equalsByteString
-                                                             a
-                                                             a')))
-                                              (\(ipv : integer)
-                                                (ipv : integer)
-                                                (ipv : integer) ->
-                                                 False))
-                                         (\(a : integer)
-                                           (b : integer)
-                                           (c : integer) ->
-                                            StakingCredential_match
-                                              k
-                                              {Bool}
-                                              (\(ipv : Credential) -> False)
-                                              (\(a' : integer)
-                                                (b' : integer)
-                                                (c' : integer) ->
-                                                 Bool_match
-                                                   (ifThenElse
-                                                      {Bool}
-                                                      (equalsInteger a a')
-                                                      True
-                                                      False)
-                                                   {all dead. Bool}
-                                                   (/\dead ->
-                                                      Bool_match
-                                                        (ifThenElse
-                                                           {Bool}
-                                                           (equalsInteger b b')
-                                                           True
-                                                           False)
-                                                        {all dead. Bool}
-                                                        (/\dead ->
-                                                           ifThenElse
-                                                             {Bool}
-                                                             (equalsInteger
-                                                                c
-                                                                c')
-                                                             True
-                                                             False)
-                                                        (/\dead -> False)
-                                                        {all dead. dead})
-                                                   (/\dead -> False)
-                                                   {all dead. dead})))
-                                      {all dead. Bool}
-                                      (/\dead -> True)
-                                      (/\dead -> go xs')
-                                      {all dead. dead}))
-                          {all dead. dead}
-                in
-                go ds)
+                (Bool_match
+                   (`$fEqStakingCredential_$c==` obsScriptCred' wdrlAtZero)
+                   {all dead. Bool}
+                   (/\dead -> True)
+                   (/\dead ->
+                      `$fEqStakingCredential_$c==` obsScriptCred' wdrlAtOne)
+                   {all dead. dead})
                 {all dead. Unit}
                 (/\dead -> Unit)
                 (/\dead ->
-                   let
-                     !x : Unit = trace {Unit} "not found" Unit
-                   in
-                   error {Unit})
+                   Bool_match
+                     (go ds)
+                     {all dead. Unit}
+                     (/\dead -> Unit)
+                     (/\dead ->
+                        let
+                          !x : Unit = trace {Unit} "not found" Unit
+                        in
+                        error {Unit})
+                     {all dead. dead})
                 {all dead. dead})))
   (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
   (Constr 0
