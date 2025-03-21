@@ -274,3 +274,14 @@ mkForwardWithStakeTrickManualCode cred ctx =
   in $$(PlutusTx.compile [|| forwardWithStakeTrickManual ||])
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+
+mkForwardWithStakeTrickUPLCCode
+  :: StakingCredential
+  -> ScriptContext
+  -> PlutusTx.CompiledCode ()
+mkForwardWithStakeTrickUPLCCode cred ctx =
+  let c = PlutusTx.toBuiltinData cred
+      sc = PlutusTx.toBuiltinData ctx
+  in $$(PlutusTx.loadFromFile "/home/ana/Workspace/IOG/plutus/optimisedSpend.flat")
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc

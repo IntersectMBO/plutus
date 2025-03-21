@@ -202,6 +202,21 @@ testDataFwdStakeTrickManual =
      testCode =
           Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
 
+testDataFwdStakeTrickUPLC :: TestTree
+testDataFwdStakeTrickUPLC =
+     runTestGhcSOP
+          [ Tx.goldenSize "dataFwdStakeTrickUPLC" testCode
+          , Tx.goldenBudget "dataFwdStakeTrickUPLC" testCode
+          , Tx.goldenEvalCekCatch "dataFwdStakeTrickUPLC" [testCode]
+          ]
+  where
+     testCredential =
+          Data.SC.mkStakingCredential "someCredential"
+     testScriptContext =
+          Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
+     testCode =
+          Data.SC.mkForwardWithStakeTrickUPLCCode testCredential testScriptContext
+
 allTests :: TestTree
 allTests =
   testGroup "V2"
@@ -214,4 +229,5 @@ allTests =
     , testSOPFwdStakeTrick
     , testDataFwdStakeTrick
     , testDataFwdStakeTrickManual
+    , testDataFwdStakeTrickUPLC
     ]
