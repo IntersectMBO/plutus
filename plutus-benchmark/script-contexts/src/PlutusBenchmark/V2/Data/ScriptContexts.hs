@@ -3,6 +3,7 @@
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module PlutusBenchmark.V2.Data.ScriptContexts where
 
@@ -199,9 +200,18 @@ forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrick obsScriptCred ctx =
   case PlutusTx.unsafeFromBuiltinData ctx of
     ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
-      if Map.member (PlutusTx.unsafeFromBuiltinData obsScriptCred) txInfoWdrl
-        then ()
-        else PlutusTx.traceError "not found"
+      let txInfoWdrl' = Map.toBuiltinList txInfoWdrl
+          wdrlAtZero = BI.fst $ BI.head txInfoWdrl'
+          rest = BI.tail txInfoWdrl'
+          wdrlAtOne = BI.fst $ BI.head rest
+      in
+        if PlutusTx.equalsData obsScriptCred wdrlAtZero
+          || PlutusTx.equalsData obsScriptCred wdrlAtOne
+          then ()
+          else
+            if Map.member' obsScriptCred rest
+              then ()
+              else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}
 
 mkForwardWithStakeTrickCode
