@@ -1,0 +1,208 @@
+(program
+   1.1.0
+   ((\r_stake_cred ->
+       (\lookForCred r_ctx ->
+          (\wdrl ->
+             (\wdrlAtZero ->
+                (\rest ->
+                   (\wdrlAtOne ->
+                      force
+                        (case
+                           (force
+                              (force
+                                 (force ifThenElse
+                                    (equalsData r_stake_cred wdrlAtZero)
+                                    (delay (delay (constr 0 [])))
+                                    (delay
+                                       (delay
+                                          (force ifThenElse
+                                             (equalsData r_stake_cred wdrlAtOne)
+                                             (constr 0 [])
+                                             (constr 1 [])))))))
+                           [ (delay (constr 0 []))
+                           , (delay (force lookForCred rest)) ]))
+                     (force (force fstPair) (force headList rest)))
+                  (force tailList wdrl))
+               (force (force fstPair) (force headList wdrl)))
+            (unMapData
+               (force headList
+                  (force tailList
+                     (force tailList
+                        (force tailList
+                           (force tailList
+                              (force tailList
+                                 (force tailList
+                                    (force (force sndPair)
+                                       (unConstrData
+                                          (force headList
+                                             (force (force sndPair)
+                                                (unConstrData
+                                                   r_ctx))))))))))))))
+         ((\s -> s s)
+            (\s arg ->
+               delay
+                 (\l ->
+                    force
+                      (force (force chooseList)
+                         l
+                         (delay
+                            (\ds ->
+                               (\x -> error)
+                                 (force trace "not found" (constr 0 []))))
+                         (delay
+                            ((\x xs ds ->
+                                force
+                                  (force
+                                     (force ifThenElse
+                                        (equalsData
+                                           r_stake_cred
+                                           (force (force fstPair) x))
+                                        (delay (delay (constr 0 [])))
+                                        (delay
+                                           (delay
+                                              (force (s s (delay (\x -> x)))
+                                                 xs))))))
+                               (force headList l)
+                               (force tailList l))))
+                      (constr 0 [])))
+            (delay (\x -> x))))
+      (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
+      (Constr 0
+         [ Constr 0
+             [ List []
+             , List []
+             , List
+                 [ Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 1)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 2)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 3)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 4)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 5)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 6)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 7)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 8)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 9)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 10)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 11)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 12)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 13)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 14)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 15)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 16)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 17)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 18)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 19)])]
+                     , Constr 0 []
+                     , Constr 1 [] ]
+                 , Constr 0
+                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
+                     , Map [(B #, Map [(B #, I 20)])]
+                     , Constr 0 []
+                     , Constr 1 [] ] ]
+             , Map []
+             , Map []
+             , List []
+             , Map
+                 [ (Constr 0 [Constr 0 [B #746573744372656431]], I 1)
+                 , ( Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]]
+                 , I 1000 )
+                 , (Constr 0 [Constr 0 [B #746573744372656432]], I 2)
+                 , (Constr 0 [Constr 0 [B #746573744372656433]], I 3)
+                 , (Constr 0 [Constr 0 [B #746573744372656434]], I 4)
+                 , (Constr 0 [Constr 0 [B #746573744372656435]], I 5)
+                 , (Constr 0 [Constr 0 [B #746573744372656436]], I 6)
+                 , (Constr 0 [Constr 0 [B #746573744372656437]], I 7)
+                 , (Constr 0 [Constr 0 [B #746573744372656438]], I 8)
+                 , (Constr 0 [Constr 0 [B #746573744372656439]], I 9)
+                 , (Constr 0 [Constr 0 [B #74657374437265643130]], I 10)
+                 , (Constr 0 [Constr 0 [B #74657374437265643131]], I 11)
+                 , (Constr 0 [Constr 0 [B #74657374437265643132]], I 12)
+                 , (Constr 0 [Constr 0 [B #74657374437265643133]], I 13)
+                 , (Constr 0 [Constr 0 [B #74657374437265643134]], I 14)
+                 , (Constr 0 [Constr 0 [B #74657374437265643135]], I 15)
+                 , (Constr 0 [Constr 0 [B #74657374437265643136]], I 16)
+                 , (Constr 0 [Constr 0 [B #74657374437265643137]], I 17)
+                 , (Constr 0 [Constr 0 [B #74657374437265643138]], I 18)
+                 , (Constr 0 [Constr 0 [B #74657374437265643139]], I 19)
+                 , (Constr 0 [Constr 0 [B #74657374437265643230]], I 20) ]
+             , Constr 0
+                 [ Constr 0 [Constr 0 [], Constr 1 []]
+                 , Constr 0 [Constr 2 [], Constr 1 []] ]
+             , List []
+             , Map []
+             , Map []
+             , Constr 0 [B #] ]
+         , Constr 1 [Constr 0 [Constr 0 [B #], I 0]] ])))

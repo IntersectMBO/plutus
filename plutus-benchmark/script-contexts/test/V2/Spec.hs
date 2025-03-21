@@ -156,6 +156,7 @@ testSOPFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenSize "sopFwdStakeTrick" testCode
           , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
+          , Tx.goldenUPlcReadable "sopFwdStakeTrick" testCode
           , Tx.goldenBudget "sopFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
           ]
@@ -172,6 +173,7 @@ testDataFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenSize "dataFwdStakeTrick" testCode
           , Tx.goldenPirReadable "dataFwdStakeTrick" testCode
+          , Tx.goldenUPlcReadable "dataFwdStakeTrick" testCode
           , Tx.goldenBudget "dataFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
           ]
@@ -188,6 +190,7 @@ testDataFwdStakeTrickManual =
      runTestGhcSOP
           [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
           , Tx.goldenPirReadable "dataFwdStakeTrickManual" testCode
+          , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testCode
           , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
           ]
