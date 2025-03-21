@@ -14,7 +14,10 @@ import Test.Tasty.HUnit
 import UntypedPlutusCore
 import UntypedPlutusCore.Purity
 
-goldenEvalOrder :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestNested
+goldenEvalOrder
+  :: String
+  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> TestNested
 goldenEvalOrder name tm =
   nestedGoldenVsDoc name "" (prettyPlcReadable $ termEvaluationOrder def tm)
 
@@ -34,25 +37,30 @@ letFun :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letFun = runQuote $ do
   n <- freshName "n"
   let intConst = mkConstant () (1 :: Integer)
-  pure $ Apply ()
-    (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
-    (Builtin () PLC.AddInteger)
+  pure $
+    Apply
+      ()
+      (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
+      (Builtin () PLC.AddInteger)
 
 letImpure :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letImpure = runQuote $ do
   n <- freshName "n"
   m <- freshName "m"
   let intConst = mkConstant () (1 :: Integer)
-  pure $ Apply ()
-    (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
-    -- don't need this to be well-scoped
-    (Apply () (Var () m) intConst)
+  pure $
+    Apply
+      ()
+      (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
+      -- don't need this to be well-scoped
+      (Apply () (Var () m) intConst)
 
 evalOrder :: TestTree
 evalOrder =
-    runTestNested ["untyped-plutus-core", "test", "Analysis", "evalOrder"]
-        [ goldenEvalOrder "letFun" letFun
-        , goldenEvalOrder "letImpure" letImpure
-        , embed . testCase "evalOrderLazy" $
-            4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)
-        ]
+  runTestNested
+    ["untyped-plutus-core", "test", "Analysis", "evalOrder"]
+    [ goldenEvalOrder "letFun" letFun
+    , goldenEvalOrder "letImpure" letImpure
+    , embed . testCase "evalOrderLazy" $
+        4 @=? length (unEvalOrder $ termEvaluationOrder def dangerTerm)
+    ]
