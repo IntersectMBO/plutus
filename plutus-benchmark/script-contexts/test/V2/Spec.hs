@@ -163,7 +163,7 @@ testSOPFwdStakeTrick =
      testCredential =
           SOP.SC.mkStakingCredential "someCredential"
      testScriptContext =
-          SOP.SC.mkScriptContextWithStake 20 1 (Just testCredential)
+          SOP.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
      testCode =
           SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
