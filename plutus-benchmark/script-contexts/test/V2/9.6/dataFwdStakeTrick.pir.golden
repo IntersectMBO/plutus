@@ -1,361 +1,67 @@
 (let
-    !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-      = /\a r ->
-          \(z : r) (f : a -> list a -> r) (xs : list a) ->
-            chooseList
-              {a}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {a} xs) (tailList {a} xs))
-              {r}
-  in
-  letrec
-    ~go : list (pair data data) -> list data
-      = caseList'
-          {pair data data}
-          {list data}
-          []
-          (\(hd : pair data data) (eta : list (pair data data)) ->
-             mkCons {data} (fstPair {data} {data} hd) (go eta))
-  in
-  let
     data Bool | Bool_match where
       True : Bool
       False : Bool
-    !`$mStakingPtr` :
-       all r. data -> (integer -> integer -> integer -> r) -> (unit -> r) -> r
-      = /\r ->
-          \(scrut : data)
-           (cont : integer -> integer -> integer -> r)
-           (fail : unit -> r) ->
-            let
-              !tup : pair integer (list data) = unConstrData scrut
-            in
-            Bool_match
-              (ifThenElse
-                 {Bool}
-                 (equalsInteger 1 (fstPair {integer} {list data} tup))
-                 True
-                 False)
-              {all dead. r}
-              (/\dead ->
-                 let
-                   !l : list data = sndPair {integer} {list data} tup
-                   !l : list data = tailList {data} l
-                 in
-                 cont
-                   (unIData (headList {data} l))
-                   (unIData (headList {data} l))
-                   (unIData (headList {data} (tailList {data} l))))
-              (/\dead -> fail ())
-              {all dead. dead}
     data Unit | Unit_match where
       Unit : Unit
   in
   \(obsScriptCred : data) ->
     letrec
-      ~go : list data -> Bool
-        = caseList'
-            {data}
+      ~go : list (pair data data) -> Bool
+        = (let
+              a = pair data data
+            in
+            /\r ->
+              \(z : r) (f : a -> list a -> r) (xs : list a) ->
+                chooseList
+                  {a}
+                  {all dead. r}
+                  xs
+                  (/\dead -> z)
+                  (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                  {r})
             {Bool}
             False
-            (\(h : data) ->
-               let
-                 !fail : unit -> Bool
-                   = \(ds : unit) ->
-                       `$mStakingPtr`
-                         {Bool}
-                         h
-                         (\(a : integer) (b : integer) (c : integer) ->
-                            `$mStakingPtr`
-                              {Bool}
-                              obsScriptCred
-                              (\(a' : integer) (b' : integer) (c' : integer) ->
-                                 Bool_match
-                                   (ifThenElse
-                                      {Bool}
-                                      (equalsInteger a a')
-                                      True
-                                      False)
-                                   {all dead. Bool}
-                                   (/\dead ->
-                                      Bool_match
-                                        (ifThenElse
-                                           {Bool}
-                                           (equalsInteger b b')
-                                           True
-                                           False)
-                                        {all dead. Bool}
-                                        (/\dead ->
-                                           ifThenElse
-                                             {Bool}
-                                             (equalsInteger c c')
-                                             True
-                                             False)
-                                        (/\dead -> False)
-                                        {all dead. dead})
-                                   (/\dead -> False)
-                                   {all dead. dead})
-                              (\(void : unit) -> False))
-                         (\(void : unit) -> False)
-               in
-               \(t : list data) ->
-                 Bool_match
-                   (let
-                     !tup : pair integer (list data) = unConstrData h
-                   in
-                   Bool_match
-                     (ifThenElse
-                        {Bool}
-                        (equalsInteger 0 (fstPair {integer} {list data} tup))
-                        True
-                        False)
-                     {all dead. Bool}
-                     (/\dead ->
-                        let
-                          !tup : pair integer (list data)
-                            = unConstrData obsScriptCred
-                        in
-                        Bool_match
-                          (ifThenElse
-                             {Bool}
-                             (equalsInteger
-                                0
-                                (fstPair {integer} {list data} tup))
-                             True
-                             False)
-                          {all dead. Bool}
-                          (/\dead ->
-                             let
-                               !ds : data
-                                 = headList
-                                     {data}
-                                     (sndPair {integer} {list data} tup)
-                               !ds : data
-                                 = headList
-                                     {data}
-                                     (sndPair {integer} {list data} tup)
-                               !fail : unit -> Bool
-                                 = \(ds : unit) ->
-                                     let
-                                       !tup : pair integer (list data)
-                                         = unConstrData ds
-                                     in
-                                     Bool_match
-                                       (ifThenElse
-                                          {Bool}
-                                          (equalsInteger
-                                             1
-                                             (fstPair
-                                                {integer}
-                                                {list data}
-                                                tup))
-                                          True
-                                          False)
-                                       {all dead. Bool}
-                                       (/\dead ->
-                                          let
-                                            !tup : pair integer (list data)
-                                              = unConstrData ds
-                                          in
-                                          Bool_match
-                                            (ifThenElse
-                                               {Bool}
-                                               (equalsInteger
-                                                  1
-                                                  (fstPair
-                                                     {integer}
-                                                     {list data}
-                                                     tup))
-                                               True
-                                               False)
-                                            {all dead. Bool}
-                                            (/\dead ->
-                                               ifThenElse
-                                                 {Bool}
-                                                 (equalsByteString
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (sndPair
-                                                             {integer}
-                                                             {list data}
-                                                             tup)))
-                                                    (unBData
-                                                       (headList
-                                                          {data}
-                                                          (sndPair
-                                                             {integer}
-                                                             {list data}
-                                                             tup))))
-                                                 True
-                                                 False)
-                                            (/\dead -> False)
-                                            {all dead. dead})
-                                       (/\dead -> False)
-                                       {all dead. dead}
-                               !tup : pair integer (list data) = unConstrData ds
-                             in
-                             Bool_match
-                               (ifThenElse
-                                  {Bool}
-                                  (equalsInteger
-                                     0
-                                     (fstPair {integer} {list data} tup))
-                                  True
-                                  False)
-                               {all dead. Bool}
-                               (/\dead ->
-                                  let
-                                    !tup : pair integer (list data)
-                                      = unConstrData ds
-                                  in
-                                  Bool_match
-                                    (ifThenElse
-                                       {Bool}
-                                       (equalsInteger
-                                          0
-                                          (fstPair {integer} {list data} tup))
-                                       True
-                                       False)
-                                    {all dead. Bool}
-                                    (/\dead ->
-                                       ifThenElse
-                                         {Bool}
-                                         (equalsByteString
-                                            (unBData
-                                               (headList
-                                                  {data}
-                                                  (sndPair
-                                                     {integer}
-                                                     {list data}
-                                                     tup)))
-                                            (unBData
-                                               (headList
-                                                  {data}
-                                                  (sndPair
-                                                     {integer}
-                                                     {list data}
-                                                     tup))))
-                                         True
-                                         False)
-                                    (/\dead -> fail ())
-                                    {all dead. dead})
-                               (/\dead -> fail ())
-                               {all dead. dead})
-                          (/\dead -> fail ())
-                          {all dead. dead})
-                     (/\dead -> fail ())
-                     {all dead. dead})
-                   {all dead. Bool}
-                   (/\dead -> True)
-                   (/\dead -> go t)
-                   {all dead. dead})
+            (\(hd : pair data data) ->
+               Bool_match
+                 (ifThenElse
+                    {Bool}
+                    (equalsData obsScriptCred (fstPair {data} {data} hd))
+                    True
+                    False)
+                 {all dead. list (pair data data) -> Bool}
+                 (/\dead -> \(ds : list (pair data data)) -> True)
+                 (/\dead -> go)
+                 {all dead. dead})
     in
     \(ctx : data) ->
-      let
-        !nt : list data
-          = let
-            !nt : list (pair data data)
-              = (let
-                    r = (\k a -> list (pair data data)) data integer
-                  in
-                  \(scrut : data)
-                   (cont :
-                      (\a -> list data) data ->
-                      (\a -> list data) data ->
-                      (\a -> list data) data ->
-                      (\k a -> list (pair data data))
-                        bytestring
-                        ((\k a -> list (pair data data)) bytestring integer) ->
-                      (\k a -> list (pair data data))
-                        bytestring
-                        ((\k a -> list (pair data data)) bytestring integer) ->
-                      (\a -> list data) data ->
-                      (\k a -> list (pair data data)) data integer ->
-                      (\a -> data) integer ->
-                      (\a -> list data) bytestring ->
-                      (\k a -> list (pair data data)) data data ->
-                      (\k a -> list (pair data data)) bytestring data ->
-                      bytestring ->
-                      r)
-                   (fail : unit -> r) ->
-                    let
-                      !l : list data
-                        = sndPair {integer} {list data} (unConstrData scrut)
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                      !l : list data = tailList {data} l
-                    in
-                    cont
-                      (unListData (headList {data} l))
-                      (unListData (headList {data} l))
-                      (unListData (headList {data} l))
-                      (unMapData (headList {data} l))
-                      (unMapData (headList {data} l))
-                      (unListData (headList {data} l))
-                      (unMapData (headList {data} l))
-                      (headList {data} l)
-                      (unListData (headList {data} l))
-                      (unMapData (headList {data} l))
-                      (unMapData (headList {data} l))
-                      (let
-                        !tup : pair integer (list data)
-                          = unConstrData (headList {data} (tailList {data} l))
-                        !index : integer = fstPair {integer} {list data} tup
-                        !args : list data = sndPair {integer} {list data} tup
-                      in
-                      Bool_match
-                        (ifThenElse {Bool} (equalsInteger 0 index) True False)
-                        {all dead. bytestring}
-                        (/\dead -> unBData (headList {data} args))
-                        (/\dead ->
-                           let
-                             !x : Unit = trace {Unit} "PT1" Unit
-                           in
-                           error {bytestring})
-                        {all dead. dead}))
-                  (headList
-                     {data}
-                     (sndPair {integer} {list data} (unConstrData ctx)))
-                  (\(ds : (\a -> list data) data)
-                    (ds : (\a -> list data) data)
-                    (ds : (\a -> list data) data)
-                    (ds :
-                       (\k a -> list (pair data data))
-                         bytestring
-                         ((\k a -> list (pair data data)) bytestring integer))
-                    (ds :
-                       (\k a -> list (pair data data))
-                         bytestring
-                         ((\k a -> list (pair data data)) bytestring integer))
-                    (ds : (\a -> list data) data)
-                    (ds : (\k a -> list (pair data data)) data integer)
-                    (ds : (\a -> data) integer)
-                    (ds : (\a -> list data) bytestring)
-                    (ds : (\k a -> list (pair data data)) data data)
-                    (ds : (\k a -> list (pair data data)) bytestring data)
-                    (ds : bytestring) ->
-                     ds)
-                  (\(void : unit) ->
-                     error {(\k a -> list (pair data data)) data integer})
-          in
-          go nt
-      in
       Bool_match
-        ((let
-             !go : list data -> Bool = go
-           in
-           \(eta : (\a -> list data) data) -> go eta)
-           nt)
+        (go
+           (unMapData
+              (headList
+                 {data}
+                 (tailList
+                    {data}
+                    (tailList
+                       {data}
+                       (tailList
+                          {data}
+                          (tailList
+                             {data}
+                             (tailList
+                                {data}
+                                (tailList
+                                   {data}
+                                   (sndPair
+                                      {integer}
+                                      {list data}
+                                      (unConstrData
+                                         (headList
+                                            {data}
+                                            (sndPair
+                                               {integer}
+                                               {list data}
+                                               (unConstrData ctx))))))))))))))
         {all dead. Unit}
         (/\dead -> Unit)
         (/\dead -> error {Unit})
