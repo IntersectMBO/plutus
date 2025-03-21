@@ -227,9 +227,9 @@ mkForwardWithStakeTrickCode cred ctx =
 
 forwardWithStakeTrickManual :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrickManual r_stake_cred r_ctx =
-  let !wdrl = getCtxWdrl r_ctx
+  let wdrl = getCtxWdrl r_ctx
       wdrlAtZero = BI.fst $ BI.head wdrl
-      !rest = BI.tail wdrl
+      rest = BI.tail wdrl
       wdrlAtOne = BI.fst $ BI.head $ rest
    in if
         ( PlutusTx.equalsData r_stake_cred wdrlAtZero
