@@ -30,6 +30,11 @@ source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
 
+flag do-not-build-plutus-exec
+  description: Build the Plutus executable
+  manual:      True
+  default:     False
+
 -- inline-r is a problematic dependency. It doesn't build with newer
 -- versions of R, so if we depend on it then people need to install
 -- an old R. This is not so bad for people working on plutus itself
@@ -647,6 +652,9 @@ executable plutus
 
   -- singletons-th does not support GHC<=8.10
   if impl(ghc <9.6)
+    buildable: False
+
+  if flag(do-not-build-plutus-exec)
     buildable: False
 
   -- Hydra complains that this is not buildable on mingw32 because of brick.
