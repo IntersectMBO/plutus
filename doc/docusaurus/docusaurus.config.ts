@@ -22,7 +22,7 @@ const config: Config = {
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
   onBrokenMarkdownLinks: "throw",
-  trailingSlash: "false",
+  trailingSlash: false,
 
   plugins: [
     [
@@ -78,7 +78,8 @@ const config: Config = {
       title: "Plutus",
       logo: {
         alt: "Plutus Logo",
-        src: "img/logo.svg"
+        src: "img/logo.svg",
+        srcDark: "img/logo-white.svg"
       },
       items: [
         {
