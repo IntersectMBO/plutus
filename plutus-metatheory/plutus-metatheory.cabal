@@ -86,7 +86,7 @@ library
     Untyped
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
-  -- But cabal-fmt reorders modules alphabetically, so we use two 
+  -- But cabal-fmt reorders modules alphabetically, so we use two
   -- exposed-modules subsets to work around that. See Setup.hs
   exposed-modules:
     MAlonzo.Code.Agda.Builtin.Bool
@@ -188,6 +188,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -346,6 +347,7 @@ library
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
+    MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -353,7 +355,6 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
     MAlonzo.Code.VerifiedCompilation.Equality
-    MAlonzo.Code.VerifiedCompilation.Purity
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
     MAlonzo.Code.VerifiedCompilation.UCSE
@@ -451,6 +452,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -638,7 +640,7 @@ library
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float
-    MAlonzo.Code.VerifiedCompilation.Purity
+    MAlonzo.Code.Untyped.Purity
     MAlonzo.Code.VerifiedCompilation.UCSE
     MAlonzo.Code.VerifiedCompilation.UFloatDelay
 
