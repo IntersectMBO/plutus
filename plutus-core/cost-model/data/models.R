@@ -145,6 +145,8 @@ arity <- function(name) {
         "CountSetBits" = 1,
         "FindFirstSetBit" = 1,
         "ExpModInteger" = 3,
+        "CaseList" = 3,
+        "CaseData" = 6,
         "DropList" = 2,
         "LengthOfArray" = 1,
         "ListToArray" = 1,
@@ -387,6 +389,38 @@ modelFun <- function(path) {
         }
     }
 
+    ## Overheads for functions returning deferred applications, which require
+    ## the CEK machine to do extra work after the function returns (which is
+    ## accounted for by the usual CEK costing, so we want to exclude it from the
+    ## benchmark time), which these figures should include.
+
+    nopsR <- c("Nop1r", "Nop2r", "Nop3r", "Nop4r", "Nop5r", "Nop6r")
+    overheadR <- sapply(nopsR, get.mean.time)
+
+    discard.overheadR <- function(frame) {
+        fname <- frame$name[1]
+        args.overhead <- overheadR[arity(fname)]
+        mean.time <- mean(frame$t)
+        if (mean.time > args.overhead) {
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
+            return(f)
+        }
+        else {
+            ## Sometimes the total time taken to run a builtin is less than the
+            ## cost of a Nop (don't know why), so the adjusted time would be
+            ## negative.  In this case we set the time to a small default.
+
+            default = 0.001  ## 0.001 microseconds, ie 1 nanosecond.
+            ## For some reason, making the default 0 causes a failure when the model is read from R:
+            ##   `Failed reading: conversion error: expected Double, got "NA" (Failed reading: takeWhile1)) at ""`
+
+            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): adjusted time set to %.1f ns\n",
+                          fname, mean.time, args.overhead, default*1000));
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { default }))
+            return(f)
+        }
+    }
+
     constantModel <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
@@ -396,29 +430,43 @@ modelFun <- function(path) {
         return (mk.result(m, "constant_cost"))
     }
 
-   linearInX <- function (fname) {
+    # Try to account for extra work after the builtin returns (eg, for
+    # `caseList` and `caseData`) by discarding the overhead twice (which is not
+    # perfect because the arity of a returned deferred appication may not be the
+    # same as the arity of the builtin, and indeed may not be the same for all
+    # return values).
+    constantModel2 <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.upper.outliers () %>%
+            discard.overheadR ()
+        m <- lm(t ~ 1, filtered)
+        return (mk.result(m, "constant_cost"))
+    }
+
+    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
         return (mk.result(m, "linear_in_x"))
-   }
+    }
 
-   linearInY <- function (fname) {
+    linearInY <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ y_mem, filtered)
         return (mk.result(m, "linear_in_y"))
-   }
+    }
 
-   linearInZ <- function (fname) {
+    linearInZ <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ z_mem, filtered)
         return (mk.result(m, "linear_in_z"))
-   }
+    }
 
     ##### Integers #####
 
@@ -652,26 +700,28 @@ modelFun <- function(path) {
 
     ##### Lists #####
 
-    chooseListModel <- constantModel ("ChooseList")
-    mkConsModel     <- constantModel ("MkCons")
-    headListModel   <- constantModel ("HeadList")
-    tailListModel   <- constantModel ("TailList")
-    nullListModel   <- constantModel ("NullList")
+    chooseListModel <- constantModel  ("ChooseList")
+    mkConsModel     <- constantModel  ("MkCons")
+    headListModel   <- constantModel  ("HeadList")
+    tailListModel   <- constantModel  ("TailList")
+    nullListModel   <- constantModel  ("NullList")
+    dropListModel   <- linearInX      ("DropList")
+    caseListModel   <- constantModel2 ("CaseList")
 
     ##### Data #####
 
-    chooseDataModel   <- constantModel ("ChooseData")
-    constrDataModel   <- constantModel ("ConstrData")
-    mapDataModel      <- constantModel ("MapData" )
-    listDataModel     <- constantModel ("ListData")
-    iDataModel        <- constantModel ("IData")
-    bDataModel        <- constantModel ("BData")
-    unConstrDataModel <- constantModel ("UnConstrData")
-    unMapDataModel    <- constantModel ("UnMapData")
-    unListDataModel   <- constantModel ("UnListData")
-    unIDataModel      <- constantModel ("UnIData")
-    unBDataModel      <- constantModel ("UnBData")
-
+    chooseDataModel   <- constantModel  ("ChooseData")
+    constrDataModel   <- constantModel  ("ConstrData")
+    mapDataModel      <- constantModel  ("MapData" )
+    listDataModel     <- constantModel  ("ListData")
+    iDataModel        <- constantModel  ("IData")
+    bDataModel        <- constantModel  ("BData")
+    unConstrDataModel <- constantModel  ("UnConstrData")
+    unMapDataModel    <- constantModel  ("UnMapData")
+    unListDataModel   <- constantModel  ("UnListData")
+    unIDataModel      <- constantModel  ("UnIData")
+    unBDataModel      <- constantModel  ("UnBData")
+    caseDataModel     <- constantModel2 ("CaseData")
 
     ## The equalsData builtin is tricky because it uses the Eq instance for
     ## Data, which can't call costing functions for embedded Integers and Text
@@ -790,7 +840,6 @@ modelFun <- function(path) {
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
 
-
 ##### Models to be returned to Haskell #####
 
     models.for.adjustment <-
@@ -879,6 +928,8 @@ modelFun <- function(path) {
         findFirstSetBitModel                 = findFirstSetBitModel,
         ripemd_160Model                      = ripemd_160Model,
         expModIntegerModel                   = expModIntegerModel,
+        caseListModel                        = caseListModel,
+        caseDataModel                        = caseDataModel,
         dropListModel                        = dropListModel,
         lengthOfArrayModel                   = lengthOfArrayModel,
         listToArrayModel                     = listToArrayModel,

@@ -698,36 +698,6 @@
             "type": "constant_cost"
         }
     },
-    "lengthOfArray" : {
-        "cpu": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        },
-        "memory": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        }
-    },
-    "listToArray": {
-        "cpu": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        },
-        "memory": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        }
-    },
-    "indexArray": {
-        "cpu": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        },
-        "memory": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        }
-    },
     "quotientInteger": {
         "cpu": {
             "arguments": {
@@ -1154,6 +1124,26 @@
             "type": "constant_cost"
         }
     },
+    "caseList": {
+        "cpu": {
+            "arguments": 2297053,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+    "caseData": {
+        "cpu": {
+            "arguments": 4121410,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "dropList": {
         "cpu": {
             "arguments": {
@@ -1164,6 +1154,36 @@
         },
         "memory": {
             "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+        "lengthOfArray" : {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "listToArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "indexArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
             "type": "constant_cost"
         }
     }
