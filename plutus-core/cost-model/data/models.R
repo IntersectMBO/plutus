@@ -785,7 +785,7 @@ modelFun <- function(path) {
 
     dropListModel   <- linearInX     ("DropList")
 
-    ## Arrays - TEMPORARY, but probably right
+    ## Arrays 
     lengthOfArrayModel        <- constantModel ("LengthOfArray")
     listToArrayModel          <- linearInX ("ListToArray")
     indexArrayModel           <- constantModel ("IndexArray")
