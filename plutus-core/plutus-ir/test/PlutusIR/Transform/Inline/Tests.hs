@@ -21,6 +21,7 @@ test_inline =
             (runTest withConstantInlining)
             [ "var"
             , "builtin"
+            , "callsite-6970"
             , "callsite-non-trivial-body"
             , "constant"
             , "transitive"
