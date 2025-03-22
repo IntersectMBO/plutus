@@ -69,7 +69,7 @@ common lang
     -fno-specialise -fno-spec-constr -fno-strictness
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     -fno-unbox-strict-fields -fno-unbox-small-strict-fields
-    -fno-full-laziness
+    -fno-full-laziness -fforce-recomp
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -581,7 +581,7 @@ library agda-internal
     , plutus-metatheory
 
 benchmark validation-agda-cek
-  import:         lang, ghc-version-support, os-support, 
+  import:         lang, ghc-version-support, os-support,
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: validation/bench

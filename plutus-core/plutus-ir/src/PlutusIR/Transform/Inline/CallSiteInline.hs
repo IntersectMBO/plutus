@@ -150,7 +150,7 @@ callSiteInline processedTSize = go
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= processedTSize
+                  sizeIsOk = termSize inlined <= processedTSize + 10
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

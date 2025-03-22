@@ -49,13 +49,11 @@
           `$fEqChessSet_$c==`
           (\(x : ChessSet) (y : ChessSet) -> y)
           (\(x : ChessSet) (y : ChessSet) -> x)
-    !equalsInteger : integer -> integer -> Bool
-      = \(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False
     !v : Ord integer
       = CConsOrd
           {integer}
-          equalsInteger
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (equalsInteger x y) True False)
           (\(eta : integer) (eta : integer) ->
              Bool_match
                (ifThenElse {Bool} (equalsInteger eta eta) True False)
@@ -970,7 +968,7 @@
                 {Bool}
                 (\(a' : integer) (b' : ChessSet) ->
                    Bool_match
-                     (equalsInteger a a')
+                     (ifThenElse {Bool} (equalsInteger a a') True False)
                      {all dead. Bool}
                      (/\dead -> True)
                      (/\dead -> False)
