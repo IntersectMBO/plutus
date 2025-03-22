@@ -309,6 +309,7 @@ rawCertificate certName rawTrace =
   "module " <> certName <> " where\
   \\n\
   \\nopen import VerifiedCompilation\
+  \\nopen import VerifiedCompilation.Certificate\
   \\nopen import Untyped\
   \\nopen import RawU\
   \\nopen import Builtin\
