@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE OverloadedLists   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 

@@ -98,6 +98,7 @@ import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Semigroup (stimes)
+import Data.Strict.List (List (..))
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
@@ -565,9 +566,9 @@ dischargeCekValue = \case
     VBuiltin _ term _                    -> term
     VConstr i es                         -> Constr () i (fmap dischargeCekValue $ stack2list es)
       where
-        stack2list = go []
+        stack2list = go Nil
         go acc EmptyStack           = acc
-        go acc (ConsStack arg rest) = go (arg : acc) rest
+        go acc (ConsStack arg rest) = go (arg :! acc) rest
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
@@ -598,7 +599,7 @@ data Context uni fun ann
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
-    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 !(List (NTerm uni fun ann)) !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
@@ -727,8 +728,8 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
-          (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
-          []         -> returnCek ctx $ VConstr i EmptyStack
+          (t :! rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
+          Nil         -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -771,8 +772,8 @@ enterComputeCek = computeCek
     returnCek (FrameConstr env i todo done ctx) e = do
         let done' = ConsStack e done
         case todo of
-          (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          []             -> returnCek ctx $ VConstr i done'
+          (next :! todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
+          Nil             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
