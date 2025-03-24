@@ -1,8 +1,9 @@
 (program
    1.1.0
    ((\factorial x y z ->
-       multiplyInteger
-         (multiplyInteger (factorial x) (factorial y))
+       (\multiplyInteger ->
+          multiplyInteger (multiplyInteger (factorial x) (factorial y)))
+         (\x y -> multiplyInteger x y)
          (factorial z))
       ((\s -> s s)
          (\s x ->
