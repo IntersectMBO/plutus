@@ -28,9 +28,6 @@ module PlutusTx.Test (
   -- * Budget testing
   goldenBudget
 
-  -- * Helpers
-  , mkUplcCode
-
 ) where
 
 import Prelude
@@ -59,7 +56,7 @@ import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
 import PlutusPrelude
-import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -227,15 +224,3 @@ runPlcCekTrace values = do
         UPLC.tallying UPLC.logEmitter (p ^. UPLC.progTerm)
   res <- fromRightM (throwError . SomeException) result
   pure (logOut, tally, res)
-
-mkUplcCode
-    :: UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpans
-    -> CompiledCode ()
-mkUplcCode uplcCode =
-  let deBruijnUplcCode =
-        either
-          (\(err :: UPLC.FreeVariableError) -> error . show $ err)
-          id
-          $ UPLC.deBruijnTerm uplcCode
-      uplcProgram = UPLC.Program mempty PLC.latestVersion deBruijnUplcCode
-  in DeserializedCode uplcProgram Nothing mempty
