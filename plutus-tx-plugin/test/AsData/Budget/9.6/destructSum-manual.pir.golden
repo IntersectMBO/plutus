@@ -3,8 +3,6 @@ let
     Unit : Unit
   !fail : unit -> data
     = \(ds : unit) -> Unit_match (error {Unit}) {data} (error {data})
-  !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
-    = \(d : data) -> d
   !`$mInts` :
      all r.
        data ->
@@ -40,9 +38,7 @@ in
        True
        False)
     {all dead. data}
-    (/\dead ->
-       `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-         (headList {data} (sndPair {integer} {list data} tup)))
+    (/\dead -> headList {data} (sndPair {integer} {list data} tup))
     (/\dead ->
        let
          !tup : pair integer (list data) = unConstrData d
@@ -54,9 +50,7 @@ in
             True
             False)
          {all dead. data}
-         (/\dead ->
-            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-              (headList {data} (sndPair {integer} {list data} tup)))
+         (/\dead -> headList {data} (sndPair {integer} {list data} tup))
          (/\dead ->
             let
               !tup : pair integer (list data) = unConstrData d
@@ -71,12 +65,8 @@ in
               (/\dead ->
                  let
                    !args : list data = sndPair {integer} {list data} tup
-                   !y : data
-                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                         (headList {data} (tailList {data} args))
-                   !ds : data
-                     = `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                         (headList {data} args)
+                   !y : data = headList {data} (tailList {data} args)
+                   !ds : data = headList {data} args
                  in
                  `$mInts`
                    {data}
