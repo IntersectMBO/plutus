@@ -163,7 +163,6 @@ module PlutusLedgerApi.Data.V2 (
   unsafeFromSOPList,
   safeFromSOPList,
   toSOPList,
-  toDataList,
   toBuiltinList,
 
   -- *** Newtypes and hash types
@@ -198,7 +197,7 @@ import PlutusLedgerApi.V2.Data.Tx qualified as Tx
 import PlutusLedgerApi.V2.EvaluationContext qualified as EvaluationContext
 import PlutusLedgerApi.V2.ParamName qualified as ParamName
 
-import PlutusTx.Data.AssocMap (Map, safeFromSOPList, toBuiltinList, toDataList, toSOPList,
+import PlutusTx.Data.AssocMap (Map, safeFromSOPList, toBuiltinList, toSOPList,
                                unsafeFromBuiltinList, unsafeFromDataList, unsafeFromSOPList)
 
 {-| An alias to the Plutus ledger language this module exposes at runtime.
