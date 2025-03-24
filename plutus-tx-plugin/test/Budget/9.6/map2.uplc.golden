@@ -62,11 +62,11 @@
                                                                                                         x)))))))))))
                                                                    (delay
                                                                       (\x ->
-                                                                         x)))
-                                                                nt)
+                                                                         x))))
                                                              (force
                                                                 (force fstPair)
-                                                                hd))
+                                                                hd)
+                                                             nt)
                                                           [ (delay tl')
                                                           , (delay
                                                                (force mkCons

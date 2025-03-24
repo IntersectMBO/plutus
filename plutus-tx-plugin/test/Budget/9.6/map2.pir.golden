@@ -215,28 +215,29 @@ in
                !tl' : list (pair data data) = go tl
              in
              Bool_match
-               (let
-                 !k : data = fstPair {data} {data} hd
-               in
-               letrec
-                 ~go : list (pair data data) -> Bool
-                   = caseList'
-                       {pair data data}
-                       {Bool}
-                       False
-                       (\(hd : pair data data) ->
-                          Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsData k (fstPair {data} {data} hd))
-                               True
-                               False)
-                            {all dead. list (pair data data) -> Bool}
-                            (/\dead -> \(ds : list (pair data data)) -> True)
-                            (/\dead -> go)
-                            {all dead. dead})
-               in
-               go nt)
+               ((let
+                    !k : data = fstPair {data} {data} hd
+                  in
+                  letrec
+                    ~go : list (pair data data) -> Bool
+                      = caseList'
+                          {pair data data}
+                          {Bool}
+                          False
+                          (\(hd : pair data data) ->
+                             Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsData k (fstPair {data} {data} hd))
+                                  True
+                                  False)
+                               {all dead. list (pair data data) -> Bool}
+                               (/\dead -> \(ds : list (pair data data)) -> True)
+                               (/\dead -> go)
+                               {all dead. dead})
+                  in
+                  go)
+                  nt)
                {all dead. list (pair data data)}
                (/\dead -> tl')
                (/\dead -> mkCons {pair data data} hd tl')
