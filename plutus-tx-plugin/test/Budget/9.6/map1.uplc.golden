@@ -97,7 +97,8 @@
                              , (\y
                                  ys ->
                                   delay
-                                    ((\ds ->
+                                    ((\ds
+                                       ds ->
                                         (\k ->
                                            (\a ->
                                               (\nilCase ->
@@ -146,7 +147,8 @@
                                                    (mkPairData k a)
                                                    []))
                                              (iData y))
-                                          (iData (addInteger n y)))
+                                          (iData ds))
+                                       (addInteger n y)
                                        (s s ys))) ]))))
                (force mkCons (mkPairData (iData n) (I 0)) [])
                (`$fEnumBool_$cenumFromTo` 1 10)))

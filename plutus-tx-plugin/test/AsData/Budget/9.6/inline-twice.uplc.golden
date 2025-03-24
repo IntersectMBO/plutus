@@ -1,6 +1,7 @@
 (program
    1.1.0
    (\x y z ->
-      multiplyInteger
-        (multiplyInteger (addInteger x x) (addInteger y y))
+      (\multiplyInteger ->
+         multiplyInteger (multiplyInteger (addInteger x x) (addInteger y y)))
+        (\x y -> multiplyInteger x y)
         (addInteger z z)))
