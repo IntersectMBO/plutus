@@ -120,7 +120,7 @@ jobs:
 
       - name: Run Benchmark
         run: |
-          nix develop .#${{ steps.extract-benchmark.outputs.ghc }} \ 
+          nix develop .#${{ steps.extract-benchmark.outputs.ghc }} \
             --no-warn-dirty \
             --accept-flake-config \
             --command bash ./scripts/ci-plutus-benchmark.sh 
