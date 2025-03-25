@@ -77,11 +77,7 @@ newtype List a = List (BuiltinList BuiltinData)
 
 instance Eq (List a) where
     {-# INLINEABLE (==) #-}
-    List l == List l' =
-        case (B.uncons l, B.uncons l') of
-            (Just (h, t), Just (h', t')) -> h == h' && List t == List t'
-            (Nothing, Nothing)           -> True
-            _                            -> False
+    List l == List l' = B.equalsData (BI.mkList l) (BI.mkList l')
 
 instance ToData (List a) where
     {-# INLINEABLE toBuiltinData #-}

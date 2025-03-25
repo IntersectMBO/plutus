@@ -1,4 +1,4 @@
 let
   !idFun : all a. a -> a = /\a -> \(x : a) -> x
 in
-(\(x : integer) -> x) ((\(x : integer) -> x) ((\(x : integer) -> x) 3))
+(\(x : integer) -> x) 3
