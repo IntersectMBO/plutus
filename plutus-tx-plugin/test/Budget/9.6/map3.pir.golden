@@ -24,35 +24,33 @@ letrec
           (\(hd : pair data data) (tl : list (pair data data)) ->
              let
                !v : data = sndPair {data} {data} hd
+               !k : data = fstPair {data} {data} hd
+               !eta : list (pair data data) = safeAppend tl xs
+               !nilCase : list (pair data data)
+                 = mkCons {pair data data} (mkPairData k v) []
              in
-             (let
-                 !k : data = fstPair {data} {data} hd
-                 !nilCase : list (pair data data)
-                   = mkCons {pair data data} (mkPairData k v) []
-               in
-               letrec
-                 ~go : list (pair data data) -> list (pair data data)
-                   = caseList'
-                       {pair data data}
-                       {list (pair data data)}
-                       nilCase
-                       (\(hd : pair data data) ->
-                          Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsData k (fstPair {data} {data} hd))
-                               True
-                               False)
-                            {all dead.
-                               list (pair data data) -> list (pair data data)}
-                            (/\dead -> mkCons {pair data data} (mkPairData k v))
-                            (/\dead ->
-                               \(eta : list (pair data data)) ->
-                                 mkCons {pair data data} hd (go eta))
-                            {all dead. dead})
-               in
-               go)
-               (safeAppend tl xs))
+             letrec
+               ~go : list (pair data data) -> list (pair data data)
+                 = caseList'
+                     {pair data data}
+                     {list (pair data data)}
+                     nilCase
+                     (\(hd : pair data data) ->
+                        Bool_match
+                          (ifThenElse
+                             {Bool}
+                             (equalsData k (fstPair {data} {data} hd))
+                             True
+                             False)
+                          {all dead.
+                             list (pair data data) -> list (pair data data)}
+                          (/\dead -> mkCons {pair data data} (mkPairData k v))
+                          (/\dead ->
+                             \(eta : list (pair data data)) ->
+                               mkCons {pair data data} hd (go eta))
+                          {all dead. dead})
+             in
+             go eta)
           xs
 in
 let
