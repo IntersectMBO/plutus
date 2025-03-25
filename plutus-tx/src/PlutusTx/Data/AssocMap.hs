@@ -16,7 +16,6 @@ module PlutusTx.Data.AssocMap (
   empty,
   null,
   toSOPList,
-  toDataList,
   toBuiltinList,
   safeFromSOPList,
   unsafeFromSOPList,
@@ -289,22 +288,6 @@ toSOPList d = go (toBuiltinList d)
 toBuiltinList :: Map k a -> BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
 toBuiltinList = coerce
 {-# INLINEABLE toBuiltinList #-}
-
--- | Convert the `Map` to a `List` of key-value pairs.
-toDataList :: Map k a -> List (a, k)
-toDataList = Data.List.fromBuiltinList . go . toBuiltinList
-  where
-    go
-      :: BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData)
-      -> BI.BuiltinList BuiltinData
-    go =
-      P.caseList'
-        P.mkNil
-        ( \hd tl ->
-            let p = P.toBuiltinData $ P.pairToPair hd
-             in BI.mkCons p (go tl)
-        )
-{-# INLINEABLE toDataList #-}
 
 -- | Check if the `Map` is well-defined. Warning: this operation is O(n^2).
 noDuplicateKeys :: forall k a. Map k a -> Bool

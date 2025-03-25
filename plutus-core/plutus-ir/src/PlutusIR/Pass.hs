@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs      #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 
 module PlutusIR.Pass where
@@ -13,7 +12,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Name.Unique
 
 import Control.Monad (void, when)
-import Control.Monad.Except
+import Control.Monad.Except (ExceptT, MonadError, throwError)
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable
 import Data.Text (Text)

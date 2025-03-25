@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments       #-}
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE DerivingVia          #-}
 {-# LANGUAGE FlexibleInstances    #-}
@@ -11,6 +12,9 @@
 {-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+#if !MIN_VERSION_base(4,15,0)
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+#endif
 
 module PlutusLedgerApi.V3.Data.Tx (
   TxId (..),

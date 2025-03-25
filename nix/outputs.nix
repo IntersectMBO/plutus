@@ -36,7 +36,7 @@ let
     { inherit self pkgs; };
 
   project = import ./project.nix
-    { inherit inputs pkgs lib agda-with-stdlib r-with-packages; };
+    { inherit inputs pkgs lib agda-with-stdlib r-with-packages utils; };
 
   mkShell = project: import ./shell.nix
     { inherit inputs pkgs lib project agda-with-stdlib r-with-packages; };
@@ -53,6 +53,12 @@ let
     musl64-plc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.plc;
     musl64-uplc = project.projectCross.musl64.hsPkgs.plutus-executables.components.exes.uplc;
     musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
+  };
+
+  windows-packages = {
+    ghc96-mingsW64 = removeAttrs
+      (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
+      [ "devShells" ]; # Won't build on Windows
   };
 
   extra-artifacts =
@@ -98,6 +104,7 @@ let
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
+      (windows-packages) //
       (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
@@ -122,6 +129,7 @@ let
   hydraJobs = ciJobs;
 
   __internal = {
+    inherit self;
     inherit pkgs;
     inherit project;
     inherit agda-with-stdlib;

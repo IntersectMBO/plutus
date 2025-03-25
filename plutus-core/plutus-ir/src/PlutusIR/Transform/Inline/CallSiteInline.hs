@@ -72,7 +72,7 @@ applyAndBetaReduce rhs args0 = do
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
         (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
-          safe <- safeToBetaReduce n arg acc
+          safe <- safeToBetaReduce n arg tm
           if safe -- we only do substitution if it is safe to beta reduce
             then do
               acc' <- do

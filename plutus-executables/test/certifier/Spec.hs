@@ -80,7 +80,7 @@ srcTests =
   [ "inc"
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
-  -- , len
+  -- , "len"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]

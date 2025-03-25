@@ -122,6 +122,11 @@ let
   quick-shell = project.shellFor {
     name = "plutus-shell-${project.args.compiler-nix-name}";
     tools = { cabal = "latest"; };
+    shellHook = ''
+      ${locale-archive-hook}
+      export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
+      echo -e "\n🤟 Welcome to Plutus 🤟"
+    '';
   };
 
 

@@ -71,7 +71,7 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core                      ^>=1.42
+    , plutus-core                      ^>=1.43
     , plutus-core:plutus-core-execlib
     , process
     , text
@@ -86,7 +86,7 @@ library
     Untyped
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
-  -- But cabal-fmt reorders modules alphabetically, so we use two 
+  -- But cabal-fmt reorders modules alphabetically, so we use two
   -- exposed-modules subsets to work around that. See Setup.hs
   exposed-modules:
     MAlonzo.Code.Agda.Builtin.Bool
@@ -352,6 +352,7 @@ library
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
+    MAlonzo.Code.VerifiedCompilation.Certificate
     MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.Purity
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
@@ -618,6 +619,7 @@ library
     MAlonzo.Code.Relation.Binary.Reasoning.Syntax
     MAlonzo.Code.Relation.Binary.Structures.Biased
     MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.Certificate
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation
@@ -660,7 +662,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.42
+    , plutus-core                      ^>=1.43
     , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based

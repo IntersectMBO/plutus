@@ -8,7 +8,6 @@
                   (\s -> addInteger (addInteger s s) s)
                     (unIData (force headList (force tailList nt))))
                  (unIData (force headList nt)))
-              ((\tail -> tail (tail (force tailList nt)))
-                 (\eta -> force tailList eta)))
+              (force tailList (force tailList (force tailList nt))))
            (unIData (force headList nt)))
         (force tailList (unListData d))))
