@@ -188,6 +188,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
@@ -452,6 +453,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
+    MAlonzo.Code.Data.List.Relation.Unary.All.Properties.Core
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
