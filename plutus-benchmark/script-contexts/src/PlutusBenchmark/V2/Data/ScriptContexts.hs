@@ -209,7 +209,7 @@ forwardWithStakeTrick obsScriptCred ctx =
           || PlutusTx.equalsData obsScriptCred wdrlAtOne
           then ()
           else
-            if Map.member' obsScriptCred rest
+            if Map.member obsScriptCred (Map.unsafeFromBuiltinList rest)
               then ()
               else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}
