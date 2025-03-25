@@ -1,0 +1,8 @@
+let
+  !f : all a. list integer -> list integer
+    = /\a -> \(xs : list integer) -> tailList {integer} xs
+in
+\(xs : list integer) ->
+  headList
+    {integer}
+    (tailList {integer} (tailList {integer} (tailList {integer} xs)))

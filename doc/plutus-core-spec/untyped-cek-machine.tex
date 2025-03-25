@@ -138,13 +138,13 @@ state.
 \inAppRightFrame{\VLamAbs{x}{M}{\rho}} \cons s   & \return V  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
 \inAppLeftFrame{V} \cons s   & \return \VLamAbs{x}{M}{\rho}  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)}} \cons s & \return V &~\mapsto~&
-                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
-                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]} &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \VarStar$}\\
 \inForceFrame{} \cons s & \return \VDelay{M}{\rho}         &~\mapsto~& s;\rho \compute M\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
                          s \return \VBuiltin{b}{\repetition{V}}{\eta} \enskip \text{if $\iota \in \QVar$}\\
@@ -154,8 +154,8 @@ state.
                          \inConstrFrame{i}{\repetition{V} \cons V}{(\repetition{M}, \rho)} \cons s;\rho \compute M \\
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
-\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_0 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_0} \cons s ;\rho \compute M_i \enskip \text{if $0 \leq i \leq n$}
+\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
+                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_1} \cons s ;\rho \compute M_i \enskip \text{if $0 \leq i \leq n$}
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
@@ -163,21 +163,24 @@ state.
 \end{subfigure}
 
 \bigskip
-  \begin{subfigure}[c]{\linewidth}
-$$ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
-   \begin{cases}
-      \cekerror  & \text{if $\Eval\,(b,[V_1, \ldots, V_n]) = \errorX$}\\
-      s \return \Eval\,(b,[V_1, \ldots, V_n]) & \text{otherwise}
-   \end{cases}
-$$
-    \caption{Evaluation of built-in functions}
-    \label{fig:untyped-cek-builtins}
-    \end{subfigure}
+\begin{subfigure}[c]{\linewidth}
+  \begin{align*}
+ \EvalCEK(s, b, [V_1, \ldots, V_n]) =
+  &   \begin{cases}
+        \cekerror  & \text{if $r = \errorX$}\\
+        \inAppLeftFrame{V^{\prime}_m} \cons \cdots \cons \inAppLeftFrame{V^{\prime}_1} \cons s \return V^{\prime}
+          & \text{if $r = (V^{\prime}|V^{\prime}_1,\ldots,V^{\prime}_m) \in \R^{+}$}
+      \end{cases}\\
+  &  \;\;\text{where $r = \Eval\,(b,[V_1, \ldots, V_n])$}\\
+   \end{align*}
+  \caption{Evaluation of built-in functions}
+  \label{fig:untyped-cek-builtins}
+\end{subfigure}
 
   \caption{A CEK machine for Plutus Core}
 \label{fig:untyped-cek-machine}
 \end{figure}
-
+  
 \subsection{Converting CEK evaluation results into Plutus Core terms}
 The purpose of the CEK machine is to evaluate Plutus Core terms, but in the
 definition in Figure~\ref{fig:untyped-cek-machine} it does not return a Plutus
