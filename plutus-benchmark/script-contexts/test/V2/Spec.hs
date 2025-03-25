@@ -1,4 +1,6 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module V2.Spec (allTests) where
 
@@ -14,6 +16,8 @@ import PlutusBenchmark.V2.ScriptContexts qualified as SOP.SC
 
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
+import PlutusTx qualified
+import PlutusTx.Plugin ()
 import PlutusTx.Test qualified as Tx
 
 -- Make a set of golden tests with results stored in subdirectories determined
@@ -155,8 +159,8 @@ testSOPFwdStakeTrick :: TestTree
 testSOPFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenSize "sopFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "sopFwdStakeTrick" testCode
-          , Tx.goldenUPlcReadable "sopFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
+          , Tx.goldenUPlcReadable "sopFwdStakeTrick" testAbsCode
           , Tx.goldenBudget "sopFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
           ]
@@ -165,6 +169,8 @@ testSOPFwdStakeTrick =
           SOP.SC.mkStakingCredential "someCredential"
      testScriptContext =
           SOP.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
+     testAbsCode =
+          $$(PlutusTx.compile [|| SOP.SC.forwardWithStakeTrick ||])
      testCode =
           SOP.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
@@ -172,8 +178,8 @@ testDataFwdStakeTrick :: TestTree
 testDataFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenSize "dataFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrick" testCode
-          , Tx.goldenUPlcReadable "dataFwdStakeTrick" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
+          , Tx.goldenUPlcReadable "dataFwdStakeTrick" testAbsCode
           , Tx.goldenBudget "dataFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
           ]
@@ -182,6 +188,8 @@ testDataFwdStakeTrick =
           Data.SC.mkStakingCredential "someCredential"
      testScriptContext =
           Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
+     testAbsCode =
+          $$(PlutusTx.compile [|| Data.SC.forwardWithStakeTrick ||])
      testCode =
           Data.SC.mkForwardWithStakeTrickCode testCredential testScriptContext
 
@@ -189,8 +197,8 @@ testDataFwdStakeTrickManual :: TestTree
 testDataFwdStakeTrickManual =
      runTestGhcSOP
           [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testCode
-          , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testCode
+          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
+          , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
           ]
@@ -199,6 +207,8 @@ testDataFwdStakeTrickManual =
           Data.SC.mkStakingCredential "someCredential"
      testScriptContext =
           Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
+     testAbsCode =
+          $$(PlutusTx.compile [|| Data.SC.forwardWithStakeTrickManual ||])
      testCode =
           Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
 

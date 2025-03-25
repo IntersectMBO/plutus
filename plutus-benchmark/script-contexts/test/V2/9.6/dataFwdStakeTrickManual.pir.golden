@@ -1,235 +1,95 @@
-(let
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
-    data Unit | Unit_match where
-      Unit : Unit
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Unit | Unit_match where
+    Unit : Unit
+in
+\(r_stake_cred : data) ->
+  letrec
+    !lookForCred : pair data data -> list (pair data data) -> Unit
+      = \(p : pair data data) (tl : list (pair data data)) ->
+          Bool_match
+            (ifThenElse
+               {Bool}
+               (equalsData r_stake_cred (fstPair {data} {data} p))
+               True
+               False)
+            {all dead. Unit}
+            (/\dead -> Unit)
+            (/\dead -> lookForCred tl)
+            {all dead. dead}
+    ~lookForCred : list (pair data data) -> Unit
+      = (let
+            a = pair data data
+          in
+          /\r ->
+            \(nilCase : Unit -> r) (consCase : a -> list a -> r) (l : list a) ->
+              (let
+                  r = Unit -> r
+                in
+                \(z : r) (f : a -> list a -> r) (xs : list a) ->
+                  chooseList
+                    {a}
+                    {all dead. r}
+                    xs
+                    (/\dead -> z)
+                    (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                    {r})
+                nilCase
+                (\(x : a) (xs : list a) (ds : Unit) -> consCase x xs)
+                l
+                Unit)
+          {Unit}
+          (\(ds : Unit) ->
+             let
+               !x : Unit = trace {Unit} "not found" Unit
+             in
+             error {Unit})
+          lookForCred
   in
-  \(r_stake_cred : data) ->
-    letrec
-      ~lookForCred : list (pair data data) -> Unit
-        = (let
-              a = pair data data
-            in
-            /\r ->
-              \(nilCase : Unit -> r)
-               (consCase : a -> list a -> r)
-               (l : list a) ->
-                (let
-                    r = Unit -> r
-                  in
-                  \(z : r) (f : a -> list a -> r) (xs : list a) ->
-                    chooseList
-                      {a}
-                      {all dead. r}
-                      xs
-                      (/\dead -> z)
-                      (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                      {r})
-                  nilCase
-                  (\(x : a) (xs : list a) (ds : Unit) -> consCase x xs)
-                  l
-                  Unit)
-            {Unit}
-            (\(ds : Unit) ->
-               let
-                 !x : Unit = trace {Unit} "not found" Unit
-               in
-               error {Unit})
-            (\(p : pair data data) (tl : list (pair data data)) ->
-               Bool_match
-                 (ifThenElse
-                    {Bool}
-                    (equalsData r_stake_cred (fstPair {data} {data} p))
-                    True
-                    False)
-                 {all dead. Unit}
-                 (/\dead -> Unit)
-                 (/\dead -> lookForCred tl)
-                 {all dead. dead})
+  \(r_ctx : data) ->
+    let
+      !wdrl : list (pair data data)
+        = unMapData
+            (headList
+               {data}
+               (tailList
+                  {data}
+                  (tailList
+                     {data}
+                     (tailList
+                        {data}
+                        (tailList
+                           {data}
+                           (tailList
+                              {data}
+                              (tailList
+                                 {data}
+                                 (sndPair
+                                    {integer}
+                                    {list data}
+                                    (unConstrData
+                                       (headList
+                                          {data}
+                                          (sndPair
+                                             {integer}
+                                             {list data}
+                                             (unConstrData r_ctx))))))))))))
+      !wdrlAtZero : data
+        = fstPair {data} {data} (headList {pair data data} wdrl)
+      !rest : list (pair data data) = tailList {pair data data} wdrl
+      !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
     in
-    \(r_ctx : data) ->
-      let
-        !wdrl : list (pair data data)
-          = unMapData
-              (headList
-                 {data}
-                 (tailList
-                    {data}
-                    (tailList
-                       {data}
-                       (tailList
-                          {data}
-                          (tailList
-                             {data}
-                             (tailList
-                                {data}
-                                (tailList
-                                   {data}
-                                   (sndPair
-                                      {integer}
-                                      {list data}
-                                      (unConstrData
-                                         (headList
-                                            {data}
-                                            (sndPair
-                                               {integer}
-                                               {list data}
-                                               (unConstrData r_ctx))))))))))))
-        !wdrlAtZero : data
-          = fstPair {data} {data} (headList {pair data data} wdrl)
-        !rest : list (pair data data) = tailList {pair data data} wdrl
-        !wdrlAtOne : data
-          = fstPair {data} {data} (headList {pair data data} rest)
-      in
-      Bool_match
-        (Bool_match
-           (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtZero) True False)
-           {all dead. Bool}
-           (/\dead -> True)
-           (/\dead ->
-              ifThenElse {Bool} (equalsData r_stake_cred wdrlAtOne) True False)
+    Bool_match
+      (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtZero) True False)
+      {all dead. Unit}
+      (/\dead -> Unit)
+      (/\dead ->
+         Bool_match
+           (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtOne) True False)
+           {all dead. Unit}
+           (/\dead -> Unit)
+           (/\dead -> lookForCred rest)
            {all dead. dead})
-        {all dead. Unit}
-        (/\dead -> Unit)
-        (/\dead -> lookForCred rest)
-        {all dead. dead})
-  (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
-  (Constr 0
-     [ Constr 0
-         [ List []
-         , List []
-         , List
-             [ Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 1)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 2)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 3)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 4)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 5)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 6)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 7)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 8)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 9)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 10)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 11)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 12)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 13)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 14)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 15)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 16)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 17)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 18)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 19)])]
-                 , Constr 0 []
-                 , Constr 1 [] ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                 , Map [(B #, Map [(B #, I 20)])]
-                 , Constr 0 []
-                 , Constr 1 [] ] ]
-         , Map []
-         , Map []
-         , List []
-         , Map
-             [ (Constr 0 [Constr 0 [B #746573744372656431]], I 1)
-             , (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]], I 1000)
-             , (Constr 0 [Constr 0 [B #746573744372656432]], I 2)
-             , (Constr 0 [Constr 0 [B #746573744372656433]], I 3)
-             , (Constr 0 [Constr 0 [B #746573744372656434]], I 4)
-             , (Constr 0 [Constr 0 [B #746573744372656435]], I 5)
-             , (Constr 0 [Constr 0 [B #746573744372656436]], I 6)
-             , (Constr 0 [Constr 0 [B #746573744372656437]], I 7)
-             , (Constr 0 [Constr 0 [B #746573744372656438]], I 8)
-             , (Constr 0 [Constr 0 [B #746573744372656439]], I 9)
-             , (Constr 0 [Constr 0 [B #74657374437265643130]], I 10)
-             , (Constr 0 [Constr 0 [B #74657374437265643131]], I 11)
-             , (Constr 0 [Constr 0 [B #74657374437265643132]], I 12)
-             , (Constr 0 [Constr 0 [B #74657374437265643133]], I 13)
-             , (Constr 0 [Constr 0 [B #74657374437265643134]], I 14)
-             , (Constr 0 [Constr 0 [B #74657374437265643135]], I 15)
-             , (Constr 0 [Constr 0 [B #74657374437265643136]], I 16)
-             , (Constr 0 [Constr 0 [B #74657374437265643137]], I 17)
-             , (Constr 0 [Constr 0 [B #74657374437265643138]], I 18)
-             , (Constr 0 [Constr 0 [B #74657374437265643139]], I 19)
-             , (Constr 0 [Constr 0 [B #74657374437265643230]], I 20) ]
-         , Constr 0
-             [ Constr 0 [Constr 0 [], Constr 1 []]
-             , Constr 0 [Constr 2 [], Constr 1 []] ]
-         , List []
-         , Map []
-         , Map []
-         , Constr 0 [B #] ]
-     , Constr 1 [Constr 0 [Constr 0 [B #], I 0]] ])
+      {all dead. dead}

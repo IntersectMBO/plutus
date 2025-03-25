@@ -537,207 +537,234 @@
                                                                  ds
                                                                  ds
                                                                  ds ->
-                                                                  (\wdrlAtZero ->
-                                                                     (\wdrlAtOne ->
-                                                                        (\obsScriptCred' ->
-                                                                           (\`$fEqStakingCredential_$c==` ->
-                                                                              (\go ->
-                                                                                 (\cse ->
-                                                                                    force
-                                                                                      (case
-                                                                                         (force
-                                                                                            (case
-                                                                                               (cse
-                                                                                                  wdrlAtZero)
-                                                                                               [ (delay
-                                                                                                    (constr 0
-                                                                                                       [  ]))
-                                                                                               , (delay
-                                                                                                    (cse
-                                                                                                       wdrlAtOne)) ]))
-                                                                                         [ (delay
-                                                                                              (constr 0
-                                                                                                 [  ]))
-                                                                                         , (delay
-                                                                                              (force
-                                                                                                 (case
-                                                                                                    (go
-                                                                                                       ds)
-                                                                                                    [ (delay
-                                                                                                         (constr 0
-                                                                                                            [  ]))
-                                                                                                    , (delay
-                                                                                                         ((\x ->
-                                                                                                             error)
-                                                                                                            (force
-                                                                                                               trace
-                                                                                                               "not found"
-                                                                                                               (constr 0
-                                                                                                                  [  ])))) ]))) ]))
-                                                                                   (`$fEqStakingCredential_$c==`
-                                                                                      obsScriptCred'))
-                                                                                ((\s ->
-                                                                                    s
-                                                                                      s)
-                                                                                   (\s
-                                                                                     ds ->
-                                                                                      force
-                                                                                        (case
-                                                                                           ds
-                                                                                           [ (delay
-                                                                                                (constr 1
-                                                                                                   [  ]))
-                                                                                           , (\ds
-                                                                                               xs' ->
-                                                                                                delay
-                                                                                                  (case
-                                                                                                     ds
-                                                                                                     [ (\c'
-                                                                                                         i ->
-                                                                                                          force
-                                                                                                            (case
-                                                                                                               (`$fEqStakingCredential_$c==`
-                                                                                                                  c'
-                                                                                                                  obsScriptCred')
-                                                                                                               [ (delay
-                                                                                                                    (constr 0
-                                                                                                                       [  ]))
-                                                                                                               , (delay
-                                                                                                                    (s
-                                                                                                                       s
-                                                                                                                       xs')) ])) ])) ]))))
-                                                                             (\ds
-                                                                               ds ->
+                                                                  force
+                                                                    ((\`$j` ->
+                                                                        case
+                                                                          ds
+                                                                          [ (delay
+                                                                               ((\x ->
+                                                                                   case
+                                                                                     error
+                                                                                     [ (\a
+                                                                                         ds ->
+                                                                                          `$j`
+                                                                                            a
+                                                                                            ds) ])
+                                                                                  (force
+                                                                                     trace
+                                                                                     "PT8"
+                                                                                     (constr 0
+                                                                                        [  ]))))
+                                                                          , (\x
+                                                                              ds ->
+                                                                               delay
+                                                                                 (case
+                                                                                    x
+                                                                                    [ (\a
+                                                                                        ds ->
+                                                                                         `$j`
+                                                                                           a
+                                                                                           ds) ])) ])
+                                                                       (\a
+                                                                         ds ->
+                                                                          force
+                                                                            ((\`$j` ->
                                                                                 case
                                                                                   ds
-                                                                                  [ (\l ->
-                                                                                       case
-                                                                                         ds
-                                                                                         [ (\r ->
-                                                                                              (\equalsByteString ->
-                                                                                                 case
-                                                                                                   l
-                                                                                                   [ (\l ->
-                                                                                                        case
-                                                                                                          r
-                                                                                                          [ (\r ->
-                                                                                                               equalsByteString
-                                                                                                                 l
-                                                                                                                 r)
-                                                                                                          , (\ipv ->
-                                                                                                               constr 1
-                                                                                                                 [  ]) ])
-                                                                                                   , (\a ->
-                                                                                                        case
-                                                                                                          r
-                                                                                                          [ (\ipv ->
-                                                                                                               constr 1
-                                                                                                                 [  ])
-                                                                                                          , (\a' ->
-                                                                                                               equalsByteString
-                                                                                                                 a
-                                                                                                                 a') ]) ])
-                                                                                                (\x
-                                                                                                  y ->
-                                                                                                   force
-                                                                                                     ifThenElse
-                                                                                                     (equalsByteString
-                                                                                                        x
-                                                                                                        y)
+                                                                                  [ (delay
+                                                                                       (`$j`
+                                                                                          (traceError
+                                                                                             "PT9")))
+                                                                                  , (\ds
+                                                                                      as ->
+                                                                                       delay
+                                                                                         (`$j`
+                                                                                            as)) ])
+                                                                               (\rest ->
+                                                                                  force
+                                                                                    ((\`$j` ->
+                                                                                        case
+                                                                                          rest
+                                                                                          [ (delay
+                                                                                               ((\x ->
+                                                                                                   case
+                                                                                                     error
+                                                                                                     [ (\a
+                                                                                                         ds ->
+                                                                                                          `$j`
+                                                                                                            a
+                                                                                                            ds) ])
+                                                                                                  (force
+                                                                                                     trace
+                                                                                                     "PT8"
                                                                                                      (constr 0
-                                                                                                        [  ])
-                                                                                                     (constr 1
-                                                                                                        [  ])))
-                                                                                         , (\ipv
-                                                                                             ipv
-                                                                                             ipv ->
-                                                                                              constr 1
-                                                                                                [  ]) ])
-                                                                                  , (\a
-                                                                                      b
-                                                                                      c ->
-                                                                                       case
-                                                                                         ds
-                                                                                         [ (\ipv ->
-                                                                                              constr 1
-                                                                                                [  ])
-                                                                                         , (\a'
-                                                                                             b'
-                                                                                             c' ->
-                                                                                              force
-                                                                                                (force
-                                                                                                   (force
-                                                                                                      ifThenElse
-                                                                                                      (equalsInteger
-                                                                                                         a
-                                                                                                         a')
-                                                                                                      (delay
-                                                                                                         (delay
-                                                                                                            (force
-                                                                                                               (force
+                                                                                                        [  ]))))
+                                                                                          , (\x
+                                                                                              ds ->
+                                                                                               delay
+                                                                                                 (case
+                                                                                                    x
+                                                                                                    [ (\a
+                                                                                                        ds ->
+                                                                                                         `$j`
+                                                                                                           a
+                                                                                                           ds) ])) ])
+                                                                                       (\a
+                                                                                         ds ->
+                                                                                          (\obsScriptCred' ->
+                                                                                             (\`$fEqStakingCredential_$c==` ->
+                                                                                                (\go ->
+                                                                                                   (\cse ->
+                                                                                                      force
+                                                                                                        (case
+                                                                                                           (cse
+                                                                                                              a)
+                                                                                                           [ (delay
+                                                                                                                (constr 0
+                                                                                                                   [  ]))
+                                                                                                           , (delay
+                                                                                                                (force
+                                                                                                                   (case
+                                                                                                                      (cse
+                                                                                                                         a)
+                                                                                                                      [ (delay
+                                                                                                                           (constr 0
+                                                                                                                              [  ]))
+                                                                                                                      , (delay
+                                                                                                                           (go
+                                                                                                                              ds)) ]))) ]))
+                                                                                                     (`$fEqStakingCredential_$c==`
+                                                                                                        obsScriptCred'))
+                                                                                                  ((\s ->
+                                                                                                      s
+                                                                                                        s)
+                                                                                                     (\s
+                                                                                                       ds ->
+                                                                                                        force
+                                                                                                          (case
+                                                                                                             ds
+                                                                                                             [ (delay
+                                                                                                                  ((\x ->
+                                                                                                                      error)
+                                                                                                                     (force
+                                                                                                                        trace
+                                                                                                                        "not found"
+                                                                                                                        (constr 0
+                                                                                                                           [  ]))))
+                                                                                                             , (\ds
+                                                                                                                 xs' ->
+                                                                                                                  delay
+                                                                                                                    (case
+                                                                                                                       ds
+                                                                                                                       [ (\c'
+                                                                                                                           i ->
+                                                                                                                            force
+                                                                                                                              (case
+                                                                                                                                 (`$fEqStakingCredential_$c==`
+                                                                                                                                    c'
+                                                                                                                                    obsScriptCred')
+                                                                                                                                 [ (delay
+                                                                                                                                      (constr 0
+                                                                                                                                         [  ]))
+                                                                                                                                 , (delay
+                                                                                                                                      (s
+                                                                                                                                         s
+                                                                                                                                         xs')) ])) ])) ]))))
+                                                                                               (\ds
+                                                                                                 ds ->
+                                                                                                  case
+                                                                                                    ds
+                                                                                                    [ (\l ->
+                                                                                                         case
+                                                                                                           ds
+                                                                                                           [ (\r ->
+                                                                                                                (\equalsByteString ->
+                                                                                                                   case
+                                                                                                                     l
+                                                                                                                     [ (\l ->
+                                                                                                                          case
+                                                                                                                            r
+                                                                                                                            [ (\r ->
+                                                                                                                                 equalsByteString
+                                                                                                                                   l
+                                                                                                                                   r)
+                                                                                                                            , (\ipv ->
+                                                                                                                                 constr 1
+                                                                                                                                   [  ]) ])
+                                                                                                                     , (\a ->
+                                                                                                                          case
+                                                                                                                            r
+                                                                                                                            [ (\ipv ->
+                                                                                                                                 constr 1
+                                                                                                                                   [  ])
+                                                                                                                            , (\a' ->
+                                                                                                                                 equalsByteString
+                                                                                                                                   a
+                                                                                                                                   a') ]) ])
+                                                                                                                  (\x
+                                                                                                                    y ->
+                                                                                                                     force
+                                                                                                                       ifThenElse
+                                                                                                                       (equalsByteString
+                                                                                                                          x
+                                                                                                                          y)
+                                                                                                                       (constr 0
+                                                                                                                          [  ])
+                                                                                                                       (constr 1
+                                                                                                                          [  ])))
+                                                                                                           , (\ipv
+                                                                                                               ipv
+                                                                                                               ipv ->
+                                                                                                                constr 1
+                                                                                                                  [  ]) ])
+                                                                                                    , (\a
+                                                                                                        b
+                                                                                                        c ->
+                                                                                                         case
+                                                                                                           ds
+                                                                                                           [ (\ipv ->
+                                                                                                                constr 1
+                                                                                                                  [  ])
+                                                                                                           , (\a'
+                                                                                                               b'
+                                                                                                               c' ->
+                                                                                                                force
                                                                                                                   (force
-                                                                                                                     ifThenElse
-                                                                                                                     (equalsInteger
-                                                                                                                        b
-                                                                                                                        b')
-                                                                                                                     (delay
+                                                                                                                     (force
+                                                                                                                        ifThenElse
+                                                                                                                        (equalsInteger
+                                                                                                                           a
+                                                                                                                           a')
                                                                                                                         (delay
-                                                                                                                           (force
-                                                                                                                              ifThenElse
-                                                                                                                              (equalsInteger
-                                                                                                                                 c
-                                                                                                                                 c')
-                                                                                                                              (constr 0
-                                                                                                                                 [  ])
+                                                                                                                           (delay
+                                                                                                                              (force
+                                                                                                                                 (force
+                                                                                                                                    (force
+                                                                                                                                       ifThenElse
+                                                                                                                                       (equalsInteger
+                                                                                                                                          b
+                                                                                                                                          b')
+                                                                                                                                       (delay
+                                                                                                                                          (delay
+                                                                                                                                             (force
+                                                                                                                                                ifThenElse
+                                                                                                                                                (equalsInteger
+                                                                                                                                                   c
+                                                                                                                                                   c')
+                                                                                                                                                (constr 0
+                                                                                                                                                   [  ])
+                                                                                                                                                (constr 1
+                                                                                                                                                   [  ]))))
+                                                                                                                                       (delay
+                                                                                                                                          (delay
+                                                                                                                                             (constr 1
+                                                                                                                                                [  ]))))))))
+                                                                                                                        (delay
+                                                                                                                           (delay
                                                                                                                               (constr 1
-                                                                                                                                 [  ]))))
-                                                                                                                     (delay
-                                                                                                                        (delay
-                                                                                                                           (constr 1
-                                                                                                                              [  ]))))))))
-                                                                                                      (delay
-                                                                                                         (delay
-                                                                                                            (constr 1
-                                                                                                               [  ])))))) ]) ]))
-                                                                          (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
-                                                                             obsScriptCred))
-                                                                       (case
-                                                                          (force
-                                                                             (case
-                                                                                (force
-                                                                                   (case
-                                                                                      ds
-                                                                                      [ (delay
-                                                                                           (traceError
-                                                                                              "PT9"))
-                                                                                      , (\ds
-                                                                                          as ->
-                                                                                           delay
-                                                                                             as) ]))
-                                                                                [ (delay
-                                                                                     (traceError
-                                                                                        "PT8"))
-                                                                                , (\x
-                                                                                    ds ->
-                                                                                     delay
-                                                                                       x) ]))
-                                                                          [ (\a
-                                                                              ds ->
-                                                                               a) ]))
-                                                                    (case
-                                                                       (force
-                                                                          (case
-                                                                             ds
-                                                                             [ (delay
-                                                                                  (traceError
-                                                                                     "PT8"))
-                                                                             , (\x
-                                                                                 ds ->
-                                                                                  delay
-                                                                                    x) ]))
-                                                                       [ (\a
-                                                                           ds ->
-                                                                            a) ])) ]) ])
+                                                                                                                                 [  ])))))) ]) ]))
+                                                                                            (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                               obsScriptCred)))))))) ]) ])
                                                    ((\s ->
                                                        s s)
                                                       (\s
@@ -1329,144 +1356,4 @@
            (force (force chooseList)
               xs
               (delay z)
-              (delay (f (force headList xs) (force tailList xs)))))
-      (Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]])
-      (Constr 0
-         [ Constr 0
-             [ List []
-             , List []
-             , List
-                 [ Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 1)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 2)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 3)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 4)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 5)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 6)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 7)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 8)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 9)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 10)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 11)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 12)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 13)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 14)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 15)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 16)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 17)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 18)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 19)])]
-                     , Constr 0 []
-                     , Constr 1 [] ]
-                 , Constr 0
-                     [ Constr 0 [Constr 0 [B #], Constr 1 []]
-                     , Map [(B #, Map [(B #, I 20)])]
-                     , Constr 0 []
-                     , Constr 1 [] ] ]
-             , Map []
-             , Map []
-             , List []
-             , Map
-                 [ (Constr 0 [Constr 0 [B #746573744372656431]], I 1)
-                 , ( Constr 0 [Constr 0 [B #736f6d6543726564656e7469616c]]
-                 , I 1000 )
-                 , (Constr 0 [Constr 0 [B #746573744372656432]], I 2)
-                 , (Constr 0 [Constr 0 [B #746573744372656433]], I 3)
-                 , (Constr 0 [Constr 0 [B #746573744372656434]], I 4)
-                 , (Constr 0 [Constr 0 [B #746573744372656435]], I 5)
-                 , (Constr 0 [Constr 0 [B #746573744372656436]], I 6)
-                 , (Constr 0 [Constr 0 [B #746573744372656437]], I 7)
-                 , (Constr 0 [Constr 0 [B #746573744372656438]], I 8)
-                 , (Constr 0 [Constr 0 [B #746573744372656439]], I 9)
-                 , (Constr 0 [Constr 0 [B #74657374437265643130]], I 10)
-                 , (Constr 0 [Constr 0 [B #74657374437265643131]], I 11)
-                 , (Constr 0 [Constr 0 [B #74657374437265643132]], I 12)
-                 , (Constr 0 [Constr 0 [B #74657374437265643133]], I 13)
-                 , (Constr 0 [Constr 0 [B #74657374437265643134]], I 14)
-                 , (Constr 0 [Constr 0 [B #74657374437265643135]], I 15)
-                 , (Constr 0 [Constr 0 [B #74657374437265643136]], I 16)
-                 , (Constr 0 [Constr 0 [B #74657374437265643137]], I 17)
-                 , (Constr 0 [Constr 0 [B #74657374437265643138]], I 18)
-                 , (Constr 0 [Constr 0 [B #74657374437265643139]], I 19)
-                 , (Constr 0 [Constr 0 [B #74657374437265643230]], I 20) ]
-             , Constr 0
-                 [ Constr 0 [Constr 0 [], Constr 1 []]
-                 , Constr 0 [Constr 2 [], Constr 1 []] ]
-             , List []
-             , Map []
-             , Map []
-             , Constr 0 [B #] ]
-         , Constr 1 [Constr 0 [Constr 0 [B #], I 0]] ])))
+              (delay (f (force headList xs) (force tailList xs)))))))
