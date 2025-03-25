@@ -58,7 +58,7 @@ let
   windows-packages = {
     ghc96-mingsW64 = removeAttrs
       (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
-      [ "devShells:default" ]; # Won't build on Windows
+      [ "devShells" ]; # Won't build on Windows
   };
 
   extra-artifacts =
