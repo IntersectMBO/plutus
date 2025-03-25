@@ -468,7 +468,9 @@ test-suite plutus-benchmark-script-contexts-tests
     , plutus-benchmark-common
     , plutus-core                      ^>=1.43
     , plutus-core:plutus-core-testlib
-    , plutus-tx:plutus-tx-testlib      ^>=1.43
+    , plutus-tx                        ^>=1.43
+    , plutus-tx-plugin                 ^>=1.43
+    , plutus-tx:plutus-tx-testlib
     , script-contexts-internal
     , tasty
     , tasty-hunit

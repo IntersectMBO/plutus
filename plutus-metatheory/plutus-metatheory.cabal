@@ -354,6 +354,7 @@ library
     MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.Code.VerifiedCompilation
+    MAlonzo.Code.VerifiedCompilation.Certificate
     MAlonzo.Code.VerifiedCompilation.Equality
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UCaseReduce
@@ -620,6 +621,7 @@ library
     MAlonzo.Code.Relation.Binary.Reasoning.Syntax
     MAlonzo.Code.Relation.Binary.Structures.Biased
     MAlonzo.Code.VerifiedCompilation.Equality
+    MAlonzo.Code.VerifiedCompilation.Certificate
     MAlonzo.Code.VerifiedCompilation.UCaseOfCase
     MAlonzo.Code.VerifiedCompilation.UForceDelay
     MAlonzo.Code.VerifiedCompilation.UntypedTranslation

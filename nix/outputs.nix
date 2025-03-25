@@ -55,6 +55,12 @@ let
     musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
   };
 
+  windows-packages = {
+    ghc96-mingsW64 = removeAttrs
+      (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
+      [ "devShells" ]; # Won't build on Windows
+  };
+
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
     { inherit metatheory-site; } //
@@ -98,6 +104,7 @@ let
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
+      (windows-packages) //
       (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
