@@ -193,6 +193,10 @@ mkScriptContextEqualityOverheadCode sc =
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
+-- The SOP version of a script which validates that the stake credential is in
+-- the withdrawal map.
+-- The "trick" is that, if it exists, there is a high probability of the stake
+-- credential being either the first or the second element of the map.
 forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
 forwardWithStakeTrick obsScriptCred ctx =
   case PlutusTx.unsafeFromBuiltinData ctx of
