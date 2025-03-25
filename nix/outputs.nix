@@ -102,8 +102,8 @@ let
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
-      (windows-packages)
-        (packages) //
+      (windows-packages) //
+      (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
