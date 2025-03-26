@@ -4,6 +4,7 @@ import Data.ByteString (ByteString)
 import Data.Functor.Identity
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
 import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -36,7 +37,13 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
 
 instance AgdaUnparse UPLC.DefaultFun where
-  agdaUnparse = lowerInitialChar . show
+  agdaUnparse = lowerInitialChar . replaceUnderscore . show
+    where
+    replaceUnderscore [] = []
+    replaceUnderscore (c : cs) =
+      if c == '_'
+        then '-' : replaceUnderscore cs
+        else c : replaceUnderscore cs
 
 instance AgdaUnparse SimplifierStage where
   agdaUnparse FloatDelay = "floatDelayT"
@@ -65,7 +72,7 @@ instance AgdaUnparse Text where
   agdaUnparse = T.unpack
 
 instance AgdaUnparse ByteString where
-  agdaUnparse = show  -- TODO: maybe this should be encoded some other way
+  agdaUnparse bs = "(Utils.encodeUtf8 " ++ "\"" ++ (T.unpack . TE.decodeUtf8) bs ++ "\"" ++ ")"
 
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"

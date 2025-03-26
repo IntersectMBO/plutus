@@ -173,11 +173,14 @@ data RuntimeError : Set where
 
 postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+{-# FOREIGN GHC import qualified Data.Text.Encoding as TE #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 postulate
   eqByteString : ByteString → ByteString → Bool
+  encodeUtf8 : String -> ByteString
 {-# COMPILE GHC eqByteString = (==) #-}
+{-# COMPILE GHC encodeUtf8 = TE.encodeUtf8 #-}
 
 ```
 ## Record Types
