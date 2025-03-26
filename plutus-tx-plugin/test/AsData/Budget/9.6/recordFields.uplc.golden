@@ -2,30 +2,54 @@
    1.1.0
    (\d ->
       (\cse ->
-         (\cse ->
-            (\cse ->
-               (\cse ->
-                  (\cse ->
+         (\x ->
+            (\y ->
+               (\z ->
+                  (\w ->
                      (\lessThanInteger ->
                         addInteger
                           (addInteger
-                             (addInteger
-                                (addInteger (addInteger cse cse) cse)
-                                cse)
+                             (addInteger (addInteger (addInteger x y) z) w)
                              (force
                                 (case
                                    (lessThanInteger
-                                      (addInteger cse cse)
-                                      (addInteger cse cse))
-                                   [ (delay (addInteger cse cse))
-                                   , (delay (addInteger cse cse)) ])))
+                                      (addInteger y z)
+                                      (addInteger x w))
+                                   [ (delay (addInteger x z))
+                                   , (delay (addInteger y w)) ])))
                           (force
                              (case
                                 (lessThanInteger
-                                   (addInteger cse cse)
-                                   (addInteger cse cse))
-                                [ (delay (addInteger cse cse))
-                                , (delay (addInteger cse cse)) ])))
+                                   (addInteger
+                                      (cse
+                                         (\ds ds ds ds -> ds)
+                                         (\void -> error))
+                                      (cse
+                                         (\ds ds ds ds -> ds)
+                                         (\void -> error)))
+                                   (addInteger
+                                      (cse
+                                         (\ds ds ds ds -> ds)
+                                         (\void -> error))
+                                      (cse
+                                         (\ds ds ds ds -> ds)
+                                         (\void -> error))))
+                                [ (delay
+                                     (addInteger
+                                        (cse
+                                           (\ds ds ds ds -> ds)
+                                           (\void -> error))
+                                        (cse
+                                           (\ds ds ds ds -> ds)
+                                           (\void -> error))))
+                                , (delay
+                                     (addInteger
+                                        (cse
+                                           (\ds ds ds ds -> ds)
+                                           (\void -> error))
+                                        (cse
+                                           (\ds ds ds ds -> ds)
+                                           (\void -> error)))) ])))
                        (\x y ->
                           force ifThenElse
                             (lessThanInteger x y)

@@ -12,9 +12,6 @@ let
     Nothing : Maybe a
   data Unit | Unit_match where
     Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !d : data
     = (let
           b = Maybe (Tuple3 Bool integer Bool)
@@ -101,7 +98,11 @@ in
            {all dead. Either integer b}
            (/\dead ->
               Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
-           (/\dead -> traceError {Either integer b} "PT1")
+           (/\dead ->
+              let
+                !x : Unit = trace {Unit} "PT1" Unit
+              in
+              error {Either integer b})
            {all dead. dead})
       {all dead. dead})
   unIData
@@ -123,7 +124,11 @@ in
               (ifThenElse {Bool} (equalsInteger 0 index) True False)
               {all dead. Maybe a}
               (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-              (/\dead -> traceError {Maybe a} "PT1")
+              (/\dead ->
+                 let
+                   !x : Unit = trace {Unit} "PT1" Unit
+                 in
+                 error {Maybe a})
               {all dead. dead})
          {all dead. dead})
      (\(d : data) ->
@@ -158,7 +163,11 @@ in
                       (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
                       (/\dead -> True)
-                      (/\dead -> traceError {Bool} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {Bool})
                       {all dead. dead})
                  {all dead. dead})
                (unIData (headList {data} l))
@@ -177,9 +186,17 @@ in
                       (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
                       (/\dead -> True)
-                      (/\dead -> traceError {Bool} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {Bool})
                       {all dead. dead})
                  {all dead. dead}))
-          (/\dead -> traceError {Tuple3 Bool integer Bool} "PT1")
+          (/\dead ->
+             let
+               !x : Unit = trace {Unit} "PT1" Unit
+             in
+             error {Tuple3 Bool integer Bool})
           {all dead. dead}))
   d

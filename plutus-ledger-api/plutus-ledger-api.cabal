@@ -44,7 +44,7 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
-    -fno-strictness
+    -fno-strictness -fforce-recomp
 
 common ghc-version-support
   -- This is only used for the plugin tests.
