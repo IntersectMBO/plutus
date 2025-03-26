@@ -507,7 +507,7 @@ inlineSaturatedApp t
             Just fullyApplied -> do
               thresh <- view iiInlineThreshold
               let
-                -- Inline only if the size is no bigger than not inlining.
+                -- Inline only if the size is no bigger than not inlining plus threshold.
                 sizeIsOk = termSize fullyApplied <= termSize t + max 0 (fromIntegral thresh)
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs, but may not be otherwise.
