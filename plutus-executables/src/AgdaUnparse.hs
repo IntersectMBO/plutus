@@ -17,6 +17,9 @@ import Untyped qualified as AgdaFFI
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 
+usToHyphen :: String -> String
+usToHyphen = map (\c -> if c == '_' then '-' else c)
+
 -- | A class for types that can be unparsed to Agda code.
 class AgdaUnparse a where
   agdaUnparse :: a -> String
@@ -37,13 +40,7 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
 
 instance AgdaUnparse UPLC.DefaultFun where
-  agdaUnparse = lowerInitialChar . replaceUnderscore . show
-    where
-    replaceUnderscore [] = []
-    replaceUnderscore (c : cs) =
-      if c == '_'
-        then '-' : replaceUnderscore cs
-        else c : replaceUnderscore cs
+  agdaUnparse = usToHyphen . lowerInitialChar . show
 
 instance AgdaUnparse SimplifierStage where
   agdaUnparse FloatDelay = "floatDelayT"
