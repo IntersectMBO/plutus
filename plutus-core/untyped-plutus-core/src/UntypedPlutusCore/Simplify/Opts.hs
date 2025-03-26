@@ -35,5 +35,5 @@ defaultSimplifyOpts =
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True
-    , _soInlineThreshold = 5
+    , _soInlineThreshold = 4
     }
