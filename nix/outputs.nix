@@ -61,15 +61,10 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
-  project-coverage-report = {
-    ghc96-coverage = project.projectVariants.ghc96-coverage.projectCoverageReport;
-  };
-
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
     { inherit metatheory-site; } //
     (latex-documents);
-
 
   project-variants-hydra-jobs = {
     ghc810 = (project.flake { }).hydraJobs.ghc810;
@@ -110,7 +105,6 @@ let
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
       (windows-packages) //
-      (project-coverage-report) //
       (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
@@ -145,10 +139,8 @@ let
     inherit extra-artifacts;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
-    inherit windows-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
-    inherit project-coverage-report;
   };
 
 in
