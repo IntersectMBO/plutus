@@ -1,7 +1,4 @@
-let
-  !double : integer -> integer = \(x : integer) -> addInteger x x
-  !multiplyInteger : integer -> integer -> integer
-    = \(x : integer) (y : integer) -> multiplyInteger x y
-in
 \(x : integer) (y : integer) (z : integer) ->
-  multiplyInteger (multiplyInteger (double x) (double y)) (addInteger z z)
+  multiplyInteger
+    (multiplyInteger (addInteger x x) (addInteger y y))
+    (addInteger z z)
