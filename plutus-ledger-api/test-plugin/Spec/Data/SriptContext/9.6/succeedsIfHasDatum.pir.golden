@@ -7,9 +7,6 @@ let
     False : Bool
   data Unit | Unit_match where
     Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(d : data) ->
   Bool_match
@@ -52,7 +49,11 @@ in
                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
                   {all dead. Maybe data}
                   (/\dead -> Just {data} (headList {data} args))
-                  (/\dead -> traceError {Maybe data} "PT1")
+                  (/\dead ->
+                     let
+                       !x : Unit = trace {Unit} "PT1" Unit
+                     in
+                     error {Maybe data})
                   {all dead. dead})
              {all dead. dead})
            {all dead. Bool}
@@ -63,5 +64,5 @@ in
       {all dead. dead})
     {all dead. unit}
     (/\dead -> ())
-    (/\dead -> traceError {unit} "PT5")
+    (/\dead -> let !x : Unit = trace {Unit} "PT5" Unit in error {unit})
     {all dead. dead}

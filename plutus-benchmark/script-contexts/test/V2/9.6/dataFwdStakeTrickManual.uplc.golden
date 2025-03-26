@@ -53,11 +53,9 @@
               (\s h ->
                  delay
                    (\fr ->
-                      (\k ->
-                         fr
-                           (\x -> k (\f_0 f_1 -> f_0 x))
-                           (\x -> k (\f_0 f_1 -> f_1 x)))
-                        (\fq -> force (s s h) (force h fq))))
+                      fr
+                        (\x -> force (s s h) (force h (\f_0 f_1 -> f_0 x)))
+                        (\x -> force (s s h) (force h (\f_0 f_1 -> f_1 x)))))
               (delay
                  (\choose lookForCred lookForCred ->
                     choose

@@ -141,9 +141,6 @@ letrec
              {all dead. dead})
 in
 let
-  !`$fToDataMap_$ctoBuiltinData` :
-     all k a. (\k a -> list (pair data data)) k a -> data
-    = /\k a -> \(ds : (\k a -> list (pair data data)) k a) -> mapData ds
   !map :
      all k a b.
        (\a -> data -> a) a ->
@@ -579,7 +576,11 @@ in
             {(\k a -> list (pair data data)) bytestring integer}
             (\(eta : data) -> unMapData eta)
             (\(eta : data) -> unMapData eta))
-         (`$fToDataMap_$ctoBuiltinData` {bytestring} {These integer integer})
+         (\(ds :
+              (\k a -> list (pair data data))
+                bytestring
+                (These integer integer)) ->
+            mapData ds)
          (\(k :
               These
                 ((\k a -> list (pair data data)) bytestring integer)
@@ -627,8 +628,10 @@ in
             {(\k a -> list (pair data data)) bytestring integer}
             (\(eta : data) -> unMapData eta)
             (\(eta : data) -> unMapData eta)
-            (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
-            (`$fToDataMap_$ctoBuiltinData` {bytestring} {integer})
+            (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+               mapData ds)
+            (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
+               mapData ds)
             l
             r)))
     {all dead. Bool}

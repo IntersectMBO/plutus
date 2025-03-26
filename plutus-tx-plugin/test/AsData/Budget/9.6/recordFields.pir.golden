@@ -1,6 +1,4 @@
 let
-  !addInteger : integer -> integer -> integer
-    = \(x : integer) (y : integer) -> addInteger x y
   !`$mInts` :
      all r.
        data ->
@@ -21,62 +19,121 @@ let
             (unIData (headList {data} l))
             (unIData (headList {data} l))
             (unIData (headList {data} (tailList {data} l)))
-  !int : data -> integer
-    = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-  !int : data -> integer
-    = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-  !int : data -> integer
-    = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
-  !int : data -> integer
-    = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !lessThanInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) True False
 in
 \(d : data) ->
   let
-    !x : integer = int d
-    !y : integer = int d
-    !z : integer = int d
-    !w : integer = int d
+    !x : integer
+      = `$mInts`
+          {integer}
+          d
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+    !y : integer
+      = `$mInts`
+          {integer}
+          d
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+    !z : integer
+      = `$mInts`
+          {integer}
+          d
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
+    !w : integer
+      = `$mInts`
+          {integer}
+          d
+          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
+          (\(void : unit) -> error {integer})
   in
   addInteger
     (addInteger
        (addInteger (addInteger (addInteger x y) z) w)
        (Bool_match
-          (lessThanInteger (addInteger y z) (addInteger x w))
+          (ifThenElse
+             {Bool}
+             (lessThanInteger (addInteger y z) (addInteger x w))
+             True
+             False)
           {all dead. integer}
           (/\dead -> addInteger x z)
           (/\dead -> addInteger y w)
           {all dead. dead}))
     (Bool_match
-       (lessThanInteger
-          (addInteger (int d) (int d))
-          (addInteger (int d) (int d)))
+       (ifThenElse
+          {Bool}
+          (lessThanInteger
+             (addInteger
+                (`$mInts`
+                   {integer}
+                   d
+                   (\(ds : integer)
+                     (ds : integer)
+                     (ds : integer)
+                     (ds : integer) ->
+                      ds)
+                   (\(void : unit) -> error {integer}))
+                (`$mInts`
+                   {integer}
+                   d
+                   (\(ds : integer)
+                     (ds : integer)
+                     (ds : integer)
+                     (ds : integer) ->
+                      ds)
+                   (\(void : unit) -> error {integer})))
+             (addInteger
+                (`$mInts`
+                   {integer}
+                   d
+                   (\(ds : integer)
+                     (ds : integer)
+                     (ds : integer)
+                     (ds : integer) ->
+                      ds)
+                   (\(void : unit) -> error {integer}))
+                (`$mInts`
+                   {integer}
+                   d
+                   (\(ds : integer)
+                     (ds : integer)
+                     (ds : integer)
+                     (ds : integer) ->
+                      ds)
+                   (\(void : unit) -> error {integer}))))
+          True
+          False)
        {all dead. integer}
-       (/\dead -> addInteger (int d) (int d))
-       (/\dead -> addInteger (int d) (int d))
+       (/\dead ->
+          addInteger
+            (`$mInts`
+               {integer}
+               d
+               (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) ->
+                  ds)
+               (\(void : unit) -> error {integer}))
+            (`$mInts`
+               {integer}
+               d
+               (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) ->
+                  ds)
+               (\(void : unit) -> error {integer})))
+       (/\dead ->
+          addInteger
+            (`$mInts`
+               {integer}
+               d
+               (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) ->
+                  ds)
+               (\(void : unit) -> error {integer}))
+            (`$mInts`
+               {integer}
+               d
+               (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) ->
+                  ds)
+               (\(void : unit) -> error {integer})))
        {all dead. dead})

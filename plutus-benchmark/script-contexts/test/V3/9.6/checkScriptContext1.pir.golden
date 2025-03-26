@@ -52,9 +52,6 @@
       False : Bool
     data Unit | Unit_match where
       Unit : Unit
-    !traceError : all a. string -> a
-      = /\a ->
-          \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
     !`$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData` :
        data -> GovernanceActionId
       = \(d : data) ->
@@ -70,7 +67,11 @@
                GovernanceActionId
                  (unBData (headList {data} args))
                  (unIData (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {GovernanceActionId} "PT1")
+            (/\dead ->
+               let
+                 !x : Unit = trace {Unit} "PT1" Unit
+               in
+               error {GovernanceActionId})
             {all dead. dead}
     !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
       = /\a r ->
@@ -112,7 +113,11 @@
                  (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Credential}
                  (/\dead -> ScriptCredential (unBData (headList {data} args)))
-                 (/\dead -> traceError {Credential} "PT1")
+                 (/\dead ->
+                    let
+                      !x : Unit = trace {Unit} "PT1" Unit
+                    in
+                    error {Credential})
                  {all dead. dead})
             {all dead. dead}
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
@@ -134,7 +139,11 @@
                    {all dead. Maybe a}
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
-                   (/\dead -> traceError {Maybe a} "PT1")
+                   (/\dead ->
+                      let
+                        !x : Unit = trace {Unit} "PT1" Unit
+                      in
+                      error {Maybe a})
                    {all dead. dead})
               {all dead. dead}
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
@@ -206,7 +215,11 @@
           Bool_match
             (ifThenElse {Bool} (equalsInteger 0 d) True False)
             {all dead. Rational}
-            (/\dead -> traceError {Rational} "PT3")
+            (/\dead ->
+               let
+                 !x : Unit = trace {Unit} "PT3" Unit
+               in
+               error {Rational})
             (/\dead ->
                Bool_match
                  (ifThenElse {Bool} (lessThanInteger d 0) True False)
@@ -297,7 +310,11 @@
                                        (headList
                                           {data}
                                           (tailList {data} args))))
-                               (/\dead -> traceError {ProtocolVersion} "PT1")
+                               (/\dead ->
+                                  let
+                                    !x : Unit = trace {Unit} "PT1" Unit
+                                  in
+                                  error {ProtocolVersion})
                                {all dead. dead}))
                         (/\dead ->
                            Bool_match
@@ -406,9 +423,12 @@
                                                               {data}
                                                               args))))
                                                 (/\dead ->
-                                                   traceError
-                                                     {Tuple2 integer integer}
-                                                     "PT1")
+                                                   let
+                                                     !x : Unit
+                                                       = trace {Unit} "PT1" Unit
+                                                   in
+                                                   error
+                                                     {Tuple2 integer integer})
                                                 {all dead. dead})
                                               {Rational}
                                               (\(a : integer) (b : integer) ->
@@ -460,9 +480,14 @@
                                                         unBData
                                                         (headList {data} args))
                                                    (/\dead ->
-                                                      traceError
-                                                        {Maybe bytestring}
-                                                        "PT1")
+                                                      let
+                                                        !x : Unit
+                                                          = trace
+                                                              {Unit}
+                                                              "PT1"
+                                                              Unit
+                                                      in
+                                                      error {Maybe bytestring})
                                                    {all dead. dead}))
                                             (/\dead ->
                                                Bool_match
@@ -474,9 +499,14 @@
                                                  {all dead. GovernanceAction}
                                                  (/\dead -> InfoAction)
                                                  (/\dead ->
-                                                    traceError
-                                                      {GovernanceAction}
-                                                      "PT1")
+                                                    let
+                                                      !x : Unit
+                                                        = trace
+                                                            {Unit}
+                                                            "PT1"
+                                                            Unit
+                                                    in
+                                                    error {GovernanceAction})
                                                  {all dead. dead})
                                             {all dead. dead})
                                        {all dead. dead})
@@ -484,7 +514,11 @@
                              {all dead. dead})
                         {all dead. dead})
                    {all dead. dead}))
-            (/\dead -> traceError {ProposalProcedure} "PT1")
+            (/\dead ->
+               let
+                 !x : Unit = trace {Unit} "PT1" Unit
+               in
+               error {ProposalProcedure})
             {all dead. dead}
   in
   letrec
@@ -528,7 +562,11 @@
                       (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. DRep}
                       (/\dead -> DRepAlwaysNoConfidence)
-                      (/\dead -> traceError {DRep} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {DRep})
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -564,7 +602,11 @@
                            (unBData (headList {data} args))
                            (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
                               (headList {data} (tailList {data} args))))
-                      (/\dead -> traceError {Delegatee} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {Delegatee})
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -760,9 +802,14 @@
                                                                          {data}
                                                                          args)))
                                                               (/\dead ->
-                                                                 traceError
-                                                                   {TxCert}
-                                                                   "PT1")
+                                                                 let
+                                                                   !x : Unit
+                                                                     = trace
+                                                                         {Unit}
+                                                                         "PT1"
+                                                                         Unit
+                                                                 in
+                                                                 error {TxCert})
                                                               {all dead. dead})
                                                          {all dead. dead})
                                                     {all dead. dead})
@@ -859,11 +906,18 @@
                                                 {data}
                                                 (tailList {data} l))))
                                      (/\dead ->
-                                        traceError {StakingCredential} "PT1")
+                                        let
+                                          !x : Unit = trace {Unit} "PT1" Unit
+                                        in
+                                        error {StakingCredential})
                                      {all dead. dead})
                                 {all dead. dead})
                            (headList {data} (tailList {data} args))))
-                   (/\dead -> traceError {Address} "PT1")
+                   (/\dead ->
+                      let
+                        !x : Unit = trace {Unit} "PT1" Unit
+                      in
+                      error {Address})
                    {all dead. dead})
                  (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                     {bytestring}
@@ -900,7 +954,11 @@
                                 False)
                              {all dead. OutputDatum}
                              (/\dead -> OutputDatum (headList {data} args))
-                             (/\dead -> traceError {OutputDatum} "PT1")
+                             (/\dead ->
+                                let
+                                  !x : Unit = trace {Unit} "PT1" Unit
+                                in
+                                error {OutputDatum})
                              {all dead. dead})
                         {all dead. dead})
                    {all dead. dead})
@@ -908,7 +966,7 @@
                     {bytestring}
                     unBData
                     (headList {data} (tailList {data} l))))
-            (/\dead -> traceError {TxOut} "PT1")
+            (/\dead -> let !x : Unit = trace {Unit} "PT1" Unit in error {TxOut})
             {all dead. dead}
   in
   letrec
@@ -940,7 +998,11 @@
                TxOutRef
                  (unBData (headList {data} args))
                  (unIData (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {TxOutRef} "PT1")
+            (/\dead ->
+               let
+                 !x : Unit = trace {Unit} "PT1" Unit
+               in
+               error {TxOutRef})
             {all dead. dead}
     data TxInInfo | TxInInfo_match where
       TxInInfo : TxOutRef -> TxOut -> TxInInfo
@@ -960,7 +1022,11 @@
                     (headList {data} args))
                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                     (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {TxInInfo} "PT1")
+            (/\dead ->
+               let
+                 !x : Unit = trace {Unit} "PT1" Unit
+               in
+               error {TxInInfo})
             {all dead. dead}
   in
   letrec
@@ -1006,7 +1072,11 @@
                  (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Bool}
                  (/\dead -> True)
-                 (/\dead -> traceError {Bool} "PT1")
+                 (/\dead ->
+                    let
+                      !x : Unit = trace {Unit} "PT1" Unit
+                    in
+                    error {Bool})
                  {all dead. dead})
             {all dead. dead}
     data (Extended :: * -> *) a | Extended_match where
@@ -1037,7 +1107,11 @@
                         (ifThenElse {Bool} (equalsInteger 2 index) True False)
                         {all dead. Extended a}
                         (/\dead -> PosInf {a})
-                        (/\dead -> traceError {Extended a} "PT1")
+                        (/\dead ->
+                           let
+                             !x : Unit = trace {Unit} "PT1" Unit
+                           in
+                           error {Extended a})
                         {all dead. dead})
                    {all dead. dead})
               {all dead. dead}
@@ -1073,7 +1147,11 @@
                       {all dead. Voter}
                       (/\dead ->
                          StakePoolVoter (unBData (headList {data} args)))
-                      (/\dead -> traceError {Voter} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {Voter})
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -1238,7 +1316,11 @@
                                      (headList {data} args))
                                   (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                      (headList {data} (tailList {data} args))))
-                             (/\dead -> traceError {LowerBound integer} "PT1")
+                             (/\dead ->
+                                let
+                                  !x : Unit = trace {Unit} "PT1" Unit
+                                in
+                                error {LowerBound integer})
                              {all dead. dead})
                            (let
                              !tup : pair integer (list data)
@@ -1265,9 +1347,17 @@
                                      (headList {data} args))
                                   (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                      (headList {data} (tailList {data} args))))
-                             (/\dead -> traceError {UpperBound integer} "PT1")
+                             (/\dead ->
+                                let
+                                  !x : Unit = trace {Unit} "PT1" Unit
+                                in
+                                error {UpperBound integer})
                              {all dead. dead}))
-                      (/\dead -> traceError {Interval integer} "PT1")
+                      (/\dead ->
+                         let
+                           !x : Unit = trace {Unit} "PT1" Unit
+                         in
+                         error {Interval integer})
                       {all dead. dead})
                     (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                        {bytestring}
@@ -1363,9 +1453,14 @@
                                                                    {data}
                                                                    args))))
                                                      (/\dead ->
-                                                        traceError
-                                                          {ScriptPurpose}
-                                                          "PT1")
+                                                        let
+                                                          !x : Unit
+                                                            = trace
+                                                                {Unit}
+                                                                "PT1"
+                                                                Unit
+                                                        in
+                                                        error {ScriptPurpose})
                                                      {all dead. dead})
                                                 {all dead. dead})
                                            {all dead. dead})
@@ -1423,7 +1518,12 @@
                                             False)
                                          {all dead. Vote}
                                          (/\dead -> Abstain)
-                                         (/\dead -> traceError {Vote} "PT1")
+                                         (/\dead ->
+                                            let
+                                              !x : Unit
+                                                = trace {Unit} "PT1" Unit
+                                            in
+                                            error {Vote})
                                          {all dead. dead})
                                     {all dead. dead})
                                {all dead. dead}))
@@ -1440,7 +1540,11 @@
                        {integer}
                        unIData
                        (headList {data} (tailList {data} l))))
-               (/\dead -> traceError {TxInfo} "PT1")
+               (/\dead ->
+                  let
+                    !x : Unit = trace {Unit} "PT1" Unit
+                  in
+                  error {TxInfo})
                {all dead. dead})
              (headList {data} l)
              (let
@@ -1514,14 +1618,21 @@
                                                    {data}
                                                    (tailList {data} args))))
                                         (/\dead ->
-                                           traceError {ScriptInfo} "PT1")
+                                           let
+                                             !x : Unit = trace {Unit} "PT1" Unit
+                                           in
+                                           error {ScriptInfo})
                                         {all dead. dead})
                                    {all dead. dead})
                               {all dead. dead})
                          {all dead. dead})
                     {all dead. dead})
                {all dead. dead}))
-        (/\dead -> traceError {ScriptContext} "PT1")
+        (/\dead ->
+           let
+             !x : Unit = trace {Unit} "PT1" Unit
+           in
+           error {ScriptContext})
         {all dead. dead})
       {Unit}
       (\(ipv : TxInfo) (ipv : data) (ipv : ScriptInfo) ->

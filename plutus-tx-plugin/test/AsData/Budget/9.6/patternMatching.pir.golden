@@ -1,14 +1,9 @@
 let
   data Unit | Unit_match where
     Unit : Unit
-  !addInteger : integer -> integer -> integer
-    = \(x : integer) (y : integer) -> addInteger x y
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !lessThanInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) True False
 in
 \(d : data) ->
   let
@@ -24,13 +19,21 @@ in
     (addInteger
        (addInteger (addInteger (addInteger x y) z) w)
        (Bool_match
-          (lessThanInteger (addInteger y z) (addInteger x w))
+          (ifThenElse
+             {Bool}
+             (lessThanInteger (addInteger y z) (addInteger x w))
+             True
+             False)
           {all dead. integer}
           (/\dead -> addInteger x z)
           (/\dead -> addInteger y w)
           {all dead. dead}))
     (Bool_match
-       (lessThanInteger (addInteger z y) (addInteger w x))
+       (ifThenElse
+          {Bool}
+          (lessThanInteger (addInteger z y) (addInteger w x))
+          True
+          False)
        {all dead. integer}
        (/\dead -> addInteger z x)
        (/\dead -> addInteger w y)

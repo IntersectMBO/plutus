@@ -34,9 +34,6 @@
                (/\dead -> True)
                (/\dead -> False)
                {all dead. dead})
-    !even : integer -> Bool
-      = \(n : integer) ->
-          ifThenElse {Bool} (equalsInteger 0 (modInteger n 2)) True False
   in
   letrec
     !expModManual : integer -> integer -> integer -> integer
@@ -51,7 +48,11 @@
                  !t : integer = modInteger (multiplyInteger reduced reduced) m
                in
                Bool_match
-                 (even e)
+                 (ifThenElse
+                    {Bool}
+                    (equalsInteger 0 (modInteger e 2))
+                    True
+                    False)
                  {all dead. integer}
                  (/\dead -> t)
                  (/\dead -> modInteger (multiplyInteger t b') m)
@@ -163,14 +164,22 @@
                     {all dead. integer}
                     (/\dead ->
                        Bool_match
-                         (even xA)
+                         (ifThenElse
+                            {Bool}
+                            (equalsInteger 0 (modInteger xA 2))
+                            True
+                            False)
                          {all dead. integer}
                          (/\dead -> `$j` False)
                          (/\dead -> `$j` True)
                          {all dead. dead})
                     (/\dead ->
                        Bool_match
-                         (even x)
+                         (ifThenElse
+                            {Bool}
+                            (equalsInteger 0 (modInteger x 2))
+                            True
+                            False)
                          {all dead. integer}
                          (/\dead -> `$j` False)
                          (/\dead -> `$j` True)
@@ -211,7 +220,7 @@
             !x_ : Bool = ifThenElse {Bool} (readBit bs 7) True False
           in
           Bool_match
-            (even x)
+            (ifThenElse {Bool} (equalsInteger 0 (modInteger x 2)) True False)
             {all dead. Tuple2 integer integer}
             (/\dead ->
                Bool_match
@@ -468,7 +477,11 @@
                  !nt : Tuple2 integer integer = edwards nt nt
                in
                Bool_match
-                 (even e)
+                 (ifThenElse
+                    {Bool}
+                    (equalsInteger 0 (modInteger e 2))
+                    True
+                    False)
                  {all dead. Tuple2 integer integer}
                  (/\dead -> nt)
                  (/\dead -> edwards nt p)

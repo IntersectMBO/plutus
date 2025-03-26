@@ -7,6 +7,7 @@ module UntypedPlutusCore.Simplify.Opts
   , soInlineHints
   , soConservativeOpts
   , soInlineConstants
+  , soInlineThreshold
   , defaultSimplifyOpts
   ) where
 
@@ -20,6 +21,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soConservativeOpts        :: Bool
   , _soInlineHints             :: InlineHints name a
   , _soInlineConstants         :: Bool
+  , _soInlineThreshold         :: Int
   }
   deriving stock (Show)
 
@@ -33,4 +35,5 @@ defaultSimplifyOpts =
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True
+    , _soInlineThreshold = 20
     }
