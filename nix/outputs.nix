@@ -61,8 +61,8 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
-  project-code-coverage =
-    project.projectVariants.ghc96-coverage.projectCodeCoverage;
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
 
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
@@ -109,7 +109,7 @@ let
       (project-variants-hydra-jobs) //
       (windows-packages) //
       (packages) //
-      { inherit project-code-coverage; } //
+      { inherit project-coverage-report; } //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
@@ -146,7 +146,7 @@ let
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
-    inherit project-code-coverage;
+    inherit project-coverage-report;
   };
 
 in
