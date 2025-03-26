@@ -46,7 +46,7 @@ test_names = testGroup "names"
       -- promises) due to the lack of marking in it (or initial renaming of the entire program,
       -- which would perform marking too).
       T.test_scopingBad "inlining" genTerm T.BindingRemovalOk T.PrerenameYes $
-        Inline.inline True def def
+        Inline.inline 0 True def def
     , T.test_scopingGood
         "match-against-known-constructor"
         genTerm
