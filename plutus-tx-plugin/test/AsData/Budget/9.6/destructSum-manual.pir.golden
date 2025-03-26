@@ -1,8 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !fail : unit -> data
-    = \(ds : unit) -> Unit_match (error {Unit}) {data} (error {data})
   !`$mInts` :
      all r.
        data ->
@@ -23,6 +19,8 @@ let
             (unIData (headList {data} l))
             (unIData (headList {data} l))
             (unIData (headList {data} (tailList {data} l)))
+  data Unit | Unit_match where
+    Unit : Unit
   data Bool | Bool_match where
     True : Bool
     False : Bool
@@ -94,9 +92,11 @@ in
                                          {data}
                                          (iData (addInteger w w))
                                          [])))))
-                        (\(void : unit) -> fail ()))
-                   (\(void : unit) -> fail ()))
-              (/\dead -> fail ())
+                        (\(void : unit) ->
+                           Unit_match (error {Unit}) {data} (error {data})))
+                   (\(void : unit) ->
+                      Unit_match (error {Unit}) {data} (error {data})))
+              (/\dead -> Unit_match (error {Unit}) {data} (error {data}))
               {all dead. dead})
          {all dead. dead})
     {all dead. dead}

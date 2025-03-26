@@ -67,6 +67,8 @@ data InlineInfo tyname name uni fun ann = InlineInfo
     -- ^ the semantics variant.
     , _iiInlineConstants :: Bool
     -- ^ should we inline constants?
+    , _iiInlineThreshold :: Int
+    -- ^ inline threshold for callsite inlining
     }
 makeLenses ''InlineInfo
 

@@ -9,9 +9,6 @@ let
     Nothing : Maybe a
   data Unit | Unit_match where
     Unit : Unit
-  !traceError : all a. string -> a
-    = /\a ->
-        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 \(ds : data) ->
   (let
@@ -32,7 +29,11 @@ in
              (ifThenElse {Bool} (equalsInteger 0 index) True False)
              {all dead. Maybe a}
              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-             (/\dead -> traceError {Maybe a} "PT1")
+             (/\dead ->
+                let
+                  !x : Unit = trace {Unit} "PT1" Unit
+                in
+                error {Maybe a})
              {all dead. dead})
         {all dead. dead})
     (\(d : data) ->
@@ -50,6 +51,10 @@ in
               {integer}
               (unIData (headList {data} args))
               (unIData (headList {data} (tailList {data} args))))
-         (/\dead -> traceError {Tuple2 integer integer} "PT1")
+         (/\dead ->
+            let
+              !x : Unit = trace {Unit} "PT1" Unit
+            in
+            error {Tuple2 integer integer})
          {all dead. dead})
     ds

@@ -1,6 +1,4 @@
 let
-  !addInteger : integer -> integer -> integer
-    = \(x : integer) (y : integer) -> addInteger x y
   !`$mInts` :
      all r.
        data ->
