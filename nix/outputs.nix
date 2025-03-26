@@ -61,6 +61,9 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
+  project-code-coverage =
+    project.projectVariants.ghc96-coverage.projectCodeCoverage;
+
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
     { inherit metatheory-site; } //
@@ -106,6 +109,7 @@ let
       (project-variants-hydra-jobs) //
       (windows-packages) //
       (packages) //
+      { inherit project-code-coverage; } //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
@@ -137,10 +141,12 @@ let
     inherit build-latex-doc;
     inherit build-latex;
     inherit extra-artifacts;
+    inherit windows-packages;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
+    inherit project-code-coverage;
   };
 
 in
