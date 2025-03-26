@@ -1,3 +1,3 @@
 name: plutus-metatheory
-depend: standard-library-2.2
+depend: standard-library-2.1.1
 include: src
