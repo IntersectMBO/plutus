@@ -6,12 +6,10 @@ let
     False : Bool
 in
 \(m : integer) ->
-  let
-    !n : all t. t = /\t -> error {integer -> t} m
-  in
   Bool_match
     (ifThenElse {Bool} (lessThanInteger m 0) True False)
     {all dead. integer}
-    (/\dead -> addInteger (n {integer}) (n {integer}))
+    (/\dead ->
+       addInteger (error {integer -> integer} m) (error {integer -> integer} m))
     (/\dead -> m)
     {all dead. dead}

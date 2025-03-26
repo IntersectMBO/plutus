@@ -125,6 +125,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints                   :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
+  , _iiInlineThreshold         :: Int
   }
 
 makeLenses ''InlineInfo
@@ -176,19 +177,22 @@ See Note [Inlining and global uniqueness]
 inline ::
   forall name uni fun m a.
   ExternalConstraints name uni fun m =>
+  -- | inline threshold
+  Int ->
   -- | inline constants
   Bool ->
   InlineHints name a ->
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
   SimplifierT name uni fun a m (Term name uni fun a)
-inline inlineConstants hints builtinSemanticsVariant t = do
+inline inlineThreshold inlineConstants hints builtinSemanticsVariant t = do
   result <-
     liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
       { _iiUsages = Usages.termUsages t
       , _iiHints  = hints
       , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
       , _iiInlineConstants = inlineConstants
+      , _iiInlineThreshold = inlineThreshold
       }
   recordSimplification t Inline result
   return result
@@ -501,9 +505,10 @@ inlineSaturatedApp t
           fullyApplyAndBetaReduce varInfo args >>= \case
             Nothing -> pure t
             Just fullyApplied -> do
+              thresh <- view iiInlineThreshold
               let
                 -- Inline only if the size is no bigger than not inlining.
-                sizeIsOk = termSize fullyApplied <= termSize t
+                sizeIsOk = termSize fullyApplied <= termSize t + max 0 (fromIntegral thresh)
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs, but may not be otherwise.
                 costIsOk = costIsAcceptable rhs
