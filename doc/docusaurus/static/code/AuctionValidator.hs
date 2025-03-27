@@ -23,8 +23,6 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
 module AuctionValidator where
 
@@ -46,6 +44,7 @@ import PlutusTx (CompiledCode, FromData (..), ToData, UnsafeFromData (..), compi
                  makeIsDataSchemaIndexed, makeLift, unsafeApplyCode)
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 
@@ -128,7 +127,7 @@ auctionTypedValidator ::
   AuctionRedeemer ->
   ScriptContext ->
   Bool
-auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = PlutusTx.and conditions
+auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = List.and conditions
   where
     conditions :: [Bool]
     conditions = case redeemer of
@@ -167,7 +166,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = PlutusTx.a
     ~refundsPreviousHighestBid = case highestBid of
       Nothing -> True
       Just (Bid _ bidderPkh amt) ->
-        case PlutusTx.find
+        case List.find
           ( \o ->
               (toPubKeyHash (txOutAddress o) PlutusTx.== Just bidderPkh)
                 PlutusTx.&& (lovelaceValueOf (txOutValue o) PlutusTx.== amt)
@@ -210,7 +209,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = PlutusTx.a
       os ->
         PlutusTx.traceError
           ( "Expected exactly one continuing output, got "
-              PlutusTx.<> PlutusTx.show (PlutusTx.length os)
+              PlutusTx.<> PlutusTx.show (List.length os)
           )
 -- BLOCK7
 -- AuctionValidator.hs
@@ -221,7 +220,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = PlutusTx.a
     ~sellerGetsHighestBid = case highestBid of
       Nothing -> True
       Just bid ->
-        case PlutusTx.find
+        case List.find
           ( \o ->
               (toPubKeyHash (txOutAddress o) PlutusTx.== Just (apSeller params))
                 PlutusTx.&& (lovelaceValueOf (txOutValue o) PlutusTx.== bAmount bid)
@@ -236,7 +235,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx = PlutusTx.a
             -- If there are no bids, the asset should go back to the seller
             Nothing  -> apSeller params
             Just bid -> bPkh bid
-       in case PlutusTx.find
+       in case List.find
             ( \o ->
                 (toPubKeyHash (txOutAddress o) PlutusTx.== Just highestBidder)
                   PlutusTx.&& (valueOf (txOutValue o) currencySymbol tokenName PlutusTx.== 1)
