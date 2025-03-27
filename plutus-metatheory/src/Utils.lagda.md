@@ -171,16 +171,18 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.Text.Encoding as TE #-}
+{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
+
+data ByteString : Set where
+  encodeUtf8 : String → ByteString
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
+{-# COMPILE GHC encodeUtf8 = TE.encodeUtf8 #-}
 
 postulate
   eqByteString : ByteString → ByteString → Bool
-  encodeUtf8 : String -> ByteString
+  
 {-# COMPILE GHC eqByteString = (==) #-}
-{-# COMPILE GHC encodeUtf8 = TE.encodeUtf8 #-}
 
 ```
 ## Record Types
