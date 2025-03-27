@@ -176,11 +176,12 @@ data RuntimeError : Set where
 
 data ByteString : Set where
   encodeUtf8 : String → ByteString
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
+{-# COMPILE GHC ByteString = data ByteString ( ByteString )  #-}
 {-# COMPILE GHC encodeUtf8 = TE.encodeUtf8 #-}
 
-postulate
-  eqByteString : ByteString → ByteString → Bool
+eqByteString : ByteString → ByteString → Bool
+eqByteString (encodeUtf8 s) (encodeUtf8 s') =
+  Relation.Nullary.isYes (s Data.String.≟ s')
   
 {-# COMPILE GHC eqByteString = (==) #-}
 
