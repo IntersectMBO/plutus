@@ -1,14 +1,1 @@
-program
-  1.1.0
-  (force
-     (delay
-        (\`Plugin.Data.Spec.MyMonoRecord`
-          `match_Plugin.Data.Spec.MyMonoRecord` ->
-           `Plugin.Data.Spec.MyMonoRecord`))
-     (\arg_0 arg_1 -> constr 0 [arg_0, arg_1])
-     (\x ->
-        delay
-          (\`case_Plugin.Data.Spec.MyMonoRecord` ->
-             case x [`case_Plugin.Data.Spec.MyMonoRecord`]))
-     1
-     2)
+program 1.1.0 (constr 0 [1, 2])
