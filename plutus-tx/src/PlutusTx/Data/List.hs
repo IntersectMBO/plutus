@@ -1,12 +1,15 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Data.List (
     List,
+    pattern Cons,
+    pattern Nil,
     toBuiltinList,
     fromBuiltinList,
     toSOP,
@@ -22,6 +25,7 @@ module PlutusTx.Data.List (
     foldMap,
     map,
     length,
+    length2,
     mconcat,
     cons,
     uncons,
@@ -35,6 +39,7 @@ module PlutusTx.Data.List (
     concatMap,
     listToMaybe,
     uniqueElement,
+    uniqueElement2,
     (!!),
     revAppend,
     reverse,
@@ -74,6 +79,37 @@ import Prelude qualified as Haskell
 -- encoding/decoding to/from 'Data' is needed.
 newtype List a = List (BuiltinList BuiltinData)
   deriving stock (Haskell.Show, Haskell.Eq)
+
+pattern Cons :: forall a. (ToData a, UnsafeFromData a) => a -> List a -> List a
+pattern Cons x xs <-
+  -- This is usually better than
+  -- @
+  --   List (BI.caseList' Nothing (\x xs -> Just (x, xs)) ->
+  --     Just (unsafeFromBuiltinData -> x, List -> xs))
+  -- @
+  -- since it doesn't involve `Maybe`. But this could change once
+  -- `caseList` becomes a builtin function.
+  List
+    ( (\a -> (a, a)) ->
+        ( B.null -> False
+          , B.unsafeUncons -> (unsafeFromBuiltinData -> x, List -> xs)
+          )
+      )
+  where
+    Cons x xs =
+      List
+        ( BI.mkCons
+            (toBuiltinData x)
+            ( BI.mkCons
+                (toBuiltinData xs)
+                (BI.mkNilData BI.unitval)
+            )
+        )
+pattern Nil :: forall a. List a
+pattern Nil <- List (B.null -> True)
+  where
+    Nil = List (BI.mkNilData BI.unitval)
+{-# COMPLETE Cons, Nil #-}
 
 instance Eq (List a) where
     {-# INLINEABLE (==) #-}
@@ -287,6 +323,12 @@ length (List l) = go l 0
             (\_ t -> B.addInteger 1 . go t)
 {-# INLINEABLE length #-}
 
+length2 :: List a -> Integer
+length2 (List l) = go l
+  where
+    go = BI.caseList' 0 (\_ -> B.addInteger 1 . go)
+{-# INLINEABLE length2 #-}
+
 -- | Concatenate a list of monoids.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
@@ -408,6 +450,14 @@ uniqueElement (List l) = do
         then Just $ unsafeFromBuiltinData h
         else Nothing
 {-# INLINEABLE uniqueElement #-}
+
+uniqueElement2 :: (UnsafeFromData a) => List a -> Maybe a
+uniqueElement2 (List l) =
+  if B.null l then Nothing
+    else let xs = BI.tail l
+          in if B.null xs then Just (unsafeFromBuiltinData (BI.head l)) else Nothing
+
+{-# INLINEABLE uniqueElement2 #-}
 
 -- | Get the element at a given index.
 -- Warning: this is a partial function and will fail if the index is negative or
