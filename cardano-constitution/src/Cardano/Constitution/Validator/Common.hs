@@ -19,8 +19,9 @@ import Data.Coerce
 import PlutusLedgerApi.V3 as V3
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.List as List
 import PlutusTx.NonCanonicalRational as NCRatio
-import PlutusTx.Prelude as Tx hiding (toList)
+import PlutusTx.Prelude as Tx
 
 type ConstitutionValidator = BuiltinData -- ^ ScriptContext, deep inside is the changed-parameters proposal
                            -> BuiltinUnit -- ^ No-error means the proposal conforms to the constitution
@@ -58,11 +59,11 @@ validateParamValue = \case
 
       validatePreds :: forall a. Tx.Ord a => Predicates a -> a -> Bool
       validatePreds (Predicates preds) (validatePred -> validatePredAppliedToActual) =
-          Tx.all validatePredAppliedToActual preds
+          List.all validatePredAppliedToActual preds
 
       validatePred :: forall a. Tx.Ord a => a -> Predicate a -> Bool
       validatePred actualValue (predKey, expectedPredValues) =
-          Tx.all meaningWithActual expectedPredValues
+          List.all meaningWithActual expectedPredValues
         where
           -- we find the meaning (function) from the PredKey
           meaning = defaultPredMeanings predKey

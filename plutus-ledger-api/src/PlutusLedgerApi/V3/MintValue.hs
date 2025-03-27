@@ -31,7 +31,6 @@ import Control.DeepSeq (NFData)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Value (CurrencySymbol, TokenName, Value (..))
-import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.AssocMap (Map)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
@@ -40,6 +39,8 @@ import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionIdF
 import PlutusTx.Blueprint.Schema (MapSchema (..), Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo, title)
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified as List
+import PlutusTx.Traversable qualified as T
 import Prelude qualified as Haskell
 import Prettyprinter (Pretty)
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -112,7 +113,7 @@ mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> [abs x | x < 
 
 filterQuantities :: (Integer -> [Integer]) -> Map CurrencySymbol (Map TokenName Integer) -> Value
 filterQuantities mapQuantity values =
-  Value (Map.unsafeFromList (foldr filterTokenQuantities [] (Map.toList values)))
+  Value (Map.unsafeFromList (List.foldr filterTokenQuantities [] (Map.toList values)))
   where
     {-# INLINEABLE filterTokenQuantities #-}
     filterTokenQuantities
@@ -120,7 +121,7 @@ filterQuantities mapQuantity values =
       -> [(CurrencySymbol, Map TokenName Integer)]
       -> [(CurrencySymbol, Map TokenName Integer)]
     filterTokenQuantities (currency, tokenQuantities) =
-      case concatMap (traverse mapQuantity) (Map.toList tokenQuantities) of
+      case List.concatMap (T.traverse mapQuantity) (Map.toList tokenQuantities) of
         []         -> id
         quantities -> ((currency, Map.unsafeFromList quantities) :)
 {-# INLINEABLE filterQuantities #-}
@@ -129,4 +130,3 @@ filterQuantities mapQuantity values =
 -- TH Splices --------------------------------------------------------------------------------------
 
 $(makeLift ''MintValue)
-

@@ -7,7 +7,7 @@
                 (\go ->
                    (\`$fEnumBool_$cenumFromTo` ->
                       (\go ->
-                         (\go ->
+                         (\length ->
                             (\concatBuiltinStrings ->
                                (\a ->
                                   (\b ->
@@ -155,7 +155,8 @@
                                                                                   n
                                                                                   ds))))))
                                                                 (divideInteger
-                                                                   (go ds)
+                                                                   (force length
+                                                                      ds)
                                                                    2))
                                                              [ (\ipv
                                                                  ipv ->
@@ -166,13 +167,18 @@
                                                                        ipv)) ])) ])) ])
                                       (\x -> s s x))))
                            ((\s -> s s)
-                              (\s ds ->
-                                 force
-                                   (case
-                                      ds
-                                      [ (delay 0)
-                                      , (\x xs ->
-                                           delay (addInteger 1 (s s xs))) ]))))
+                              (\s arg ->
+                                 delay
+                                   (\ds ->
+                                      case
+                                        ds
+                                        [ 0
+                                        , (\ds xs ->
+                                             addInteger
+                                               1
+                                               (force (s s (delay (\x -> x)))
+                                                  xs)) ]))
+                              (delay (\x -> x))))
                         ((\s ->
                             s s)
                            (\s

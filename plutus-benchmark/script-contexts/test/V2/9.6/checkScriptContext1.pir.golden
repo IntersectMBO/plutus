@@ -1,50 +1,4 @@
 (let
-    data Credential | Credential_match where
-      PubKeyCredential : bytestring -> Credential
-      ScriptCredential : bytestring -> Credential
-    data StakingCredential | StakingCredential_match where
-      StakingHash : Credential -> StakingCredential
-      StakingPtr : integer -> integer -> integer -> StakingCredential
-    data (Maybe :: * -> *) a | Maybe_match where
-      Just : a -> Maybe a
-      Nothing : Maybe a
-    data Address | Address_match where
-      Address : Credential -> Maybe StakingCredential -> Address
-    data OutputDatum | OutputDatum_match where
-      NoOutputDatum : OutputDatum
-      OutputDatum : data -> OutputDatum
-      OutputDatumHash : bytestring -> OutputDatum
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-  in
-  letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  let
-    data TxOut | TxOut_match where
-      TxOut :
-        Address ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        OutputDatum ->
-        Maybe bytestring ->
-        TxOut
-  in
-  letrec
-    !go : List TxOut -> integer
-      = \(ds : List TxOut) ->
-          List_match
-            {TxOut}
-            ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : TxOut) (xs : List TxOut) -> /\dead -> addInteger 1 (go xs))
-            {all dead. dead}
-  in
-  let
     !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
       = /\a r ->
           \(z : r) (f : a -> list a -> r) (xs : list a) ->
@@ -55,6 +9,11 @@
               (/\dead -> z)
               (/\dead -> f (headList {a} xs) (tailList {a} xs))
               {r}
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
   in
   letrec
     ~go : list data -> List bytestring
@@ -69,6 +28,9 @@
     data Bool | Bool_match where
       True : Bool
       False : Bool
+    data Credential | Credential_match where
+      PubKeyCredential : bytestring -> Credential
+      ScriptCredential : bytestring -> Credential
     data Unit | Unit_match where
       Unit : Unit
     !traceError : all a. string -> a
@@ -93,6 +55,9 @@
                  (/\dead -> traceError {Credential} "PT1")
                  {all dead. dead})
             {all dead. dead}
+    data StakingCredential | StakingCredential_match where
+      StakingHash : Credential -> StakingCredential
+      StakingPtr : integer -> integer -> integer -> StakingCredential
     !`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` :
        data -> StakingCredential
       = \(d : data) ->
@@ -231,6 +196,9 @@
                (go xs))
   in
   let
+    data (Maybe :: * -> *) a | Maybe_match where
+      Just : a -> Maybe a
+      Nothing : Maybe a
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -253,6 +221,8 @@
                    (/\dead -> traceError {Maybe a} "PT1")
                    {all dead. dead})
               {all dead. dead}
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
        all k v.
          (\a -> data -> a) k ->
@@ -286,6 +256,21 @@
           {integer}
           unBData
           unIData
+    data Address | Address_match where
+      Address : Credential -> Maybe StakingCredential -> Address
+    data OutputDatum | OutputDatum_match where
+      NoOutputDatum : OutputDatum
+      OutputDatum : data -> OutputDatum
+      OutputDatumHash : bytestring -> OutputDatum
+    data TxOut | TxOut_match where
+      TxOut :
+        Address ->
+        (\k v -> List (Tuple2 k v))
+          bytestring
+          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        OutputDatum ->
+        Maybe bytestring ->
+        TxOut
     !`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` :
        data -> TxOut
       = \(eta : data) ->
@@ -586,6 +571,17 @@
     data ScriptContext | ScriptContext_match where
       ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
   in
+  letrec
+    !length : all a. List a -> integer
+      = /\a ->
+          \(ds : List a) ->
+            List_match
+              {a}
+              ds
+              {integer}
+              0
+              (\(ds : a) (xs : List a) -> addInteger 1 (length {a} xs))
+  in
   \(d : data) ->
     ScriptContext_match
       (let
@@ -754,7 +750,8 @@
               (equalsInteger
                  0
                  (modInteger
-                    (go
+                    (length
+                       {TxOut}
                        (TxInfo_match
                           ipv
                           {List TxOut}

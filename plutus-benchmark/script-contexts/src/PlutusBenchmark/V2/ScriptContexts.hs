@@ -13,6 +13,7 @@ import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -114,7 +115,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `B.modInteger` 2 PlutusTx.== 0
+  if List.length (txInfoOutputs txi) `B.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
@@ -203,9 +204,9 @@ forwardWithStakeTrick obsScriptCred ctx =
     ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
       let obsScriptCred' = PlutusTx.unsafeFromBuiltinData obsScriptCred
           txInfoWdrl' = Map.toList txInfoWdrl
-          wdrlAtZero = PlutusTx.fst $ PlutusTx.head txInfoWdrl'
-          rest = PlutusTx.tail txInfoWdrl'
-          wdrlAtOne = PlutusTx.fst $ PlutusTx.head $ rest
+          wdrlAtZero = PlutusTx.fst $ List.head txInfoWdrl'
+          rest = List.tail txInfoWdrl'
+          wdrlAtOne = PlutusTx.fst $ List.head $ rest
       in
         if obsScriptCred' PlutusTx.== wdrlAtZero
           || obsScriptCred' PlutusTx.== wdrlAtOne
@@ -226,4 +227,3 @@ mkForwardWithStakeTrickCode cred ctx =
   in $$(PlutusTx.compile [|| forwardWithStakeTrick ||])
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
-

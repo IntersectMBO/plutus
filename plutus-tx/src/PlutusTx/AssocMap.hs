@@ -44,11 +44,14 @@ import Prelude qualified as Haskell
 
 import PlutusTx.Builtins qualified as P hiding (null)
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Foldable qualified as F
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
+import PlutusTx.List qualified as List
+import PlutusTx.Prelude hiding (mapMaybe)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
+import PlutusTx.Traversable
 
 import Control.DeepSeq (NFData)
 import Data.Data
@@ -98,10 +101,10 @@ instance (ToData k, ToData v) => ToData (Map k v) where
   toBuiltinData (Map es) = BI.mkMap (mapToBuiltin es)
     where
       {-# INLINE mapToBuiltin #-}
-      mapToBuiltin :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
+      mapToBuiltin :: [(k, v)] -> BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData)
       mapToBuiltin = go
         where
-          go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
+          go :: [(k, v)] -> BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData)
           go []            = P.mkNil
           go ((k, v) : xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
 
@@ -121,11 +124,11 @@ instance (FromData k, FromData v) => FromData (Map k v) where
     where
       {-# INLINE traverseFromBuiltin #-}
       traverseFromBuiltin ::
-        BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) ->
+        BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData) ->
         Maybe [(k, v)]
       traverseFromBuiltin = go
         where
-          go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
+          go :: BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
           go =
             P.caseList'
               (pure [])
@@ -150,10 +153,10 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
   unsafeFromBuiltinData d = let ~es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
     where
       {-# INLINE mapFromBuiltin #-}
-      mapFromBuiltin :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
+      mapFromBuiltin :: BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
       mapFromBuiltin = go
         where
-          go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
+          go :: BuiltinList (BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
           go =
             P.caseList'
               []
@@ -189,9 +192,9 @@ instance Functor (Map k) where
   {-# INLINEABLE fmap #-}
   fmap f (Map mp) = Map (fmap (fmap f) mp)
 
-instance Foldable (Map k) where
+instance F.Foldable (Map k) where
   {-# INLINEABLE foldr #-}
-  foldr f z (Map mp) = foldr (f . snd) z mp
+  foldr f z (Map mp) = List.foldr (f . snd) z mp
 
 instance Traversable (Map k) where
   {-# INLINEABLE traverse #-}
@@ -220,7 +223,7 @@ unsafeFromList = Map
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
 safeFromList :: Eq k => [(k, v)] -> Map k v
-safeFromList = foldr (uncurry insert) empty
+safeFromList = List.foldr (uncurry insert) empty
 {-# INLINEABLE safeFromList #-}
 
 toList :: Map k v -> [(k, v)]
@@ -289,12 +292,12 @@ union (Map ls) (Map rs) =
 
     -- Keeps only those keys which don't appear in the left map.
     rs' :: [(k, r)]
-    rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+    rs' = List.filter (\(c, _) -> not (List.any (\(c', _) -> c' == c) ls)) rs
 
     rs'' :: [(k, These v r)]
     rs'' = P.fmap (P.fmap That) rs'
    in
-    Map (ls' ++ rs'')
+    Map (ls' List.++ rs'')
 
 -- | Combine two 'Map's with the given combination function.
 -- Note that well-formedness of the resulting map depends on the two input maps
@@ -314,16 +317,16 @@ unionWith merge (Map ls) (Map rs) =
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
 
     rs' :: [(k, a)]
-    rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+    rs' = List.filter (\(c, _) -> not (List.any (\(c', _) -> c' == c) ls)) rs
    in
-    Map (ls' ++ rs')
+    Map (ls' List.++ rs')
 {-# INLINEABLE unionWith #-}
 
 -- | A version of 'Data.Map.Lazy.mapEither' that works with 'These'.
 mapThese :: (v -> These a b) -> Map k v -> (Map k a, Map k b)
 mapThese f mps = (Map mpl, Map mpr)
   where
-    (mpl, mpr) = P.foldr f' ([], []) mps'
+    (mpl, mpr) = List.foldr f' ([], []) mps'
     Map mps' = fmap f mps
     f' (k, v) (as, bs) = case v of
       This a    -> ((k, a) : as, bs)
@@ -343,12 +346,12 @@ empty = Map ([] :: [(k, v)])
 
 -- | Is the map empty?
 null :: Map k v -> Bool
-null = P.null . unMap
+null = List.null . unMap
 {-# INLINEABLE null #-}
 
 -- | Filter all values that satisfy the predicate.
 filter :: (v -> Bool) -> Map k v -> Map k v
-filter f (Map m) = Map $ P.filter (f . snd) m
+filter f (Map m) = Map $ List.filter (f . snd) m
 {-# INLINEABLE filter #-}
 
 -- | Return all elements of the map.

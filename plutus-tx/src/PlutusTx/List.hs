@@ -5,6 +5,7 @@
 module PlutusTx.List (
     uncons,
     null,
+    length,
     map,
     and,
     or,
@@ -71,6 +72,12 @@ null = \case
     [] -> True
     _  -> False
 {-# INLINABLE null #-}
+
+length :: [a] -> Integer
+length = \case
+    [] -> 0
+    _:xs -> Builtins.addInteger 1 (length xs)
+{-# INLINABLE length #-}
 
 -- | Plutus Tx version of 'Data.List.map'.
 --

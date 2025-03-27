@@ -293,15 +293,15 @@ letrec
             {all dead. dead}
 in
 letrec
-  !go : List string -> integer
-    = \(ds : List string) ->
-        List_match
-          {string}
-          ds
-          {all dead. integer}
-          (/\dead -> 0)
-          (\(x : string) (xs : List string) -> /\dead -> addInteger 1 (go xs))
-          {all dead. dead}
+  !length : all a. List a -> integer
+    = /\a ->
+        \(ds : List a) ->
+          List_match
+            {a}
+            ds
+            {integer}
+            0
+            (\(ds : a) (xs : List a) -> addInteger 1 (length {a} xs))
 in
 letrec
   !concatBuiltinStrings : List string -> string
@@ -323,7 +323,7 @@ letrec
                       {List string}
                       {List string}
                       (let
-                        !n : integer = divideInteger (go ds) 2
+                        !n : integer = divideInteger (length {string} ds) 2
                       in
                       Bool_match
                         (ifThenElse

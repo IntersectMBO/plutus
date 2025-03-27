@@ -9,7 +9,7 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as Tx hiding (sort)
+import PlutusTx.Prelude
 
 insertionSort :: [Integer] -> [Integer]
 insertionSort l0 = sort l0 []
