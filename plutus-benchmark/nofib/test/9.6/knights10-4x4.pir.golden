@@ -431,19 +431,19 @@
                     {all dead. dead}
           in
           go a
-  in
-  letrec
     !length : all a. List a -> integer
       = /\a ->
-          \(ds : List a) ->
-            List_match
-              {a}
-              ds
-              {integer}
-              0
-              (\(ds : a) (xs : List a) -> addInteger 1 (length {a} xs))
-  in
-  let
+          letrec
+            !go : List a -> integer
+              = \(ds : List a) ->
+                  List_match
+                    {a}
+                    ds
+                    {integer}
+                    0
+                    (\(ds : a) (xs : List a) -> addInteger 1 (go xs))
+          in
+          \(eta : List a) -> go eta
     data Direction | Direction_match where
       DL : Direction
       DR : Direction

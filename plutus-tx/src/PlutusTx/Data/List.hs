@@ -1,15 +1,12 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Data.List (
     List,
-    pattern Cons,
-    pattern Nil,
     toBuiltinList,
     fromBuiltinList,
     toSOP,
@@ -77,30 +74,6 @@ import Prelude qualified as Haskell
 -- encoding/decoding to/from 'Data' is needed.
 newtype List a = List (BuiltinList BuiltinData)
   deriving stock (Haskell.Show, Haskell.Eq)
-
-pattern Cons :: forall a. (ToData a, UnsafeFromData a) => a -> List a -> List a
-pattern Cons x xs <-
-  List
-    ( (\a -> (a, a)) ->
-        ( B.null -> False
-          , B.unsafeUncons -> (unsafeFromBuiltinData -> x, List -> xs)
-          )
-      )
-  where
-    Cons x xs =
-      List
-        ( BI.mkCons
-            (toBuiltinData x)
-            ( BI.mkCons
-                (toBuiltinData xs)
-                (BI.mkNilData BI.unitval)
-            )
-        )
-pattern Nil :: forall a. List a
-pattern Nil <- List (B.null -> True)
-  where
-    Nil = List (BI.mkNilData BI.unitval)
-{-# COMPLETE Cons, Nil #-}
 
 instance Eq (List a) where
     {-# INLINEABLE (==) #-}

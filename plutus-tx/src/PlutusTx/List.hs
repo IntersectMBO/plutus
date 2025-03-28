@@ -74,9 +74,11 @@ null = \case
 {-# INLINABLE null #-}
 
 length :: [a] -> Integer
-length = \case
-    [] -> 0
-    _:xs -> Builtins.addInteger 1 (length xs)
+length = go
+  where
+    go = \case
+      [] -> 0
+      _:xs -> Builtins.addInteger 1 (go xs)
 {-# INLINABLE length #-}
 
 -- | Plutus Tx version of 'Data.List.map'.

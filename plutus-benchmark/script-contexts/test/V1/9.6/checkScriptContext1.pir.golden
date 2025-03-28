@@ -1,9 +1,47 @@
 (let
+    data Credential | Credential_match where
+      PubKeyCredential : bytestring -> Credential
+      ScriptCredential : bytestring -> Credential
+    data StakingCredential | StakingCredential_match where
+      StakingHash : Credential -> StakingCredential
+      StakingPtr : integer -> integer -> integer -> StakingCredential
+    data (Maybe :: * -> *) a | Maybe_match where
+      Just : a -> Maybe a
+      Nothing : Maybe a
+    data Address | Address_match where
+      Address : Credential -> Maybe StakingCredential -> Address
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+  in
+  letrec
+    data (List :: * -> *) a | List_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
+    data TxOut | TxOut_match where
+      TxOut :
+        Address ->
+        (\k v -> List (Tuple2 k v))
+          bytestring
+          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        Maybe bytestring ->
+        TxOut
+  in
+  letrec
+    !go : List TxOut -> integer
+      = \(ds : List TxOut) ->
+          List_match
+            {TxOut}
+            ds
+            {integer}
+            0
+            (\(ds : TxOut) (xs : List TxOut) -> addInteger 1 (go xs))
+  in
+  let
     data Bool | Bool_match where
       True : Bool
       False : Bool
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
     data Unit | Unit_match where
       Unit : Unit
     !traceError : all a. string -> a
@@ -44,11 +82,6 @@
               {r}
   in
   letrec
-    data (List :: * -> *) a | List_match where
-      Nil : List a
-      Cons : a -> List a -> List a
-  in
-  letrec
     ~go : list data -> List (Tuple2 bytestring data)
       = caseList'
           {data}
@@ -75,9 +108,6 @@
              Cons {bytestring} (unBData x) (go xs))
   in
   let
-    data Credential | Credential_match where
-      PubKeyCredential : bytestring -> Credential
-      ScriptCredential : bytestring -> Credential
     !`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` : data -> Credential
       = \(d : data) ->
           let
@@ -97,9 +127,6 @@
                  (/\dead -> traceError {Credential} "PT1")
                  {all dead. dead})
             {all dead. dead}
-    data StakingCredential | StakingCredential_match where
-      StakingHash : Credential -> StakingCredential
-      StakingPtr : integer -> integer -> integer -> StakingCredential
     !`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` :
        data -> StakingCredential
       = \(d : data) ->
@@ -257,9 +284,6 @@
                (go xs))
   in
   let
-    data (Maybe :: * -> *) a | Maybe_match where
-      Just : a -> Maybe a
-      Nothing : Maybe a
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> Maybe a
       = /\a ->
@@ -315,16 +339,6 @@
           {integer}
           unBData
           unIData
-    data Address | Address_match where
-      Address : Credential -> Maybe StakingCredential -> Address
-    data TxOut | TxOut_match where
-      TxOut :
-        Address ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        Maybe bytestring ->
-        TxOut
     !`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` :
        data -> TxOut
       = \(eta : data) ->
@@ -531,17 +545,6 @@
     data ScriptContext | ScriptContext_match where
       ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
   in
-  letrec
-    !length : all a. List a -> integer
-      = /\a ->
-          \(ds : List a) ->
-            List_match
-              {a}
-              ds
-              {integer}
-              0
-              (\(ds : a) (xs : List a) -> addInteger 1 (length {a} xs))
-  in
   \(d : data) ->
     ScriptContext_match
       (let
@@ -735,32 +738,34 @@
               (equalsInteger
                  0
                  (modInteger
-                    (length
-                       {TxOut}
-                       (TxInfo_match
-                          ipv
-                          {List TxOut}
-                          (\(ds : List TxInInfo)
-                            (ds : List TxOut)
-                            (ds :
-                               (\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer))
-                            (ds :
-                               (\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer))
-                            (ds : List DCert)
-                            (ds : List (Tuple2 StakingCredential integer))
-                            (ds : Interval integer)
-                            (ds : List bytestring)
-                            (ds : List (Tuple2 bytestring data))
-                            (ds : bytestring) ->
-                             ds)))
+                    (let
+                      !eta : List TxOut
+                        = TxInfo_match
+                            ipv
+                            {List TxOut}
+                            (\(ds : List TxInInfo)
+                              (ds : List TxOut)
+                              (ds :
+                                 (\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer))
+                              (ds :
+                                 (\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer))
+                              (ds : List DCert)
+                              (ds : List (Tuple2 StakingCredential integer))
+                              (ds : Interval integer)
+                              (ds : List bytestring)
+                              (ds : List (Tuple2 bytestring data))
+                              (ds : bytestring) ->
+                               ds)
+                    in
+                    go eta)
                     2))
               True
               False)

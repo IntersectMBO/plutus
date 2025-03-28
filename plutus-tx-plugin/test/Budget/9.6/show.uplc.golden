@@ -7,7 +7,7 @@
                 (\go ->
                    (\`$fEnumBool_$cenumFromTo` ->
                       (\go ->
-                         (\length ->
+                         (\go ->
                             (\concatBuiltinStrings ->
                                (\a ->
                                   (\b ->
@@ -155,8 +155,7 @@
                                                                                   n
                                                                                   ds))))))
                                                                 (divideInteger
-                                                                   (force length
-                                                                      ds)
+                                                                   (go ds)
                                                                    2))
                                                              [ (\ipv
                                                                  ipv ->
@@ -167,18 +166,10 @@
                                                                        ipv)) ])) ])) ])
                                       (\x -> s s x))))
                            ((\s -> s s)
-                              (\s arg ->
-                                 delay
-                                   (\ds ->
-                                      case
-                                        ds
-                                        [ 0
-                                        , (\ds xs ->
-                                             addInteger
-                                               1
-                                               (force (s s (delay (\x -> x)))
-                                                  xs)) ]))
-                              (delay (\x -> x))))
+                              (\s ds ->
+                                 case
+                                   ds
+                                   [0, (\ds xs -> addInteger 1 (s s xs))])))
                         ((\s ->
                             s s)
                            (\s
