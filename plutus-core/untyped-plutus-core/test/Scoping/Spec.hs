@@ -59,5 +59,5 @@ test_names = testGroup "names"
         (genTerm @DefaultFun)
         T.BindingRemovalOk
         T.PrerenameYes
-        (evalSimplifierT . inline True (_soInlineHints defaultSimplifyOpts) maxBound)
+        (evalSimplifierT . inline 0 True (_soInlineHints defaultSimplifyOpts) maxBound)
     ]
