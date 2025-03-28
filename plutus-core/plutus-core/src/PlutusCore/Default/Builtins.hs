@@ -27,7 +27,8 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength, ExMemoryUsage,
+                                                    IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
@@ -2111,25 +2112,30 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramDropList)
 
     toBuiltinMeaning _semvar LengthOfArray =
-      let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+      let lengthOfArrayDenotation :: SomeConstant uni (ArrayCostedByLength a) -> BuiltinResult Int
           lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
             case uni of
               DefaultUniArray _uniA -> pure $ Vector.length vec
               _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
           {-# INLINE lengthOfArrayDenotation #-}
-        in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+        in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . paramLengthOfArray)
 
     toBuiltinMeaning _semvar ListToArray =
-      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
+      let listToArrayDenotation
+            :: SomeConstant uni (ListCostedByLength a)
+            -> BuiltinResult (Opaque val (Vector a))
           listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
             case uniListA of
               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
               _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
           {-# INLINE listToArrayDenotation #-}
-        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
 
     toBuiltinMeaning _semvar IndexArray =
-      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+      let indexArrayDenotation
+            :: SomeConstant uni (ArrayCostedByLength a)
+            -> Int
+            -> BuiltinResult (Opaque val a)
           indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
             case uni of
               DefaultUniArray arg -> do
@@ -2142,7 +2148,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     -- message, so we don't need to repeat them here.
                 throwing _StructuralUnliftingError "Expected an array but got something else"
           {-# INLINE indexArrayDenotation #-}
-        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . unimplementedCostingFun)
+        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
