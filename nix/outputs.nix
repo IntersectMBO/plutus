@@ -32,6 +32,9 @@ let
   metatheory-site = import ./metatheory-site.nix
     { inherit inputs self pkgs lib agda-with-stdlib; };
 
+  metatheory-agda-library = import ./metatheory-agda-library.nix
+    { inherit self pkgs lib; };
+
   hydra-required-job = utils.makeHydraRequiredJob
     { inherit self pkgs; };
 
@@ -64,6 +67,7 @@ let
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
     { inherit metatheory-site; } //
+    { inherit metatheory-agda-library; } //
     (latex-documents);
 
   project-variants-hydra-jobs = {
@@ -141,6 +145,7 @@ let
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
+    inherit metatheory-agda-library;
   };
 
 in
