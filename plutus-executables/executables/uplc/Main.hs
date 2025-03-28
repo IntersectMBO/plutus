@@ -304,6 +304,76 @@ runCertifier (Just certName) (SimplifierTrace simplTrace) = do
   writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
 runCertifier Nothing _ = pure ()
 
+toAgdaFFI :: UPLC.Program UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a -> AgdaFFI.UTerm
+toAgdaFFI ast =
+  case UPLC.deBruijnTerm ast of
+    Right debruijnAst ->
+      AgdaFFI.conv . void $ debruijnAst
+    Left (err :: UPLC.FreeVariableError) -> error $ show err
+
+type DefaultSimplifierTrace = SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
+type DefaultSimplification = Simplification UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
+
+data CertificateData =
+  CertificateData
+    { asts   :: [(Int, AgdaFFI.UTerm)]
+    , stages :: [SimplifierStage]
+    }
+
+traceToCertificateData :: DefaultSimplifierTrace -> CertificateData
+traceToCertificateData (SimplifierTrace simplTrace) =
+  undefined
+  where
+    go :: [DefaultSimplification] -> CertificateData
+    go = undefined
+
+extractASTs :: DefaultSimplifierTrace -> [(Int, AgdaFFI.UTerm)]
+extractASTs (SimplifierTrace simplTrace) =
+  zip undefined [1..]
+
+deduplicateASTs :: [(Int, DefaultSimplification)] -> CertificateData
+deduplicateASTs simplWithIx =
+  let stages :: [SimplifierStage]
+      stages = (stages . snd) <$> simplWithIx
+      astPairs :: [(Int, (AgdaFFI.UTerm, AgdaFFI.UTerm))]
+      astPairs = fmap (\Simplification {beforeAst, afterAst} -> (beforeAst, afterAst)) <$> simplWithIx
+      asts :: [AgdaFFI.UTerm]
+      asts = do
+        (ix, (before, after)) <- astPairs
+        if ix == 0
+          then [before, after]
+          else [after]
+  in CertificateData { stages, asts }
+
+getTermsFromSimpl :: DefaultSimplification -> [(AgdaFFI.UTerm, AgdaFFI.UTerm)]
+getTermsFromSimpl (Simplification {beforeAST, afterAST}) =
+  [toAgdaFFI beforeAST, toAgdaFFI afterAST]
+
+
+rawASTModule :: Int -> AgdaFFI.UTerm -> String
+rawASTModule n ast =
+  "module Ast" ++ show n ++ " where\
+  \\n\
+  \\nopen import VerifiedCompilation\
+  \\nopen import VerifiedCompilation.Certificate\
+  \\nopen import Untyped\
+  \\nopen import RawU\
+  \\nopen import Builtin\
+  \\nopen import Data.Unit\
+  \\nopen import Data.Nat\
+  \\nopen import Data.Integer\
+  \\nopen import Utils\
+  \\nimport Agda.Builtin.Bool\
+  \\nimport Relation.Nullary\
+  \\nimport VerifiedCompilation.UntypedTranslation\
+  \\nopen import Agda.Builtin.Maybe\
+  \\nopen import Data.Empty using (⊥)\
+  \\nopen import Data.Bool.Base using (Bool; false; true)\
+  \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
+  \\n\
+  \\nast : Untyped \
+  \\nast = " <> agdaUnparse rawTrace <> "\n"
+
 rawCertificate :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> String
 rawCertificate certName rawTrace =
   "module " <> certName <> " where\
