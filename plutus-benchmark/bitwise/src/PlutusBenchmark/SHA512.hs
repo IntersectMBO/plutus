@@ -5,7 +5,6 @@
 module PlutusBenchmark.SHA512 (sha512) where
 
 import GHC.ByteOrder (ByteOrder (BigEndian))
-import PlutusTx.Builtins (replicateByte)
 import PlutusTx.Prelude
 
 -- Based on https://datatracker.ietf.org/doc/html/rfc6234

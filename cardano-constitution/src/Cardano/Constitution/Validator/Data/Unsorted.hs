@@ -22,6 +22,7 @@ import Cardano.Constitution.Validator.Data.Common as Common
 import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
+import PlutusTx.List
 import PlutusTx.Prelude as Tx
 
 -- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode

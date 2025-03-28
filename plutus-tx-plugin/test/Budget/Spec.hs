@@ -23,6 +23,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List.TH (destructList)
+import PlutusTx.Foldable qualified as F
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
@@ -292,139 +293,139 @@ tests = testNested "Budget" . pure $ testNestedGhc
 compiledSum :: CompiledCode Integer
 compiledSum = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.sum ls ||])
+       in F.sum ls ||])
 
 -- | The first element in the list satisfies the predicate.
 compiledAnyCheap :: CompiledCode Bool
 compiledAnyCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.any (10 PlutusTx.>) ls ||])
+       in List.any (10 PlutusTx.>) ls ||])
 
 -- | No element in the list satisfies the predicate.
 compiledAnyExpensive :: CompiledCode Bool
 compiledAnyExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.any (1 PlutusTx.>) ls ||])
+       in List.any (1 PlutusTx.>) ls ||])
 
 compiledAnyEmptyList :: CompiledCode Bool
 compiledAnyEmptyList = $$(compile [||
       let ls = [] :: [Integer]
-       in PlutusTx.any (1 PlutusTx.>) ls ||])
+       in List.any (1 PlutusTx.>) ls ||])
 
 -- | The first element in the list does not satisfy the predicate.
 compiledAllCheap :: CompiledCode Bool
 compiledAllCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.all (1 PlutusTx.>) ls ||])
+       in List.all (1 PlutusTx.>) ls ||])
 
 -- | All elements in the list satisfy the predicate.
 compiledAllExpensive :: CompiledCode Bool
 compiledAllExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.all (11 PlutusTx.>) ls ||])
+       in List.all (11 PlutusTx.>) ls ||])
 
 compiledAllEmptyList :: CompiledCode Bool
 compiledAllEmptyList = $$(compile [||
       let ls = [] :: [Integer]
-       in PlutusTx.all (1 PlutusTx.>) ls ||])
+       in List.all (1 PlutusTx.>) ls ||])
 
 -- | The first element in the list satisfies the predicate.
 compiledFindCheap :: CompiledCode (Maybe Integer)
 compiledFindCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.find (10 PlutusTx.>) ls ||])
+       in List.find (10 PlutusTx.>) ls ||])
 
 -- | No element in the list satisfies the predicate.
 compiledFindExpensive :: CompiledCode (Maybe Integer)
 compiledFindExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.find (1 PlutusTx.>) ls ||])
+       in List.find (1 PlutusTx.>) ls ||])
 
 compiledFindEmptyList :: CompiledCode (Maybe Integer)
 compiledFindEmptyList = $$(compile [||
       let ls = [] :: [Integer]
-       in PlutusTx.find (1 PlutusTx.>) ls ||])
+       in List.find (1 PlutusTx.>) ls ||])
 
 -- | The first element in the list satisfies the predicate.
 compiledFindIndexCheap :: CompiledCode (Maybe Integer)
 compiledFindIndexCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.findIndex (10 PlutusTx.>) ls ||])
+       in List.findIndex (10 PlutusTx.>) ls ||])
 
 -- | No element in the list satisfies the predicate.
 compiledFindIndexExpensive :: CompiledCode (Maybe Integer)
 compiledFindIndexExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
+       in List.findIndex (1 PlutusTx.>) ls ||])
 
 compiledFindIndexEmptyList :: CompiledCode (Maybe Integer)
 compiledFindIndexEmptyList = $$(compile [||
       let ls = [] :: [Integer]
-       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
+       in List.findIndex (1 PlutusTx.>) ls ||])
 
 compiledFilter :: CompiledCode [Integer]
 compiledFilter = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.filter PlutusTx.even ls ||])
+       in List.filter PlutusTx.even ls ||])
 
 -- | The first element is False so @and@ should short-circuit immediately.
 compiledAndCheap :: CompiledCode Bool
 compiledAndCheap = $$(compile [||
       let ls = [False, True, True, True, True, True, True, True, True, True]
-       in PlutusTx.and ls ||])
+       in List.and ls ||])
 
 -- | All elements are True so @and@ cannot short-circuit.
 compiledAndExpensive :: CompiledCode Bool
 compiledAndExpensive = $$(compile [||
       let ls = [True, True, True, True, True, True, True, True, True, True]
-       in PlutusTx.and ls ||])
+       in List.and ls ||])
 
 -- | The first element is True so @or@ should short-circuit immediately.
 compiledOrCheap :: CompiledCode Bool
 compiledOrCheap = $$(compile [||
       let ls = [True, False, False, False, False, False, False, False, False, False]
-       in PlutusTx.or ls ||])
+       in List.or ls ||])
 
 -- | All elements are False so @or@ cannot short-circuit.
 compiledOrExpensive :: CompiledCode Bool
 compiledOrExpensive = $$(compile [||
       let ls = [False, False, False, False, False, False, False, False, False, False]
-       in PlutusTx.or ls ||])
+       in List.or ls ||])
 
 -- | @elem@ can short-circuit
 compiledElemCheap :: CompiledCode Bool
 compiledElemCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.elem 1 ls ||])
+       in List.elem 1 ls ||])
 
 -- | @elem@ cannot short-circuit
 compiledElemExpensive :: CompiledCode Bool
 compiledElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.elem 0 ls ||])
+       in List.elem 0 ls ||])
 
 -- | @notElem@ can short-circuit
 compiledNotElemCheap :: CompiledCode Bool
 compiledNotElemCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.notElem 1 ls ||])
+       in List.notElem 1 ls ||])
 
 -- | @notElem@ cannot short-circuit
 compiledNotElemExpensive :: CompiledCode Bool
 compiledNotElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.notElem 0 ls ||])
+       in List.notElem 0 ls ||])
 
 -- | Check @0 <= 0@ a thousand times using @all@ that inlines.
 compiledLte0 :: CompiledCode Bool
 compiledLte0 = $$(compile [||
-      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+      let ls = List.replicate 1000 0 :: [Integer]
        in List.all (PlutusTx.<= 0) ls ||])
 
 -- | Check @0 >= 0@ a thousand times using @all@ that inlines.
 compiledGte0 :: CompiledCode Bool
 compiledGte0 = $$(compile [||
-      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+      let ls = List.replicate 1000 0 :: [Integer]
        in List.all (PlutusTx.>= 0) ls ||])
 
 -- | A version of @all@ that doesn't inline due to being recursive.
@@ -436,13 +437,13 @@ recursiveAll f (x:xs) = if f x then recursiveAll f xs else False
 -- | Check @0 <= 0@ a thousand times using @all@ that doesn't inline.
 compiledRecursiveLte0 :: CompiledCode Bool
 compiledRecursiveLte0 = $$(compile [||
-      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+      let ls = List.replicate 1000 0 :: [Integer]
        in recursiveAll (PlutusTx.<= 0) ls ||])
 
 -- | Check @0 >= 0@ a thousand times using @all@ that doesn't inline.
 compiledRecursiveGte0 :: CompiledCode Bool
 compiledRecursiveGte0 = $$(compile [||
-      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+      let ls = List.replicate 1000 0 :: [Integer]
        in recursiveAll (PlutusTx.>= 0) ls ||])
 
 -- | Left-fold a list with a function summing its arguments.
@@ -460,31 +461,31 @@ compiledSumR = $$(compile [||
 -- | Left-fold a list with a function returning the accumulator.
 compiledConstAccL :: CompiledCode Integer
 compiledConstAccL = $$(compile [||
-      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+      let ls = List.replicate 1000 (1 :: Integer)
        in List.foldl (\acc _ -> acc) 42 ls ||])
 
 -- | Right-fold a list with a function returning the accumulator.
 compiledConstAccR :: CompiledCode Integer
 compiledConstAccR = $$(compile [||
-      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+      let ls = List.replicate 1000 (1 :: Integer)
        in List.foldr (\_ acc -> acc) 42 ls ||])
 
 -- | Left-fold a list with a function returning a list element, the result is the last element.
 compiledConstElL :: CompiledCode Integer
 compiledConstElL = $$(compile [||
-      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+      let ls = List.replicate 1000 (1 :: Integer)
        in List.foldl (\_ el -> el) 42 ls ||])
 
 -- | Right-fold a list with a function returning a list element, the result is the first element.
 compiledConstElR :: CompiledCode Integer
 compiledConstElR = $$(compile [||
-      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+      let ls = List.replicate 1000 (1 :: Integer)
        in List.foldr (\el _ -> el) 42 ls ||])
 
 compiledNull :: CompiledCode Bool
 compiledNull = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.null ls ||])
+       in List.null ls ||])
 
 compiledListIndexing :: CompiledCode ([PlutusTx.BuiltinData] -> PlutusTx.BuiltinData)
 compiledListIndexing = $$(compile [||

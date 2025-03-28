@@ -77,23 +77,20 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1 (UnsafeFromData (unsafeFromBuiltinData))
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
-import PlutusTx qualified
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionIdFromType,
                                       definitionRef)
 import PlutusTx.Blueprint.Schema (MapSchema (..), PairSchema (..), Schema (..), withSchemaInfo)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Builtins qualified as B
-import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Data.List (List)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
-import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.Prelude as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))

@@ -21,6 +21,7 @@ import PlutusCore.Pretty
 
 import PlutusTx
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude
 import PlutusTx.Show (show)
 
@@ -60,7 +61,7 @@ andPlc :: CompiledCode Bool
 andPlc = $$(compile [|| $$(andTH) True False ||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
+allPlc = $$(compile [|| List.all (\(x::Integer) -> x > 5) [7, 6] ||])
 
 convertString :: CompiledCode Builtins.BuiltinString
 convertString = $$(compile [|| "test" ||])

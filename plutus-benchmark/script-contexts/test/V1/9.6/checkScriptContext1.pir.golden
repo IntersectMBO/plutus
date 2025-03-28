@@ -34,10 +34,9 @@
           List_match
             {TxOut}
             ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : TxOut) (xs : List TxOut) -> /\dead -> addInteger 1 (go xs))
-            {all dead. dead}
+            {integer}
+            0
+            (\(ds : TxOut) (xs : List TxOut) -> addInteger 1 (go xs))
   in
   let
     data Bool | Bool_match where
@@ -739,31 +738,34 @@
               (equalsInteger
                  0
                  (modInteger
-                    (go
-                       (TxInfo_match
-                          ipv
-                          {List TxOut}
-                          (\(ds : List TxInInfo)
-                            (ds : List TxOut)
-                            (ds :
-                               (\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer))
-                            (ds :
-                               (\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer))
-                            (ds : List DCert)
-                            (ds : List (Tuple2 StakingCredential integer))
-                            (ds : Interval integer)
-                            (ds : List bytestring)
-                            (ds : List (Tuple2 bytestring data))
-                            (ds : bytestring) ->
-                             ds)))
+                    (let
+                      !eta : List TxOut
+                        = TxInfo_match
+                            ipv
+                            {List TxOut}
+                            (\(ds : List TxInInfo)
+                              (ds : List TxOut)
+                              (ds :
+                                 (\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer))
+                              (ds :
+                                 (\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer))
+                              (ds : List DCert)
+                              (ds : List (Tuple2 StakingCredential integer))
+                              (ds : Interval integer)
+                              (ds : List bytestring)
+                              (ds : List (Tuple2 bytestring data))
+                              (ds : bytestring) ->
+                               ds)
+                    in
+                    go eta)
                     2))
               True
               False)

@@ -10,7 +10,7 @@ import PlutusTx qualified as Tx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as Plutus
+import PlutusTx.Prelude
 
 import Prelude (($!))
 
@@ -51,19 +51,19 @@ mkSumRightScottTerm l = compiledCodeToTerm $ mkSumRightScottCode l
 
 ---------------- Folding over built-in lists ----------------
 
-foldLeftBuiltin :: (b -> a -> b) -> b -> BI.BuiltinList a -> b
+foldLeftBuiltin :: (b -> a -> b) -> b -> BuiltinList a -> b
 foldLeftBuiltin f z l = B.matchList' l z (\x xs -> (foldLeftBuiltin f (f z x) xs))
 {-# INLINABLE foldLeftBuiltin #-}
 
-sumLeftBuiltin :: BI.BuiltinList Integer -> Integer
+sumLeftBuiltin :: BuiltinList Integer -> Integer
 sumLeftBuiltin l = foldLeftBuiltin B.addInteger 0 l
 {-# INLINABLE sumLeftBuiltin #-}
 
-foldRightBuiltin :: (a -> b -> b) -> b -> BI.BuiltinList a -> b
+foldRightBuiltin :: (a -> b -> b) -> b -> BuiltinList a -> b
 foldRightBuiltin f z l = B.matchList' l z (\x xs -> f x $! (foldRightBuiltin f z xs))
 {-# INLINABLE foldRightBuiltin #-}
 
-sumRightBuiltin :: BI.BuiltinList Integer -> Integer
+sumRightBuiltin :: BuiltinList Integer -> Integer
 sumRightBuiltin l = foldRightBuiltin B.addInteger 0 l
 {-# INLINABLE sumRightBuiltin #-}
 

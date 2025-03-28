@@ -30,8 +30,9 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
+import PlutusTx.List as List hiding (sortBy)
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as TxPrelude hiding (abs, sortBy)
+import PlutusTx.Prelude as TxPrelude hiding (abs)
 
 -----------------------------
 -- The main program
@@ -150,7 +151,7 @@ deleteBy eq x (y:ys) = if x `eq` y then ys else y : deleteBy eq x ys
 {-# INLINABLE deleteBy #-}
 
 unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
-unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (TxPrelude.nubBy eq ys) xs
+unionBy eq xs ys =  xs ++ foldl (flip (deleteBy eq)) (List.nubBy eq ys) xs
 {-# INLINABLE unionBy #-}
 
 union :: (Eq a) => [a] -> [a] -> [a]

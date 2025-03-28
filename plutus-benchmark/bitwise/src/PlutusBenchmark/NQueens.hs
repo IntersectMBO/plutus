@@ -4,7 +4,6 @@
 
 module PlutusBenchmark.NQueens (nqueens) where
 
-import PlutusTx.Builtins (replicateByte)
 import PlutusTx.Prelude
 
 -- Based on Qiu, Zongyan (February 2002). "Bit-vector encoding of n-queen problem". ACM SIGPLAN Notices. 37 (2): 68–70

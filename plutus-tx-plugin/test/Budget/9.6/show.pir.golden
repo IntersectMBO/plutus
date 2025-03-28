@@ -298,10 +298,9 @@ letrec
         List_match
           {string}
           ds
-          {all dead. integer}
-          (/\dead -> 0)
-          (\(x : string) (xs : List string) -> /\dead -> addInteger 1 (go xs))
-          {all dead. dead}
+          {integer}
+          0
+          (\(ds : string) (xs : List string) -> addInteger 1 (go xs))
 in
 letrec
   !concatBuiltinStrings : List string -> string

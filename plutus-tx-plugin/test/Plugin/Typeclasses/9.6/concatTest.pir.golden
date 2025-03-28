@@ -4,89 +4,48 @@ letrec
     Cons : a -> List a -> List a
 in
 let
-  ~`$fFoldableList_$cfoldr` : all a b. (a -> b -> b) -> b -> List a -> b
-    = /\a b ->
-        \(f : a -> b -> b) ->
-          let
-            !f : a -> b -> b = f
-          in
-          \(z : b) ->
-            let
-              !z : b = z
-            in
-            letrec
-              ~go : List a -> b
-                = \(ds : List a) ->
-                    List_match
-                      {a}
-                      ds
-                      {all dead. b}
-                      (/\dead -> z)
-                      (\(x : a) (xs : List a) -> /\dead -> f x (go xs))
-                      {all dead. dead}
-            in
-            \(eta : List a) -> go eta
-  ~`$fFoldableList` :
-     (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) List
-    = `$fFoldableList_$cfoldr`
   ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
     = /\a ->
         \(g : all b. (a -> b -> b) -> b -> b) ->
           g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
-  ~concat :
-     all (t :: * -> *) a.
-       (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t ->
-       t (List a) ->
-       List a
-    = /\(t :: * -> *) a ->
-        \(`$dFoldable` :
-            (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t)
-         (xs : t (List a)) ->
-          let
-            !xs : t (List a) = xs
-          in
-          build
-            {a}
-            (/\b ->
-               \(c : a -> b -> b) ->
-                 let
-                   !c : a -> b -> b = c
-                 in
-                 \(n : b) ->
-                   let
-                     !n : b = n
-                   in
-                   `$dFoldable`
-                     {List a}
-                     {b}
-                     (\(x : List a) ->
-                        let
-                          !x : List a = x
-                        in
-                        \(y : b) ->
-                          let
-                            !y : b = y
-                          in
-                          letrec
-                            ~go : List a -> b
-                              = \(ds : List a) ->
-                                  List_match
-                                    {a}
-                                    ds
-                                    {all dead. b}
-                                    (/\dead -> y)
-                                    (\(x : a) (xs : List a) ->
-                                       /\dead -> c x (go xs))
-                                    {all dead. dead}
-                          in
-                          go x)
-                     n
-                     xs)
+  ~concat : all a. List (List a) -> List a
+    = /\a ->
+        letrec
+          ~go : List (List a) -> List a
+            = \(ds : List (List a)) ->
+                List_match
+                  {List a}
+                  ds
+                  {all dead. List a}
+                  (/\dead -> Nil {a})
+                  (\(x : List a) ->
+                     let
+                       !l : List a = x
+                     in
+                     \(xs : List (List a)) ->
+                       /\dead ->
+                         let
+                           !r : List a = go xs
+                         in
+                         letrec
+                           ~go : List a -> List a
+                             = \(ds : List a) ->
+                                 List_match
+                                   {a}
+                                   ds
+                                   {all dead. List a}
+                                   (/\dead -> r)
+                                   (\(x : a) (xs : List a) ->
+                                      /\dead -> Cons {a} x (go xs))
+                                   {all dead. dead}
+                         in
+                         go l)
+                  {all dead. dead}
+        in
+        \(eta : List (List a)) -> go eta
 in
 concat
-  {List}
   {integer}
-  `$fFoldableList`
   (build
      {List integer}
      (/\a ->

@@ -38,7 +38,8 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicSimple)
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
-import PlutusTx.Prelude hiding (fmap, mappend, traverse_, (<$), (<$>), (<*>), (<>))
+import PlutusTx.List
+import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 

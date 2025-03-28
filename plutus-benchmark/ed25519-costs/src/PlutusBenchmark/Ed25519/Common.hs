@@ -21,11 +21,12 @@ import System.IO (Handle)
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusTx qualified as Tx
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusTx.IsData (toData, unstableMakeIsData)
-import PlutusTx.Prelude as Tx hiding (sort, (*))
+import PlutusTx.Prelude as Tx hiding ((*))
 
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN,
                                    genKeyDSIGN, rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN,
@@ -92,9 +93,9 @@ mkInputs :: forall v msg .
     -> HashFun
     -> Inputs
 mkInputs n toMsg hash =
-    Inputs $ map mkOneInput (zip seeds1 seeds2)
+    Inputs $ List.map mkOneInput (List.zip seeds1 seeds2)
     where seedSize = 128
-          (seeds1, seeds2) = splitAt n $ listOfByteStringsOfLength (2*n) seedSize
+          (seeds1, seeds2) = List.splitAt n $ listOfByteStringsOfLength (2*n) seedSize
           -- ^ Seeds for key generation. For some algorithms the seed has to be
           -- a certain minimal size and there's a SeedBytesExhausted error if
           -- it's not big enough; 128 is big enough for everything here though.
