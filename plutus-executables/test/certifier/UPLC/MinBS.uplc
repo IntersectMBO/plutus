@@ -1,0 +1,6 @@
+(program
+  1.1.0
+  [(builtin equalsByteString)
+  	    [ (builtin blake2b_256) (con bytestring #7568) ]
+  ]
+)
