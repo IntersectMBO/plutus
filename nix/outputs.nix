@@ -58,11 +58,19 @@ let
     musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
   };
 
-  windows-packages = {
-    ghc96-mingsW64 = removeAttrs
-      (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
-      [ "devShells" ]; # Won't build on Windows
-  };
+  windows-packages =
+    let
+      getWindowsJobsForGhc = ghc:
+        removeAttrs
+          (project.projectCross.mingwW64.flake { }).hydraJobs.${ghc}
+          [ "devShells" ]; # Won't build on Windows
+    in
+    {
+      ghc810-mingwW64 = getWindowsJobsForGhc "ghc810";
+      ghc96-mingwW64 = getWindowsJobsForGhc "ghc96";
+      ghc98-mingwW64 = getWindowsJobsForGhc "ghc98";
+      ghc910-mingwW64 = getWindowsJobsForGhc "ghc910";
+    };
 
   extra-artifacts =
     { inherit unraveling-recursion-paper; } //
