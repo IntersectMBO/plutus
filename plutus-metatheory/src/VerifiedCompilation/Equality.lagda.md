@@ -3,6 +3,7 @@ title: VerifiedCompilation.Equality
 layout: page
 ---
 # Verified Compilation Equality
+
 ```
 module VerifiedCompilation.Equality where
 ```
@@ -47,6 +48,7 @@ import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
 open import Agda.Builtin.String using (String; primStringEquality)
+open import Data.Bytestring.Base using (Bytestring)
 ```
 Instances of `DecEq` will provide a Decidable Equality procedure for their type. 
 
@@ -169,9 +171,12 @@ magicBoolDec false = no magicNeg
 builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
 builtinEq x y = magicBoolDec (hsEq x y)
 
+postulate
+  eqBytestring : Bytestring -> Bytestring -> Agda.Builtin.Bool.Bool
+
 instance
-  HsEqBytestring : HsEq U.ByteString
-  HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqBytestring : HsEq Bytestring
+  HsEqBytestring = record { hsEq = eqBytestring }
   HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
   HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
   HsEqBlsG2 : HsEq U.Bls12-381-G2-Element

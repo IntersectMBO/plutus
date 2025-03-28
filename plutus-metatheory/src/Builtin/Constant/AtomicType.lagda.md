@@ -16,8 +16,9 @@ open import Data.String using (String)
 open import Data.Unit using (⊤)
 open import Relation.Binary using (DecidableEquality)
 
-open import Utils using (ByteString;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Reflection using (defDec)
+open import Data.Bytestring.Base using (Bytestring)
 
 ```
 
@@ -54,7 +55,7 @@ unquoteDef decAtomicTyCon = defDec (quote AtomicTyCon) decAtomicTyCon
 ```
 ⟦_⟧at : AtomicTyCon → Set
 ⟦ aInteger ⟧at = ℤ
-⟦ aBytestring ⟧at = ByteString
+⟦ aBytestring ⟧at = Bytestring
 ⟦ aString ⟧at = String
 ⟦ aUnit ⟧at = ⊤
 ⟦ aBool ⟧at = Bool

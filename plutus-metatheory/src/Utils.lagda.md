@@ -26,6 +26,7 @@ open import Data.Bool using (Bool)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
+open import Data.Bytestring.Base using (Bytestring)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -171,14 +172,6 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
-
-postulate
-  eqByteString : ByteString → ByteString → Bool
-{-# COMPILE GHC eqByteString = (==) #-}
-
 ```
 ## Record Types
 ```
@@ -238,7 +231,7 @@ data DATA : Set where
   MapDATA : List (DATA × DATA) → DATA
   ListDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
-  bDATA : ByteString → DATA
+  bDATA : Bytestring → DATA
 
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
 {-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
