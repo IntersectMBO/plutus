@@ -46,7 +46,7 @@ instance (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann
             sexp "force" (consAnnIf config ann
                 [prettyBy config term])
         Constr ann i es ->
-            sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) es))
+            sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) (toList es)))
         Case ann arg cs ->
             sexp "case" (consAnnIf config ann
                 (prettyBy config arg : fmap (prettyBy config) (toList cs)))
