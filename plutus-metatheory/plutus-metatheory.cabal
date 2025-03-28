@@ -12,7 +12,7 @@ author:        James Chapman
 maintainer:    james.chapman@iohk.io
 category:      Development
 data-files:
-  Plutus.agda-lib
+  plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
 
