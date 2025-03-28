@@ -1,0 +1,752 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Error</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.30.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Error.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Error</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Error" class="def"
+	    >Error</a
+	    > uni fun a <a href="src/PlutusIR.Compiler.Error.html#Error" class="link"
+	    >Source</a
+	    > <a href="#t:Error" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CompilationError" class="def"
+		  >CompilationError</a
+		  > !a !Text</td
+		><td class="doc"
+		><p
+		  >A generic compilation error.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnsupportedError" class="def"
+		  >UnsupportedError</a
+		  > !a !Text</td
+		><td class="doc"
+		><p
+		  >An error relating specifically to an unsupported feature.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PLCError" class="def"
+		  >PLCError</a
+		  > !(<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		  >Error</a
+		  > uni fun a)</td
+		><td class="doc"
+		><p
+		  >An error from running some PLC function, lifted into
+ this error type for convenience.</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Error"
+	    >Instances</h4
+	    ><details id="i:Error" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > ann) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyConfigPlc</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun ann)</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; <a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="../../prettyprinter-configurable/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; [<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann0 <a href="../../prettyprinter-configurable/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:Exception:2"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+		      >ThrowableBuiltins</a
+		      > uni fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > ann, <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > ann) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun ann)</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:Exception:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:Show:3"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > ann) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun ann)</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:AsError:4"
+		      ></span
+		      > <a href="PlutusIR-Compiler-Error.html#t:AsError" title="PlutusIR.Compiler.Error"
+		      >AsError</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun a) uni fun a</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:AsError:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_Error"
+			  >_Error</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_Error" class="link"
+			  >Source</a
+			  > <a href="#v:_Error" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CompilationError"
+			  >_CompilationError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_CompilationError" class="link"
+			  >Source</a
+			  > <a href="#v:_CompilationError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_UnsupportedError"
+			  >_UnsupportedError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_UnsupportedError" class="link"
+			  >Source</a
+			  > <a href="#v:_UnsupportedError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PLCError"
+			  >_PLCError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (<a href="../plutus-core/PlutusCore-Error.html#v:Error0" title="PlutusCore.Error"
+			  >Error0</a
+			  > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_PLCError" class="link"
+			  >Source</a
+			  > <a href="#v:_PLCError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:AsTypeError:5"
+		      ></span
+		      > <a href="PlutusIR-Error.html#t:AsTypeError" title="PlutusIR.Error"
+		      >AsTypeError</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun ann) (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		      >Name</a
+		      > uni fun ()) uni fun ann</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:AsTypeError:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_TypeError"
+			  >_TypeError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (<a href="PlutusIR-Error.html#t:TypeError" title="PlutusIR.Error"
+			  >TypeError</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  > uni fun ()) uni fun ann) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_TypeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_KindMismatch"
+			  >_KindMismatch</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > uni (), <a href="../plutus-core/PlutusCore-Error.html#t:ExpectedShapeOr" title="PlutusCore.Error"
+			  >ExpectedShapeOr</a
+			  > (<a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+			  >Kind</a
+			  > ()), <a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+			  >Kind</a
+			  > ()) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_KindMismatch" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_TypeMismatch"
+			  >_TypeMismatch</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  > uni fun (), <a href="../plutus-core/PlutusCore-Error.html#t:ExpectedShapeOr" title="PlutusCore.Error"
+			  >ExpectedShapeOr</a
+			  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > uni ()), <a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+			  >Normalized</a
+			  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > uni ())) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_TypeMismatch" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_TyNameMismatch"
+			  >_TyNameMismatch</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  >, <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  >) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_TyNameMismatch" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_NameMismatch"
+			  >_NameMismatch</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  >, <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  >) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_NameMismatch" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_FreeTypeVariableE"
+			  >_FreeTypeVariableE</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  >) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_FreeTypeVariableE" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_FreeVariableE"
+			  >_FreeVariableE</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+			  >Name</a
+			  >) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_FreeVariableE" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_UnknownBuiltinFunctionE"
+			  >_UnknownBuiltinFunctionE</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun ann) (ann, fun) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:_UnknownBuiltinFunctionE" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AsError" class="def"
+	    >AsError</a
+	    > r uni fun a | r &#8594; uni fun a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusIR.Compiler.Error.html#AsError" class="link"
+	    >Source</a
+	    > <a href="#t:AsError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusIR-Compiler-Error.html#v:_Error" title="PlutusIR.Compiler.Error"
+	      >_Error</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:_Error" class="def"
+	      >_Error</a
+	      > &#8759; Prism' r (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+	      >Error</a
+	      > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_Error" class="link"
+	      >Source</a
+	      > <a href="#v:_Error" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_CompilationError" class="def"
+	      >_CompilationError</a
+	      > &#8759; Prism' r (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_CompilationError" class="link"
+	      >Source</a
+	      > <a href="#v:_CompilationError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_UnsupportedError" class="def"
+	      >_UnsupportedError</a
+	      > &#8759; Prism' r (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_UnsupportedError" class="link"
+	      >Source</a
+	      > <a href="#v:_UnsupportedError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_PLCError" class="def"
+	      >_PLCError</a
+	      > &#8759; Prism' r (<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+	      >Error</a
+	      > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_PLCError" class="link"
+	      >Source</a
+	      > <a href="#v:_PLCError" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsError"
+	    >Instances</h4
+	    ><details id="i:AsError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AsError:AsError:1"
+		      ></span
+		      > <a href="PlutusIR-Compiler-Error.html#t:AsError" title="PlutusIR.Compiler.Error"
+		      >AsError</a
+		      > (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+		      >Error</a
+		      > uni fun a) uni fun a</span
+		    > <a href="src/PlutusIR.Compiler.Error.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:AsError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AsError:AsError:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Error.html"
+			>PlutusIR.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_Error"
+			  >_Error</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_Error" class="link"
+			  >Source</a
+			  > <a href="#v:_Error" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CompilationError"
+			  >_CompilationError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_CompilationError" class="link"
+			  >Source</a
+			  > <a href="#v:_CompilationError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_UnsupportedError"
+			  >_UnsupportedError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (a, Text) <a href="src/PlutusIR.Compiler.Error.html#_UnsupportedError" class="link"
+			  >Source</a
+			  > <a href="#v:_UnsupportedError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PLCError"
+			  >_PLCError</a
+			  > &#8759; Prism' (<a href="PlutusIR-Compiler-Error.html#t:Error" title="PlutusIR.Compiler.Error"
+			  >Error</a
+			  > uni fun a) (<a href="../plutus-core/PlutusCore-Error.html#v:Error0" title="PlutusCore.Error"
+			  >Error0</a
+			  > uni fun a) <a href="src/PlutusIR.Compiler.Error.html#_PLCError" class="link"
+			  >Source</a
+			  > <a href="#v:_PLCError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
