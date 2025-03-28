@@ -29,7 +29,7 @@ open import Data.Nat using (ℕ)
 open import Data.List using (List)
 open import Builtin using (Builtin)
 open import RawU using (TmCon)
-open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import Untyped.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; floatDelayT)
 
@@ -132,7 +132,7 @@ data FlD {X : Set} {{de : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
   floatdelay : {y y' : X ⊢} {x x' : (Maybe X) ⊢}
           → Translation FlD (subs-delay nothing x) x'
           → Translation FlD y y'
-          → UPure X y'
+          → Pure y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
 
 FloatDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
@@ -154,8 +154,8 @@ isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ...   | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x}) t b a
 ...   | proof t₁=t₁' with (isFloatDelay? t₂ t₂')
 ...     | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x₁}) t b a
-...     | proof t₂=t₂' with (isUPure? t₂')
-...     | no ¬p = ce (λ z → ¬p (UPure.FIXME t₂')) floatDelayT ast ast'
+...     | proof t₂=t₂' with (isPure? t₂')
+...     | no ¬p = ce (λ { (floatdelay x x₁ x₂) → ¬p x₂} ) floatDelayT ast ast'
 ...     | yes puret₂' = proof (floatdelay t₁=t₁' t₂=t₂' puret₂')
 
 isFloatDelay? = translation? floatDelayT isFlD?
