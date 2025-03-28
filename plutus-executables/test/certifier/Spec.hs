@@ -96,6 +96,7 @@ agdaTestCert path name = do
     (resCode, resText) <- runAgda "TestCert.agda"
     assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
 
+{-
 agdaExampleCert :: String -> Assertion
 agdaExampleCert name = do
     _ <- makeExampleM name
@@ -103,7 +104,7 @@ agdaExampleCert name = do
     assertBool ("Example " ++ name
       ++ " creates an invalid certificate: \\n" ++ resText)
       (resCode == ExitSuccess)
-
+-}
 
 -- We were just calling the nested stuff with this constant, so it
 -- might as well be constant for now.
@@ -128,8 +129,10 @@ makeTestTree = map $ makeGoldenUplcCert fixedPath
 makeSerialisationTests :: [ String ] -> [ TestTree]
 makeSerialisationTests = map (\testname -> testCase testname (agdaTestCert fixedPath testname))
 
+{-
 makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
+-}
 
 main :: IO ()
 main = do
