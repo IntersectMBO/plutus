@@ -171,12 +171,18 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
+{-# FOREIGN GHC import qualified Data.Text.Encoding as TE #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
 
-postulate
-  eqByteString : ByteString → ByteString → Bool
+data ByteString : Set where
+  encodeUtf8 : String → ByteString
+{-# COMPILE GHC ByteString = data ByteString ( ByteString )  #-}
+{-# COMPILE GHC encodeUtf8 = TE.encodeUtf8 #-}
+
+eqByteString : ByteString → ByteString → Bool
+eqByteString (encodeUtf8 s) (encodeUtf8 s') =
+  Relation.Nullary.isYes (s Data.String.≟ s')
+  
 {-# COMPILE GHC eqByteString = (==) #-}
 
 ```
