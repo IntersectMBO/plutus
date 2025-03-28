@@ -100,7 +100,8 @@ unEvalOrder (EvalOrder ts) =
 eval :: EvalTerm name uni fun a -> EvalOrder name uni fun a
 eval = EvalOrder . DList.singleton
 
-instance (PrettyBy config (Term name uni fun a)) => PrettyBy config (EvalOrder name uni fun a) where
+instance (PrettyBy config (Term name uni fun a)) =>
+  PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
 -- Terms can have Type and Term parameters.
