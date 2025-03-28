@@ -1,5 +1,6 @@
 module Spec.V1.Value where
 
+import PlutusLedgerApi.Test.QuickCheck ()
 import PlutusLedgerApi.Test.V1.Value as Value
 import PlutusLedgerApi.V1
 import PlutusTx.Numeric qualified as Numeric
