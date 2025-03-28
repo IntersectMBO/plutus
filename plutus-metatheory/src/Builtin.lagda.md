@@ -28,11 +28,12 @@ open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
+open import Data.Bytestring.Base using (Bytestring)
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
+open import Utils using (Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
@@ -60,7 +61,7 @@ data Builtin : Set where
   equalsInteger                   : Builtin
   lessThanInteger                 : Builtin
   lessThanEqualsInteger           : Builtin
-  -- Bytestrings
+  -- ByteStrings
   appendByteString                : Builtin
   consByteString                  : Builtin
   sliceByteString                 : Builtin
@@ -450,8 +451,8 @@ whose semantics are provided by a Haskell function.
 
 ```
 postulate
-  lengthBS                  : ByteString → Int
-  index                     : ByteString → Int → Int
+  lengthBS                  : Bytestring → Int
+  index                     : Bytestring → Int → Int
   div                       : Int → Int → Int
   quot                      : Int → Int → Int
   rem                       : Int → Int → Int
@@ -459,54 +460,54 @@ postulate
 
   TRACE                     : {a : Set} → String → a → a
 
-  concat                    : ByteString → ByteString → ByteString
-  cons                      : Int → ByteString → Maybe ByteString
-  slice                     : Int → Int → ByteString → ByteString
-  B<                        : ByteString → ByteString → Bool
-  B<=                       : ByteString → ByteString → Bool
-  SHA2-256                  : ByteString → ByteString
-  SHA3-256                  : ByteString → ByteString
-  BLAKE2B-256               : ByteString → ByteString
-  verifyEd25519Sig          : ByteString → ByteString → ByteString → Maybe Bool
-  verifyEcdsaSecp256k1Sig   : ByteString → ByteString → ByteString → Maybe Bool
-  verifySchnorrSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
-  equals                    : ByteString → ByteString → Bool
-  ENCODEUTF8                : String → ByteString
-  DECODEUTF8                : ByteString → Maybe String
-  serialiseDATA             : DATA → ByteString
+  concat                    : Bytestring → Bytestring → Bytestring
+  cons                      : Int → Bytestring → Maybe Bytestring
+  slice                     : Int → Int → Bytestring → Bytestring
+  B<                        : Bytestring → Bytestring → Bool
+  B<=                       : Bytestring → Bytestring → Bool
+  SHA2-256                  : Bytestring → Bytestring
+  SHA3-256                  : Bytestring → Bytestring
+  BLAKE2B-256               : Bytestring → Bytestring
+  verifyEd25519Sig          : Bytestring → Bytestring → Bytestring → Maybe Bool
+  verifyEcdsaSecp256k1Sig   : Bytestring → Bytestring → Bytestring → Maybe Bool
+  verifySchnorrSecp256k1Sig : Bytestring → Bytestring → Bytestring → Maybe Bool
+  equals                    : Bytestring → Bytestring → Bool
+  ENCODEUTF8                : String → Bytestring
+  DECODEUTF8                : Bytestring → Maybe String
+  serialiseDATA             : DATA → Bytestring
   BLS12-381-G1-add          : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-neg          : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul    : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-equal        : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
-  BLS12-381-G1-hashToGroup  : ByteString → ByteString → Maybe Bls12-381-G1-Element
-  BLS12-381-G1-compress     : Bls12-381-G1-Element → ByteString
-  BLS12-381-G1-uncompress   : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-G1-hashToGroup  : Bytestring → Bytestring → Maybe Bls12-381-G1-Element
+  BLS12-381-G1-compress     : Bls12-381-G1-Element → Bytestring
+  BLS12-381-G1-uncompress   : Bytestring → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
   BLS12-381-G2-add          : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-neg          : Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-scalarMul    : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-equal        : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
-  BLS12-381-G2-hashToGroup  : ByteString → ByteString → Maybe Bls12-381-G2-Element
-  BLS12-381-G2-compress     : Bls12-381-G2-Element → ByteString
-  BLS12-381-G2-uncompress   : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-G2-hashToGroup  : Bytestring → Bytestring → Maybe Bls12-381-G2-Element
+  BLS12-381-G2-compress     : Bls12-381-G2-Element → Bytestring
+  BLS12-381-G2-uncompress   : Bytestring → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
   BLS12-381-millerLoop      : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
   BLS12-381-mulMlResult     : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
   BLS12-381-finalVerify     : Bls12-381-MlResult → Bls12-381-MlResult → Bool
-  KECCAK-256                : ByteString → ByteString
-  BLAKE2B-224               : ByteString → ByteString
-  BStoI                     : Bool -> ByteString -> Int
-  ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
-  andBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
-  orBYTESTRING              : Bool -> ByteString -> ByteString -> ByteString
-  xorBYTESTRING             : Bool -> ByteString -> ByteString -> ByteString
-  complementBYTESTRING      : ByteString -> ByteString
-  readBIT                   : ByteString -> Int -> Maybe Bool
-  writeBITS                 : ByteString -> List Int -> Bool -> Maybe ByteString
-  replicateBYTE             : Int -> Int -> Maybe ByteString
-  shiftBYTESTRING           : ByteString -> Int -> ByteString
-  rotateBYTESTRING          : ByteString -> Int -> ByteString
-  countSetBITS              : ByteString -> Int
-  findFirstSetBIT           : ByteString -> Int
-  RIPEMD-160                : ByteString → ByteString
+  KECCAK-256                : Bytestring → Bytestring
+  BLAKE2B-224               : Bytestring → Bytestring
+  BStoI                     : Bool -> Bytestring -> Int
+  ItoBS                     : Bool -> Int -> Int -> Maybe Bytestring
+  andBYTESTRING             : Bool -> Bytestring -> Bytestring -> Bytestring
+  orBYTESTRING              : Bool -> Bytestring -> Bytestring -> Bytestring
+  xorBYTESTRING             : Bool -> Bytestring -> Bytestring -> Bytestring
+  complementBYTESTRING      : Bytestring -> Bytestring
+  readBIT                   : Bytestring -> Int -> Maybe Bool
+  writeBITS                 : Bytestring -> List Int -> Bool -> Maybe Bytestring
+  replicateBYTE             : Int -> Int -> Maybe Bytestring
+  shiftBYTESTRING           : Bytestring -> Int -> Bytestring
+  rotateBYTESTRING          : Bytestring -> Int -> Bytestring
+  countSetBITS              : Bytestring -> Int
+  findFirstSetBIT           : Bytestring -> Int
+  RIPEMD-160                : Bytestring → Bytestring
   expModINTEGER             : Int -> Int -> Int -> Maybe Int
 ```
 

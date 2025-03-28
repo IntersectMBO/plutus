@@ -103,6 +103,7 @@ library
     MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
+    MAlonzo.Code.Agda.Builtin.Word
     MAlonzo.Code.Agda.Primitive
     MAlonzo.Code.Algebra.Bundles
     MAlonzo.Code.Algebra.Bundles.Raw
@@ -151,6 +152,7 @@ library
     MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
+    MAlonzo.Code.Data.Bytestring.Primitive
     MAlonzo.Code.Data.Char.Base
     MAlonzo.Code.Data.Char.Properties
     MAlonzo.Code.Data.DifferenceList
@@ -232,6 +234,7 @@ library
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Data.Word64.Properties
+    MAlonzo.Code.Data.Word8.Primitive
     MAlonzo.Code.Declarative
     MAlonzo.Code.Effect.Applicative
     MAlonzo.Code.Effect.Choice
@@ -367,6 +370,9 @@ library
     MAlonzo.RTE.Float
 
   autogen-modules:
+    MAlonzo.Code.Agda.Builtin.Word
+    MAlonzo.Code.Data.Bytestring.Primitive
+    MAlonzo.Code.Data.Word8.Primitive
     MAlonzo.Code.Agda.Builtin.Bool
     MAlonzo.Code.Agda.Builtin.Char
     MAlonzo.Code.Agda.Builtin.Equality

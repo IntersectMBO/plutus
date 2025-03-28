@@ -17,8 +17,9 @@ open import Data.Unit using (⊤)
 open import Data.Nat using (ℕ;_+_)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
+open import Data.Bytestring.Base using (Bytestring)
 
-open import Utils using (_,_;_∷_;[];DATA;List;ByteString)
+open import Utils using (_,_;_∷_;[];DATA;List)
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
@@ -36,7 +37,7 @@ First we bring some functions from Haskell world.
 
 ```
 postulate integerSize : ℤ → CostingNat
-postulate byteStringSize : ByteString → CostingNat
+postulate byteStringSize : Bytestring → CostingNat
 postulate g1ElementSize : Utils.Bls12-381-G1-Element → CostingNat
 postulate g2ElementSize : Utils.Bls12-381-G2-Element → CostingNat
 postulate mlResultElementSize : Utils.Bls12-381-MlResult → CostingNat

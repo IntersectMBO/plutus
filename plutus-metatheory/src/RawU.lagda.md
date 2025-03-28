@@ -35,8 +35,9 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;con
 open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
+open import Data.Bytestring.Base using (Bytestring)
 
-open import Utils using (♯;ByteString;DATA;List;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (♯;DATA;List;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Decidable using (dcong;dcong₂)
 import Builtin as B
 open import Builtin using (Builtin;equals)
@@ -78,7 +79,7 @@ data Esc (a : Set) : Set where
 
 data Tag : Set → Set where
   integer              : Tag (Esc ℤ)
-  bytestring           : Tag (Esc ByteString)
+  bytestring           : Tag (Esc Bytestring)
   string               : Tag (Esc String)
   bool                 : Tag (Esc Bool)
   unit                 : Tag (Esc ⊤)
@@ -264,7 +265,7 @@ tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)
 ```
 tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A))
 tyTag2Tag (atomic aInteger) = ℤ ,, integer
-tyTag2Tag (atomic aBytestring) = ByteString ,, bytestring
+tyTag2Tag (atomic aBytestring) = Bytestring ,, bytestring
 tyTag2Tag (atomic aString) = String ,, string
 tyTag2Tag (atomic aUnit) = ⊤ ,, unit
 tyTag2Tag (atomic aBool) = Bool ,, bool
