@@ -23,7 +23,10 @@ module PlutusTx.Data.List (
     map,
     length,
     mconcat,
+    (<|),
     cons,
+    nil,
+    singleton,
     uncons,
     and,
     or,
@@ -107,9 +110,26 @@ null :: List a -> Bool
 null = B.null . coerce @_ @(BuiltinList BuiltinData)
 {-# INLINEABLE null #-}
 
+-- | Prepend an element to the list.
+infixr 5 <|
+(<|) :: (ToData a) => a -> List a -> List a
+(<|) h = coerce . BI.mkCons (toBuiltinData h) . coerce
+{-# INLINEABLE (<|) #-}
+
+-- | Synonym for `<|`.
 cons :: (ToData a) => a -> List a -> List a
-cons h = coerce . BI.mkCons (toBuiltinData h) . coerce
+cons = (<|)
 {-# INLINEABLE cons #-}
+
+-- | Construct an empty list.
+nil :: List a
+nil = List B.mkNil
+{-# INLINEABLE nil #-}
+
+-- | Create a list from a single element.
+singleton :: (ToData a) => a -> List a
+singleton a = cons a nil
+{-# INLINEABLE singleton #-}
 
 append :: List a -> List a -> List a
 append (List l) (List l') = List (go l)
@@ -122,15 +142,19 @@ append (List l) (List l') = List (go l)
 
 instance Semigroup (List a) where
     (<>) = append
+    {-# INLINEABLE (<>) #-}
 
 instance Monoid (List a) where
-    mempty = List B.mkNil
+    mempty = nil
+    {-# INLINEABLE mempty #-}
 
 instance Haskell.Semigroup  (List a) where
     (<>) = append
+    {-# INLINEABLE (<>) #-}
 
 instance Haskell.Monoid (List a) where
-    mempty = coerce @(BuiltinList BuiltinData) B.mkNil
+    mempty = nil
+    {-# INLINEABLE mempty #-}
 
 -- | Convert a data-backed list to a sums of products list.
 -- Warning: this function can be very inefficient if the list contains elements
@@ -258,7 +282,7 @@ foldMap f = go . coerce
                 let h' = unsafeFromBuiltinData h
                 in f h' <> go t
             )
-{-# INLINEABLE map #-}
+{-# INLINEABLE foldMap #-}
 
 -- | Map a function over a list.
 -- Warning: this function can be very inefficient if the list contains elements
@@ -275,7 +299,7 @@ map f = coerce go
                     (toBuiltinData $ f $ unsafeFromBuiltinData h)
                     (go t)
             )
-{-# INLINEABLE foldMap #-}
+{-# INLINEABLE map #-}
 
 -- | Get the length of a list.
 length :: List a -> Integer
