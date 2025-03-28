@@ -80,7 +80,14 @@ makeExample testname = do
 -- then try to load it in Agda.
 runAgda :: String -> IO (ExitCode, String)
 runAgda file = do
-  (exitCode, result, _) <- readProcessWithExitCode "agda" [ "-i../plutus-metatheory/src" , file ] []
+  (exitCode, result, _) <- readProcessWithExitCode
+                  "agda" [ "-i"
+                      ++ ".."
+                      ++ [System.FilePath.pathSeparator]
+                      ++ "plutus-metatheory"
+                      ++ [System.FilePath.pathSeparator]
+                      ++ "src", file ]
+                  []
   return (exitCode, result)
 
 agdaTestCert :: [ String ] -> String -> Assertion
@@ -94,7 +101,7 @@ agdaExampleCert name = do
     _ <- makeExampleM name
     (resCode, resText) <- runAgda "TestCert.agda"
     assertBool ("Example " ++ name
-      ++ " creates an invalid certificate:" ++ resText)
+      ++ " creates an invalid certificate: \\n" ++ resText)
       (resCode == ExitSuccess)
 
 
