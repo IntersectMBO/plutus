@@ -18,9 +18,12 @@ let
 
       flake.variants = {
         ghc96 = { }; # Alias for the default project
-        profiled.modules = [{
+        ghc96-profiled.modules = [{
           enableProfiling = true;
           enableLibraryProfiling = true;
+        }];
+        ghc96-coverage.modules = [{
+          doCoverage = true;
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";

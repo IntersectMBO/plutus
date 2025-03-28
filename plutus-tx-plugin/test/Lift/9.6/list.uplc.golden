@@ -1,13 +1,1 @@
-program
-  1.1.0
-  (force
-     (delay
-        (\`GHC.Types.Nil` `GHC.Types.Cons` `match_GHC.Types.List` ->
-           force `GHC.Types.Cons` 1 (force `GHC.Types.Nil`)))
-     (delay (constr 0 []))
-     (delay (\arg_0 arg_1 -> constr 1 [arg_0, arg_1]))
-     (delay
-        (\x ->
-           delay
-             (\`case_GHC.Types.Nil` `case_GHC.Types.Cons` ->
-                case x [`case_GHC.Types.Nil`, `case_GHC.Types.Cons`]))))
+program 1.1.0 (constr 1 [1, (constr 0 [])])

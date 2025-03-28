@@ -583,7 +583,7 @@ library agda-internal
     , plutus-metatheory
 
 benchmark validation-agda-cek
-  import:         lang, ghc-version-support, os-support, 
+  import:         lang, ghc-version-support, os-support,
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
   hs-source-dirs: validation/bench

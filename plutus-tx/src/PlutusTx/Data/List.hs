@@ -61,7 +61,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinData, Eq (..), Integer, Maybe (..), Monoid (..),
-                         Ord (..), Semigroup (..), fmap, id, not, pure, traceError, ($), (&&), (.),
+                         Ord (..), Semigroup (..), fmap, not, pure, traceError, ($), (&&), (.),
                          (<$>), (||))
 import Prettyprinter (Pretty (..))
 
@@ -279,12 +279,9 @@ map f = coerce go
 
 -- | Get the length of a list.
 length :: List a -> Integer
-length (List l) = go l 0
+length (List l) = go l
   where
-    go =
-        B.caseList'
-            id
-            (\_ t -> B.addInteger 1 . go t)
+    go = BI.caseList' 0 (\_ -> B.addInteger 1 . go)
 {-# INLINEABLE length #-}
 
 -- | Concatenate a list of monoids.

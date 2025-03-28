@@ -80,6 +80,7 @@ library
     PlutusTx.Coverage
     PlutusTx.Data.AssocMap
     PlutusTx.Data.List
+    PlutusTx.Data.List.TH
     PlutusTx.Either
     PlutusTx.Enum
     PlutusTx.Eq

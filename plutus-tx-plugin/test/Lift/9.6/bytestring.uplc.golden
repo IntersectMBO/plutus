@@ -1,11 +1,1 @@
-program
-  1.1.0
-  (force
-     (delay
-        (\`Lift.Spec.WrappedBS` `match_Lift.Spec.WrappedBS` ->
-           `Lift.Spec.WrappedBS`))
-     (\arg_0 -> constr 0 [arg_0])
-     (\x ->
-        delay
-          (\`case_Lift.Spec.WrappedBS` -> case x [`case_Lift.Spec.WrappedBS`]))
-     #68656c6c6f)
+program 1.1.0 (constr 0 [#68656c6c6f])

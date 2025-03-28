@@ -204,7 +204,7 @@ pluginOptions =
           desc =
             "Always inline fixed point combinators. This is generally preferable as \
             \it often enables further optimization, though it may increase script size."
-       in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
+       in (k, PluginOption typeRep (setTrue k) posInlineFix desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
        in (k, PluginOption typeRep (setTrue k) posOptimize desc [])

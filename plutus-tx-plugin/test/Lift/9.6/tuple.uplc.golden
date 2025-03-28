@@ -1,17 +1,1 @@
-program
-  1.1.0
-  (force
-     (force
-        (force
-           (delay
-              (\`GHC.Tuple.Prim.Tuple2` `match_GHC.Tuple.Prim.Tuple2` ->
-                 `GHC.Tuple.Prim.Tuple2`))
-           (delay (delay (\arg_0 arg_1 -> constr 0 [arg_0, arg_1])))
-           (delay
-              (delay
-                 (\x ->
-                    delay
-                      (\`case_GHC.Tuple.Prim.Tuple2` ->
-                         case x [`case_GHC.Tuple.Prim.Tuple2`]))))))
-     1
-     2)
+program 1.1.0 (constr 0 [1, 2])
