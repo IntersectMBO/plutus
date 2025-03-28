@@ -1,16 +1,19 @@
 (letrec
-    !go : list data -> integer
-      = \(xs : list data) ->
+    !go : data -> (\a -> list data) data -> integer
+      = \(ds : data) (eta : (\a -> list data) data) -> addInteger 1 (go eta)
+    !go : (\a -> list data) data -> integer
+      = \(ds : (\a -> list data) data) ->
           chooseList
             {data}
             {all dead. integer}
-            xs
+            ds
             (/\dead -> 0)
             (/\dead ->
                let
-                 !ds : data = headList {data} xs
+                 !x : data = headList {data} ds
+                 !eta : list data = tailList {data} ds
                in
-               addInteger 1 (go (tailList {data} xs)))
+               go x eta)
             {integer}
   in
   let
@@ -81,7 +84,7 @@
                  0
                  (modInteger
                     (let
-                      !ds : (\a -> list data) data
+                      !eta : (\a -> list data) data
                         = (let
                               r = (\a -> list data) data
                             in
@@ -189,7 +192,7 @@
                                ds)
                             (\(void : unit) -> error {(\a -> list data) data})
                     in
-                    go ds)
+                    go eta)
                     2))
               True
               False)

@@ -7,10 +7,8 @@
 
 module PlutusTx.Data.List (
     List,
-    toBuiltinList,
-    fromBuiltinList,
-    toSOP,
-    fromSOP,
+    caseList,
+    caseList',
     null,
     append,
     find,
@@ -53,6 +51,10 @@ module PlutusTx.Data.List (
     nubBy,
     nub,
     partition,
+    toBuiltinList,
+    fromBuiltinList,
+    toSOP,
+    fromSOP,
 ) where
 
 import PlutusTx.Builtins qualified as B
@@ -95,31 +97,6 @@ instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
     pretty = pretty . toSOP
 
-toBuiltinList :: List a -> BuiltinList BuiltinData
-toBuiltinList = coerce
-{-# INLINEABLE toBuiltinList #-}
-
-fromBuiltinList :: BuiltinList BuiltinData -> List a
-fromBuiltinList = coerce
-{-# INLINEABLE fromBuiltinList #-}
-
-null :: List a -> Bool
-null = B.null . coerce @_ @(BuiltinList BuiltinData)
-{-# INLINEABLE null #-}
-
-cons :: (ToData a) => a -> List a -> List a
-cons h = coerce . BI.mkCons (toBuiltinData h) . coerce
-{-# INLINEABLE cons #-}
-
-append :: List a -> List a -> List a
-append (List l) (List l') = List (go l)
-  where
-    go =
-        B.caseList'
-            l'
-            (\h t -> BI.mkCons h (go t))
-{-# INLINEABLE append #-}
-
 instance Semigroup (List a) where
     (<>) = append
 
@@ -132,30 +109,55 @@ instance Haskell.Semigroup  (List a) where
 instance Haskell.Monoid (List a) where
     mempty = coerce @(BuiltinList BuiltinData) B.mkNil
 
--- | Convert a data-backed list to a sums of products list.
--- Warning: this function can be very inefficient if the list contains elements
--- that are expensive to decode from 'BuiltinData'.
-toSOP :: (UnsafeFromData a) => List a -> [a]
-toSOP = go . coerce
-  where
-    go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
-{-# INLINEABLE toSOP #-}
+-- | Matching on `List`.
+caseList
+  :: forall a r
+   . (() -> r)
+  -- ^ nil case
+  -> (BuiltinData -> List a -> r)
+  -- ^ cons case
+  -> List a
+  -> r
+caseList n c (List l) = B.caseList n (\x -> c x . coerce) l
+{-# INLINEABLE caseList #-}
 
--- | Convert a sums of products list to a data-backed list.
--- Warning: this function can be very inefficient if the list contains elements
--- that are expensive to encode to 'BuiltinData'.
-fromSOP :: (ToData a) => [a] -> List a
-fromSOP = coerce . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
-{-# INLINEABLE fromSOP #-}
+-- | Similar to `caseList`, but note that since the arguments are evaluated strictly, @caseList' bottom f [42]@ evaluates to bottom, _not_ @f 42 []@.
+caseList'
+  :: forall a r
+   . r
+  -- ^ nil case
+  -> (BuiltinData -> List a -> r)
+  -- ^ cons case
+  -> List a
+  -> r
+caseList' n c (List l) = B.caseList' n (\x -> c x . coerce) l
+{-# INLINEABLE caseList' #-}
+
+null :: List a -> Bool
+null = B.null . coerce @_ @(BuiltinList BuiltinData)
+{-# INLINEABLE null #-}
+
+cons :: (ToData a) => a -> List a -> List a
+cons h = coerce . BI.mkCons (toBuiltinData h) . coerce
+{-# INLINEABLE cons #-}
+
+append :: List a -> List a -> List a
+append l (List l') = List (go l)
+  where
+    go =
+        caseList'
+            l'
+            (\h t -> BI.mkCons h (go t))
+{-# INLINEABLE append #-}
 
 -- | Find the first element that satisfies a predicate.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 find :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe a
-find pred' = go . coerce
+find pred' = go
   where
     go =
-        B.caseList'
+        caseList'
             Nothing
             (\h t ->
                 let h' = unsafeFromBuiltinData h
@@ -170,10 +172,10 @@ find pred' = go . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 findIndices :: (UnsafeFromData a) => (a -> Bool) -> List a -> List Integer
-findIndices pred' = go 0 . coerce
+findIndices pred' = go 0
   where
     go i =
-        B.caseList'
+        caseList'
             mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
@@ -189,10 +191,10 @@ findIndices pred' = go 0 . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
-filter pred1 = go . coerce
+filter pred1 = go
   where
     go =
-        B.caseList'
+        caseList'
             mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
@@ -205,10 +207,10 @@ filter pred1 = go . coerce
 -- that are expensive to decode from 'BuiltinData', or if the result of applying
 -- 'f' is expensive to encode to 'BuiltinData'.
 mapMaybe :: (UnsafeFromData a, ToData b) => (a -> Maybe b) -> List a -> List b
-mapMaybe f = go . coerce
+mapMaybe f = go
   where
     go =
-        B.caseList'
+        caseList'
             mempty
             (\h t ->
                 case f (unsafeFromBuiltinData h) of
@@ -221,10 +223,10 @@ mapMaybe f = go . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 any :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-any pred1 = go . coerce
+any pred1 = go
   where
     go =
-        B.caseList'
+        caseList'
             False
             (\h t ->
                 pred1 (unsafeFromBuiltinData h) || go t
@@ -235,10 +237,10 @@ any pred1 = go . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 all :: (UnsafeFromData a) => (a -> Bool) -> List a -> Bool
-all pred1 = go . coerce
+all pred1 = go
   where
     go =
-        B.caseList'
+        caseList'
             True
             (\h t ->
                 pred1 (unsafeFromBuiltinData h) && go t
@@ -249,49 +251,49 @@ all pred1 = go . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 foldMap :: (UnsafeFromData a, Monoid m) => (a -> m) -> List a -> m
-foldMap f = go . coerce
+foldMap f = go
   where
     go =
-        B.caseList'
+        caseList'
             mempty
             (\h t ->
                 let h' = unsafeFromBuiltinData h
                 in f h' <> go t
             )
-{-# INLINEABLE map #-}
+{-# INLINEABLE foldMap #-}
 
 -- | Map a function over a list.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData', or if the result of applying
 -- 'f' is expensive to encode to 'BuiltinData'.
 map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
-map f = coerce go
+map f = coerce . go
   where
     go =
-        B.caseList'
+        caseList'
             B.mkNil
             (\h t ->
                 BI.mkCons
                     (toBuiltinData $ f $ unsafeFromBuiltinData h)
                     (go t)
             )
-{-# INLINEABLE foldMap #-}
+{-# INLINEABLE map #-}
 
 -- | Get the length of a list.
 length :: List a -> Integer
-length (List l) = go l
+length = go
   where
-    go = BI.caseList' 0 (\_ -> B.addInteger 1 . go)
+    go = caseList' 0 (\_ -> B.addInteger 1 . go)
 {-# INLINEABLE length #-}
 
 -- | Concatenate a list of monoids.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 mconcat :: (Monoid a, UnsafeFromData a) => List a -> a
-mconcat = go . coerce
+mconcat = go
   where
     go =
-        B.caseList'
+        caseList'
             mempty
             (\h t ->
                 unsafeFromBuiltinData h <> go t
@@ -309,10 +311,10 @@ uncons (List l) = do
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 and :: List Bool -> Bool
-and = go . coerce
+and = go
   where
     go =
-        B.caseList'
+        caseList'
             True
             (\h t ->
                 unsafeFromBuiltinData h && go t
@@ -323,10 +325,10 @@ and = go . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 or :: List Bool -> Bool
-or = go . coerce
+or = go
   where
     go =
-        B.caseList'
+        caseList'
             False
             (\h t ->
                 unsafeFromBuiltinData h || go t
@@ -337,11 +339,11 @@ or = go . coerce
 -- Note: this function can leverage the better performance of equality checks
 -- for 'BuiltinData'.
 elem :: (ToData a) => a -> List a -> Bool
-elem x = go . coerce
+elem x = go
   where
     go =
         let x' = toBuiltinData x
-        in B.caseList'
+        in caseList'
             False
             (\h t ->
                 x' == h || go t
@@ -357,10 +359,10 @@ notElem x = not . elem x
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
-foldr f z = go z . coerce
+foldr f = go
   where
     go u =
-        B.caseList'
+        caseList'
             u
             (\h ->
                 f (unsafeFromBuiltinData h) . go u
@@ -371,10 +373,10 @@ foldr f z = go z . coerce
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 foldl :: (UnsafeFromData a) => (b -> a -> b) -> b -> List a -> b
-foldl f z = go z . coerce
+foldl f = go
   where
     go acc =
-        B.caseList'
+        caseList'
             acc
             (\h t ->
                 let h' = unsafeFromBuiltinData h
@@ -412,13 +414,13 @@ uniqueElement (List l) = do
 -- Note: this function has the same precedence as (!!) from 'PlutusTx.List'.
 infixl 9 !!
 (!!) :: (UnsafeFromData a) => List a -> Integer -> a
-(List l) !! n =
+l !! n =
     if B.lessThanInteger n 0
         then traceError negativeIndexError
         else go n l
   where
     go n' =
-        B.caseList
+        caseList
             (\() -> traceError indexTooLargeError)
             (\h t ->
                 if B.equalsInteger n' 0
@@ -457,10 +459,10 @@ replicate n (toBuiltinData -> x) = coerce $ go n
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
-findIndex pred' = go 0 . coerce
+findIndex pred' = go 0
   where
     go i =
-        B.caseList'
+        caseList'
             Nothing
             (\h t ->
                 if pred' (unsafeFromBuiltinData h) then Just i else go (B.addInteger 1 i) t
@@ -469,12 +471,11 @@ findIndex pred' = go 0 . coerce
 
 -- | Split a list of pairs into a pair of lists.
 unzip :: forall a b . List (a, b) -> (List a, List b)
-unzip =
-    coerce go
+unzip = coerce . go
   where
-    go :: BuiltinList BuiltinData -> (BuiltinList BuiltinData, BuiltinList BuiltinData)
+    go :: List (a, b) -> (BuiltinList BuiltinData, BuiltinList BuiltinData)
     go =
-        B.caseList'
+        caseList'
             (B.mkNil, B.mkNil)
             (\h t ->
                 let (a, b) = unsafeFromBuiltinData h
@@ -526,18 +527,14 @@ head =
 -- | Return the last element of a list.
 -- Warning: this is a partial function and will fail if the list is empty.
 last :: forall a . (UnsafeFromData a) => List a -> a
-last =
-    coerce
-        @(BuiltinList BuiltinData -> a)
-        @(List a -> a)
-        (unsafeFromBuiltinData . go)
+last = unsafeFromBuiltinData . go
   where
-    go :: BuiltinList BuiltinData -> BuiltinData
+    go :: List a -> BuiltinData
     go =
-        B.caseList
+        caseList
             (\() -> traceError lastEmptyListError)
             (\h t ->
-                if B.null t
+                if null t
                     then h
                     else go t
             )
@@ -676,5 +673,29 @@ partition pred1 l =
                     else (l1, h `BI.mkCons` l2)
             )
 {-# INLINEABLE partition #-}
+
+toBuiltinList :: List a -> BuiltinList BuiltinData
+toBuiltinList = coerce
+{-# INLINEABLE toBuiltinList #-}
+
+fromBuiltinList :: BuiltinList BuiltinData -> List a
+fromBuiltinList = coerce
+{-# INLINEABLE fromBuiltinList #-}
+
+-- | Convert a data-backed list to a sums of products list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to decode from 'BuiltinData'.
+toSOP :: (UnsafeFromData a) => List a -> [a]
+toSOP = go . coerce
+  where
+    go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
+{-# INLINEABLE toSOP #-}
+
+-- | Convert a sums of products list to a data-backed list.
+-- Warning: this function can be very inefficient if the list contains elements
+-- that are expensive to encode to 'BuiltinData'.
+fromSOP :: (ToData a) => [a] -> List a
+fromSOP = coerce . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
+{-# INLINEABLE fromSOP #-}
 
 makeLift ''List
