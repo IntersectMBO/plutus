@@ -29,6 +29,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 -- | No emitter.
 noEmitter :: EmitterMode uni fun
 noEmitter = EmitterMode $ \_ -> pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
+{-# INLINABLE noEmitter #-}
 
 -- | Emits log only.
 logEmitter :: EmitterMode uni fun
@@ -36,6 +37,7 @@ logEmitter = EmitterMode $ \_ -> do
   logsRef <- newSTRef DList.empty
   let emitter logs = CekM $ modifySTRef logsRef (`DList.append` logs)
   pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
+{-# INLINABLE logEmitter #-}
 
 -- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is
 -- annoying since we're recording the output line-by-line.
