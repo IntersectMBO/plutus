@@ -1,0 +1,20 @@
+(program
+   1.1.0
+   ((\go eta -> go eta)
+      ((\s -> s s)
+         (\s xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay (constr 1 []))
+                 (delay
+                    ((\h ->
+                        (\t ->
+                           force
+                             (force
+                                (force ifThenElse
+                                   (lessThanInteger (unIData h) 8)
+                                   (delay (delay (s s t)))
+                                   (delay (delay (constr 0 []))))))
+                          (force tailList xs))
+                       (force headList xs))))))))

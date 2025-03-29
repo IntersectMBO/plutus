@@ -933,7 +933,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- <error func> <overall type> <message>
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
-    GHC.Var n `GHC.App` GHC.Type ty
+    (strip -> GHC.Var n) `GHC.App` GHC.Type ty
       | GHC.getName n == mkNilOpaqueName -> case ty of
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->

@@ -6,6 +6,7 @@ import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
+import DataList.Budget.Spec qualified as DataList.Budget
 import Inline.Spec qualified as Inline
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
 import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified
@@ -45,6 +46,7 @@ tests =
     , Lib.tests
     , Budget.tests
     , AsData.Budget.tests
+    , DataList.Budget.tests
     , Inline.tests
     , Recursion.tests
     , Optimization.tests
