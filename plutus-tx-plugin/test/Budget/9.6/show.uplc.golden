@@ -150,8 +150,7 @@
                                                                                   , ds ])))
                                                                          (delay
                                                                             (delay
-                                                                               (force
-                                                                                  go
+                                                                               (go
                                                                                   n
                                                                                   ds))))))
                                                                 (divideInteger
@@ -173,53 +172,44 @@
                         ((\s ->
                             s s)
                            (\s
-                             arg ->
-                              delay
-                                (\ds
-                                  ds ->
-                                   force
-                                     (case
-                                        ds
-                                        [ (delay
-                                             (constr 0
-                                                [(constr 0 []), (constr 0 [])]))
-                                        , (\y
-                                            ys ->
-                                             delay
-                                               (force
-                                                  (force
-                                                     (force
-                                                        ifThenElse
-                                                        (equalsInteger 1 ds)
-                                                        (delay
-                                                           (delay
-                                                              (constr 0
-                                                                 [ (constr 1
-                                                                      [ y
-                                                                      , (constr 0
-                                                                           [  ]) ])
-                                                                 , ys ])))
-                                                        (delay
-                                                           (delay
-                                                              (case
-                                                                 (force
-                                                                    (s
-                                                                       s
-                                                                       (delay
-                                                                          (\x ->
-                                                                             x)))
-                                                                    (subtractInteger
-                                                                       ds
-                                                                       1)
-                                                                    ys)
-                                                                 [ (\zs
-                                                                     ws ->
-                                                                      constr 0
-                                                                        [ (constr 1
-                                                                             [ y
-                                                                             , zs ])
-                                                                        , ws ]) ]))))))) ])))
-                           (delay (\x -> x))))
+                             ds
+                             ds ->
+                              force
+                                (case
+                                   ds
+                                   [ (delay
+                                        (constr 0
+                                           [(constr 0 []), (constr 0 [])]))
+                                   , (\y
+                                       ys ->
+                                        delay
+                                          (force
+                                             (force
+                                                (force
+                                                   ifThenElse
+                                                   (equalsInteger 1 ds)
+                                                   (delay
+                                                      (delay
+                                                         (constr 0
+                                                            [ (constr 1
+                                                                 [ y
+                                                                 , (constr 0
+                                                                      []) ])
+                                                            , ys ])))
+                                                   (delay
+                                                      (delay
+                                                         (case
+                                                            ((\x -> s s x)
+                                                               (subtractInteger
+                                                                  ds
+                                                                  1)
+                                                               ys)
+                                                            [ (\zs
+                                                                ws ->
+                                                                 constr 0
+                                                                   [ (constr 1
+                                                                        [y, zs])
+                                                                   , ws ]) ]))))))) ]))))
                      ((\s -> s s)
                         (\s x lim ->
                            force
