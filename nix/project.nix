@@ -111,6 +111,7 @@ let
 
         {
           packages = {
+            docusaurus-examples.ghcOptions = [ "-Werror" ];
             cardano-constitution.ghcOptions = [ "-Werror" ];
             plutus-benchmark.ghcOptions = [ "-Werror" ];
             plutus-conformance.ghcOptions = [ "-Werror" ];
