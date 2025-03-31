@@ -104,11 +104,10 @@ let
   agda-project-module-patch-default =
     agda-project-module-patch { compiler-nix-name = "ghc"; };
 
-  agda-project-module-patch-musl64 = agda-project-module-patch {
-    compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
-  };
+  agda-project-module-patch-musl64 =
+    agda-project-module-patch { compiler-nix-name = "x86_64-unknown-linux-musl-ghc"; };
 
-  agda-with-stdlib = agda-packages.agda; ##.withPackages [ agda-stdlib ];
+  agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
