@@ -1,4 +1,4 @@
-{ pkgs, lib, agda-with-stdlib, build-latex }:
+{ pkgs, lib, agda-tools, build-latex }:
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
@@ -22,7 +22,7 @@ build-latex {
     ".lagda"
   ];
 
-  buildInputs = lib.optionals withAgda [ agda-with-stdlib ];
+  buildInputs = lib.optionals withAgda [ agda-tools.agda-with-stdlib ];
 
   texInputs = {
     inherit (pkgs.texlive)

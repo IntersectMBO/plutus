@@ -128,4 +128,4 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
 #endif
 
     agdaProgram :: D.ConfiguredProgram
-    agdaProgram = D.simpleConfiguredProgram "agda" (D.FoundOnSystem "agda")
+    agdaProgram = D.simpleConfiguredProgram "agda-with-stdlib" (D.FoundOnSystem "agda")

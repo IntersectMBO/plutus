@@ -1,4 +1,4 @@
-{ self, pkgs, lib, build-latex, agda-with-stdlib }:
+{ self, pkgs, lib, build-latex, agda-tools }:
 
 let
   artifacts = pkgs.runCommand "FIR-compiler"
@@ -26,7 +26,7 @@ build-latex {
       collection-mathscience acmart bibtex biblatex;
   };
 
-  buildInputs = [ agda-with-stdlib pkgs.zip ];
+  buildInputs = [ agda-tools.agda-with-stdlib pkgs.zip ];
 
   src =
     lib.sourceFilesBySuffices (self + /doc/papers/unraveling-recursion) [

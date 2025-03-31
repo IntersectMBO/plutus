@@ -1,4 +1,4 @@
-{ pkgs, lib }:
+{ self, pkgs, lib, metatheory-agda-library }:
 
 let
 
@@ -104,11 +104,46 @@ let
   agda-project-module-patch-default =
     agda-project-module-patch { compiler-nix-name = "ghc"; };
 
-  agda-project-module-patch-musl64 = agda-project-module-patch {
-    compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
+  agda-project-module-patch-musl64 =
+    agda-project-module-patch { compiler-nix-name = "x86_64-unknown-linux-musl-ghc"; };
+
+  metatheory-agda-package = agda-packages.mkDerivation {
+    name = "plutus-metatheory";
+    pname = "plutus-metatheory";
+    src = self + /plutus-metatheory;
+    buildInputs = [ agda-stdlib ];
+    postPatch = ''
+      find src -name '*.agda' \
+        | sed -e 's|^src/[/]*|import |' -e 's|/|.|g' -e 's/.agda//' -e '/import Everything/d' \
+        | LC_COLLATE='C' sort \
+        > Everything.agda
+    '';
+    meta = { };
   };
 
-  agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
+  agda = agda-project.hsPkgs.Agda.components.exes.agda;
+
+  agda-mode = agda-project.hsPkgs.Agda.components.exes.agda-mode;
+
+  agda-with-stdlib = pkgs.stdenv.mkDerivation {
+    name = "agda-with-stdlib";
+    phases = "installPhase";
+    OLD_AGDA = agda-packages.agda.withPackages [ agda-stdlib ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $OLD_AGDA/bin/agda $out/bin/agda-with-stdlib
+    '';
+  };
+
+  agda-with-stdlib-and-metatheory = pkgs.stdenv.mkDerivation {
+    name = "agda-with-stdlib-and-metatheory";
+    phases = "installPhase";
+    OLD_AGDA = agda-packages.agda.withPackages [ agda-stdlib metatheory-agda-package ];
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $OLD_AGDA/bin/agda $out/bin/agda-with-stdlib-and-metatheory
+    '';
+  };
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";
@@ -120,4 +155,4 @@ let
 
 in
 
-agda-with-stdlib
+{ inherit agda-packages agda agda-mode agda-with-stdlib agda-with-stdlib-and-metatheory; }

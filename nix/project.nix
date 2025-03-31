@@ -1,5 +1,5 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, agda-with-stdlib, r-with-packages, utils }:
+{ inputs, pkgs, lib, agda-tools, r-with-packages, utils }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
@@ -42,13 +42,7 @@ let
           packages = {
 
             plutus-metatheory.components.library.build-tools =
-              [ agda-with-stdlib ];
-
-            # plutus-metatheory.components.exes.plc-agda.build-tools =
-            #   [ agda-with-stdlib ];
-
-            # plutus-metatheory.components.tests.test-NEAT.build-tools =
-            #   [ agda-with-stdlib ];
+              [ agda-tools.agda-with-stdlib ];
 
             plutus-executables.components.exes.pir = {
               preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
@@ -63,14 +57,10 @@ let
             plutus-executables.components.exes.uplc = {
               preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
               ghcOptions = ghc-options-for-static-exe;
-              # build-tools = [ agda-with-stdlib ];
             };
 
-            # plutus-executables.components.tests.test-simple.build-tools =
-            #   [ agda-with-stdlib ];
-
-            # plutus-executables.components.tests.test-detailed.build-tools =
-            #   [ agda-with-stdlib ];
+            plutus-executables.components.tests.test-certifier.build-tools =
+              [ agda-tools.agda-with-stdlib-and-metatheory ];
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];

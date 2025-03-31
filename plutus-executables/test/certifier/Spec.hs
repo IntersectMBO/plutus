@@ -81,20 +81,8 @@ makeExample testname = do
 -- then try to load it in Agda.
 runAgda :: String -> IO (ExitCode, String)
 runAgda file = do
-  -- setupAgdaEnv
-  (exitCode, result, _) <- readProcessWithExitCode "agda" [file] []
+  (exitCode, result, _) <- readProcessWithExitCode "agda-with-stdlib-and-metatheory" [file] []
   return (exitCode, result)
-  -- where
-  --   setupAgdaEnv :: IO ()
-  --   setupAgdaEnv = do
-  --     tempDir <- Dir.createTempDirectory "/tmp" "agda_temp"
-  --     let defaultsFile = tempDir </> "defaults"
-  --     let librariesFile = tempDir </> "libraries"
-  --     metatheoryAgdaLib <- Paths_plutus_metatheory.getDataFileName "plutus-metatheory.agda-lib"
-  --     agdaStdlib <- Env.getEnv "AGDA_STDLIB"
-  --     IO.writeFile librariesFile (metatheoryAgdaLib <> "\n" <> agdaStdlib)
-  --     IO.writeFile defaultsFile "plutus-metatheory\nstandard-library-2.1.1\n"
-  --     Env.setEnv "AGDA_DIR" tempDir
 
 
 agdaTestCert :: [ String ] -> String -> Assertion
