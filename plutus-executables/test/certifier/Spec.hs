@@ -11,7 +11,7 @@ import Paths_plutus_metatheory qualified as Paths_plutus_metatheory
 import System.Environment qualified as Env
 import System.Exit
 import System.FilePath
-import System.IO qualified as IO
+import System.IO
 import System.Process
 import Test.Tasty
 import Test.Tasty.Extras (goldenVsTextM)
