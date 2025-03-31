@@ -4,23 +4,23 @@ let
     False : Bool
 in
 letrec
-  !go : list data -> Bool
-    = \(xs : list data) ->
+  !go : (\a -> list data) integer -> Bool
+    = \(ds : (\a -> list data) integer) ->
         chooseList
           {data}
           {all dead. Bool}
-          xs
+          ds
           (/\dead -> False)
           (/\dead ->
              let
-               !h : data = headList {data} xs
-               !t : list data = tailList {data} xs
+               !x : data = headList {data} ds
+               !eta : list data = tailList {data} ds
              in
              Bool_match
-               (ifThenElse {Bool} (lessThanInteger (unIData h) 8) False True)
+               (ifThenElse {Bool} (lessThanInteger (unIData x) 8) False True)
                {all dead. Bool}
                (/\dead -> True)
-               (/\dead -> go t)
+               (/\dead -> go eta)
                {all dead. dead})
           {Bool}
 in
