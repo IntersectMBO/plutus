@@ -83,11 +83,13 @@ let
   # to pass it in.
   agda-project-module-patch = { compiler-nix-name }: {
     packages.Agda.package.buildType = lib.mkForce "Simple";
-    packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
+    packages.Agda.components.library.enableSeparateDataOutput =
+      lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library
       ${compiler-nix-name} src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
       # Find all the files in $data
       shopt -s globstar
       files=($data/**/*.agda)
@@ -102,8 +104,9 @@ let
   agda-project-module-patch-default =
     agda-project-module-patch { compiler-nix-name = "ghc"; };
 
-  agda-project-module-patch-musl64 =
-    agda-project-module-patch { compiler-nix-name = "x86_64-unknown-linux-musl-ghc"; };
+  agda-project-module-patch-musl64 = agda-project-module-patch {
+    compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
+  };
 
   agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
 

@@ -8,16 +8,14 @@ module Main (main) where
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import GHC.IO.Encoding (setLocaleEncoding)
 import Paths_plutus_metatheory qualified as Paths_plutus_metatheory
-import System.Directory qualified as Dir
 import System.Environment qualified as Env
 import System.Exit
 import System.FilePath
 import System.IO qualified as IO
 import System.Process
 import Test.Tasty
-import Test.Tasty.HUnit
-
 import Test.Tasty.Extras (goldenVsTextM)
+import Test.Tasty.HUnit
 
 {- | Run an external executable with some arguments.  This is for use inside
     HUnit Assertions -}
@@ -83,20 +81,20 @@ makeExample testname = do
 -- then try to load it in Agda.
 runAgda :: String -> IO (ExitCode, String)
 runAgda file = do
-  setupAgdaEnv
+  -- setupAgdaEnv
   (exitCode, result, _) <- readProcessWithExitCode "agda" [file] []
   return (exitCode, result)
-  where
-    setupAgdaEnv :: IO ()
-    setupAgdaEnv = do
-      tempDir <- Dir.createTempDirectory "/tmp" "agda_temp"
-      let defaultsFile = tempDir </> "defaults"
-      let librariesFile = tempDir </> "libraries"
-      metatheoryAgdaLib <- Paths_plutus_metatheory.getDataFileName "plutus-metatheory.agda-lib"
-      agdaStdlib <- Env.getEnv "AGDA_STDLIB"
-      IO.writeFile librariesFile (metatheoryAgdaLib <> "\n" <> agdaStdlib)
-      IO.writeFile defaultsFile "plutus-metatheory\nstandard-library-2.1.1\n"
-      Env.setEnv "AGDA_DIR" tempDir
+  -- where
+  --   setupAgdaEnv :: IO ()
+  --   setupAgdaEnv = do
+  --     tempDir <- Dir.createTempDirectory "/tmp" "agda_temp"
+  --     let defaultsFile = tempDir </> "defaults"
+  --     let librariesFile = tempDir </> "libraries"
+  --     metatheoryAgdaLib <- Paths_plutus_metatheory.getDataFileName "plutus-metatheory.agda-lib"
+  --     agdaStdlib <- Env.getEnv "AGDA_STDLIB"
+  --     IO.writeFile librariesFile (metatheoryAgdaLib <> "\n" <> agdaStdlib)
+  --     IO.writeFile defaultsFile "plutus-metatheory\nstandard-library-2.1.1\n"
+  --     Env.setEnv "AGDA_DIR" tempDir
 
 
 agdaTestCert :: [ String ] -> String -> Assertion
