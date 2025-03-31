@@ -43,9 +43,6 @@ library docusaurus-code
     , plutus-ledger-api  ^>=1.43
     , plutus-tx          ^>=1.43
 
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin ^>=1.43
-
 executable example-cip57
   import:           lang, ghc-version-support, os-support
   main-is:          Example/Cip57/Blueprint/Main.hs
@@ -70,6 +67,3 @@ executable quickstart
     , bytestring
     , plutus-ledger-api  ^>=1.43
     , plutus-tx          ^>=1.43
-
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin ^>=1.43
