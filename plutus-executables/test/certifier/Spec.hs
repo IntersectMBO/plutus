@@ -7,7 +7,6 @@ module Main (main) where
 
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import GHC.IO.Encoding (setLocaleEncoding)
-import Paths_plutus_metatheory qualified as Paths_plutus_metatheory
 import System.Exit
 import System.FilePath
 import System.IO
