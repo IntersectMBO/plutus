@@ -67,7 +67,7 @@ let
     in
     {
       ghc96-mingwW64 = getWindowsJobsForGhc "ghc96";
-      ghc98-mingwW64 = getWindowsJobsForGhc "ghc98";
+      ghc910-mingwW64 = getWindowsJobsForGhc "ghc910";
     };
 
   extra-artifacts =
