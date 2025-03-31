@@ -16,8 +16,8 @@
                 [
                   (builtin multiplyInteger)
                   [
-                    [ (builtin multiplyInteger) (con integer 1) ]
-                    (con integer 2)
+                    [ (builtin divideInteger) (con integer 1) ]
+                    (con integer 0)
                   ]
                 ]
                 (con integer 0)
@@ -45,7 +45,7 @@
               (builtin multiplyInteger)
               (con integer 0)
             ]
-            [ [ (builtin multiplyInteger) (con integer 1) ] (con integer 2) ]
+            [ [ (builtin divideInteger) (con integer 1) ] (con integer 0) ]
           ]
         )
         (con integer 1)
