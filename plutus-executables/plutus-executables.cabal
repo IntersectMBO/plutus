@@ -178,7 +178,6 @@ test-suite test-certifier
     , process
     , tasty
     , tasty-hunit
-    , temporary
     , text
 
   build-tool-depends:
