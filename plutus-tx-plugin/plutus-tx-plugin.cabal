@@ -132,6 +132,7 @@ test-suite plutus-tx-plugin-tests
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
     ByteStringLiterals.Spec
+    DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
