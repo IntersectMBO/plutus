@@ -81,6 +81,9 @@ srcTests =
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
   -- , "len"
+  -- TODO: This doesn't certify because of a missmatch in the purity
+  -- definition between the certifier and the Haskell.
+  -- , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]

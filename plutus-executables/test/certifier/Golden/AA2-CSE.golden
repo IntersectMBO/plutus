@@ -1,0 +1,23 @@
+(program
+  1.1.0
+  [
+    (lam
+      cse-42
+      [
+        [
+          (builtin addInteger)
+          [
+            (lam x2-43 [ [ (builtin multiplyInteger) cse-42 ] (con integer 0) ])
+            [
+              [ (builtin lessThanEqualsInteger) (con integer 0) ]
+              (con integer 0)
+            ]
+          ]
+        ]
+        [ [ (builtin multiplyInteger) (con integer 0) ] cse-42 ]
+      ]
+    )
+    [ [ (builtin multiplyInteger) (con integer 1) ] (con integer 2) ]
+  ]
+)
+The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate.
