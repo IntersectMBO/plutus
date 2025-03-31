@@ -117,6 +117,7 @@ let
     shellHook = ''
       ${pre-commit-check.shellHook}
       ${locale-archive-hook}
+      export NIX_AGDA_STDLIB=${agda-tools.NIX_AGDA_STDLIB}
       export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "
       echo -e "\n🤟 Welcome to Plutus 🤟"
     '';

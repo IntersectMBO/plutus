@@ -153,6 +153,15 @@ let
     modules = [ agda-project-module-patch-default ];
   };
 
+  NIX_AGDA_STDLIB = "${agda-stdlib}/stadard-library.agda-lib";
 in
 
-{ inherit agda-packages agda agda-mode agda-with-stdlib agda-with-stdlib-and-metatheory; }
+{
+  inherit
+    agda-packages
+    agda
+    agda-mode
+    agda-with-stdlib
+    agda-with-stdlib-and-metatheory
+    NIX_AGDA_STDLIB;
+}
