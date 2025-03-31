@@ -82,11 +82,9 @@ makeExample testname = do
 runAgda :: String -> IO (ExitCode, String)
 runAgda file = do
   plutusMetatheoryAgdaLibSrc <- Paths_plutus_metatheory.getDataFileName "src"
-  (exitCode, result, _) <-
-    readProcessWithExitCode
-      "/nix/store/3vp8iaxwx34rfizwrj3sx3jhj9l3an2q-agda/bin/agda"
-      ["--with-compiler=/nix/store/njrn9ry2hc82jk5wfvj6ld5dj01l41f8-ghc-shell-for-packages-ghc-9.6.6-env/bin/ghc", file] []
-      -- [ "-i" ++ plutusMetatheoryAgdaLibSrc, "-i/nix/store/j56804kxj67326j0llc3isrr8njxqlw3-standard-library-2.1.1/src", file ] []
+  -- agdaStdLibSrc <- Paths_plutus_metatheory.getDataFileName ("agda-stdlib-2.1.1" </> "src")
+  (exitCode, result, _) <- readProcessWithExitCode "agda"
+    ["-i" ++ plutusMetatheoryAgdaLibSrc, file] []
   return (exitCode, result)
 
 agdaTestCert :: [ String ] -> String -> Assertion

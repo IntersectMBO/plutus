@@ -17,9 +17,6 @@ let
   r-with-packages = import ./r-with-packages.nix
     { inherit pkgs; };
 
-  agda = import ./agda.nix
-    { inherit pkgs lib; };
-
   agda-with-stdlib = import ./agda-with-stdlib.nix
     { inherit pkgs lib; };
 
