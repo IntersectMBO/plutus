@@ -108,7 +108,7 @@ let
     compiler-nix-name = "x86_64-unknown-linux-musl-ghc";
   };
 
-  agda-with-stdlib = agda-packages.agda.withPackages [ agda-stdlib ];
+  agda-with-stdlib = agda-packages.agda; ##.withPackages [ agda-stdlib ];
 
   agda-project = pkgs.haskell-nix.hackage-project {
     name = "Agda";

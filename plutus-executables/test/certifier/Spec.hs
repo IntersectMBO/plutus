@@ -7,6 +7,7 @@ module Main (main) where
 
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import GHC.IO.Encoding (setLocaleEncoding)
+import Paths_plutus_metatheory qualified as Paths_plutus_metatheory
 import System.Exit
 import System.FilePath
 import System.IO
@@ -80,14 +81,12 @@ makeExample testname = do
 -- then try to load it in Agda.
 runAgda :: String -> IO (ExitCode, String)
 runAgda file = do
-  (exitCode, result, _) <- readProcessWithExitCode
-                  "agda" [ "-i"
-                      ++ ".."
-                      ++ [System.FilePath.pathSeparator]
-                      ++ "plutus-metatheory"
-                      ++ [System.FilePath.pathSeparator]
-                      ++ "src", file ]
-                  []
+  plutusMetatheoryAgdaLibSrc <- Paths_plutus_metatheory.getDataFileName "src"
+  (exitCode, result, _) <- 
+    readProcessWithExitCode 
+      "/nix/store/3vp8iaxwx34rfizwrj3sx3jhj9l3an2q-agda/bin/agda" 
+      ["--with-compiler=/nix/store/njrn9ry2hc82jk5wfvj6ld5dj01l41f8-ghc-shell-for-packages-ghc-9.6.6-env/bin/ghc", file] [] 
+      -- [ "-i" ++ plutusMetatheoryAgdaLibSrc, "-i/nix/store/j56804kxj67326j0llc3isrr8njxqlw3-standard-library-2.1.1/src", file ] []
   return (exitCode, result)
 
 agdaTestCert :: [ String ] -> String -> Assertion
