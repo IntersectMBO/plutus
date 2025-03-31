@@ -167,12 +167,9 @@
                                       (\x -> s s x))))
                            ((\s -> s s)
                               (\s ds ->
-                                 force
-                                   (case
-                                      ds
-                                      [ (delay 0)
-                                      , (\x xs ->
-                                           delay (addInteger 1 (s s xs))) ]))))
+                                 case
+                                   ds
+                                   [0, (\ds xs -> addInteger 1 (s s xs))])))
                         ((\s ->
                             s s)
                            (\s

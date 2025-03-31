@@ -33,8 +33,8 @@ import PlutusTx.AssocMap (Map)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.IsData (FromData, ToData, UnsafeFromData, makeIsDataIndexed, unstableMakeIsData)
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), any,
-                         (&&))
+import PlutusTx.List qualified as List
+import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), (&&))
 import Prelude qualified as Haskell
 
 deriving stock instance Data POSIXTime
@@ -465,7 +465,7 @@ emptyState sn =
 
 -- | Check if a 'num' is withint a list of inclusive bounds.
 inBounds :: ChosenNum -> [Bound] -> Bool
-inBounds num = any (\(Bound l u) -> num >= l && num <= u)
+inBounds num = List.any (\(Bound l u) -> num >= l && num <= u)
 {-# INLINEABLE inBounds #-}
 
 makeLift ''Party

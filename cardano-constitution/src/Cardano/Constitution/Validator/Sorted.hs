@@ -21,6 +21,7 @@ import Cardano.Constitution.Validator.Common as Common
 import PlutusCore.Version (plcVersion110)
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
+import PlutusTx.List as List
 import PlutusTx.Prelude as Tx
 
 -- | Expects a constitution-configuration, statically *OR* at runtime via Tx.liftCode
@@ -46,7 +47,7 @@ runRules ((expectedPid, paramValue) : cfgRest)
             False
 -- if no cparams left: success
 -- if cparams left: it means we reached the end of config without validating all cparams
-runRules _ cparams = Tx.null cparams
+runRules _ cparams = List.null cparams
 
 -- | Statically configure the validator with the `defaultConstitutionConfig`.
 defaultConstitutionValidator :: ConstitutionValidator

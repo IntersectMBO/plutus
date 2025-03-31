@@ -95,12 +95,14 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..))
 import PlutusTx (FromData, ToData, UnsafeFromData)
 import PlutusTx.AsData (asData)
+import PlutusTx.Foldable (foldMap)
 import PlutusTx.IsData (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List
 import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..), Eq (..), Integer,
                          Maybe (..), MultiplicativeSemigroup ((*)),
-                         Ord (max, min, (<), (<=), (>), (>=)), all, foldMap, foldr, fst, negate,
-                         not, otherwise, reverse, snd, ($), (&&), (++), (||))
+                         Ord (max, min, (<), (<=), (>), (>=)), fst, negate, not, otherwise, snd,
+                         ($), (&&), (||))
 
 import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx.AssocMap qualified as Map

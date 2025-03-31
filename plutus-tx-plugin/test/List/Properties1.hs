@@ -24,6 +24,7 @@ import PlutusTx.Builtins as B
 import PlutusTx.Code
 import PlutusTx.Data.List qualified as Data
 import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.Foldable qualified as F
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
@@ -294,7 +295,7 @@ foldMapProgram :: CompiledCode (Integer -> [Integer] -> Maybe [Integer])
 foldMapProgram =
   $$(compile
   [||
-    \n -> PlutusTx.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
+    \n -> F.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
   ||])
 
 dataFoldMapProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe [Integer])
@@ -359,7 +360,7 @@ mapSpec = property $ do
     (semanticsToDataList expected)
 
 lengthProgram :: CompiledCode ([Integer] -> Integer)
-lengthProgram = $$(compile [|| PlutusTx.length ||])
+lengthProgram = $$(compile [|| List.length ||])
 
 dataLengthProgram :: CompiledCode (Data.List Integer -> Integer)
 dataLengthProgram = $$(compile [|| Data.List.length ||])
@@ -413,7 +414,7 @@ unconsSpec = property $ do
     ((fmap . fmap) semanticsToDataList expected)
 
 andProgram :: CompiledCode ([Bool] -> Bool)
-andProgram = $$(compile [|| PlutusTx.and ||])
+andProgram = $$(compile [|| List.and ||])
 
 dataAndProgram :: CompiledCode (Data.List Bool -> Bool)
 dataAndProgram = $$(compile [|| Data.List.and ||])
@@ -440,7 +441,7 @@ andSpec = property $ do
     expected
 
 orProgram :: CompiledCode ([Bool] -> Bool)
-orProgram = $$(compile [|| PlutusTx.or ||])
+orProgram = $$(compile [|| List.or ||])
 
 dataOrProgram :: CompiledCode (Data.List Bool -> Bool)
 dataOrProgram = $$(compile [|| Data.List.or ||])

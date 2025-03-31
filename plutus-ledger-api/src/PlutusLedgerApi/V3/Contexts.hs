@@ -68,7 +68,9 @@ import PlutusTx.Blueprint (HasBlueprintDefinition, HasBlueprintSchema, HasSchema
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Blueprint.Schema (withSchemaInfo)
+import PlutusTx.Foldable qualified as F
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 import Prelude qualified as Haskell
@@ -549,7 +551,7 @@ findOwnInput
     { scriptContextTxInfo = TxInfo{txInfoInputs}
     , scriptContextScriptInfo = SpendingScript txOutRef _
     } =
-    PlutusTx.find
+    List.find
       (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
       txInfoInputs
 findOwnInput _ = Haskell.Nothing
@@ -565,7 +567,7 @@ hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
-  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
+  PlutusTx.fst PlutusTx.<$> List.find f (toList txInfoData)
  where
   f (_, ds') = ds' PlutusTx.== ds
 {-# INLINEABLE findDatumHash #-}
@@ -577,7 +579,7 @@ Note: this only searches the true transaction inputs and not the referenced tran
 -}
 findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
-  PlutusTx.find
+  List.find
     (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
     txInfoInputs
 
@@ -590,7 +592,7 @@ findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
-      PlutusTx.findIndices
+      List.findIndices
         (f txOutAddress)
         (txInfoOutputs (scriptContextTxInfo ctx))
  where
@@ -605,7 +607,7 @@ getContinuingOutputs :: ScriptContext -> [V2.TxOut]
 getContinuingOutputs ctx
   | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
-      PlutusTx.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
+      List.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
  where
   f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
 getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
@@ -613,7 +615,7 @@ getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing o
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
-txSignedBy TxInfo{txInfoSignatories} k = case PlutusTx.find ((PlutusTx.==) k) txInfoSignatories of
+txSignedBy TxInfo{txInfoSignatories} k = case List.find ((PlutusTx.==) k) txInfoSignatories of
   Haskell.Just _  -> Haskell.True
   Haskell.Nothing -> Haskell.False
 {-# INLINEABLE txSignedBy #-}
@@ -635,12 +637,12 @@ valuePaidTo ptx pkh = PlutusTx.mconcat (pubKeyOutputsAt pkh ptx)
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> V2.Value
 valueSpent =
-  PlutusTx.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
+  F.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
 {-# INLINEABLE valueSpent #-}
 
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> V2.Value
-valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
+valueProduced = F.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
 {-# INLINEABLE valueProduced #-}
 
 -- | The 'CurrencySymbol' of the current validator script.
@@ -663,7 +665,7 @@ spendsOutput txInfo txId i =
               PlutusTx.== V3.txOutRefId outRef
               PlutusTx.&& i
               PlutusTx.== V3.txOutRefIdx outRef
-   in PlutusTx.any spendsOutRef (txInfoInputs txInfo)
+   in List.any spendsOutRef (txInfoInputs txInfo)
 {-# INLINEABLE spendsOutput #-}
 
 ----------------------------------------------------------------------------------------------------

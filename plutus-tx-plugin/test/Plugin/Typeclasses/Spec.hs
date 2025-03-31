@@ -24,9 +24,12 @@ import Plugin.Typeclasses.Lib
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
+import PlutusTx.Foldable qualified as F
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
+import PlutusTx.Traversable qualified as T
 
 
 import Data.Proxy
@@ -102,7 +105,7 @@ partialApplication :: CompiledCode (Integer -> Integer -> Ordering)
 partialApplication = plc (Proxy @"partialApplication") (P.compare @Integer)
 
 sequenceTest :: CompiledCode (Maybe [Integer])
-sequenceTest = plc (Proxy @"sequenceTests") (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
+sequenceTest = plc (Proxy @"sequenceTests") (T.sequence [Just (1 :: Integer), Just (2 :: Integer)])
 
 opCompare :: P.Ord a => a -> a -> Ordering
 opCompare a b = case P.compare a b of
@@ -114,10 +117,10 @@ compareTest :: CompiledCode Ordering
 compareTest = plc (Proxy @"compareTest") (opCompare (1::Integer) (2::Integer))
 
 concatTest :: CompiledCode [Integer]
-concatTest = plc (Proxy @"concatTest") (P.concat [[(1 :: Integer), 2], [3, 4]])
+concatTest = plc (Proxy @"concatTest") (List.concat [[(1 :: Integer), 2], [3, 4]])
 
 sumTest :: CompiledCode Integer
-sumTest = plc (Proxy @"sumTest") (P.sum [(1 :: Integer), 2, 3, 4])
+sumTest = plc (Proxy @"sumTest") (F.sum [(1 :: Integer), 2, 3, 4])
 
 fmapDefaultTest :: CompiledCode [Integer]
-fmapDefaultTest = plc (Proxy @"fmapDefaultTest") (P.fmapDefault (P.+ 1) [(1 :: Integer), 2, 3, 4])
+fmapDefaultTest = plc (Proxy @"fmapDefaultTest") (T.fmapDefault (P.+ 1) [(1 :: Integer), 2, 3, 4])

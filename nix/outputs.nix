@@ -99,7 +99,7 @@ let
 
   devShells =
     (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.profiled; };
+    { profiled = mkShell project.projectVariants.ghc96-profiled; };
 
   nested-ci-jobs = {
     "x86_64-linux" =

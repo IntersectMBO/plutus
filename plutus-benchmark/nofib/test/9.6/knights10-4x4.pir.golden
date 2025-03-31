@@ -119,41 +119,6 @@
             {all dead. dead}
   in
   letrec
-    !go : List ChessSet -> integer
-      = \(ds : List ChessSet) ->
-          List_match
-            {ChessSet}
-            ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : ChessSet) (xs : List ChessSet) ->
-               /\dead -> addInteger 1 (go xs))
-            {all dead. dead}
-  in
-  let
-    data Direction | Direction_match where
-      DL : Direction
-      DR : Direction
-      LD : Direction
-      LU : Direction
-      RD : Direction
-      RU : Direction
-      UL : Direction
-      UR : Direction
-  in
-  letrec
-    !go : List Direction -> integer
-      = \(ds : List Direction) ->
-          List_match
-            {Direction}
-            ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : Direction) (xs : List Direction) ->
-               /\dead -> addInteger 1 (go xs))
-            {all dead. dead}
-  in
-  letrec
     !go : List (Tuple2 integer ChessSet) -> List (Tuple2 integer ChessSet)
       = \(ds : List (Tuple2 integer ChessSet)) ->
           List_match
@@ -164,18 +129,6 @@
             (\(x : Tuple2 integer ChessSet)
               (xs : List (Tuple2 integer ChessSet)) ->
                /\dead -> Cons {Tuple2 integer ChessSet} x (go xs))
-            {all dead. dead}
-  in
-  letrec
-    !go : List ChessSet -> integer
-      = \(ds : List ChessSet) ->
-          List_match
-            {ChessSet}
-            ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : ChessSet) (xs : List ChessSet) ->
-               /\dead -> addInteger 1 (go xs))
             {all dead. dead}
   in
   letrec
@@ -478,20 +431,28 @@
                     {all dead. dead}
           in
           go a
-  in
-  letrec
-    !go : List Direction -> integer
-      = \(ds : List Direction) ->
-          List_match
-            {Direction}
-            ds
-            {all dead. integer}
-            (/\dead -> 0)
-            (\(x : Direction) (xs : List Direction) ->
-               /\dead -> addInteger 1 (go xs))
-            {all dead. dead}
-  in
-  let
+    !length : all a. List a -> integer
+      = /\a ->
+          letrec
+            !go : List a -> integer
+              = \(ds : List a) ->
+                  List_match
+                    {a}
+                    ds
+                    {integer}
+                    0
+                    (\(ds : a) (xs : List a) -> addInteger 1 (go xs))
+          in
+          \(eta : List a) -> go eta
+    data Direction | Direction_match where
+      DL : Direction
+      DR : Direction
+      LD : Direction
+      LU : Direction
+      RD : Direction
+      RU : Direction
+      UL : Direction
+      UR : Direction
     !move : Direction -> Tuple2 integer integer -> Tuple2 integer integer
       = \(ds : Direction) (ds : Tuple2 integer integer) ->
           Direction_match
@@ -917,7 +878,9 @@
                                   (Tuple2
                                      {integer}
                                      {ChessSet}
-                                     (go (possibleMoves (deleteFirst y)))
+                                     (length
+                                        {Direction}
+                                        (possibleMoves (deleteFirst y)))
                                      y)
                                   ds)
                            {all dead. dead}
@@ -1098,7 +1061,7 @@
                   (\(ds : ChessSet) (ds : List ChessSet) ->
                      Cons {ChessSet} ds ds)
                   (Nil {ChessSet})
-            !numStarts : integer = go l
+            !numStarts : integer = length {ChessSet} l
           in
           zip
             {integer}
@@ -1249,7 +1212,9 @@
                               in
                               ifThenElse
                                 {Bool}
-                                (equalsInteger 0 (go (possibleMoves board)))
+                                (equalsInteger
+                                   0
+                                   (length {Direction} (possibleMoves board)))
                                 True
                                 False)
                            (/\dead -> False)
@@ -1258,7 +1223,7 @@
                         (/\dead -> Nil {ChessSet})
                         (/\dead ->
                            let
-                             !l : integer = go singles
+                             !l : integer = length {ChessSet} singles
                            in
                            Bool_match
                              (ifThenElse {Bool} (equalsInteger 0 l) True False)

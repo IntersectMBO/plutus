@@ -16,8 +16,6 @@ module PlutusTx.Prelude (
     module Functor,
     module Applicative,
     module Lattice,
-    module Foldable,
-    module Traversable,
     -- * Monad
     (Haskell.>>=),
     (Haskell.=<<),
@@ -53,8 +51,6 @@ module PlutusTx.Prelude (
     module Maybe,
     -- * Either
     module Either,
-    -- * Lists
-    module List,
     -- * ByteStrings
     BuiltinByteString,
     appendByteString,
@@ -74,6 +70,7 @@ module PlutusTx.Prelude (
     -- ** Bit operations
     Builtins.readBit,
     Builtins.writeBits,
+    Builtins.replicateByte,
     Builtins.shiftByteString,
     Builtins.rotateByteString,
     Builtins.countSetBits,
@@ -94,8 +91,15 @@ module PlutusTx.Prelude (
     ratio,
     fromInteger,
     round,
-    -- * Data
+    -- * Other builtin Types
+    BI.BuiltinBool,
     BuiltinData,
+    BI.BuiltinList,
+    BI.BuiltinPair,
+    -- * To/from Data
+    ToData (..),
+    FromData (..),
+    UnsafeFromData (..),
     -- * BLS12_381
     BuiltinBLS12_381_G1_Element,
     bls12_381_G1_equals,

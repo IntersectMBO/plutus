@@ -17,6 +17,7 @@ import PlutusBenchmark.NoFib.Knights.Queue
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
+import PlutusTx.List as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import Prelude qualified as Haskell
@@ -42,8 +43,8 @@ interval a0 b = go a0 where
 mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
     let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
-        numStarts = Tx.length l  -- = sze*sze
-    in Tx.zip (replicate numStarts (1-numStarts)) l
+        numStarts = List.length l  -- = sze*sze
+    in List.zip (replicate numStarts (1-numStarts)) l
 {-# INLINABLE mkStarts #-}
 
 root :: Integer -> Queue (Integer, ChessSet)
@@ -52,7 +53,7 @@ root sze = addAllFront (mkStarts sze) createQueue
 
 {-% Original version
 root sze = addAllFront
-             (Tx.zip [-(sze*sze)+1,-(sze*sze)+1..]
+             (List.zip [-(sze*sze)+1,-(sze*sze)+1..]
                   (zipWith
                      startTour
                       [(x,y) | x <- [1..sze], y <- [1..sze]]
