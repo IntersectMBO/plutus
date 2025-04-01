@@ -6,7 +6,9 @@ pkgs.stdenv.mkDerivation {
   nativeBuildInputs = [ pkgs.gnutar ];
   buildPhase = "#";
   installPhase = ''
-    mkdir -p $out
-    tar -czvf $out/plutus-metatheory.tar.gz .
+    mkdir -p $out plutus-metatheory
+    find src -name '*agda*' -exec cp -p --parents -t plutus-metatheory {} \;
+    cp plutus-metatheory.agda-lib plutus-metatheory
+    tar -czvf $out/plutus-metatheory.tar.gz plutus-metatheory
   '';
 }

@@ -2,19 +2,19 @@
    1.1.0
    ((\go eta -> go eta)
       ((\s -> s s)
-         (\s xs ->
+         (\s ds ->
             force
               (force (force chooseList)
-                 xs
+                 ds
                  (delay (constr 1 []))
                  (delay
-                    ((\h ->
-                        (\t ->
+                    ((\x ->
+                        (\eta ->
                            force
                              (force
                                 (force ifThenElse
-                                   (lessThanInteger (unIData h) 8)
-                                   (delay (delay (s s t)))
+                                   (lessThanInteger (unIData x) 8)
+                                   (delay (delay (s s eta)))
                                    (delay (delay (constr 0 []))))))
-                          (force tailList xs))
-                       (force headList xs))))))))
+                          (force tailList ds))
+                       (force headList ds))))))))

@@ -80,6 +80,7 @@ library
   if impl(ghc <9.0)
     build-depends: integer-gmp
 
+  exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Opts
     Raw
