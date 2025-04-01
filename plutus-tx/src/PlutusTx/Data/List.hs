@@ -121,7 +121,7 @@ instance Haskell.Monoid (List a) where
 A function parameter's strictness is in theory irrelevant to the Plinth compiler.
 However, it does affect how GHC compiles the function's callsites to GHC Core.
 
-In this instance of `caseList`/`caseList'`, if `c` is strict, is passed a function
+In the instance of `caseList`/`caseList'`, if `c` is strict, and is passed a function
 that calls `caseList`/`caseList'`, GHC will end up creating two mutually recursive
 bindings for the application of `caseList`/`caseList'`. Since our inliner currently
 does not inline recursive bindings, the additional binding will end up not being
@@ -139,7 +139,7 @@ caseList
   -> List a
   -> r
 -- See Note [Making the cons case non-strict in caseList and caseList']
-caseList n ~c (List l) = B.caseList @BuiltinData n (\x -> c (unsafeFromBuiltinData x) . List) l
+caseList n ~c (List l) = B.caseList n (\x -> c (unsafeFromBuiltinData x) . List) l
 {-# INLINEABLE caseList #-}
 
 {-| Like `caseList`, except the nil case takes an `r` directly, which is evaluated strictly.
@@ -156,7 +156,7 @@ caseList'
   -> List a
   -> r
 -- See Note [Making the cons case non-strict in caseList and caseList']
-caseList' n ~c (List l) = B.caseList' @BuiltinData n (\x -> c (unsafeFromBuiltinData x) . List) l
+caseList' n ~c (List l) = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) l
 {-# INLINEABLE caseList' #-}
 
 null :: List a -> Bool
@@ -298,7 +298,7 @@ foldMap f = go
 -- that are expensive to decode from 'BuiltinData', or if the result of applying
 -- 'f' is expensive to encode to 'BuiltinData'.
 map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
-map f = List . go
+map f = coerce go
   where
     go =
         caseList'
@@ -370,9 +370,7 @@ elem x = go . coerce
         let x' = toBuiltinData x
         in B.caseList'
             False
-            (\h t ->
-                x' == h || go t
-            )
+            (\h t -> x' == h || go t)
 {-# INLINEABLE elem #-}
 
 -- | Check if an element is not in the list.
@@ -389,9 +387,7 @@ foldr f z = go z . coerce
     go u =
         B.caseList'
             u
-            (\h ->
-                f (unsafeFromBuiltinData h) . go u
-            )
+            (\h -> f (unsafeFromBuiltinData h) . go u)
 {-# INLINEABLE foldr #-}
 
 -- | Fold a list from the left.
@@ -602,9 +598,7 @@ drop n = coerce $ go n
             else
                 B.caseList'
                     B.mkNil
-                    (\_ ->
-                        go (B.subtractInteger n' 1)
-                    )
+                    (\_ -> go (B.subtractInteger n' 1))
                     xs
 {-# INLINEABLE drop #-}
 
@@ -655,9 +649,7 @@ elemBy pred2 x = go . coerce
     go =
         B.caseList'
             False
-            (\h t ->
-                pred2 (unsafeFromBuiltinData h) x || go t
-            )
+            (\h t -> pred2 (unsafeFromBuiltinData h) x || go t)
 {-# INLINEABLE elemBy #-}
 
 -- | Removes elements from the list that satisfy a binary predicate.
@@ -715,16 +707,17 @@ fromBuiltinList = coerce
 -- | Convert a data-backed list to a sums of products list.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
-toSOP :: (UnsafeFromData a) => List a -> [a]
-toSOP = go . coerce
+toSOP :: forall a. (UnsafeFromData a) => List a -> [a]
+toSOP = coerce go
   where
+    go :: BuiltinList BuiltinData -> [a]
     go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
 {-# INLINEABLE toSOP #-}
 
 -- | Convert a sums of products list to a data-backed list.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to encode to 'BuiltinData'.
-fromSOP :: (ToData a) => [a] -> List a
+fromSOP :: forall a. (ToData a) => [a] -> List a
 fromSOP = coerce . BI.unsafeDataAsList . B.mkList . fmap toBuiltinData
 {-# INLINEABLE fromSOP #-}
 
