@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
@@ -231,7 +230,7 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 ---------------- Version ----------------
 
 versioner :: Parser (a -> a)
-versioner = simpleVersioner $(gitAwareVersionInfo Paths.version)
+versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
 
 ---------------- Driver ----------------
 

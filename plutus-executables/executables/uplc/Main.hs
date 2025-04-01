@@ -1,5 +1,4 @@
  -- editorconfig-checker-disable
-{-# LANGUAGE TemplateHaskell #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -517,7 +516,7 @@ runUplcPrintExample = runPrintExample getUplcExamples
 ----------------- Version -----------------------
 
 versioner :: Parser (a -> a)
-versioner = simpleVersioner $(gitAwareVersionInfo Paths.version)
+versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
 
 ---------------- Driver ----------------
 
