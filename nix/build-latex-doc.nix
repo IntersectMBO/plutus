@@ -32,7 +32,7 @@ build-latex {
   };
 
   preBuild = lib.optionalString withAgda ''
-    agda --latex ${agdaFile} --latex-dir .
+    agda-with-stdlib --latex ${agdaFile} --latex-dir .
   '';
 
   meta = with lib; {

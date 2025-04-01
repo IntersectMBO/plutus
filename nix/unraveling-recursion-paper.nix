@@ -41,7 +41,7 @@ build-latex {
 
   preBuild = ''
     for file in *.lagda; do
-      agda --latex $file --latex-dir .
+      agda-with-stdlib --latex $file --latex-dir .
     done
 
     echo "\toggletrue{lagda}" > agdaswitch.tex
