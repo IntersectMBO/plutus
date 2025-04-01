@@ -16,7 +16,7 @@ import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests =
-  testNested ("List" </> "Budget") . pure $
+  testNested ("DataList" </> "Budget") . pure $
     testNestedGhc
       [ goldenPirReadable "length" length
       , goldenUPlcReadable "length" length

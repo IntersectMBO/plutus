@@ -64,6 +64,7 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean                :: Bool
   , _posRelaxedFloatin                 :: Bool
   , _posCaseOfCaseConservative         :: Bool
+  , _posInlineCallsiteGrowth           :: Int
   , _posInlineConstants                :: Bool
   , _posInlineFix                      :: Bool
   , _posPreserveLogging                :: Bool
@@ -194,6 +195,13 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-callsite-growth"
+          desc =
+            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a \
+            \callsite if it increases the AST size; `n` allows inlining if the AST size grows by \
+            \no more than `n`. Keep in mind that doing so does not mean the final program \
+            \will be bigger, since inlining can often unlock further optimizations."
+       in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "inline-constants"
           desc =
             "Always inline constants. Inlining constants always reduces script \
@@ -348,6 +356,7 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True
     , _posPreserveLogging = True
