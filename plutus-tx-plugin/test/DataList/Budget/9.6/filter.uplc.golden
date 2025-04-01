@@ -1,0 +1,25 @@
+(program
+   1.1.0
+   ((\go eta -> go eta)
+      ((\s -> s s)
+         (\s ->
+            (\go ds ->
+               force
+                 (force (force chooseList)
+                    ds
+                    (delay [])
+                    (delay
+                       ((\eta ->
+                           (\h ->
+                              force
+                                (force
+                                   (force ifThenElse
+                                      (lessThanInteger h 8)
+                                      (delay (delay (go eta)))
+                                      (delay
+                                         (delay
+                                            ((\nt -> force mkCons (iData h) nt)
+                                               (go eta)))))))
+                             (unIData (force headList ds)))
+                          (force tailList ds)))))
+              (\x -> s s x)))))
