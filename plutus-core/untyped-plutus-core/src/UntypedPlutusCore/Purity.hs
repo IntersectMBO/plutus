@@ -104,22 +104,28 @@ instance (PrettyBy config (Term name uni fun a)) =>
   PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
--- Terms can have Type and Term parameters.
--- In correct programs Type parameters are 'Force'd while
--- term parameters are 'Apply'd.
--- This data type represents this distinction.
-data Arg name uni fun a
-  = ApplyTerm (Term name uni fun a)
-  | ForceTypeParam (Term name uni fun a)
+-- | A context for an iterated term/type application.
+data AppCtx name uni fun a
+  = AppCtxTerm (Term name uni fun a) (AppCtx name uni fun a)
+  | AppCtxType (AppCtx name uni fun a)
+  | AppCtxEnd
 
--- | Strip off arguments
-splitArgs :: Term name uni fun a -> (Term name uni fun a, [Arg name uni fun a])
-splitArgs = go []
+{- | Takes a term and views it as a head plus an 'AppCtx', e.g.
+@
+  [{ f t } u v]
+  -->
+  (f, [{ _ t } u v])
+  ==
+  f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppContextEnd)))
+@
+-}
+splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
+splitAppCtx = go AppCtxEnd
   where
-  go arguments = \case
-    Apply _ann function argument -> go (ApplyTerm argument : arguments) function
-    t@(Force _ann forcedTerm) -> go (ForceTypeParam t : arguments) forcedTerm
-    term -> (term, arguments)
+  go appCtx = \case
+    Apply _ann function argument -> go (AppCtxTerm argument appCtx) function
+    Force _ann forcedTerm -> go (AppCtxType appCtx) forcedTerm
+    term -> (term, appCtx)
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
 
@@ -141,41 +147,49 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
  where
   goTerm :: Term name uni fun a -> EvalOrder name uni fun a
   goTerm = \case
-    t@(splitArgs -> (Builtin _ann fun, args)) ->
+    t@(splitAppCtx -> (Builtin _ann fun, appCtx)) ->
       -- First we evaluate a term with its application "structure"
-      go (builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun) args
+      go arity appCtx
       -- then its arguments, in left-to-right order
-      <> foldMap goTerm [ a | ApplyTerm a <- args ]
+      <> appContextEvalOrder appCtx
      where
-      go :: [Param] -> [Arg name uni fun a] -> EvalOrder name uni fun a
-      go parameters arguments =
+      arity = builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun
+
+      go :: [Param] -> AppCtx name uni fun a -> EvalOrder name uni fun a
+      go parameters appContext =
         case parameters of
-          -- Parameter-less builtin is counted as impure.
+          -- Saturated builtin is considered impure.
           [] -> eval (EvalTerm MaybeImpure MaybeWork t)
           TermParam : otherParams ->
-            case arguments of
-              [] ->
+            case appContext of
+              AppCtxEnd ->
                 -- Builtin is not fully saturated with term arguments, thus pure.
                 eval (EvalTerm Pure WorkFree t)
-              ApplyTerm _term : remainingArgs ->
+              AppCtxTerm _term remainingAppCtx ->
                 -- Skip applied term parameter
-                go otherParams remainingArgs
-              ForceTypeParam {} : _remainingArgs ->
+                go otherParams remainingAppCtx
+              AppCtxType _remainingAppCtx ->
                 -- Term parameter expected, type argument applied.
                 -- Error is impure.
                 eval (EvalTerm MaybeImpure MaybeWork t)
           TypeParam : otherParams ->
-            case arguments of
-              [] ->
+            case appContext of
+              AppCtxEnd ->
                 -- Builtin is not fully saturated with type arguments, thus pure.
                 eval (EvalTerm Pure WorkFree t)
-              ApplyTerm _term : _remainingArgs ->
+              AppCtxTerm _term _remainingAppCtx ->
                 -- Type parameter expected, term argument applied.
                 -- Error is impure.
                 eval (EvalTerm MaybeImpure MaybeWork t)
-              ForceTypeParam {} : remainingArgs ->
+              AppCtxType remainingAppCtx ->
                 -- Skip forced type parameter
-                go otherParams remainingArgs
+                go otherParams remainingAppCtx
+
+      appContextEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
+      appContextEvalOrder = \case
+        AppCtxTerm r rest -> goTerm r <> appContextEvalOrder rest
+        AppCtxType rest -> appContextEvalOrder rest
+        AppCtxEnd -> mempty
 
     t@(Apply _ fun arg) ->
       -- first the function
