@@ -3,10 +3,6 @@
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
-    let
-      ghc-options-for-static-exe =
-        lib.optionals pkgs.stdenv.hostPlatform.isMusl [ "-fexternal-interpreter" ];
-    in
     {
       name = "plutus";
 
@@ -44,21 +40,6 @@ let
             plutus-metatheory.components.library.build-tools =
               [ agda-tools.agda-with-stdlib ];
 
-            plutus-executables.components.exes.pir = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
-
-            plutus-executables.components.exes.plc = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
-
-            plutus-executables.components.exes.uplc = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
-
             plutus-executables.components.tests.test-certifier.build-tools =
               [ agda-tools.agda-with-stdlib-and-metatheory ];
 
@@ -80,10 +61,10 @@ let
               }
             '';
 
-            plutus-core.components.exes.plutus = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
+            plutus-core.components.library.ghcOptions = [
+              "-D__GIT_REV__=\"${self.sourceInfo.rev or "unknown"}\""
+              "-D__GIT_COMMIT_DATE__=\"${utils.date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModifiedDate}\""
+            ];
 
             plutus-cert.components.library.build-tools = [
               pkgs.perl

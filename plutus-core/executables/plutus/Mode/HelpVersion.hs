@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Mode.HelpVersion
     ( runHelp
     , runVersion
@@ -17,4 +15,4 @@ usageHeader :: String
 usageHeader = "USAGE: plutus [--compile|--run|--bench|--debug] FILES..."
 
 runVersion :: IO ()
-runVersion = putStrLn $(gitAwareVersionInfo Paths.version)
+runVersion = putStrLn (gitAwareVersionInfo Paths.version)

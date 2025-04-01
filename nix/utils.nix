@@ -29,14 +29,6 @@ rec {
       constituents = lib.collect lib.isDerivation clean-jobs;
     };
 
-
-  exportGitHashAndGitCommitDateEnvVars = self:
-    ''
-      export GIT_HASH=${self.sourceInfo.rev or "unknown"}
-      export GIT_COMMIT_DATE=${date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModifiedDate}
-    '';
-
-
   date_YYYYMMDDHHmmSS_ToIso8601 = ts:
     let
       year = lib.substring 0 4 ts;
