@@ -92,7 +92,7 @@ agdaTestCert path name = do
 
 makeAgdaLibFile :: Assertion
 makeAgdaLibFile = do
-    let name = ".agda-lib"
+    let name = "TestCert.agda-lib"
     let contents = unlines
           [ "depend:"
           , "  plutus-metatheory"
