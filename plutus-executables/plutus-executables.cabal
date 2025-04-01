@@ -128,8 +128,6 @@ executable uplc
     , split
     , text
 
--- build-tool-depends: Agda:agda
-
 test-suite test-simple
   import:             lang, os-support, ghc-version-support
   type:               exitcode-stdio-1.0
