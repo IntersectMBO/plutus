@@ -1,23 +1,45 @@
 (program
    1.1.0
-   ((\go eta -> go eta)
-      ((\s -> s s)
-         (\s ds ->
-            force
-              (force (force chooseList)
-                 ds
-                 (delay [])
-                 (delay
-                    ((\eta ->
-                        (\h ->
-                           force
-                             (force
-                                (force ifThenElse
-                                   (lessThanInteger h 8)
-                                   (delay (delay (s s eta)))
-                                   (delay
-                                      (delay
-                                         ((\nt -> force mkCons (iData h) nt)
-                                            (s s eta)))))))
-                          (unIData (force headList ds)))
-                       (force tailList ds))))))))
+   ((\cse ->
+       (\f ->
+          (\go -> (\f -> go) (f (delay (\x -> x))))
+            (cse (\arg_0 arg_1 -> arg_1)))
+         (cse (\arg_0 arg_1 -> arg_0)))
+      (force
+         ((\s -> s s)
+            (\s h ->
+               delay
+                 (\fr ->
+                    (\k ->
+                       fr
+                         (\x -> k (\f_0 f_1 -> f_0 x))
+                         (\x -> k (\f_0 f_1 -> f_1 x)))
+                      (\fq -> force (s s h) (force h fq))))
+            (delay
+               (\choose f go ->
+                  choose
+                    (\arg ->
+                       delay
+                         (\xs ->
+                            force
+                              (force (force chooseList)
+                                 xs
+                                 (delay [])
+                                 (delay
+                                    ((\eta ->
+                                        (\h ->
+                                           force
+                                             (force
+                                                (force ifThenElse
+                                                   (lessThanInteger h 8)
+                                                   (delay (delay (go eta)))
+                                                   (delay
+                                                      (delay
+                                                         ((\nt ->
+                                                             force mkCons
+                                                               (iData h)
+                                                               nt)
+                                                            (go eta)))))))
+                                          (unIData (force headList xs)))
+                                       (force tailList xs))))))
+                    (\eta -> force (f (delay (\x -> x))) eta)))))))

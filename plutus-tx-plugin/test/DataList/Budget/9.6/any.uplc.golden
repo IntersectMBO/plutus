@@ -1,20 +1,33 @@
 (program
    1.1.0
-   ((\go eta -> go eta)
-      ((\s -> s s)
-         (\s ds ->
-            force
-              (force (force chooseList)
-                 ds
-                 (delay (constr 1 []))
-                 (delay
-                    ((\x ->
-                        (\eta ->
-                           force
-                             (force
-                                (force ifThenElse
-                                   (lessThanInteger (unIData x) 8)
-                                   (delay (delay (s s eta)))
-                                   (delay (delay (constr 0 []))))))
-                          (force tailList ds))
-                       (force headList ds))))))))
+   ((\cse -> (\f -> cse (\arg_0 arg_1 -> arg_1)) (cse (\arg_0 arg_1 -> arg_0)))
+      (force
+         ((\s -> s s)
+            (\s h ->
+               delay
+                 (\fr ->
+                    (\k ->
+                       fr
+                         (\x -> k (\f_0 f_1 -> f_0 x))
+                         (\x -> k (\f_0 f_1 -> f_1 x)))
+                      (\fq -> force (s s h) (force h fq))))
+            (delay
+               (\choose f go ->
+                  choose
+                    (\xs ->
+                       force
+                         (force (force chooseList)
+                            xs
+                            (delay (constr 1 []))
+                            (delay
+                               ((\x ->
+                                   (\eta ->
+                                      force
+                                        (force
+                                           (force ifThenElse
+                                              (lessThanInteger (unIData x) 8)
+                                              (delay (delay (go eta)))
+                                              (delay (delay (constr 0 []))))))
+                                     (force tailList xs))
+                                  (force headList xs)))))
+                    (\eta -> f eta)))))))

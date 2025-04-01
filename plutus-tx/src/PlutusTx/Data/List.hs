@@ -156,7 +156,7 @@ caseList'
   -> List a
   -> r
 -- See Note [Making the cons case non-strict in caseList and caseList']
-caseList' n ~c (List l) = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) l
+caseList' n ~c = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) . coerce
 {-# INLINEABLE caseList' #-}
 
 null :: List a -> Bool
