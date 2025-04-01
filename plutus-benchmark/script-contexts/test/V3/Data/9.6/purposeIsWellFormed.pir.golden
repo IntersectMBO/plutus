@@ -823,28 +823,27 @@ let
          (`$dToData` : (\a -> a -> data) a)
          (pred : a -> Bool) ->
           letrec
-            ~go : list data -> (\a -> list data) a
-              = caseList'
-                  {data}
-                  {(\a -> list data) a}
-                  []
-                  (\(h : data) (t : list data) ->
-                     let
-                       !h' : a = `$dUnsafeFromData` h
-                     in
-                     Bool_match
-                       (pred h')
-                       {all dead. (\a -> list data) a}
-                       (/\dead ->
-                          let
-                            !nt : list data = go t
-                          in
-                          mkCons {data} (`$dToData` h') nt)
-                       (/\dead -> go t)
-                       {all dead. dead})
-          in
-          let
-            !go : list data -> (\a -> list data) a = go
+            !go : (\a -> list data) a -> (\a -> list data) a
+              = \(ds : (\a -> list data) a) ->
+                  caseList'
+                    {data}
+                    {(\a -> list data) a}
+                    []
+                    (\(x : data) (eta : list data) ->
+                       let
+                         !h : a = `$dUnsafeFromData` x
+                       in
+                       Bool_match
+                         (pred h)
+                         {all dead. (\a -> list data) a}
+                         (/\dead ->
+                            let
+                              !nt : list data = go eta
+                            in
+                            mkCons {data} (`$dToData` h) nt)
+                         (/\dead -> go eta)
+                         {all dead. dead})
+                    ds
           in
           \(eta : (\a -> list data) a) -> go eta
   !member :
