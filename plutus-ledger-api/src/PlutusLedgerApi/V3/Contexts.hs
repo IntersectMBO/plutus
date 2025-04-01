@@ -86,6 +86,7 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
     , Haskell.Ord
     , Haskell.Show
     , PlutusTx.Eq
+    , PlutusTx.Ord
     , PlutusTx.ToData
     , PlutusTx.FromData
     , PlutusTx.UnsafeFromData
@@ -303,6 +304,11 @@ instance Pretty Committee where
       , "committeeQuorum:" <+> pretty committeeQuorum
       ]
 
+instance PlutusTx.Eq Committee where
+  {-# INLINEABLE (==) #-}
+  Committee mbrs quorum == Committee mbrs' quorum' =
+    mbrs PlutusTx.== mbrs' PlutusTx.&& quorum PlutusTx.== quorum'
+
 -- | A constitution. The optional anchor is omitted.
 newtype Constitution = Constitution
   { constitutionScript :: Haskell.Maybe V2.ScriptHash
@@ -407,6 +413,26 @@ data GovernanceAction
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
+instance PlutusTx.Eq GovernanceAction where
+  {-# INLINABLE (==) #-}
+  ParameterChange govId cp sh == ParameterChange govId' cp' sh' =
+    govId PlutusTx.== govId' PlutusTx.&& cp PlutusTx.== cp' PlutusTx.&& sh PlutusTx.== sh'
+  HardForkInitiation govId vers == HardForkInitiation govId' vers' =
+    govId PlutusTx.== govId' PlutusTx.&& vers PlutusTx.== vers'
+  TreasuryWithdrawals wthdrl sh == TreasuryWithdrawals wthdrl' sh' =
+    wthdrl PlutusTx.== wthdrl' PlutusTx.&& sh PlutusTx.== sh'
+  NoConfidence govId == NoConfidence govId' =
+    govId PlutusTx.== govId'
+  UpdateCommittee govId toDel toAdd quorum == UpdateCommittee govId' toDel' toAdd' quorum' =
+    govId PlutusTx.== govId'
+      PlutusTx.&& List.sort (List.nub toDel) PlutusTx.== List.sort (List.nub toDel')
+      PlutusTx.&& toAdd PlutusTx.== toAdd'
+      PlutusTx.&& quorum PlutusTx.== quorum'
+  NewConstitution govId const == NewConstitution govId' const' =
+    govId PlutusTx.== govId' PlutusTx.&& const PlutusTx.== const'
+  InfoAction == InfoAction = PlutusTx.True
+  _ == _ = PlutusTx.False
+
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
   { ppDeposit          :: V2.Lovelace
@@ -423,6 +449,11 @@ instance Pretty ProposalProcedure where
       , "ppReturnAddr:" <+> pretty ppReturnAddr
       , "ppGovernanceAction:" <+> pretty ppGovernanceAction
       ]
+
+instance PlutusTx.Eq ProposalProcedure where
+  {-# INLINABLE (==) #-}
+  ProposalProcedure dep addr action == ProposalProcedure dep' addr' action' =
+    dep PlutusTx.== dep' PlutusTx.&& addr PlutusTx.== addr' PlutusTx.&& action PlutusTx.== action'
 
 -- | A `ScriptPurpose` uniquely identifies a Plutus script within a transaction.
 data ScriptPurpose
@@ -441,6 +472,16 @@ data ScriptPurpose
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
+
+instance PlutusTx.Eq ScriptPurpose where
+  {-# INLINABLE (==) #-}
+  Minting cs == Minting cs'                  = cs PlutusTx.== cs'
+  Spending ref == Spending ref'              = ref PlutusTx.== ref'
+  Rewarding sc == Rewarding sc'              = sc PlutusTx.== sc'
+  Certifying ix cert == Certifying ix' cert' = ix PlutusTx.== ix' PlutusTx.&& cert PlutusTx.== cert'
+  Voting voter == Voting voter'              = voter PlutusTx.== voter'
+  Proposing ix prop == Proposing ix' prop'   = ix PlutusTx.== ix' PlutusTx.&& prop PlutusTx.== prop'
+  _ == _                                     = PlutusTx.False
 
 -- | Like `ScriptPurpose` but with an optional datum for spending scripts.
 data ScriptInfo
