@@ -86,8 +86,21 @@ runAgda file = do
 agdaTestCert :: [ String ] -> String -> Assertion
 agdaTestCert path name = do
     _ <- makeUplcCert path name
+    makeAgdaLibFile
     (resCode, resText) <- runAgda "TestCert.agda"
     assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
+
+makeAgdaLibFile :: Assertion
+makeAgdaLibFile = do
+    let name = ".agda-lib"
+    let contents = unlines
+          [ "depend:"
+          , "  plutus-metatheory"
+          , "  standard-library-2.1.1"
+          , "include: ."
+          , "  name: test-cert"
+          ]
+    writeFile name contents
 
 {-
 agdaExampleCert :: String -> Assertion

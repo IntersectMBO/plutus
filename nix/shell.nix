@@ -62,8 +62,6 @@ let
   common-pkgs = [
     agda-tools.agda
     agda-tools.agda-mode
-    agda-tools.agda-with-stdlib
-    agda-tools.agda-with-stdlib-and-metatheory
 
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
