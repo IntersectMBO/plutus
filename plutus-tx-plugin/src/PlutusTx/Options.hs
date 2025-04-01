@@ -64,9 +64,9 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean                :: Bool
   , _posRelaxedFloatin                 :: Bool
   , _posCaseOfCaseConservative         :: Bool
+  , _posInlineCallsiteGrowth           :: Int
   , _posInlineConstants                :: Bool
   , _posInlineFix                      :: Bool
-  , _posInlineCallsiteGrowth           :: Int
   , _posPreserveLogging                :: Bool
   -- ^ Whether to try and retain the logging behaviour of the program.
   , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -195,6 +195,13 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-callsite-growth"
+          desc =
+            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a \
+            \callsite if it increases AST size; `n` allows inlining if the AST size grows by \
+            \no more than `n`. Keep in mind that doing so does not mean the final program \
+            \will be bigger, since inlining can often unlock further optimizations."
+       in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "inline-constants"
           desc =
             "Always inline constants. Inlining constants always reduces script \
@@ -206,11 +213,6 @@ pluginOptions =
             "Always inline fixed point combinators. This is generally preferable as \
             \it often enables further optimization, though it may increase script size."
        in (k, PluginOption typeRep (setTrue k) posInlineFix desc [])
-    , let k = "inline-callsite-growth"
-          desc =
-            "Set inliner aggressiveness. 0 means it avoids making the program bigger. \
-             \Higher values make the inliner more willing to inline."
-       in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
        in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -354,9 +356,9 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
     , _posInlineFix = True
-    , _posInlineCallsiteGrowth = 5
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False

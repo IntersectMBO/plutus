@@ -16,6 +16,7 @@ import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
+import PlutusCore.Size (Size)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (termSize)
@@ -159,7 +160,7 @@ supply, and the performance cost does not currently seem relevant. So it's fine.
 inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Int
+    => Size
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?
@@ -173,7 +174,7 @@ inlinePassSC thresh ic tcconfig hints binfo =
 inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Int
+    => Size
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?
@@ -193,7 +194,7 @@ inlinePass thresh ic tcconfig hints binfo =
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => Int
+    => Size
     -- ^ inline threshold
     -> Bool
     -- ^ should we inline constants?

@@ -12,11 +12,16 @@ module PlutusIR.Transform.Inline.Utils where
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap (UniqueMap)
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote
 import PlutusCore.Rename
+import PlutusCore.Size
 import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
@@ -25,12 +30,7 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
-
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import PlutusCore.Name.UniqueMap (UniqueMap)
-import PlutusCore.Name.UniqueMap qualified as UMap
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.VarInfo qualified as VarInfo
 
 -- General infra:
 
@@ -67,7 +67,7 @@ data InlineInfo tyname name uni fun ann = InlineInfo
     -- ^ the semantics variant.
     , _iiInlineConstants      :: Bool
     -- ^ should we inline constants?
-    , _iiInlineCallsiteGrowth :: Int
+    , _iiInlineCallsiteGrowth :: Size
     -- ^ inline threshold for callsite inlining
     }
 makeLenses ''InlineInfo

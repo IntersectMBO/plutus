@@ -30,9 +30,9 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`dump-pir`|Bool|False|Dump Plutus IR|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
+|`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsites. 0 disables inlining a binding at a callsite if it increases AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
 |`inline-fix`|Bool|True|Always inline fixed point combinators. This is generally preferable as it often enables further optimization, though it may increase script size.|
-|`inline-callsite-growth`|Int|5|Set inliner aggressiveness. 0 means it avoids making the program bigger. Higher values make the inliner more willing to inline.|
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
 |`max-simplifier-iterations-pir`|Int|12|Set the max iterations for the PIR simplifier|
 |`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
@@ -51,3 +51,4 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`target-version`|Version|1.1.0|The target Plutus Core language version|
 |`typecheck`|Bool|True|Perform type checking during compilation.|
 |`verbosity`|Verbosity|Quiet|Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)|
+

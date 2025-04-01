@@ -505,7 +505,7 @@ runCompiler moduleName opts expr = do
                     (opts ^. posInlineFix)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coInlineCallsiteGrowth)
-                    (opts ^. posInlineCallsiteGrowth)
+                    (opts ^. posInlineCallsiteGrowth . to fromIntegral)
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)
                     (opts ^. posCaseOfCaseConservative)
@@ -532,7 +532,7 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soInlineConstants)
                 (opts ^. posInlineConstants)
             & set (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
-                (opts ^. posInlineCallsiteGrowth)
+                (opts ^. posInlineCallsiteGrowth . to fromIntegral)
 
     -- GHC.Core -> Pir translation.
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
