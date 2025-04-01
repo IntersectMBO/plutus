@@ -62,8 +62,8 @@ let
             '';
 
             plutus-core.configureFlags = [
-              "--ghc-option=-D__GIT_REV__=\\\"${inputs.self.sourceInfo.rev or "unknown"}\\\""
-              "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate}\\\""
+              "--ghc-option=-D__GIT_REV__=\\\"${utils.getSourceInfoRev inputs}\\\""
+              "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.getSourceInfoLastModifiedDate inputs}\\\""
             ];
 
             plutus-cert.components.library.build-tools = [

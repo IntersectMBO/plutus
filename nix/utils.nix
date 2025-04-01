@@ -29,6 +29,21 @@ rec {
       constituents = lib.collect lib.isDerivation clean-jobs;
     };
 
+
+  getSourceInfoRevOrDefault = inputs:
+    if inputs.self.sourceInfo ? rev then
+      inputs.self.sourceInfo.rev
+    else
+      "unknown";
+
+
+  getSourceInfoLastModifiedDateOrDefault = inputs:
+    if inputs.self.sourceInfo ? lastModifiedDate then
+      date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate
+    else
+      default;
+
+
   date_YYYYMMDDHHmmSS_ToIso8601 = ts:
     let
       year = lib.substring 0 4 ts;
