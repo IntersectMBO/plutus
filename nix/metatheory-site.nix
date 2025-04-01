@@ -29,7 +29,7 @@ let
     buildPhase = ''
       mkdir $out
       cp -R ${self + /plutus-metatheory/html/_layouts} $out
-      agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
+      agda-with-stdlib --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
     '';
   };
 

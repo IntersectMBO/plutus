@@ -110,14 +110,11 @@ let
   metatheory-agda-package = agda-packages.mkDerivation {
     name = "plutus-metatheory";
     pname = "plutus-metatheory";
-    src = self + /plutus-metatheory;
+    src = lib.cleanSource (self + /plutus-metatheory);
     buildInputs = [ agda-stdlib ];
-    postPatch = ''
-      find src -name '*.agda' \
-        | sed -e 's|^src/[/]*|import |' -e 's|/|.|g' -e 's/.agda//' -e '/import Everything/d' \
-        | LC_COLLATE='C' sort \
-        > Everything.agda
-    '';
+    # The everythingFile is the compilation target for Agda, and is assumed
+    # to transitively reference all other .agda files in the project.
+    everythingFile = "./src/index.lagda.md";
     meta = { };
   };
 
@@ -163,5 +160,6 @@ in
     agda-mode
     agda-with-stdlib
     agda-with-stdlib-and-metatheory
+    metatheory-agda-package
     NIX_AGDA_STDLIB;
 }
