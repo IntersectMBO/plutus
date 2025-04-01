@@ -61,9 +61,9 @@ let
               }
             '';
 
-            plutus-core.components.library.ghcOptions = [
-              ("-D__GIT_REV__=\\\"" + inputs.self.sourceInfo.rev or "unknown" + "\\\"")
-              ("-D__GIT_COMMIT_DATE__=\\\"" + utils.date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate + "\\\"")
+            plutus-core.configureFlags = [
+              "--ghc-option=-D__GIT_REV__=\\\"${inputs.self.sourceInfo.rev or "unknown"}\\\""
+              "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate}\\\""
             ];
 
             plutus-cert.components.library.build-tools = [
