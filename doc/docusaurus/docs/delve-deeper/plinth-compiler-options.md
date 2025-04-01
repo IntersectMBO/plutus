@@ -30,7 +30,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`dump-pir`|Bool|False|Dump Plutus IR|
 |`dump-tplc`|Bool|False|Dump Typed Plutus Core|
 |`dump-uplc`|Bool|False|Dump Untyped Plutus Core|
-|`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsites. 0 disables inlining a binding at a callsite if it increases AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
+|`inline-callsite-growth`|Int|5|Sets the inlining threshold for callsites. 0 disables inlining a binding at a callsite if it increases the AST size; `n` allows inlining if the AST size grows by no more than `n`. Keep in mind that doing so does not mean the final program will be bigger, since inlining can often unlock further optimizations.|
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
 |`inline-fix`|Bool|True|Always inline fixed point combinators. This is generally preferable as it often enables further optimization, though it may increase script size.|
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
