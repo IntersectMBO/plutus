@@ -174,7 +174,6 @@ test-suite test-certifier
     , base
     , filepath
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory
     , process
     , tasty
     , tasty-hunit
