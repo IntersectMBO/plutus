@@ -98,7 +98,7 @@ termSimplifier opts builtinSemanticsVariant =
         >=> caseOfCase'
         >=> caseReduce
         >=> inline
-              (_soInlineThreshold opts)
+              (_soInlineCallsiteGrowth opts)
               (_soInlineConstants opts)
               (_soInlineHints opts)
               builtinSemanticsVariant

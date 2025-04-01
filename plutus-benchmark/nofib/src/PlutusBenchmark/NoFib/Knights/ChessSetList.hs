@@ -25,6 +25,7 @@ import GHC.Generics
 import PlutusBenchmark.NoFib.Knights.Sort
 import PlutusBenchmark.NoFib.Knights.Utils
 
+import PlutusTx.List as List
 import PlutusTx.Prelude as Tx
 
 import Prelude qualified as Haskell
@@ -98,7 +99,7 @@ deleteFirst (Board s n _ ts) =
 {-# INLINABLE deleteFirst #-}
 
 positionPiece :: Integer -> ChessSet -> Tile
-positionPiece x (Board _ n _ ts) = ts Tx.!! (n - x)
+positionPiece x (Board _ n _ ts) = ts List.!! (n - x)
 {-# INLINABLE positionPiece #-}
 
 lastPiece :: ChessSet -> Tile
@@ -118,7 +119,7 @@ pieceAtTile x0 (Board _ _ _ ts)
      where
         findPiece _ [] = Tx.error ()
         findPiece x (y:xs)
-           | x == y    = 1 + Tx.length xs
+           | x == y    = 1 + List.length xs
            | otherwise = findPiece x xs
 {-# INLINABLE pieceAtTile #-}
 

@@ -59,14 +59,15 @@ import PlutusLedgerApi.V2 (Datum (Datum), DatumHash (DatumHash), Extended (..), 
                            SerialisedScript, UpperBound (..), serialiseCompiledCode)
 import PlutusLedgerApi.V2.Data.Contexts qualified as Data
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
+import PlutusTx.Foldable (foldMap)
+import PlutusTx.List (all, elem, null)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
                                             BuiltinData, BuiltinString, BuiltinUnit,
                                             Enum (fromEnum), Eq (..), Functor (fmap), Integer,
-                                            Maybe (..), Ord ((>)), Semigroup ((<>)), all, check,
-                                            elem, foldMap, null, otherwise, snd, toBuiltin, ($),
-                                            (&&), (.), (/=), (||))
+                                            Maybe (..), Ord ((>)), Semigroup ((<>)), check,
+                                            otherwise, snd, toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS

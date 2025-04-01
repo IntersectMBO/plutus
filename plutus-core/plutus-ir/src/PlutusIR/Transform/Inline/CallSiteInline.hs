@@ -146,7 +146,7 @@ callSiteInline processedTSize = go
         -- than it would have before, but we can make it happen more often.
         -- We could potentially do this safely in non-conservative mode.
         rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
-        thresh <- view iiInlineThreshold
+        thresh <- view iiInlineCallsiteGrowth
         if costIsOk && rhsPure then do
           -- rename the rhs of the variable before any substitution
           renamedRhs <- rename headRhs

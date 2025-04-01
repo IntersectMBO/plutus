@@ -9,7 +9,7 @@ where
 import PlutusBenchmark.BLS12_381.Scripts
 import PlutusBenchmark.Common
 
-import PlutusTx.Prelude as Tx hiding (sort, (*))
+import PlutusTx.Prelude as Tx hiding ((*))
 
 import Data.ByteString qualified as BS
 import System.IO (Handle)
@@ -152,4 +152,3 @@ runTests h = do
   if checkSchnorrG2VerifyScript
   then hPrintf h "Schnorr G2 Verify succeeded\n"
   else hPrintf h "Schnorr G2 Verify failed\n"
-

@@ -57,17 +57,17 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo tyname name uni fun ann = InlineInfo
-    { _iiVarInfo         :: VarInfo.VarsInfo tyname name uni ann
+    { _iiVarInfo              :: VarInfo.VarsInfo tyname name uni ann
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages          :: Usages.Usages
+    , _iiUsages               :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints           :: InlineHints name ann
+    , _iiHints                :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinsInfo    :: BuiltinsInfo uni fun
+    , _iiBuiltinsInfo         :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
-    , _iiInlineConstants :: Bool
+    , _iiInlineConstants      :: Bool
     -- ^ should we inline constants?
-    , _iiInlineThreshold :: Int
+    , _iiInlineCallsiteGrowth :: Int
     -- ^ inline threshold for callsite inlining
     }
 makeLenses ''InlineInfo

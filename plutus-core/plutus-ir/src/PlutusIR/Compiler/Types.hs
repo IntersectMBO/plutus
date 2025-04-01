@@ -95,7 +95,7 @@ data CompilationOpts a = CompilationOpts {
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     , _coInlineConstants                :: Bool
     , _coInlineFix                      :: Bool
-    , _coInlineThreshold                :: Int
+    , _coInlineCallsiteGrowth           :: Int
     -- Profiling
     , _coProfile                        :: Bool
     , _coRelaxedFloatin                 :: Bool
@@ -127,7 +127,7 @@ defaultCompilationOpts = CompilationOpts
   , _coInlineHints = def
   , _coInlineConstants = True
   , _coInlineFix = True
-  , _coInlineThreshold = 5
+  , _coInlineCallsiteGrowth = 5
   , _coProfile = False
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True

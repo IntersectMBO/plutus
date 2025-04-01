@@ -125,7 +125,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiHints                   :: InlineHints name a
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
-  , _iiInlineThreshold         :: Int
+  , _iiInlineCallsiteGrowth    :: Size
   }
 
 makeLenses ''InlineInfo
@@ -185,14 +185,14 @@ inline ::
   PLC.BuiltinSemanticsVariant fun ->
   Term name uni fun a ->
   SimplifierT name uni fun a m (Term name uni fun a)
-inline inlineThreshold inlineConstants hints builtinSemanticsVariant t = do
+inline callsiteGrowth inlineConstants hints builtinSemanticsVariant t = do
   result <-
     liftQuote $ flip evalStateT mempty $ runReaderT (processTerm t) InlineInfo
       { _iiUsages = Usages.termUsages t
       , _iiHints  = hints
       , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
       , _iiInlineConstants = inlineConstants
-      , _iiInlineThreshold = inlineThreshold
+      , _iiInlineCallsiteGrowth = callsiteGrowth
       }
   recordSimplification t Inline result
   return result
@@ -505,7 +505,7 @@ inlineSaturatedApp t
           fullyApplyAndBetaReduce varInfo args >>= \case
             Nothing -> pure t
             Just fullyApplied -> do
-              thresh <- view iiInlineThreshold
+              thresh <- view iiInlineCallsiteGrowth
               let
                 -- Inline only if the size is no bigger than not inlining plus threshold.
                 sizeIsOk = termSize fullyApplied <= termSize t + max 0 (fromIntegral thresh)

@@ -41,7 +41,7 @@ module PlutusLedgerApi.V2.Contexts
     , ownCurrencySymbol
     ) where
 
-import PlutusTx.Prelude hiding (toList)
+import PlutusTx.Prelude
 import Prelude qualified as Haskell
 
 import GHC.Generics (Generic)
@@ -58,7 +58,9 @@ import PlutusTx.AssocMap (Map, lookup, toList)
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
+import PlutusTx.Foldable qualified as F
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 -- | An input of a pending transaction.
@@ -193,12 +195,12 @@ valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
 
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
-valueSpent = foldMap (txOutValue . txInInfoResolved) . txInfoInputs
+valueSpent = F.foldMap (txOutValue . txInInfoResolved) . txInfoInputs
 {-# INLINABLE valueSpent #-}
 
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> Value
-valueProduced = foldMap txOutValue . txInfoOutputs
+valueProduced = F.foldMap txOutValue . txInfoOutputs
 {-# INLINABLE valueProduced #-}
 
 -- | The 'CurrencySymbol' of the current validator script.

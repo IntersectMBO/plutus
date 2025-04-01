@@ -8,6 +8,7 @@ module PlutusBenchmark.Lists.Sort.QuickSort where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
+import PlutusTx.List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 

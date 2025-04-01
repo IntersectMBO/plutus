@@ -33,7 +33,7 @@ module PlutusIR.Compiler (
     coInlineConstants,
     coInlineFix,
     coInlineHints,
-    coInlineThreshold,
+    coInlineCallsiteGrowth,
     coProfile,
     coRelaxedFloatin,
     coCaseOfCaseConservative,
@@ -140,7 +140,7 @@ simplifierIteration suffix = do
   preserveLogging <- view (ccOpts . coPreserveLogging)
   rules <- view ccRewriteRules
   ic <- view (ccOpts . coInlineConstants)
-  thresh <- view (ccOpts . coInlineThreshold)
+  thresh <- view (ccOpts . coInlineCallsiteGrowth)
 
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig

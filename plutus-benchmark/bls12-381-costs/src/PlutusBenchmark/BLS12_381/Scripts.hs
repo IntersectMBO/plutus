@@ -44,10 +44,10 @@ where
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
 import PlutusTx qualified as Tx
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
+import PlutusTx.Prelude as Tx hiding ((<>))
 import UntypedPlutusCore qualified as UPLC
-
-import PlutusTx.Prelude as Tx hiding (sort, (<>))
 
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
@@ -99,7 +99,7 @@ hashAndAddG1 l =
 
 mkHashAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG1Script l =
-    let points = map toBuiltin l
+    let points = List.map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Hash some bytestrings onto G2 and add them all together
@@ -112,7 +112,7 @@ hashAndAddG2 l =
 
 mkHashAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG2Script l =
-    let points = map toBuiltin l
+    let points = List.map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Uncompress a list of compressed G1 points and add them all together
@@ -126,7 +126,7 @@ uncompressAndAddG1 l =
 mkUncompressAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG1Script l =
     let ramdomPoint bs = Tx.bls12_381_G1_hashToGroup bs emptyByteString
-        points = map (Tx.bls12_381_G1_compress . ramdomPoint . toBuiltin) l
+        points = List.map (Tx.bls12_381_G1_compress . ramdomPoint . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Uncompress a list of compressed G1 points and add them all together
@@ -140,7 +140,7 @@ uncompressAndAddG2 l =
 mkUncompressAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG2Script l =
     let ramdomPoint bs = Tx.bls12_381_G2_hashToGroup bs emptyByteString
-        points = map (Tx.bls12_381_G2_compress . ramdomPoint . toBuiltin) l
+        points = List.map (Tx.bls12_381_G2_compress . ramdomPoint . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Pairing operations
@@ -593,7 +593,7 @@ aggregateSingleKeyG1Script
     -> Bool
 aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
   let g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
-      hashedMsgs = Tx.map (\x -> Tx.bls12_381_G2_hashToGroup x dst) messages
+      hashedMsgs = List.map (\x -> Tx.bls12_381_G2_hashToGroup x dst) messages
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       aggrSigDeser = Tx.bls12_381_G2_uncompress aggregateSignature
       aggrMsg = foldl1 Tx.bls12_381_G2_add hashedMsgs
@@ -604,7 +604,7 @@ aggregateSingleKeyG1Script messages pubKey aggregateSignature dst =
       foldl1 :: (a -> a -> a) -> [a] -> a
       foldl1 _ []     = traceError "foldr1: empty list"
       foldl1 _ [_]    = traceError "foldr1: only one element in list"
-      foldl1 f (x:xs) = Tx.foldl f x xs
+      foldl1 f (x:xs) = List.foldl f x xs
 {-# INLINABLE aggregateSingleKeyG1Script #-}
 
 
@@ -693,7 +693,7 @@ aggregateMultiKeyG2Script
 aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
   let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
       hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
-      pksDeser = Tx.map Tx.bls12_381_G2_uncompress pubKeys
+      pksDeser = List.map Tx.bls12_381_G2_uncompress pubKeys
       -- scalar calcuates to (142819114285630344964654001480828217341 :: Integer)
       dsScalar = byteStringToIntegerLE (Tx.sliceByteString 0 16
                     (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
@@ -706,17 +706,17 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
       foldl1 :: (a -> a -> a) -> [a] -> a
       foldl1 _ []     = traceError "foldr1: empty list"
       foldl1 _ [_]    = traceError "foldr1: only one element in list"
-      foldl1 f (x:xs) = Tx.foldl f x xs
+      foldl1 f (x:xs) = List.foldl f x xs
 
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
       calcAggregatedPubkeys dsScalar' pksDeser' =
           let dsScalars = calcDsScalars pksDeser' [dsScalar']
-          in go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
+          in go 1 (List.drop 1 pksDeser') (List.drop 1 dsScalars) (calcAggregatedPubkey (List.head pksDeser') (List.head dsScalars))
 
       calcDsScalars :: [BuiltinBLS12_381_G2_Element] -> [Integer] -> [Integer]
       calcDsScalars [] acc              = acc
       calcDsScalars (_:xs) [x']         = calcDsScalars xs [x', x' * x']
-      calcDsScalars (_:xs) acc@(x':xs') = calcDsScalars xs (acc ++ [last xs' * x'])
+      calcDsScalars (_:xs) acc@(x':xs') = calcDsScalars xs (acc List.++ [List.last xs' * x'])
       calcDsScalars _ _                 = traceError "calcDsScalars: unexpected"
 
       go :: Integer -> [BuiltinBLS12_381_G2_Element] -> [Integer] -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element

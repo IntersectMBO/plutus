@@ -5,6 +5,7 @@
 module PlutusTx.List (
     uncons,
     null,
+    length,
     map,
     and,
     or,
@@ -71,6 +72,14 @@ null = \case
     [] -> True
     _  -> False
 {-# INLINABLE null #-}
+
+length :: [a] -> Integer
+length = go
+  where
+    go = \case
+      [] -> 0
+      _:xs -> Builtins.addInteger 1 (go xs)
+{-# INLINABLE length #-}
 
 -- | Plutus Tx version of 'Data.List.map'.
 --
@@ -291,17 +300,23 @@ reverse l = revAppend l []
 {-# INLINABLE reverse #-}
 
 -- | Plutus Tx version of 'Data.List.zip'.
-zip :: [a] -> [b] -> [(a,b)]
-zip []     _bs    = []
-zip _as    []     = []
-zip (a:as) (b:bs) = (a,b) : zip as bs
+zip :: forall a b. [a] -> [b] -> [(a,b)]
+zip = go
+  where
+    go :: [a] -> [b] -> [(a,b)]
+    go []     _bs    = []
+    go _as    []     = []
+    go (a:as) (b:bs) = (a,b) : go as bs
 {-# INLINABLE zip #-}
 
 -- | Plutus Tx version of 'Data.List.unzip'.
-unzip :: [(a,b)] -> ([a], [b])
-unzip []             = ([], [])
-unzip ((x, y) : xys) = case unzip xys of
-    (xs, ys) -> (x : xs, y : ys)
+unzip :: forall a b. [(a,b)] -> ([a], [b])
+unzip = go
+  where
+    go :: [(a,b)] -> ([a], [b])
+    go []             = ([], [])
+    go ((x, y) : xys) = case go xys of
+        (xs, ys) -> (x : xs, y : ys)
 {-# INLINABLE unzip #-}
 
 -- | Plutus Tx version of 'Data.List.head'.
@@ -324,21 +339,27 @@ tail []     =  traceError tailEmptyListError
 {-# INLINABLE tail #-}
 
 -- | Plutus Tx version of 'Data.List.take'.
-take :: Integer -> [a] -> [a]
-take n _      | n <= 0 =  []
-take _ []              =  []
-take n (x:xs)          =  x : take (Builtins.subtractInteger n 1) xs
+take :: forall a. Integer -> [a] -> [a]
+take = go
+  where
+    go :: Integer -> [a] -> [a]
+    go n _      | n <= 0 =  []
+    go _ []              =  []
+    go n (x:xs)          =  x : go (Builtins.subtractInteger n 1) xs
 {-# INLINABLE take #-}
 
 -- | Plutus Tx version of 'Data.List.drop'.
-drop :: Integer -> [a] -> [a]
-drop n xs     | n <= 0 = xs
-drop _ []              = []
-drop n (_:xs)          = drop (Builtins.subtractInteger n 1) xs
+drop :: forall a. Integer -> [a] -> [a]
+drop = go
+  where
+    go :: Integer -> [a] -> [a]
+    go n xs     | n <= 0 = xs
+    go _ []              = []
+    go n (_:xs)          = go (Builtins.subtractInteger n 1) xs
 {-# INLINABLE drop #-}
 
 -- | Plutus Tx version of 'Data.List.splitAt'.
-splitAt :: Integer -> [a] -> ([a], [a])
+splitAt :: forall a. Integer -> [a] -> ([a], [a])
 splitAt n xs
   | n <= 0    = ([], xs)
   | otherwise = go n xs

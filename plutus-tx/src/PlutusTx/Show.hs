@@ -23,7 +23,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either
 import PlutusTx.List (foldr)
 import PlutusTx.Maybe
-import PlutusTx.Prelude hiding (foldr)
+import PlutusTx.Prelude
 import PlutusTx.Show.TH
 import PlutusTx.These
 

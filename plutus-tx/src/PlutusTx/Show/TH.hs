@@ -7,7 +7,6 @@ module PlutusTx.Show.TH where
 import PlutusTx.Base
 import PlutusTx.Bool
 import PlutusTx.Builtins
-import PlutusTx.Foldable
 import PlutusTx.List
 
 import Data.Deriving.Internal (isInfixDataCon, isNonUnitTuple, isSym, varTToName)

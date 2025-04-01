@@ -25,7 +25,6 @@ import PlutusLedgerApi.V3.Data.MintValue (MintValue (..), mintValueBurned, mintV
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Data.List qualified as List
-import PlutusTx.IsData (toBuiltinData)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
 import PlutusTx.TH (compile)

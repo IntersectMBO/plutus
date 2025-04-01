@@ -11,6 +11,7 @@ import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -58,7 +59,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _  = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
