@@ -151,6 +151,19 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
                    ]
     ]
 
+testPurposeIsWellFormed :: TestTree
+testPurposeIsWellFormed = testGroup "purposeIsWellFormed"
+    [ runTestGhcData [  Tx.goldenPirReadable "purposeIsWellFormed" $
+                        Data.SC.compiledPurposeIsWellFormed
+                   , Tx.goldenSize "purposeIsWellFormed" $
+                        Data.SC.compiledPurposeIsWellFormed
+                   , Tx.goldenBudget "purposeIsWellFormed-4" $
+                        Data.SC.mkPurposeIsWellFormedCode (Data.SC.mkMintingScriptContext 4)
+                   , Tx.goldenEvalCekCatch "purposeIsWellFormed-4"
+                        [Data.SC.mkPurposeIsWellFormedCode (Data.SC.mkMintingScriptContext 4)]
+                   ]
+    ]
+
 allTests :: TestTree
 allTests =
   testGroup "V3"
@@ -160,4 +173,5 @@ allTests =
     , testCheckDataSc2
     , testCheckSOPScEquality
     , testCheckDataScEquality
+    , testPurposeIsWellFormed
     ]
