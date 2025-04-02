@@ -132,6 +132,30 @@
             {all dead. dead}
   in
   letrec
+    !go : List integer -> List ChessSet -> List (Tuple2 integer ChessSet)
+      = \(ds : List integer) (_bs : List ChessSet) ->
+          List_match
+            {integer}
+            ds
+            {all dead. List (Tuple2 integer ChessSet)}
+            (/\dead -> Nil {Tuple2 integer ChessSet})
+            (\(ipv : integer) (ipv : List integer) ->
+               /\dead ->
+                 List_match
+                   {ChessSet}
+                   _bs
+                   {all dead. List (Tuple2 integer ChessSet)}
+                   (/\dead -> Nil {Tuple2 integer ChessSet})
+                   (\(ipv : ChessSet) (ipv : List ChessSet) ->
+                      /\dead ->
+                        Cons
+                          {Tuple2 integer ChessSet}
+                          (Tuple2 {integer} {ChessSet} ipv ipv)
+                          (go ipv ipv))
+                   {all dead. dead})
+            {all dead. dead}
+  in
+  letrec
     !depthSearch :
        all a.
          (\a -> a -> a -> Bool) a ->
@@ -890,31 +914,6 @@
                  in
                  go eta)
   in
-  letrec
-    !zip : all a b. List a -> List b -> List (Tuple2 a b)
-      = /\a b ->
-          \(ds : List a) (_bs : List b) ->
-            List_match
-              {a}
-              ds
-              {all dead. List (Tuple2 a b)}
-              (/\dead -> Nil {Tuple2 a b})
-              (\(ipv : a) (ipv : List a) ->
-                 /\dead ->
-                   List_match
-                     {b}
-                     _bs
-                     {all dead. List (Tuple2 a b)}
-                     (/\dead -> Nil {Tuple2 a b})
-                     (\(ipv : b) (ipv : List b) ->
-                        /\dead ->
-                          Cons
-                            {Tuple2 a b}
-                            (Tuple2 {a} {b} ipv ipv)
-                            (zip {a} {b} ipv ipv))
-                     {all dead. dead})
-              {all dead. dead}
-  in
   \(depth : integer)
    (boardSize : integer) ->
     depthSearch
@@ -1062,25 +1061,27 @@
                      Cons {ChessSet} ds ds)
                   (Nil {ChessSet})
             !numStarts : integer = length {ChessSet} l
+            !eta : List integer
+              = let
+                !x : integer = subtractInteger 1 numStarts
+              in
+              letrec
+                !go : integer -> List integer
+                  = \(n : integer) ->
+                      Bool_match
+                        (ifThenElse
+                           {Bool}
+                           (lessThanEqualsInteger n 0)
+                           True
+                           False)
+                        {all dead. List integer}
+                        (/\dead -> Nil {integer})
+                        (/\dead -> Cons {integer} x (go (subtractInteger n 1)))
+                        {all dead. dead}
+              in
+              go numStarts
           in
-          zip
-            {integer}
-            {ChessSet}
-            (let
-              !x : integer = subtractInteger 1 numStarts
-            in
-            letrec
-              !go : integer -> List integer
-                = \(n : integer) ->
-                    Bool_match
-                      (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
-                      {all dead. List integer}
-                      (/\dead -> Nil {integer})
-                      (/\dead -> Cons {integer} x (go (subtractInteger n 1)))
-                      {all dead. dead}
-            in
-            go numStarts)
-            l
+          go eta l
       in
       go list)
       (\(ds : Tuple2 integer ChessSet) ->

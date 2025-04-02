@@ -1,7 +1,7 @@
 # This file evaluates to a derivation that builds the AGDA metatheory
 # documentation site using Jekyll. The derivation also checks for broken links
 # in the generated HTML.
-{ inputs, self, pkgs, lib, agda-with-stdlib }:
+{ inputs, self, pkgs, lib, agda-tools }:
 
 let
 
@@ -21,7 +21,7 @@ let
   plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
     src = lib.cleanSource (self + /plutus-metatheory);
-    buildInputs = [ agda-with-stdlib ];
+    buildInputs = [ agda-tools.agda-with-stdlib ];
     dontInstall = true;
 
     # Jekyll requires the _layouts folder to be in the same directory as the
@@ -29,7 +29,7 @@ let
     buildPhase = ''
       mkdir $out
       cp -R ${self + /plutus-metatheory/html/_layouts} $out
-      agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
+      agda-with-stdlib --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
     '';
   };
 

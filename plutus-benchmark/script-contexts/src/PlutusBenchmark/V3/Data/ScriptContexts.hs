@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -9,20 +10,25 @@ module PlutusBenchmark.V3.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
 import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,
-                                TxOut, always, emptyMintValue, pattern NoOutputDatum,
-                                pattern ScriptContext, pattern SpendingScript, pattern TxInfo,
-                                pattern TxOut, pattern TxOutRef, txInfoCurrentTreasuryAmount,
-                                txInfoData, txInfoFee, txInfoId, txInfoInputs, txInfoMint,
-                                txInfoOutputs, txInfoProposalProcedures, txInfoRedeemers,
-                                txInfoReferenceInputs, txInfoSignatories, txInfoTreasuryDonation,
-                                txInfoTxCerts, txInfoValidRange, txInfoVotes, txInfoWdrl,
-                                txOutAddress, txOutDatum, txOutReferenceScript, txOutValue)
+                                TxOut, always, emptyMintValue, mintValueMinted,
+                                pattern CertifyingScript, pattern MintingScript,
+                                pattern NoOutputDatum, pattern ProposingScript,
+                                pattern RewardingScript, pattern ScriptContext,
+                                pattern SpendingScript, pattern TxInfo, pattern TxOut,
+                                pattern TxOutRef, pattern VotingScript, txInInfoOutRef,
+                                txInfoCurrentTreasuryAmount, txInfoData, txInfoFee, txInfoId,
+                                txInfoInputs, txInfoMint, txInfoOutputs, txInfoProposalProcedures,
+                                txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories,
+                                txInfoTreasuryDonation, txInfoTxCerts, txInfoValidRange,
+                                txInfoVotes, txInfoWdrl, txOutAddress, txOutDatum,
+                                txOutReferenceScript, txOutValue)
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
+import PlutusLedgerApi.V3.Data.MintValue (MintValue (..))
 import PlutusTx qualified
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Data.AssocMap qualified as Map
-import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.Data.List qualified as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -41,7 +47,7 @@ mkTxInfo i =
   TxInfo
     { txInfoInputs = mempty
     , txInfoReferenceInputs = mempty
-    , txInfoOutputs = Data.List.map mkTxOut (Data.List.fromSOP ([1 .. i] :: [Integer]))
+    , txInfoOutputs = List.map mkTxOut (List.fromSOP ([1 .. i] :: [Integer]))
     , txInfoFee = 10000
     , txInfoMint = emptyMintValue
     , txInfoTxCerts = mempty
@@ -69,6 +75,52 @@ mkTxOut i =
 mkValue :: Integer -> Value
 mkValue i = assetClassValue (assetClass adaSymbol adaToken) i
 
+mkMintingScriptContext :: Integer -> ScriptContext
+mkMintingScriptContext i =
+  ScriptContext
+    (mkMintingTxInfo i)
+    (Redeemer (PlutusTx.toBuiltinData (1 :: Integer)))
+    (MintingScript . CurrencySymbol $ toByteString i)
+
+mkMintingTxInfo :: Integer -> TxInfo
+mkMintingTxInfo i =
+  TxInfo
+    { txInfoInputs = mempty
+    , txInfoReferenceInputs = mempty
+    , txInfoOutputs = List.map mkTxOut (List.fromSOP ([1 .. i] :: [Integer]))
+    , txInfoFee = 10000
+    , txInfoMint = mkMintValue i
+    , txInfoTxCerts = mempty
+    , txInfoWdrl = Map.empty
+    , txInfoValidRange = always
+    , txInfoSignatories = mempty
+    , txInfoRedeemers = Map.empty
+    , txInfoData = Map.empty
+    , txInfoId = TxId ""
+    , txInfoVotes = Map.empty
+    , txInfoProposalProcedures = mempty
+    , txInfoCurrentTreasuryAmount = Nothing
+    , txInfoTreasuryDonation = Nothing
+    }
+
+mkMintValue :: Integer -> MintValue
+mkMintValue n = listToMintValue
+  [(CurrencySymbol (toByteString i), [(TokenName (toByteString i), i)])
+    | i <- [0..n]]
+
+toByteString :: Integer -> PlutusTx.BuiltinByteString
+toByteString i =
+  foldr
+    (\_ -> PlutusTx.consByteString 48)
+    PlutusTx.emptyByteString
+    [0..i]
+
+listToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
+listToValue = Value . Map.unsafeFromSOPList . map (fmap Map.unsafeFromSOPList)
+
+listToMintValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> MintValue
+listToMintValue = UnsafeMintValue . getValue . listToValue
+
 -- This example decodes the script context (which is O(size-of-context) work), and then also
 -- does some work that's roughly proportional to the size of the script context (counting the
 -- outputs). This should be a somewhat realistic example where a reasonable chunk of work is
@@ -79,7 +131,7 @@ checkScriptContext1 d =
   -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ _ = sc
-   in if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+   in if List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
         then ()
         else PlutusTx.traceError "Odd number of outputs"
 {-# INLINEABLE checkScriptContext1 #-}
@@ -153,3 +205,39 @@ mkScriptContextEqualityOverheadCode sc =
    in $$(PlutusTx.compile [||scriptContextEqualityOverhead||])
         `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
         `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
+-- From `Cardano.Ledger.Plutus.Preprocessor.Source.V3`.
+purposeIsWellFormed :: ScriptContext -> PlutusTx.BuiltinUnit
+purposeIsWellFormed = \case
+  ScriptContext
+    TxInfo
+      { txInfoMint = infoMint
+      , txInfoInputs = infoInputs
+      , txInfoWdrl = infoWdrl
+      , txInfoTxCerts = infoTxCerts
+      , txInfoVotes = infoVotes
+      }
+    _redeemer
+    scriptInfo -> PlutusTx.check $
+      case scriptInfo of
+        MintingScript cs ->
+          Map.member cs . getValue $ mintValueMinted infoMint
+        SpendingScript txOutRef mDatum ->
+          case mDatum of
+            Just _ -> False
+            Nothing ->
+              List.null $ List.filter ((txOutRef PlutusTx.==) . txInInfoOutRef) infoInputs
+        RewardingScript cred ->
+          Map.member cred infoWdrl
+        CertifyingScript _idx txCert ->
+          List.null $ List.filter (txCert PlutusTx.==) infoTxCerts
+        VotingScript voter ->
+          Map.member voter infoVotes
+        ProposingScript _idx _propProc -> True
+
+compiledPurposeIsWellFormed :: PlutusTx.CompiledCode (ScriptContext -> PlutusTx.BuiltinUnit)
+compiledPurposeIsWellFormed = $$(PlutusTx.compile [||purposeIsWellFormed||])
+
+mkPurposeIsWellFormedCode :: ScriptContext -> PlutusTx.CompiledCode PlutusTx.BuiltinUnit
+mkPurposeIsWellFormedCode sc =
+  compiledPurposeIsWellFormed `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc

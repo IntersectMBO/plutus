@@ -1,12 +1,8 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, agda-with-stdlib, r-with-packages, utils }:
+{ inputs, pkgs, lib, agda-tools, r-with-packages, utils }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
-    let
-      ghc-options-for-static-exe =
-        lib.optionals pkgs.stdenv.hostPlatform.isMusl [ "-fexternal-interpreter" ];
-    in
     {
       name = "plutus";
 
@@ -42,35 +38,10 @@ let
           packages = {
 
             plutus-metatheory.components.library.build-tools =
-              [ agda-with-stdlib ];
+              [ agda-tools.agda-with-stdlib ];
 
-            plutus-metatheory.components.exes.plc-agda.build-tools =
-              [ agda-with-stdlib ];
-
-            plutus-metatheory.components.tests.test-NEAT.build-tools =
-              [ agda-with-stdlib ];
-
-            plutus-executables.components.exes.pir = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
-
-            plutus-executables.components.exes.plc = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
-
-            plutus-executables.components.exes.uplc = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-              build-tools = [ agda-with-stdlib ];
-            };
-
-            plutus-executables.components.tests.test-simple.build-tools =
-              [ agda-with-stdlib ];
-
-            plutus-executables.components.tests.test-detailed.build-tools =
-              [ agda-with-stdlib ];
+            plutus-executables.components.tests.test-certifier.build-tools =
+              [ agda-tools.agda-with-stdlib-and-metatheory ];
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];
@@ -90,10 +61,10 @@ let
               }
             '';
 
-            plutus-core.components.exes.plutus = {
-              preBuild = utils.exportGitHashAndGitCommitDateEnvVars inputs.self;
-              ghcOptions = ghc-options-for-static-exe;
-            };
+            plutus-core.configureFlags = [
+              "--ghc-option=-D__GIT_REV__=\\\"${utils.getSourceInfoRev inputs}\\\""
+              "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.getSourceInfoLastModifiedDate inputs}\\\""
+            ];
 
             plutus-cert.components.library.build-tools = [
               pkgs.perl
@@ -111,6 +82,7 @@ let
 
         {
           packages = {
+            docusaurus-examples.ghcOptions = [ "-Werror" ];
             cardano-constitution.ghcOptions = [ "-Werror" ];
             plutus-benchmark.ghcOptions = [ "-Werror" ];
             plutus-conformance.ghcOptions = [ "-Werror" ];

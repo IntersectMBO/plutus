@@ -12,7 +12,7 @@ author:        James Chapman
 maintainer:    james.chapman@iohk.io
 category:      Development
 data-files:
-  Plutus.agda-lib
+  plutus-metatheory.agda-lib
   README.md
   src/**/*.lagda.md
 
@@ -80,6 +80,7 @@ library
   if impl(ghc <9.0)
     build-depends: integer-gmp
 
+  exposed-modules: Paths_plutus_metatheory
   exposed-modules:
     Opts
     Raw

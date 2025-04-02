@@ -24,6 +24,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Size (Size)
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
@@ -95,6 +96,7 @@ data CompilationOpts a = CompilationOpts {
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     , _coInlineConstants                :: Bool
     , _coInlineFix                      :: Bool
+    , _coInlineCallsiteGrowth           :: Size
     -- Profiling
     , _coProfile                        :: Bool
     , _coRelaxedFloatin                 :: Bool
@@ -126,6 +128,7 @@ defaultCompilationOpts = CompilationOpts
   , _coInlineHints = def
   , _coInlineConstants = True
   , _coInlineFix = True
+  , _coInlineCallsiteGrowth = 5
   , _coProfile = False
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True
