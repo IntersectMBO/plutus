@@ -125,9 +125,7 @@ srcTests =
   -- , "len"
   -- TODO: uncomment when "Haskell ByteString != Agda String" issue is fixed
   -- , "MinBS"
-  -- TODO: This doesn't certify because of a missmatch in the purity
-  -- definition between the certifier and the Haskell.
-  -- , "AA2-CSE"
+    , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
