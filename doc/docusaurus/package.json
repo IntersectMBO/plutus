@@ -39,7 +39,8 @@
     "prismjs": "1.30.0",
     "@babel/runtime-corejs3": "7.26.10",
     "@babel/runtime": "7.26.10",
-    "@babel/helpers": "7.26.10"
+    "@babel/helpers": "7.26.10",
+    "image-size": "1.2.1"
   },
   "browserslist": {
     "production": [
