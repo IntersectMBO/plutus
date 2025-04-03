@@ -6,7 +6,7 @@
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
-import PlutusPrelude (display, fold, on, void, zipExact, (&&&))
+import PlutusPrelude (display, fold, on, toList, void, zipExact, (&&&))
 
 import PlutusCore (Name, _nameText)
 import PlutusCore.Annotation
@@ -28,7 +28,6 @@ import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Vector qualified as V
 
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
@@ -61,7 +60,7 @@ compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
 compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
-compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact (V.toList cs) (V.toList cs'))
+compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact (toList cs) (toList cs'))
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False
 
