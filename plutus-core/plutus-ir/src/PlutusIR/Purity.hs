@@ -194,7 +194,7 @@ termEvaluationOrder binfo vinfo = goTerm
       -- first the body
       goTerm b
         -- then the whole term, but this is erased so it is work-free
-        <> evalThis (EvalTerm Pure WorkFree t)
+        <> evalThis (EvalTerm MaybeImpure WorkFree t)
     t@(Constr _ _ _ ts) ->
       -- first the arguments, in left-to-right order
       foldMap goTerm ts
