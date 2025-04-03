@@ -89,18 +89,18 @@ data Tag : Set → Set where
   bls12-381-g2-element : Tag (Esc Bls12-381-G2-Element)
   bls12-381-mlresult   : Tag (Esc Bls12-381-MlResult)
 
-{-# FOREIGN GHC type Tag = DefaultUni #-}
-{-# FOREIGN GHC pattern TagInt                  = DefaultUniInteger  #-}
-{-# FOREIGN GHC pattern TagBS                   = DefaultUniByteString #-}
-{-# FOREIGN GHC pattern TagStr                  = DefaultUniString #-}
-{-# FOREIGN GHC pattern TagBool                 = DefaultUniBool #-}
-{-# FOREIGN GHC pattern TagUnit                 = DefaultUniUnit #-}
-{-# FOREIGN GHC pattern TagData                 = DefaultUniData #-}
-{-# FOREIGN GHC pattern TagPair ta tb           = DefaultUniPair ta tb #-}
-{-# FOREIGN GHC pattern TagList ta              = DefaultUniList ta #-}
-{-# FOREIGN GHC pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
-{-# FOREIGN GHC pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
-{-# FOREIGN GHC pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
+{-# FOREIGN GHC type Tag = AgdaDefaultUni #-}
+{-# FOREIGN GHC pattern TagInt                  = AgdaDefaultUniInteger  #-}
+{-# FOREIGN GHC pattern TagBS                   = AgdaDefaultUniByteString #-}
+{-# FOREIGN GHC pattern TagStr                  = AgdaDefaultUniString #-}
+{-# FOREIGN GHC pattern TagBool                 = AgdaDefaultUniBool #-}
+{-# FOREIGN GHC pattern TagUnit                 = AgdaDefaultUniUnit #-}
+{-# FOREIGN GHC pattern TagData                 = AgdaDefaultUniData #-}
+{-# FOREIGN GHC pattern TagPair ta tb           = AgdaDefaultUniPair ta tb #-}
+{-# FOREIGN GHC pattern TagList ta              = AgdaDefaultUniList ta #-}
+{-# FOREIGN GHC pattern TagBLS12_381_G1_Element = AgdaDefaultUniBLS12_381_G1_Element #-}
+{-# FOREIGN GHC pattern TagBLS12_381_G2_Element = AgdaDefaultUniBLS12_381_G2_Element #-}
+{-# FOREIGN GHC pattern TagBLS12_381_MlResult   = AgdaDefaultUniBLS12_381_MlResult #-}
 {-# COMPILE GHC Tag                             = data Tag (TagInt
                                                            | TagBS
                                                            | TagStr
@@ -123,7 +123,7 @@ Term constants are pairs of a tag and the corresponding type.
 data TagCon : Set where
   tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
-{-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
+{-# FOREIGN GHC type TagCon = Some (ValueOf AgdaDefaultUni) #-}
 {-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-}
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 

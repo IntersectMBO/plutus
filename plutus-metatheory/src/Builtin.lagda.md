@@ -536,7 +536,8 @@ postulate
 {-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
-{-# COMPILE GHC lengthBS = toInteger . BS.length #-}
+{-# FOREIGN GHC import Raw (AgdaByteString (AgdaByteString, unAgdaByteString), toByteString, fromByteString) #-}
+{-# COMPILE GHC lengthBS = toInteger . BS.length . toByteString #-}
 
 -- no binding needed for addition
 -- no binding needed for subtract
@@ -553,19 +554,19 @@ postulate
 
 
 {-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
-{-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
-{-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
-{-# COMPILE GHC BLAKE2B-256 = Hash.blake2b_256 #-}
-{-# COMPILE GHC equals = (==) #-}
-{-# COMPILE GHC B< = (<) #-}
-{-# COMPILE GHC B<= = (<=) #-}
+{-# COMPILE GHC concat = \bs1 bs2 -> fromByteString $ BS.append (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC SHA2-256 = fromByteString . Hash.sha2_256 . toByteString #-}
+{-# COMPILE GHC SHA3-256 = fromByteString . Hash.sha3_256 . toByteString #-}
+{-# COMPILE GHC BLAKE2B-256 = fromByteString . Hash.blake2b_256 . toByteString #-}
+{-# COMPILE GHC equals = \bs1 bs2 -> toByteString bs1 == toByteString bs2 #-}
+{-# COMPILE GHC B< = \bs1 bs2 -> toByteString bs1 < toByteString bs2 #-}
+{-# COMPILE GHC B<= = \bs1 bs2 -> toByteString bs1 <= toByteString bs2 #-}
 -- V1 of consByteString
 -- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 -- Other versions of consByteString
-{-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
-{-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
-{-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
+{-# COMPILE GHC cons = \n xs -> fmap (\w8 -> fromByteString $ BS.cons w8 (toByteString xs)) (toIntegralSized n) #-}
+{-# COMPILE GHC slice = \start n xs -> fromByteString $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) (toByteString xs)) #-}
+{-# COMPILE GHC index = \xs n -> fromIntegral (BS.index (toByteString xs) (fromIntegral n)) #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
 
@@ -579,58 +580,58 @@ postulate
 {-# FOREIGN GHC builtinResultToMaybe :: BuiltinResult a -> Maybe a #-}
 {-# FOREIGN GHC builtinResultToMaybe = reoption #-}
 
-{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature k m s #-}
-{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature k m s #-}
-{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature k m s #-}
+{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature (toByteString k) (toByteString m) (toByteString s) #-}
+{-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature (toByteString k) (toByteString m) (toByteString s) #-}
+{-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature (toByteString k) (toByteString m) (toByteString s) #-}
 
-{-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
-{-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
+{-# COMPILE GHC ENCODEUTF8 = AgdaByteString  #-}
+{-# COMPILE GHC DECODEUTF8 = Just . unAgdaByteString #-}
 
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 qualified as G1 #-}
 {-# COMPILE GHC BLS12-381-G1-add = G1.add #-}
 {-# COMPILE GHC BLS12-381-G1-neg = G1.neg #-}
 {-# COMPILE GHC BLS12-381-G1-scalarMul = G1.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G1-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G1-hashToGroup = eitherToMaybe .* G1.hashToGroup #-}
-{-# COMPILE GHC BLS12-381-G1-compress = G1.compress #-}
-{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress #-}
+{-# COMPILE GHC BLS12-381-G1-hashToGroup = \bs1 bs2 -> eitherToMaybe $ G1.hashToGroup (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC BLS12-381-G1-compress = fromByteString . G1.compress #-}
+{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress . toByteString #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 qualified as G2 #-}
 {-# COMPILE GHC BLS12-381-G2-add = G2.add #-}
 {-# COMPILE GHC BLS12-381-G2-neg = G2.neg #-}
 {-# COMPILE GHC BLS12-381-G2-scalarMul = G2.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G2-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G2-hashToGroup = eitherToMaybe .* G2.hashToGroup #-}
-{-# COMPILE GHC BLS12-381-G2-compress = G2.compress #-}
-{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress #-}
+{-# COMPILE GHC BLS12-381-G2-hashToGroup = \bs1 bs2 -> eitherToMaybe $ G2.hashToGroup (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC BLS12-381-G2-compress = fromByteString . G2.compress #-}
+{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress . toByteString #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing #-}
 {-# COMPILE GHC BLS12-381-millerLoop = Pairing.millerLoop #-}
 {-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
 {-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
 
-{-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
-{-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
+{-# COMPILE GHC KECCAK-256 = fromByteString . Hash.keccak_256 . toByteString #-}
+{-# COMPILE GHC BLAKE2B-224 = fromByteString . Hash.blake2b_224 . toByteString #-}
 
 {-# FOREIGN GHC import PlutusCore.Bitwise qualified as Bitwise #-}
-{-# COMPILE GHC BStoI = Bitwise.byteStringToInteger #-}
-{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Bitwise.integerToByteString e w n #-}
-{-# COMPILE GHC andBYTESTRING = Bitwise.andByteString #-}
-{-# COMPILE GHC orBYTESTRING = Bitwise.orByteString #-}
-{-# COMPILE GHC xorBYTESTRING = Bitwise.xorByteString #-}
-{-# COMPILE GHC complementBYTESTRING = Bitwise.complementByteString #-}
-{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit s (fromIntegral n) #-}
-{-# COMPILE GHC writeBITS = \s ps u -> builtinResultToMaybe $ Bitwise.writeBits s (fmap fromIntegral ps) u #-}
+{-# COMPILE GHC BStoI = \b bs -> Bitwise.byteStringToInteger b (toByteString bs) #-}
+{-# COMPILE GHC ItoBS = \e w n -> fmap fromByteString <$> builtinResultToMaybe $ Bitwise.integerToByteString e w n #-}
+{-# COMPILE GHC andBYTESTRING = \b bs1 bs2 -> fromByteString $ Bitwise.andByteString b (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC orBYTESTRING = \b bs1 bs2 -> fromByteString $ Bitwise.orByteString b (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC xorBYTESTRING = \b bs1 bs2 -> fromByteString $ Bitwise.xorByteString b (toByteString bs1) (toByteString bs2) #-}
+{-# COMPILE GHC complementBYTESTRING = fromByteString . Bitwise.complementByteString . toByteString #-}
+{-# COMPILE GHC readBIT = \s n -> builtinResultToMaybe $ Bitwise.readBit (toByteString s) (fromIntegral n) #-}
+{-# COMPILE GHC writeBITS = \s ps u -> fmap fromByteString <$> builtinResultToMaybe $ Bitwise.writeBits (toByteString s) (fmap fromIntegral ps) u #-}
 -- The Plutus Core version of `replicateByte n w` can fail in two ways: if n < 0 or n >= 8192 then
 -- the implementation PlutusCore.Bitwise will return BuiltinFailure; if w < 0 or w >= 256 then the
 -- denotation in `PlutusCore.Default.Builtins` will fail when the builtin machinery tries to convert
--- it to a Word8.  We have to replicate this behaviour here. -}
+-- it to a Word8.  We have to replicate this behaviour here.
 {-# COMPILE GHC replicateBYTE = \n w8 ->
-        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
-{-# COMPILE GHC shiftBYTESTRING = Bitwise.shiftByteString #-}
-{-# COMPILE GHC rotateBYTESTRING = Bitwise.rotateByteString #-}
-{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits s #-}
-{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit s #-}
+        case toIntegralSized w8 of { Nothing -> Nothing; Just w -> fmap fromByteString <$> builtinResultToMaybe $ Bitwise.replicateByte n w } #-}
+{-# COMPILE GHC shiftBYTESTRING = \bs i -> fromByteString $ Bitwise.shiftByteString (toByteString bs) i #-}
+{-# COMPILE GHC rotateBYTESTRING = \bs i -> fromByteString $ Bitwise.rotateByteString (toByteString bs) i #-}
+{-# COMPILE GHC countSetBITS = \s -> fromIntegral $ Bitwise.countSetBits (toByteString s) #-}
+{-# COMPILE GHC findFirstSetBIT = \s -> fromIntegral $ Bitwise.findFirstSetBit (toByteString s) #-}
 
-{-# COMPILE GHC RIPEMD-160 = Hash.ripemd_160 #-}
+{-# COMPILE GHC RIPEMD-160 = fromByteString . Hash.ripemd_160 . toByteString #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.ExpMod qualified as ExpMod #-}
 -- here we explicitly do a Natural-check on m; the builtin machinery in plutus does such a check usually implicitly
 -- but we cannot use the builtin machinery here.

@@ -2,22 +2,38 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 module Raw where
 
+import Control.Applicative qualified as Alt
+import Data.Bifunctor (bimap)
 import Data.ByteString as BS hiding (map)
+import Data.Either
+import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import PlutusCore
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data hiding (Constr)
+import PlutusCore.Data qualified as Haskell
 import PlutusCore.DeBruijn
-import PlutusCore.Default
+import PlutusCore.Default hiding (noMoreTypeFunctions)
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Parser
 import PlutusCore.Pretty
-
-import Data.Either
-import PlutusCore.Error (ParserErrorBundle)
+import Universe (Closed (..), peelUniTag)
 
 data KIND = Star | Sharp | Arrow KIND KIND
            deriving Show
@@ -54,7 +70,7 @@ data RTerm = RVar Integer
            | RTApp RTerm RType
            | RLambda RType RTerm
            | RApp RTerm RTerm
-           | RCon (Some (ValueOf DefaultUni))
+           | RCon (Some (ValueOf AgdaDefaultUni))
            | RError RType
            | RBuiltin DefaultFun
            | RWrap RType RType RTerm
@@ -66,43 +82,42 @@ data RTerm = RVar Integer
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n
 
-convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
+convP :: Program NamedTyDeBruijn NamedDeBruijn AgdaDefaultUni DefaultFun a -> RTerm
 convP (Program _ _ t) = conv t
 
 convK :: Kind a -> KIND
 convK (Type _)           = Star
 convK (KindArrow _ k k') = Arrow (convK k) (convK k')
 
-convT :: Type NamedTyDeBruijn DefaultUni a -> RType
+convT :: Type NamedTyDeBruijn AgdaDefaultUni a -> RType
 convT (TyVar _ (NamedTyDeBruijn x)) = RTyVar (unIndex (ndbnIndex x))
 convT (TyFun _ _A _B)               = RTyFun (convT _A) (convT _B)
 convT (TyForall _ _ _K _A)          = RTyPi (convK _K) (convT _A)
 convT (TyLam _ _ _K _A)             = RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
+convT (TyBuiltin ann (SomeTypeIn (AgdaDefaultUniApply f x))) =
      RTyApp (convT (TyBuiltin ann (SomeTypeIn f)))
             (convT (TyBuiltin ann (SomeTypeIn x)))
 convT (TyBuiltin _ someUni)         = convTyCon someUni
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 convT (TySOP _ xss)                 = RTySOP (map (map convT) xss)
 
-convTyCon :: SomeTypeIn DefaultUni -> RType
-convTyCon (SomeTypeIn DefaultUniInteger)              = RTyCon (RTyConAtom ATyConInt)
-convTyCon (SomeTypeIn DefaultUniByteString)           = RTyCon (RTyConAtom ATyConBS)
-convTyCon (SomeTypeIn DefaultUniString)               = RTyCon (RTyConAtom ATyConStr)
-convTyCon (SomeTypeIn DefaultUniBool)                 = RTyCon (RTyConAtom ATyConBool)
-convTyCon (SomeTypeIn DefaultUniUnit)                 = RTyCon (RTyConAtom ATyConUnit)
-convTyCon (SomeTypeIn DefaultUniData)                 = RTyCon (RTyConAtom ATyConData)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
-convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
-convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
-convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
-convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
+convTyCon :: SomeTypeIn AgdaDefaultUni -> RType
+convTyCon (SomeTypeIn AgdaDefaultUniInteger)              = RTyCon (RTyConAtom ATyConInt)
+convTyCon (SomeTypeIn AgdaDefaultUniByteString)           = RTyCon (RTyConAtom ATyConBS)
+convTyCon (SomeTypeIn AgdaDefaultUniString)               = RTyCon (RTyConAtom ATyConStr)
+convTyCon (SomeTypeIn AgdaDefaultUniBool)                 = RTyCon (RTyConAtom ATyConBool)
+convTyCon (SomeTypeIn AgdaDefaultUniUnit)                 = RTyCon (RTyConAtom ATyConUnit)
+convTyCon (SomeTypeIn AgdaDefaultUniData)                 = RTyCon (RTyConAtom ATyConData)
+convTyCon (SomeTypeIn AgdaDefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
+convTyCon (SomeTypeIn AgdaDefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
+convTyCon (SomeTypeIn AgdaDefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
+convTyCon (SomeTypeIn AgdaDefaultUniProtoList)            = RTyCon RTyConList
+convTyCon (SomeTypeIn AgdaDefaultUniProtoPair)            = RTyCon RTyConPair
+convTyCon (SomeTypeIn (AgdaDefaultUniApply _ _))              = error "unsupported builtin type application"
 -- TODO: this should be fixed once the metatheory supports builtin arrays
-convTyCon (SomeTypeIn DefaultUniProtoArray)           = error "unsupported builtin array"
 
-conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
+conv :: Term NamedTyDeBruijn NamedDeBruijn AgdaDefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
 conv (TyAbs _ _ _K t)    = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)     = RTApp (conv t) (convT _A)
@@ -127,7 +142,7 @@ unconvK (Arrow k k') = KindArrow () (unconvK k) (unconvK k')
 unconvK _            = Type ()
 
 -- this should take a level and render levels as names
-unconvT :: Int -> RType -> Type NamedTyDeBruijn DefaultUni ()
+unconvT :: Int -> RType -> Type NamedTyDeBruijn AgdaDefaultUni ()
 unconvT i (RTyVar x)        =
   TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
@@ -140,28 +155,28 @@ unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 unconvT i (RTySOP xss)      = TySOP () (map (map (unconvT i)) xss)
 
-unconvTyCon :: RTyCon -> SomeTypeIn DefaultUni
-unconvTyCon (RTyConAtom ATyConInt)  = SomeTypeIn DefaultUniInteger
-unconvTyCon (RTyConAtom ATyConBS)   = SomeTypeIn DefaultUniByteString
-unconvTyCon (RTyConAtom ATyConStr)  = SomeTypeIn DefaultUniString
-unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool
-unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit
-unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData
+unconvTyCon :: RTyCon -> SomeTypeIn AgdaDefaultUni
+unconvTyCon (RTyConAtom ATyConInt)  = SomeTypeIn AgdaDefaultUniInteger
+unconvTyCon (RTyConAtom ATyConBS)   = SomeTypeIn AgdaDefaultUniByteString
+unconvTyCon (RTyConAtom ATyConStr)  = SomeTypeIn AgdaDefaultUniString
+unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn AgdaDefaultUniBool
+unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn AgdaDefaultUniUnit
+unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn AgdaDefaultUniData
 unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
-                                    = SomeTypeIn DefaultUniBLS12_381_G1_Element
+                                    = SomeTypeIn AgdaDefaultUniBLS12_381_G1_Element
 unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
-                                    = SomeTypeIn DefaultUniBLS12_381_G2_Element
+                                    = SomeTypeIn AgdaDefaultUniBLS12_381_G2_Element
 unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
-                                    = SomeTypeIn DefaultUniBLS12_381_MlResult
-unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
-unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
+                                    = SomeTypeIn AgdaDefaultUniBLS12_381_MlResult
+unconvTyCon RTyConList              = SomeTypeIn AgdaDefaultUniProtoList
+unconvTyCon RTyConPair              = SomeTypeIn AgdaDefaultUniProtoPair
 
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
 tynames = ['A' .. 'Z']
 
-unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun ()
+unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn AgdaDefaultUni DefaultFun ()
 unconv i (RVar x)          =
   Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromInteger x )]) (Index (fromInteger x)))
 unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconv (i+1) tm)
@@ -188,3 +203,187 @@ data ERROR = TypeError T.Text
 
 data ScopeError = DeBError|FreeVariableError FreeVariableError deriving Show
 data RuntimeError = GasError | UserError | RuntimeTypeError deriving Show
+
+newtype AgdaByteString =
+  AgdaByteString {unAgdaByteString :: T.Text}
+  deriving stock (Show)
+
+toByteString :: AgdaByteString -> ByteString
+toByteString (AgdaByteString str) =
+  T.encodeUtf8 str
+
+fromByteString :: ByteString -> AgdaByteString
+fromByteString bs =
+  AgdaByteString (T.decodeUtf8 bs)
+
+instance PrettyBy ConstConfig AgdaByteString where
+  prettyBy f abs = prettyBy f (toByteString abs)
+
+data AgdaData
+  = AgdaConstr Integer [AgdaData]
+    | AgdaMap [(AgdaData, AgdaData)]
+    | AgdaList [AgdaData]
+    | AgdaI Integer
+    | AgdaB AgdaByteString
+  deriving stock (Show)
+
+toHaskellData :: AgdaData -> Data
+toHaskellData =
+  \case
+    (AgdaConstr i xs) ->
+      Haskell.Constr i $ toHaskellData <$> xs
+    (AgdaMap xs) ->
+      Haskell.Map $ bimap toHaskellData toHaskellData <$> xs
+    (AgdaList xs) ->
+      Haskell.List $ toHaskellData <$> xs
+    (AgdaI i) ->
+      Haskell.I i
+    (AgdaB bs) ->
+      Haskell.B (toByteString bs)
+
+instance PrettyBy ConstConfig AgdaData where
+  prettyBy f adata = prettyBy f (toHaskellData adata)
+
+data AgdaDefaultUni a where
+    AgdaDefaultUniInteger :: AgdaDefaultUni (Esc Integer)
+    AgdaDefaultUniByteString :: AgdaDefaultUni (Esc AgdaByteString)
+    AgdaDefaultUniString :: AgdaDefaultUni (Esc Text)
+    AgdaDefaultUniUnit :: AgdaDefaultUni (Esc ())
+    AgdaDefaultUniBool :: AgdaDefaultUni (Esc Bool)
+    AgdaDefaultUniProtoList :: AgdaDefaultUni (Esc [])
+    AgdaDefaultUniProtoPair :: AgdaDefaultUni (Esc (,))
+    AgdaDefaultUniApply :: !(AgdaDefaultUni (Esc f)) -> !(AgdaDefaultUni (Esc a)) -> AgdaDefaultUni (Esc (f a))
+    AgdaDefaultUniData :: AgdaDefaultUni (Esc AgdaData)
+    AgdaDefaultUniBLS12_381_G1_Element :: AgdaDefaultUni (Esc BLS12_381.G1.Element)
+    AgdaDefaultUniBLS12_381_G2_Element :: AgdaDefaultUni (Esc BLS12_381.G2.Element)
+    AgdaDefaultUniBLS12_381_MlResult :: AgdaDefaultUni (Esc BLS12_381.Pairing.MlResult)
+
+deriving stock instance Show (AgdaDefaultUni a)
+
+instance GShow AgdaDefaultUni where gshowsPrec = showsPrec
+
+pattern AgdaDefaultUniList uniA =
+    AgdaDefaultUniProtoList `AgdaDefaultUniApply` uniA
+pattern AgdaDefaultUniPair uniA uniB =
+    AgdaDefaultUniProtoPair `AgdaDefaultUniApply` uniA `AgdaDefaultUniApply` uniB
+
+instance Closed AgdaDefaultUni where
+    type AgdaDefaultUni `Everywhere` constr =
+        ( constr `Permits` Integer
+        , constr `Permits` AgdaByteString
+        , constr `Permits` Text
+        , constr `Permits` ()
+        , constr `Permits` Bool
+        , constr `Permits` []
+        , constr `Permits` (,)
+        , constr `Permits` AgdaData
+        , constr `Permits` BLS12_381.G1.Element
+        , constr `Permits` BLS12_381.G2.Element
+        , constr `Permits` BLS12_381.Pairing.MlResult
+        )
+
+    encodeUni AgdaDefaultUniInteger              = [0]
+    encodeUni AgdaDefaultUniByteString           = [1]
+    encodeUni AgdaDefaultUniString               = [2]
+    encodeUni AgdaDefaultUniUnit                 = [3]
+    encodeUni AgdaDefaultUniBool                 = [4]
+    encodeUni AgdaDefaultUniProtoList            = [5]
+    encodeUni AgdaDefaultUniProtoPair            = [6]
+    encodeUni (AgdaDefaultUniApply uniF uniA)    = 7 : encodeUni uniF ++ encodeUni uniA
+    encodeUni AgdaDefaultUniData                 = [8]
+    encodeUni AgdaDefaultUniBLS12_381_G1_Element = [9]
+    encodeUni AgdaDefaultUniBLS12_381_G2_Element = [10]
+    encodeUni AgdaDefaultUniBLS12_381_MlResult   = [11]
+
+    -- See Note [Decoding universes].
+    -- See Note [Stable encoding of tags].
+    withDecodedUni k = peelUniTag >>= \case
+        0 -> k AgdaDefaultUniInteger
+        1 -> k AgdaDefaultUniByteString
+        2 -> k AgdaDefaultUniString
+        3 -> k AgdaDefaultUniUnit
+        4 -> k AgdaDefaultUniBool
+        5 -> k AgdaDefaultUniProtoList
+        6 -> k AgdaDefaultUniProtoPair
+        7 ->
+            withDecodedUni @AgdaDefaultUni $ \uniF ->
+                withDecodedUni @AgdaDefaultUni $ \uniA ->
+                    withApplicable uniF uniA $
+                        k $ uniF `AgdaDefaultUniApply` uniA
+        8  -> k AgdaDefaultUniData
+        9  -> k AgdaDefaultUniBLS12_381_G1_Element
+        10 -> k AgdaDefaultUniBLS12_381_G2_Element
+        11 -> k AgdaDefaultUniBLS12_381_MlResult
+        _ -> Alt.empty
+
+    bring
+        :: forall constr a r proxy. AgdaDefaultUni `Everywhere` constr
+        => proxy constr -> AgdaDefaultUni (Esc a) -> (constr a => r) -> r
+    bring _ AgdaDefaultUniInteger r = r
+    bring _ AgdaDefaultUniByteString r = r
+    bring _ AgdaDefaultUniString r = r
+    bring _ AgdaDefaultUniUnit r = r
+    bring _ AgdaDefaultUniBool r = r
+    bring p (AgdaDefaultUniProtoList `AgdaDefaultUniApply` uniA) r =
+        bring p uniA r
+    bring p (AgdaDefaultUniProtoPair `AgdaDefaultUniApply` uniA `AgdaDefaultUniApply` uniB) r =
+        bring p uniA $ bring p uniB r
+    bring _ (f `AgdaDefaultUniApply` _ `AgdaDefaultUniApply` _ `AgdaDefaultUniApply` _) _ =
+        noMoreTypeFunctions f
+    bring _ AgdaDefaultUniData r = r
+    bring _ AgdaDefaultUniBLS12_381_G1_Element r = r
+    bring _ AgdaDefaultUniBLS12_381_G2_Element r = r
+    bring _ AgdaDefaultUniBLS12_381_MlResult r = r
+
+noMoreTypeFunctions :: AgdaDefaultUni (Esc (f :: a -> b -> c -> d)) -> any
+noMoreTypeFunctions (f `AgdaDefaultUniApply` _) = noMoreTypeFunctions f
+
+instance PrettyBy RenderContext (AgdaDefaultUni a) where
+    prettyBy = inContextM $ \case
+        AgdaDefaultUniInteger              -> "integer"
+        AgdaDefaultUniByteString           -> "bytestring"
+        AgdaDefaultUniString               -> "string"
+        AgdaDefaultUniUnit                 -> "unit"
+        AgdaDefaultUniBool                 -> "bool"
+        AgdaDefaultUniProtoList            -> "list"
+        AgdaDefaultUniProtoPair            -> "pair"
+        AgdaDefaultUniApply uniF uniA      -> uniF `juxtPrettyM` uniA
+        AgdaDefaultUniData                 -> "data"
+        AgdaDefaultUniBLS12_381_G1_Element -> "bls12_381_G1_element"
+        AgdaDefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
+        AgdaDefaultUniBLS12_381_MlResult   -> "bls12_381_mlresult"
+
+instance PrettyBy RenderContext (SomeTypeIn AgdaDefaultUni) where
+    prettyBy config (SomeTypeIn uni) = prettyBy config uni
+
+instance Pretty (AgdaDefaultUni a) where
+    pretty = prettyBy juxtRenderContext
+
+instance Pretty (SomeTypeIn AgdaDefaultUni) where
+    pretty (SomeTypeIn uni) = pretty uni
+
+-- instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
+--     knownUni = knownUni `AgdaDefaultUniApply` knownUni
+--
+-- instance AgdaDefaultUni `Contains` Integer where
+--     knownUni = AgdaDefaultUniInteger
+-- instance AgdaDefaultUni `Contains` AgdaByteString where
+--     knownUni = AgdaDefaultUniByteString
+-- instance AgdaDefaultUni `Contains` Text where
+--     knownUni = AgdaDefaultUniString
+-- instance AgdaDefaultUni `Contains` () where
+--     knownUni = AgdaDefaultUniUnit
+-- instance AgdaDefaultUni `Contains` Bool where
+--     knownUni = AgdaDefaultUniBool
+-- instance AgdaDefaultUni `Contains` [] where
+--     knownUni = AgdaDefaultUniProtoList
+-- instance AgdaDefaultUni `Contains` (,) where
+--     knownUni = AgdaDefaultUniProtoPair
+-- instance AgdaDefaultUni `Contains` AgdaData where
+--     knownUni = AgdaDefaultUniData
+-- instance AgdaDefaultUni `Contains` BLS12_381.G1.Element where
+--     knownUni = AgdaDefaultUniBLS12_381_G1_Element
+-- instance AgdaDefaultUni `Contains` BLS12_381.G2.Element where
+--     knownUni = AgdaDefaultUniBLS12_381_G2_Element
+-- instance AgdaDefaultUni `Contains` BLS12_381.Pairing.MlResult where
+--     knownUni = AgdaDefaultUniBLS12_381_MlResult

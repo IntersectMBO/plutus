@@ -80,12 +80,12 @@ postulate
   TermNU : Set
   TermU  : Set
 
-{-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
-{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SrcSpan #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn AgdaDefaultUni DefaultFun () #-}
+{-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn AgdaDefaultUni () #-}
+{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name AgdaDefaultUni DefaultFun PlutusCore.SrcSpan #-}
+{-# COMPILE GHC TypeN = type PlutusCore.Type TyName AgdaDefaultUni PlutusCore.SrcSpan #-}
+{-# COMPILE GHC TermNU = type U.Term Name AgdaDefaultUni DefaultFun PlutusCore.SrcSpan #-}
+{-# COMPILE GHC TermU = type U.Term NamedDeBruijn AgdaDefaultUni DefaultFun () #-}
 
 postulate
   parseTm : String → Either ParseError TermN
@@ -269,10 +269,10 @@ Run an untyped term with costing in Counting mode.
 From Haskell, this function should be called as `runUCountingAgda`
 where the first argument is a `CostModel`, as defined in
 `plutus-metatheory/src/Opts.hs` and the second argument is a
-`Term NamedDeBruijn DefaultUni DefaultFun ()`.
+`Term NamedDeBruijn AgdaDefaultUni DefaultFun ()`.
 
 From Haskell, the return type is either an error or a tuple
-`(Term NamedDeBruijn DefaultUni DefaultFun (), (Integer, Integer))` consisting
+`(Term NamedDeBruijn AgdaDefaultUni DefaultFun (), (Integer, Integer))` consisting
 of the result of evalution, and a pair of the CPU costs and the memory costs,
 respectively.
 

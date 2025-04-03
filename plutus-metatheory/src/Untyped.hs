@@ -13,12 +13,14 @@ import Data.Word (Word64)
 import GHC.Exts (IsList (..))
 import Universe
 
+import Raw (AgdaDefaultUni)
+
 -- Untyped (Raw) syntax
 
 data UTerm = UVar Integer
            | ULambda UTerm
            | UApp UTerm UTerm
-           | UCon (Some (ValueOf DefaultUni))
+           | UCon (Some (ValueOf AgdaDefaultUni))
            | UError
            | UBuiltin DefaultFun
            | UDelay UTerm
@@ -30,10 +32,10 @@ data UTerm = UVar Integer
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n
 
-convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
+convP :: Program NamedDeBruijn AgdaDefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
 
-conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
+conv :: Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UTerm
 conv (Var _ x)       = UVar (unIndex (ndbnIndex x) - 1)
 conv (LamAbs _ _ t)  = ULambda (conv t)
 conv (Apply _ t u)   = UApp (conv t) (conv u)
@@ -47,7 +49,7 @@ conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
 tmnames = ['a' .. 'z']
 
-uconv ::  Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
+uconv ::  Int -> UTerm -> Term NamedDeBruijn AgdaDefaultUni DefaultFun ()
 uconv i (UVar x)     = Var
   ()
   (NamedDeBruijn (T.pack [tmnames !! (i - 1 - fromInteger x)])
