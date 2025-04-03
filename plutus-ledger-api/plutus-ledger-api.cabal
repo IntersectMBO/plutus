@@ -115,6 +115,7 @@ library
     , cborg
     , containers
     , deepseq
+    , ghc-prim
     , lens
     , mtl
     , nothunks

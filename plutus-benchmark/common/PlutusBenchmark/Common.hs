@@ -54,6 +54,7 @@ import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
 import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
+import GHC.Magic (inline)
 import System.Directory
 import System.FilePath
 import System.IO
@@ -124,7 +125,12 @@ evaluateCekLikeInProd evalCtx term = do
     let (getRes, _, _) =
             let -- The validation benchmarks were all created from PlutusV1 scripts
                 pv = LedgerApi.ledgerLanguageIntroducedIn LedgerApi.PlutusV1
-            in LedgerApi.evaluateTerm UPLC.restrictingEnormous pv LedgerApi.Quiet evalCtx term
+            in inline LedgerApi.evaluateTerm
+                (inline UPLC.restrictingEnormous)
+                pv
+                LedgerApi.Quiet
+                evalCtx
+                term
     getRes
 
 -- | Evaluate a term and either throw if evaluation fails or discard the result and return '()'.

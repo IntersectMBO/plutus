@@ -44,6 +44,7 @@ import Control.Monad.Writer (MonadWriter (..), runWriter)
 import Data.Set as Set
 import Data.Text (Text)
 import Data.Tuple
+import GHC.Magic (inline)
 import NoThunks.Class
 
 -- | Errors that can be thrown when evaluating a Plutus script.
@@ -200,10 +201,10 @@ evaluateTerm
        , [Text]
        )
 evaluateTerm budgetMode pv verbose ectx =
-    UPLC.runCekDeBruijn
+    inline UPLC.runCekDeBruijn
         (toMachineParameters pv ectx)
         budgetMode
-        (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
+        (if verbose == Verbose then inline UPLC.logEmitter else inline UPLC.noEmitter)
 -- Just replicating the old behavior, probably doesn't matter.
 {-# INLINE evaluateTerm #-}
 

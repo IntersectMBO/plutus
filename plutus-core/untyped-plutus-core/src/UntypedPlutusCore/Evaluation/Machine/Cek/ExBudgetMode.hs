@@ -159,6 +159,7 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
             pure $ initB `minusExBudget` r
         final = RestrictingSt . ExRestrictingBudget <$> remaining
     pure $ ExBudgetInfo spender final cumulative
+{-# INLINE restricting #-}
 
 -- | 'restricting' instantiated at 'largeBudget'.
 restrictingLarge :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
@@ -167,3 +168,4 @@ restrictingLarge = restricting largeBudget
 -- | 'restricting' instantiated at 'enormousBudget'.
 restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget
+{-# INLINE restrictingEnormous #-}

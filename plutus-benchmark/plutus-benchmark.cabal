@@ -95,6 +95,7 @@ library plutus-benchmark-common
     , directory
     , filepath
     , flat                 ^>=0.6
+    , ghc-prim
     , plutus-core          ^>=1.43
     , plutus-ledger-api    ^>=1.43
     , plutus-tx-test-util

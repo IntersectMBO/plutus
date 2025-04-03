@@ -102,6 +102,7 @@ import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
 import GHC.Generics
+import GHC.Magic (inline)
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -459,6 +460,7 @@ throwingDischarged
     -> CekValue uni fun ann
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
+{-# INLINE throwingDischarged #-}
 
 instance ThrowableBuiltins uni fun =>
         MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
@@ -946,7 +948,8 @@ runCekDeBruijn
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         unCekBudgetSpender ?cekBudgetSpender BStartup $ runIdentity $ cekStartupCost ?cekCosts
-        enterComputeCek NoFrame Env.empty term
+        inline enterComputeCek NoFrame Env.empty term
+{-# INLINE runCekDeBruijn #-}
 
 {- Note [Accumulators for terms]
 At a couple of points in the CEK machine (notably building the arguments to a constructor value)
