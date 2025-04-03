@@ -241,7 +241,8 @@ publish-gh-release() {
   cp -f ./result/plutus-metatheory.tar.gz .
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
-  gh release create $VERSION --target release/$VERSION --title $VERSION --notes-file $NOTES_FILE --latest
+  local COMMIT_SHA=$(git rev-parse --verify --quiet "origin/release/$VERSION")
+  gh release create $VERSION --target $COMMIT_SHA --title $VERSION --notes-file $NOTES_FILE --latest
   gh release upload $VERSION {uplc,plc,pir,plutus}-x86_64-linux-ghc96 plutus-metatheory.tar.gz --clobber
   tell "Published the release"
 }
