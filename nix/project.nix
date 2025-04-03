@@ -19,16 +19,16 @@ let
           enableLibraryProfiling = true;
         }];
         ghc96-coverage.modules = [{
-          packages.cardano-constitution.doCoverage = true;
-          packages.plutus-benchmark.doCoverage = true;
-          packages.plutus-conformance.doCoverage = true;
+          # packages.cardano-constitution.doCoverage = true;
+          # packages.plutus-benchmark.doCoverage = true;
+          # packages.plutus-conformance.doCoverage = true;
           packages.plutus-core.doCoverage = true;
-          packages.plutus-executables.doCoverage = true;
-          packages.plutus-ledger-api.doCoverage = true;
-          packages.plutus-metatheory.doCoverage = true;
-          packages.plutus-tx.doCoverage = true;
-          packages.plutus-tx-plugin.doCoverage = true;
-          packages.plutus-tx-test-util.doCoverage = true;
+          # packages.plutus-executables.doCoverage = true;
+          # packages.plutus-ledger-api.doCoverage = true;
+          # packages.plutus-metatheory.doCoverage = true;
+          # packages.plutus-tx.doCoverage = true;
+          # packages.plutus-tx-plugin.doCoverage = true;
+          # packages.plutus-tx-test-util.doCoverage = true;
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
