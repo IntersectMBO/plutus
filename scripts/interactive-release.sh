@@ -238,7 +238,7 @@ publish-gh-release() {
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
   nix build ".#metatheory-agda-library"
-  cp ./result/plutus-metatheory.tar.gz .
+  cp -f ./result/plutus-metatheory.tar.gz .
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
   gh release create $VERSION --target release/$VERSION --title $VERSION --notes-file $NOTES_FILE --latest
