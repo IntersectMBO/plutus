@@ -332,6 +332,10 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 open SugaredSignature using (signature) public
 
 -- The arity of a builtin, according to its signature.
+arity₀ : Builtin → ℕ
+arity₀ b = (Sig.fv⋆ (signature b)) Data.Nat.+ (Sig.fv♯ (signature b))
+
+-- FIXME: This should be arity₁
 arity : Builtin → ℕ
 arity b = length (Sig.args (signature b))
 

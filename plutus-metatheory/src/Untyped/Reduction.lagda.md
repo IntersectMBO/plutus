@@ -14,44 +14,88 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 open import Untyped.RenamingSubstitution using (_[_])
 open import Data.Maybe using (Maybe; just; nothing)
 open import RawU using (TmCon)
-open import Builtin using (Builtin; equals; decBuiltin; arity)
+open import Builtin using (Builtin; equals; decBuiltin; arity; arity₀)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary.Negation using (contradiction)
-open import Data.Nat using (ℕ; zero; suc; _<_; _≟_)
+open import Data.Nat using (ℕ; zero; suc; _<_; _≟_; _<?_; _≤_)
 open import Data.List using (List; []; _∷_)
 open import Untyped.CEK using (BUILTIN'; lookup?)
 open import Data.List.Relation.Unary.All using (All)
+open import Relation.Binary.PropositionalEquality using (subst)
+open import Relation.Nullary using (yes;no)
+```
+## Saturation
+
+Builtins have a defined arity, and then reduce once this is satisfied.
+```
+data ℕ⁺ : Set where
+  suc : ℕ → ℕ⁺
+
+data Arity : Set where
+  no-builtin : Arity
+  -- Waiting for force
+  want : ℕ → ℕ → Arity
+
+postulate
+  impossible : ∀ {A : Set} → A
+
+sat : {X : Set} → X ⊢ → Arity
+sat (` x) = no-builtin
+sat (ƛ t) = no-builtin
+sat (t · t₁) with sat t
+... | no-builtin = no-builtin
+... | want (suc a₀) a₁ = impossible -- This reduces to error
+... | want zero (suc a₁) = want zero a₁
+... | want zero zero = want zero zero -- This should reduce lower down the tree...
+sat (force t) with sat t
+... | no-builtin = no-builtin
+... | want zero zero = impossible
+... | want (suc a₀) a₁ = want a₀ a₁
+... | want zero (suc a₁) = impossible -- This reduces to error
+sat (delay t) = no-builtin
+sat (con x) = no-builtin
+sat (constr i xs) = no-builtin
+sat (case t ts) = no-builtin
+sat (builtin b) = want (arity₀ b) (arity b)
+sat error = no-builtin
+
+sat-app-step : {X : Set} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
+sat-app-step {t = t · t₁} sat-t = {!!}
+sat-app-step {t = force t} sat-t = {!!}
+sat-app-step {t = builtin b} sat-t = {!!}
+
+
+nat-threshold : {a b : ℕ} → a < b → b ≤ (suc a) → b ≡ (suc a)
+nat-threshold {zero} {suc zero} a<b b≤sa = refl
+nat-threshold {zero} {suc (suc b)} a<b (Data.Nat.s≤s ())
+nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = cong suc (nat-threshold a<b b≤sa)
+
 ```
 ## Values
 ```
+variable
+  X Y : Set
 
 data Value {X : Set} : X ⊢ → Set where
   delay : {a : X ⊢} → Value (delay a)
   ƛ : {a : (Maybe X) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
   builtin : {b : Builtin} → Value (builtin b)
+  unsat₀ : {a₀ a₁ : ℕ} {t : X ⊢}
+                → sat t ≡ want (suc a₀) a₁
+                → Value t
+  unsat₁ : {a₁ : ℕ} {t : X ⊢}
+                → sat t ≡ want zero (suc a₁)
+                → Value t
   constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
   error : Value error
 
-```
-## Saturation
-
-Builtins have a defined arity, and then reduce once this is satisfied.
-```
-
-saturation : {X : Set} → X ⊢ → Maybe (ℕ × ℕ)
-saturation (builtin b) = just (((arity b), zero))
-saturation (t · _) with saturation t
-... | nothing = nothing
-... | just (arity , apps) = just (arity , suc apps)
-saturation (force t) with saturation t
-... | nothing = nothing
-... | just (arity , apps) = just (arity , suc apps)
-saturation _ = nothing
-
+value-constr-recurse : {i : ℕ} {vs : List (X ⊢)} → Value (constr i vs) → All Value vs
+value-constr-recurse (constr All.[]) = All.[]
+value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
 
 ```
 ## Reduction Steps
@@ -60,9 +104,6 @@ saturation _ = nothing
 iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
 iterApp x [] = x
 iterApp x (v ∷ vs) = iterApp (x · v) vs
-
-variable
-  X Y : Set
 
 -- FIXME: This can use the function from CEK but
 -- it will require building the correct BApp type...
@@ -77,19 +118,33 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
   β : {a : (Maybe X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
   force-delay : {a : X ⊢} → force (delay a) ⟶ a
+
   error₁ : {a : X ⊢} → (error · a) ⟶ error
   error₂ : {a : X ⊢} → (a · error) ⟶ error
   force-error : force error ⟶ error
 
   -- Builtins that are saturated will reduce
-  sat-builtin : {b : Builtin} {arity args : ℕ} {t a : X ⊢}
-              → saturation t ≡ just (arity , args)
-              → arity ≡ args
-              → (t · a) ⟶ reduceBuiltin (t · a)
+  sat-builtin : {t : X ⊢}
+              → sat t ≡ want zero zero
+              → t ⟶ reduceBuiltin t
 
   case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
               → lookup? i ts ≡ just t
               → case (constr i vs) ts ⟶ iterApp t vs
+  broken-const : {i : ℕ} {vs ts : List (X ⊢)}
+              → lookup? i ts ≡ nothing
+              → case (constr i vs) ts ⟶ error
+  constr-step : {i : ℕ} {v v' : X ⊢} {vs : List (X ⊢)}
+              → v ⟶ v'
+              → constr i (v ∷ vs) ⟶ constr i (v' ∷ vs)
+  constr-sub-step : {i : ℕ} {v : X ⊢} {vs vs' : List (X ⊢)}
+              → constr i vs ⟶ constr i vs'
+              → constr i (v ∷ vs) ⟶ constr i (v ∷ vs')
+  constr-error : {i : ℕ} {vs : List (X ⊢)}
+              → constr i (error ∷ vs) ⟶ error
+  constr-sub-error : {i : ℕ} {v : X ⊢} {vs : List (X ⊢)}
+    → constr i vs ⟶ error
+    → constr i (v ∷ vs) ⟶ error
 
   -- Many of the things that you can force that aren't delay
   force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
@@ -97,12 +152,29 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   force-app : {a b : X ⊢} → force (a · b) ⟶ error
   force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
 
+  -- Currently, this assumes type arguments have to come first
+  force-interleave-error : {a₁ : ℕ} {t : X ⊢}
+               → sat t ≡ want zero a₁
+               → force t ⟶ error
+  app-interleave-error : {a₀ a₁ : ℕ} {t t₁ : X ⊢}
+               → sat t ≡ want (suc a₀) a₁
+               → (t · t₁) ⟶ error
+
   -- Many of the things that you can apply to that aren't ƛ
   app-con : {b : X ⊢} {c : TmCon} → (con c) · b ⟶ error
   app-delay : {a b : X ⊢} → (delay a) · b ⟶ error
   app-constr : {b : X ⊢} {i : ℕ} {vs : List (X ⊢)} → (constr i vs) · b ⟶ error
 
   -- Many of the things that you can case that aren't constr
+  case-error : {ts : List (X ⊢)} → case error ts ⟶ error
+  case-ƛ : {t : Maybe X ⊢} {ts : List (X ⊢)} → case (ƛ t) ts ⟶ error
+  case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
+  case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
+  case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
+
+  case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
+              → t ⟶ t'
+              → case t ts ⟶ case t' ts
 
 
 infix 5 _⟶*_
@@ -116,11 +188,7 @@ tran-⟶* (trans x a→b) refl = trans x a→b
 tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x₁ b→c))
 
 value-¬⟶ : ∀ {X : Set}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
-value-¬⟶ delay = λ ()
-value-¬⟶ ƛ = λ ()
-value-¬⟶ con = λ ()
-value-¬⟶ builtin = λ ()
-value-¬⟶ error = λ ()
+value-¬⟶ v = {!!}
 
 ⟶-¬value : ∀ {X : Set}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
@@ -143,6 +211,7 @@ data Progress {X : Set} : (a : X ⊢) → Set where
 
   fail : Progress error
 
+{-# TERMINATING #-}
 progress : ∀ (M : ⊥ ⊢) → Progress M
 progress (` ())
 progress (ƛ M) = done ƛ
@@ -153,33 +222,49 @@ progress (L · R) with progress L
 ...   | fail = step error₂
 ...   | step R⟶R' = step (ξ₂ VL R⟶R')
 ...   | done VR with VL -- For the first time I see why Phil prefers typed languages!...
-...   | constr allV = step app-constr
-...   | ƛ = step (β VR)
-...   | delay = step app-delay
-...   | con = step app-con
-...   | builtin = {!!}
-...   | error = step error₁
+...     | delay = step app-delay
+...     | ƛ = step (β VR)
+...     | con = step app-con
+...     | builtin = {!!}
+...     | constr x = step app-constr
+...     | error = step error₁
+...     | unsat₀ x = step (app-interleave-error x)
+...     | unsat₁ sat-l≡want with sat L in sat-l
+... | want zero (suc zero) = step (sat-builtin {!!})
+... | want zero (suc (suc x₁)) = {!!}
 progress (force m) with progress m
-... | fail = step force-error
-... | step M⟶M' = step (ξ₃ M⟶M')
-... | done delay = step force-delay
-... | done ƛ = step force-ƛ
-... | done con = step force-con
-... | done error = step force-error
-... | done builtin = done {!!}
-... | done (constr vA) = step force-constr
+... | pp = {!!}
 progress (delay M) = done delay
 progress (con v) = done con
-progress (constr i xs) = {!!}
-progress (case (ƛ x) ts) = {!!}
-progress (case (x · x₁) ts) = {!!}
-progress (case (force x) ts) = {!!}
-progress (case (delay x) ts) = {!!}
-progress (case (con x) ts) = {!!}
-progress (case (constr i xs) ts) = {!!}
-progress (case (case x ts₁) ts) = {!!}
-progress (case (builtin b) ts) = {!!}
-progress (case error ts) = {!!}
+progress (constr i []) = done (constr All.[])
+progress (constr i (x ∷ xs)) with progress x
+... | step x₁ = step (constr-step x₁)
+... | fail = step constr-error
+... | done x₁ with progress (constr i xs)
+...   | done x₂ = done (constr (x₁ All.∷ (value-constr-recurse x₂)))
+{-
+...   | step (constr-step x₂) = step (constr-sub-step (constr-step x₂))
+...   | step (constr-sub-step x₂) = step (constr-sub-step (constr-sub-step x₂))
+...   | step constr-error = step (constr-sub-error constr-error)
+...   | step (constr-sub-error x₂) = step (constr-sub-error (constr-sub-error x₂))
+-}
+progress (case (ƛ x) ts) = step case-ƛ
+progress (case (x · x₁) ts) with progress (x · x₁)
+... | step x₂ = step (case-reduce x₂)
+-- ... | done (unsat-builtin x₂ x₃) = {!!}
+progress (case (force x) ts) with progress (force x)
+... | step x₁ = step (case-reduce x₁)
+-- ... | done (unsat-builtin x₁ x₂) = {!!}
+progress (case (delay x) ts) = step case-delay
+progress (case (con x) ts) = step case-con
+progress (case (constr i xs) ts) with lookup? i ts in lookup-i
+... | nothing = step (broken-const lookup-i)
+... | just t = step (case-constr lookup-i)
+progress (case (case x ts₁) ts) with progress (case x ts₁)
+... | step x' = step (case-reduce x')
+-- ... | done (unsat-builtin x₁ x₂) = done (unsat-builtin x₁ x₂)
+progress (case (builtin b) ts) = step case-builtin
+progress (case error ts) = step case-error
 progress (builtin b) = done builtin
 progress error = done error
 
