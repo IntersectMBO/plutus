@@ -57,11 +57,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Primitive
+import Data.Primitive.SmallArray (SmallArray)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import Data.Vector qualified as V
 import Data.Word (Word64)
 import GHC.TypeNats
 import Universe
@@ -100,7 +100,7 @@ data Context uni fun ann
     | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
-    | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    | FrameCases ann !(CekValEnv uni fun ann) !(SmallArray (NTerm uni fun ann)) !(Context uni fun ann)
     | NoFrame
 
 deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
@@ -200,13 +200,7 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
         []             -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
-    -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
-    -- As it happens, this will currently never trigger, since i is a Word64, and the largest
-    -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
-    -- "apparently good" value.
-    (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                    throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
-    (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
+    (VConstr i args) -> case toList cs ^? ix (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t

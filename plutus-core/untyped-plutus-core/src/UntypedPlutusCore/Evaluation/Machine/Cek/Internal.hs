@@ -96,15 +96,16 @@ import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.Primitive.SmallArray (SmallArray, indexSmallArray, sizeofSmallArray)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import Data.Vector qualified as V
 import Data.Word
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
 import Universe
+import Unsafe.Coerce (unsafeCoerce)
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -600,7 +601,7 @@ data Context uni fun ann
     -- See Note [Accumulators for terms]
     | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    | FrameCases !(CekValEnv uni fun ann) {-# UNPACK #-} !(SmallArray (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
 
@@ -775,16 +776,11 @@ enterComputeCek = computeCek
           []             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
-        -- As it happens, this will currently never trigger, since i is a Word64, and the largest
-        -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
-        -- "apparently good" value.
-        (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                        throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
-        -- Otherwise, we can safely convert the index to an Int and use it
-        (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
-            Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
+        VConstr i args
+            | i < fromIntegral (sizeofSmallArray cs) ->
+                computeCek (transferArgStack args ctx) env . indexSmallArray cs $ fromIntegral i
+            | otherwise ->
+                throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
         _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with

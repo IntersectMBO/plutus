@@ -6,7 +6,7 @@ module Transform.CaseOfCase.Test where
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
-import Data.Vector qualified as V
+import GHC.IsList (fromList)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
@@ -45,7 +45,7 @@ caseOfCase1 = runQuote do
   let ite = Force () (Builtin () PLC.IfThenElse)
       true = Constr () 0 []
       false = Constr () 1 []
-      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
+      alts = fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 {- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
@@ -59,7 +59,7 @@ caseOfCase2 = runQuote do
   let ite = Force () (Builtin () PLC.IfThenElse)
       true = Var () t
       false = Constr () 1 []
-      alts = V.fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
+      alts = fromList [mkConstant @Integer () 1, mkConstant @Integer () 2]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 {- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
@@ -76,7 +76,7 @@ caseOfCase3 = runQuote do
       false = Constr () 1 []
       altTrue = Var () f
       altFalse = mkConstant @Integer () 2
-      alts = V.fromList [altTrue, altFalse]
+      alts = fromList [altTrue, altFalse]
   pure $ Case () (mkIterApp ite [((), Var () b), ((), true), ((), false)]) alts
 
 {- |
@@ -107,7 +107,7 @@ caseOfCaseWithError =
         , ((), Constr () 1 []) -- False
         ]
     )
-    (V.fromList [mkConstant @() () (), Error ()])
+    (fromList [mkConstant @() () (), Error ()])
 
 testCaseOfCaseWithError :: TestTree
 testCaseOfCaseWithError =
