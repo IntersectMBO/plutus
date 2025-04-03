@@ -19,11 +19,11 @@ import UntypedPlutusCore.Core.Type
 
 import Control.Lens
 import Control.Monad
-import Data.Vector qualified as V
 import Flat
 import Flat.Decoder
 import Flat.Encoder
 import Flat.Encoder.Strict (sizeListWith)
+import GHC.IsList (fromList)
 import Universe
 
 {-
@@ -123,7 +123,7 @@ encodeTerm = \case
     Error    ann        -> encodeTermTag 6 <> encode ann
     Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
     Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
-    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
+    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (toList cs)
 
 decodeTerm
     :: forall name uni fun ann
@@ -160,7 +160,7 @@ decodeTerm version builtinPred = go
             Constr   <$> decode <*> decode <*> decodeListWith go
         handleTerm 9 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
-            Case     <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
+            Case     <$> decode <*> go <*> (fromList <$> decodeListWith go)
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -188,7 +188,7 @@ sizeTerm tm sz =
     Error    ann        -> size ann sz'
     Builtin  ann bn     -> size ann $ size bn sz'
     Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm es sz'
-    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
+    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (toList cs) sz'
 
 -- | An encoder for programs.
 --
