@@ -55,8 +55,7 @@ sat (ƛ t) = no-builtin
 sat (t · t₁) with sat t
 ... | no-builtin = no-builtin
 ... | want zero zero = want zero zero -- This will reduce the left first...
-... | want zero (suc zero) = want zero zero
-... | want zero (suc (suc a₁)) = want zero (suc a₁)
+... | want zero (suc a₁) = want zero a₁
 ... | want (suc a₀) a₁ = interleave-error
 sat (force t) with sat t
 ... | no-builtin = no-builtin
@@ -86,6 +85,11 @@ data Pure {X : Set} : (X ⊢) → Set where
 
     unsat-builtin₀ : {t : X ⊢} {a₀ a₁ : ℕ}
             → sat t ≡ want (suc (suc a₀)) a₁
+            → Pure t
+            → Pure (force t)
+
+    unsat-builtin₀₋₁ : {t : X ⊢} {a₁ : ℕ}
+            → sat t ≡ want (suc zero) (suc a₁)
             → Pure t
             → Pure (force t)
 
@@ -137,11 +141,24 @@ isPure? (l · r) | no ¬lambda with sat l in sat-l
 ...   | no ¬pl-pr = no (λ { (unsat-builtin₁ x xx xx₁) → ¬pl-pr (xx , xx₁) })
 isPure? (force t) with isDelay? (isTerm?) t
 ... | no ¬delay with sat t in sat-t
-...   | no-builtin = no (λ { (force xx) → ¬delay (isdelay (isterm _)) ; (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) λ () })
-...   | want zero x₁ = no λ { (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) (λ ()) }
-...   | want (suc zero) x₁ = no λ { (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) (λ ())  }
-...   | want (suc (suc x)) x₁ with isPure? t
-...     | no ¬pt = no λ { (unsat-builtin₀ x pt) → ¬pt pt }
+...   | no-builtin = no (λ {
+                     (force xx) → ¬delay (isdelay (isterm _)) ;
+                     (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) λ ();
+                     (unsat-builtin₀₋₁ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) λ ()
+                     })
+...   | want zero x₁ = no λ {
+                     (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) (λ ());
+                     (unsat-builtin₀₋₁ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) λ ()
+                     }
+... | want (suc zero) zero = no λ {
+                     (unsat-builtin₀ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) (λ ());
+                     (unsat-builtin₀₋₁ sat-t₁ pt) → contradiction (trans (sym sat-t) sat-t₁) λ ()
+                     }
+... | want (suc zero) (suc x₁) with isPure? t
+...    | no ¬pt = no λ { (unsat-builtin₀ x xx) → ¬pt xx ; (unsat-builtin₀₋₁ x xx) → ¬pt xx }
+...    | yes pt = yes (unsat-builtin₀₋₁ sat-t pt)
+isPure? (force t) | no ¬delay | want (suc (suc x)) x₁ with isPure? t
+...     | no ¬pt = no λ {(unsat-builtin₀ x pt) → ¬pt pt; (unsat-builtin₀₋₁ x xx) → ¬pt xx}
 ...     | yes pt = yes (unsat-builtin₀ sat-t pt)
 isPure? (force t) | yes (isdelay (isterm tt)) with isPure? tt
 ...    | yes p = yes (force p)
