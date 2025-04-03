@@ -28,7 +28,7 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
-import Data.Vector qualified as V
+import GHC.IsList (fromList)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
@@ -82,7 +82,7 @@ constrTerm = withSpan $ \sp ->
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
     inParens $ do
-      res <- UPLC.Case sp <$> (symbol "case" *> term) <*> (V.fromList <$> many term)
+      res <- UPLC.Case sp <$> (symbol "case" *> term) <*> (fromList <$> many term)
       whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
       pure res
 

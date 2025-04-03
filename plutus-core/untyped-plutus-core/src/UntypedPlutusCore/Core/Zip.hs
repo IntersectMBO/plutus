@@ -10,7 +10,7 @@ module UntypedPlutusCore.Core.Zip
 
 import Control.Monad (void, when)
 import Control.Monad.Except (MonadError, throwError)
-import Data.Vector
+import GHC.IsList (fromList, toList)
 import UntypedPlutusCore.Core.Instance.Eq ()
 import UntypedPlutusCore.Core.Type
 
