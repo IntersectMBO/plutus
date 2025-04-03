@@ -30,11 +30,18 @@ rec {
     };
 
 
-  exportGitHashAndGitCommitDateEnvVars = self:
-    ''
-      export GIT_HASH=${self.sourceInfo.rev or "unknown"}
-      export GIT_COMMIT_DATE=${date_YYYYMMDDHHmmSS_ToIso8601 self.sourceInfo.lastModifiedDate}
-    '';
+  getSourceInfoRev = inputs:
+    if inputs.self.sourceInfo ? rev then
+      inputs.self.sourceInfo.rev
+    else
+      "unknown";
+
+
+  getSourceInfoLastModifiedDate = inputs:
+    if inputs.self.sourceInfo ? lastModifiedDate then
+      date_YYYYMMDDHHmmSS_ToIso8601 inputs.self.sourceInfo.lastModifiedDate
+    else
+      "";
 
 
   date_YYYYMMDDHHmmSS_ToIso8601 = ts:
