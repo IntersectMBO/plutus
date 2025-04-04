@@ -1,0 +1,5663 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Ord</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#Ord"
+	><span class="hs-identifier"
+	  >Ord</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-comment"
+      >{-
+We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type since they are the same.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Builtins</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Eq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html"
+	><span class="hs-identifier"
+	  >PlutusTx.These</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >{- HLINT ignore -}</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >infix</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >4</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#%3C"
+	><span class="hs-operator hs-type"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#%3C%3D"
+	><span class="hs-operator hs-type"
+	  >&lt;=</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#%3E"
+	><span class="hs-operator hs-type"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#%3E%3D"
+	><span class="hs-operator hs-type"
+	  >&gt;=</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- Copied from the GHC definition</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- | The 'Ord' class is used for totally ordered datatypes.</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- Minimal complete definition: either 'compare' or '&lt;='.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- Using 'compare' can be more efficient for complex types.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html#Eq"
+	><span class="hs-identifier hs-type"
+	  >Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="Ord"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#Ord"
+	  ><span class="hs-identifier hs-var"
+	    >Ord</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957040"
+      ><span class="annot"
+	><a href="#local-6989586621679957040"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >    </span
+      ><span id="compare"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-type"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier hs-type"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >    </span
+      ><span id="%3C"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#%3C"
+	  ><span class="hs-operator hs-type"
+	    >(&lt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="%3C%3D"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-type"
+	    >(&lt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="%3E"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#%3E"
+	  ><span class="hs-operator hs-type"
+	    >(&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="%3E%3D"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#%3E%3D"
+	  ><span class="hs-operator hs-type"
+	    >(&gt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span id="max"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#max"
+	  ><span class="hs-identifier hs-type"
+	    >max</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="min"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#min"
+	  ><span class="hs-identifier hs-type"
+	    >min</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679957040"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957079"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957083"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957083"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957084"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957084"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>if</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957083"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Eq.html#%3D%3D"
+	  ><span class="hs-operator hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957084"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>then</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	  ><span class="hs-identifier hs-var"
+	    >EQ</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-34"
+	></span
+	><span
+	>                  </span
+	><span class="hs-comment"
+	>-- NB: must be '&lt;=' not '&lt;' to validate the</span
+	><span
+	>
+</span
+	><span id="line-35"
+	></span
+	><span
+	>                  </span
+	><span class="hs-comment"
+	>-- above claim about the minimal things that</span
+	><span
+	>
+</span
+	><span id="line-36"
+	></span
+	><span
+	>                  </span
+	><span class="hs-comment"
+	>-- can be defined for an instance of Ord:</span
+	><span
+	>
+</span
+	><span id="line-37"
+	></span
+	><span
+	>                  </span
+	><span class="hs-keyword"
+	>else</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>if</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957083"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var"
+	    >&lt;=</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957084"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>then</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	  ><span class="hs-identifier hs-var"
+	    >LT</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-38"
+	></span
+	><span
+	>                  </span
+	><span class="hs-keyword"
+	>else</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	  ><span class="hs-identifier hs-var"
+	    >GT</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957086"
+      ><span id="local-6989586621679957088"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957088"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Ord.html#%3C"
+	  ><span class="hs-operator hs-var hs-var"
+	    >&lt;</span
+	    ></a
+	  ></span
+	><span
+	>  </span
+	><span id="local-6989586621679957089"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957089"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>case</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957088"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957089"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>of</span
+	><span
+	> </span
+	><span class="hs-special"
+	>{</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	  ><span class="hs-identifier hs-var"
+	    >LT</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	  ><span class="hs-identifier hs-var"
+	    >True</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>;</span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	  ><span class="hs-identifier hs-var"
+	    >False</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957090"
+      ><span id="local-6989586621679957092"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957092"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var hs-var"
+	    >&lt;=</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957093"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957093"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>case</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957092"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957093"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>of</span
+	><span
+	> </span
+	><span class="hs-special"
+	>{</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	  ><span class="hs-identifier hs-var"
+	    >GT</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	  ><span class="hs-identifier hs-var"
+	    >False</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	  ><span class="hs-identifier hs-var"
+	    >True</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957094"
+      ><span id="local-6989586621679957096"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957096"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Ord.html#%3E"
+	  ><span class="hs-operator hs-var hs-var"
+	    >&gt;</span
+	    ></a
+	  ></span
+	><span
+	>  </span
+	><span id="local-6989586621679957097"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957097"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>case</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957096"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957097"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>of</span
+	><span
+	> </span
+	><span class="hs-special"
+	>{</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	  ><span class="hs-identifier hs-var"
+	    >GT</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	  ><span class="hs-identifier hs-var"
+	    >True</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>;</span
+	><span
+	>  </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	  ><span class="hs-identifier hs-var"
+	    >False</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957098"
+      ><span id="local-6989586621679957100"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957100"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Ord.html#%3E%3D"
+	  ><span class="hs-operator hs-var hs-var"
+	    >&gt;=</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957101"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957101"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>case</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957100"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957101"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>of</span
+	><span
+	> </span
+	><span class="hs-special"
+	>{</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	  ><span class="hs-identifier hs-var"
+	    >LT</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	  ><span class="hs-identifier hs-var"
+	    >False</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><span class="hs-identifier"
+	  >_</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	  ><span class="hs-identifier hs-var"
+	    >True</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- These two default methods use '&lt;=' rather than 'compare'</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- because the latter is often more expensive</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#max"
+	><span class="hs-pragma hs-type"
+	  >max</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957102"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#max"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >max</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957104"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957104"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957105"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957105"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>if</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957104"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var"
+	    >&lt;=</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957105"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>then</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957105"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>else</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957104"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#min"
+	><span class="hs-pragma hs-type"
+	  >min</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957106"
+      ><span class="annot"
+	><a href="PlutusTx.Ord.html#min"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >min</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957108"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957108"
+	    ><span class="hs-identifier hs-var"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span id="local-6989586621679957109"
+	><span class="annot"
+	  ><span class="annottext"
+	    >a
+</span
+	    ><a href="#local-6989586621679957109"
+	    ><span class="hs-identifier hs-var"
+	      >y</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=</span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>if</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957108"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var"
+	    >&lt;=</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957109"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>then</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957108"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>else</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957109"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html#Eq"
+	><span class="hs-identifier hs-type"
+	  >Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier hs-type"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >==</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957113"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: Ordering -&gt; Ordering -&gt; Bool
+</span
+	  ><a href="PlutusTx.Eq.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957118"
+      ><span id="local-6989586621679957126"
+	><span id="local-6989586621679957129"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Ord.html#Ord"
+	      ><span class="hs-identifier hs-type"
+		>Ord</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	      ><span class="hs-identifier hs-type"
+		>Builtins.Integer</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957132"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt; :: Integer -&gt; Integer -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#lessThanInteger"
+	><span class="hs-identifier hs-var"
+	  >Builtins.lessThanInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957134"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;= :: Integer -&gt; Integer -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#lessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >Builtins.lessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957136"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt; :: Integer -&gt; Integer -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#greaterThanInteger"
+	><span class="hs-identifier hs-var"
+	  >Builtins.greaterThanInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957138"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt;= :: Integer -&gt; Integer -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3E%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&gt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#greaterThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >Builtins.greaterThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957144"
+      ><span id="local-6989586621679957152"
+	><span id="local-6989586621679957155"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Ord.html#Ord"
+	      ><span class="hs-identifier hs-type"
+		>Ord</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	      ><span class="hs-identifier hs-type"
+		>Builtins.BuiltinByteString</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957157"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt; :: BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#lessThanByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.lessThanByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957159"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;= :: BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3C%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&lt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#lessThanEqualsByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.lessThanEqualsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957161"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt; :: BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#greaterThanByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.greaterThanByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957163"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt;= :: BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	  ><a href="PlutusTx.Ord.html#%3E%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&gt;=)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; BuiltinByteString -&gt; Bool
+</span
+	><a href="PlutusTx.Builtins.html#greaterThanEqualsByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.greaterThanEqualsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957047"
+      ><span id="local-6989586621679957172"
+	><span id="local-6989586621679957176"
+	  ><span id="local-6989586621679957179"
+	    ><span id="local-6989586621679957182"
+	      ><span id="local-6989586621679957185"
+		><span id="local-6989586621679957188"
+		  ><span class="annot"
+		    ><a href="PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-type"
+			>Ord</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679957047"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-type"
+			>Ord</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >[</span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679957047"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >]</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957192"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: [a] -&gt; [a] -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679957193"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957193"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679957194"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679957194"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679957195"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957195"
+	  ><span class="hs-identifier hs-var"
+	    >y</span
+	    ></a
+	  ></span
+	></span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span id="local-6989586621679957196"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679957196"
+	  ><span class="hs-identifier hs-var"
+	    >ys</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957193"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957195"
+	><span class="hs-identifier hs-var"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; [a] -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679957194"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679957196"
+	><span class="hs-identifier hs-var"
+	  >ys</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679957197"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="#local-6989586621679957197"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="#local-6989586621679957197"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957203"
+      ><span id="local-6989586621679957207"
+	><span id="local-6989586621679957210"
+	  ><span id="local-6989586621679957213"
+	    ><span id="local-6989586621679957216"
+	      ><span id="local-6989586621679957219"
+		><span class="annot"
+		  ><a href="PlutusTx.Ord.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+		    ><span class="hs-identifier hs-type"
+		      >Bool</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957221"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: Bool -&gt; Bool -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957222"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679957222"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957223"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679957223"
+	  ><span class="hs-identifier hs-var"
+	    >b2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679957222"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679957223"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679957223"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957050"
+      ><span id="local-6989586621679957231"
+	><span id="local-6989586621679957235"
+	  ><span id="local-6989586621679957238"
+	    ><span id="local-6989586621679957241"
+	      ><span id="local-6989586621679957244"
+		><span id="local-6989586621679957247"
+		  ><span class="annot"
+		    ><a href="PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-type"
+			>Ord</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679957050"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-glyph"
+		    >=&gt;</span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="PlutusTx.Ord.html#Ord"
+		      ><span class="hs-identifier hs-type"
+			>Ord</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="annot"
+		    ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Maybe"
+		      ><span class="hs-identifier hs-type"
+			>Maybe</span
+			></a
+		      ></span
+		    ><span
+		    > </span
+		    ><span class="annot"
+		    ><a href="#local-6989586621679957050"
+		      ><span class="hs-identifier hs-type"
+			>a</span
+			></a
+		      ></span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957250"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: Maybe a -&gt; Maybe a -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957251"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957251"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957252"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957252"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957251"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957252"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957055"
+      ><span id="local-6989586621679957056"
+	><span id="local-6989586621679957262"
+	  ><span id="local-6989586621679957266"
+	    ><span id="local-6989586621679957269"
+	      ><span id="local-6989586621679957272"
+		><span id="local-6989586621679957275"
+		  ><span id="local-6989586621679957278"
+		    ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957055"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957056"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span
+		      > </span
+		      ><span class="hs-glyph"
+		      >=&gt;</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+			><span class="hs-identifier hs-type"
+			  >Either</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957055"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957056"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957282"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: Either a b -&gt; Either a b -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957283"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957283"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957284"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957284"
+	  ><span class="hs-identifier hs-var"
+	    >a2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957283"
+	><span class="hs-identifier hs-var"
+	  >a1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957284"
+	><span class="hs-identifier hs-var"
+	  >a2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957285"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957285"
+	  ><span class="hs-identifier hs-var"
+	    >b1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957286"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957286"
+	  ><span class="hs-identifier hs-var"
+	    >b2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; b -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957285"
+	><span class="hs-identifier hs-var"
+	  >b1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957286"
+	><span class="hs-identifier hs-var"
+	  >b2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957292"
+      ><span id="local-6989586621679957296"
+	><span id="local-6989586621679957299"
+	  ><span id="local-6989586621679957302"
+	    ><span id="local-6989586621679957305"
+	      ><span id="local-6989586621679957308"
+		><span class="annot"
+		  ><a href="PlutusTx.Ord.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957310"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: () -&gt; () -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957061"
+      ><span id="local-6989586621679957062"
+	><span id="local-6989586621679957320"
+	  ><span id="local-6989586621679957324"
+	    ><span id="local-6989586621679957327"
+	      ><span id="local-6989586621679957330"
+		><span id="local-6989586621679957333"
+		  ><span id="local-6989586621679957336"
+		    ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957061"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957062"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span
+		      > </span
+		      ><span class="hs-glyph"
+		      >=&gt;</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957061"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957062"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957340"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: (a, b) -&gt; (a, b) -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679957341"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957341"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957342"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957342"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679957343"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957343"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957344"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957344"
+	  ><span class="hs-identifier hs-var"
+	    >b'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957341"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957343"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; b -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957342"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957344"
+	><span class="hs-identifier hs-var"
+	  >b'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679957345"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="#local-6989586621679957345"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="#local-6989586621679957345"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679957068"
+      ><span id="local-6989586621679957069"
+	><span id="local-6989586621679957355"
+	  ><span id="local-6989586621679957359"
+	    ><span id="local-6989586621679957362"
+	      ><span id="local-6989586621679957365"
+		><span id="local-6989586621679957368"
+		  ><span id="local-6989586621679957371"
+		    ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957068"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957069"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ><span
+		      > </span
+		      ><span class="hs-glyph"
+		      >=&gt;</span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="PlutusTx.Ord.html#Ord"
+			><span class="hs-identifier hs-type"
+			  >Ord</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="annot"
+		      ><a href="PlutusTx.These.html#These"
+			><span class="hs-identifier hs-type"
+			  >These</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957068"
+			><span class="hs-identifier hs-type"
+			  >a</span
+			  ></a
+			></span
+		      ><span
+		      > </span
+		      ><span class="annot"
+		      ><a href="#local-6989586621679957069"
+			><span class="hs-identifier hs-type"
+			  >b</span
+			  ></a
+			></span
+		      ><span class="hs-special"
+		      >)</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-pragma hs-type"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679957377"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: These a b -&gt; These a b -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Ord.html#compare"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#This"
+	><span class="hs-identifier hs-type"
+	  >This</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957379"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957379"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#This"
+	><span class="hs-identifier hs-type"
+	  >This</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957380"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957380"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957379"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957380"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#That"
+	><span class="hs-identifier hs-type"
+	  >That</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957382"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957382"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#That"
+	><span class="hs-identifier hs-type"
+	  >That</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957383"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957383"
+	  ><span class="hs-identifier hs-var"
+	    >b'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; b -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957382"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957383"
+	><span class="hs-identifier hs-var"
+	  >b'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier hs-type"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957385"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957385"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957386"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957386"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier hs-type"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957387"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679957387"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679957388"
+      ><span class="annot"
+	><span class="annottext"
+	  >b
+</span
+	  ><a href="#local-6989586621679957388"
+	  ><span class="hs-identifier hs-var"
+	    >b'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957385"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679957387"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; b -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957386"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><a href="#local-6989586621679957388"
+	><span class="hs-identifier hs-var"
+	  >b'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621679957389"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="#local-6989586621679957389"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="#local-6989586621679957389"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#This"
+	><span class="hs-identifier hs-type"
+	  >This</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>These a b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#That"
+	><span class="hs-identifier hs-type"
+	  >That</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#This"
+	><span class="hs-identifier hs-type"
+	  >This</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#That"
+	><span class="hs-identifier hs-type"
+	  >That</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier hs-type"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier hs-type"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#This"
+	><span class="hs-identifier hs-type"
+	  >This</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Ord.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#These"
+	><span class="hs-identifier hs-type"
+	  >These</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.These.html#That"
+	><span class="hs-identifier hs-type"
+	  >That</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

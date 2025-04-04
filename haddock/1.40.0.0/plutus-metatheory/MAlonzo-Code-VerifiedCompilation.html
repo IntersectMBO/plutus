@@ -1,0 +1,857 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.VerifiedCompilation</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-0.1.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.VerifiedCompilation.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.VerifiedCompilation</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_SimplifierTag_2" class="def"
+	    >d_SimplifierTag_2</a
+	    > &#8759; () <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_SimplifierTag_2" class="link"
+	    >Source</a
+	    > <a href="#v:d_SimplifierTag_2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_SimplifierTag_2" class="def"
+	    >T_SimplifierTag_2</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#T_SimplifierTag_2" class="link"
+	    >Source</a
+	    > <a href="#t:T_SimplifierTag_2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_floatDelayT_4" class="def"
+	    >C_floatDelayT_4</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_floatDelayT_4" class="link"
+	    >Source</a
+	    > <a href="#v:C_floatDelayT_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_forceDelayT_6" class="def"
+	    >C_forceDelayT_6</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_forceDelayT_6" class="link"
+	    >Source</a
+	    > <a href="#v:C_forceDelayT_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_caseOfCaseT_8" class="def"
+	    >C_caseOfCaseT_8</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_caseOfCaseT_8" class="link"
+	    >Source</a
+	    > <a href="#v:C_caseOfCaseT_8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_caseReduceT_10" class="def"
+	    >C_caseReduceT_10</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_caseReduceT_10" class="link"
+	    >Source</a
+	    > <a href="#v:C_caseReduceT_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_inlineT_12" class="def"
+	    >C_inlineT_12</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_inlineT_12" class="link"
+	    >Source</a
+	    > <a href="#v:C_inlineT_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >pattern</span
+	    > <a id="v:C_cseT_14" class="def"
+	    >C_cseT_14</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#C_cseT_14" class="link"
+	    >Source</a
+	    > <a href="#v:C_cseT_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_floatDelayT_4" class="def"
+	    >check_floatDelayT_4</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_floatDelayT_4" class="link"
+	    >Source</a
+	    > <a href="#v:check_floatDelayT_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_forceDelayT_6" class="def"
+	    >check_forceDelayT_6</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_forceDelayT_6" class="link"
+	    >Source</a
+	    > <a href="#v:check_forceDelayT_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_caseOfCaseT_8" class="def"
+	    >check_caseOfCaseT_8</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_caseOfCaseT_8" class="link"
+	    >Source</a
+	    > <a href="#v:check_caseOfCaseT_8" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_caseReduceT_10" class="def"
+	    >check_caseReduceT_10</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_caseReduceT_10" class="link"
+	    >Source</a
+	    > <a href="#v:check_caseReduceT_10" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_inlineT_12" class="def"
+	    >check_inlineT_12</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_inlineT_12" class="link"
+	    >Source</a
+	    > <a href="#v:check_inlineT_12" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:check_cseT_14" class="def"
+	    >check_cseT_14</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#check_cseT_14" class="link"
+	    >Source</a
+	    > <a href="#v:check_cseT_14" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cover_SimplifierTag_2" class="def"
+	    >cover_SimplifierTag_2</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierStage" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierStage</a
+	    > &#8594; () <a href="src/MAlonzo.Code.VerifiedCompilation.html#cover_SimplifierTag_2" class="link"
+	    >Source</a
+	    > <a href="#v:cover_SimplifierTag_2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Transformation_16" class="def"
+	    >d_Transformation_16</a
+	    > &#8759; p &#8594; p &#8594; p &#8594; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_Transformation_16" class="link"
+	    >Source</a
+	    > <a href="#v:d_Transformation_16" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_Transformation_16" class="def"
+	    >T_Transformation_16</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#T_Transformation_16" class="link"
+	    >Source</a
+	    > <a href="#t:T_Transformation_16" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_isCoC_26" class="def"
+		  >C_isCoC_26</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation-UntypedTranslation.html#t:T_Translation_16" title="MAlonzo.Code.VerifiedCompilation.UntypedTranslation"
+		  >T_Translation_16</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_isFD_36" class="def"
+		  >C_isFD_36</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation-UntypedTranslation.html#t:T_Translation_16" title="MAlonzo.Code.VerifiedCompilation.UntypedTranslation"
+		  >T_Translation_16</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_isFlD_46" class="def"
+		  >C_isFlD_46</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation-UntypedTranslation.html#t:T_Translation_16" title="MAlonzo.Code.VerifiedCompilation.UntypedTranslation"
+		  >T_Translation_16</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_isCSE_56" class="def"
+		  >C_isCSE_56</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation-UntypedTranslation.html#t:T_Translation_16" title="MAlonzo.Code.VerifiedCompilation.UntypedTranslation"
+		  >T_Translation_16</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_inlineNotImplemented_66" class="def"
+		  >C_inlineNotImplemented_66</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_caseReduceNotImplemented_76" class="def"
+		  >C_caseReduceNotImplemented_76</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Trace_82" class="def"
+	    >d_Trace_82</a
+	    > &#8759; p &#8594; p &#8594; p &#8594; () <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_Trace_82" class="link"
+	    >Source</a
+	    > <a href="#v:d_Trace_82" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_Trace_82" class="def"
+	    >T_Trace_82</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#T_Trace_82" class="link"
+	    >Source</a
+	    > <a href="#t:T_Trace_82" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_empty_88" class="def"
+		  >C_empty_88</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_cons_102" class="def"
+		  >C_cons_102</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_Transformation_16" title="MAlonzo.Code.VerifiedCompilation"
+		  >T_Transformation_16</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_Trace_82" title="MAlonzo.Code.VerifiedCompilation"
+		  >T_Trace_82</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_isTransformation-39-63-39-_114" class="def"
+	    >d_isTransformation'63'_114</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-VerifiedCompilation-Equality.html#t:T_DecEq_6" title="MAlonzo.Code.VerifiedCompilation.Equality"
+	    >T_DecEq_6</a
+	    > &#8594; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > &#8594; <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_isTransformation%2763%27_114" class="link"
+	    >Source</a
+	    > <a href="#v:d_isTransformation-39-63-39-_114" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_isTransformation-39-63-39-_114" class="def"
+	    >du_isTransformation'63'_114</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation-Equality.html#t:T_DecEq_6" title="MAlonzo.Code.VerifiedCompilation.Equality"
+	    >T_DecEq_6</a
+	    > &#8594; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > &#8594; <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#du_isTransformation%2763%27_114" class="link"
+	    >Source</a
+	    > <a href="#v:du_isTransformation-39-63-39-_114" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_isTrace-39-63-39-_262" class="def"
+	    >d_isTrace'63'_262</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-VerifiedCompilation-Equality.html#t:T_DecEq_6" title="MAlonzo.Code.VerifiedCompilation.Equality"
+	    >T_DecEq_6</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    >)) &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_isTrace%2763%27_262" class="link"
+	    >Source</a
+	    > <a href="#v:d_isTrace-39-63-39-_262" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_isTrace-39-63-39-_262" class="def"
+	    >du_isTrace'63'_262</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation-Equality.html#t:T_DecEq_6" title="MAlonzo.Code.VerifiedCompilation.Equality"
+	    >T_DecEq_6</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    >)) &#8594; <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+	    >T_Dec_20</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#du_isTrace%2763%27_262" class="link"
+	    >Source</a
+	    > <a href="#v:du_isTrace-39-63-39-_262" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:T_FileHandle_332" class="def"
+	    >T_FileHandle_332</a
+	    > = <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/GHC-IO-Handle.html#t:Handle" title="GHC.IO.Handle"
+	    >Handle</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#T_FileHandle_332" class="link"
+	    >Source</a
+	    > <a href="#t:T_FileHandle_332" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_FileHandle_332" class="def"
+	    >d_FileHandle_332</a
+	    > &#8759; a <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_FileHandle_332" class="link"
+	    >Source</a
+	    > <a href="#v:d_FileHandle_332" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_writeFile_334" class="def"
+	    >d_writeFile_334</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-IO.html#t:T_IO_8" title="MAlonzo.Code.Agda.Builtin.IO"
+	    >T_IO_8</a
+	    > () <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_writeFile_334" class="link"
+	    >Source</a
+	    > <a href="#v:d_writeFile_334" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_stderr_336" class="def"
+	    >d_stderr_336</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_FileHandle_332" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_FileHandle_332</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_stderr_336" class="link"
+	    >Source</a
+	    > <a href="#v:d_stderr_336" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_hPutStrLn_338" class="def"
+	    >d_hPutStrLn_338</a
+	    > &#8759; <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_FileHandle_332" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_FileHandle_332</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-IO.html#t:T_IO_8" title="MAlonzo.Code.Agda.Builtin.IO"
+	    >T_IO_8</a
+	    > () <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_hPutStrLn_338" class="link"
+	    >Source</a
+	    > <a href="#v:d_hPutStrLn_338" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_putStrLn_340" class="def"
+	    >d_putStrLn_340</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-IO.html#t:T_IO_8" title="MAlonzo.Code.Agda.Builtin.IO"
+	    >T_IO_8</a
+	    > () <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_putStrLn_340" class="link"
+	    >Source</a
+	    > <a href="#v:d_putStrLn_340" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_buildPairs_344" class="def"
+	    >d_buildPairs_344</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    >) <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_buildPairs_344" class="link"
+	    >Source</a
+	    > <a href="#v:d_buildPairs_344" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_buildPairs_344" class="def"
+	    >du_buildPairs_344</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+	    >T__'8866'_14</a
+	    >) <a href="src/MAlonzo.Code.VerifiedCompilation.html#du_buildPairs_344" class="link"
+	    >Source</a
+	    > <a href="#v:du_buildPairs_344" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_traverseEitherList_360" class="def"
+	    >d_traverseEitherList_360</a
+	    > &#8759; () &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >)) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >))) <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_traverseEitherList_360" class="link"
+	    >Source</a
+	    > <a href="#v:d_traverseEitherList_360" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_traverseEitherList_360" class="def"
+	    >du_traverseEitherList_360</a
+	    > &#8759; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >)) &#8594; <a href="MAlonzo-Code-Utils.html#t:T_Either_6" title="MAlonzo.Code.Utils"
+	    >T_Either_6</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >))) <a href="src/MAlonzo.Code.VerifiedCompilation.html#du_traverseEitherList_360" class="link"
+	    >Source</a
+	    > <a href="#v:du_traverseEitherList_360" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_Proof_468" class="def"
+	    >d_Proof_468</a
+	    > &#8759; () <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_Proof_468" class="link"
+	    >Source</a
+	    > <a href="#v:d_Proof_468" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_Proof_468" class="def"
+	    >T_Proof_468</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#T_Proof_468" class="link"
+	    >Source</a
+	    > <a href="#t:T_Proof_468" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_proof_476" class="def"
+		  >C_proof_476</a
+		  > (<a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+		  >T_List_382</a
+		  > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+		  >T__'215'__364</a
+		  > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+		  >T_SimplifierTag_2</a
+		  > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+		  >T__'215'__364</a
+		  > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+		  >T__'8866'_14</a
+		  > <a href="MAlonzo-Code-Untyped.html#t:T__-39-8866-39-_14" title="MAlonzo.Code.Untyped"
+		  >T__'8866'_14</a
+		  >))) <a href="MAlonzo-Code-VerifiedCompilation-Equality.html#t:T_DecEq_6" title="MAlonzo.Code.VerifiedCompilation.Equality"
+		  >T_DecEq_6</a
+		  > <a href="MAlonzo-Code-Relation-Nullary-Decidable-Core.html#t:T_Dec_20" title="MAlonzo.Code.Relation.Nullary.Decidable.Core"
+		  >T_Dec_20</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runCertifier_478" class="def"
+	    >d_runCertifier_478</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    >)) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_Proof_468" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_Proof_468</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_runCertifier_478" class="link"
+	    >Source</a
+	    > <a href="#v:d_runCertifier_478" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_passed-39-63-39-_492" class="def"
+	    >d_passed'63'_492</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_Proof_468" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_Proof_468</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_passed%2763%27_492" class="link"
+	    >Source</a
+	    > <a href="#v:d_passed-39-63-39-_492" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runCertifierMain" class="def"
+	    >runCertifierMain</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    >)) &#8594; <a href="MAlonzo-Code-Agda-Builtin-IO.html#t:T_IO_8" title="MAlonzo.Code.Agda.Builtin.IO"
+	    >T_IO_8</a
+	    > () <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#runCertifierMain" class="link"
+	    >Source</a
+	    > <a href="#v:runCertifierMain" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_runCertifierMain_498" class="def"
+	    >d_runCertifierMain_498</a
+	    > &#8759; <a href="MAlonzo-Code-Utils.html#t:T_List_382" title="MAlonzo.Code.Utils"
+	    >T_List_382</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-VerifiedCompilation.html#t:T_SimplifierTag_2" title="MAlonzo.Code.VerifiedCompilation"
+	    >T_SimplifierTag_2</a
+	    > (<a href="MAlonzo-Code-Utils.html#t:T__-39-215-39-__364" title="MAlonzo.Code.Utils"
+	    >T__'215'__364</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    > <a href="MAlonzo-Code-RawU.html#t:T_Untyped_146" title="MAlonzo.Code.RawU"
+	    >T_Untyped_146</a
+	    >)) &#8594; <a href="MAlonzo-Code-Agda-Builtin-IO.html#t:T_IO_8" title="MAlonzo.Code.Agda.Builtin.IO"
+	    >T_IO_8</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="MAlonzo-Code-Agda-Builtin-Unit.html#t:T_-39-8868-39-_6" title="MAlonzo.Code.Agda.Builtin.Unit"
+	    >T_'8868'_6</a
+	    > <a href="src/MAlonzo.Code.VerifiedCompilation.html#d_runCertifierMain_498" class="link"
+	    >Source</a
+	    > <a href="#v:d_runCertifierMain_498" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

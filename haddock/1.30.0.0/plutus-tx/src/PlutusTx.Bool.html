@@ -1,0 +1,845 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Bool</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier"
+	  >Bool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator"
+	  >(&amp;&amp;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%7C%7C"
+	><span class="hs-operator"
+	  >(||)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#not"
+	><span class="hs-identifier"
+	  >not</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-comment"
+      >{-
+We export off-chain Haskell's Bool type as on-chain Plutus's Bool type since they are the same.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-comment"
+      >{- HLINT ignore -}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lazy boolean operators] in the plugin.</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&amp;&amp;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >-- | Logical AND</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >--   &gt;&gt;&gt; True &amp;&amp; False</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >--   False</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >infixr</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >3</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator hs-type"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator hs-type"
+	  >(&amp;&amp;)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Lazy patterns on function parameters]</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="%26%26"
+      ><span class="annot"
+	><span class="annottext"
+	  >&amp;&amp; :: Bool -&gt; Bool -&gt; Bool
+</span
+	  ><a href="PlutusTx.Bool.html#%26%26"
+	  ><span class="hs-operator hs-var hs-var"
+	    >(&amp;&amp;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679919164"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679919164"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621679919165"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679919165"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679919164"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679919165"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >||</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- | Logical OR</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >--   &gt;&gt;&gt; True || False</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >--   True</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >infixr</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >2</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%7C%7C"
+	><span class="hs-operator hs-type"
+	  >||</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#%7C%7C"
+	><span class="hs-operator hs-type"
+	  >(||)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="%7C%7C"
+      ><span class="annot"
+	><span class="annottext"
+	  >|| :: Bool -&gt; Bool -&gt; Bool
+</span
+	  ><a href="PlutusTx.Bool.html#%7C%7C"
+	  ><span class="hs-operator hs-var hs-var"
+	    >(||)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679919166"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679919166"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621679919167"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679919167"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679919166"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679919167"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#not"
+	><span class="hs-pragma hs-type"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- | Logical negation</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >--   &gt;&gt;&gt; not True</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >--   False</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html#not"
+	><span class="hs-identifier hs-type"
+	  >not</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="not"
+      ><span class="annot"
+	><span class="annottext"
+	  >not :: Bool -&gt; Bool
+</span
+	  ><a href="PlutusTx.Bool.html#not"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >not</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679919168"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679919168"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679919168"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Lazy patterns on function parameters]
+In theory, Lazy patterns (~) on function parameters shouldn't make any difference.
+This is because function applications in Plutus Tx are strict, so when passing an argument
+to a function, the argument will be evaluated immediately, regardless of whether the
+corresponding function parameter is lazy or strict. Specifically, both `f !x = body` and
+`f ~x = body` in Plutus Tx are compiled into `let f = \x -&gt; body` in PIR:
+
+```
+f ~x = body
+---&gt; (GHC Core)
+f x = body
+---&gt; (PIR)
+f = \x -&gt; body
+
+f !x = body
+---&gt; (GHC Core)
+f x = case x@x of { _ -&gt; body }
+---&gt; (PIR)
+f = \x -&gt; let !x = x in body
+---&gt; (PIR inliner)
+f = \x -&gt; body
+```
+
+It doesn't matter whether or not the function is inlined by the PIR inliner, since the PIR
+inliner does not change the semantics of the program.
+
+However, it *does* make a difference if the function is inlined by GHC.
+Consider the Plutus Tx code `let f !x = t in f arg`. Here `arg` will be immediately evaluated before
+being passed to `f` (as it should). But now consider `let f ~x = t in f arg`. Here GHC
+may inline `f`, leading to `t [x := arg]` (recognize that the GHC inliner
+also performs beta reduction, in addition to replacing `f` with its definition), where `arg`
+may not be evaluated. GHC does so because it is a Haskell compiler and does not know that
+Plutus Tx is a strict language.
+
+Therefore, lazy patterns should generally be avoided, since its semantics depend on
+what the GHC inliner does. That said, we can use it in some cases to our advantage,
+such as in `(&amp;&amp;)` and `(||)`. These logical operators would be much less useful if
+they can't short-circuit. Using a lazy pattern on the second parameter helps achieve
+the desirable effect, namely, the second parameter is only evaluated if needed, although
+this is currently not guaranteed, GHC makes no promise to inline `(&amp;&amp;)` and `(||)`.
+To guarantee that the second parameter is only evaluated
+when needed, we can potentially use a particular source annotation to tell the PIR
+inliner to inline and beta-reduce a function, which would achieve the same effect as if
+it is unconditionally inlined by GHC. This is yet to be implemented.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
