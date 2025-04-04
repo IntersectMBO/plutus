@@ -314,7 +314,7 @@ print-status() {
   echo 
 
   local PR_MERGE_STATE_STATUS=$(get-pr-merge-state-status IntersectMBO/plutus "release/$VERSION")
-  if [[ $PR_STATE == "OPEN" && $PR_MERGE_STATE_STATUS == "MERGEABLE" || $PR_STATE == "MERGED" ]]; then 
+  if [[ $PR_STATE == "OPEN" && $PR_MERGE_STATE_STATUS == "CLEAN" || $PR_STATE == "MERGED" ]]; then 
     echo -e "[2] ✅ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE and merge status $PR_MERGE_STATE_STATUS at $PR_URL"
   elif [[ $PR_STATE == "MISSING" ]]; then 
     echo -e "[2] ❌ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE"
