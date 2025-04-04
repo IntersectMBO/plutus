@@ -14,6 +14,7 @@ git clone git@github.com:IntersectMBO/plinth-template.git on-chain
 mkdir off-chain && cd $_
 yarn init -y
 yarn add @meshsdk/core
+yarn add @harmoniclabs/pair
 yarn add cbor
 ```
 
