@@ -195,6 +195,7 @@ library
     UntypedPlutusCore
     UntypedPlutusCore.Check.Scope
     UntypedPlutusCore.Check.Uniques
+    UntypedPlutusCore.Contexts
     UntypedPlutusCore.Core
     UntypedPlutusCore.Core.Instance.Scoping
     UntypedPlutusCore.Core.Plated
