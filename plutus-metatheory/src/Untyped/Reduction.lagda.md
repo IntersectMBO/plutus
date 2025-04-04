@@ -176,7 +176,8 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
   case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
   case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
-
+  case-unsat₀ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
+  case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
   case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
               → t ⟶ t'
               → case t ts ⟶ case t' ts
@@ -274,12 +275,12 @@ progress (constr i (x ∷ xs)) with progress x
 progress (case (ƛ x) ts) = step case-ƛ
 progress (case (x · x₁) ts) with progress (x · x₁)
 ... | step x₂ = step (case-reduce x₂)
-... | done (unsat₀ x₂) = {!!}
-... | done (unsat₁ x₂) = {!!}
+... | done (unsat₀ x₂) = step (case-unsat₀ x₂)
+... | done (unsat₁ x₂) = step (case-unsat₁ x₂)
 progress (case (force x) ts) with progress (force x)
 ... | step x₁ = step (case-reduce x₁)
-... | done (unsat₀ x₁) = {!!}
-... | done (unsat₁ x₁) = {!!}
+... | done (unsat₀ x₁) = step (case-unsat₀ x₁)
+... | done (unsat₁ x₁) = step (case-unsat₁ x₁)
 progress (case (delay x) ts) = step case-delay
 progress (case (con x) ts) = step case-con
 progress (case (constr i xs) ts) with lookup? i ts in lookup-i
@@ -287,8 +288,8 @@ progress (case (constr i xs) ts) with lookup? i ts in lookup-i
 ... | just t = step (case-constr lookup-i)
 progress (case (case x ts₁) ts) with progress (case x ts₁)
 ... | step x' = step (case-reduce x')
-... | done (unsat₀ x₁) = {!!}
-... | done (unsat₁ x₁) = {!!}
+... | done (unsat₀ x₁) = done (unsat₀ x₁)
+... | done (unsat₁ x₁) = done (unsat₁ x₁)
 progress (case (builtin b) ts) = step case-builtin
 progress (case error ts) = step case-error
 progress (builtin b) = done builtin
