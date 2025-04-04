@@ -70,7 +70,8 @@ benchExpModInteger2 :: StdGen -> Benchmark
 benchExpModInteger2 _gen =
   let builtinName = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      p = (pow 2 255) - 19
+--      p = (pow 2 255) - 19
+      p = (pow 2 100) + 400
       -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97674011
       --   × 1932601194339139344835240473879578700967872768315843651779
 --      d = p `div` 20
