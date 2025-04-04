@@ -46,7 +46,6 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
-{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
@@ -64,8 +63,8 @@ benchExpModInteger _gen =
      (fmap (\n -> n) inputs)
      (fmap (\n -> n) inputs)
      moduli
--}
 
+{-
 benchExpModInteger2 :: StdGen -> Benchmark
 benchExpModInteger2 _gen =
   let builtinName = ExpModInteger
@@ -86,7 +85,7 @@ benchExpModInteger2 _gen =
      ys
      moduli
 -- 1669877/248/256
-
+-}
 
 {- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
  as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
@@ -128,4 +127,4 @@ makeBenchmarks gen =
                                      , LessThanEqualsInteger
                                      ])
     <> [-- benchExpModInteger gen,
-        benchExpModInteger2 gen]
+        benchExpModInteger gen]
