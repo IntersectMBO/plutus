@@ -125,49 +125,59 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
  where
   goTerm :: Term name uni fun a -> EvalOrder name uni fun a
   goTerm = \case
-    t@(splitAppCtx -> (Builtin _ann fun, appCtx)) ->
-      -- First we evaluate a term with its application "structure"
-      go arity appCtx
-      -- then its arguments, in left-to-right order
-      <> appContextEvalOrder appCtx
+    (splitAppCtx -> (builtin@(Builtin _ann fun), appCtx)) ->
+      appCtxEvalOrder appCtx <> go arity appCtx
      where
       arity = builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun
+
+      appCtxEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
+      appCtxEvalOrder = \case
+        AppCtxEnd -> mempty
+        AppCtxTerm _ t rest -> goTerm t <> appCtxEvalOrder rest
+        AppCtxType _ rest -> appCtxEvalOrder rest
 
       go :: [Param] -> AppCtx name uni fun a -> EvalOrder name uni fun a
       go parameters appContext =
         case parameters of
-          -- Saturated builtin is considered impure.
-          [] -> eval (EvalTerm MaybeImpure MaybeWork t)
+          -- All builtin parameters have been applied,
+          -- (such term is considered impure).
+          [] -> maybeImpureWork
+
+          -- A term parameter is waiting to be applied
           TermParam : otherParams ->
             case appContext of
               AppCtxEnd ->
                 -- Builtin is not fully saturated with term arguments, thus pure.
-                eval (EvalTerm Pure WorkFree t)
-              AppCtxTerm _term remainingAppCtx ->
-                -- Skip applied term parameter
-                go otherParams remainingAppCtx
-              AppCtxType _remainingAppCtx ->
+                pureWorkFree
+              AppCtxType _ann _remainingAppCtx ->
                 -- Term parameter expected, type argument applied.
                 -- Error is impure.
-                eval (EvalTerm MaybeImpure MaybeWork t)
+                maybeImpureWork
+              AppCtxTerm _ann _argTerm remainingAppCtx ->
+                go otherParams remainingAppCtx
+
+          -- A type parameter is waiting to be forced
           TypeParam : otherParams ->
             case appContext of
               AppCtxEnd ->
                 -- Builtin is not fully saturated with type arguments, thus pure.
-                eval (EvalTerm Pure WorkFree t)
-              AppCtxTerm _term _remainingAppCtx ->
+                pureWorkFree
+              AppCtxTerm _ann _term _remainingAppCtx ->
                 -- Type parameter expected, term argument applied.
                 -- Error is impure.
-                eval (EvalTerm MaybeImpure MaybeWork t)
-              AppCtxType remainingAppCtx ->
-                -- Skip forced type parameter
+                maybeImpureWork
+              AppCtxType _ann remainingAppCtx ->
                 go otherParams remainingAppCtx
 
-      appContextEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
-      appContextEvalOrder = \case
-        AppCtxTerm r rest -> goTerm r <> appContextEvalOrder rest
-        AppCtxType rest -> appContextEvalOrder rest
-        AppCtxEnd -> mempty
+        where
+        maybeImpureWork :: EvalOrder name uni fun a
+        maybeImpureWork = eval (EvalTerm MaybeImpure MaybeWork reconstructed)
+
+        pureWorkFree :: EvalOrder name uni fun a
+        pureWorkFree = eval (EvalTerm Pure WorkFree reconstructed)
+
+        reconstructed :: Term name uni fun a
+        reconstructed = fillAppCtx builtin appCtx
 
     t@(Apply _ fun arg) ->
       -- first the function
