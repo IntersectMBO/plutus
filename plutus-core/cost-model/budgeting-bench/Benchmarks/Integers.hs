@@ -98,6 +98,7 @@ benchExpModInteger2 _gen =
    Overall we get a good fit with t~I(y*z^2)+I(y*z).
 -}
 
+{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
@@ -116,6 +117,28 @@ benchExpModInteger _gen =
   where mkBM x y z =
           benchDefault (showMemoryUsage (IntegerCostedByLog z)) $
           mkApp3 ExpModInteger [] x y z
+-}
+
+benchExpModInteger :: StdGen -> Benchmark
+benchExpModInteger _gen =
+  let fun = ExpModInteger
+      pow (a::Integer) (b::Integer) = a^b
+      as = fmap (\n -> pow 2 (16*n) - 999) [1..625]  -- up to 2^10000 - 999
+      bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
+      -- ^ Largest number less than modulus with binary expansion 1111...1
+      -- Should be about worst case
+      moduli = fmap (\n -> pow 2 (80*n) - 11) [1..25]
+      -- ^ Approximately [2^40, 2^80, ..., 2^1000], but we don't want powers of 2
+      -- as = fmap (\n -> n `div` 3) moduli
+
+  in createThreeTermBuiltinBenchWithWrappers
+     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
+     fun
+     []
+     as
+     bs
+     moduli
+
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
