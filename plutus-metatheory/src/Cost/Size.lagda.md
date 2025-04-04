@@ -48,13 +48,14 @@ postulate stringSize : String → CostingNat
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemoryUsage #-}
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostStream #-}
 {-# FOREIGN GHC import Data.SatInt #-}
+{-# FOREIGN GHC import Raw #-}
 {-# FOREIGN GHC size = fromSatInt . sumCostStream . flattenCostRose . memoryUsage #-}
 {-# COMPILE GHC integerSize = size  #-}
-{-# COMPILE GHC byteStringSize = size  #-}
+{-# COMPILE GHC byteStringSize = size . toByteString  #-}
 {-# COMPILE GHC g1ElementSize = size #-}
 {-# COMPILE GHC g2ElementSize = size #-}
 {-# COMPILE GHC mlResultElementSize = size #-}
-{-# COMPILE GHC dataSize  = size #-}
+{-# COMPILE GHC dataSize  = size . toHaskellData #-}
 {-# COMPILE GHC boolSize = size #-}
 {-# COMPILE GHC unitSize = size #-}
 {-# COMPILE GHC stringSize  = size #-}

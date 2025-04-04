@@ -171,13 +171,15 @@ data RuntimeError : Set where
 
 {-# COMPILE GHC RuntimeError = data RuntimeError (GasError | UserError | RuntimeTypeError) #-}
 
-postulate ByteString : Set
-{-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# COMPILE GHC ByteString = type BS.ByteString #-}
+data ByteString : Set where
+  mkByteString : String → ByteString
 
-postulate
-  eqByteString : ByteString → ByteString → Bool
-{-# COMPILE GHC eqByteString = (==) #-}
+{-# COMPILE GHC ByteString = data AgdaByteString (AgdaByteString) #-}
+
+eqByteString : ByteString → ByteString → Bool
+eqByteString (mkByteString bs1) (mkByteString bs2) =
+  Relation.Nullary.isYes (bs1 Data.String.≟ bs2)
+{-# COMPILE GHC eqByteString = \bs1 bs2 -> toByteString bs1 == toByteString bs2 #-}
 
 ```
 ## Record Types
@@ -240,11 +242,10 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data as D #-}
-{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+{-# COMPILE GHC DATA = data AgdaData (AgdaConstr | AgdaMap | AgdaList | AgdaI | AgdaB)  #-}
 
 postulate eqDATA : DATA → DATA → Bool
-{-# COMPILE GHC eqDATA = (==) #-}
+{-# COMPILE GHC eqDATA = \d1 d2 -> toHaskellData d1 == toHaskellData d2 #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
