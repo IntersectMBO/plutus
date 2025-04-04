@@ -809,6 +809,7 @@ library plutus-core-testlib
     , multiset
     , plutus-core                 ^>=1.44
     , plutus-core:plutus-ir
+    , pretty-simple
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
     , QuickCheck
