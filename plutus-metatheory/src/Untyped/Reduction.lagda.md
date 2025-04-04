@@ -177,7 +177,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
   case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
   case-unsat₀ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
-  case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
+  case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
   case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
               → t ⟶ t'
               → case t ts ⟶ case t' ts
@@ -253,11 +253,13 @@ progress (force m) with progress m
 
 progress (force (ƛ m)) | done Vm | no-builtin = step force-ƛ
 progress (force (m · m₁)) | done Vm | no-builtin = step force-app
-progress (force (force m)) | done Vm | no-builtin = {!!}
+progress (force (force m)) | done (unsat₀ x) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) x) λ ()
+progress (force (force m)) | done (unsat₁ x) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) x) λ ()
 progress (force (delay m)) | done Vm | no-builtin = step force-delay
 progress (force (con x)) | done Vm | no-builtin = step force-con
 progress (force (constr i xs)) | done Vm | no-builtin = step force-constr
-progress (force (case m ts)) | done Vm | no-builtin = {!!}
+progress (force (case m ts)) | done (unsat₀ x) | no-builtin  = contradiction x (λ ())
+progress (force (case m ts)) | done (unsat₁ x) | no-builtin  = contradiction x (λ ())
 progress (force error) | done Vm | no-builtin = step force-error
 
 progress (delay M) = done delay
