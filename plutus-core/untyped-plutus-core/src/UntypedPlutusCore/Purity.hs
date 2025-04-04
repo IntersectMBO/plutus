@@ -27,6 +27,7 @@ import PlutusCore.Builtin.Meaning (ToBuiltinMeaning (..))
 import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
 import Prettyprinter (vsep, (<+>))
 import Universe.Core (Closed, Everywhere, GShow)
+import UntypedPlutusCore.Contexts (AppCtx (..), fillAppCtx, splitAppCtx)
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Core.Instance.Eq ()
 
@@ -103,29 +104,6 @@ eval = EvalOrder . DList.singleton
 instance (PrettyBy config (Term name uni fun a)) =>
   PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
-
--- | A context for an iterated term/type application.
-data AppCtx name uni fun a
-  = AppCtxTerm (Term name uni fun a) (AppCtx name uni fun a)
-  | AppCtxType (AppCtx name uni fun a)
-  | AppCtxEnd
-
-{- | Takes a term and views it as a head plus an 'AppCtx', e.g.
-@
-  [{ f t } u v]
-  -->
-  (f, [{ _ t } u v])
-  ==
-  f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppContextEnd)))
-@
--}
-splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
-splitAppCtx = go AppCtxEnd
-  where
-  go appCtx = \case
-    Apply _ann function argument -> go (AppCtxTerm argument appCtx) function
-    Force _ann forcedTerm -> go (AppCtxType appCtx) forcedTerm
-    term -> (term, appCtx)
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
 
