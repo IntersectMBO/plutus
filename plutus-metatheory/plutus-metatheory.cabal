@@ -74,6 +74,7 @@ library
     , plutus-core                      ^>=1.43
     , plutus-core:plutus-core-execlib
     , process
+    , some
     , text
     , transformers
 

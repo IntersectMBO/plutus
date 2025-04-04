@@ -1,5 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE InstanceSigs          #-}
@@ -19,6 +21,9 @@ import Control.Applicative qualified as Alt
 import Data.Bifunctor (bimap)
 import Data.ByteString as BS hiding (map)
 import Data.Either
+import Data.Functor.Identity
+import Data.Kind qualified as Kind
+import Data.Some (mapSome)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -29,11 +34,13 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data hiding (Constr)
 import PlutusCore.Data qualified as Haskell
 import PlutusCore.DeBruijn
+import PlutusCore.Default (DSum (..))
 import PlutusCore.Default hiding (noMoreTypeFunctions)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Parser
 import PlutusCore.Pretty
 import Universe (Closed (..), peelUniTag)
+import UntypedPlutusCore qualified as UPLC
 
 data KIND = Star | Sharp | Arrow KIND KIND
            deriving Show
@@ -241,6 +248,20 @@ toHaskellData =
     (AgdaB bs) ->
       Haskell.B (toByteString bs)
 
+fromHaskellData :: Data -> AgdaData
+fromHaskellData =
+  \case
+    Haskell.Constr i xs ->
+      AgdaConstr i $ fromHaskellData <$> xs
+    Haskell.Map xs ->
+      AgdaMap $ bimap fromHaskellData fromHaskellData <$> xs
+    Haskell.List xs ->
+      AgdaList $ fromHaskellData <$> xs
+    Haskell.I i ->
+      AgdaI i
+    Haskell.B bs ->
+      AgdaB (fromByteString bs)
+
 instance PrettyBy ConstConfig AgdaData where
   prettyBy f adata = prettyBy f (toHaskellData adata)
 
@@ -362,28 +383,109 @@ instance Pretty (AgdaDefaultUni a) where
 instance Pretty (SomeTypeIn AgdaDefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 
--- instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
---     knownUni = knownUni `AgdaDefaultUniApply` knownUni
---
--- instance AgdaDefaultUni `Contains` Integer where
---     knownUni = AgdaDefaultUniInteger
--- instance AgdaDefaultUni `Contains` AgdaByteString where
---     knownUni = AgdaDefaultUniByteString
--- instance AgdaDefaultUni `Contains` Text where
---     knownUni = AgdaDefaultUniString
--- instance AgdaDefaultUni `Contains` () where
---     knownUni = AgdaDefaultUniUnit
--- instance AgdaDefaultUni `Contains` Bool where
---     knownUni = AgdaDefaultUniBool
--- instance AgdaDefaultUni `Contains` [] where
---     knownUni = AgdaDefaultUniProtoList
--- instance AgdaDefaultUni `Contains` (,) where
---     knownUni = AgdaDefaultUniProtoPair
--- instance AgdaDefaultUni `Contains` AgdaData where
---     knownUni = AgdaDefaultUniData
--- instance AgdaDefaultUni `Contains` BLS12_381.G1.Element where
---     knownUni = AgdaDefaultUniBLS12_381_G1_Element
--- instance AgdaDefaultUni `Contains` BLS12_381.G2.Element where
---     knownUni = AgdaDefaultUniBLS12_381_G2_Element
--- instance AgdaDefaultUni `Contains` BLS12_381.Pairing.MlResult where
---     knownUni = AgdaDefaultUniBLS12_381_MlResult
+class UniverseTransformation t t' where
+  toHaskellUni :: AgdaDefaultUni (Esc t) -> DefaultUni (Esc t')
+  fromHaskellUni :: DefaultUni (Esc t') -> AgdaDefaultUni (Esc t)
+
+instance UniverseTransformation Integer Integer where
+  toHaskellUni AgdaDefaultUniInteger = DefaultUniInteger
+  fromHaskellUni DefaultUniInteger = AgdaDefaultUniInteger
+
+instance UniverseTransformation AgdaByteString ByteString where
+  toHaskellUni AgdaDefaultUniByteString = DefaultUniByteString
+  fromHaskellUni DefaultUniByteString = AgdaDefaultUniByteString
+
+instance UniverseTransformation Text Text where
+  toHaskellUni AgdaDefaultUniString = DefaultUniString
+  fromHaskellUni DefaultUniString = AgdaDefaultUniString
+
+instance UniverseTransformation () () where
+  toHaskellUni AgdaDefaultUniUnit = DefaultUniUnit
+  fromHaskellUni DefaultUniUnit = AgdaDefaultUniUnit
+
+instance UniverseTransformation Bool Bool where
+  toHaskellUni AgdaDefaultUniBool = DefaultUniBool
+  fromHaskellUni DefaultUniBool = AgdaDefaultUniBool
+
+instance UniverseTransformation [] [] where
+  toHaskellUni AgdaDefaultUniProtoList = DefaultUniProtoList
+  fromHaskellUni DefaultUniProtoList = AgdaDefaultUniProtoList
+
+instance UniverseTransformation (,) (,) where
+  toHaskellUni AgdaDefaultUniProtoPair = DefaultUniProtoPair
+  fromHaskellUni DefaultUniProtoPair = AgdaDefaultUniProtoPair
+
+instance UniverseTransformation AgdaData Data where
+  toHaskellUni AgdaDefaultUniData = DefaultUniData
+  fromHaskellUni DefaultUniData = AgdaDefaultUniData
+
+instance UniverseTransformation BLS12_381.G1.Element BLS12_381.G1.Element where
+  toHaskellUni AgdaDefaultUniBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
+  fromHaskellUni DefaultUniBLS12_381_G1_Element = AgdaDefaultUniBLS12_381_G1_Element
+
+instance UniverseTransformation BLS12_381.G2.Element BLS12_381.G2.Element where
+  toHaskellUni AgdaDefaultUniBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
+  fromHaskellUni DefaultUniBLS12_381_G2_Element = AgdaDefaultUniBLS12_381_G2_Element
+
+instance UniverseTransformation BLS12_381.Pairing.MlResult BLS12_381.Pairing.MlResult where
+  toHaskellUni AgdaDefaultUniBLS12_381_MlResult = DefaultUniBLS12_381_MlResult
+  fromHaskellUni DefaultUniBLS12_381_MlResult = AgdaDefaultUniBLS12_381_MlResult
+
+instance (UniverseTransformation a a, UniverseTransformation f f) => UniverseTransformation (f a) (f a) where
+  toHaskellUni (AgdaDefaultUniApply uniF uniA) = DefaultUniApply (toHaskellUni uniF) (toHaskellUni uniA)
+  fromHaskellUni (DefaultUniApply uniF uniA) = AgdaDefaultUniApply (fromHaskellUni uniF) (fromHaskellUni uniA)
+
+toHaskellTerm :: UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun a
+toHaskellTerm = \case
+    UPLC.Var a x -> UPLC.Var a x
+    UPLC.LamAbs a x t -> UPLC.LamAbs a x (toHaskellTerm t)
+    UPLC.Apply a t u -> UPLC.Apply a (toHaskellTerm t) (toHaskellTerm u)
+    UPLC.Builtin a b -> UPLC.Builtin a b
+    UPLC.Constant a c -> UPLC.Constant a (thing c)
+    UPLC.Error a -> UPLC.Error a
+    UPLC.Delay a t -> UPLC.Delay a (toHaskellTerm t)
+    UPLC.Force a t -> UPLC.Force a (toHaskellTerm t)
+    UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellTerm cs)
+    UPLC.Case a arg cs -> UPLC.Case a (toHaskellTerm arg) (fmap toHaskellTerm cs)
+
+thing :: Some (ValueOf AgdaDefaultUni) -> Some (ValueOf DefaultUni)
+thing (Some (ValueOf AgdaDefaultUniInteger val)) = Some $ ValueOf DefaultUniInteger val
+thing (Some (ValueOf AgdaDefaultUniByteString val)) = Some $ ValueOf DefaultUniByteString (toByteString val)
+thing (Some (ValueOf AgdaDefaultUniString val)) = Some $ ValueOf DefaultUniString val
+thing (Some (ValueOf AgdaDefaultUniUnit val)) = Some $ ValueOf DefaultUniUnit val
+thing (Some (ValueOf AgdaDefaultUniBool val)) = Some $ ValueOf DefaultUniBool val
+thing (Some (ValueOf (AgdaDefaultUniList uniL) val)) = Some $ ValueOf (DefaultUniList (toHaskellUni uniL)) val
+thing (Some (ValueOf (AgdaDefaultUniPair uniP1 uniP2) val)) = Some $ ValueOf (DefaultUniPair (toHaskellUni uniP1) (toHaskellUni uniP2)) val
+thing (Some (ValueOf AgdaDefaultUniData val)) = Some $ ValueOf DefaultUniData (toHaskellData val)
+thing (Some (ValueOf AgdaDefaultUniBLS12_381_G1_Element val)) = Some $ ValueOf DefaultUniBLS12_381_G1_Element val
+thing (Some (ValueOf AgdaDefaultUniBLS12_381_G2_Element val)) = Some $ ValueOf DefaultUniBLS12_381_G2_Element val
+thing (Some (ValueOf AgdaDefaultUniBLS12_381_MlResult val)) = Some $ ValueOf DefaultUniBLS12_381_MlResult val
+thing (Some (ValueOf (AgdaDefaultUniApply uniF uniA) val)) = Some $ ValueOf (DefaultUniApply (toHaskellUni uniF) (toHaskellUni uniA)) val
+
+-- todo: fix list and pair construction
+
+instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
+    knownUni = knownUni `AgdaDefaultUniApply` knownUni
+
+instance AgdaDefaultUni `Contains` Integer where
+    knownUni = AgdaDefaultUniInteger
+instance AgdaDefaultUni `Contains` AgdaByteString where
+    knownUni = AgdaDefaultUniByteString
+instance AgdaDefaultUni `Contains` Text where
+    knownUni = AgdaDefaultUniString
+instance AgdaDefaultUni `Contains` () where
+    knownUni = AgdaDefaultUniUnit
+instance AgdaDefaultUni `Contains` Bool where
+    knownUni = AgdaDefaultUniBool
+instance AgdaDefaultUni `Contains` [] where
+    knownUni = AgdaDefaultUniProtoList
+instance AgdaDefaultUni `Contains` (,) where
+    knownUni = AgdaDefaultUniProtoPair
+instance AgdaDefaultUni `Contains` AgdaData where
+    knownUni = AgdaDefaultUniData
+instance AgdaDefaultUni `Contains` BLS12_381.G1.Element where
+    knownUni = AgdaDefaultUniBLS12_381_G1_Element
+instance AgdaDefaultUni `Contains` BLS12_381.G2.Element where
+    knownUni = AgdaDefaultUniBLS12_381_G2_Element
+instance AgdaDefaultUni `Contains` BLS12_381.Pairing.MlResult where
+    knownUni = AgdaDefaultUniBLS12_381_MlResult
