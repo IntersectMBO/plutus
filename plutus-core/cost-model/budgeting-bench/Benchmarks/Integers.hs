@@ -8,7 +8,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog (..))
 
 
 import Criterion.Main
--- import GHC.Num.Integer
+import GHC.Num.Integer
 import System.Random (StdGen)
 
 ---------------- Integer builtins ----------------
@@ -46,6 +46,7 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
+{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let builtinName = ExpModInteger
@@ -63,6 +64,7 @@ benchExpModInteger _gen =
      (fmap (\n -> n) inputs)
      (fmap (\n -> n) inputs)
      moduli
+-}
 
 {-
 benchExpModInteger2 :: StdGen -> Benchmark
@@ -96,7 +98,6 @@ benchExpModInteger2 _gen =
    Overall we get a good fit with t~I(y*z^2)+I(y*z).
 -}
 
-{-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
@@ -115,7 +116,6 @@ benchExpModInteger _gen =
   where mkBM x y z =
           benchDefault (showMemoryUsage (IntegerCostedByLog z)) $
           mkApp3 ExpModInteger [] x y z
--}
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
