@@ -12,49 +12,47 @@
                           (equalsInteger 1 (force (force fstPair) tup))
                           (delay
                              (delay
-                                ((\l ->
-                                    force
-                                      (case
-                                         ((\tup ->
-                                             (\index ->
-                                                (\args ->
-                                                   force
+                                (force
+                                   (case
+                                      ((\tup ->
+                                          (\index ->
+                                             (\args ->
+                                                force
+                                                  (force
                                                      (force
-                                                        (force
-                                                           ifThenElse
-                                                           (equalsInteger
-                                                              1
-                                                              index)
+                                                        ifThenElse
+                                                        (equalsInteger 1 index)
+                                                        (delay
                                                            (delay
-                                                              (delay
-                                                                 (constr 1 [])))
+                                                              (constr 1 [])))
+                                                        (delay
                                                            (delay
-                                                              (delay
+                                                              (force
                                                                  (force
                                                                     (force
-                                                                       (force
-                                                                          ifThenElse
-                                                                          (equalsInteger
-                                                                             0
-                                                                             index)
+                                                                       ifThenElse
+                                                                       (equalsInteger
+                                                                          0
+                                                                          index)
+                                                                       (delay
                                                                           (delay
-                                                                             (delay
-                                                                                (constr 0
-                                                                                   [ (force
-                                                                                        headList
-                                                                                        args) ])))
+                                                                             (constr 0
+                                                                                [ (force
+                                                                                     headList
+                                                                                     args) ])))
+                                                                       (delay
                                                                           (delay
-                                                                             (delay
-                                                                                (traceError
-                                                                                   "PT1")))))))))))
-                                                  (force (force sndPair) tup))
-                                               (force (force fstPair) tup))
-                                            (unConstrData
-                                               (force headList
-                                                  (force tailList l))))
-                                         [ (\ds -> delay (constr 0 []))
-                                         , (delay (constr 1 [])) ]))
-                                   (force (force sndPair) tup))))
+                                                                             (traceError
+                                                                                "PT1")))))))))))
+                                               (force (force sndPair) tup))
+                                            (force (force fstPair) tup))
+                                         (unConstrData
+                                            (force headList
+                                               (force tailList
+                                                  (force (force sndPair)
+                                                     tup)))))
+                                      [ (\ds -> delay (constr 0 []))
+                                      , (delay (constr 1 [])) ]))))
                           (delay (delay (constr 1 []))))))
                  (unConstrData
                     (force headList
