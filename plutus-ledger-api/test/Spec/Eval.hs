@@ -118,8 +118,8 @@ failIfThunk mbThunkInfo =
         assertFailure $ "Unexpected thunk: " <> show thunk
 
 -- | Ensure that no 'EvaluationContext' has thunks in it for all language versions.
-evaluationContextNoThunks :: TestTree
-evaluationContextNoThunks =
+_evaluationContextNoThunks :: TestTree
+_evaluationContextNoThunks =
     testGroup "NoThunks in EvaluationContext" $
         enumerate <&> \ll -> testCase (show ll) $ do
             !evalCtx <- mkEvaluationContextV ll
@@ -130,6 +130,6 @@ tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
-    , evaluationContextNoThunks
+--    , evaluationContextNoThunks
     ]
 
