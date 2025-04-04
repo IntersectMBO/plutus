@@ -8,7 +8,7 @@ import Analysis.Spec.Lib
 import PlutusCore.Default (DefaultFun (..), DefaultUni)
 import PlutusCore.Name.Unique (Name (..))
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Extras (embed, runTestNested)
+import Test.Tasty.Extras (embed, runTestNested, (%?=))
 import Test.Tasty.HUnit (testCase, (@=?), (@?=))
 import UntypedPlutusCore (Term (Apply, Builtin, Force))
 import UntypedPlutusCore.Purity (EvalTerm (..), Purity (..), WorkFreedom (..), isPure,
@@ -44,26 +44,17 @@ testEvalOrderIfThenElse :: TestTree
 testEvalOrderIfThenElse =
   testCase "evalOrderIfThenElse" $
     unEvalOrder (termEvaluationOrder builtinSemantics termIfThenElse)
-      @?= [ EvalTerm
-              MaybeImpure
-              MaybeWork
-              ( Apply
-                  ()
-                  ( Apply
-                      ()
-                      ( Apply
-                          ()
-                          (Force () (Builtin () IfThenElse))
-                          (termVar 1)
-                      )
-                      (termVar 2)
-                  )
-                  (termVar 3)
-              )
-          , EvalTerm Pure WorkFree (termVar 1)
-          , EvalTerm Pure WorkFree (termVar 2)
-          , EvalTerm Pure WorkFree (termVar 3)
+      %?= [ EvalTerm Pure WorkFree $ termVar 1
+          , EvalTerm Pure WorkFree $ termVar 2
+          , EvalTerm Pure WorkFree $ termVar 3
+          , EvalTerm MaybeImpure MaybeWork $
+              Force () (Builtin () IfThenElse)
+                `ap` termVar 1
+                `ap` termVar 2
+                `ap` termVar 3
           ]
+ where
+  ap = Apply ()
 
 {-
 
