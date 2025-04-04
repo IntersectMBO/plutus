@@ -70,18 +70,19 @@ benchExpModInteger2 :: StdGen -> Benchmark
 benchExpModInteger2 _gen =
   let builtinName = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      p = (pow 2 255)
-      -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97 674011
-      --   × 1932 601194 339139 344835 240473 879578 700967 872768 315843 651779
+      p = (pow 2 255) - 19
+      -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97674011
+      --   × 1932601194339139344835240473879578700967872768315843651779
 --      d = p `div` 20
 --      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
-      inputs = fmap (\n -> 2^n-1) [1,20..255::Integer]
+      xs = fmap (\n -> pow 2 (16*n) - 999) [1..625]  -- up to 2^10000 - 999
+      ys = [pow 2 250]
       moduli = [p]
   in createThreeTermBuiltinBenchWithWrappers
      (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
      builtinName []
-     (fmap (\n -> (pow 3 6000) + 9*n + 27485246354734525423542954792354278435672756243) inputs)
-     (fmap (\n -> n) inputs)
+     xs
+     ys
      moduli
 -- 1669877/248/256
 

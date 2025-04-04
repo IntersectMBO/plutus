@@ -210,23 +210,23 @@ instance ExMemoryUsage IntegerCostedLiterally where
     -- sure to convince yourself that it's safe.
 
 
-memoryUsageBits :: Integer -> CostingInteger
+memoryUsageBytes :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
 -- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
 -- keep this special case for the time being though.
-memoryUsageBits 0 = 1
-memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i)) + 1
+memoryUsageBytes 0 = 1
+memoryUsageBytes i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8)+ 1
 -- memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
-{-# OPAQUE memoryUsageBits #-}
+{-# OPAQUE memoryUsageBytes #-}
 
 
 {- TESTING!
 -}
 newtype IntegerCostedByLog = IntegerCostedByLog { unIntegerCostedByLog :: Integer }
 instance ExMemoryUsage IntegerCostedByLog where
-    memoryUsage (IntegerCostedByLog n) = singletonRose $ memoryUsageBits n
+    memoryUsage (IntegerCostedByLog n) = singletonRose $ memoryUsageBytes n
     {-# INLINE memoryUsage #-}
 
 {- | A wrappper for lists whose "memory usage" for costing purposes is just the
