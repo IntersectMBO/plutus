@@ -16,20 +16,24 @@ module UntypedPlutusCore.Purity
   , unEvalOrder
   , EvalTerm (..)
   , Purity (..)
+  , WorkFreedom (..)
   , termEvaluationOrder
   ) where
 
 import Data.DList qualified as DList
 import Data.Typeable (Proxy (..))
-import PlutusCore.Arity (builtinArity)
+import PlutusCore.Arity (Param (..), builtinArity)
 import PlutusCore.Builtin.Meaning (ToBuiltinMeaning (..))
 import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
 import Prettyprinter (vsep, (<+>))
-import UntypedPlutusCore.Core (splitApplication)
-import UntypedPlutusCore.Core.Type (Term (..))
+import Universe.Core (Closed, Everywhere, GShow)
+import UntypedPlutusCore.Contexts (AppCtx (..), fillAppCtx, splitAppCtx)
+import UntypedPlutusCore.Core (Term (..))
+import UntypedPlutusCore.Core.Instance.Eq ()
 
 -- | Is this pure? Either yes, or maybe not.
 data Purity = MaybeImpure | Pure
+  deriving stock (Eq, Show)
 
 instance Pretty Purity where
   pretty MaybeImpure = "impure?"
@@ -37,6 +41,7 @@ instance Pretty Purity where
 
 -- | Is this term essentially work-free? Either yes, or maybe not.
 data WorkFreedom = MaybeWork | WorkFree
+  deriving stock (Eq, Show)
 
 instance Pretty WorkFreedom where
   pretty MaybeWork = "maybe work?"
@@ -50,11 +55,28 @@ data EvalTerm name uni fun a
   | EvalTerm Purity WorkFreedom (Term name uni fun a)
 
 instance
-  (PrettyBy config (Term name uni fun a))
-  => PrettyBy config (EvalTerm name uni fun a)
-  where
-  prettyBy _ Unknown                    = "<unknown>"
-  prettyBy config (EvalTerm eff work t) = pretty eff <+> pretty work <> ":" <+> prettyBy config t
+ ( Show name
+ , Everywhere uni Show
+ , Show fun
+ , Show a
+ , GShow uni
+ , Closed uni
+ ) => Show (EvalTerm name uni fun a) where
+  show = \case
+    Unknown -> "<unknown>"
+    EvalTerm purity work t ->
+      "EvalTerm " <> show purity <> " " <> show work <> " " <> show t
+
+instance (PrettyBy config (Term name uni fun a))
+  => PrettyBy config (EvalTerm name uni fun a) where
+  prettyBy _ Unknown = "<unknown>"
+  prettyBy config (EvalTerm eff work t) =
+    pretty eff <+> pretty work <> ":" <+> prettyBy config t
+
+instance Eq (Term name uni fun a) => Eq (EvalTerm name uni fun a) where
+  Unknown == Unknown                         = True
+  (EvalTerm p1 w1 t1) == (EvalTerm p2 w2 t2) = p1 == p2 && w1 == w2 && t1 == t2
+  _ == _                                     = False
 
 -- We use a DList here for efficient and lazy concatenation
 
@@ -76,10 +98,11 @@ unEvalOrder (EvalOrder ts) =
   takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
   takeWhileInclusive p = foldr (\x ys -> if p x then x : ys else [x]) []
 
-evalThis :: EvalTerm name uni fun a -> EvalOrder name uni fun a
-evalThis = EvalOrder . DList.singleton
+eval :: EvalTerm name uni fun a -> EvalOrder name uni fun a
+eval = EvalOrder . DList.singleton
 
-instance (PrettyBy config (Term name uni fun a)) => PrettyBy config (EvalOrder name uni fun a) where
+instance (PrettyBy config (Term name uni fun a)) =>
+  PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
@@ -100,66 +123,112 @@ termEvaluationOrder
   -> EvalOrder name uni fun a
 termEvaluationOrder builtinSemanticsVariant = goTerm
  where
+  goTerm :: Term name uni fun a -> EvalOrder name uni fun a
   goTerm = \case
-    t@(splitApplication -> (Builtin _ann fun, args)) ->
-      foldMap (goTerm . snd) args <> evalOrder
+    (splitAppCtx -> (builtin@(Builtin _ann fun), appCtx)) ->
+      appCtxEvalOrder appCtx <> go arity appCtx
      where
-      evalOrder =
-        if length args < length (builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun)
-          then -- If it's unsaturated, we definitely don't do any work
-            evalThis (EvalTerm Pure WorkFree t)
-          else -- If it's saturated or oversaturated, we might have an effect here
-            evalThis (EvalTerm MaybeImpure MaybeWork t)
+      arity = builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun
+
+      appCtxEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
+      appCtxEvalOrder = \case
+        AppCtxEnd -> mempty
+        AppCtxTerm _ t rest -> goTerm t <> appCtxEvalOrder rest
+        AppCtxType _ rest -> appCtxEvalOrder rest
+
+      go :: [Param] -> AppCtx name uni fun a -> EvalOrder name uni fun a
+      go parameters appContext =
+        case parameters of
+          -- All builtin parameters have been applied,
+          -- (such term is considered impure).
+          [] -> maybeImpureWork
+
+          -- A term parameter is waiting to be applied
+          TermParam : otherParams ->
+            case appContext of
+              AppCtxEnd ->
+                -- Builtin is not fully saturated with term arguments, thus pure.
+                pureWorkFree
+              AppCtxType _ann _remainingAppCtx ->
+                -- Term parameter expected, type argument applied.
+                -- Error is impure.
+                maybeImpureWork
+              AppCtxTerm _ann _argTerm remainingAppCtx ->
+                go otherParams remainingAppCtx
+
+          -- A type parameter is waiting to be forced
+          TypeParam : otherParams ->
+            case appContext of
+              AppCtxEnd ->
+                -- Builtin is not fully saturated with type arguments, thus pure.
+                pureWorkFree
+              AppCtxTerm _ann _term _remainingAppCtx ->
+                -- Type parameter expected, term argument applied.
+                -- Error is impure.
+                maybeImpureWork
+              AppCtxType _ann remainingAppCtx ->
+                go otherParams remainingAppCtx
+
+        where
+        maybeImpureWork :: EvalOrder name uni fun a
+        maybeImpureWork = eval (EvalTerm MaybeImpure MaybeWork reconstructed)
+
+        pureWorkFree :: EvalOrder name uni fun a
+        pureWorkFree = eval (EvalTerm Pure WorkFree reconstructed)
+
+        reconstructed :: Term name uni fun a
+        reconstructed = fillAppCtx builtin appCtx
+
     t@(Apply _ fun arg) ->
       -- first the function
       goTerm fun
         -- then the arg
         <> goTerm arg
         -- then the whole term, which means environment manipulation, so work
-        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> eval (EvalTerm Pure MaybeWork t)
         <> case fun of
           -- known function body
           LamAbs _ _ body -> goTerm body
           -- unknown function body
-          _               -> evalThis Unknown
+          _               -> eval Unknown
     t@(Force _ dterm) ->
       -- first delayed term
       goTerm dterm
         -- then the whole term, which will mean forcing, so work
-        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> eval (EvalTerm Pure MaybeWork t)
         <> case dterm of
           -- known delayed term
           Delay _ body -> goTerm body
           -- unknown delayed term
-          _            -> evalThis Unknown
+          _            -> eval Unknown
     t@(Constr _ _ ts) ->
       -- first the arguments, in left-to-right order
       foldMap goTerm ts
         -- then the whole term, which means constructing the value, so work
-        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> eval (EvalTerm Pure MaybeWork t)
     t@(Case _ scrut _) ->
       -- first the scrutinee
       goTerm scrut
         -- then the whole term, which means finding the case so work
-        <> evalThis (EvalTerm Pure MaybeWork t)
+        <> eval (EvalTerm Pure MaybeWork t)
         -- then we go to an unknown scrutinee
-        <> evalThis Unknown
+        <> eval Unknown
     -- Leaf terms
     t@Var{} ->
-      evalThis (EvalTerm Pure WorkFree t)
+      eval (EvalTerm Pure WorkFree t)
     t@Error{} ->
       -- definitely effectful! but not relevant from a work perspective
-      evalThis (EvalTerm MaybeImpure WorkFree t)
+      eval (EvalTerm MaybeImpure WorkFree t)
         -- program terminates
-        <> evalThis Unknown
+        <> eval Unknown
     t@Builtin{} ->
-      evalThis (EvalTerm Pure WorkFree t)
+      eval (EvalTerm Pure WorkFree t)
     t@Delay{} ->
-      evalThis (EvalTerm Pure WorkFree t)
+      eval (EvalTerm Pure WorkFree t)
     t@LamAbs{} ->
-      evalThis (EvalTerm Pure WorkFree t)
+      eval (EvalTerm Pure WorkFree t)
     t@Constant{} ->
-      evalThis (EvalTerm Pure WorkFree t)
+      eval (EvalTerm Pure WorkFree t)
 
 {- | Will evaluating this term have side effects (looping or error)?
 This is slightly wider than the definition of a value, as
