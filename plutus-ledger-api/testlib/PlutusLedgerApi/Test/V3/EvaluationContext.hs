@@ -18,14 +18,15 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Data.Int (Int64)
 import Data.Map qualified as Map
-import Data.Maybe
 import GHC.Stack (HasCallStack)
 
 -- | Example values of costs for @PlutusV3@, in expected ledger order.
 -- Suitable to be used in testing.
 costModelParamsForTesting :: HasCallStack => [(V3.ParamName, Int64)]
-costModelParamsForTesting = Map.toList $ fromJust $
-    Common.extractCostModelParamsLedgerOrder mCostModel
+costModelParamsForTesting =
+  case Common.extractCostModelParamsLedgerOrder mCostModel
+  of Nothing -> error "V3.extractCostModelParamsLedgerOrder failed"
+     Just m  -> Map.toList m
 
 -- | The PlutusV3 "cost model" is constructed by the v4 "cost model", by clearing v4 introductions.
 mCostModel :: MCostModel
@@ -87,6 +88,8 @@ clearBuiltinCostModel r = r
                , paramRipemd_160 = mempty
                , paramExpModInteger = mempty
                , paramDropList = mempty
+               , paramCaseList = mempty
+               , paramCaseData = mempty
                , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty
@@ -101,6 +104,8 @@ clearBuiltinCostModel' r = r
                  -- , paramByteStringToInteger = mempty -- Required for V2
                  paramExpModInteger = mempty
                , paramDropList = mempty
+               , paramCaseList = mempty
+               , paramCaseData = mempty
                , paramLengthOfArray = mempty
                , paramListToArray = mempty
                , paramIndexArray = mempty

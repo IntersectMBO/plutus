@@ -125,6 +125,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramFindFirstSetBit                 = "findFirstSetBitModel"
   , paramRipemd_160                      = "ripemd_160Model"
   , paramExpModInteger                   = "expModIntegerModel"
+  , paramCaseList                        = "caseListModel"
+  , paramCaseData                        = "caseDataModel"
   , paramDropList                        = "dropListModel"
   , paramLengthOfArray                   = "lengthOfArrayModel"
   , paramListToArray                     = "listToArrayModel"
@@ -270,8 +272,8 @@ createBuiltinCostModel bmfile rfile = do
   paramRipemd_160                      <- getParams readCF1 paramRipemd_160
   -- Batch 6
   paramExpModInteger                   <- getParams readCF3 paramExpModInteger
-  -- paramCaseList
-  -- paramCaseData
+  paramCaseList                        <- getParams readCF3 paramCaseList
+  paramCaseData                        <- getParams readCF6 paramCaseData
   paramDropList                        <- getParams readCF2 paramDropList
   -- Arrays
   paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
@@ -285,6 +287,12 @@ createBuiltinCostModel bmfile rfile = do
    wrong you'll get an error message from inline-r like "Dynamic type cast
    failed. Expected: Real. Actual: Nil." from fromSEXP or "fromSEXP:Not a singleton
    vector." from dynSEXP.
+
+   Additionally, if builtinCostModelNames contains oneor more entries for which
+   there is no code in models.R, the following may occur: "cast: Dynamic type
+   cast failed. Expected: String. Actual: Nil.  CallStack (from HasCallStack):
+   error, called at src/Foreign/R/Internal.hs:130:5 in
+   inline-r-1.0.1-IXV34TVMlU0ER3NHFf3CBO:Foreign.R.Internal"
 -}
 -- | Extract the model type descriptor from an R object
 getString :: MonadR m => String -> SomeSEXP (Region m) -> m String
