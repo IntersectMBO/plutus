@@ -11,6 +11,7 @@ import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseReduce), Sim
 
 import Control.Lens (transformOf)
 import Data.Vector qualified as V
+import GHC.IsList qualified as GHC
 
 caseReduce
     :: Monad m
@@ -24,5 +25,5 @@ caseReduce term = do
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
     Case ann (Constr _ i args) cs | Just c <- (V.!?) cs (fromIntegral i) ->
-                                    mkIterApp c ((ann,) <$> args)
+                                    mkIterApp c ((ann,) <$> GHC.toList args)
     t                                                     -> t
