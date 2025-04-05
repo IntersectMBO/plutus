@@ -125,6 +125,7 @@ srcTests =
   -- , "len"
   -- TODO: uncomment when "Haskell ByteString != Agda String" issue is fixed
   -- , "MinBS"
+    , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
