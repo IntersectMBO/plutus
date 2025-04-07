@@ -1,5 +1,6 @@
-{-# LANGUAGE BlockArguments   #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE BlockArguments     #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE TypeApplications   #-}
 
 module Benchmarks.Arrays (makeBenchmarks) where
 
@@ -8,6 +9,7 @@ import Prelude
 import Common
 import Control.Monad (replicateM)
 import Criterion.Main (Benchmark)
+import Data.ByteString (ByteString)
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import PlutusCore.Builtin (mkTyBuiltin)
@@ -16,7 +18,7 @@ import PlutusCore.Default (DefaultFun (IndexArray, LengthOfArray, ListToArray), 
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength (..),
                                                     ListCostedByLength (..))
 import PlutusCore.Name.Unique (TyName)
-import System.Random.Stateful (StdGen, UniformRange (uniformRM), runStateGen_)
+import System.Random.Stateful (StdGen, UniformRange (uniformRM), runStateGen_, uniformByteStringM)
 
 --------------------------------------------------------------------------------
 -- Benchmarks ------------------------------------------------------------------
@@ -30,52 +32,56 @@ makeBenchmarks gen =
 
 benchLengthOfArray :: StdGen -> Benchmark
 benchLengthOfArray gen =
-  createOneTermBuiltinBench LengthOfArray [tyArrayOfInteger] listOfArrays
+  createOneTermBuiltinBenchWithWrapper
+    ArrayCostedByLength
+    LengthOfArray
+    [tyArrayOfBS]
+    listOfArrays
  where
-  listOfArrays :: [Vector Integer] =
+  listOfArrays :: [Vector ByteString] =
     runStateGen_ gen \g -> replicateM 100 do
       arraySize <- uniformRM (1, 100) g
-      Vector.replicateM arraySize (uniformRM intRange g)
+      Vector.replicateM arraySize do
+        bsSize <- uniformRM (0, 10_000) g
+        uniformByteStringM bsSize g
 
 benchListToArray :: StdGen -> Benchmark
 benchListToArray gen =
   createOneTermBuiltinBenchWithWrapper
     ListCostedByLength
     ListToArray
-    [tyListOfInteger]
+    [tyListOfBS]
     listOfLists
  where
-  listOfLists :: [[Integer]] =
+  listOfLists :: [[ByteString]] =
     runStateGen_ gen \g -> replicateM 100 do
       listSize <- uniformRM (1, 100) g
-      replicateM listSize (uniformRM intRange g)
+      replicateM listSize do
+        bsSize <- uniformRM (0, 10_000) g
+        uniformByteStringM bsSize g
 
 benchIndexArray :: StdGen -> Benchmark
 benchIndexArray gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
     (ArrayCostedByLength, id)
     IndexArray
-    [tyArrayOfInteger]
+    [tyArrayOfBS]
     (zip arrays idxs)
  where
-  (arrays :: [Vector Integer], idxs :: [Integer]) =
+  (arrays :: [Vector ByteString], idxs :: [Integer]) =
     unzip $ runStateGen_ gen \g -> replicateM 100 do
       arraySize <- uniformRM (1, 100) g
-      vec <- Vector.replicateM arraySize (uniformRM intRange g)
+      vec <- Vector.replicateM arraySize do
+        bsSize <- uniformRM (0, 10_000) g
+        uniformByteStringM bsSize g
       idx <- uniformRM (0, arraySize - 1) g
       pure (vec, fromIntegral idx)
 
 --------------------------------------------------------------------------------
 -- Helpers ---------------------------------------------------------------------
 
-tyListOfInteger :: Type TyName DefaultUni ()
-tyListOfInteger = mkTyBuiltin @_ @[Integer] ()
+tyArrayOfBS :: Type TyName DefaultUni ()
+tyArrayOfBS = mkTyBuiltin @_ @(Vector ByteString) ()
 
-tyArrayOfInteger :: Type TyName DefaultUni ()
-tyArrayOfInteger = mkTyBuiltin @_ @(Vector Integer) ()
-
-intRange :: (Integer, Integer)
-intRange =
-  ( fromIntegral (minBound @Int) - 10
-  , fromIntegral (maxBound @Int) + 10
-  )
+tyListOfBS :: Type TyName DefaultUni ()
+tyListOfBS = mkTyBuiltin @_ @[ByteString] ()
