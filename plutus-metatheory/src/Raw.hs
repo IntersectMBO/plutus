@@ -27,7 +27,7 @@ import Data.Either
 import Data.Functor.Identity
 import Data.Kind qualified as Kind
 import Data.Proxy
-import Data.Some (mapSome)
+import Data.Some.Newtype (withSome)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -388,74 +388,6 @@ instance Pretty (AgdaDefaultUni a) where
 instance Pretty (SomeTypeIn AgdaDefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 
-class UniverseTransformation t t' where
-  toHaskellUni :: AgdaDefaultUni (Esc t) -> DefaultUni (Esc t')
-  fromHaskellUni :: DefaultUni (Esc t') -> AgdaDefaultUni (Esc t)
-
-instance UniverseTransformation Integer Integer where
-  toHaskellUni AgdaDefaultUniInteger = DefaultUniInteger
-  fromHaskellUni DefaultUniInteger = AgdaDefaultUniInteger
-
-instance UniverseTransformation AgdaByteString ByteString where
-  toHaskellUni AgdaDefaultUniByteString = DefaultUniByteString
-  fromHaskellUni DefaultUniByteString = AgdaDefaultUniByteString
-
-instance UniverseTransformation Text Text where
-  toHaskellUni AgdaDefaultUniString = DefaultUniString
-  fromHaskellUni DefaultUniString = AgdaDefaultUniString
-
-instance UniverseTransformation () () where
-  toHaskellUni AgdaDefaultUniUnit = DefaultUniUnit
-  fromHaskellUni DefaultUniUnit = AgdaDefaultUniUnit
-
-instance UniverseTransformation Bool Bool where
-  toHaskellUni AgdaDefaultUniBool = DefaultUniBool
-  fromHaskellUni DefaultUniBool = AgdaDefaultUniBool
-
--- instance (AgdaDefaultUni `Contains` a, DefaultUni `Contains` a') => UniverseTransformation a a' where
---   toHaskellUni (AgdaDefaultUniApply uniF uniA) = DefaultUniApply (toHaskellUni uniF) (toHaskellUni uniA)
---
--- instance (UniverseTransformation a a') => UniverseTransformation [a] [a'] where
---   toHaskellUni (AgdaDefaultUniList uniA) = DefaultUniList (toHaskellUni uniA)
---   fromHaskellUni (DefaultUniList uniA) = AgdaDefaultUniList (fromHaskellUni uniA)
---
--- instance (UniverseTransformation a a', UniverseTransformation b b') => UniverseTransformation (a,b) (a',b') where
---   toHaskellUni (AgdaDefaultUniPair uniA uniB) = DefaultUniPair (toHaskellUni uniA) (toHaskellUni uniB)
---   fromHaskellUni (DefaultUniPair uniA uniB) = AgdaDefaultUniPair (fromHaskellUni uniA) (fromHaskellUni uniB)
-
-instance UniverseTransformation AgdaData Data where
-  toHaskellUni AgdaDefaultUniData = DefaultUniData
-  fromHaskellUni DefaultUniData = AgdaDefaultUniData
-
-instance UniverseTransformation BLS12_381.G1.Element BLS12_381.G1.Element where
-  toHaskellUni AgdaDefaultUniBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
-  fromHaskellUni DefaultUniBLS12_381_G1_Element = AgdaDefaultUniBLS12_381_G1_Element
-
-instance UniverseTransformation BLS12_381.G2.Element BLS12_381.G2.Element where
-  toHaskellUni AgdaDefaultUniBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
-  fromHaskellUni DefaultUniBLS12_381_G2_Element = AgdaDefaultUniBLS12_381_G2_Element
-
-instance UniverseTransformation BLS12_381.Pairing.MlResult BLS12_381.Pairing.MlResult where
-  toHaskellUni AgdaDefaultUniBLS12_381_MlResult = DefaultUniBLS12_381_MlResult
-  fromHaskellUni DefaultUniBLS12_381_MlResult = AgdaDefaultUniBLS12_381_MlResult
-
-instance (UniverseTransformation a a, UniverseTransformation f f) => UniverseTransformation (f a) (f a) where
-  toHaskellUni (AgdaDefaultUniApply uniF uniA) = DefaultUniApply (toHaskellUni uniF) (toHaskellUni uniA)
-  fromHaskellUni (DefaultUniApply uniF uniA) = AgdaDefaultUniApply (fromHaskellUni uniF) (fromHaskellUni uniA)
-
-toHaskellTerm :: UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun a
-toHaskellTerm = \case
-    UPLC.Var a x -> UPLC.Var a x
-    UPLC.LamAbs a x t -> UPLC.LamAbs a x (toHaskellTerm t)
-    UPLC.Apply a t u -> UPLC.Apply a (toHaskellTerm t) (toHaskellTerm u)
-    UPLC.Builtin a b -> UPLC.Builtin a b
-    UPLC.Constant a c -> UPLC.Constant a (undefined c)
-    UPLC.Error a -> UPLC.Error a
-    UPLC.Delay a t -> UPLC.Delay a (toHaskellTerm t)
-    UPLC.Force a t -> UPLC.Force a (toHaskellTerm t)
-    UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellTerm cs)
-    UPLC.Case a arg cs -> UPLC.Case a (toHaskellTerm arg) (fmap toHaskellTerm cs)
-
 class AgdaToHaskellUni a where
   type TypeTransformation (a :: k) :: k
   agdaToHaskellUni :: AgdaDefaultUni (Esc a) -> DefaultUni (Esc (TypeTransformation a))
@@ -463,40 +395,98 @@ class AgdaToHaskellUni a where
 instance AgdaToHaskellUni Integer where
   type TypeTransformation Integer = Integer
   agdaToHaskellUni AgdaDefaultUniInteger = DefaultUniInteger
+
 instance AgdaToHaskellUni AgdaByteString where
   type TypeTransformation AgdaByteString = ByteString
   agdaToHaskellUni AgdaDefaultUniByteString = DefaultUniByteString
+
 instance AgdaToHaskellUni Text where
   type TypeTransformation Text = Text
   agdaToHaskellUni AgdaDefaultUniString = DefaultUniString
+
 instance AgdaToHaskellUni () where
   type TypeTransformation () = ()
   agdaToHaskellUni AgdaDefaultUniUnit = DefaultUniUnit
+
 instance AgdaToHaskellUni Bool where
   type TypeTransformation Bool = Bool
   agdaToHaskellUni AgdaDefaultUniBool = DefaultUniBool
+
 instance AgdaToHaskellUni AgdaData where
   type TypeTransformation AgdaData = Data
   agdaToHaskellUni AgdaDefaultUniData = DefaultUniData
+
 instance AgdaToHaskellUni BLS12_381.G1.Element where
   type TypeTransformation BLS12_381.G1.Element = BLS12_381.G1.Element
   agdaToHaskellUni AgdaDefaultUniBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
+
 instance AgdaToHaskellUni BLS12_381.G2.Element where
   type TypeTransformation BLS12_381.G2.Element = BLS12_381.G2.Element
   agdaToHaskellUni AgdaDefaultUniBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
+
 instance AgdaToHaskellUni BLS12_381.Pairing.MlResult where
   type TypeTransformation BLS12_381.Pairing.MlResult = BLS12_381.Pairing.MlResult
   agdaToHaskellUni AgdaDefaultUniBLS12_381_MlResult = DefaultUniBLS12_381_MlResult
+
 instance AgdaToHaskellUni [] where
   type TypeTransformation [] = []
   agdaToHaskellUni AgdaDefaultUniProtoList = DefaultUniProtoList
+
 instance AgdaToHaskellUni (,) where
   type TypeTransformation (,) = (,)
   agdaToHaskellUni AgdaDefaultUniProtoPair = DefaultUniProtoPair
+
 instance (AgdaToHaskellUni f, AgdaToHaskellUni a) => AgdaToHaskellUni (f a) where
   type TypeTransformation (f a) = TypeTransformation f (TypeTransformation a)
   agdaToHaskellUni (AgdaDefaultUniApply uniF uniA) =
     DefaultUniApply (agdaToHaskellUni uniF) (agdaToHaskellUni uniA)
+
+class (AgdaToHaskellUni a) => AgdaToHaskellValue a where
+  agdaToHaskellValue :: a -> TypeTransformation a
+
+instance AgdaToHaskellValue Integer where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue AgdaByteString where
+  agdaToHaskellValue = toByteString
+instance AgdaToHaskellValue Text where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue () where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue Bool where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue AgdaData where
+  agdaToHaskellValue = toHaskellData
+instance AgdaToHaskellValue BLS12_381.G1.Element where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue BLS12_381.G2.Element where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue BLS12_381.Pairing.MlResult where
+  agdaToHaskellValue = id
+instance AgdaToHaskellValue a => AgdaToHaskellValue [a] where
+  agdaToHaskellValue = fmap agdaToHaskellValue
+instance (AgdaToHaskellValue a, AgdaToHaskellValue b) => AgdaToHaskellValue (a, b) where
+  agdaToHaskellValue (a, b) = (agdaToHaskellValue a, agdaToHaskellValue b)
+
+agdaConstToHaskellConst :: Some (ValueOf AgdaDefaultUni) -> Some (ValueOf DefaultUni)
+agdaConstToHaskellConst someVal = withSome someVal go
+  where
+    go (ValueOf uni v) =
+      bring (Proxy @AgdaToHaskellValue) uni
+      $ Some (ValueOf (agdaToHaskellUni uni) (agdaToHaskellValue v))
+
+toHaskellTerm :: UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun a
+toHaskellTerm = \case
+    UPLC.Var a x -> UPLC.Var a x
+    UPLC.LamAbs a x t -> UPLC.LamAbs a x (toHaskellTerm t)
+    UPLC.Apply a t u -> UPLC.Apply a (toHaskellTerm t) (toHaskellTerm u)
+    UPLC.Builtin a b -> UPLC.Builtin a b
+    UPLC.Constant a c -> UPLC.Constant a (agdaConstToHaskellConst c)
+    UPLC.Error a -> UPLC.Error a
+    UPLC.Delay a t -> UPLC.Delay a (toHaskellTerm t)
+    UPLC.Force a t -> UPLC.Force a (toHaskellTerm t)
+    UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellTerm cs)
+    UPLC.Case a arg cs -> UPLC.Case a (toHaskellTerm arg) (fmap toHaskellTerm cs)
+
 
 instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
     knownUni = knownUni `AgdaDefaultUniApply` knownUni
