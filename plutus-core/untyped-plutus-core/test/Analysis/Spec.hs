@@ -20,8 +20,8 @@ evalOrder =
     ["untyped-plutus-core", "test", "Analysis", "evalOrder"]
     [ goldenEvalOrder "letFun" letFun
     , goldenEvalOrder "letImpure" letImpure
+    , goldenEvalOrder "ifThenElse" termIfThenElse
     , embed testEvalOrderIsLazy
-    , embed testEvalOrderIfThenElse
     , embed $
         testGroup
           "Purity"
@@ -39,22 +39,6 @@ testEvalOrderIsLazy =
     let order = termEvaluationOrder builtinSemantics dangerTerm
         subterms = unEvalOrder order
      in 4 @=? length subterms
-
-testEvalOrderIfThenElse :: TestTree
-testEvalOrderIfThenElse =
-  testCase "evalOrderIfThenElse" $
-    unEvalOrder (termEvaluationOrder builtinSemantics termIfThenElse)
-      %?= [ EvalTerm Pure WorkFree $ termVar 1
-          , EvalTerm Pure WorkFree $ termVar 2
-          , EvalTerm Pure WorkFree $ termVar 3
-          , EvalTerm MaybeImpure MaybeWork $
-              Force () (Builtin () IfThenElse)
-                `ap` termVar 1
-                `ap` termVar 2
-                `ap` termVar 3
-          ]
- where
-  ap = Apply ()
 
 {-
 
