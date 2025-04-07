@@ -8,11 +8,10 @@ import Analysis.Lib
 import PlutusCore.Default (DefaultFun (..), DefaultUni)
 import PlutusCore.Name.Unique (Name (..))
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.Extras (embed, runTestNested, (%?=))
+import Test.Tasty.Extras (embed, runTestNested)
 import Test.Tasty.HUnit (testCase, (@=?), (@?=))
 import UntypedPlutusCore (Term (Apply, Builtin, Force))
-import UntypedPlutusCore.Purity (EvalTerm (..), Purity (..), WorkFreedom (..), isPure,
-                                 termEvaluationOrder, unEvalOrder)
+import UntypedPlutusCore.Purity (isPure, termEvaluationOrder, unEvalOrder)
 
 evalOrder :: TestTree
 evalOrder =
@@ -122,11 +121,15 @@ testForceNoTypeParam =
 
 testApplyNoTermParam :: TestTree
 testApplyNoTermParam =
-  testCase "applying a non-existing term param is impure" $
-    isPure builtinSemantics term @?= False
+  testGroup
+    "invalid application of a term param is impure"
+    [ testCase "when a type param is expected" $
+        isPure builtinSemantics termExpectingType @?= False
+    , testCase "when a builtin is saturated" $
+        isPure builtinSemantics termSaturated @?= False
+    ]
  where
-  term :: Term Name DefaultUni DefaultFun () =
-    Apply
-      ()
-      (Apply () (Apply () (Builtin () AddInteger) (termVar 1)) (termVar 2))
-      (termVar 3)
+  termExpectingType :: Term Name DefaultUni DefaultFun () =
+    Apply () (Builtin () Trace) (termVar 1)
+  termSaturated :: Term Name DefaultUni DefaultFun () =
+    Apply () (Builtin () EncodeUtf8) (termVar 1)
