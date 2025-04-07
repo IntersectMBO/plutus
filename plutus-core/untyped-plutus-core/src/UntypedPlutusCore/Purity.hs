@@ -98,8 +98,8 @@ unEvalOrder (EvalOrder ts) =
   takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
   takeWhileInclusive p = foldr (\x ys -> if p x then x : ys else [x]) []
 
-eval :: EvalTerm name uni fun a -> EvalOrder name uni fun a
-eval = EvalOrder . DList.singleton
+evalThis :: EvalTerm name uni fun a -> EvalOrder name uni fun a
+evalThis = EvalOrder . DList.singleton
 
 instance (PrettyBy config (Term name uni fun a)) =>
   PrettyBy config (EvalOrder name uni fun a) where
@@ -171,10 +171,10 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
 
         where
         maybeImpureWork :: EvalOrder name uni fun a
-        maybeImpureWork = eval (EvalTerm MaybeImpure MaybeWork reconstructed)
+        maybeImpureWork = evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
 
         pureWorkFree :: EvalOrder name uni fun a
-        pureWorkFree = eval (EvalTerm Pure WorkFree reconstructed)
+        pureWorkFree = evalThis (EvalTerm Pure WorkFree reconstructed)
 
         reconstructed :: Term name uni fun a
         reconstructed = fillAppCtx builtin appCtx
@@ -185,50 +185,50 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
         -- then the arg
         <> goTerm arg
         -- then the whole term, which means environment manipulation, so work
-        <> eval (EvalTerm Pure MaybeWork t)
+        <> evalThis (EvalTerm Pure MaybeWork t)
         <> case fun of
           -- known function body
           LamAbs _ _ body -> goTerm body
           -- unknown function body
-          _               -> eval Unknown
+          _               -> evalThis Unknown
     t@(Force _ dterm) ->
       -- first delayed term
       goTerm dterm
         -- then the whole term, which will mean forcing, so work
-        <> eval (EvalTerm Pure MaybeWork t)
+        <> evalThis (EvalTerm Pure MaybeWork t)
         <> case dterm of
           -- known delayed term
           Delay _ body -> goTerm body
           -- unknown delayed term
-          _            -> eval Unknown
+          _            -> evalThis Unknown
     t@(Constr _ _ ts) ->
       -- first the arguments, in left-to-right order
       foldMap goTerm ts
         -- then the whole term, which means constructing the value, so work
-        <> eval (EvalTerm Pure MaybeWork t)
+        <> evalThis (EvalTerm Pure MaybeWork t)
     t@(Case _ scrut _) ->
       -- first the scrutinee
       goTerm scrut
         -- then the whole term, which means finding the case so work
-        <> eval (EvalTerm Pure MaybeWork t)
+        <> evalThis (EvalTerm Pure MaybeWork t)
         -- then we go to an unknown scrutinee
-        <> eval Unknown
+        <> evalThis Unknown
     -- Leaf terms
     t@Var{} ->
-      eval (EvalTerm Pure WorkFree t)
+      evalThis (EvalTerm Pure WorkFree t)
     t@Error{} ->
       -- definitely effectful! but not relevant from a work perspective
-      eval (EvalTerm MaybeImpure WorkFree t)
+      evalThis (EvalTerm MaybeImpure WorkFree t)
         -- program terminates
-        <> eval Unknown
+        <> evalThis Unknown
     t@Builtin{} ->
-      eval (EvalTerm Pure WorkFree t)
+      evalThis (EvalTerm Pure WorkFree t)
     t@Delay{} ->
-      eval (EvalTerm Pure WorkFree t)
+      evalThis (EvalTerm Pure WorkFree t)
     t@LamAbs{} ->
-      eval (EvalTerm Pure WorkFree t)
+      evalThis (EvalTerm Pure WorkFree t)
     t@Constant{} ->
-      eval (EvalTerm Pure WorkFree t)
+      evalThis (EvalTerm Pure WorkFree t)
 
 {- | Will evaluating this term have side effects (looping or error)?
 This is slightly wider than the definition of a value, as
