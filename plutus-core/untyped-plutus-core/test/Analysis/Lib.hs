@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Analysis.Spec.Lib where
+module Analysis.Lib where
 
 import Data.Text qualified as Text
 import Numeric.Natural (Natural)

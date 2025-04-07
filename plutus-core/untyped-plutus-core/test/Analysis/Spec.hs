@@ -4,7 +4,7 @@
 
 module Analysis.Spec where
 
-import Analysis.Spec.Lib
+import Analysis.Lib
 import PlutusCore.Default (DefaultFun (..), DefaultUni)
 import PlutusCore.Name.Unique (Name (..))
 import Test.Tasty (TestTree, testGroup)
