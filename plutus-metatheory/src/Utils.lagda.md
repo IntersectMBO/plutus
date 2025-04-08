@@ -20,7 +20,7 @@ import Data.List as L
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Integer using (ℤ)
+open import Data.Integer using (ℤ; +_)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
 open import Data.Maybe using (Maybe; just; nothing; maybe)
@@ -218,6 +218,15 @@ toList (x ∷ xs) = x L.∷ toList xs
 fromList : ∀{A} →  L.List A → List A
 fromList L.[] = []
 fromList (x L.∷ xs) = x ∷ fromList xs
+
+-- Implementation of UPLC's dropList builtin
+dropLIST : ∀{A} → ℤ → List A → List A
+dropLIST (+ n) l = drop n l
+  where drop : ∀{A} → ℕ → List A → List A
+        drop zero xs = xs
+        drop (suc n) [] = []
+        drop (suc n) (x ∷ xs) = drop n xs
+dropLIST _ l = l
 
 map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
      → (∀ x → f x ≡ g x)
