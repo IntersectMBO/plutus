@@ -31,6 +31,7 @@ import Data.Some.Newtype (withSome)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
+import Data.Vector.Strict (Vector)
 import PlutusCore
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -467,12 +468,106 @@ instance AgdaToHaskellValue a => AgdaToHaskellValue [a] where
 instance (AgdaToHaskellValue a, AgdaToHaskellValue b) => AgdaToHaskellValue (a, b) where
   agdaToHaskellValue (a, b) = (agdaToHaskellValue a, agdaToHaskellValue b)
 
+class HaskellToAgdaUni a where
+  type TypeTransformation' (a :: k) :: k
+  haskellToAgdaUni :: DefaultUni (Esc a) -> AgdaDefaultUni (Esc (TypeTransformation' a))
+
+instance HaskellToAgdaUni Integer where
+  type TypeTransformation' Integer = Integer
+  haskellToAgdaUni DefaultUniInteger = AgdaDefaultUniInteger
+
+instance HaskellToAgdaUni ByteString where
+  type TypeTransformation' ByteString = AgdaByteString
+  haskellToAgdaUni DefaultUniByteString = AgdaDefaultUniByteString
+
+instance HaskellToAgdaUni Text where
+  type TypeTransformation' Text = Text
+  haskellToAgdaUni DefaultUniString = AgdaDefaultUniString
+
+instance HaskellToAgdaUni () where
+  type TypeTransformation' () = ()
+  haskellToAgdaUni DefaultUniUnit = AgdaDefaultUniUnit
+
+instance HaskellToAgdaUni Bool where
+  type TypeTransformation' Bool = Bool
+  haskellToAgdaUni DefaultUniBool = AgdaDefaultUniBool
+
+instance HaskellToAgdaUni Data where
+  type TypeTransformation' Data = AgdaData
+  haskellToAgdaUni DefaultUniData = AgdaDefaultUniData
+
+instance HaskellToAgdaUni BLS12_381.G1.Element where
+  type TypeTransformation' BLS12_381.G1.Element = BLS12_381.G1.Element
+  haskellToAgdaUni DefaultUniBLS12_381_G1_Element = AgdaDefaultUniBLS12_381_G1_Element
+
+instance HaskellToAgdaUni BLS12_381.G2.Element where
+  type TypeTransformation' BLS12_381.G2.Element = BLS12_381.G2.Element
+  haskellToAgdaUni DefaultUniBLS12_381_G2_Element = AgdaDefaultUniBLS12_381_G2_Element
+
+instance HaskellToAgdaUni BLS12_381.Pairing.MlResult where
+  type TypeTransformation' BLS12_381.Pairing.MlResult = BLS12_381.Pairing.MlResult
+  haskellToAgdaUni DefaultUniBLS12_381_MlResult = AgdaDefaultUniBLS12_381_MlResult
+
+instance HaskellToAgdaUni [] where
+  type TypeTransformation' [] = []
+  haskellToAgdaUni DefaultUniProtoList = AgdaDefaultUniProtoList
+
+instance HaskellToAgdaUni (,) where
+  type TypeTransformation' (,) = (,)
+  haskellToAgdaUni DefaultUniProtoPair = AgdaDefaultUniProtoPair
+
+data Void a
+
+instance HaskellToAgdaUni Vector where
+  type TypeTransformation' Vector = Void
+  haskellToAgdaUni DefaultUniProtoArray = error "Array is currently not supported in Agda"
+
+instance (HaskellToAgdaUni f, HaskellToAgdaUni a) => HaskellToAgdaUni (f a) where
+  type TypeTransformation' (f a) = TypeTransformation' f (TypeTransformation' a)
+  haskellToAgdaUni (DefaultUniApply uniF uniA) =
+    AgdaDefaultUniApply (haskellToAgdaUni uniF) (haskellToAgdaUni uniA)
+
+class (HaskellToAgdaUni a) => HaskellToAgdaValue a where
+  haskellToAgdaValue :: a -> TypeTransformation' a
+
+instance HaskellToAgdaValue Integer where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue ByteString where
+  haskellToAgdaValue = fromByteString
+instance HaskellToAgdaValue Text where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue () where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue Bool where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue Data where
+  haskellToAgdaValue = fromHaskellData
+instance HaskellToAgdaValue BLS12_381.G1.Element where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue BLS12_381.G2.Element where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue BLS12_381.Pairing.MlResult where
+  haskellToAgdaValue = id
+instance HaskellToAgdaValue a => HaskellToAgdaValue [a] where
+  haskellToAgdaValue = fmap haskellToAgdaValue
+instance (HaskellToAgdaValue a, HaskellToAgdaValue b) => HaskellToAgdaValue (a, b) where
+  haskellToAgdaValue (a, b) = (haskellToAgdaValue a, haskellToAgdaValue b)
+instance HaskellToAgdaValue a => HaskellToAgdaValue (Vector a) where
+  haskellToAgdaValue _ = error "Vector is currently not supported in Agda"
+
 agdaConstToHaskellConst :: Some (ValueOf AgdaDefaultUni) -> Some (ValueOf DefaultUni)
 agdaConstToHaskellConst someVal = withSome someVal go
   where
     go (ValueOf uni v) =
       bring (Proxy @AgdaToHaskellValue) uni
       $ Some (ValueOf (agdaToHaskellUni uni) (agdaToHaskellValue v))
+
+haskellConstToAgdaConst :: Some (ValueOf DefaultUni) -> Some (ValueOf AgdaDefaultUni)
+haskellConstToAgdaConst someVal = withSome someVal go
+  where
+    go (ValueOf uni v) =
+      bring (Proxy @HaskellToAgdaValue) uni
+      $ Some (ValueOf (haskellToAgdaUni uni) (haskellToAgdaValue v))
 
 toHaskellTerm :: UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun a
 toHaskellTerm = \case
@@ -487,6 +582,18 @@ toHaskellTerm = \case
     UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellTerm cs)
     UPLC.Case a arg cs -> UPLC.Case a (toHaskellTerm arg) (fmap toHaskellTerm cs)
 
+fromHaskellTerm :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a
+fromHaskellTerm = \case
+    UPLC.Var a x -> UPLC.Var a x
+    UPLC.LamAbs a x t -> UPLC.LamAbs a x (fromHaskellTerm t)
+    UPLC.Apply a t u -> UPLC.Apply a (fromHaskellTerm t) (fromHaskellTerm u)
+    UPLC.Builtin a b -> UPLC.Builtin a b
+    UPLC.Constant a c -> UPLC.Constant a (haskellConstToAgdaConst c)
+    UPLC.Error a -> UPLC.Error a
+    UPLC.Delay a t -> UPLC.Delay a (fromHaskellTerm t)
+    UPLC.Force a t -> UPLC.Force a (fromHaskellTerm t)
+    UPLC.Constr a i cs -> UPLC.Constr a i (fmap fromHaskellTerm cs)
+    UPLC.Case a arg cs -> UPLC.Case a (fromHaskellTerm arg) (fmap fromHaskellTerm cs)
 
 instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
     knownUni = knownUni `AgdaDefaultUniApply` knownUni

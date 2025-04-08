@@ -77,6 +77,7 @@ library
     , some
     , text
     , transformers
+    , vector
 
   if impl(ghc <9.0)
     build-depends: integer-gmp
