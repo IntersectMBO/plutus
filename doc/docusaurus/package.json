@@ -40,7 +40,8 @@
     "@babel/runtime-corejs3": "7.26.10",
     "@babel/runtime": "7.26.10",
     "@babel/helpers": "7.26.10",
-    "image-size": "1.2.1"
+    "image-size": "1.2.1",
+    "estree-util-value-to-estree": "3.3.3"
   },
   "browserslist": {
     "production": [
