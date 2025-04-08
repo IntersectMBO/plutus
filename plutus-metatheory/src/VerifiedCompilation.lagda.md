@@ -54,6 +54,7 @@ import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; SimplifierTag)
+open import Agda.Builtin.Sigma using (Σ; _,_)
 ```
 
 ## Compiler optimisation traces
@@ -167,13 +168,18 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 data Cert : Set₂ where
   cert
     : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
-    → ProofOrCE(Trace {X} result)
+    → ProofOrCE (Trace {X} result)
     → Cert
 
 runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Cert
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
+
+getCE : {A B : Set} → Maybe Cert → Maybe (Σ _ \A → (Σ _ \B → (SimplifierTag × A × B)))
+getCE nothing = nothing
+getCE (just (cert (proof _))) = nothing
+getCE (just (cert (ce _ {X} {X'} t b a))) = just (X , X' , t , b , a)
 
 open import Data.Bool.Base using (Bool; false; true)
 open import Agda.Builtin.Equality using (_≡_; refl)
