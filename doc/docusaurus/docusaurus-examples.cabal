@@ -39,10 +39,10 @@ library docusaurus-code
 
   build-depends:
     , base               >=4.9   && <5
-    , plutus-core        ^>=1.43
-    , plutus-ledger-api  ^>=1.43
-    , plutus-tx          ^>=1.43
-    , plutus-tx-plugin   ^>=1.43
+    , plutus-core        ^>=1.44
+    , plutus-ledger-api  ^>=1.44
+    , plutus-tx          ^>=1.44
+    , plutus-tx-plugin   ^>=1.44
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -53,9 +53,9 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.43
-    , plutus-tx          ^>=1.43
-    , plutus-tx-plugin   ^>=1.43
+    , plutus-ledger-api  ^>=1.44
+    , plutus-tx          ^>=1.44
+    , plutus-tx-plugin   ^>=1.44
 
 executable quickstart
   import:           lang, ghc-version-support, os-support
@@ -67,6 +67,6 @@ executable quickstart
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-ledger-api  ^>=1.43
-    , plutus-tx          ^>=1.43
-    , plutus-tx-plugin   ^>=1.43
+    , plutus-ledger-api  ^>=1.44
+    , plutus-tx          ^>=1.44
+    , plutus-tx-plugin   ^>=1.44
