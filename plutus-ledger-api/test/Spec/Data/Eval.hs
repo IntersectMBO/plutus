@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- TODO: merge this module to Versions.hs ?
 {-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE CPP              #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Data.Eval (tests) where
