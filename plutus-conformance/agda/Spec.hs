@@ -120,7 +120,7 @@ failingEvaluationTests = []
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
   -- These currently fail because the Agda code doesn't know about alternative
-  -- size measures used by `replicateByte` and `writeBits`: see
+  -- size measures used by `replicateByte`, `writeBits`, and `dropList`: see
   -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
   -- do pass, either because evaluation fails or because two different size
   -- measures happen to be the same for small inputs.
@@ -155,6 +155,22 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-39"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-40"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-41"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
