@@ -460,6 +460,7 @@ library untyped-plutus-core-testlib
     Generators
     Scoping.Spec
     Transform.CaseOfCase.Test
+    Transform.Inline.Spec
     Transform.Simplify
     Transform.Simplify.Lib
 
@@ -473,6 +474,7 @@ library untyped-plutus-core-testlib
     , hedgehog
     , lens
     , mtl
+    , multiset
     , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-testlib
     , pretty-show

@@ -23,6 +23,14 @@ See Note [The problem of inlining destructors] for why this pass exists.
 module UntypedPlutusCore.Transform.Inline (
   inline,
   InlineHints (..),
+
+  -- * Exported for testing
+  InlineM,
+  S (..),
+  InlineInfo (..),
+  Subst (..),
+  TermEnv (..),
+  isFirstVarBeforeEffects,
 ) where
 
 import Control.Lens (forMOf, makeLenses, view, (%~), (&), (^.))
