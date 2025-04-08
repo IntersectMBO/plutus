@@ -21,8 +21,10 @@ These flags disable GHC optimizations that can interfere with the plugin, and en
 If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use instead the corresponding function from the `plutus-tx` package.
 Note that the plugin lacks support for certain functions and methods from `base`.
 
-This error can also occur if the identifier simply doesn't have an unfolding, e.g., `f x = $$(compile [|| x + 1 ||])`.
-Clearly there is no unfolding for `x`, so it is impossible for it to work.
+This error can also occur if the definition of an identifier isn't available at compile time, as is the case with function parameters - e.g., `f x = $$(compile [|| x + 1 ||])`.
+Here `x` is a parameter and thus has no unfolding at compile time.
+To make this work, you should lift `x + 1` into `CompiledCode`, instead of compiling it.
+See [Lifting Values into CompiledCode](./using-plinth/lifting.md) for more details.
 
 Alternatively, this error may happen when using GHCi, which is not fully supported by the plugin.
 Not only does GHCi often hide unfoldings from the plugin, but it may also introduce debugging information like breakpoints in GHC Core, causing the plugin to fail.

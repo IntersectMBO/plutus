@@ -154,3 +154,4 @@ The partial application is done via `PlutusTx.unsafeApplyCode`.
 > The latter won't work, because everything being compiled (inside `[||...||]`) must be known at compile time, but we won't be able to access `params` until runtime.
 > Instead, once we have the `params` value at runtime, we use `liftCodeDef` or `liftCode` to lift it into a Plutus Core term before calling `unsafeApplyCode`.
 > This is the reason why we need the `Lift` instance for `AuctionParams`, derived via `PlutusTx.makeLift`.
+> To learn more about lifting, see [Lifting Values into CompiledCode](../using-plinth/lifting.md).
