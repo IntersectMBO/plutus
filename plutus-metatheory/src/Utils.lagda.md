@@ -225,7 +225,7 @@ dropLIST (+ n) l = drop n l
   where drop : ∀{A} → ℕ → List A → List A
         drop zero xs = xs
         drop (suc n) [] = []
-        drop (suc n) (x ∷ xs) = drop n xs
+        drop (suc n) (_ ∷ xs) = drop n xs
 dropLIST _ l = l
 
 map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
