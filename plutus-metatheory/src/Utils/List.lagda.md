@@ -17,7 +17,6 @@ open import Data.List using (List;[];_∷_;_++_;map;foldr;length;head) public
 open import Data.List.Properties using (foldr-++;++-cancelʳ;∷-injective)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst;subst-subst)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Integer using (ℤ; pos)
 open import Data.Product using (Σ;_×_;_,_;proj₂)
 open import Relation.Nullary using (¬_)
 
