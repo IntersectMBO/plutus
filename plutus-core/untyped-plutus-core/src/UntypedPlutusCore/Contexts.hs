@@ -17,7 +17,7 @@ data AppCtx name uni fun a
   -->
   (f, [{ _ t } u v])
   ==
-  f (AppCtxType t (AppCtxTerm v (AppCtxTerm u AppCtxEnd)))
+  f (AppCtxType t (AppCtxTerm u (AppCtxTerm v AppCtxEnd)))
 @
 -}
 splitAppCtx :: Term nam uni fun a -> (Term nam uni fun a, AppCtx nam uni fun a)
