@@ -340,6 +340,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
     signature expModInteger                   = ∙ [ integer ↑ , integer ↑ , integer ↑ ]⟶  integer ↑
     signature dropList                        = ∀a [ integer ↑ , list a ]⟶ list a
+
 open SugaredSignature using (signature) public
 
 -- The arity of a builtin, according to its signature.
