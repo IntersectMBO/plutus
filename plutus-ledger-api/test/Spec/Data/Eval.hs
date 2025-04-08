@@ -127,7 +127,7 @@ evaluationContextNoThunks =
             !evalCtx <- mkEvaluationContextV ll
             failIfThunk =<< noThunks [] evalCtx
 #else
-        []
+        [failIfThunk Nothing] -- To prevent -Wunused-top-binds
 #endif
 
 
