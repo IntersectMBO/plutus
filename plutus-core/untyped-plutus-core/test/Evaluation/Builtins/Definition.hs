@@ -499,32 +499,31 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
-#if MIN_VERSION_base(4,15,0)
-    testCase "TrackCosts: retaining" $ do
-        assertBool "dummy" $ not . null $ DList.singleton 'x' -- Avoid 'redundant-imports' warning
-    -- test_TrackCostsWith "retaining" 10000 $ \term -> do
-    --     let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
-    --         -- 'DList'.
-    --         retaining = monoidalBudgeting $ const DList.singleton
-    --         typecheckAndRunRetainer = typecheckAnd def $ \params term' ->
-    --             let (getRes, budgets) = runCekNoEmit params retaining term'
-    --             in (getRes >>= readKnownSelf, budgets)
-    --     case typecheckAndRunRetainer () term of
-    --         Left err                                  -> fail $ displayPlc err
-    --         Right (Left err, _)                       -> fail $ displayPlc err
-    --         Right (Right (res :: [Integer]), budgets) -> do
-    --             -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
-    --             -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
-    --             -- @1@.
-    --             let expected = min 5 (length budgets)
-    --                 actual = length res
-    --                 err = concat
-    --                     [ "Too many elements picked up by GC\n"
-    --                     , "Expected at most: " ++ show expected ++ "\n"
-    --                     , "But got: " ++ show actual ++ "\n"
-    --                     , "The result was: " ++ show res
-    --                     ]
-    --             assertBool err $ expected > actual
+#if MIN_VERSION_base(4,15,0) && !defined(__USING_HPC__)
+    -- HPC instrumentation breaks this test, hence the __USING_HPC__ check
+    test_TrackCostsWith "retaining" 10000 $ \term -> do
+        let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
+            -- 'DList'.
+            retaining = monoidalBudgeting $ const DList.singleton
+            typecheckAndRunRetainer = typecheckAnd def $ \params term' ->
+                let (getRes, budgets) = runCekNoEmit params retaining term'
+                in (getRes >>= readKnownSelf, budgets)
+        case typecheckAndRunRetainer () term of
+            Left err                                  -> fail $ displayPlc err
+            Right (Left err, _)                       -> fail $ displayPlc err
+            Right (Right (res :: [Integer]), budgets) -> do
+                -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
+                -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
+                -- @1@.
+                let expected = min 5 (length budgets)
+                    actual = length res
+                    err = concat
+                        [ "Too many elements picked up by GC\n"
+                        , "Expected at most: " ++ show expected ++ "\n"
+                        , "But got: " ++ show actual ++ "\n"
+                        , "The result was: " ++ show res
+                        ]
+                assertBool err $ expected > actual
 #else
     -- FIXME: @effectfully
     -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>

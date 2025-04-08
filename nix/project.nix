@@ -19,12 +19,14 @@ let
           enableLibraryProfiling = true;
         }];
         ghc96-coverage.modules = [{
+
           # NOTE: Enabling coverage for some packages breaks tests due to HPC 
           # (Haskell Program Coverage) instrumentation. The packages listed 
           # below represent the largest subset that can be enabled without 
           # breaking tests.
           packages.plutus-conformance.doCoverage = true;
           packages.plutus-core.doCoverage = true;
+          packages.plutus-core.configureFlags = [ "--ghc-option=-D__USING_HPC__" ];
           packages.plutus-executables.doCoverage = true;
           packages.plutus-tx-test-util.doCoverage = true;
         }];
