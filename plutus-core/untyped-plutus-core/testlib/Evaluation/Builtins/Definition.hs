@@ -499,8 +499,10 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
-#if MIN_VERSION_base(4,15,0) && !defined(__USING_HPC__)
-    -- HPC instrumentation breaks this test, hence the __USING_HPC__ check
+#if defined(__USING_HPC__)
+    testCase "TrackCosts: retaining" $ do
+        assertBool "dummy" True
+#elif MIN_VERSION_base(4,15,0)
     test_TrackCostsWith "retaining" 10000 $ \term -> do
         let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
             -- 'DList'.
