@@ -33,6 +33,7 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
+import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.HUnit
 
 {- Note [Direct UPLC code]
@@ -122,13 +123,9 @@ failIfThunk mbThunkInfo =
 evaluationContextNoThunks :: TestTree
 evaluationContextNoThunks =
     testGroup "NoThunks in EvaluationContext" $
-#if !defined(__USING_HPC__)
         enumerate <&> \ll -> testCase (show ll) $ do
             !evalCtx <- mkEvaluationContextV ll
             failIfThunk =<< noThunks [] evalCtx
-#else
-        [failIfThunk Nothing] -- To prevent -Wunused-top-binds
-#endif
 
 
 tests :: TestTree
@@ -136,6 +133,10 @@ tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
+#ifdef __USING_HPC__
+    , ignoreTest evaluationContextNoThunks
+#else
     , evaluationContextNoThunks
+#endif
     ]
 
