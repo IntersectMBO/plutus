@@ -81,13 +81,23 @@ data Pure {X : Set} : (X ⊢) → Set where
            → Pure (case (constr i vs) ts)
     -- case applied to anything else is Unknown
 
+    -- This assumes there are no builtins with arity 0
+    -- Or, if there are, they can just be replaced by a
+    -- constant before this stage!
     builtin : {b : Builtin} → Pure (builtin b)
 
+    -- To be pure, a term needs to be still unsaturated
+    -- after it has been force'd or had something applied
+    -- hence, unsat-builtin₀ and unsat-builtin₁ have
+    -- (suc (suc _)) requirements.
     unsat-builtin₀ : {t : X ⊢} {a₀ a₁ : ℕ}
             → sat t ≡ want (suc (suc a₀)) a₁
             → Pure t
             → Pure (force t)
 
+    -- unsat-builtin₀₋₁ handles the case where
+    -- we consume the last type argument but
+    -- still have some unsaturated term args.
     unsat-builtin₀₋₁ : {t : X ⊢} {a₁ : ℕ}
             → sat t ≡ want (suc zero) (suc a₁)
             → Pure t
