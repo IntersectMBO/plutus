@@ -1,6 +1,7 @@
+-- Dropping a negative number of elements succeeds and returns the list unchanged.
 (program 1.0.0
  [
-  [ (force (builtin dropList)) (con integer 17) ]
+  [ (force (builtin dropList)) (con integer -7) ]
     (con (list bytestring)
       [ #123456
       , #234567

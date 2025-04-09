@@ -1,3 +1,5 @@
+-- Dropping more elements than the length of the list succeeds and returns the
+-- empty list.
 (program 1.0.0
  [
   [ (force (builtin dropList)) (con integer 17) ]

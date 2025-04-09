@@ -1,3 +1,4 @@
+-- Dropping zero elements has no effect.
 (program 1.0.0
  [
   [ (force (builtin dropList)) (con integer 0) ]
