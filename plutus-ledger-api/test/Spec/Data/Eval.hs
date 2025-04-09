@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 -- TODO: merge this module to Versions.hs ?
 {-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE CPP              #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Data.Eval (tests) where
@@ -33,10 +32,8 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
-#ifdef __USING_HPC__
 import Test.Tasty.ExpectedFailure (ignoreTest)
-#endif
-import Test.Tasty.HUnit
+import Test.Tasty.Extras (ignoreTestIfHpcEnabled)
 
 {- Note [Direct UPLC code]
 For this test-suite we write the programs directly in the UPLC AST,

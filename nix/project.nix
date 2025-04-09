@@ -28,10 +28,10 @@ let
           packages.plutus-core.doCoverage = true;
           packages.plutus-executables.doCoverage = true;
           packages.plutus-tx-test-util.doCoverage = true;
-          # packages.plutus-ledger-api.doCoverage = true;
+          packages.plutus-ledger-api.doCoverage = true;
 
-          packages.plutus-core.configureFlags = [ "--ghc-option=-D__USING_HPC__" ];
-          packages.plutus-ledger-api.configureFlags = [ "--ghc-option=-D__USING_HPC__" ];
+          packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
+          packages.plutus-ledger-api.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
