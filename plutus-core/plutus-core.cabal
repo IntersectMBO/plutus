@@ -465,7 +465,6 @@ test-suite untyped-plutus-core-test
     , serialise
     , split
     , tasty
-    , tasty-expected-failure
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
@@ -820,6 +819,7 @@ library plutus-core-testlib
     , Stream
     , tagged
     , tasty
+    , tasty-expected-failure
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit

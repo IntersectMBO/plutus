@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 -- TODO: merge this module to Versions.hs ?
 {-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE CPP              #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where
@@ -33,9 +32,7 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
-#ifdef __USING_HPC__
-import Test.Tasty.ExpectedFailure (ignoreTest)
-#endif
+import Test.Tasty.Extras (ignoreTestIfHpcEnabled)
 import Test.Tasty.HUnit
 
 {- Note [Direct UPLC code]
@@ -135,10 +132,7 @@ tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
-#ifdef __USING_HPC__
-    , ignoreTest evaluationContextNoThunks
-#else
+    , ignoreTestIfHpcFlagDefined evaluationContextNoThunks
     , evaluationContextNoThunks
-#endif
     ]
 

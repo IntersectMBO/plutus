@@ -72,9 +72,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Tasty (TestTree, testGroup)
-#ifdef __USING_HPC__
-import Test.Tasty.ExpectedFailure (ignoreTest)
-#endif
+import Test.Tasty.Extras (ignoreTestIfHpcEnabled)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.QuickCheck qualified as QC
@@ -502,7 +500,7 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
-#if MIN_VERSION_base(4,15,0) && !defined(__USING_HPC__)
+#if MIN_VERSION_base(4,15,0)
     test_TrackCostsWith "retaining" 10000 $ \term -> do
         let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
             -- 'DList'.
@@ -1251,11 +1249,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-#ifdef __USING_HPC__
-        , ignoreTest test_TrackCostsRetaining
-#else
-        , test_TrackCostsRetaining
-#endif
+        , ignoreTestIfHpcEnabled test_TrackCostsRetaining
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere
