@@ -7,7 +7,7 @@
     nixpkgs.follows = "haskell-nix/nixpkgs";
 
     hackage = {
-      url = "github:input-output-hk/hackage.nix/7f345402e6b5269718bfe4fbe0aee60b7a62ce9d";
+      url = "github:input-output-hk/hackage.nix";
       flake = false;
     };
 

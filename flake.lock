@@ -219,7 +219,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "7f345402e6b5269718bfe4fbe0aee60b7a62ce9d",
         "type": "github"
       }
     },
