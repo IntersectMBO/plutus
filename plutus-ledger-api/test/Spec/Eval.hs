@@ -33,7 +33,9 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
-import Test.Tasty.ExpectedFailure qualified as Tasty
+#ifdef __USING_HPC__
+import Test.Tasty.ExpectedFailure (ignoreTest)
+#endif
 import Test.Tasty.HUnit
 
 {- Note [Direct UPLC code]
@@ -134,7 +136,7 @@ tests = testGroup "eval"
 --    , testUnlifting
     , evaluationContextCacheIsComplete
 #ifdef __USING_HPC__
-    , Tasty.ignoreTest evaluationContextNoThunks
+    , ignoreTest evaluationContextNoThunks
 #else
     , evaluationContextNoThunks
 #endif

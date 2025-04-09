@@ -28,6 +28,7 @@ let
           packages.plutus-core.doCoverage = true;
           packages.plutus-executables.doCoverage = true;
           packages.plutus-tx-test-util.doCoverage = true;
+          # packages.plutus-ledger-api.doCoverage = true;
 
           packages.plutus-core.configureFlags = [ "--ghc-option=-D__USING_HPC__" ];
           packages.plutus-ledger-api.configureFlags = [ "--ghc-option=-D__USING_HPC__" ];
