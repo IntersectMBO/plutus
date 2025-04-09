@@ -594,6 +594,33 @@ haskellBTypeToAgdaBType (SomeTypeIn u) =
         DefaultUniBLS12_381_MlResult -> SomeTypeInK AgdaDefaultUniBLS12_381_MlResult
         DefaultUniProtoArray -> error "Array is currently not supported in Agda"
 
+agdaBTypeToHaskellBType :: SomeTypeIn AgdaDefaultUni -> SomeTypeIn DefaultUni
+agdaBTypeToHaskellBType (SomeTypeIn u) =
+  case go u of
+    SomeTypeInK res ->
+      SomeTypeIn res
+  where
+    go :: forall k (a :: k) . AgdaDefaultUni (Esc a) -> SomeTypeInK k DefaultUni
+    go uni =
+      case uni of
+        AgdaDefaultUniInteger -> SomeTypeInK DefaultUniInteger
+        AgdaDefaultUniByteString -> SomeTypeInK DefaultUniByteString
+        AgdaDefaultUniString -> SomeTypeInK DefaultUniString
+        AgdaDefaultUniUnit -> SomeTypeInK DefaultUniUnit
+        AgdaDefaultUniBool -> SomeTypeInK DefaultUniBool
+        AgdaDefaultUniApply uniF uniA ->
+          case go uniF of
+            SomeTypeInK uniF' ->
+              case go uniA of
+                SomeTypeInK uniA' ->
+                  SomeTypeInK (DefaultUniApply uniF' uniA')
+        AgdaDefaultUniProtoList -> SomeTypeInK DefaultUniProtoList
+        AgdaDefaultUniProtoPair -> SomeTypeInK DefaultUniProtoPair
+        AgdaDefaultUniData -> SomeTypeInK DefaultUniData
+        AgdaDefaultUniBLS12_381_G1_Element -> SomeTypeInK DefaultUniBLS12_381_G1_Element
+        AgdaDefaultUniBLS12_381_G2_Element -> SomeTypeInK DefaultUniBLS12_381_G2_Element
+        AgdaDefaultUniBLS12_381_MlResult -> SomeTypeInK DefaultUniBLS12_381_MlResult
+
 haskellConstToAgdaConst :: Some (ValueOf DefaultUni) -> Some (ValueOf AgdaDefaultUni)
 haskellConstToAgdaConst someVal = withSome someVal go
   where
@@ -666,10 +693,42 @@ fromHaskellType = \case
     PLC.TySOP a xs -> PLC.TySOP a (fmap (fmap fromHaskellType) xs)
 
 toHaskellType :: PLC.Type tn AgdaDefaultUni a -> PLC.Type tn DefaultUni a
-toHaskellType = undefined
+toHaskellType = \case
+    PLC.TyVar a x -> PLC.TyVar a x
+    PLC.TyFun a t u -> PLC.TyFun a (toHaskellType t) (toHaskellType u)
+    PLC.TyForall a x k t -> PLC.TyForall a x k (toHaskellType t)
+    PLC.TyLam a x k t -> PLC.TyLam a x k (toHaskellType t)
+    PLC.TyApp a t u -> PLC.TyApp a (toHaskellType t) (toHaskellType u)
+    PLC.TyBuiltin a b -> PLC.TyBuiltin a (agdaBTypeToHaskellBType b)
+    PLC.TyIFix a t u -> PLC.TyIFix a (toHaskellType t) (toHaskellType u)
+    PLC.TySOP a xs -> PLC.TySOP a (fmap (fmap toHaskellType) xs)
 
 toHaskellTerm :: PLC.Term tn n AgdaDefaultUni f a -> PLC.Term tn n DefaultUni f a
-toHaskellTerm = undefined
+toHaskellTerm = \case
+  PLC.Var a n ->
+    PLC.Var a n
+  PLC.LamAbs a n ty t ->
+    PLC.LamAbs a n (toHaskellType ty) (toHaskellTerm t)
+  PLC.Apply a t1 t2 ->
+    PLC.Apply a (toHaskellTerm t1) (toHaskellTerm t2)
+  PLC.TyAbs a tn k t ->
+    PLC.TyAbs a tn k (toHaskellTerm t)
+  PLC.TyInst a t ty ->
+    PLC.TyInst a (toHaskellTerm t) (toHaskellType ty)
+  PLC.IWrap a ty1 ty2 t ->
+    PLC.IWrap a (toHaskellType ty1) (toHaskellType ty2) (toHaskellTerm t)
+  PLC.Unwrap a t ->
+    PLC.Unwrap a (toHaskellTerm t)
+  PLC.Constr a ty i ts ->
+    PLC.Constr a (toHaskellType ty) i (fmap toHaskellTerm ts)
+  PLC.Case a ty t ts ->
+    PLC.Case a (toHaskellType ty) (toHaskellTerm t) (fmap toHaskellTerm ts)
+  PLC.Constant a c ->
+    PLC.Constant a (agdaConstToHaskellConst c)
+  PLC.Builtin a b ->
+    PLC.Builtin a b
+  PLC.Error a ty ->
+    PLC.Error a (toHaskellType ty)
 
 instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
     knownUni = knownUni `AgdaDefaultUniApply` knownUni
