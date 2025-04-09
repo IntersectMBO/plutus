@@ -72,7 +72,9 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.ExpectedFailure qualified as Tasty
+#ifdef __USING_HPC__
+import Test.Tasty.ExpectedFailure (ignoreTest)
+#endif
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.QuickCheck qualified as QC
@@ -1250,7 +1252,7 @@ test_definition =
         , test_IdBuiltinData
         , test_TrackCostsRestricting
 #ifdef __USING_HPC__
-        , Tasty.ignoreTest test_TrackCostsRetaining
+        , ignoreTest test_TrackCostsRetaining
 #else
         , test_TrackCostsRetaining
 #endif
