@@ -135,7 +135,7 @@ let
 
   shell = {
     ghc8107 = quick-shell;
-    ghc966 = full-shell;
+    ghc967 = full-shell;
     ghc984 = quick-shell;
     ghc9101 = quick-shell;
   }.${project.args.compiler-nix-name};
