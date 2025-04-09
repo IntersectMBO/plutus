@@ -64,15 +64,15 @@ let
     agda-tools.agda-mode
 
     r-with-packages
-    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
 
     tools.haskell-language-server
     tools.stylish-haskell
-    tools.fourmolu
+    # tools.fourmolu TODO broken with ghc967
     tools.cabal
     tools.hlint
     tools.cabal-fmt
 
+    pkgs.linkchecker
     pkgs.texliveFull
     pkgs.jekyll
     pkgs.plantuml
