@@ -318,7 +318,8 @@ expected %=? actual = assertEqualPretty "" expected actual
 actual %?= expected = assertEqualPretty "" expected actual
 
 {-|
-Some tests inspect GHC code, but GHC code gets instrumented when using hpc.
+Some tests inspect GHC code, but GHC code gets instrumented when using HPC
+(Haskell Program Coverage), which causes those tests to fail.
 This flag disables those tests when the custom __HPC_ENABLED__ flag is defined.
 -}
 ignoreTestIfHpcEnabled :: TestTree -> TestTree
