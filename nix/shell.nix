@@ -56,7 +56,7 @@ let
   };
 
   linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
-    pkgs.papi
+    # pkgs.papi # TODO broken in latest nixpkgs
   ];
 
   common-pkgs = [
