@@ -49,7 +49,7 @@ let
       };
       editorconfig-checker = {
         enable = true;
-        args = [ "-config" ".editorconfig" ];
+        args = [ "-config" ".editorconfig-checker.json" ];
         package = pkgs.editorconfig-checker;
       };
     };
