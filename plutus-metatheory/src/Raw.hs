@@ -33,6 +33,7 @@ import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Vector.Strict (Vector)
 import PlutusCore
+import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -562,6 +563,37 @@ agdaConstToHaskellConst someVal = withSome someVal go
       bring (Proxy @AgdaToHaskellValue) uni
       $ Some (ValueOf (agdaToHaskellUni uni) (agdaToHaskellValue v))
 
+type SomeTypeInK :: Kind.Type -> (Kind.Type -> Kind.Type) -> Kind.Type
+data SomeTypeInK k uni = forall (a :: k). SomeTypeInK !(uni (Esc a))
+
+haskellBTypeToAgdaBType :: SomeTypeIn DefaultUni -> SomeTypeIn AgdaDefaultUni
+haskellBTypeToAgdaBType (SomeTypeIn u) =
+  case go u of
+    SomeTypeInK res ->
+      SomeTypeIn res
+  where
+    go :: forall k (a :: k) . DefaultUni (Esc a) -> SomeTypeInK k AgdaDefaultUni
+    go uni =
+      case uni of
+        DefaultUniInteger -> SomeTypeInK AgdaDefaultUniInteger
+        DefaultUniByteString -> SomeTypeInK AgdaDefaultUniByteString
+        DefaultUniString -> SomeTypeInK AgdaDefaultUniString
+        DefaultUniUnit -> SomeTypeInK AgdaDefaultUniUnit
+        DefaultUniBool -> SomeTypeInK AgdaDefaultUniBool
+        DefaultUniApply uniF uniA ->
+          case go uniF of
+            SomeTypeInK uniF' ->
+              case go uniA of
+                SomeTypeInK uniA' ->
+                  SomeTypeInK (AgdaDefaultUniApply uniF' uniA')
+        DefaultUniProtoList -> SomeTypeInK AgdaDefaultUniProtoList
+        DefaultUniProtoPair -> SomeTypeInK AgdaDefaultUniProtoPair
+        DefaultUniData -> SomeTypeInK AgdaDefaultUniData
+        DefaultUniBLS12_381_G1_Element -> SomeTypeInK AgdaDefaultUniBLS12_381_G1_Element
+        DefaultUniBLS12_381_G2_Element -> SomeTypeInK AgdaDefaultUniBLS12_381_G2_Element
+        DefaultUniBLS12_381_MlResult -> SomeTypeInK AgdaDefaultUniBLS12_381_MlResult
+        DefaultUniProtoArray -> error "Array is currently not supported in Agda"
+
 haskellConstToAgdaConst :: Some (ValueOf DefaultUni) -> Some (ValueOf AgdaDefaultUni)
 haskellConstToAgdaConst someVal = withSome someVal go
   where
@@ -569,31 +601,45 @@ haskellConstToAgdaConst someVal = withSome someVal go
       bring (Proxy @HaskellToAgdaValue) uni
       $ Some (ValueOf (haskellToAgdaUni uni) (haskellToAgdaValue v))
 
-toHaskellTerm :: UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun a
-toHaskellTerm = \case
+toHaskellUTerm :: UPLC.Term n AgdaDefaultUni f a -> UPLC.Term n DefaultUni f a
+toHaskellUTerm = \case
     UPLC.Var a x -> UPLC.Var a x
-    UPLC.LamAbs a x t -> UPLC.LamAbs a x (toHaskellTerm t)
-    UPLC.Apply a t u -> UPLC.Apply a (toHaskellTerm t) (toHaskellTerm u)
+    UPLC.LamAbs a x t -> UPLC.LamAbs a x (toHaskellUTerm t)
+    UPLC.Apply a t u -> UPLC.Apply a (toHaskellUTerm t) (toHaskellUTerm u)
     UPLC.Builtin a b -> UPLC.Builtin a b
     UPLC.Constant a c -> UPLC.Constant a (agdaConstToHaskellConst c)
     UPLC.Error a -> UPLC.Error a
-    UPLC.Delay a t -> UPLC.Delay a (toHaskellTerm t)
-    UPLC.Force a t -> UPLC.Force a (toHaskellTerm t)
-    UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellTerm cs)
-    UPLC.Case a arg cs -> UPLC.Case a (toHaskellTerm arg) (fmap toHaskellTerm cs)
+    UPLC.Delay a t -> UPLC.Delay a (toHaskellUTerm t)
+    UPLC.Force a t -> UPLC.Force a (toHaskellUTerm t)
+    UPLC.Constr a i cs -> UPLC.Constr a i (fmap toHaskellUTerm cs)
+    UPLC.Case a arg cs -> UPLC.Case a (toHaskellUTerm arg) (fmap toHaskellUTerm cs)
 
-fromHaskellTerm :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun a -> UPLC.Term NamedDeBruijn AgdaDefaultUni DefaultFun a
-fromHaskellTerm = \case
+fromHaskellUTerm :: UPLC.Term n DefaultUni f a -> UPLC.Term n AgdaDefaultUni f a
+fromHaskellUTerm = \case
     UPLC.Var a x -> UPLC.Var a x
-    UPLC.LamAbs a x t -> UPLC.LamAbs a x (fromHaskellTerm t)
-    UPLC.Apply a t u -> UPLC.Apply a (fromHaskellTerm t) (fromHaskellTerm u)
+    UPLC.LamAbs a x t -> UPLC.LamAbs a x (fromHaskellUTerm t)
+    UPLC.Apply a t u -> UPLC.Apply a (fromHaskellUTerm t) (fromHaskellUTerm u)
     UPLC.Builtin a b -> UPLC.Builtin a b
     UPLC.Constant a c -> UPLC.Constant a (haskellConstToAgdaConst c)
     UPLC.Error a -> UPLC.Error a
-    UPLC.Delay a t -> UPLC.Delay a (fromHaskellTerm t)
-    UPLC.Force a t -> UPLC.Force a (fromHaskellTerm t)
-    UPLC.Constr a i cs -> UPLC.Constr a i (fmap fromHaskellTerm cs)
-    UPLC.Case a arg cs -> UPLC.Case a (fromHaskellTerm arg) (fmap fromHaskellTerm cs)
+    UPLC.Delay a t -> UPLC.Delay a (fromHaskellUTerm t)
+    UPLC.Force a t -> UPLC.Force a (fromHaskellUTerm t)
+    UPLC.Constr a i cs -> UPLC.Constr a i (fmap fromHaskellUTerm cs)
+    UPLC.Case a arg cs -> UPLC.Case a (fromHaskellUTerm arg) (fmap fromHaskellUTerm cs)
+
+fromHaskellTerm :: PLC.Term tn n DefaultUni f a -> PLC.Term tn n AgdaDefaultUni f a
+fromHaskellTerm = undefined
+
+fromHaskellType :: PLC.Type tn DefaultUni a -> PLC.Type tn AgdaDefaultUni a
+fromHaskellType = \case
+    PLC.TyVar a x -> PLC.TyVar a x
+    PLC.TyFun a t u -> PLC.TyFun a (fromHaskellType t) (fromHaskellType u)
+    PLC.TyForall a x k t -> PLC.TyForall a x k (fromHaskellType t)
+    PLC.TyLam a x k t -> PLC.TyLam a x k (fromHaskellType t)
+    PLC.TyApp a t u -> PLC.TyApp a (fromHaskellType t) (fromHaskellType u)
+    PLC.TyBuiltin a b -> PLC.TyBuiltin a (haskellBTypeToAgdaBType b)
+    PLC.TyIFix a t u -> PLC.TyIFix a (fromHaskellType t) (fromHaskellType u)
+    PLC.TySOP a xs -> PLC.TySOP a (fmap (fmap fromHaskellType) xs)
 
 instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
     knownUni = knownUni `AgdaDefaultUniApply` knownUni

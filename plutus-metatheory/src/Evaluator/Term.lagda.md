@@ -102,7 +102,7 @@ postulate
   unconvTmU : U.Untyped → TermU
 
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
-{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
+{-# COMPILE GHC parseTmU = runQuoteT . fmap fromHaskellUTerm . U.parseTerm #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
