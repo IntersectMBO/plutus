@@ -64,6 +64,7 @@ let
     agda-tools.agda-mode
 
     r-with-packages
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
 
     tools.haskell-language-server
     tools.stylish-haskell
@@ -72,7 +73,6 @@ let
     tools.hlint
     tools.cabal-fmt
 
-    pkgs.linkchecker
     pkgs.texliveFull
     pkgs.jekyll
     pkgs.plantuml
