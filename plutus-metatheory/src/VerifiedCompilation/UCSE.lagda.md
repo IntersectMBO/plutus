@@ -24,9 +24,8 @@ open Eq using (_≡_; refl)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
-open import VerifiedCompilation.Purity using (UPure; isUPure?)
+open import Untyped.Purity using (Pure; isPure?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; cseT)
-
 ```
 ## Translation Relation
 
@@ -40,7 +39,9 @@ back in would yield the original expression.
 ```
 data UCSE : Relation where
   cse : {X : Set} {{ _ : DecEq X}} {x' : Maybe X ⊢} {x e : X ⊢}
-    → UPure X e
+    -- TODO: This should ensure that the term that is moved
+    -- is still evaluated. The Haskell does this by never moving
+    -- across ƛ , delay, or case.
     → Translation UCSE x (x' [ e ])
     → UCSE x ((ƛ x') · e)
 
@@ -58,11 +59,9 @@ isUntypedCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation UCSE {X})
 {-# TERMINATING #-}
 isUCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
-... | no ¬match = ce (λ { (cse x x₁) → ¬match (isapp (islambda (isterm _)) (isterm _))}) cseT ast ast'
+... | no ¬match = ce (λ { (cse pt) → ¬match (isapp (islambda (isterm _)) (isterm _))}) cseT ast ast'
 ... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))
-... | ce ¬p t b a = ce (λ { (cse x x₁) → ¬p x₁}) t b a
-... | proof p with (isUPure? e)
-...   | yes upure = proof (cse upure p)
-...   | no ¬p = ce (λ z → ¬p (UPure.FIXME e)) cseT ast ast'
+...   | ce ¬p t b a = ce (λ { (cse pt) → ¬p pt}) t b a
+...   | proof p = proof (cse p)
 isUntypedCSE? = translation? cseT isUCSE?
 ```

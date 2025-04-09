@@ -47,6 +47,7 @@ test_evalOrder =
         , goldenEvalOrder "builtinAppSaturated"
         , goldenEvalOrder "pureLet"
         , goldenEvalOrder "nestedLets1"
+        , goldenEvalOrder "ifThenElse"
         , embed $ testCase "evalOrderLazy" $
             4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
         ]

@@ -343,6 +343,10 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 open SugaredSignature using (signature) public
 
+-- The number of type arguments expected
+arity₀ : Builtin → ℕ
+arity₀ b = (Sig.fv⋆ (signature b)) Data.Nat.+ (Sig.fv♯ (signature b))
+
 -- The arity of a builtin, according to its signature.
 arity : Builtin → ℕ
 arity b = length (Sig.args (signature b))
