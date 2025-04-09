@@ -132,7 +132,7 @@ tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
-    , ignoreTestIfHpcFlagDefined evaluationContextNoThunks
+    , ignoreTestIfHpcEnabled evaluationContextNoThunks
     , evaluationContextNoThunks
     ]
 

@@ -29,16 +29,13 @@ let
           packages.plutus-executables.doCoverage = true;
           packages.plutus-tx-test-util.doCoverage = true;
           packages.plutus-ledger-api.doCoverage = true;
+          # packages.plutus-tx.doCoverage = true;
+
           packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
           # plutus-benchmark
-          # plutus-conformance
-          # plutus-core
-          # plutus-executables
-          # plutus-ledger-api
           # plutus-metatheory
           # plutus-tx
           # plutus-tx-plugin
-          # plutus-tx-test-util
           # docusaurus-examples
         }];
         ghc810.compiler-nix-name = "ghc810";
