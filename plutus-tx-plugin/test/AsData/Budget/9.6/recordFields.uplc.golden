@@ -6,19 +6,9 @@
             (\cse ->
                (\cse ->
                   (\cse ->
-                     (\lessThanInteger ->
-                        addInteger
-                          (addInteger
-                             (addInteger
-                                (addInteger (addInteger cse cse) cse)
-                                cse)
-                             (force
-                                (case
-                                   (lessThanInteger
-                                      (addInteger cse cse)
-                                      (addInteger cse cse))
-                                   [ (delay (addInteger cse cse))
-                                   , (delay (addInteger cse cse)) ])))
+                     addInteger
+                       (addInteger
+                          (addInteger (addInteger (addInteger cse cse) cse) cse)
                           (force
                              (case
                                 (lessThanInteger
@@ -26,11 +16,13 @@
                                    (addInteger cse cse))
                                 [ (delay (addInteger cse cse))
                                 , (delay (addInteger cse cse)) ])))
-                       (\x y ->
-                          force ifThenElse
-                            (lessThanInteger x y)
-                            (constr 0 [])
-                            (constr 1 [])))
+                       (force
+                          (case
+                             (lessThanInteger
+                                (addInteger cse cse)
+                                (addInteger cse cse))
+                             [ (delay (addInteger cse cse))
+                             , (delay (addInteger cse cse)) ])))
                     (cse (\ds ds ds ds -> ds) (\void -> error)))
                  (cse (\ds ds ds ds -> ds) (\void -> error)))
               (cse (\ds ds ds ds -> ds) (\void -> error)))

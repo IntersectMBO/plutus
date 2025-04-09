@@ -26,7 +26,7 @@ letrec
              error {Unit -> data})
           (\(x : data) (xs : list data) (ds : Unit) (eta : Unit) ->
              Bool_match
-               (ifThenElse {Bool} (equalsInteger 0 i) True False)
+               (case Bool (equalsInteger 0 i) [False, True])
                {all dead. data}
                (/\dead -> x)
                (/\dead -> go xs (subtractInteger i 1))

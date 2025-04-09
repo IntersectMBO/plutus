@@ -27,7 +27,7 @@ letrec
              {Tuple2 (list data) (list data)}
              (\(ipv : list data) (ipv : list data) ->
                 Bool_match
-                  (ifThenElse {Bool} (lessThanInteger (unIData h) 8) False True)
+                  (case Bool (lessThanInteger (unIData h) 8) [True, False])
                   {all dead. Tuple2 (list data) (list data)}
                   (/\dead ->
                      Tuple2 {list data} {list data} (mkCons {data} h ipv) ipv)

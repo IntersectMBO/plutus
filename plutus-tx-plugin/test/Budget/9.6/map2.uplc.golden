@@ -38,28 +38,24 @@
                                                                               [  ])
                                                                            (\hd ->
                                                                               force
-                                                                                (force
-                                                                                   (force
-                                                                                      ifThenElse
-                                                                                      (equalsData
-                                                                                         k
+                                                                                (case
+                                                                                   (equalsData
+                                                                                      k
+                                                                                      (force
                                                                                          (force
-                                                                                            (force
-                                                                                               fstPair)
-                                                                                            hd))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (\ds ->
-                                                                                               constr 0
-                                                                                                 [  ])))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (force
-                                                                                               (s
-                                                                                                  s
-                                                                                                  (delay
-                                                                                                     (\x ->
-                                                                                                        x)))))))))))
+                                                                                            fstPair)
+                                                                                         hd))
+                                                                                   [ (delay
+                                                                                        (force
+                                                                                           (s
+                                                                                              s
+                                                                                              (delay
+                                                                                                 (\x ->
+                                                                                                    x)))))
+                                                                                   , (delay
+                                                                                        (\ds ->
+                                                                                           constr 0
+                                                                                             [  ])) ]))))
                                                                    (delay
                                                                       (\x ->
                                                                          x)))
@@ -117,31 +113,27 @@
                                                                (constr 1 [])
                                                                (\hd ->
                                                                   force
-                                                                    (force
-                                                                       (force
-                                                                          ifThenElse
-                                                                          (equalsData
-                                                                             k'
+                                                                    (case
+                                                                       (equalsData
+                                                                          k'
+                                                                          (force
                                                                              (force
-                                                                                (force
-                                                                                   fstPair)
-                                                                                hd))
-                                                                          (delay
-                                                                             (delay
-                                                                                (\ds ->
-                                                                                   constr 0
-                                                                                     [ (force
-                                                                                          (force
-                                                                                             sndPair)
-                                                                                          hd) ])))
-                                                                          (delay
-                                                                             (delay
-                                                                                (force
-                                                                                   (s
-                                                                                      s
-                                                                                      (delay
-                                                                                         (\x ->
-                                                                                            x)))))))))))
+                                                                                fstPair)
+                                                                             hd))
+                                                                       [ (delay
+                                                                            (force
+                                                                               (s
+                                                                                  s
+                                                                                  (delay
+                                                                                     (\x ->
+                                                                                        x)))))
+                                                                       , (delay
+                                                                            (\ds ->
+                                                                               constr 0
+                                                                                 [ (force
+                                                                                      (force
+                                                                                         sndPair)
+                                                                                      hd) ])) ]))))
                                                        (delay (\x -> x)))
                                                     nt)
                                                  [ (\r ->

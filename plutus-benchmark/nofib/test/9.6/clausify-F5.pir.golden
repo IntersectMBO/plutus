@@ -38,46 +38,44 @@
         Ord a
     !equalsInteger : integer -> integer -> Bool
       = \(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False
+          case Bool (equalsInteger x y) [False, True]
+    !ifThenElse : all a. bool -> a -> a -> a
+      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     !`$fOrdInteger` : Ord integer
       = CConsOrd
           {integer}
           equalsInteger
           (\(eta : integer) (eta : integer) ->
              Bool_match
-               (ifThenElse {Bool} (equalsInteger eta eta) True False)
+               (case Bool (equalsInteger eta eta) [False, True])
                {all dead. Ordering}
                (/\dead -> EQ)
                (/\dead ->
                   Bool_match
-                    (ifThenElse
-                       {Bool}
-                       (lessThanEqualsInteger eta eta)
-                       True
-                       False)
+                    (case Bool (lessThanEqualsInteger eta eta) [False, True])
                     {all dead. Ordering}
                     (/\dead -> LT)
                     (/\dead -> GT)
                     {all dead. dead})
                {all dead. dead})
           (\(x : integer) (y : integer) ->
-             ifThenElse {Bool} (lessThanInteger x y) True False)
+             case Bool (lessThanInteger x y) [False, True])
           (\(x : integer) (y : integer) ->
-             ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+             case Bool (lessThanEqualsInteger x y) [False, True])
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanInteger x y) False True)
           (\(x : integer) (y : integer) ->
              Bool_match
-               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               (case Bool (lessThanEqualsInteger x y) [False, True])
                {all dead. integer}
                (/\dead -> y)
                (/\dead -> x)
                {all dead. dead})
           (\(x : integer) (y : integer) ->
              Bool_match
-               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               (case Bool (lessThanEqualsInteger x y) [False, True])
                {all dead. integer}
                (/\dead -> x)
                (/\dead -> y)
@@ -434,13 +432,13 @@
                                                                List integer) ->
                                                              /\dead ->
                                                                Bool_match
-                                                                 (ifThenElse
-                                                                    {Bool}
+                                                                 (case
+                                                                    Bool
                                                                     (equalsInteger
                                                                        y
                                                                        x)
-                                                                    True
-                                                                    False)
+                                                                    [ False
+                                                                    , True ])
                                                                  {all dead.
                                                                     Bool}
                                                                  (/\dead ->

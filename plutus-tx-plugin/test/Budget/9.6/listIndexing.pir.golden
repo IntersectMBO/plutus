@@ -23,7 +23,7 @@ letrec
           (\(x : data) (xs : List data) ->
              /\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 ds) True False)
+                 (case Bool (equalsInteger 0 ds) [False, True])
                  {all dead. data}
                  (/\dead -> x)
                  (/\dead -> go (subtractInteger ds 1) xs)

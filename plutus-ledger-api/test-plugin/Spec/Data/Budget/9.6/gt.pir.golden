@@ -21,11 +21,10 @@ letrec
         True
         (\(hd : pair data data) ->
            Bool_match
-             (ifThenElse
-                {Bool}
+             (case
+                Bool
                 (equalsInteger 0 (unIData (sndPair {data} {data} hd)))
-                True
-                False)
+                [False, True])
              {all dead. list (pair data data) -> Bool}
              (/\dead -> go)
              (/\dead -> \(ds : list (pair data data)) -> False)
@@ -78,18 +77,18 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. These a b}
             (/\dead -> This {a} {b} (`$dUnsafeFromData` (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. These a b}
                  (/\dead ->
                     That {a} {b} (`$dUnsafeFromData` (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. These a b}
                       (/\dead ->
                          These
@@ -106,6 +105,8 @@ let
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
 in
 letrec
   ~go : list (pair data data) -> Bool
@@ -198,11 +199,10 @@ letrec
                      nilCase
                      (\(hd : pair data data) ->
                         Bool_match
-                          (ifThenElse
-                             {Bool}
+                          (case
+                             Bool
                              (equalsData k (fstPair {data} {data} hd))
-                             True
-                             False)
+                             [False, True])
                           {all dead.
                              list (pair data data) -> list (pair data data)}
                           (/\dead -> mkCons {pair data data} (mkPairData k v))
@@ -228,11 +228,10 @@ let
                 (Nothing {data})
                 (\(hd : pair data data) ->
                    Bool_match
-                     (ifThenElse
-                        {Bool}
+                     (case
+                        Bool
                         (equalsData k (fstPair {data} {data} hd))
-                        True
-                        False)
+                        [False, True])
                      {all dead. list (pair data data) -> Maybe data}
                      (/\dead ->
                         \(ds : list (pair data data)) ->
@@ -461,16 +460,15 @@ let
                                                (/\dead -> goRight acc xs)
                                                (/\dead ->
                                                   Bool_match
-                                                    (ifThenElse
-                                                       {Bool}
+                                                    (case
+                                                       Bool
                                                        (equalsData
                                                           (fstPair
                                                              {data}
                                                              {data}
                                                              x)
                                                           d)
-                                                       True
-                                                       False)
+                                                       [False, True])
                                                     {all dead. Bool}
                                                     (/\dead ->
                                                        Bool_match
@@ -500,11 +498,10 @@ let
                                         Unit
                               in
                               Bool_match
-                                (ifThenElse
-                                   {Bool}
+                                (case
+                                   Bool
                                    (equalsData d (fstPair {data} {data} x))
-                                   True
-                                   False)
+                                   [False, True])
                                 {all dead. Bool}
                                 (/\dead ->
                                    Bool_match
@@ -639,13 +636,12 @@ in
             (\(v : data) (v : data) ->
                unordEqWith
                  (\(v : data) ->
-                    ifThenElse {Bool} (equalsInteger 0 (unIData v)) True False)
+                    case Bool (equalsInteger 0 (unIData v)) [False, True])
                  (\(v : data) (v : data) ->
-                    ifThenElse
-                      {Bool}
+                    case
+                      Bool
                       (equalsInteger (unIData v) (unIData v))
-                      True
-                      False)
+                      [False, True])
                  (unMapData v)
                  (unMapData v))
             l

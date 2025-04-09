@@ -61,6 +61,7 @@ import PlutusPrelude
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Annotation
+import PlutusCore.Builtin
 import PlutusCore.Check.Scoping
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
@@ -188,6 +189,7 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
 
 instance
   ( TPLC.Typecheckable uni fun
+  , CaseBuiltin (UPLC.Term TPLC.Name uni fun ()) uni
   , Hashable fun
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where

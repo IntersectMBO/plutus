@@ -12,7 +12,7 @@ letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger x lim) False True)
+          (case Bool (lessThanEqualsInteger x lim) [True, False])
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead ->
@@ -60,11 +60,10 @@ let
                     (Nothing {data})
                     (\(hd : pair data data) ->
                        Bool_match
-                         (ifThenElse
-                            {Bool}
+                         (case
+                            Bool
                             (equalsData k (fstPair {data} {data} hd))
-                            True
-                            False)
+                            [False, True])
                          {all dead. list (pair data data) -> Maybe data}
                          (/\dead ->
                             \(ds : list (pair data data)) ->
@@ -117,11 +116,10 @@ in
                        nilCase
                        (\(hd : pair data data) ->
                           Bool_match
-                            (ifThenElse
-                               {Bool}
+                            (case
+                               Bool
                                (equalsData k (fstPair {data} {data} hd))
-                               True
-                               False)
+                               [False, True])
                             {all dead.
                                list (pair data data) -> list (pair data data)}
                             (/\dead -> mkCons {pair data data} (mkPairData k a))
@@ -145,11 +143,10 @@ in
                   []
                   (\(hd : pair data data) ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsData k (fstPair {data} {data} hd))
-                          True
-                          False)
+                          [False, True])
                        {all dead.
                           list (pair data data) -> list (pair data data)}
                        (/\dead -> \(x : list (pair data data)) -> x)

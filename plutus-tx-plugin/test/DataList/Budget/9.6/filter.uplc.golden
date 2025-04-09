@@ -11,13 +11,11 @@
                     ((\eta ->
                         (\h ->
                            force
-                             (force
-                                (force ifThenElse
-                                   (lessThanInteger h 8)
-                                   (delay (delay (s s eta)))
-                                   (delay
-                                      (delay
-                                         ((\nt -> force mkCons (iData h) nt)
-                                            (s s eta)))))))
+                             (case
+                                (lessThanInteger h 8)
+                                [ (delay
+                                     ((\nt -> force mkCons (iData h) nt)
+                                        (s s eta)))
+                                , (delay (s s eta)) ]))
                           (unIData (force headList ds)))
                        (force tailList ds))))))))

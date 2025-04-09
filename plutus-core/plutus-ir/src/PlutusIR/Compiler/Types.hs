@@ -220,6 +220,8 @@ type Compiling m e uni fun a =
     , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun (Provenance a)
     , AsTypeErrorExt e uni (Provenance a)
     , AsError e uni fun (Provenance a)
+    , PLC.AnnotateCaseBuiltin uni
+    , PLC.CaseBuiltin (PIR.Term PIR.TyName PIR.Name uni fun (Provenance a)) uni
     , MonadError e m
     , MonadQuote m
     , Ord a

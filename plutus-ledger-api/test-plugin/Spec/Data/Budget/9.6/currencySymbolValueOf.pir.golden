@@ -45,11 +45,10 @@ in
             (Nothing {data})
             (\(hd : pair data data) ->
                Bool_match
-                 (ifThenElse
-                    {Bool}
+                 (case
+                    Bool
                     (equalsData k (fstPair {data} {data} hd))
-                    True
-                    False)
+                    [False, True])
                  {all dead. list (pair data data) -> Maybe data}
                  (/\dead ->
                     \(ds : list (pair data data)) ->

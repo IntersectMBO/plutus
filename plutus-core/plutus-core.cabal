@@ -228,6 +228,7 @@ library
     Data.Aeson.Flatten
     Data.Functor.Foldable.Monadic
     Data.Vector.Orphans
+    PlutusCore.Builtin.Case
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType

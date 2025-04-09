@@ -23,8 +23,8 @@
   in
   \(d : data) ->
     Bool_match
-      (ifThenElse
-         {Bool}
+      (case
+         Bool
          (equalsInteger
             0
             (modInteger
@@ -90,11 +90,7 @@
                                = sndPair {integer} {list data} tup
                            in
                            Bool_match
-                             (ifThenElse
-                                {Bool}
-                                (equalsInteger 0 index)
-                                True
-                                False)
+                             (case Bool (equalsInteger 0 index) [False, True])
                              {all dead. bytestring}
                              (/\dead -> unBData (headList {data} args))
                              (/\dead ->
@@ -131,8 +127,7 @@
                in
                go ds)
                2))
-         True
-         False)
+         [False, True])
       {all dead. Unit}
       (/\dead -> Unit)
       (/\dead ->
