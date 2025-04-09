@@ -142,7 +142,6 @@ V-I : ∀ b
 V-I b {tm = zero}   bt = V-I⇒ b bt
 V-I b {tm = suc tm} bt = V-IΠ b bt
 
-
 fullyAppliedBuiltin : ∀ b → Set
 fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
 
@@ -572,6 +571,10 @@ BUILTIN expModInteger = λ
      { (just r) -> inj₂ (V-con integer r)
      ; nothing  -> inj₁ userError
      }
+  ; _ -> inj₁ userError
+  }
+BUILTIN dropList = λ
+  { (app (app (app⋆ base) (V-con integer n)) (V-con (list t) l)) → inj₂ (V-con (list t) (dropLIST n l))
   ; _ -> inj₁ userError
   }
 

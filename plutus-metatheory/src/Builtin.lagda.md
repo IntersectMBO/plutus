@@ -156,6 +156,8 @@ data Builtin : Set where
   ripemd-160                      : Builtin
   -- Modular Exponentiation
   expModInteger                   : Builtin
+  -- DropList
+  dropList                        : Builtin
 ```
 
 ## Signatures
@@ -337,6 +339,7 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature countSetBits                    = ∙ [ bytestring ↑ ]⟶  integer ↑
     signature findFirstSetBit                 = ∙ [ bytestring ↑ ]⟶  integer ↑
     signature expModInteger                   = ∙ [ integer ↑ , integer ↑ , integer ↑ ]⟶  integer ↑
+    signature dropList                        = ∀a [ integer ↑ , list a ]⟶ list a
 
 open SugaredSignature using (signature) public
 
@@ -444,6 +447,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | FindFirstSetBit
                                           | Ripemd_160
                                           | ExpModInteger
+                                          | DropList
                                           ) #-}
 ```
 
@@ -645,6 +649,7 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
+-- See Utils.List for the implementation of dropList
 ```
 
 Equality of Builtins is decidable.
