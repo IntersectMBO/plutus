@@ -628,7 +628,31 @@ fromHaskellUTerm = \case
     UPLC.Case a arg cs -> UPLC.Case a (fromHaskellUTerm arg) (fmap fromHaskellUTerm cs)
 
 fromHaskellTerm :: PLC.Term tn n DefaultUni f a -> PLC.Term tn n AgdaDefaultUni f a
-fromHaskellTerm = undefined
+fromHaskellTerm = \case
+  PLC.Var a n ->
+    PLC.Var a n
+  PLC.LamAbs a n ty t ->
+    PLC.LamAbs a n (fromHaskellType ty) (fromHaskellTerm t)
+  PLC.Apply a t1 t2 ->
+    PLC.Apply a (fromHaskellTerm t1) (fromHaskellTerm t2)
+  PLC.TyAbs a tn k t ->
+    PLC.TyAbs a tn k (fromHaskellTerm t)
+  PLC.TyInst a t ty ->
+    PLC.TyInst a (fromHaskellTerm t) (fromHaskellType ty)
+  PLC.IWrap a ty1 ty2 t ->
+    PLC.IWrap a (fromHaskellType ty1) (fromHaskellType ty2) (fromHaskellTerm t)
+  PLC.Unwrap a t ->
+    PLC.Unwrap a (fromHaskellTerm t)
+  PLC.Constr a ty i ts ->
+    PLC.Constr a (fromHaskellType ty) i (fmap fromHaskellTerm ts)
+  PLC.Case a ty t ts ->
+    PLC.Case a (fromHaskellType ty) (fromHaskellTerm t) (fmap fromHaskellTerm ts)
+  PLC.Constant a c ->
+    PLC.Constant a (haskellConstToAgdaConst c)
+  PLC.Builtin a b ->
+    PLC.Builtin a b
+  PLC.Error a ty ->
+    PLC.Error a (fromHaskellType ty)
 
 fromHaskellType :: PLC.Type tn DefaultUni a -> PLC.Type tn AgdaDefaultUni a
 fromHaskellType = \case
@@ -640,6 +664,12 @@ fromHaskellType = \case
     PLC.TyBuiltin a b -> PLC.TyBuiltin a (haskellBTypeToAgdaBType b)
     PLC.TyIFix a t u -> PLC.TyIFix a (fromHaskellType t) (fromHaskellType u)
     PLC.TySOP a xs -> PLC.TySOP a (fmap (fmap fromHaskellType) xs)
+
+toHaskellType :: PLC.Type tn AgdaDefaultUni a -> PLC.Type tn DefaultUni a
+toHaskellType = undefined
+
+toHaskellTerm :: PLC.Term tn n AgdaDefaultUni f a -> PLC.Term tn n DefaultUni f a
+toHaskellTerm = undefined
 
 instance (AgdaDefaultUni `Contains` f, AgdaDefaultUni `Contains` a) => AgdaDefaultUni `Contains` f a where
     knownUni = knownUni `AgdaDefaultUniApply` knownUni

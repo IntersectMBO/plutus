@@ -91,13 +91,13 @@ postulate
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 
-{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name AgdaDefaultUni DefaultFun PlutusCore.SrcSpan #-}
+{-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn AgdaDefaultUni DefaultFun () #-}
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
-{-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name AgdaDefaultUni DefaultFun PlutusCore.SrcSpan #-}
+{-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn AgdaDefaultUni DefaultFun () #-}
 {-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
 {-# COMPILE GHC convPU = U.convP #-}
 

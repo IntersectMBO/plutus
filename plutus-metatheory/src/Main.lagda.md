@@ -114,15 +114,19 @@ data Command (A : Set) : Set where
 
 {-# FOREIGN GHC import PlutusCore.Executable.Common  #-}
 {-# FOREIGN GHC import PlutusCore.Executable.Parsers #-}
+{-# FOREIGN GHC import PlutusCore qualified as PLC #-}
+{-# FOREIGN GHC import UntypedPlutusCore qualified as UPLC #-}
 
 postulate
    execP : IO (Command RawCostModel)
    parse : Format → Input → IO ProgramN
    parseU : Format → Input → IO ProgramNU
 
+{-# FOREIGN GHC import Raw #-}
+{-# FOREIGN GHC import Control.Lens qualified as Lens #-}
 {-# COMPILE GHC execP = execP #-}
-{-# COMPILE GHC parse = readProgram #-}
-{-# COMPILE GHC parseU = readProgram #-}
+{-# COMPILE GHC parse = \f i -> Lens.over PLC.progTerm fromHaskellTerm <$> readProgram f i #-}
+{-# COMPILE GHC parseU = \f i -> Lens.over UPLC.progTerm fromHaskellUTerm <$> readProgram f i #-}
 
 evalInput : EvalMode →  BudgetMode RawCostModel → Format → Input → IO (Either ERROR String)
 evalInput U bm fmt inp = fmap (evalProgramNU bm) (parseU fmt inp)

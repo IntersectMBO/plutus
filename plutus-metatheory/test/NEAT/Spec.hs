@@ -48,9 +48,10 @@ prop_Type k tyG = do
   tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
 
   -- get a production named type:
-  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  tyH <- withExceptT GenError $ convertClosedType tynames k tyG
+  let tyA = fromHaskellType tyH
   -- get a production De Bruijn type:
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  tyDB <- withExceptT FVErrorP $ deBruijnTy tyA
 
   -- 1. check soundness of Agda kindchecker with respect to NEAT:
   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
@@ -60,7 +61,7 @@ prop_Type k tyG = do
     liftEither $ inferKindAgda tyDB
   let k1 = unconvK k1a
   -- infer kind using production kind inferer:
-  k2 <- withExceptT TypeError $ inferKind defKindCheckConfig ty
+  k2 <- withExceptT TypeError $ inferKind defKindCheckConfig tyH
 
   -- 2. check that production and Agda kind inferer agree:
   unless (k1 == k2) $
@@ -79,10 +80,12 @@ prop_Type k tyG = do
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'
   -- normalize NEAT type using NEAT type normalizer:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
+  let ty1H = toHaskellType ty1
+      ty2H = ty2
 
   -- 4. check the Agda type normalizer agrees with the NEAT type normalizer:
-  unless (ty1 == ty2) $
-    throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
+  unless (ty1H == ty2H) $
+    throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1H ty2H)
 
 
 
@@ -90,63 +93,72 @@ prop_Type k tyG = do
 prop_Term :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
 prop_Term tyG tmG = do
   -- get a production named type
-  ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  tyH <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
+  let tyA = fromHaskellType tyH
   -- get a production de Bruijn type
-  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  tyDBH <- withExceptT FVErrorP $ deBruijnTy tyH
+  let tyDBA = fromHaskellType tyDBH
   -- get a production named term
-  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  tmH <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  let tmA = fromHaskellTerm tmH
   -- get a production de Bruijn term
-  tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
+  tmDBH <- withExceptT FVErrorP $ deBruijnTerm tmH
+  let tmDBA = fromHaskellTerm tmDBH
 
   -- 1. check the term in the type
   withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
-    checkTypeAgda tyDB tmDB
+    checkTypeAgda tyDBA tmDBA
 
   -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
-  tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
-    liftEither $ runTCKAgda tmDB
-  tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
-  unless (tmPlcCK == tmCKN) $
-    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [("prod CK",tmPlcCK),("meta CK",tmCKN)])
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tmH `catchError` handleError tyH
+  tmCKA <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
+    liftEither $ runTCKAgda tmDBA
+  tmCKNA <- withExceptT FVErrorP $ unDeBruijnTerm tmCKA
+  let tmCKNH = toHaskellTerm tmCKNA
+  unless (tmPlcCK == tmCKNH) $
+    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [("prod CK",tmPlcCK),("meta CK",tmCKNH)])
 
   -- 3. run all the metatheory evaluators against each other. Taking
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
   let namedEvs = [("meta red",runTLAgda),("meta CK",runTCKAgda),("meta CEK",runTCEKAgda)]
   let (ss,evs) = unzip namedEvs
-  let tmEvsM = map ($ tmDB) evs
+  let tmEvsM = map ($ tmDBA) evs
   tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "typed" tyG tmG)) $
     liftEither $ sequence tmEvsM
   tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
+  let tmEvsHN = fmap toHaskellTerm tmEvsN
 
-  unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (zip ss tmEvsN))
+  unless (length (nub tmEvsHN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (zip ss tmEvsHN))
   -- 4. untyped_reduce . erase == erase . typed_reduce
 
   -- erase original named term
-  let tmU = eraseTerm tm
+  let tmUH = eraseTerm tmH
   -- turn it into an untyped de Bruijn term
-  tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
+  tmUDBH <- withExceptT FVErrorP $ U.deBruijnTerm tmUH
+  let tmUDBA = fromHaskellUTerm tmUDBH
   -- reduce the untyped term
-  tmUDB' <- case runUAgda tmUDB of
+  tmUDBA' <- case runUAgda tmUDBA of
       Left (RuntimeError UserError) -> pure $ U.Error ()
       _ -> withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))
-          $ liftEither $ runUAgda tmUDB
+          $ liftEither $ runUAgda tmUDBA
   -- turn it back into a named term
-  tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
+  tmUA' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDBA'
+  let tmUH' = toHaskellUTerm tmUA'
   -- reduce the original de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
-    liftEither $ runTCEKAgda tmDB
+  tmDBA'' <- withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
+    liftEither $ runTCEKAgda tmDBA
   -- turn it back into a named term
-  tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
+  tmA'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDBA''
   -- erase it after the fact
-  let tmU'' = eraseTerm tm''
-  unless (tmU' == tmU'') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmU'),("reduce;erase" , tmU'')])
+  let tmH'' = toHaskellTerm tmA''
+  let tmUH'' = eraseTerm tmH''
+  unless (tmUH' == tmUH'') $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmUH'),("reduce;erase" , tmUH'')])
 
   -- 4. run prod untyped CEK against meta untyped CEK
-  tmU''' <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParametersForTesting tmU'' `catchError` handleUError
-  unless (tmU' == tmU''') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U" , tmU'),("prod U" , tmU'')])
+  tmUH''' <- withExceptT UCekP $ liftEither $
+    U.evaluateCekNoEmit defaultCekParametersForTesting tmUH'' `catchError` handleUError
+  unless (tmUH' == tmUH''') $
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U" , tmUH'),("prod U" , tmUH'')])
