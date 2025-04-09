@@ -81,6 +81,7 @@ safeLiftWith
      , MonadError e m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -127,6 +128,7 @@ safeLift
      , MonadError e m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -152,6 +154,7 @@ safeLiftUnopt
      , MonadError e m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -178,6 +181,7 @@ safeLiftProgram
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
@@ -196,6 +200,7 @@ safeLiftProgramUnopt
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
@@ -212,6 +217,7 @@ safeLiftCode
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
@@ -235,6 +241,7 @@ safeLiftCodeUnopt
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
@@ -263,6 +270,7 @@ unsafely ma = runQuote $ do
 -- are applied.
 lift
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -275,6 +283,7 @@ lift v a = unsafely $ safeLift v a
 -- where lifting speed is more important than optimal code.
 liftUnopt
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -286,6 +295,7 @@ liftUnopt v a = unsafely $ safeLiftUnopt v a
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -298,6 +308,7 @@ liftProgram v x = unsafely $ safeLiftProgram v x
 -- where lifting speed is more important than optimal code.
 liftProgramUnopt
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -322,6 +333,7 @@ liftProgramDefUnopt = liftProgramUnopt PLC.latestVersion
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -334,6 +346,7 @@ liftCode v x = unsafely $ safeLiftCode v x
 -- where lifting speed is more important than optimal code.
 liftCodeUnopt
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -345,6 +358,7 @@ liftCodeUnopt v x = unsafely $ safeLiftCodeUnopt v x
 -- | Get a Plutus Core program with the default version, corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCodeDef
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -357,6 +371,7 @@ liftCodeDef = liftCode PLC.latestVersion
 -- where lifting speed is more important than optimal code.
 liftCodeDefUnopt
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
@@ -431,6 +446,7 @@ typeCode
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
+       , PLC.CaseBuiltin (UPLC.Term Name uni fun ()) uni
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)

@@ -7,12 +7,8 @@
       ((\s -> s s)
          (\s x ->
             force
-              (force
-                 (force ifThenElse
-                    (equalsInteger 0 x)
-                    (delay (delay 1))
-                    (delay
-                       (delay
-                          (multiplyInteger
-                             x
-                             ((\x -> s s x) (subtractInteger x 1)))))))))))
+              (case
+                 (equalsInteger 0 x)
+                 [ (delay
+                      (multiplyInteger x ((\x -> s s x) (subtractInteger x 1))))
+                 , (delay 1) ])))))

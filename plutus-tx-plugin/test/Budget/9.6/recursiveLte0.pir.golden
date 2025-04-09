@@ -12,7 +12,7 @@ letrec
   !go : integer -> List integer
     = \(n : integer) ->
         Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          (case Bool (lessThanEqualsInteger n 0) [False, True])
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
@@ -42,5 +42,5 @@ let
 in
 recursiveAll
   {integer}
-  (\(v : integer) -> ifThenElse {Bool} (lessThanEqualsInteger v 0) True False)
+  (\(v : integer) -> case Bool (lessThanEqualsInteger v 0) [False, True])
   ls

@@ -3,4 +3,9 @@ let
     True : Bool
     False : Bool
 in
-5
+Bool_match
+  (case Bool True [False, True])
+  {all dead. integer}
+  (/\dead -> 5)
+  (/\dead -> 6)
+  {all dead. dead}

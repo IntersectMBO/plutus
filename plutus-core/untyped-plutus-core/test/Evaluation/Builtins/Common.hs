@@ -55,6 +55,7 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
 typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        )
     => BuiltinSemanticsVariant fun
     -> CostingPart uni fun
@@ -68,6 +69,7 @@ typecheckEvaluateCek semvar =
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        )
     => BuiltinSemanticsVariant fun
     -> CostingPart uni fun
@@ -81,6 +83,7 @@ typecheckEvaluateCekNoEmit semvar =
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => BuiltinSemanticsVariant fun

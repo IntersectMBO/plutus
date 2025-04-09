@@ -5,7 +5,17 @@
       True : Bool
       False : Bool
   in
-  \(d : data) -> Unit)
+  \(d : data) ->
+    Bool_match
+      (case Bool True [False, True])
+      {all dead. Unit}
+      (/\dead -> Unit)
+      (/\dead ->
+         let
+           !x : Unit = trace {Unit} "Got my sums wrong" Unit
+         in
+         error {Unit})
+      {all dead. dead})
   (Constr 0
      [ Constr 0
          [ List []

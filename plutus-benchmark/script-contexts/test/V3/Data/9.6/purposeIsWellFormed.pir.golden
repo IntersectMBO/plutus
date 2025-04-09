@@ -16,7 +16,7 @@ let
           in
           \(c : integer -> a -> a) (n : a) ->
             Bool_match
-              (ifThenElse {Bool} (lessThanEqualsInteger x 0) False True)
+              (case Bool (lessThanEqualsInteger x 0) [True, False])
               {all dead. a}
               (/\dead -> c x n)
               (/\dead -> n)
@@ -341,26 +341,24 @@ let
                   !tup : pair integer (list data) = unConstrData ds
                 in
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      let
                        !tup : pair integer (list data) = unConstrData ds
                      in
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead ->
-                          ifThenElse
-                            {Bool}
+                          case
+                            Bool
                             (equalsByteString
                                (unBData
                                   (headList
@@ -370,8 +368,7 @@ let
                                   (headList
                                      {data}
                                      (sndPair {integer} {list data} tup))))
-                            True
-                            False)
+                            [False, True])
                        (/\dead -> False)
                        {all dead. dead})
                   (/\dead -> False)
@@ -379,26 +376,24 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
-                  ifThenElse
-                    {Bool}
+                  case
+                    Bool
                     (equalsByteString
                        (unBData
                           (headList {data} (sndPair {integer} {list data} tup)))
@@ -406,8 +401,7 @@ let
                           (headList
                              {data}
                              (sndPair {integer} {list data} tup))))
-                    True
-                    False)
+                    [False, True])
                (/\dead -> fail ())
                {all dead. dead})
           (/\dead -> fail ())
@@ -418,44 +412,40 @@ let
           !fail : unit -> Bool
             = \(ds : unit) ->
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger
                         2
                         (fstPair {integer} {list data} (unConstrData ds)))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
-                     ifThenElse
-                       {Bool}
+                     case
+                       Bool
                        (equalsInteger
                           2
                           (fstPair {integer} {list data} (unConstrData ds)))
-                       True
-                       False)
+                       [False, True])
                   (/\dead -> False)
                   {all dead. dead}
           !fail : unit -> Bool
             = \(ds : unit) ->
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger
                         1
                         (fstPair {integer} {list data} (unConstrData ds)))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger
                              1
                              (fstPair {integer} {list data} (unConstrData ds)))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead -> True)
                        (/\dead -> fail ())
@@ -465,22 +455,20 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
                   `$fEqCredential_$c==`
@@ -498,11 +486,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 2 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -527,11 +514,7 @@ let
                        ds
                        (\(a' : bytestring) (b' : data) ->
                           Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsByteString a a')
-                               True
-                               False)
+                            (case Bool (equalsByteString a a') [False, True])
                             {all dead. Bool}
                             (/\dead -> `$fEqDRep0_$c==` b b')
                             (/\dead -> False)
@@ -544,22 +527,20 @@ let
                   !tup : pair integer (list data) = unConstrData ds
                 in
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      let
                        !tup : pair integer (list data) = unConstrData ds
                      in
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead ->
                           `$fEqDRep0_$c==`
@@ -576,26 +557,24 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
-                  ifThenElse
-                    {Bool}
+                  case
+                    Bool
                     (equalsByteString
                        (unBData
                           (headList {data} (sndPair {integer} {list data} tup)))
@@ -603,8 +582,7 @@ let
                           (headList
                              {data}
                              (sndPair {integer} {list data} tup))))
-                    True
-                    False)
+                    [False, True])
                (/\dead -> fail ())
                {all dead. dead})
           (/\dead -> fail ())
@@ -617,11 +595,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 9 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -638,11 +615,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 2 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -658,11 +634,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 4 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -683,11 +658,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 3 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -718,12 +692,12 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 1 index) True False)
+            (case Bool (equalsInteger 1 index) [False, True])
             {all dead. Maybe a}
             (/\dead -> Nothing {a})
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 (case Bool (equalsInteger 0 index) [False, True])
                  {all dead. Maybe a}
                  (/\dead ->
                     Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -740,11 +714,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 0 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -766,11 +739,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 6 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -791,11 +763,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 1 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -859,13 +830,12 @@ let
                   False
                   (\(hd : pair data data) ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsData
                              (`$dToData` ds)
                              (fstPair {data} {data} hd))
-                          True
-                          False)
+                          [False, True])
                        {all dead. list (pair data data) -> Bool}
                        (/\dead -> \(ds : list (pair data data)) -> True)
                        (/\dead -> go)
@@ -875,7 +845,7 @@ let
   !null : all a. (\a -> list data) a -> Bool
     = /\a ->
         \(eta : (\a -> list data) a) ->
-          ifThenElse {Bool} (nullList {data} eta) True False
+          case Bool (nullList {data} eta) [False, True]
   !txOutRefId : data -> bytestring
     = \(ds : data) ->
         unBData
@@ -905,11 +875,10 @@ in
       !tup : pair integer (list data) = unConstrData scriptInfo
     in
     Bool_match
-      (ifThenElse
-         {Bool}
+      (case
+         Bool
          (equalsInteger 0 (fstPair {integer} {list data} tup))
-         True
-         False)
+         [False, True])
       {all dead. Bool}
       (/\dead ->
          (let
@@ -960,11 +929,10 @@ in
            !tup : pair integer (list data) = unConstrData scriptInfo
          in
          Bool_match
-           (ifThenElse
-              {Bool}
+           (case
+              Bool
               (equalsInteger 1 (fstPair {integer} {list data} tup))
-              True
-              False)
+              [False, True])
            {all dead. Bool}
            (/\dead ->
               let
@@ -1001,20 +969,18 @@ in
                              !l : data = headList {data} l
                            in
                            Bool_match
-                             (ifThenElse
-                                {Bool}
+                             (case
+                                Bool
                                 (equalsByteString (txOutRefId l) (txOutRefId v))
-                                True
-                                False)
+                                [False, True])
                              {all dead. Bool}
                              (/\dead ->
-                                ifThenElse
-                                  {Bool}
+                                case
+                                  Bool
                                   (equalsInteger
                                      (txOutRefIdx l)
                                      (txOutRefIdx v))
-                                  True
-                                  False)
+                                  [False, True])
                              (/\dead -> False)
                              {all dead. dead})
                         (unListData (headList {data} l))))
@@ -1024,11 +990,10 @@ in
                 !tup : pair integer (list data) = unConstrData scriptInfo
               in
               Bool_match
-                (ifThenElse
-                   {Bool}
+                (case
+                   Bool
                    (equalsInteger 2 (fstPair {integer} {list data} tup))
-                   True
-                   False)
+                   [False, True])
                 {all dead. Bool}
                 (/\dead ->
                    member
@@ -1042,11 +1007,10 @@ in
                      !tup : pair integer (list data) = unConstrData scriptInfo
                    in
                    Bool_match
-                     (ifThenElse
-                        {Bool}
+                     (case
+                        Bool
                         (equalsInteger 3 (fstPair {integer} {list data} tup))
-                        True
-                        False)
+                        [False, True])
                      {all dead. Bool}
                      (/\dead ->
                         let
@@ -1073,16 +1037,15 @@ in
                                             = unConstrData eta
                                         in
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger
                                                 10
                                                 (fstPair
                                                    {integer}
                                                    {list data}
                                                    tup))
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
                                              let
@@ -1090,16 +1053,15 @@ in
                                                  = unConstrData v
                                              in
                                              Bool_match
-                                               (ifThenElse
-                                                  {Bool}
+                                               (case
+                                                  Bool
                                                   (equalsInteger
                                                      10
                                                      (fstPair
                                                         {integer}
                                                         {list data}
                                                         tup))
-                                                  True
-                                                  False)
+                                                  [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
@@ -1154,11 +1116,10 @@ in
                                                     (`$fEqCredential_$c==` a a')
                                                     {all dead. Bool}
                                                     (/\dead ->
-                                                       ifThenElse
-                                                         {Bool}
+                                                       case
+                                                         Bool
                                                          (equalsInteger b b')
-                                                         True
-                                                         False)
+                                                         [False, True])
                                                     (/\dead -> False)
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
@@ -1170,16 +1131,15 @@ in
                                             = unConstrData eta
                                         in
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger
                                                 5
                                                 (fstPair
                                                    {integer}
                                                    {list data}
                                                    tup))
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
                                              let
@@ -1187,16 +1147,15 @@ in
                                                  = unConstrData v
                                              in
                                              Bool_match
-                                               (ifThenElse
-                                                  {Bool}
+                                               (case
+                                                  Bool
                                                   (equalsInteger
                                                      5
                                                      (fstPair
                                                         {integer}
                                                         {list data}
                                                         tup))
-                                                  True
-                                                  False)
+                                                  [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
@@ -1230,11 +1189,10 @@ in
                                                     (`$fEqCredential_$c==` a a')
                                                     {all dead. Bool}
                                                     (/\dead ->
-                                                       ifThenElse
-                                                         {Bool}
+                                                       case
+                                                         Bool
                                                          (equalsInteger b b')
-                                                         True
-                                                         False)
+                                                         [False, True])
                                                     (/\dead -> False)
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
@@ -1263,13 +1221,12 @@ in
                                                             b')
                                                          {all dead. Bool}
                                                          (/\dead ->
-                                                            ifThenElse
-                                                              {Bool}
+                                                            case
+                                                              Bool
                                                               (equalsInteger
                                                                  c
                                                                  c')
-                                                              True
-                                                              False)
+                                                              [False, True])
                                                          (/\dead -> False)
                                                          {all dead. dead})
                                                     (/\dead -> False)
@@ -1327,13 +1284,13 @@ in
                                                                 (\(a :
                                                                      integer) ->
                                                                    /\dead ->
-                                                                     ifThenElse
-                                                                       {Bool}
+                                                                     case
+                                                                       Bool
                                                                        (equalsInteger
                                                                           a
                                                                           a)
-                                                                       True
-                                                                       False)
+                                                                       [ False
+                                                                       , True ])
                                                                 (/\dead ->
                                                                    False)
                                                                 {all dead.
@@ -1379,13 +1336,12 @@ in
                                                         {all dead. Bool}
                                                         (\(a : integer) ->
                                                            /\dead ->
-                                                             ifThenElse
-                                                               {Bool}
+                                                             case
+                                                               Bool
                                                                (equalsInteger
                                                                   a
                                                                   a)
-                                                               True
-                                                               False)
+                                                               [False, True])
                                                         (/\dead -> False)
                                                         {all dead. dead})
                                                  (/\dead ->
@@ -1409,13 +1365,12 @@ in
                             = unConstrData scriptInfo
                         in
                         Bool_match
-                          (ifThenElse
-                             {Bool}
+                          (case
+                             Bool
                              (equalsInteger
                                 4
                                 (fstPair {integer} {list data} tup))
-                             True
-                             False)
+                             [False, True])
                           {all dead. Bool}
                           (/\dead ->
                              member
@@ -1445,13 +1400,12 @@ in
                                  = unConstrData scriptInfo
                              in
                              Bool_match
-                               (ifThenElse
-                                  {Bool}
+                               (case
+                                  Bool
                                   (equalsInteger
                                      5
                                      (fstPair {integer} {list data} tup))
-                                  True
-                                  False)
+                                  [False, True])
                                {all dead. Bool}
                                (/\dead ->
                                   let

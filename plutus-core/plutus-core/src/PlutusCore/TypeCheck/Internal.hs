@@ -18,8 +18,7 @@ module PlutusCore.TypeCheck.Internal
     , MonadNormalizeType
     ) where
 
-import PlutusCore.Builtin.KnownKind (ToKind, kindOfBuiltinType)
-import PlutusCore.Builtin.Result (throwing)
+import PlutusCore.Builtin
 import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
 import PlutusCore.Error (AsTypeError (_TypeError), ExpectedShapeOr (ExpectedExact, ExpectedShape),
                          TypeError (FreeTypeVariableE, FreeVariableE, KindMismatch, NameMismatch, TyNameMismatch, TypeMismatch, UnknownBuiltinFunctionE))
@@ -200,12 +199,13 @@ type MonadKindCheck err term uni fun ann m =
 
 -- | The general constraints that are required for type checking a Plutus AST.
 type MonadTypeCheck err term uni fun ann m =
-    ( MonadKindCheck err term uni fun ann m  -- Kind checking is run during type checking
-                                             -- (this includes the constraint for throwing errors).
+    ( MonadKindCheck err term uni fun ann m  -- Kind checking is run during type checking (this
+                                             -- includes the constraint for throwing errors).
     , Norm.MonadNormalizeType uni m          -- Type lambdas open up type computation.
+    , AnnotateCaseBuiltin uni
     , GEq uni                                -- For checking equality of built-in types.
-    , Ix fun                                 -- For indexing into the precomputed array of types of
-                                             -- built-in functions.
+    , Ix fun                                 -- For indexing into the precomputed array of
+                                             -- types of built-in functions.
     )
 
 -- | The constraints that are required for type checking Plutus Core.
@@ -557,22 +557,27 @@ inferTypeM t@(Constr ann resTy i args) = do
 -- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
 -- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
-inferTypeM (Case ann resTy scrut cases) = do
+inferTypeM (Case ann resTy scrut branches) = do
     vResTy <- normalizeTypeM $ void resTy
     vScrutTy <- inferTypeM scrut
 
     -- We don't know exactly what to expect, we only know that it should
     -- be a SOP with the right number of sum alternatives
-    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length cases - 1]
+    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length branches - 1]
         expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
     case unNormalized vScrutTy of
-        TySOP _ sTys -> case zipExact cases sTys of
-            Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+        TySOP _ sTys -> case zipExact branches sTys of
+            Just branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
-            -- for the number of cases
+            -- for the number of branches
             Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        TyBuiltin _ someUni -> case annotateCaseBuiltin someUni branches of
+            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
+                -- made of sub-parts of a normalized type, so normalized
+                checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
+            Left () -> undefined
         -- scrutinee does not have a SOP type at all
         _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 

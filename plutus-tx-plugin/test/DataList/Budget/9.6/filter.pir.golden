@@ -23,7 +23,7 @@ letrec
                !h : integer = unIData x
              in
              Bool_match
-               (ifThenElse {Bool} (lessThanInteger h 8) False True)
+               (case Bool (lessThanInteger h 8) [True, False])
                {all dead. (\a -> list data) integer}
                (/\dead ->
                   let

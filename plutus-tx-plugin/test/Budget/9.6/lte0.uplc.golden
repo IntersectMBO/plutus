@@ -9,20 +9,14 @@
               , (\x xs ->
                    delay
                      (force
-                        (force
-                           (force ifThenElse
-                              (lessThanEqualsInteger x 0)
-                              (delay (delay (s s xs)))
-                              (delay (delay (constr 1 []))))))) ]))
+                        (case
+                           (lessThanEqualsInteger x 0)
+                           [(delay (constr 1 [])), (delay (s s xs))]))) ]))
       ((\s -> s s)
          (\s n ->
             force
-              (force
-                 (force ifThenElse
-                    (lessThanEqualsInteger n 0)
-                    (delay (delay (constr 0 [])))
-                    (delay
-                       (delay
-                          (constr 1
-                             [0, ((\x -> s s x) (subtractInteger n 1))]))))))
+              (case
+                 (lessThanEqualsInteger n 0)
+                 [ (delay (constr 1 [0, ((\x -> s s x) (subtractInteger n 1))]))
+                 , (delay (constr 0 [])) ]))
          1000)))

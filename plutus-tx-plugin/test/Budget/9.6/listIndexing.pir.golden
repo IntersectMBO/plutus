@@ -11,6 +11,9 @@ in
 let
   data Unit | Unit_match where
     Unit : Unit
+  !traceError : all a. string -> a
+    = /\a ->
+        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
 in
 letrec
   !go : integer -> List data -> data
@@ -19,15 +22,21 @@ letrec
           {data}
           ds
           {all dead. data}
-          (/\dead -> let !x : Unit = trace {Unit} "PT7" Unit in error {data})
+          (/\dead -> traceError {data} "PT7")
           (\(x : data) (xs : List data) ->
              /\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 ds) True False)
+                 (case Bool (equalsInteger 0 ds) [False, True])
                  {all dead. data}
                  (/\dead -> x)
                  (/\dead -> go (subtractInteger ds 1) xs)
                  {all dead. dead})
           {all dead. dead}
 in
-\(xs : List data) -> go 5 xs
+\(xs : List data) ->
+  Bool_match
+    (case Bool False [False, True])
+    {all dead. data}
+    (/\dead -> traceError {data} "PT6")
+    (/\dead -> go 5 xs)
+    {all dead. dead}

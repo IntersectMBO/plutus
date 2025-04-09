@@ -28,7 +28,7 @@ letrec
                  {Bool}
                  (\(ds : bytestring) (x : integer) ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 0 x) True False)
+                      (case Bool (equalsInteger 0 x) [False, True])
                       {all dead. Bool}
                       (/\dead -> go xs)
                       (/\dead -> False)
@@ -36,6 +36,8 @@ letrec
           {all dead. dead}
 in
 let
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   data (These :: * -> * -> *) a b | These_match where
     That : b -> These a b
     These : a -> b -> These a b
@@ -200,7 +202,7 @@ in
 let
   !equalsByteString : bytestring -> bytestring -> Bool
     = \(x : bytestring) (y : bytestring) ->
-        ifThenElse {Bool} (equalsByteString x y) True False
+        case Bool (equalsByteString x y) [False, True]
   !union :
      all k v r.
        (\a -> a -> a -> Bool) k ->
@@ -796,10 +798,9 @@ in
                {bytestring}
                {integer}
                equalsByteString
-               (\(v : integer) ->
-                  ifThenElse {Bool} (equalsInteger 0 v) True False)
+               (\(v : integer) -> case Bool (equalsInteger 0 v) [False, True])
                (\(x : integer) (y : integer) ->
-                  ifThenElse {Bool} (equalsInteger x y) True False))
+                  case Bool (equalsInteger x y) [False, True]))
             l
             r)
          {all dead. Bool}

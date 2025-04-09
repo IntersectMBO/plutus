@@ -3,4 +3,9 @@ let
     True : Bool
     False : Bool
 in
-18
+Bool_match
+  (case Bool True [False, True])
+  {integer -> integer}
+  (\(x : integer) -> addInteger 5 x)
+  (\(x : integer) -> addInteger 3 (addInteger 3 x))
+  13
