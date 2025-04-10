@@ -1,0 +1,18 @@
+letrec
+  ~go : list integer -> list integer
+    = (let
+          r = list integer
+        in
+        \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+          chooseList
+            {integer}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+            {r})
+        []
+        (\(x : integer) (xs : list integer) ->
+           mkCons {integer} (addInteger 1 x) (go xs))
+in
+go
