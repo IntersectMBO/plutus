@@ -8,16 +8,14 @@ module Transform.Inline.Spec where
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (runStateT)
 import Data.MultiSet qualified as MultiSet
-import Data.Text qualified as Text
-import Numeric.Natural (Natural)
 import PlutusCore.Annotation (Inline (MayInline))
-import PlutusCore.Default (DefaultFun (AddInteger))
 import PlutusCore.Quote (runQuote)
 import PlutusCore.Size (Size (..))
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, testCase)
-import UntypedPlutusCore (DefaultUni, Name (..), Term (..), Unique (..))
+import UntypedPlutusCore (DefaultFun, DefaultUni, Name (..), Term (..))
+import UntypedPlutusCore.Test.Term.Construction (addInteger, uniqueNames3, var)
 import UntypedPlutusCore.Transform.Inline (InlineHints (InlineHints), InlineInfo (..), InlineM,
                                            S (..), Subst (Subst), TermEnv (TermEnv),
                                            isFirstVarBeforeEffects)
@@ -35,30 +33,33 @@ test_inline =
 
 testVarBeforeEffects :: IO ()
 testVarBeforeEffects = do
-  assertBool "var1 is evaluated before effects" do
-    testFirstVarBeforeEffects (varName 1) term
-  assertBool "var2 is evaluated before effects" do
-    testFirstVarBeforeEffects (varName 2) term
+  assertBool "a is evaluated before effects" do
+    testFirstVarBeforeEffects a term
+  assertBool "b is evaluated before effects" do
+    testFirstVarBeforeEffects b term
 
 testVarAfterEffects :: IO ()
 testVarAfterEffects = do
-  assertBool "var3 is not evaluated after effects" $ not do
-    testFirstVarBeforeEffects (varName 3) term
+  assertBool "c is not evaluated after effects" $ not do
+    testFirstVarBeforeEffects c term
 
 --------------------------------------------------------------------------------
--- Test term: ------------------------------------------------------------------
+-- Test terms ------------------------------------------------------------------
 
 term :: Term Name DefaultUni DefaultFun ()
 term =
   {- Evaluation order:
 
-    1. pure work-free: var1
-    2. pure work-free: var2
-    3. impure? maybe work?: addInteger var1 var2
-    4. pure work-free: var3
-    5. impure? maybe work?: addInteger (addInteger var1 var2) var3
+    1. pure work-free: a
+    2. pure work-free: b
+    3. impure? maybe work?: addInteger a b
+    4. pure work-free: c
+    5. impure? maybe work?: addInteger (addInteger a b) c
   -}
-  add `ap` (add `ap` varTerm 1 `ap` varTerm 2) `ap` varTerm 3
+  addInteger (addInteger (var a) (var b)) (var c)
+
+a, b, c :: Name
+(a, b, c) = uniqueNames3 "a" "b" "c"
 
 --------------------------------------------------------------------------------
 -- Helper functions: -----------------------------------------------------------
@@ -84,17 +85,3 @@ runInlineM m = result
 
   initialState :: S Name DefaultUni DefaultFun ()
   initialState = S{_subst = Subst (TermEnv mempty), _vars = mempty}
-
--- Term construction: ----------------------------------------------------------
-
-varName :: Natural -> Name
-varName n = Name ("var" <> Text.pack (show n)) (Unique (fromIntegral n))
-
-varTerm :: Natural -> Term Name DefaultUni DefaultFun ()
-varTerm n = Var () (varName n)
-
-ap :: Term name uni fun () -> Term name uni fun () -> Term name uni fun ()
-ap = Apply ()
-
-add :: Term Name DefaultUni DefaultFun ()
-add = Builtin () AddInteger
