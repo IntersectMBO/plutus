@@ -437,5 +437,10 @@ main =
               , $(genTest 2 "rotateByteString")    Everywhere
               , $(genTest 1 "countSetBits")
               , $(genTest 1 "findFirstSetBit")
+
+              -- Hydra Extras
+              , $(genTest 1 "sha2_512")
+              , $(genTest 1 "sha3_512")
+
               ]
 

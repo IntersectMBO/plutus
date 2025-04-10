@@ -150,3 +150,5 @@ isCommutative = \case
   FindFirstSetBit                 -> False
   ExpModInteger           -> False
   DropList -> False
+  Sha2_512 -> False
+  Sha3_512 -> False

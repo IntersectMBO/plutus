@@ -143,6 +143,9 @@ module PlutusTx.Builtins (
                          , rotateByteString
                          , countSetBits
                          , findFirstSetBit
+                         -- Hydra Extras
+                         , sha2_512
+                         , sha3_512
                          ) where
 
 import Data.Maybe
@@ -886,3 +889,15 @@ expModInteger ::
   Integer
 expModInteger = BI.expModInteger
 {-# INLINEABLE expModInteger #-}
+
+-- | The SHA2-512 hash of a 'ByteString'
+sha2_512 :: BuiltinByteString -> BuiltinByteString
+sha2_512 = BI.sha2_512
+{-# INLINABLE sha2_512 #-}
+
+-- | The SHA3-512 hash of a 'ByteString'
+sha3_512 :: BuiltinByteString -> BuiltinByteString
+sha3_512 = BI.sha3_512
+{-# INLINABLE sha3_512 #-}
+
+

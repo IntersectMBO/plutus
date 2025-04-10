@@ -305,6 +305,8 @@ builtinNames = [
     , 'Builtins.findFirstSetBit
 
     , 'Builtins.expModInteger
+    , 'Builtins.sha2_512
+    , 'Builtins.sha3_512
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -608,6 +610,9 @@ defineBuiltinTerms = do
             PLC.FindFirstSetBit -> defineBuiltinInl 'Builtins.findFirstSetBit
 
             PLC.ExpModInteger -> defineBuiltinInl 'Builtins.expModInteger
+
+            PLC.Sha2_512 -> defineBuiltinInl 'Builtins.sha2_512
+            PLC.Sha3_512 -> defineBuiltinInl 'Builtins.sha3_512
 
 defineBuiltinTypes :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTypes = do

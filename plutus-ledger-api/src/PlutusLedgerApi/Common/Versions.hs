@@ -124,7 +124,8 @@ builtinsIntroducedIn = Map.fromList [
           AndByteString, OrByteString, XorByteString, ComplementByteString,
           ReadBit, WriteBits, ReplicateByte,
           ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
-          Ripemd_160
+          Ripemd_160,
+          Sha2_512, Sha3_512
           ]),
   ((PlutusV3, futurePV), Set.fromList [
           ExpModInteger,

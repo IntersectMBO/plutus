@@ -129,6 +129,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLengthOfArray                   = "lengthOfArrayModel"
   , paramListToArray                     = "listToArrayModel"
   , paramIndexArray                      = "indexArrayModel"
+  , paramSha2_512                        = "sha2_512Model"
+  , paramSha3_512                        = "sha3_512Model"
   }
 
 
@@ -277,6 +279,8 @@ createBuiltinCostModel bmfile rfile = do
   paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
   paramListToArray                     <- getParams readCF1 paramListToArray
   paramIndexArray                      <- getParams readCF2 paramIndexArray
+  paramSha2_512                        <- getParams readCF1 paramSha2_512
+  paramSha3_512                        <- getParams readCF1 paramSha3_512
 
   pure $ BuiltinCostModelBase {..}
 

@@ -223,6 +223,14 @@ BUILTIN sha3-256 = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (SHA3-256 b))
   ; _ -> inj₁ userError
   }
+BUILTIN sha2-512 = λ
+  { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (SHA2-512 b))
+  ; _ -> inj₁ userError
+  }
+BUILTIN sha3-512 = λ
+  { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (SHA3-512 b))
+  ; _ -> inj₁ userError
+  }
 BUILTIN blake2b-256 = λ
   { (app base (V-con bytestring b)) -> inj₂ (V-con bytestring (BLAKE2B-256 b))
   ; _ -> inj₁ userError

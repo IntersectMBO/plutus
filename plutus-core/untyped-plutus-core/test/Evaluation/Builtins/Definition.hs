@@ -992,6 +992,8 @@ test_HashSizes =
         , test_HashSize Keccak_256      256
         , test_HashSize Blake2b_224     224
         , test_HashSize Ripemd_160      160
+        , test_HashSize Sha2_512        512
+        , test_HashSize Sha3_512        512
         ]
 
 -- Test all remaining builtins of the default universe

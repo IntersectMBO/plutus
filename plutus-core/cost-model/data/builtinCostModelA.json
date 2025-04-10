@@ -1166,5 +1166,31 @@
             "arguments": 4,
             "type": "constant_cost"
         }
+    },
+    "sha2_512": {
+        "cpu": {
+            "arguments": {
+                "intercept": 806990,
+                "slope": 30482
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+    "sha3_512": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1927926,
+                "slope": 82523
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
     }
 }

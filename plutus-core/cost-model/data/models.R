@@ -574,6 +574,8 @@ modelFun <- function(path) {
 
     sha2_256Model    <- linearInX ("Sha2_256")
     sha3_256Model    <- linearInX ("Sha3_256")
+    sha2_512odel    <- linearInX ("Sha2_512")
+    sha3_512Model    <- linearInX ("Sha3_512")
     blake2b_224Model <- linearInX ("Blake2b_224")
     blake2b_256Model <- linearInX ("Blake2b_256")
     keccak_256Model  <- linearInX ("Keccak_256")
@@ -811,6 +813,8 @@ modelFun <- function(path) {
         lessThanEqualsByteStringModel        = lessThanEqualsByteStringModel,
         sha2_256Model                        = sha2_256Model,
         sha3_256Model                        = sha3_256Model,
+        sha2_512Model                        = sha2_512Model,
+        sha3_512Model                        = sha3_512Model,
         blake2b_224Model                     = blake2b_224Model,
         blake2b_256Model                     = blake2b_256Model,
         keccak_256Model                      = keccak_256Model,

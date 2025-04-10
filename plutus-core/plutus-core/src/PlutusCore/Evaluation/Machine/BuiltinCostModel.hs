@@ -191,6 +191,9 @@ data BuiltinCostModelBase f =
     , paramLengthOfArray                   :: f ModelOneArgument
     , paramListToArray                     :: f ModelOneArgument
     , paramIndexArray                      :: f ModelTwoArguments
+    -- Hydra Extras
+    , paramSha2_512                        :: f ModelOneArgument
+    , paramSha3_512                        :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

@@ -176,5 +176,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost    99
   , paramListToArray                     = Id $ ModelOneArgumentConstantCost    99
   , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost   99
+  , paramSha2_512                        = Id $ hashMemModel Hash.sha2_512
+  , paramSha3_512                        = Id $ hashMemModel Hash.sha3_512
   }
   where identityFunction = OneVariableLinearFunction 0 1

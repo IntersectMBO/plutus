@@ -159,6 +159,12 @@ sha2_256-memory-arguments
 sha3_256-cpu-arguments-intercept
 sha3_256-cpu-arguments-slope
 sha3_256-memory-arguments
+sha2_512-cpu-arguments-intercept
+sha2_512-cpu-arguments-slope
+sha2_512-memory-arguments
+sha3_512-cpu-arguments-intercept
+sha3_512-cpu-arguments-slope
+sha3_512-memory-arguments
 sliceByteString-cpu-arguments-intercept
 sliceByteString-cpu-arguments-slope
 sliceByteString-memory-arguments-intercept

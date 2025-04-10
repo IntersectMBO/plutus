@@ -158,6 +158,12 @@ data ParamName =
   | Sha3_256'cpu'arguments'intercept
   | Sha3_256'cpu'arguments'slope
   | Sha3_256'memory'arguments
+  | Sha2_512'cpu'arguments'intercept
+  | Sha2_512'cpu'arguments'slope
+  | Sha2_512'memory'arguments
+  | Sha3_512'cpu'arguments'intercept
+  | Sha3_512'cpu'arguments'slope
+  | Sha3_512'memory'arguments
   | SliceByteString'cpu'arguments'intercept
   | SliceByteString'cpu'arguments'slope
   | SliceByteString'memory'arguments'intercept

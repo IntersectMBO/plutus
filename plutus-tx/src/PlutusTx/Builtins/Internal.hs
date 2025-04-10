@@ -889,3 +889,11 @@ expModInteger b e m =
     BuiltinSuccess bs -> toInteger bs
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ toInteger bs
 {-# OPAQUE expModInteger #-}
+
+sha2_512 :: BuiltinByteString -> BuiltinByteString
+sha2_512 (BuiltinByteString b) = BuiltinByteString $ Hash.sha2_512 b
+{-# OPAQUE sha2_512 #-}
+
+sha3_512 :: BuiltinByteString -> BuiltinByteString
+sha3_512 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3_512 b
+{-# OPAQUE sha3_512 #-}
