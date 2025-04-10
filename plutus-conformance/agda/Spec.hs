@@ -6,6 +6,7 @@ module Main (main) where
 import Control.Monad.Trans.Except (ExceptT, runExceptT, withExceptT)
 
 import MAlonzo.Code.Evaluator.Term (runUAgda, runUCountingAgda)
+import Raw (fromHaskellUTerm, toHaskellUTerm)
 
 import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
 import PlutusCore (Error (..))
@@ -76,7 +77,7 @@ agdaEvalUplcProg WithCosting =
              Left _ -> Nothing
              -- evaluate the untyped term with the CEK evaluator
              Right tmUDBSuccess ->
-                 case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
+                 case runUCountingAgda (toRawCostModel modelParams) (fromHaskellUTerm tmUDBSuccess) of
                    Left _ -> Nothing
                    Right (tmEvaluated,(cpuCost,memCost)) ->
                        -- turn it back into a named term
@@ -85,7 +86,7 @@ agdaEvalUplcProg WithCosting =
                          Left _          -> Nothing
                          Right namedTerm ->
                              let  cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
-                             in Just (UPLC.Program () version namedTerm , cost)
+                             in Just (UPLC.Program () version (toHaskellUTerm namedTerm) , cost)
 
 agdaEvalUplcProg WithoutCosting =
     UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
@@ -94,13 +95,13 @@ agdaEvalUplcProg WithoutCosting =
         in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
              Left _ -> Nothing
              Right tmUDBSuccess ->
-                 case runUAgda tmUDBSuccess of
+                 case runUAgda (fromHaskellUTerm tmUDBSuccess) of
                    Left _ -> Nothing
                    Right tmEvaluated ->
                        case runQuote $ runExceptT $
                             withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
                          Left _          -> Nothing
-                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
+                         Right namedTerm -> Just $ UPLC.Program () version (toHaskellUTerm namedTerm)
 
 {- | A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the
