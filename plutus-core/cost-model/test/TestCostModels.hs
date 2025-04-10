@@ -379,6 +379,11 @@ main =
               , $(genTest 1 "tailList")
               , $(genTest 1 "nullList")
 
+              -- Arrays
+              , $(genTest 1 "lengthOfArray")
+              , $(genTest 1 "listToArray")
+              , $(genTest 2 "indexArray") Everywhere
+
               -- Data
               , $(genTest 6 "chooseData")
               , $(genTest 2 "constrData") Everywhere
