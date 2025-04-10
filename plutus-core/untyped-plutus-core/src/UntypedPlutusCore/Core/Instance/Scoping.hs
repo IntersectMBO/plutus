@@ -15,7 +15,7 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Data.Proxy
-import Data.Vector qualified as Vector
+import GHC.IsList (fromList)
 
 firstBound :: Term name uni fun ann -> [name]
 firstBound (Apply _ (LamAbs _ name body) _) = name : firstBound body
@@ -41,7 +41,7 @@ instance name ~ Name => EstablishScoping (Term name uni fun) where
     establishScoping (Constr _ i es) = Constr NotAName <$> pure i <*> traverse establishScoping es
     establishScoping (Case _ a es) = do
         esScoped <- traverse establishScoping es
-        let esScopedPoked = addTheRest . map (\e -> (e, firstBound e)) $ Vector.toList esScoped
+        let esScopedPoked = addTheRest . map (\e -> (e, firstBound e)) $ toList esScoped
             branchBounds = map (snd . fst) esScopedPoked
             referenceInBranch ((branch, _), others) = referenceOutOfScope (map snd others) branch
         aScoped <- establishScoping a
@@ -49,7 +49,7 @@ instance name ~ Name => EstablishScoping (Term name uni fun) where
         -- in all the other ones, as well as outside of the whole case-expression. This is to check
         -- that none of the transformations leak variables outside of the branch they're bound in.
         pure . referenceOutOfScope branchBounds $
-            Case NotAName aScoped . Vector.fromList $ map referenceInBranch esScopedPoked
+            Case NotAName aScoped . fromList $ map referenceInBranch esScopedPoked
 
 instance name ~ Name => EstablishScoping (Program name uni fun) where
     establishScoping (Program _ ver term) = Program NotAName ver <$> establishScoping term
