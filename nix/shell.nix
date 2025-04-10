@@ -49,14 +49,14 @@ let
       };
       editorconfig-checker = {
         enable = true;
-        args = [ "-config" ".editorconfig" ];
+        args = [ "-config" ".editorconfig-checker.json" ];
         package = pkgs.editorconfig-checker;
       };
     };
   };
 
   linux-pkgs = lib.optionals pkgs.hostPlatform.isLinux [
-    pkgs.papi
+    # pkgs.papi # TODO broken in latest nixpkgs
   ];
 
   common-pkgs = [
@@ -68,7 +68,7 @@ let
 
     tools.haskell-language-server
     tools.stylish-haskell
-    tools.fourmolu
+    # tools.fourmolu TODO broken with ghc967
     tools.cabal
     tools.hlint
     tools.cabal-fmt
@@ -135,7 +135,7 @@ let
 
   shell = {
     ghc8107 = quick-shell;
-    ghc966 = full-shell;
+    ghc967 = full-shell;
     ghc984 = quick-shell;
     ghc9101 = quick-shell;
   }.${project.args.compiler-nix-name};
