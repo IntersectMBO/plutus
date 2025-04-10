@@ -123,12 +123,14 @@ benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      as = fmap (\n -> pow 2 (160*n) - 999) [25,50..625]  -- up to 2^10000 - 999
+      as = (pow 2 255 -19) : fmap (\n -> pow 2 (160*n) - 999) [25,50..625]  -- up to 2^10000 - 999
       bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
       -- ^ Largest number less than modulus with binary expansion 1111...1
       -- Should be about worst case
-      moduli = fmap (\n -> pow 2 (80*n) - 11) [1, 3..25]
+--      moduli = fmap (\n -> pow 2 (80*n) - 11) [1, 3..25]
+--      Byte sizes = [10,30,50,70,90,110,130,150,170,190,210,230,250] : up to 2^2000
       -- ^ Approximately [2^40, 2^80, ..., 2^1000], but we don't want powers of 2
+      moduli = fmap (\n -> pow 2 (16*n) - 11) [1, 3..25] -- Up to 2^400
       -- as = fmap (\n -> n `div` 3) moduli
 
   in createThreeTermBuiltinBenchWithWrappers
