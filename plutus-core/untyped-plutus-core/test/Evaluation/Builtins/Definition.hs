@@ -72,6 +72,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Extras qualified as TE
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.QuickCheck qualified as QC
@@ -1248,7 +1249,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-        , test_TrackCostsRetaining
+        , TE.ignoreTestIfHpcEnabled test_TrackCostsRetaining
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere

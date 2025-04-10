@@ -200,6 +200,7 @@ test-suite plutus-ledger-api-test
     , prettyprinter
     , serialise
     , tasty
+    , tasty-expected-failure
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
