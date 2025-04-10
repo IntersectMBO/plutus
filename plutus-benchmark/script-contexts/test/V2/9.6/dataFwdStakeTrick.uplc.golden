@@ -1,40 +1,28 @@
 (program
    1.1.0
    (\obsScriptCred ->
-      (\go
-        ctx ->
+      (\go ctx ->
          (\ds ->
             (\wdrlAtZero ->
                (\rest ->
                   (\wdrlAtOne ->
                      force
-                       (force
-                          (force
-                             ifThenElse
-                             (equalsData obsScriptCred wdrlAtZero)
-                             (delay (delay (constr 0 [])))
-                             (delay
-                                (delay
-                                   (force
-                                      (force
-                                         (force
-                                            ifThenElse
-                                            (equalsData obsScriptCred wdrlAtOne)
-                                            (delay (delay (constr 0 [])))
-                                            (delay
-                                               (delay
-                                                  (force
-                                                     (case
-                                                        (force go rest)
-                                                        [ (delay (constr 0 []))
-                                                        , (delay
-                                                             ((\x ->
-                                                                 error)
-                                                                (force
-                                                                   trace
-                                                                   "not found"
-                                                                   (constr 0
-                                                                      [  ])))) ]))))))))))))
+                       (force ifThenElse
+                          (equalsData obsScriptCred wdrlAtZero)
+                          (delay (constr 0 []))
+                          (delay
+                             (force
+                                (force ifThenElse
+                                   (equalsData obsScriptCred wdrlAtOne)
+                                   (delay (constr 0 []))
+                                   (delay
+                                      (case
+                                         (force go rest)
+                                         [ (constr 0 [])
+                                         , ((\x -> error)
+                                              (force trace
+                                                 "not found"
+                                                 (constr 0 []))) ])))))))
                     (force (force fstPair) (force headList rest)))
                  (force tailList ds))
               (force (force fstPair) (force headList ds)))
@@ -61,15 +49,11 @@
                         (delay (constr 1 []))
                         (delay
                            (force
-                              (force
-                                 (force ifThenElse
-                                    (equalsData
-                                       obsScriptCred
-                                       (force (force fstPair)
-                                          (force headList xs)))
-                                    (delay (delay (\ds -> constr 0 [])))
-                                    (delay
-                                       (delay
-                                          (force (s s (delay (\x -> x))))))))
+                              (force ifThenElse
+                                 (equalsData
+                                    obsScriptCred
+                                    (force (force fstPair) (force headList xs)))
+                                 (delay (\ds -> constr 0 []))
+                                 (delay (force (s s (delay (\x -> x))))))
                               (force tailList xs))))))
            (delay (\x -> x)))))

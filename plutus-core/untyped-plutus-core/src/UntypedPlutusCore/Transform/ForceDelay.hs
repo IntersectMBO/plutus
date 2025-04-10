@@ -135,12 +135,13 @@ module UntypedPlutusCore.Transform.ForceDelay
     ( forceDelay
     ) where
 
+import PlutusPrelude
+
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceDelay), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens (transformOf)
-import Control.Monad (guard)
 import Data.Foldable as Foldable (foldl')
 
 {- | Traverses the term, for each node applying the optimisation
@@ -161,11 +162,15 @@ forceDelay term = do
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
     Force _ (Delay _ t) -> t
+    original@(Force _ (Case ann scrutinee branches)) ->
+        maybe original (Case ann scrutinee) . for branches $ \case
+            Delay _ t -> Just t
+            _         -> Nothing
     original@(Force _ subTerm) ->
         case optimisationProcedure subTerm of
             Just result -> result
             Nothing     -> original
-    t -> t
+    original -> original
 
 {- | Converts the subterm of a 'Force' into specialised types for representing
  multiple applications on top of multiple abstractions. Checks whether the lambda

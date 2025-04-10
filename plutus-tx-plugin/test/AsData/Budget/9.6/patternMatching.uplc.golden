@@ -14,20 +14,16 @@
                                    (addInteger
                                       (addInteger (addInteger x y) z)
                                       w)
-                                   (force
-                                      (case
-                                         (lessThanInteger
-                                            (addInteger y z)
-                                            (addInteger x w))
-                                         [ (delay (addInteger x z))
-                                         , (delay (addInteger y w)) ])))
-                                (force
                                    (case
                                       (lessThanInteger
-                                         (addInteger z y)
-                                         (addInteger w x))
-                                      [ (delay (addInteger z x))
-                                      , (delay (addInteger w y)) ])))
+                                         (addInteger y z)
+                                         (addInteger x w))
+                                      [(addInteger x z), (addInteger y w)]))
+                                (case
+                                   (lessThanInteger
+                                      (addInteger z y)
+                                      (addInteger w x))
+                                   [(addInteger z x), (addInteger w y)]))
                              (\x y ->
                                 force ifThenElse
                                   (lessThanInteger x y)

@@ -7,10 +7,7 @@
            (case
               ds
               [ (delay (constr 0 []))
-              , (\x xs ->
-                   delay
-                     (force
-                        (case x [(delay (s s xs)), (delay (constr 1 []))]))) ]))
+              , (\x xs -> delay (case x [(s s xs), (constr 1 [])])) ]))
       (constr 1
          [ (constr 0 [])
          , (constr 1
