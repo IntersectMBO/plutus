@@ -791,6 +791,7 @@ library plutus-core-testlib
     UntypedPlutusCore.Generators.Hedgehog
     UntypedPlutusCore.Test.DeBruijn.Bad
     UntypedPlutusCore.Test.DeBruijn.Good
+    UntypedPlutusCore.Test.Term.Construction
 
   build-depends:
     , base                        >=4.9     && <5
