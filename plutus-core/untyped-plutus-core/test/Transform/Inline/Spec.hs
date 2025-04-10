@@ -7,18 +7,20 @@ module Transform.Inline.Spec where
 
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (runStateT)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.MultiSet qualified as MultiSet
 import PlutusCore.Annotation (Inline (MayInline))
 import PlutusCore.Quote (runQuote)
 import PlutusCore.Size (Size (..))
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertBool, testCase)
+import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name (..), Term (..))
-import UntypedPlutusCore.Test.Term.Construction (addInteger, uniqueNames3, var)
+import UntypedPlutusCore.Test.Term.Construction (addInteger, app, case_, delay, lam, uniqueNames3,
+                                                 uniqueNames4, var)
 import UntypedPlutusCore.Transform.Inline (InlineHints (InlineHints), InlineInfo (..), InlineM,
                                            S (..), Subst (Subst), TermEnv (TermEnv),
-                                           isFirstVarBeforeEffects)
+                                           isFirstVarBeforeEffects, isVarDelayed)
 
 --------------------------------------------------------------------------------
 -- Tests -----------------------------------------------------------------------
@@ -26,40 +28,85 @@ import UntypedPlutusCore.Transform.Inline (InlineHints (InlineHints), InlineInfo
 test_inline :: TestTree
 test_inline =
   testGroup
-    "isFirstVarBeforeEffects"
-    [ testCase "before effects" testVarBeforeEffects
-    , testCase "after effects" testVarAfterEffects
+    "Inline"
+    [ testCase "var is before or after effects" testVarBeforeAfterEffects
+    , testGroup
+        "isVarDelayed"
+        [ testCase
+            "a var is delayed if it's inside a delay"
+            testVarIsDelayedInDelay
+        , testCase
+            "a var is delayed if it's inside a lambda"
+            testVarDelayedInLambda
+        , testCase
+            "a var is delayed if it's inside a case branch"
+            testVarIsDelayedInCaseBranch
+        ]
     ]
 
-testVarBeforeEffects :: IO ()
-testVarBeforeEffects = do
+testVarBeforeAfterEffects :: Assertion
+testVarBeforeAfterEffects = do
   assertBool "a is evaluated before effects" do
     testFirstVarBeforeEffects a term
   assertBool "b is evaluated before effects" do
     testFirstVarBeforeEffects b term
-
-testVarAfterEffects :: IO ()
-testVarAfterEffects = do
   assertBool "c is not evaluated after effects" $ not do
     testFirstVarBeforeEffects c term
+ where
+  term :: Term Name DefaultUni DefaultFun ()
+  term =
+    {- Evaluation order:
 
---------------------------------------------------------------------------------
--- Test terms ------------------------------------------------------------------
+      1. pure work-free: a
+      2. pure work-free: b
+      3. impure? maybe work?: addInteger a b
+      4. pure work-free: c
+      5. impure? maybe work?: addInteger (addInteger a b) c
+    -}
+    addInteger (addInteger (var a) (var b)) (var c)
+  (a, b, c) = uniqueNames3 "a" "b" "c"
 
-term :: Term Name DefaultUni DefaultFun ()
-term =
-  {- Evaluation order:
+testVarIsDelayedInDelay :: Assertion
+testVarIsDelayedInDelay = do
+  assertBool "var 'a' is delayed in delay" $
+    fromMaybe False (isVarDelayed a term)
+  assertBool "var 'b' is not delayed outside of the delay" $
+    maybe False not (isVarDelayed b term)
+  assertBool "it's not known if var 'c' is delayed" $
+    isNothing (isVarDelayed c term)
+ where
+  term :: Term Name DefaultUni DefaultFun ()
+  term = delay (var a `addInteger` var b) `addInteger` var b
 
-    1. pure work-free: a
-    2. pure work-free: b
-    3. impure? maybe work?: addInteger a b
-    4. pure work-free: c
-    5. impure? maybe work?: addInteger (addInteger a b) c
-  -}
-  addInteger (addInteger (var a) (var b)) (var c)
+  (a, b, c) = uniqueNames3 "a" "b" "c"
 
-a, b, c :: Name
-(a, b, c) = uniqueNames3 "a" "b" "c"
+testVarDelayedInLambda :: Assertion
+testVarDelayedInLambda = do
+  assertBool "var 'a' is delayed in lambda body" $
+    fromMaybe False (isVarDelayed a term)
+  assertBool "var 'c' is not delayed outside of the lambda" $
+    maybe False not (isVarDelayed c term)
+  assertBool "it's not known if var 'd' is delayed" $
+    isNothing (isVarDelayed d term)
+ where
+  term :: Term Name DefaultUni DefaultFun ()
+  term = lam b (var a `addInteger` var c) `app` var c
+
+  (a, b, c, d) = uniqueNames4 "a" "b" "c" "d"
+
+testVarIsDelayedInCaseBranch :: Assertion
+testVarIsDelayedInCaseBranch = do
+  assertBool "var 'a' is delayed in case branch" $
+    fromMaybe False (isVarDelayed a term)
+  assertBool "var 'b' is not delayed outside of the case branch" $
+    maybe False not (isVarDelayed b term)
+  assertBool "it is not know if var 'd' is delayed or not" $
+    isNothing (isVarDelayed d term)
+ where
+  term :: Term Name DefaultUni DefaultFun ()
+  term = case_ (var b) [var a, var b, var c]
+
+  (a, b, c, d) = uniqueNames4 "a" "b" "c" "d"
 
 --------------------------------------------------------------------------------
 -- Helper functions: -----------------------------------------------------------

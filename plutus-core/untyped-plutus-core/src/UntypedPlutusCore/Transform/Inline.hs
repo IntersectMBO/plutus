@@ -31,6 +31,7 @@ module UntypedPlutusCore.Transform.Inline (
   Subst (..),
   TermEnv (..),
   isFirstVarBeforeEffects,
+  isVarDelayed,
 ) where
 
 import Control.Lens (forMOf, makeLenses, view, (%~), (&), (^.))
@@ -418,6 +419,48 @@ isFirstVarBeforeEffects n t = do
   -- Don't know, be conservative
   go (Unknown : _) = False
   go [] = False
+
+{-| Check if all the variable occurrences are "delayed".
+This means that a variable is used in either of the following ways:
+  * inside a 'delay' term
+  * inside a lambda body
+  * inside a case branch
+-}
+isVarDelayed
+  :: forall name uni fun a
+   . (InliningConstraints name uni fun)
+  => name
+  -> Term name uni fun a
+  -> Maybe Bool
+isVarDelayed name term =
+  case go False [] term of
+    [] -> Nothing
+    xs -> Just (and xs)
+ where
+  go :: Bool -> [Bool] -> Term name uni fun a -> [Bool]
+  go delayed usages = \case
+    Var _ann name' ->
+      if name == name'
+        then delayed : usages
+        else usages
+    LamAbs _ann _paramName body ->
+      go True usages body
+    Apply _ann t1 t2 ->
+      go delayed usages t1 ++ go delayed usages t2
+    Force _ann t ->
+      go delayed usages t
+    Delay _ann t ->
+      go True usages t
+    Constant{} ->
+      usages
+    Builtin{} ->
+      usages
+    Error{} ->
+      usages
+    Constr _ann _idx terms ->
+      concatMap (go delayed usages) terms
+    Case _ann scrut branches ->
+      go delayed usages scrut ++ concatMap (go True usages) branches
 
 effectSafe
   :: forall name uni fun a
