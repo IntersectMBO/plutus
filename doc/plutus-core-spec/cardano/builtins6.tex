@@ -16,6 +16,7 @@
 The sixth batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
 
 \setlength{\LTleft}{-12mm}  % Shift the table left a bit to centre it on the page
+\renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 1.2
 \begin{longtable}[H]{|l|p{45mm}|p{70mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
@@ -51,7 +52,17 @@ The sixth batch of builtin operations is defined in Table~\ref{table:built-in-fu
                  (t_L|l)  & \text{if $d = \inj_L(l)$} \\
                  (t_I|n)  & \text{if $d =\inj_I(n)$} \\
                  (t_B|s)  & \text{if $d = \inj_B(s)$} \\
-               \end{array}\right.$}  & & \ref{note:case-list-case-data}\\
+               \end{array}\right.$}  & & \ref{note:case-list-case-data}\\[5mm]
+    \TT{dropList}        & $[\forall a_\#, \ty{integer}, \listOf{a_\#}]$ \text{$\;\;\; \to \listOf{a_\#}$}
+        & $(k,[x_1,\ldots,x_n])$
+        \smallskip
+        \newline
+        \text{$\;\;\mapsto \left\{ \begin{array}{ll}
+            [x_1,\ldots, x_n]      &  \text{if $k \leq 0$} \\ \relax %
+            % Without \relax the [ at the start of the next line is regarded as an argument to \\
+            [x_{k+1}, \ldots, x_n]  & \text{if $1  \leq k \leq n-1$} \\ \relax
+            []                     &\text{if $k \geq n$}\\
+        \end{array}\right.$} &  & \\
 \hline
 \end{longtable}
 
