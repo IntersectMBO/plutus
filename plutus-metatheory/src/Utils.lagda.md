@@ -177,6 +177,7 @@ postulate ByteString : Set
 
 postulate
   eqByteString : ByteString → ByteString → Bool
+  mkByteString : String → ByteString
 {-# COMPILE GHC eqByteString = (==) #-}
 
 ```

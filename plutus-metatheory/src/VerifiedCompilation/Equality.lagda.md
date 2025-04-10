@@ -166,8 +166,9 @@ magicBoolDec : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → Dec (a ≡
 magicBoolDec true = yes primTrustMe
 magicBoolDec false = no magicNeg
 
-builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
-builtinEq x y = magicBoolDec (hsEq x y)
+builtinEq : {A : Set} → Binary.Decidable {A = A} _≡_
+builtinEq {A} x y with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
+... | refl = yes refl
 
 instance
   HsEqBytestring : HsEq U.ByteString
@@ -184,6 +185,7 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
+-- TODO: why does this use magicBoolDec? surely it can be implemented correctly
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag v v₁ = magicBoolDec (U.eqDATA v v₁)
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq

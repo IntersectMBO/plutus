@@ -123,9 +123,8 @@ srcTests =
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
   -- , "len"
-  -- TODO: uncomment when "Haskell ByteString != Agda String" issue is fixed
-  -- , "MinBS"
-    , "AA2-CSE"
+  , "MinBS"
+  , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
