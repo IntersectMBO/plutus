@@ -1,35 +1,25 @@
 {-# LANGUAGE BlockArguments      #-}
-{-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Transform.Inline.Spec where
 
-import Control.Monad.Reader (runReaderT)
-import Control.Monad.State (runStateT)
 import Data.Maybe (fromMaybe, isNothing)
-import Data.MultiSet qualified as MultiSet
-import PlutusCore.Annotation (Inline (MayInline))
-import PlutusCore.Quote (runQuote)
-import PlutusCore.Size (Size (..))
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name (..), Term (..))
 import UntypedPlutusCore.Test.Term.Construction (addInteger, app, case_, delay, lam, uniqueNames3,
                                                  uniqueNames4, var)
-import UntypedPlutusCore.Transform.Inline (InlineHints (InlineHints), InlineInfo (..), InlineM,
-                                           S (..), Subst (Subst), TermEnv (TermEnv),
-                                           isFirstVarBeforeEffects, isVarDelayed)
-
---------------------------------------------------------------------------------
--- Tests -----------------------------------------------------------------------
+import UntypedPlutusCore.Transform.Inline (isFirstVarBeforeEffects, isVarDelayed)
 
 test_inline :: TestTree
 test_inline =
   testGroup
     "Inline"
-    [ testCase "var is before or after effects" testVarBeforeAfterEffects
+    [ testCase
+        "var is before or after effects"
+        testVarBeforeAfterEffects
     , testGroup
         "isVarDelayed"
         [ testCase
@@ -47,11 +37,11 @@ test_inline =
 testVarBeforeAfterEffects :: Assertion
 testVarBeforeAfterEffects = do
   assertBool "a is evaluated before effects" do
-    testFirstVarBeforeEffects a term
+    isFirstVarBeforeEffects def a term
   assertBool "b is evaluated before effects" do
-    testFirstVarBeforeEffects b term
+    isFirstVarBeforeEffects def b term
   assertBool "c is not evaluated after effects" $ not do
-    testFirstVarBeforeEffects c term
+    isFirstVarBeforeEffects def c term
  where
   term :: Term Name DefaultUni DefaultFun ()
   term =
@@ -107,28 +97,3 @@ testVarIsDelayedInCaseBranch = do
   term = case_ (var b) [var a, var b, var c]
 
   (a, b, c, d) = uniqueNames4 "a" "b" "c" "d"
-
---------------------------------------------------------------------------------
--- Helper functions: -----------------------------------------------------------
-
-testFirstVarBeforeEffects :: Name -> Term Name DefaultUni DefaultFun () -> Bool
-testFirstVarBeforeEffects name = runInlineM . isFirstVarBeforeEffects name
-
-runInlineM :: InlineM Name DefaultUni DefaultFun () r -> r
-runInlineM m = result
- where
-  (result, _finalState) =
-    runQuote (runStateT (runReaderT m inlineInfo) initialState)
-
-  inlineInfo :: InlineInfo Name DefaultFun ()
-  inlineInfo =
-    InlineInfo
-      { _iiUsages = MultiSet.empty
-      , _iiHints = InlineHints \_ann _name -> MayInline
-      , _iiBuiltinSemanticsVariant = def
-      , _iiInlineConstants = True
-      , _iiInlineCallsiteGrowth = Size 1_000_000
-      }
-
-  initialState :: S Name DefaultUni DefaultFun ()
-  initialState = S{_subst = Subst (TermEnv mempty), _vars = mempty}

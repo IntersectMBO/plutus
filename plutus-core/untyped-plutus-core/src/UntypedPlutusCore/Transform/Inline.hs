@@ -40,6 +40,7 @@ import Control.Monad.Reader (ReaderT (runReaderT))
 import Control.Monad.State (StateT, evalStateT, gets, modify')
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (Inline (AlwaysInline, SafeToInline), InlineHints (..))
+import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
@@ -399,16 +400,16 @@ nameUsedAtMostOnce n = do
 isFirstVarBeforeEffects
   :: forall name uni fun ann
    . (InliningConstraints name uni fun)
-  => name
+  => BuiltinSemanticsVariant fun
+  -> name
   -> Term name uni fun ann
-  -> InlineM name uni fun ann Bool
-isFirstVarBeforeEffects n t = do
-  builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
+  -> Bool
+isFirstVarBeforeEffects builtinSemanticsVariant n t =
   -- This can in the worst case traverse a lot of the term, which could lead to
   -- us doing ~quadratic work as we process the program. However in practice
   -- most terms have a relatively short evaluation order before we hit Unknown,
   -- so it's not too bad.
-  pure $ go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant t))
+  go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant t))
  where
   -- Found the variable we're looking for!
   go ((EvalTerm _ _ (Var _ n')) : _) | n == n' = True
@@ -471,7 +472,8 @@ effectSafe
   -- ^ is it pure?
   -> InlineM name uni fun a Bool
 effectSafe body n purity = do
-  immediatelyEvaluated <- isFirstVarBeforeEffects n body
+  builtinSemantics <- view iiBuiltinSemanticsVariant
+  let immediatelyEvaluated = isFirstVarBeforeEffects builtinSemantics n body
   pure $ purity || immediatelyEvaluated
 
 {-| Should we inline? Should only inline things that won't duplicate work
