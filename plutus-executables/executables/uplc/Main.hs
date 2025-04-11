@@ -48,6 +48,7 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
+import AgdaTrace (mkAgdaTrace)
 import AgdaUnparse (agdaUnparse)
 import Data.Version.Extras (gitAwareVersionInfo)
 import Paths_plutus_executables qualified as Paths
@@ -291,14 +292,8 @@ runCertifier
   -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -- ^ The trace produced by the simplification process
   -> IO ()
-runCertifier (Just certName) (SimplifierTrace simplTrace) = do
-  let processAgdaAST Simplification {beforeAST, stage, afterAST} =
-          case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of
-            (Right before', Right after')             ->
-              (stage, (AgdaFFI.conv (void before'), AgdaFFI.conv (void after')))
-            (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
-            (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
-      rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
+runCertifier (Just certName) simplTrace = do
+  let rawAgdaTrace = mkAgdaTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True ->
       putStrLn "The compilation was successfully certified."
