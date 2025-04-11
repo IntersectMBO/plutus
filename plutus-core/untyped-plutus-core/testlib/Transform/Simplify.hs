@@ -453,36 +453,42 @@ cseExpensive = plus arg arg'
     arg = mkArg [0 .. 200]
     arg' = mkArg [0 .. 200]
 
+testSimplifyInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testSimplifyInputs =
+  [ ("basic", basic)
+  , ("nested", nested)
+  , ("extraDelays", extraDelays)
+  , ("floatDelay1", floatDelay1)
+  , ("floatDelay2", floatDelay2)
+  , ("floatDelay3", floatDelay3)
+  , ("interveningLambda", interveningLambda)
+  , ("basicInline", basicInline)
+  , ("callsiteInline", callsiteInline)
+  , ("inlinePure1", inlinePure1)
+  , ("inlinePure2", inlinePure2)
+  , ("inlinePure3", inlinePure3)
+  , ("inlinePure4", inlinePure4)
+  , ("inlineImpure1", inlineImpure1)
+  , ("inlineImpure2", inlineImpure2)
+  , ("inlineImpure3", inlineImpure3)
+  , ("inlineImpure4", inlineImpure4)
+  , ("multiApp", multiApp)
+  , ("forceDelayNoApps", forceDelayNoApps)
+  , ("forceDelayNoAppsLayered", forceDelayNoAppsLayered)
+  , ("forceDelaySimple", forceDelaySimple)
+  , ("forceDelayMultiApply", forceDelayMultiApply)
+  , ("forceDelayMultiForce", forceDelayMultiForce)
+  , ("forceDelayComplex", forceDelayComplex)
+  ]
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
-    [ goldenVsSimplified "basic" basic
-    , goldenVsSimplified "nested" nested
-    , goldenVsSimplified "extraDelays" extraDelays
-    , goldenVsSimplified "floatDelay1" floatDelay1
-    , goldenVsSimplified "floatDelay2" floatDelay2
-    , goldenVsSimplified "floatDelay3" floatDelay3
-    , goldenVsSimplified "interveningLambda" interveningLambda
-    , goldenVsSimplified "basicInline" basicInline
-    , goldenVsSimplified "callsiteInline" callsiteInline
-    , goldenVsSimplified "inlinePure1" inlinePure1
-    , goldenVsSimplified "inlinePure2" inlinePure2
-    , goldenVsSimplified "inlinePure3" inlinePure3
-    , goldenVsSimplified "inlinePure4" inlinePure4
-    , goldenVsSimplified "inlineImpure1" inlineImpure1
-    , goldenVsSimplified "inlineImpure2" inlineImpure2
-    , goldenVsSimplified "inlineImpure3" inlineImpure3
-    , goldenVsSimplified "inlineImpure4" inlineImpure4
-    , goldenVsSimplified "multiApp" multiApp
-    , goldenVsSimplified "forceDelayNoApps" forceDelayNoApps
-    , goldenVsSimplified "forceDelayNoAppsLayered" forceDelayNoAppsLayered
-    , goldenVsSimplified "forceDelaySimple" forceDelaySimple
-    , goldenVsSimplified "forceDelayMultiApply" forceDelayMultiApply
-    , goldenVsSimplified "forceDelayMultiForce" forceDelayMultiForce
-    , goldenVsSimplified "forceDelayComplex" forceDelayComplex
-    , goldenVsCse "cse1" cse1
-    , goldenVsCse "cse2" cse2
-    , goldenVsCse "cse3" cse3
-    , goldenVsCse "cseExpensive" cseExpensive
-    ]
+    $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
+    <>
+      [ goldenVsCse "cse1" cse1
+      , goldenVsCse "cse2" cse2
+      , goldenVsCse "cse3" cse3
+      , goldenVsCse "cseExpensive" cseExpensive
+      ]
