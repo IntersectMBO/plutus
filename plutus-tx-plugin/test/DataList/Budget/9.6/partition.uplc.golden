@@ -15,19 +15,17 @@
                                (force (s s (delay (\x -> x))) t)
                                [ (\ipv ipv ->
                                     force
-                                      (force
-                                         (force ifThenElse
-                                            (lessThanInteger (unIData h) 8)
-                                            (delay
-                                               (delay
-                                                  (constr 0
-                                                     [ ipv
-                                                     , (force mkCons h ipv) ])))
-                                            (delay
-                                               (delay
-                                                  (constr 0
-                                                     [ (force mkCons h ipv)
-                                                     , ipv ])))))) ])
+                                      (case
+                                         (lessThanInteger (unIData h) 8)
+                                         [ (delay
+                                              (constr 0
+                                                 [(force mkCons h ipv), ipv]))
+                                         , (delay
+                                              (constr 0
+                                                 [ ipv
+                                                 , (force mkCons
+                                                      h
+                                                      ipv) ])) ])) ])
                             (force headList xs)
                             (force tailList xs))))))
          (delay (\x -> x)))))

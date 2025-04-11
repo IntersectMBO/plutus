@@ -49,48 +49,44 @@
           `$fEqChessSet_$c==`
           (\(x : ChessSet) (y : ChessSet) -> y)
           (\(x : ChessSet) (y : ChessSet) -> x)
-    !equalsInteger : integer -> integer -> Bool
-      = \(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False
+    !ifThenElse : all a. bool -> a -> a -> a
+      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     !v : Ord integer
       = CConsOrd
           {integer}
-          equalsInteger
+          (\(x : integer) (y : integer) ->
+             case Bool (equalsInteger x y) [False, True])
           (\(eta : integer) (eta : integer) ->
              Bool_match
-               (ifThenElse {Bool} (equalsInteger eta eta) True False)
+               (case Bool (equalsInteger eta eta) [False, True])
                {all dead. Ordering}
                (/\dead -> EQ)
                (/\dead ->
                   Bool_match
-                    (ifThenElse
-                       {Bool}
-                       (lessThanEqualsInteger eta eta)
-                       True
-                       False)
+                    (case Bool (lessThanEqualsInteger eta eta) [False, True])
                     {all dead. Ordering}
                     (/\dead -> LT)
                     (/\dead -> GT)
                     {all dead. dead})
                {all dead. dead})
           (\(x : integer) (y : integer) ->
-             ifThenElse {Bool} (lessThanInteger x y) True False)
+             case Bool (lessThanInteger x y) [False, True])
           (\(x : integer) (y : integer) ->
-             ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+             case Bool (lessThanEqualsInteger x y) [False, True])
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanInteger x y) False True)
           (\(x : integer) (y : integer) ->
              Bool_match
-               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               (case Bool (lessThanEqualsInteger x y) [False, True])
                {all dead. integer}
                (/\dead -> y)
                (/\dead -> x)
                {all dead. dead})
           (\(x : integer) (y : integer) ->
              Bool_match
-               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               (case Bool (lessThanEqualsInteger x y) [False, True])
                {all dead. integer}
                (/\dead -> x)
                (/\dead -> y)
@@ -171,7 +167,7 @@
            (growFn : a -> List a)
            (finFn : a -> Bool) ->
             Bool_match
-              (ifThenElse {Bool} (equalsInteger 0 depth) True False)
+              (case Bool (equalsInteger 0 depth) [False, True])
               {all dead. List a}
               (/\dead -> Nil {a})
               (/\dead ->
@@ -625,11 +621,10 @@
                       {all dead. Bool}
                       (/\dead ->
                          Bool_match
-                           (ifThenElse
-                              {Bool}
+                           (case
+                              Bool
                               (lessThanEqualsInteger x ipv)
-                              True
-                              False)
+                              [False, True])
                            {all dead. Bool}
                            (/\dead ->
                               Bool_match
@@ -641,11 +636,10 @@
                                 {all dead. Bool}
                                 (/\dead ->
                                    Bool_match
-                                     (ifThenElse
-                                        {Bool}
+                                     (case
+                                        Bool
                                         (lessThanEqualsInteger y ipv)
-                                        True
-                                        False)
+                                        [False, True])
                                      {all dead. Bool}
                                      (/\dead ->
                                         notIn
@@ -666,20 +660,18 @@
                                                     (\(a' : integer)
                                                       (b' : integer) ->
                                                        Bool_match
-                                                         (ifThenElse
-                                                            {Bool}
+                                                         (case
+                                                            Bool
                                                             (equalsInteger a a')
-                                                            True
-                                                            False)
+                                                            [False, True])
                                                          {all dead. Bool}
                                                          (/\dead ->
-                                                            ifThenElse
-                                                              {Bool}
+                                                            case
+                                                              Bool
                                                               (equalsInteger
                                                                  b
                                                                  b')
-                                                              True
-                                                              False)
+                                                              [False, True])
                                                          (/\dead -> False)
                                                          {all dead. dead})))
                                           t
@@ -932,7 +924,7 @@
                 {Bool}
                 (\(a' : integer) (b' : ChessSet) ->
                    Bool_match
-                     (equalsInteger a a')
+                     (case Bool (equalsInteger a a') [False, True])
                      {all dead. Bool}
                      (/\dead -> True)
                      (/\dead -> False)
@@ -989,15 +981,14 @@
                                                     in
                                                     c
                                                       (Bool_match
-                                                         (ifThenElse
-                                                            {Bool}
+                                                         (case
+                                                            Bool
                                                             (equalsInteger
                                                                0
                                                                (remainderInteger
                                                                   boardSize
                                                                   2))
-                                                            True
-                                                            False)
+                                                            [False, True])
                                                          {all dead. ChessSet}
                                                          (/\dead ->
                                                             Board
@@ -1069,11 +1060,7 @@
                 !go : integer -> List integer
                   = \(n : integer) ->
                       Bool_match
-                        (ifThenElse
-                           {Bool}
-                           (lessThanEqualsInteger n 0)
-                           True
-                           False)
+                        (case Bool (lessThanEqualsInteger n 0) [False, True])
                         {all dead. List integer}
                         (/\dead -> Nil {integer})
                         (/\dead -> Cons {integer} x (go (subtractInteger n 1)))
@@ -1151,11 +1138,10 @@
                                        {a}
                                        (\(y : integer) (x : ChessSet) ->
                                           Bool_match
-                                            (ifThenElse
-                                               {Bool}
+                                            (case
+                                               Bool
                                                (equalsInteger 1 y)
-                                               True
-                                               False)
+                                               [False, True])
                                             {all dead. a}
                                             (/\dead -> c x ds)
                                             (/\dead -> ds)
@@ -1211,13 +1197,12 @@
                                               ipv))
                                       {all dead. dead}
                               in
-                              ifThenElse
-                                {Bool}
+                              case
+                                Bool
                                 (equalsInteger
                                    0
                                    (length {Direction} (possibleMoves board)))
-                                True
-                                False)
+                                [False, True])
                            (/\dead -> False)
                            {all dead. dead})
                         {all dead. List ChessSet}
@@ -1227,7 +1212,7 @@
                              !l : integer = length {ChessSet} singles
                            in
                            Bool_match
-                             (ifThenElse {Bool} (equalsInteger 0 l) True False)
+                             (case Bool (equalsInteger 0 l) [False, True])
                              {all dead. List ChessSet}
                              (/\dead ->
                                 go
@@ -1547,11 +1532,7 @@
                                      (descAndNo y)))
                              (/\dead ->
                                 Bool_match
-                                  (ifThenElse
-                                     {Bool}
-                                     (equalsInteger 1 l)
-                                     True
-                                     False)
+                                  (case Bool (equalsInteger 1 l) [False, True])
                                   {all dead. List ChessSet}
                                   (/\dead -> singles)
                                   (/\dead -> Nil {ChessSet})
@@ -1573,11 +1554,10 @@
                   (ipv : Maybe (Tuple2 integer integer))
                   (ipv : List (Tuple2 integer integer)) ->
                    Bool_match
-                     (ifThenElse
-                        {Bool}
+                     (case
+                        Bool
                         (equalsInteger ipv (multiplyInteger ipv ipv))
-                        True
-                        False)
+                        [False, True])
                      {all dead. Bool}
                      (/\dead ->
                         canMoveTo

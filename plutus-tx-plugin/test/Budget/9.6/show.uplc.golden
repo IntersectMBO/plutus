@@ -123,13 +123,11 @@
                                                             (constr 0 [])))
                                                       d))
                                                 (force trace
-                                                   (force
-                                                      (force ifThenElse
-                                                         (lessThanEqualsInteger
-                                                            c
-                                                            0)
-                                                         (delay "False")
-                                                         (delay "True")))
+                                                   (case
+                                                      (lessThanEqualsInteger
+                                                         c
+                                                         0)
+                                                      ["True", "False"])
                                                    c))
                                              (force trace
                                                 (concatBuiltinStrings
@@ -171,23 +169,19 @@
                                                        (case
                                                           ((\n ->
                                                               force
-                                                                (force
-                                                                   (force
-                                                                      ifThenElse
-                                                                      (lessThanEqualsInteger
-                                                                         n
-                                                                         0)
-                                                                      (delay
-                                                                         (delay
-                                                                            (constr 0
-                                                                               [ (constr 0
-                                                                                    [  ])
-                                                                               , ds ])))
-                                                                      (delay
-                                                                         (delay
-                                                                            (go
-                                                                               n
-                                                                               ds))))))
+                                                                (case
+                                                                   (lessThanEqualsInteger
+                                                                      n
+                                                                      0)
+                                                                   [ (delay
+                                                                        (go
+                                                                           n
+                                                                           ds))
+                                                                   , (delay
+                                                                        (constr 0
+                                                                           [ (constr 0
+                                                                                [  ])
+                                                                           , ds ])) ]))
                                                              (divideInteger
                                                                 (go ds)
                                                                 2))
@@ -204,61 +198,48 @@
                                  case
                                    ds
                                    [0, (\ds xs -> addInteger 1 (s s xs))])))
-                        ((\s ->
-                            s s)
-                           (\s
-                             ds
-                             ds ->
+                        ((\s -> s s)
+                           (\s ds ds ->
                               force
                                 (case
                                    ds
                                    [ (delay
                                         (constr 0
                                            [(constr 0 []), (constr 0 [])]))
-                                   , (\y
-                                       ys ->
+                                   , (\y ys ->
                                         delay
                                           (force
-                                             (force
-                                                (force
-                                                   ifThenElse
-                                                   (equalsInteger 1 ds)
-                                                   (delay
-                                                      (delay
-                                                         (constr 0
-                                                            [ (constr 1
-                                                                 [ y
-                                                                 , (constr 0
-                                                                      []) ])
-                                                            , ys ])))
-                                                   (delay
-                                                      (delay
-                                                         (case
-                                                            ((\x -> s s x)
-                                                               (subtractInteger
-                                                                  ds
-                                                                  1)
-                                                               ys)
-                                                            [ (\zs
-                                                                ws ->
-                                                                 constr 0
-                                                                   [ (constr 1
-                                                                        [y, zs])
-                                                                   , ws ]) ]))))))) ]))))
+                                             (case
+                                                (equalsInteger 1 ds)
+                                                [ (delay
+                                                     (case
+                                                        ((\x -> s s x)
+                                                           (subtractInteger
+                                                              ds
+                                                              1)
+                                                           ys)
+                                                        [ (\zs ws ->
+                                                             constr 0
+                                                               [ (constr 1
+                                                                    [y, zs])
+                                                               , ws ]) ]))
+                                                , (delay
+                                                     (constr 0
+                                                        [ (constr 1
+                                                             [y, (constr 0 [])])
+                                                        , ys ])) ]))) ]))))
                      ((\s -> s s)
                         (\s x lim ->
                            force
-                             (force
-                                (force ifThenElse
-                                   (lessThanEqualsInteger x lim)
-                                   (delay
-                                      (delay
-                                         (constr 1
-                                            [ x
-                                            , ((\x -> s s x)
-                                                 (addInteger 1 x)
-                                                 lim) ])))
-                                   (delay (delay (constr 0 []))))))))
+                             (case
+                                (lessThanEqualsInteger x lim)
+                                [ (delay (constr 0 []))
+                                , (delay
+                                     (constr 1
+                                        [ x
+                                        , ((\x -> s s x)
+                                             (addInteger 1 x)
+                                             lim) ])) ]))))
                   ((\s ->
                       s s)
                      (\s
@@ -283,109 +264,77 @@
                                        (s s xs))) ]))))
                (\x ->
                   force
-                    (force
-                       (force
-                          ifThenElse
-                          (lessThanEqualsInteger x 9)
-                          (delay
-                             (delay
-                                (`$fShowBuiltinByteString_$cshowsPrec` 0 x)))
-                          (delay
-                             (delay
-                                (force
-                                   (force
-                                      (force
-                                         ifThenElse
-                                         (equalsInteger 10 x)
-                                         (delay
-                                            (delay (\ds -> constr 1 ["a", ds])))
-                                         (delay
-                                            (delay
-                                               (force
+                    (case
+                       (lessThanEqualsInteger x 9)
+                       [ (delay
+                            (force
+                               (case
+                                  (equalsInteger 10 x)
+                                  [ (delay
+                                       (force
+                                          (case
+                                             (equalsInteger 11 x)
+                                             [ (delay
                                                   (force
-                                                     (force
-                                                        ifThenElse
-                                                        (equalsInteger 11 x)
-                                                        (delay
-                                                           (delay
-                                                              (\ds ->
-                                                                 constr 1
-                                                                   ["b", ds])))
-                                                        (delay
-                                                           (delay
-                                                              (force
-                                                                 (force
-                                                                    (force
-                                                                       ifThenElse
-                                                                       (equalsInteger
-                                                                          12
-                                                                          x)
-                                                                       (delay
-                                                                          (delay
-                                                                             (\ds ->
-                                                                                constr 1
-                                                                                  [ "c"
-                                                                                  , ds ])))
-                                                                       (delay
-                                                                          (delay
-                                                                             (force
-                                                                                (force
-                                                                                   (force
-                                                                                      ifThenElse
+                                                     (case
+                                                        (equalsInteger 12 x)
+                                                        [ (delay
+                                                             (force
+                                                                (case
+                                                                   (equalsInteger
+                                                                      13
+                                                                      x)
+                                                                   [ (delay
+                                                                        (force
+                                                                           (case
+                                                                              (equalsInteger
+                                                                                 14
+                                                                                 x)
+                                                                              [ (delay
+                                                                                   (case
                                                                                       (equalsInteger
-                                                                                         13
+                                                                                         15
                                                                                          x)
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (\ds ->
-                                                                                               constr 1
-                                                                                                 [ "d"
-                                                                                                 , ds ])))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (force
-                                                                                               (force
-                                                                                                  (force
-                                                                                                     ifThenElse
-                                                                                                     (equalsInteger
-                                                                                                        14
-                                                                                                        x)
-                                                                                                     (delay
-                                                                                                        (delay
-                                                                                                           (\ds ->
-                                                                                                              constr 1
-                                                                                                                [ "e"
-                                                                                                                , ds ])))
-                                                                                                     (delay
-                                                                                                        (delay
-                                                                                                           (force
-                                                                                                              (force
-                                                                                                                 ifThenElse
-                                                                                                                 (equalsInteger
-                                                                                                                    15
-                                                                                                                    x)
-                                                                                                                 (delay
-                                                                                                                    (\ds ->
-                                                                                                                       constr 1
-                                                                                                                         [ "f"
-                                                                                                                         , ds ]))
-                                                                                                                 (delay
-                                                                                                                    (\ds ->
-                                                                                                                       constr 1
-                                                                                                                         [ "<invalid byte>"
-                                                                                                                         , ds ])))))))))))))))))))))))))))))))))))
+                                                                                      [ (\ds ->
+                                                                                           constr 1
+                                                                                             [ "<invalid byte>"
+                                                                                             , ds ])
+                                                                                      , (\ds ->
+                                                                                           constr 1
+                                                                                             [ "f"
+                                                                                             , ds ]) ]))
+                                                                              , (delay
+                                                                                   (\ds ->
+                                                                                      constr 1
+                                                                                        [ "e"
+                                                                                        , ds ])) ])))
+                                                                   , (delay
+                                                                        (\ds ->
+                                                                           constr 1
+                                                                             [ "d"
+                                                                             , ds ])) ])))
+                                                        , (delay
+                                                             (\ds ->
+                                                                constr 1
+                                                                  [ "c"
+                                                                  , ds ])) ])))
+                                             , (delay
+                                                  (\ds ->
+                                                     constr 1 ["b", ds])) ])))
+                                  , (delay (\ds -> constr 1 ["a", ds])) ])))
+                       , (delay
+                            (`$fShowBuiltinByteString_$cshowsPrec` 0 x)) ])))
             ((\s -> s s)
                (\s p n ->
                   force
-                    (force
-                       (force ifThenElse
-                          (lessThanInteger n 0)
-                          (delay
-                             (delay
-                                (\eta ->
-                                   constr 1
-                                     ["-", (s s p (subtractInteger 0 n) eta)])))
-                          (delay (delay (go (go (constr 0 []) n)))))))))
+                    (case
+                       (lessThanInteger n 0)
+                       [ (delay (go (go (constr 0 []) n)))
+                       , (delay
+                            (\eta ->
+                               constr 1
+                                 [ "-"
+                                 , (s s p (subtractInteger 0 n) eta) ])) ]))))
          ((\s ->
              s s)
             (\s
@@ -401,128 +350,88 @@
                               eta ->
                                constr 1
                                  [ (force
-                                      (force
-                                         (force
-                                            ifThenElse
-                                            (equalsInteger 0 x)
-                                            (delay (delay "0"))
-                                            (delay
-                                               (delay
-                                                  (force
-                                                     (force
-                                                        (force
-                                                           ifThenElse
-                                                           (equalsInteger 1 x)
-                                                           (delay (delay "1"))
-                                                           (delay
-                                                              (delay
-                                                                 (force
+                                      (case
+                                         (equalsInteger 0 x)
+                                         [ (delay
+                                              (force
+                                                 (case
+                                                    (equalsInteger 1 x)
+                                                    [ (delay
+                                                         (force
+                                                            (case
+                                                               (equalsInteger
+                                                                  2
+                                                                  x)
+                                                               [ (delay
                                                                     (force
-                                                                       (force
-                                                                          ifThenElse
+                                                                       (case
                                                                           (equalsInteger
-                                                                             2
+                                                                             3
                                                                              x)
-                                                                          (delay
-                                                                             (delay
-                                                                                "2"))
-                                                                          (delay
-                                                                             (delay
-                                                                                (force
-                                                                                   (force
-                                                                                      (force
-                                                                                         ifThenElse
-                                                                                         (equalsInteger
-                                                                                            3
-                                                                                            x)
-                                                                                         (delay
-                                                                                            (delay
-                                                                                               "3"))
-                                                                                         (delay
-                                                                                            (delay
-                                                                                               (force
-                                                                                                  (force
+                                                                          [ (delay
+                                                                               (force
+                                                                                  (case
+                                                                                     (equalsInteger
+                                                                                        4
+                                                                                        x)
+                                                                                     [ (delay
+                                                                                          (force
+                                                                                             (case
+                                                                                                (equalsInteger
+                                                                                                   5
+                                                                                                   x)
+                                                                                                [ (delay
                                                                                                      (force
-                                                                                                        ifThenElse
-                                                                                                        (equalsInteger
-                                                                                                           4
-                                                                                                           x)
-                                                                                                        (delay
-                                                                                                           (delay
-                                                                                                              "4"))
-                                                                                                        (delay
-                                                                                                           (delay
-                                                                                                              (force
-                                                                                                                 (force
-                                                                                                                    (force
-                                                                                                                       ifThenElse
-                                                                                                                       (equalsInteger
-                                                                                                                          5
-                                                                                                                          x)
-                                                                                                                       (delay
-                                                                                                                          (delay
-                                                                                                                             "5"))
-                                                                                                                       (delay
-                                                                                                                          (delay
-                                                                                                                             (force
-                                                                                                                                (force
-                                                                                                                                   (force
-                                                                                                                                      ifThenElse
-                                                                                                                                      (equalsInteger
-                                                                                                                                         6
-                                                                                                                                         x)
-                                                                                                                                      (delay
-                                                                                                                                         (delay
-                                                                                                                                            "6"))
-                                                                                                                                      (delay
-                                                                                                                                         (delay
-                                                                                                                                            (force
-                                                                                                                                               (force
-                                                                                                                                                  (force
-                                                                                                                                                     ifThenElse
-                                                                                                                                                     (equalsInteger
-                                                                                                                                                        7
-                                                                                                                                                        x)
-                                                                                                                                                     (delay
-                                                                                                                                                        (delay
-                                                                                                                                                           "7"))
-                                                                                                                                                     (delay
-                                                                                                                                                        (delay
-                                                                                                                                                           (force
-                                                                                                                                                              (force
-                                                                                                                                                                 (force
-                                                                                                                                                                    ifThenElse
-                                                                                                                                                                    (equalsInteger
-                                                                                                                                                                       8
-                                                                                                                                                                       x)
-                                                                                                                                                                    (delay
-                                                                                                                                                                       (delay
-                                                                                                                                                                          "8"))
-                                                                                                                                                                    (delay
-                                                                                                                                                                       (delay
-                                                                                                                                                                          (force
-                                                                                                                                                                             (force
-                                                                                                                                                                                ifThenElse
-                                                                                                                                                                                (equalsInteger
-                                                                                                                                                                                   9
-                                                                                                                                                                                   x)
-                                                                                                                                                                                (delay
-                                                                                                                                                                                   "9")
-                                                                                                                                                                                (delay
-                                                                                                                                                                                   "<invalid digit>"))))))))))))))))))))))))))))))))))))))))))))))))
+                                                                                                        (case
+                                                                                                           (equalsInteger
+                                                                                                              6
+                                                                                                              x)
+                                                                                                           [ (delay
+                                                                                                                (force
+                                                                                                                   (case
+                                                                                                                      (equalsInteger
+                                                                                                                         7
+                                                                                                                         x)
+                                                                                                                      [ (delay
+                                                                                                                           (force
+                                                                                                                              (case
+                                                                                                                                 (equalsInteger
+                                                                                                                                    8
+                                                                                                                                    x)
+                                                                                                                                 [ (delay
+                                                                                                                                      (case
+                                                                                                                                         (equalsInteger
+                                                                                                                                            9
+                                                                                                                                            x)
+                                                                                                                                         [ "<invalid digit>"
+                                                                                                                                         , "9" ]))
+                                                                                                                                 , (delay
+                                                                                                                                      "8") ])))
+                                                                                                                      , (delay
+                                                                                                                           "7") ])))
+                                                                                                           , (delay
+                                                                                                                "6") ])))
+                                                                                                , (delay
+                                                                                                     "5") ])))
+                                                                                     , (delay
+                                                                                          "4") ])))
+                                                                          , (delay
+                                                                               "3") ])))
+                                                               , (delay
+                                                                    "2") ])))
+                                                    , (delay "1") ])))
+                                         , (delay "0") ]))
                                  , (acc eta) ])
                               (s s xs))) ]))))
       ((\s -> s s)
          (\s acc n ->
             (\x ->
                force
-                 (force
-                    (force ifThenElse
-                       (equalsInteger 0 x)
-                       (delay (delay (constr 1 [(remainderInteger n 10), acc])))
-                       (delay
-                          (delay
-                             ((\x -> s s x)
-                                (constr 1 [(remainderInteger n 10), acc])
-                                x))))))
+                 (case
+                    (equalsInteger 0 x)
+                    [ (delay
+                         ((\x -> s s x)
+                            (constr 1 [(remainderInteger n 10), acc])
+                            x))
+                    , (delay (constr 1 [(remainderInteger n 10), acc])) ]))
               (quotientInteger n 10)))))

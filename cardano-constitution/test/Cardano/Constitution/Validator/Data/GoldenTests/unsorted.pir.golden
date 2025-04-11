@@ -136,18 +136,15 @@ program
                       {all dead. dead}
             in
             go ds
-    !equalsInteger : integer -> integer -> Bool
-      = \(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False
     !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
       = \(eta : integer) (eta : integer) ->
           Bool_match
-            (ifThenElse {Bool} (equalsInteger eta eta) True False)
+            (case Bool (equalsInteger eta eta) [False, True])
             {all dead. Ordering}
             (/\dead -> EQ)
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (lessThanEqualsInteger eta eta) True False)
+                 (case Bool (lessThanEqualsInteger eta eta) [False, True])
                  {all dead. Ordering}
                  (/\dead -> LT)
                  (/\dead -> GT)
@@ -165,19 +162,18 @@ program
                  ds
                  {Bool}
                  (\(n' : integer) (d' : integer) ->
-                    ifThenElse
-                      {Bool}
+                    case
+                      Bool
                       (lessThanEqualsInteger
                          (multiplyInteger n d')
                          (multiplyInteger n' d))
-                      True
-                      False))
+                      [False, True]))
   in
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 y) True False)
+            (case Bool (equalsInteger 0 y) [False, True])
             {all dead. integer}
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
@@ -187,12 +183,12 @@ program
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 d) True False)
+            (case Bool (equalsInteger 0 d) [False, True])
             {all dead. Rational}
             (/\dead -> error {Rational})
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (lessThanInteger d 0) True False)
+                 (case Bool (lessThanInteger d 0) [False, True])
                  {all dead. Rational}
                  (/\dead ->
                     unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
@@ -214,6 +210,8 @@ program
         (\v -> List (Tuple2 PredKey (List v))) Rational -> ParamValue
   in
   let
+    !ifThenElse : all a. bool -> a -> a -> a
+      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
     data Unit | Unit_match where
       Unit : Unit
   in
@@ -234,16 +232,13 @@ program
                    {integer}
                    (CConsOrd
                       {integer}
-                      equalsInteger
+                      (\(x : integer) (y : integer) ->
+                         case Bool (equalsInteger x y) [False, True])
                       `$fOrdInteger_$ccompare`
                       (\(x : integer) (y : integer) ->
-                         ifThenElse {Bool} (lessThanInteger x y) True False)
+                         case Bool (lessThanInteger x y) [False, True])
                       (\(x : integer) (y : integer) ->
-                         ifThenElse
-                           {Bool}
-                           (lessThanEqualsInteger x y)
-                           True
-                           False)
+                         case Bool (lessThanEqualsInteger x y) [False, True])
                       (\(x : integer) (y : integer) ->
                          ifThenElse
                            {Bool}
@@ -254,22 +249,14 @@ program
                          ifThenElse {Bool} (lessThanInteger x y) False True)
                       (\(x : integer) (y : integer) ->
                          Bool_match
-                           (ifThenElse
-                              {Bool}
-                              (lessThanEqualsInteger x y)
-                              True
-                              False)
+                           (case Bool (lessThanEqualsInteger x y) [False, True])
                            {all dead. integer}
                            (/\dead -> y)
                            (/\dead -> x)
                            {all dead. dead})
                       (\(x : integer) (y : integer) ->
                          Bool_match
-                           (ifThenElse
-                              {Bool}
-                              (lessThanEqualsInteger x y)
-                              True
-                              False)
+                           (case Bool (lessThanEqualsInteger x y) [False, True])
                            {all dead. integer}
                            (/\dead -> x)
                            (/\dead -> y)
@@ -294,18 +281,16 @@ program
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
                                    Bool_match
-                                     (ifThenElse
-                                        {Bool}
+                                     (case
+                                        Bool
                                         (equalsInteger n n')
-                                        True
-                                        False)
+                                        [False, True])
                                      {all dead. Bool}
                                      (/\dead ->
-                                        ifThenElse
-                                          {Bool}
+                                        case
+                                          Bool
                                           (equalsInteger d d')
-                                          True
-                                          False)
+                                          [False, True])
                                      (/\dead -> False)
                                      {all dead. dead})))
                       (\(ds : Rational) (ds : Rational) ->
@@ -329,13 +314,12 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   ifThenElse
-                                     {Bool}
+                                   case
+                                     Bool
                                      (lessThanInteger
                                         (multiplyInteger n d')
                                         (multiplyInteger n' d))
-                                     True
-                                     False)))
+                                     [False, True])))
                       `$fOrdRational0_$c<=`
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
@@ -346,11 +330,13 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
+                                   let
+                                     !x : integer = multiplyInteger n d'
+                                     !y : integer = multiplyInteger n' d
+                                   in
                                    ifThenElse
                                      {Bool}
-                                     (lessThanEqualsInteger
-                                        (multiplyInteger n d')
-                                        (multiplyInteger n' d))
+                                     (lessThanEqualsInteger x y)
                                      False
                                      True)))
                       (\(ds : Rational) (ds : Rational) ->
@@ -362,11 +348,13 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
+                                   let
+                                     !x : integer = multiplyInteger n d'
+                                     !y : integer = multiplyInteger n' d
+                                   in
                                    ifThenElse
                                      {Bool}
-                                     (lessThanInteger
-                                        (multiplyInteger n d')
-                                        (multiplyInteger n' d))
+                                     (lessThanInteger x y)
                                      False
                                      True)))
                       (\(x : Rational) (y : Rational) ->
@@ -401,7 +389,7 @@ program
             ds
             {list data -> Bool}
             (\(eta : list data) ->
-               ifThenElse {Bool} (nullList {data} eta) True False)
+               case Bool (nullList {data} eta) [False, True])
             (\(paramValueHd : ParamValue)
               (paramValueTl : List ParamValue)
               (actualValueData : list data) ->
@@ -431,12 +419,12 @@ program
               !args : list data = sndPair {integer} {list data} tup
             in
             Bool_match
-              (ifThenElse {Bool} (equalsInteger 1 index) True False)
+              (case Bool (equalsInteger 1 index) [False, True])
               {all dead. Maybe a}
               (/\dead -> Nothing {a})
               (/\dead ->
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. Maybe a}
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -5223,7 +5211,10 @@ program
                                         {ParamValue}
                                         (\(k' : integer) (i : ParamValue) ->
                                            Bool_match
-                                             (equalsInteger k k')
+                                             (case
+                                                Bool
+                                                (equalsInteger k k')
+                                                [False, True])
                                              {all dead. ParamValue}
                                              (/\dead -> i)
                                              (/\dead -> go xs')
@@ -5264,13 +5255,12 @@ program
                                               (unConstrData ds)))))
                           in
                           Bool_match
-                            (ifThenElse
-                               {Bool}
+                            (case
+                               Bool
                                (equalsInteger
                                   5
                                   (fstPair {integer} {list data} tup))
-                               True
-                               False)
+                               [False, True])
                             {all dead. data}
                             (/\dead ->
                                headList
@@ -5291,11 +5281,10 @@ program
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 0 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -5331,11 +5320,10 @@ program
                  !tup : pair integer (list data) = unConstrData scrut
                in
                Bool_match
-                 (ifThenElse
-                    {Bool}
+                 (case
+                    Bool
                     (equalsInteger 2 (fstPair {integer} {list data} tup))
-                    True
-                    False)
+                    [False, True])
                  {all dead. r}
                  (/\dead ->
                     let

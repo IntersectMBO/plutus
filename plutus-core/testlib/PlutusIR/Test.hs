@@ -42,6 +42,7 @@ import PlutusIR.Parser (Parser, pTerm, parse)
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
+import UntypedPlutusCore qualified as UPLC
 
 import Data.Hashable
 import Data.Text qualified as T
@@ -70,6 +71,7 @@ instance
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (UPLC.Term PIR.Name uni fun ()) uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Hashable fun

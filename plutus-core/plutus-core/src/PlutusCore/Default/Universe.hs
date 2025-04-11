@@ -20,6 +20,7 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TupleSections            #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -43,6 +44,7 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
+import PlutusCore.Core.Type (UniOf)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -59,7 +61,8 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
-import Data.Vector.Strict (Vector)
+import Data.Vector qualified as Vector
+import Data.Vector.Strict qualified as Strict (Vector)
 import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
@@ -107,7 +110,7 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
-    DefaultUniProtoArray :: DefaultUni (Esc Vector)
+    DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
     DefaultUniApply :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
@@ -262,7 +265,7 @@ instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
-instance DefaultUni `Contains` Vector where
+instance DefaultUni `Contains` Strict.Vector where
     knownUni = DefaultUniProtoArray
 instance DefaultUni `Contains` (,) where
     knownUni = DefaultUniProtoPair
@@ -287,8 +290,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
-instance KnownBuiltinTypeAst tyname DefaultUni (Vector a) =>
-    KnownTypeAst tyname DefaultUni (Vector a)
+instance KnownBuiltinTypeAst tyname DefaultUni (Strict.Vector a) =>
+    KnownTypeAst tyname DefaultUni (Strict.Vector a)
 instance KnownBuiltinTypeAst tyname DefaultUni (a, b) =>
     KnownTypeAst tyname DefaultUni (a, b)
 instance KnownBuiltinTypeAst tyname DefaultUni Data =>
@@ -314,8 +317,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    ReadKnownIn DefaultUni term (Vector a)
+instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
+    ReadKnownIn DefaultUni term (Strict.Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     ReadKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -339,8 +342,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     MakeKnownIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    MakeKnownIn DefaultUni term (Vector a)
+instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
+    MakeKnownIn DefaultUni term (Strict.Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     MakeKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -508,9 +511,9 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
 
 deriving newtype instance KnownTypeAst tyname DefaultUni a =>
     KnownTypeAst tyname DefaultUni (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
     MakeKnownIn DefaultUni term (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
     ReadKnownIn DefaultUni term (ArrayCostedByLength a)
 
 deriving via AsInteger Natural instance
@@ -533,6 +536,23 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
                  ]
     {-# INLINE readKnown #-}
 
+instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
+    caseBuiltin (Some (ValueOf uni x)) branches = case uni of
+        DefaultUniBool
+            | Vector.length branches == 2 -> Right $ branches Vector.! fromEnum x
+            | otherwise -> Left ()
+        DefaultUniInteger
+            | 0 <= x && x < fromIntegral (Vector.length branches) ->
+                Right $ branches Vector.! fromIntegral x
+            | otherwise -> Left ()
+        _ -> Left ()
+
+instance AnnotateCaseBuiltin DefaultUni where
+    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
+        DefaultUniBool    -> Right $ map (, []) branches
+        DefaultUniInteger -> Right $ map (, []) branches
+        _                 -> Left ()
+
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
@@ -549,7 +569,7 @@ instance Closed DefaultUni where
         , constr `Permits` ()
         , constr `Permits` Bool
         , constr `Permits` []
-        , constr `Permits` Vector
+        , constr `Permits` Strict.Vector
         , constr `Permits` (,)
         , constr `Permits` Data
         , constr `Permits` BLS12_381.G1.Element

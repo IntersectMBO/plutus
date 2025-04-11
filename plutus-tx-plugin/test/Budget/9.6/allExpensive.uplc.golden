@@ -10,11 +10,9 @@
               , (\x xs ->
                    delay
                      (force
-                        (force
-                           (force ifThenElse
-                              (lessThanEqualsInteger 11 x)
-                              (delay (delay (constr 1 [])))
-                              (delay (delay (s s xs))))))) ]))
+                        (case
+                           (lessThanEqualsInteger 11 x)
+                           [(delay (s s xs)), (delay (constr 1 []))]))) ]))
       (constr 1
          [ 1
          , (constr 1
