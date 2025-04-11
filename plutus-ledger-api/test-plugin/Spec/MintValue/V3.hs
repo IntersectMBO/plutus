@@ -18,6 +18,7 @@ module Spec.MintValue.V3 where
 import PlutusTx.Prelude
 
 import Data.Coerce (coerce)
+import PlutusLedgerApi.Test.QuickCheck ()
 import PlutusLedgerApi.Test.V1.Value ()
 import PlutusLedgerApi.Test.V3.MintValue ()
 import PlutusLedgerApi.V1.Value (AssetClass (..), Value (..), flattenValue)
