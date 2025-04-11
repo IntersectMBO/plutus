@@ -11,11 +11,12 @@ import PlutusLedgerApi.Data.V2
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusTx qualified
+import PlutusTx.BuiltinList qualified as BuiltinList
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Data.AssocMap qualified as Map
-import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.Data.List qualified as DataList
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -41,7 +42,7 @@ mkTxInfo :: Integer -> TxInfo
 mkTxInfo i = TxInfo {
   txInfoInputs=mempty,
   txInfoReferenceInputs=mempty,
-  txInfoOutputs=Data.List.map mkTxOut (Data.List.fromSOP ([1 .. i] :: [Integer])),
+  txInfoOutputs=DataList.map mkTxOut (DataList.fromSOP ([1 .. i] :: [Integer])),
   txInfoFee=mempty,
   txInfoMint=mempty,
   txInfoDCert=mempty,
@@ -117,7 +118,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ = sc
   in
-  if Data.List.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if DataList.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
@@ -213,7 +214,7 @@ forwardWithStakeTrick obsScriptCred ctx =
           || PlutusTx.equalsData obsScriptCred wdrlAtOne
           then ()
           else
-            if Map.member obsScriptCred (Map.unsafeFromBuiltinList rest)
+            if BuiltinList.any (PlutusTx.equalsData obsScriptCred . BI.fst) rest
               then ()
               else PlutusTx.traceError "not found"
 {-# INLINABLE forwardWithStakeTrick #-}

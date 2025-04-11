@@ -1,0 +1,45 @@
+let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !find : all a. (a -> Bool) -> list a -> Maybe a
+    = /\a ->
+        \(p : a -> Bool) ->
+          letrec
+            ~go : list a -> Maybe a
+              = (let
+                    r = Maybe a
+                  in
+                  \(z : r) (f : a -> list a -> r) (xs : list a) ->
+                    chooseList
+                      {a}
+                      {all dead. r}
+                      xs
+                      (/\dead -> z)
+                      (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                      {r})
+                  (Nothing {a})
+                  (\(x : a) (xs : list a) ->
+                     Bool_match
+                       (p x)
+                       {all dead. Maybe a}
+                       (/\dead -> Just {a} x)
+                       (/\dead -> go xs)
+                       {all dead. dead})
+          in
+          go
+  !greaterThanEqualsInteger : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        ifThenElse {Bool} (lessThanInteger x y) False True
+in
+\(xs : list integer) ->
+  Tuple2
+    {Maybe integer}
+    {Maybe integer}
+    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 8) xs)
+    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 12) xs)

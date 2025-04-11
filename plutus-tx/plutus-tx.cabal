@@ -72,6 +72,7 @@ library
     PlutusTx.Blueprint.Validator
     PlutusTx.Blueprint.Write
     PlutusTx.Bool
+    PlutusTx.BuiltinList
     PlutusTx.Builtins
     PlutusTx.Builtins.HasBuiltin
     PlutusTx.Builtins.HasOpaque
