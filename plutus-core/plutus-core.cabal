@@ -444,6 +444,7 @@ test-suite untyped-plutus-core-test
     Generators
     Scoping.Spec
     Transform.CaseOfCase.Test
+    Transform.Inline.Spec
     Transform.Simplify
     Transform.Simplify.Lib
 
@@ -789,6 +790,7 @@ library plutus-core-testlib
     UntypedPlutusCore.Generators.Hedgehog
     UntypedPlutusCore.Test.DeBruijn.Bad
     UntypedPlutusCore.Test.DeBruijn.Good
+    UntypedPlutusCore.Test.Term.Construction
 
   build-depends:
     , base                        >=4.9     && <5

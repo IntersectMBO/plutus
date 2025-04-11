@@ -12,7 +12,7 @@ import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
 import UntypedPlutusCore (Name, Term, defaultSimplifyOpts, simplifyTerm, soInlineCallsiteGrowth,
-                          soMaxCseIterations, soMaxSimplifierIterations)
+                          soMaxCseIterations, soMaxSimplifierIterations, soPreserveLogging)
 
 -- TODO Fix duplication with other golden tests, quite annoying
 goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
@@ -31,6 +31,7 @@ goldenVsSimplified name =
           & soMaxSimplifierIterations .~ 1
           & soMaxCseIterations .~ 0
           & soInlineCallsiteGrowth .~ 0
+          & soPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
@@ -44,5 +45,6 @@ goldenVsCse name =
           & soMaxSimplifierIterations .~ 0
           & soMaxCseIterations .~ 1
           & soInlineCallsiteGrowth .~ 0
+          & soPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
