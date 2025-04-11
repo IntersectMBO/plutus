@@ -19,12 +19,13 @@ module PlutusLedgerApi.V1.Credential
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusLedgerApi.V1.Scripts (ScriptHash)
+import PlutusLedgerApi.V1.Crypto (PubKeyHash (PubKeyHash))
+import PlutusLedgerApi.V1.Scripts (ScriptHash (ScriptHash))
 import PlutusTx qualified
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
+import PlutusTx.Ord qualified as PlutusTx
 import PlutusTx.Show (deriveShow)
 import Prettyprinter (Pretty (..), (<+>))
 
@@ -79,6 +80,13 @@ instance PlutusTx.Eq Credential where
     PubKeyCredential l == PubKeyCredential r  = l PlutusTx.== r
     ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
     _ == _                                    = False
+
+instance PlutusTx.Ord Credential where
+    {-# INLINABLE compare #-}
+    compare (PubKeyCredential (PubKeyHash pkh1)) (PubKeyCredential (PubKeyHash pkh2)) = PlutusTx.compare pkh1 pkh2
+    compare (ScriptCredential (ScriptHash sh1)) (ScriptCredential (ScriptHash sh2)) = PlutusTx.compare sh1 sh2
+    compare (PubKeyCredential _) (ScriptCredential _) = PlutusTx.LT
+    compare _ _ = PlutusTx.GT
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
