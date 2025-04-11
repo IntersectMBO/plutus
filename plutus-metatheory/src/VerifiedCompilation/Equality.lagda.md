@@ -185,7 +185,7 @@ decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
--- TODO: why does this use magicBoolDec? surely it can be implemented correctly
+-- TODO(https://github.com/IntersectMBO/plutus-private/issues/1528): why does this use magicBoolDec? surely it can be implemented correctly
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag v v₁ = magicBoolDec (U.eqDATA v v₁)
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
