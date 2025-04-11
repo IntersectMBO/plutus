@@ -32,6 +32,7 @@ module UntypedPlutusCore.Transform.Inline (
   TermEnv (..),
   isFirstVarBeforeEffects,
   isVarDelayed,
+  effectSafe,
 ) where
 
 import Control.Lens (forMOf, makeLenses, view, (%~), (&), (^.))
@@ -142,6 +143,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
   , _iiInlineCallsiteGrowth    :: Size
+  , _iiPreserveLogging         :: Bool
   }
 
 makeLenses ''InlineInfo
@@ -199,25 +201,34 @@ inline
   -- ^ inline threshold
   -> Bool
   -- ^ inline constants
+  -> Bool
+  -- ^ preserve logging
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> SimplifierT name uni fun a m (Term name uni fun a)
-inline callsiteGrowth inlineConstants hints builtinSemanticsVariant t = do
-  result <-
-    liftQuote $
-      flip evalStateT mempty $
-        runReaderT
-          (processTerm t)
-          InlineInfo
-            { _iiUsages = Usages.termUsages t
-            , _iiHints = hints
-            , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
-            , _iiInlineConstants = inlineConstants
-            , _iiInlineCallsiteGrowth = callsiteGrowth
-            }
-  recordSimplification t Inline result
-  return result
+inline
+  callsiteGrowth
+  inlineConstants
+  preserveLogging
+  hints
+  builtinSemanticsVariant
+  t = do
+    result <-
+      liftQuote $
+        flip evalStateT mempty $
+          runReaderT
+            (processTerm t)
+            InlineInfo
+              { _iiUsages = Usages.termUsages t
+              , _iiHints = hints
+              , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+              , _iiInlineConstants = inlineConstants
+              , _iiInlineCallsiteGrowth = callsiteGrowth
+              , _iiPreserveLogging = preserveLogging
+              }
+    recordSimplification t Inline result
+    return result
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -433,7 +444,7 @@ isVarDelayed
   => name
   -> Term name uni fun a
   -> Maybe Bool
-isVarDelayed name term =
+isVarDelayed name term = do
   case go False [] term of
     [] -> Nothing
     xs -> Just (and xs)
@@ -471,10 +482,15 @@ effectSafe
   -> Bool
   -- ^ is it pure?
   -> InlineM name uni fun a Bool
-effectSafe body n purity = do
+effectSafe body n termIsPure = do
+  preserveLogging <- view iiPreserveLogging
   builtinSemantics <- view iiBuiltinSemanticsVariant
-  let immediatelyEvaluated = isFirstVarBeforeEffects builtinSemantics n body
-  pure $ purity || immediatelyEvaluated
+  return $
+    termIsPure
+      || isFirstVarBeforeEffects builtinSemantics n body
+      || (not preserveLogging && isVarImmediatelyEvaluated n body)
+ where
+  isVarImmediatelyEvaluated name = maybe False not . isVarDelayed name
 
 {-| Should we inline? Should only inline things that won't duplicate work
 or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']

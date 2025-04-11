@@ -164,6 +164,15 @@ inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure4 =
   mkInlinePurityTest $ force . force . force . delay . delay . var $ name "a" 0
 
+inlineImpure5 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure5 =
+  lam a $
+    app
+      (lam b (int 1 `addInteger` var a `addInteger` var b))
+      (int 3 `addInteger` var a)
+ where
+  (a, b) = uniqueNames2 "a" "b"
+
 {-| @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
 The first occurrence of `a` should be inlined because doing so does not increase
@@ -371,6 +380,7 @@ test_simplify =
     , goldenVsSimplified "inlineImpure2" inlineImpure2
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
+    , goldenVsSimplified "inlineImpure5" inlineImpure5
     , goldenVsSimplified "multiApp" multiApp
     , goldenVsSimplified "forceDelayNoApps" forceDelayNoApps
     , goldenVsSimplified "forceDelayNoAppsLayered" forceDelayNoAppsLayered

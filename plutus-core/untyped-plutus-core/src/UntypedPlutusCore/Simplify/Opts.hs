@@ -40,5 +40,5 @@ defaultSimplifyOpts =
     , _soInlineHints = def
     , _soInlineConstants = True
     , _soInlineCallsiteGrowth = 5
-    , _soPreserveLogging = False
+    , _soPreserveLogging = True
     }

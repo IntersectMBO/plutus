@@ -533,7 +533,7 @@ runCompiler moduleName opts expr = do
                 (opts ^. posInlineConstants)
             & set (PLC.coSimplifyOpts . UPLC.soInlineCallsiteGrowth)
                 (opts ^. posInlineCallsiteGrowth . to fromIntegral)
-            & set (PLC.coPreserveLogging . UPLC.soPreserveLogging)
+            & set (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
                 (opts ^. posPreserveLogging)
 
     -- GHC.Core -> Pir translation.
