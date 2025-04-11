@@ -14,7 +14,7 @@ module PlutusTx.BuiltinList (
 )
 where
 
-import Prelude (Bool (..), Integer, Maybe (..), otherwise)
+import Prelude (Bool (..), Integer, Maybe (..), otherwise, (.))
 
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.HasOpaque
@@ -33,7 +33,7 @@ map f = go
   go =
     B.caseList'
       B.mkNil
-      (\x xs -> BI.mkCons (f x) (go xs))
+      (\x -> BI.mkCons (f x) . go)
 {-# INLINEABLE map #-}
 
 elem :: forall a. (Eq a) => a -> BuiltinList a -> Bool

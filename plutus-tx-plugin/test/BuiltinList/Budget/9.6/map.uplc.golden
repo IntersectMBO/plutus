@@ -10,9 +10,9 @@
                       xs
                       (delay [])
                       (delay
-                         ((\xs ->
+                         ((\x ->
                              force mkCons
                                (addInteger 1 (force headList xs))
-                               (force (s s (delay (\x -> x))) xs))
+                               (force (s s (delay (\x -> x))) x))
                             (force tailList xs))))))
          (delay (\x -> x)))))
