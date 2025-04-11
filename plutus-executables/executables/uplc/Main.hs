@@ -299,7 +299,18 @@ runCertifier (Just certName) (SimplifierTrace simplTrace) = do
             (Left (err :: UPLC.FreeVariableError), _) -> error $ show err
             (_, Left (err :: UPLC.FreeVariableError)) -> error $ show err
       rawAgdaTrace = reverse $ processAgdaAST <$> simplTrace
-  runCertifierMain rawAgdaTrace
+  case runCertifierMain rawAgdaTrace of
+    Just True ->
+      putStrLn "The compilation was successfully certified."
+    Just False ->
+      putStrLn
+        "The compilation was not successfully certified. \
+        \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
+        \and attach the faulty certificate."
+    Nothing ->
+      putStrLn
+        "The certifier was unable to check the compilation. \
+        \Please open a bug report at https://www.github.com/IntersectMBO/plutus."
   writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
 runCertifier Nothing _ = pure ()
 
