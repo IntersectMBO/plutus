@@ -8,6 +8,8 @@ module UntypedPlutusCore.Simplify (
     simplifyProgram,
     simplifyProgramWithTrace,
     InlineHints (..),
+    termSimplifier,
+    module UntypedPlutusCore.Transform.Simplifier,
 ) where
 
 import PlutusCore.Compiler.Types

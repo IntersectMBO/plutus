@@ -68,7 +68,7 @@ instance AgdaUnparse Text where
   agdaUnparse = T.unpack
 
 instance AgdaUnparse ByteString where
-  agdaUnparse = show  -- TODO: maybe this should be encoded some other way
+  agdaUnparse bs = "(mkByteString " <> show bs <> ")"
 
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"

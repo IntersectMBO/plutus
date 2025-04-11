@@ -65,7 +65,10 @@ common os-support
 library lib
   import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
-  exposed-modules: AgdaUnparse
+  exposed-modules:
+    AgdaTrace
+    AgdaUnparse
+
   build-depends:
     , base               >=4.9   && <5
     , bytestring
@@ -171,7 +174,11 @@ test-suite test-certifier
   build-depends:
     , base
     , filepath
+    , plutus-core
     , plutus-core:plutus-core-testlib
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-executables:lib
+    , plutus-metatheory
     , process
     , tasty
     , tasty-hunit
