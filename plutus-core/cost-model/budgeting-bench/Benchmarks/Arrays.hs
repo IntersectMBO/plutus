@@ -46,9 +46,8 @@ benchListToArray gen =
     listOfLists
  where
   listOfLists :: [[Integer]] =
-    runStateGen_ gen \g -> replicateM 100 do
-      listSize <- uniformRM (1, 100) g
-      replicateM listSize (uniformRM intRange g)
+    runStateGen_ gen \g -> mapM (mkList g) [1..100]
+  mkList g len = replicateM len (uniformRM intRange g)
 
 benchIndexArray :: StdGen -> Benchmark
 benchIndexArray gen =
