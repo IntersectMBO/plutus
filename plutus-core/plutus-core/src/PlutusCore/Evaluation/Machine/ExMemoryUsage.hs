@@ -304,14 +304,15 @@ addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
     CostRose (cost1 + cost2) (forest1 ++ forest2)
 {-# INLINE addConstantRose #-}
 
-instance ExMemoryUsage a => ExMemoryUsage [a] where
+instance {- ExMemoryUsage a => -} ExMemoryUsage [a] where
     -- sizeof([a]) = (1 + 3N) words + N * sizeof(v)
-    memoryUsage = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
+    memoryUsage _ = singletonRose 1
+      {- = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
         -- As per https://wiki.haskell.org/GHC/Memory_Footprint
         nilCost = 1
         {-# INLINE nilCost #-}
         consRose = singletonRose 3
-        {-# INLINE consRose #-}
+        {-# INLINE consRose #-} -}
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage (Vector a) where
