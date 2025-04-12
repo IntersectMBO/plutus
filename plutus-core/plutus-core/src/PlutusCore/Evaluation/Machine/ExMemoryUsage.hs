@@ -306,7 +306,7 @@ addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
 
 instance {- ExMemoryUsage a => -} ExMemoryUsage [a] where
     -- sizeof([a]) = (1 + 3N) words + N * sizeof(v)
-    memoryUsage _ = singletonRose 1
+    memoryUsage l = singletonRose . fromIntegral $ length l
       {- = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
         -- As per https://wiki.haskell.org/GHC/Memory_Footprint
         nilCost = 1
