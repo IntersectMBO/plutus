@@ -214,7 +214,7 @@ instance ExMemoryUsage IntegerCostedLiterally where
    to wrap the same argument in the relevant budgeting benchmark. -}
 newtype ListCostedByLength a = ListCostedByLength { unListCostedByLength :: [a] }
 instance ExMemoryUsage (ListCostedByLength a) where
-    memoryUsage (ListCostedByLength l) = singletonRose . fromIntegral $ length l
+    memoryUsage (ListCostedByLength _l) = singletonRose 1
     {-# INLINE memoryUsage #-}
     -- Note that this uses `fromIntegral`, which will narrow large values to
     -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
