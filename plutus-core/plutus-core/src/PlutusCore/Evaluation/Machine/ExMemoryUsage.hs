@@ -12,8 +12,6 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
-    , ListCostedByLength(..)
-    , ArrayCostedByLength(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -208,28 +206,6 @@ instance ExMemoryUsage IntegerCostedLiterally where
     -- realistic input should be that large; however if you're going to use this then be
     -- sure to convince yourself that it's safe.
 
-{- | A wrappper for lists whose "memory usage" for costing purposes is just the
-   length of the list, ignoring the sizes of the elements. If this is used to
-   wrap an argument in the denotation of a builtin then it *MUST* also be used
-   to wrap the same argument in the relevant budgeting benchmark. -}
-newtype ListCostedByLength a = ListCostedByLength { unListCostedByLength :: [a] }
-instance ExMemoryUsage (ListCostedByLength a) where
-    memoryUsage (ListCostedByLength l) = singletonRose . fromIntegral $ length l
-    {-# INLINE memoryUsage #-}
-    -- Note that this uses `fromIntegral`, which will narrow large values to
-    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
-    -- realistic input should be that large; however if you're going to use this then be
-    -- sure to convince yourself that it's safe.
-
-newtype ArrayCostedByLength a = ArrayCostedByLength { unArrayCostedByLength :: Vector a }
-instance ExMemoryUsage (ArrayCostedByLength a) where
-    memoryUsage (ArrayCostedByLength l) = singletonRose . fromIntegral $ Vector.length l
-    {-# INLINE memoryUsage #-}
-    -- Note that this uses `fromIntegral`, which will narrow large values to
-    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
-    -- realistic input should be that large; however if you're going to use this then be
-    -- sure to convince yourself that it's safe.
-
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
@@ -304,23 +280,12 @@ addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
     CostRose (cost1 + cost2) (forest1 ++ forest2)
 {-# INLINE addConstantRose #-}
 
-instance ExMemoryUsage a => ExMemoryUsage [a] where
-    -- sizeof([a]) = (1 + 3N) words + N * sizeof(v)
-    memoryUsage = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
-        -- As per https://wiki.haskell.org/GHC/Memory_Footprint
-        nilCost = 1
-        {-# INLINE nilCost #-}
-        consRose = singletonRose 3
-        {-# INLINE consRose #-}
-    {-# INLINE memoryUsage #-}
+instance ExMemoryUsage [a] where
+  memoryUsage l = singletonRose . fromIntegral $ length l
+  {-# INLINE memoryUsage #-}
 
-instance ExMemoryUsage a => ExMemoryUsage (Vector a) where
-    -- sizeof(Vector v) = (7 + N) words + N * sizeof(v)
-    memoryUsage v = CostRose arrayCost [ memoryUsage a | a <- Vector.toList v ]
-      where
-        arrayCost :: SatInt
-        arrayCost = 7 + fromIntegral (Vector.length v)
-        {-# INLINE arrayCost #-}
+instance ExMemoryUsage (Vector a) where
+    memoryUsage l = singletonRose . fromIntegral $ Vector.length l
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in

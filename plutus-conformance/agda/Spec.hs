@@ -119,42 +119,11 @@ failingEvaluationTests = []
 -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  -- These currently fail because the Agda code doesn't know about alternative
-  -- size measures used by `replicateByte`, `writeBits`, and `dropList`: see
-  -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
-  -- do pass, either because evaluation fails or because two different size
-  -- measures happen to be the same for small inputs.
+  -- These currently fail because (a) the Agda code doesn't know about the
+  -- IntegerCostedLiterally size measure used by `replicateByte`, and (b)
+  -- GHC 8.0 can't deal with `dropList`.
   [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
   , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-11"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-12"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-13"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-14"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-15"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-16"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-17"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-18"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-20"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-21"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-22"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-23"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-24"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-25"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-26"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-27"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-29"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-30"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-31"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-32"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-33"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-34"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-35"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-36"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-37"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-38"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-39"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-40"
-  , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-41"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
