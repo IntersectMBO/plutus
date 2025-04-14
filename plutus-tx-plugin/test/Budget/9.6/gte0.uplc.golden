@@ -7,12 +7,10 @@
               ds
               [ (delay (constr 0 []))
               , (\x xs ->
-                   delay
-                     (force
-                        (force ifThenElse
-                           (lessThanInteger x 0)
-                           (delay (constr 1 []))
-                           (delay (s s xs))))) ]))
+                   force ifThenElse
+                     (lessThanInteger x 0)
+                     (delay (constr 1 []))
+                     (delay (s s xs))) ]))
       ((\s -> s s)
          (\s n ->
             force

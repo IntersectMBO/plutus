@@ -200,40 +200,30 @@
                                  case
                                    ds
                                    [0, (\ds xs -> addInteger 1 (s s xs))])))
-                        ((\s ->
-                            s s)
-                           (\s
-                             ds
-                             ds ->
+                        ((\s -> s s)
+                           (\s ds ds ->
                               force
                                 (case
                                    ds
                                    [ (delay
                                         (constr 0
                                            [(constr 0 []), (constr 0 [])]))
-                                   , (\y
-                                       ys ->
-                                        delay
-                                          (force
-                                             (force
-                                                ifThenElse
-                                                (equalsInteger 1 ds)
-                                                (delay
-                                                   (constr 0
-                                                      [ (constr 1
-                                                           [y, (constr 0 [])])
-                                                      , ys ]))
-                                                (delay
-                                                   (case
-                                                      ((\x -> s s x)
-                                                         (subtractInteger ds 1)
-                                                         ys)
-                                                      [ (\zs
-                                                          ws ->
-                                                           constr 0
-                                                             [ (constr 1
-                                                                  [y, zs])
-                                                             , ws ]) ]))))) ]))))
+                                   , (\y ys ->
+                                        force ifThenElse
+                                          (equalsInteger 1 ds)
+                                          (delay
+                                             (constr 0
+                                                [ (constr 1 [y, (constr 0 [])])
+                                                , ys ]))
+                                          (delay
+                                             (case
+                                                ((\x -> s s x)
+                                                   (subtractInteger ds 1)
+                                                   ys)
+                                                [ (\zs ws ->
+                                                     constr 0
+                                                       [ (constr 1 [y, zs])
+                                                       , ws ]) ]))) ]))))
                      ((\s -> s s)
                         (\s x lim ->
                            force

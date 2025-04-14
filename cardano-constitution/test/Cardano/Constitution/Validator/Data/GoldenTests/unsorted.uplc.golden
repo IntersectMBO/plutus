@@ -132,15 +132,13 @@ program
                                                                                                                                                                              (unConstrData
                                                                                                                                                                                 ds))))))))))))))
                                                                                                                                       [ (\cparams ->
-                                                                                                                                           delay
-                                                                                                                                             (force
-                                                                                                                                                (case
-                                                                                                                                                   (fun
-                                                                                                                                                      cparams)
-                                                                                                                                                   [ (delay
-                                                                                                                                                        ())
-                                                                                                                                                   , (delay
-                                                                                                                                                        error) ])))
+                                                                                                                                           case
+                                                                                                                                             (fun
+                                                                                                                                                cparams)
+                                                                                                                                             [ (delay
+                                                                                                                                                  ())
+                                                                                                                                             , (delay
+                                                                                                                                                  error) ])
                                                                                                                                       , (delay
                                                                                                                                            ()) ]))
                                                                                                                                 ((\go
@@ -160,54 +158,52 @@ program
                                                                                                                                                       [  ]))
                                                                                                                                               , (\x
                                                                                                                                                   xs ->
-                                                                                                                                                   delay
-                                                                                                                                                     (force
-                                                                                                                                                        (case
-                                                                                                                                                           (case
-                                                                                                                                                              x
-                                                                                                                                                              [ (\ds
-                                                                                                                                                                  actualValueData ->
-                                                                                                                                                                   validateParamValue
-                                                                                                                                                                     ((\k ->
-                                                                                                                                                                         (\s ->
-                                                                                                                                                                            s
-                                                                                                                                                                              s)
-                                                                                                                                                                           (\s
-                                                                                                                                                                             ds ->
-                                                                                                                                                                              force
-                                                                                                                                                                                (case
-                                                                                                                                                                                   ds
-                                                                                                                                                                                   [ (delay
-                                                                                                                                                                                        error)
-                                                                                                                                                                                   , (\ds
-                                                                                                                                                                                       xs' ->
-                                                                                                                                                                                        delay
-                                                                                                                                                                                          (case
-                                                                                                                                                                                             ds
-                                                                                                                                                                                             [ (\k'
-                                                                                                                                                                                                 i ->
-                                                                                                                                                                                                  force
-                                                                                                                                                                                                    (case
-                                                                                                                                                                                                       (equalsInteger
-                                                                                                                                                                                                          k
-                                                                                                                                                                                                          k')
-                                                                                                                                                                                                       [ (delay
-                                                                                                                                                                                                            i)
-                                                                                                                                                                                                       , (delay
-                                                                                                                                                                                                            (s
-                                                                                                                                                                                                               s
-                                                                                                                                                                                                               xs')) ])) ])) ])))
-                                                                                                                                                                        (unIData
-                                                                                                                                                                           ds)
-                                                                                                                                                                        cfg)
-                                                                                                                                                                     actualValueData) ])
-                                                                                                                                                           [ (delay
-                                                                                                                                                                (s
-                                                                                                                                                                   s
-                                                                                                                                                                   xs))
-                                                                                                                                                           , (delay
-                                                                                                                                                                (constr 1
-                                                                                                                                                                   [  ])) ]))) ])))))
+                                                                                                                                                   case
+                                                                                                                                                     (case
+                                                                                                                                                        x
+                                                                                                                                                        [ (\ds
+                                                                                                                                                            actualValueData ->
+                                                                                                                                                             validateParamValue
+                                                                                                                                                               ((\k ->
+                                                                                                                                                                   (\s ->
+                                                                                                                                                                      s
+                                                                                                                                                                        s)
+                                                                                                                                                                     (\s
+                                                                                                                                                                       ds ->
+                                                                                                                                                                        force
+                                                                                                                                                                          (case
+                                                                                                                                                                             ds
+                                                                                                                                                                             [ (delay
+                                                                                                                                                                                  error)
+                                                                                                                                                                             , (\ds
+                                                                                                                                                                                 xs' ->
+                                                                                                                                                                                  delay
+                                                                                                                                                                                    (case
+                                                                                                                                                                                       ds
+                                                                                                                                                                                       [ (\k'
+                                                                                                                                                                                           i ->
+                                                                                                                                                                                            force
+                                                                                                                                                                                              (case
+                                                                                                                                                                                                 (equalsInteger
+                                                                                                                                                                                                    k
+                                                                                                                                                                                                    k')
+                                                                                                                                                                                                 [ (delay
+                                                                                                                                                                                                      i)
+                                                                                                                                                                                                 , (delay
+                                                                                                                                                                                                      (s
+                                                                                                                                                                                                         s
+                                                                                                                                                                                                         xs')) ])) ])) ])))
+                                                                                                                                                                  (unIData
+                                                                                                                                                                     ds)
+                                                                                                                                                                  cfg)
+                                                                                                                                                               actualValueData) ])
+                                                                                                                                                     [ (delay
+                                                                                                                                                          (s
+                                                                                                                                                             s
+                                                                                                                                                             xs))
+                                                                                                                                                     , (delay
+                                                                                                                                                          (constr 1
+                                                                                                                                                             [  ])) ]) ])))))
                                                                                                                              (constr 1
                                                                                                                                 [ (constr 0
                                                                                                                                      [ 0
@@ -1281,19 +1277,12 @@ program
                                                        ds
                                                        [ (delay (s s xs))
                                                        , (\x xs ->
-                                                            delay
-                                                              (force
-                                                                 (case
-                                                                    (meaning
-                                                                       x
-                                                                       ds)
-                                                                    [ (delay
-                                                                         (s
-                                                                            s
-                                                                            xs))
-                                                                    , (delay
-                                                                         (constr 1
-                                                                            [  ])) ]))) ]))
+                                                            case
+                                                              (meaning x ds)
+                                                              [ (delay (s s xs))
+                                                              , (delay
+                                                                   (constr 1
+                                                                      [  ])) ]) ]))
                                                expectedPredValues)
                                             (force
                                                (case

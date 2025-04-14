@@ -131,15 +131,13 @@ program
                                                                                                                                                                           (unConstrData
                                                                                                                                                                              ds))))))))))))))
                                                                                                                                    [ (\cparams ->
-                                                                                                                                        delay
-                                                                                                                                          (force
-                                                                                                                                             (case
-                                                                                                                                                (fun
-                                                                                                                                                   cparams)
-                                                                                                                                                [ (delay
-                                                                                                                                                     ())
-                                                                                                                                                , (delay
-                                                                                                                                                     error) ])))
+                                                                                                                                        case
+                                                                                                                                          (fun
+                                                                                                                                             cparams)
+                                                                                                                                          [ (delay
+                                                                                                                                               ())
+                                                                                                                                          , (delay
+                                                                                                                                               error) ])
                                                                                                                                    , (delay
                                                                                                                                         ()) ]))
                                                                                                                              (runRules
@@ -940,20 +938,18 @@ program
                                                                                       (unIData
                                                                                          ds)
                                                                                       expectedPid)
-                                                                                   [ (delay
-                                                                                        (force
-                                                                                           (case
-                                                                                              (validateParamValue
-                                                                                                 paramValue
-                                                                                                 actualValueData)
-                                                                                              [ (delay
-                                                                                                   (s
-                                                                                                      s
-                                                                                                      cfgRest
-                                                                                                      cparamsRest))
-                                                                                              , (delay
-                                                                                                   (constr 1
-                                                                                                      [  ])) ])))
+                                                                                   [ (case
+                                                                                        (validateParamValue
+                                                                                           paramValue
+                                                                                           actualValueData)
+                                                                                        [ (delay
+                                                                                             (s
+                                                                                                s
+                                                                                                cfgRest
+                                                                                                cparamsRest))
+                                                                                        , (delay
+                                                                                             (constr 1
+                                                                                                [  ])) ])
                                                                                    , (delay
                                                                                         (s
                                                                                            s
@@ -1273,15 +1269,12 @@ program
                                                     ds
                                                     [ (delay (s s xs))
                                                     , (\x xs ->
-                                                         delay
-                                                           (force
-                                                              (case
-                                                                 (meaning x ds)
-                                                                 [ (delay
-                                                                      (s s xs))
-                                                                 , (delay
-                                                                      (constr 1
-                                                                         [  ])) ]))) ]))
+                                                         case
+                                                           (meaning x ds)
+                                                           [ (delay (s s xs))
+                                                           , (delay
+                                                                (constr 1
+                                                                   [])) ]) ]))
                                             expectedPredValues)
                                          (force
                                             (case

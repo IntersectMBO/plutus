@@ -5,10 +5,8 @@ program
        (case
           ds
           [ (\x' ->
-               delay
-                 (force
-                    (case
-                       ds
-                       [ (\y' -> delay (constr 0 [(addInteger x' y')]))
-                       , (delay (constr 1 [])) ])))
+               case
+                 ds
+                 [ (\y' -> delay (constr 0 [(addInteger x' y')]))
+                 , (delay (constr 1 [])) ])
           , (delay (constr 1 [])) ]))

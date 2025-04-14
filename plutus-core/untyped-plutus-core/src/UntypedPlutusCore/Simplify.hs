@@ -19,6 +19,7 @@ import UntypedPlutusCore.Simplify.Opts as Opts
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
+import UntypedPlutusCore.Transform.DelayForce (delayForce)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
@@ -70,29 +71,30 @@ termSimplifier ::
     Term name uni fun a ->
     SimplifierT name uni fun a m (Term name uni fun a)
 termSimplifier opts builtinSemanticsVariant =
-    simplifyNTimes (_soMaxSimplifierIterations opts) >=> cseNTimes cseTimes
+    stage1NTimes (_soMaxSimplifierIterations opts) >=> stage2NTimes cseTimes
   where
     -- Run the simplifier @n@ times
-    simplifyNTimes ::
+    stage1NTimes ::
       Int ->
       Term name uni fun a ->
       SimplifierT name uni fun a m (Term name uni fun a)
-    simplifyNTimes n = List.foldl' (>=>) pure $ map simplifyStep [1..n]
+    stage1NTimes n = List.foldl' (>=>) pure $ replicate n simplifyStep
 
-    -- Run CSE @n@ times, interleaved with the simplifier.
-    -- See Note [CSE]
-    cseNTimes ::
+    -- Run delay-force and CSE @n@ times, interleaved with the simplifier.
+    -- See Note [CSE].
+    -- We put 'delayForce' here instead of 'stage1NTimes', because experiments showed that
+    -- spending @force@s 'forceDelay' results
+    stage2NTimes ::
       Int ->
       Term name uni fun a ->
       SimplifierT name uni fun a m (Term name uni fun a)
-    cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1..n]
+    stage2NTimes n = foldl' (>=>) pure . concat $ replicate n [delayForce, cseStep, simplifyStep]
 
     -- generate simplification step
     simplifyStep ::
-      Int ->
       Term name uni fun a ->
       SimplifierT name uni fun a m (Term name uni fun a)
-    simplifyStep _ =
+    simplifyStep =
         floatDelay
         >=> case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
             (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
@@ -113,10 +115,9 @@ termSimplifier opts builtinSemanticsVariant =
       Nothing   -> pure
 
     cseStep ::
-      Int ->
       Term name uni fun a ->
       SimplifierT name uni fun a m (Term name uni fun a)
-    cseStep _ =
+    cseStep =
       case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of
         (Just Refl, Just Refl) -> cse builtinSemanticsVariant
         _                      -> pure

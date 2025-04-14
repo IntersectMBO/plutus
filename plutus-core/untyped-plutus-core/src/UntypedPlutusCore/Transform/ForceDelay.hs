@@ -179,7 +179,8 @@ forceDelay semVar term = do
 processTerm
     :: (uni ~ DefaultUni, fun ~ DefaultFun)
     => BuiltinSemanticsVariant fun -> Term name uni fun a -> Term name uni fun a
-processTerm semVar = \case
+processTerm semVar = go where
+  go = \case
     Force _ (Delay _ t) -> t
     -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
     -- pure and work-free anyway.
