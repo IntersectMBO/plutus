@@ -359,7 +359,7 @@ goldenTPlcWith ::
       (TPLC.Program TPLC.NamedTyDeBruijn TPLC.NamedDeBruijn TPLC.DefaultUni TPLC.DefaultFun ()) ->
     IO (Doc ann)
   ) ->
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenTPlcWith pp name value = nestedGoldenVsDocM name ".tplc" $ pp $ do
@@ -368,14 +368,14 @@ goldenTPlcWith pp name value = nestedGoldenVsDocM name ".tplc" $ pp $ do
 
 goldenTPlc ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenTPlc = goldenTPlcWith ppCatch
 
 goldenTPlcReadable ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenTPlcReadable = goldenTPlcWith ppCatchReadable
@@ -388,7 +388,7 @@ goldenUPlcWith ::
       (UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()) ->
     IO (Doc ann)
   ) ->
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenUPlcWith pp name value = nestedGoldenVsDocM name ".uplc" $ pp $ do
@@ -397,49 +397,49 @@ goldenUPlcWith pp name value = nestedGoldenVsDocM name ".uplc" $ pp $ do
 
 goldenUPlc ::
   (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenUPlc = goldenUPlcWith ppCatch
 
 goldenUPlcReadable ::
   (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
-  String ->
+  TestName ->
   a ->
   TestNested
 goldenUPlcReadable = goldenUPlcWith ppCatchReadable
 
 goldenTEval ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
-  String ->
+  TestName ->
   [a] ->
   TestNested
 goldenTEval name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runTPlc values
 
-goldenUEval :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEval :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEval name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlc values
 
-goldenUEvalLogs :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalLogs :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEvalLogs name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcLogs values
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in
 -- replacement and you can then pass the output into `traceToStacks`.
-goldenUEvalProfile :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalProfile :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEvalProfile name values = nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcProfile values
 
-goldenUEvalBudget :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalBudget :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEvalBudget name values = nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
-goldenSize :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> a -> TestNested
+goldenSize :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> a -> TestNested
 goldenSize name value =
   nestedGoldenVsDocM name ".size" $ pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
 
 -- | This is mostly useful for profiling a test that is normally
 -- tested with one of the other functions, as it's a drop-in
 -- replacement and you can then pass the output into `traceToStacks`.
-goldenUEvalProfile' :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => String -> [a] -> TestNested
+goldenUEvalProfile' :: (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenUEvalProfile' name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch' $
     fmap (\ts -> PP.vsep (fmap pretty ts)) $ runUPlcProfile' values

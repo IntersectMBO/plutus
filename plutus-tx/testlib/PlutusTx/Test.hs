@@ -27,8 +27,10 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget testing
-  goldenBudget
+  goldenBudget,
 
+  -- * Combined testing
+  goldenBudgetAndSize
 ) where
 
 import Prelude
@@ -115,6 +117,12 @@ renderExcess tData mData diff =
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = goldenUEvalBudget name [compiledCode]
+
+
+goldenBudgetAndSize :: TestName -> CompiledCode a -> TestNested
+goldenBudgetAndSize name compiledCode = do
+  goldenBudget name compiledCode
+  goldenSize name compiledCode
 
 -- Compilation testing
 
