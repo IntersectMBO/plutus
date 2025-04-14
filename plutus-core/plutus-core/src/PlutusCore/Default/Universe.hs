@@ -509,7 +509,7 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
             if i >= 0
-            -- TODO: benchmark alternatives: ghc8.10 naturalFromInteger, ghc>=9 integerToNatural
+            -- TODO: benchmark alternatives: ghc>=9 integerToNatural
             then pure $ fromInteger i
             else throwing _OperationalUnliftingError . MkUnliftingError $ fold
                  [ Text.pack $ show i

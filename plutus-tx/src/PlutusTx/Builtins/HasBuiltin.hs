@@ -5,10 +5,6 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 
-#if !MIN_VERSION_base(4, 15, 0)
-{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
-#endif
-
 module PlutusTx.Builtins.HasBuiltin where
 
 import Prelude

@@ -336,7 +336,6 @@ library
     , some
     , template-haskell
     , text
-    , th-compat
     , th-lift
     , th-lift-instances
     , th-utilities
@@ -345,9 +344,6 @@ library
     , unordered-containers
     , vector                      ^>=0.13.2
     , witherable
-
-  if impl(ghc <9.0)
-    build-depends: integer-gmp
 
 test-suite plutus-core-test
   import:           lang
@@ -590,9 +586,6 @@ library plutus-ir
     , transformers
     , witherable
 
-  if impl(ghc <9.0)
-    build-depends: integer-gmp
-
 test-suite plutus-ir-test
   import:             lang
 
@@ -667,10 +660,6 @@ executable plutus
   import:             lang
   main-is:            Main.hs
   hs-source-dirs:     executables/plutus
-
-  -- singletons-th does not support GHC<=8.10
-  if impl(ghc <9.6)
-    buildable: False
 
   -- Hydra complains that this is not buildable on mingw32 because of brick.
   -- Strange, because I thought vty added support for windows.

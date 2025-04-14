@@ -13,9 +13,6 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
-#if !MIN_VERSION_base(4,15,0)
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-#endif
 
 module PlutusLedgerApi.V3.Data.Contexts (
   ColdCommitteeCredential (..),

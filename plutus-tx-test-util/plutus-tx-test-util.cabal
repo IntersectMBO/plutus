@@ -28,7 +28,7 @@ source-repository head
 -- This should be used for anything that depends on plutus-tx-plugin, even
 -- transitively.  If you miss it out somewhere then nix will probably produce an
 -- error message saying "the component is not buildable in the current
--- environment" if e.g. the nix shell supplies an unsupported GCH version.  See
+-- environment" if e.g. the nix shell supplies an unsupported GHC version.  See
 -- the section on GHC versions in `CONTRIBUTING.md`.
 common ghc-version-support
   if (impl(ghc <9.6) || impl(ghc >=9.7))

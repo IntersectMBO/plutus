@@ -16,29 +16,7 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek as SCek
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-#if MIN_VERSION_base(4,15,0)
 failingEvaluationTests = []
-#else
--- dropList not supported for GHC 8.10
-failingEvaluationTests = [
-    "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  ]
-#endif
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
@@ -47,29 +25,7 @@ failingEvaluationTests = [
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingBudgetTests :: [FilePath]
-#if MIN_VERSION_base(4,15,0)
 failingBudgetTests = []
-#else
--- dropList not supported for GHC 8.10
-failingBudgetTests = [
-    "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
-  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  ]
-#endif
 
 -- | The `evaluator` for the steppable-version of the CEK machine.
 evalSteppableUplcProg :: UplcEvaluator
