@@ -2,6 +2,9 @@
 module Main where
 
 import Cardano.Constitution.Config.Tests qualified as ConfigTests
+import Cardano.Constitution.Validator.Data.GoldenTests qualified as Data.GoldenTests
+import Cardano.Constitution.Validator.Data.PropTests qualified as Data.PropTests
+import Cardano.Constitution.Validator.Data.UnitTests qualified as Data.UnitTests
 import Cardano.Constitution.Validator.GoldenTests qualified as GoldenTests
 import Cardano.Constitution.Validator.PropTests qualified as PropTests
 import Cardano.Constitution.Validator.UnitTests qualified as UnitTests
@@ -18,9 +21,11 @@ import System.Directory
 import System.Exit
 import System.FilePath
 import System.IO ()
-import Test.Tasty
+import Test.Tasty (defaultMainWithIngredients, localOption)
 import Test.Tasty.Ingredients.Basic
 import Test.Tasty.JsonReporter
+import Test.Tasty.QuickCheck qualified as TQC
+
 
 expectTrue :: (a, b) -> a
 expectTrue = fst
@@ -40,6 +45,10 @@ main = do
         ConfigTests.tests,
         GoldenTests.tests,
         UnitTests.singleParamTests,
+        Data.UnitTests.unitTests,
+        Data.PropTests.tests,
+        Data.GoldenTests.tests,
+        Data.UnitTests.singleParamTests,
         testGroup' "Multiple Parameter Changes"
         [
           testProperty' "Proposal with all parameters at their current (or default value if new)" $
@@ -73,8 +82,12 @@ main = do
         ]
         ]
 
+  let testTree
+        = localOption (TQC.QuickCheckTests 30)
+        $ mainTest ref
+
   -- run the tests
-  defaultMainWithIngredients [listingTests, consoleAndJsonReporter] (mainTest ref)
+  defaultMainWithIngredients [listingTests, consoleAndJsonReporter] testTree
     `catch` (\(e :: ExitCode) -> do
       -- write the results to a file
       (TestState oneParamS multiParamS) <- readIORef ref

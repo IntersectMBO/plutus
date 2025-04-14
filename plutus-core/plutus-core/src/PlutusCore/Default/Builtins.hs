@@ -1,16 +1,22 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
+#if !MIN_VERSION_base(4,15,0)
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+#endif
 
 module PlutusCore.Default.Builtins where
 
@@ -31,7 +37,7 @@ import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
@@ -43,9 +49,15 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+#if MIN_VERSION_base(4,15,0)
+import GHC.Num.Integer (Integer (..))
+import GHC.Types (Int (..))
+#endif
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
@@ -99,7 +111,6 @@ data DefaultFun
     | SndPair
     -- Lists
     | ChooseList
-    | CaseList
     | MkCons
     | HeadList
     | TailList
@@ -110,7 +121,6 @@ data DefaultFun
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
-    | CaseData
     | ConstrData
     | MapData
     | ListData
@@ -172,7 +182,15 @@ data DefaultFun
     | FindFirstSetBit
     -- Ripemd_160
     | Ripemd_160
+    -- Batch 6
     | ExpModInteger
+    | CaseList
+    | CaseData
+    | DropList
+    -- Arrays
+    | LengthOfArray
+    | ListToArray
+    | IndexArray
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1225,7 +1243,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE costingFun #-}
             consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
-                    consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                    consByteStringDenotation n = BS.cons (fromIntegral n)
                     -- Earlier instructions say never to use `fromIntegral` in the definition of a
                     -- builtin; however in this case it reduces its argument modulo 256 to get a
                     -- `Word8`, which is exactly what we want.
@@ -1326,14 +1344,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             blake2b_256Denotation
             (runCostingFunOneArgument . paramBlake2b_256)
 
-    toBuiltinMeaning semvar VerifyEd25519Signature =
+    toBuiltinMeaning _semvar VerifyEd25519Signature =
         let verifyEd25519SignatureDenotation
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
-            verifyEd25519SignatureDenotation =
-                case semvar of
-                  DefaultFunSemanticsVariantA -> verifyEd25519Signature_V1
-                  DefaultFunSemanticsVariantB -> verifyEd25519Signature_V2
-                  DefaultFunSemanticsVariantC -> verifyEd25519Signature_V2
+            verifyEd25519SignatureDenotation = verifyEd25519Signature
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning
             verifyEd25519SignatureDenotation
@@ -1439,7 +1453,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Pairs
     toBuiltinMeaning _semvar FstPair =
         let fstPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val a)
-            fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+            fstPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
                 case uniPairAB of
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
                     _                     ->
@@ -1452,7 +1466,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar SndPair =
         let sndPairDenotation :: SomeConstant uni (a, b) -> BuiltinResult (Opaque val b)
-            sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+            sndPairDenotation (SomeConstant (Some (ValueOf uniPairAB xy))) =
                 case uniPairAB of
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
                     _                     ->
@@ -1466,7 +1480,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Lists
     toBuiltinMeaning _semvar ChooseList =
         let chooseListDenotation :: SomeConstant uni [a] -> b -> b -> BuiltinResult b
-            chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b = do
+            chooseListDenotation (SomeConstant (Some (ValueOf uniListA xs))) a b =
                 case uniListA of
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
@@ -1485,7 +1499,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -> Opaque val (a -> [a] -> b)
                 -> SomeConstant uni [a]
                 -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of
                         []     -> headSpine z []
@@ -1503,7 +1517,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: SomeConstant uni a -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
             mkConsDenotation
               (SomeConstant (Some (ValueOf uniA x)))
-              (SomeConstant (Some (ValueOf uniListA xs))) = do
+              (SomeConstant (Some (ValueOf uniListA xs))) =
                 -- See Note [Structural vs operational errors within builtins].
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
@@ -1518,8 +1532,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar HeadList =
         let headListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val a)
-            headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Structural vs operational errors within builtins].
+            headListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList uniA -> case xs of
                         []    -> fail "Expected a non-empty list but got an empty one"
@@ -1532,10 +1545,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar TailList =
         let tailListDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
-            tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
-                -- See Note [Structural vs operational errors within builtins].
+            tailListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _ -> case xs of
+                    DefaultUniList _argUni ->
+                      case xs of
                         []      -> fail "Expected a non-empty list but got an empty one"
                         _ : xs' -> pure $ fromValueOf uniListA xs'
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
@@ -1546,12 +1559,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar NullList =
         let nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
-            nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
+            nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
-                    DefaultUniList _ -> pure $ null xs
-                    _                ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                    DefaultUniList _uniA -> pure $ null xs
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -1571,26 +1582,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             chooseDataDenotation
             (runCostingFunSixArguments . paramChooseData)
-
-    toBuiltinMeaning _ver CaseData =
-        let caseDataDenotation
-                :: Opaque val (Integer -> [Data] -> b)
-                -> Opaque val ([(Data, Data)] -> b)
-                -> Opaque val ([Data] -> b)
-                -> Opaque val (Integer -> b)
-                -> Opaque val (BS.ByteString -> b)
-                -> Data
-                -> Opaque (HeadSpine val) b
-            caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
-            {-# INLINE caseDataDenotation #-}
-        in makeBuiltinMeaning
-            caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
@@ -1979,8 +1970,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               -> ListCostedByLength Integer
               -> Bool
               -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength ixs) bit =
-               Bitwise.writeBits s ixs bit
+            writeBitsDenotation s (ListCostedByLength ixs) = Bitwise.writeBits s ixs
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
@@ -1988,7 +1978,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ReplicateByte =
         let replicateByteDenotation :: NumBytesCostedAsNumWords -> Word8 -> BuiltinResult BS.ByteString
-            replicateByteDenotation (NumBytesCostedAsNumWords n) w = Bitwise.replicateByte n w
+            replicateByteDenotation (NumBytesCostedAsNumWords n) = Bitwise.replicateByte n
             {-# INLINE replicateByteDenotation #-}
         in makeBuiltinMeaning
             replicateByteDenotation
@@ -2034,6 +2024,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ripemd_160Denotation
             (runCostingFunOneArgument . paramRipemd_160)
 
+    -- Batch 6
+
     toBuiltinMeaning _semvar ExpModInteger =
         let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
             expModIntegerDenotation = ExpMod.expMod
@@ -2041,6 +2033,116 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
+
+    toBuiltinMeaning _ver CaseData =
+        let caseDataDenotation
+                :: Opaque val (Integer -> [Data] -> b)
+                -> Opaque val ([(Data, Data)] -> b)
+                -> Opaque val ([Data] -> b)
+                -> Opaque val (Integer -> b)
+                -> Opaque val (BS.ByteString -> b)
+                -> Data
+                -> Opaque (HeadSpine val) b
+            caseDataDenotation fConstr fMap fList fI fB = \case
+                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpine fMap [fromValue es]
+                List ds     -> headSpine fList [fromValue ds]
+                I i         -> headSpine fI [fromValue i]
+                B b         -> headSpine fB [fromValue b]
+            {-# INLINE caseDataDenotation #-}
+        in makeBuiltinMeaning
+            caseDataDenotation
+            (runCostingFunSixArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar DropList =
+        let dropListDenotation
+                :: IntegerCostedLiterally -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+            dropListDenotation i (SomeConstant (Some (ValueOf uniListA xs))) = do
+                -- See Note [Operational vs structural errors within builtins].
+                case uniListA of
+                    DefaultUniList _ ->
+-- We only support @base-4.15@ and higher, because prior versions don't expose the same interface to
+-- 'Integer'.
+#if MIN_VERSION_base(4,15,0)
+                        -- The fastest way of dropping elements from a list is by operating on
+                        -- an unboxed int (i.e. an 'Int#'). We could implement that manually, but
+                        -- 'drop' in @Prelude@ already does that under the hood, so we just need to
+                        -- convert the given 'Integer' to an 'Int' and call 'drop' over that.
+                        fromValueOf uniListA <$> case unIntegerCostedLiterally i of
+                            IS i# -> pure $ drop (I# i#) xs
+                            IN _ -> pure xs
+                            -- If the given 'Integer' is higher than @maxBound :: Int@, then we
+                            -- call 'drop' over the latter instead to get the same performance as in
+                            -- the previous case. This will produce a different result when the
+                            -- list is longer than @maxBound :: Int@, but in practice not only is
+                            -- the budget going to get exhausted long before a @maxBound@ number of
+                            -- elements is skipped, it's not even feasible to skip so many elements
+                            -- for 'Int64' (and we enforce @Int = Int64@ in the @Universe@ module)
+                            -- as that'll take ~3000 years assuming it takes a second to skip
+                            -- @10^8@ elements.
+                            --
+                            -- We could "optimistically" return '[]' directly without doing any
+                            -- skipping at all, but then we'd be occasionally returning the wrong
+                            -- answer immediately rather than in 3000 years and that doesn't sound
+                            -- like a good idea. Particularly given that costing for this builtin is
+                            -- oblivious to such implementation details anyway, so we wouldn't even
+                            -- be able to capitalize on the fast and loose approach.
+                            --
+                            -- Instead of using 'drop' we could've made it something like
+                            -- @foldl' const []@, which would be a tad faster while taking even more
+                            -- than 3000 years to return the wrong result, but with the current
+                            -- approach the wrong result is an error, while with the foldl-based one
+                            -- it'd be an actual incorrect value. Plus, it's best not to rely on
+                            -- GHC not optimizing such an expression away to just '[]' (it really
+                            -- shouldn't, but not taking chances with GHC is the best approach). And
+                            -- again, we wouldn't be able to capitalize on such a speedup anyway.
+                            IP _ -> case drop maxBound xs of
+                               [] -> pure []
+                               _ ->
+                                   throwing _StructuralUnliftingError
+                                       "Panic: unreachable clause executed"
+#else
+                        throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
+#endif
+                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+            {-# INLINE dropListDenotation #-}
+        in makeBuiltinMeaning
+            dropListDenotation
+            (runCostingFunTwoArguments . paramDropList)
+
+    toBuiltinMeaning _semvar LengthOfArray =
+      let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+          lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
+            case uni of
+              DefaultUniArray _uniA -> pure $ Vector.length vec
+              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE lengthOfArrayDenotation #-}
+        in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar ListToArray =
+      let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
+          listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
+            case uniListA of
+              DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
+          {-# INLINE listToArrayDenotation #-}
+        in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar IndexArray =
+      let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+          indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
+            case uni of
+              DefaultUniArray arg -> do
+                case vec Vector.!? n of
+                  Nothing -> fail "Array index out of bounds"
+                  Just el -> pure $ fromValueOf arg el
+              _ ->
+                    -- See Note [Structural vs operational errors within builtins].
+                    -- The arguments are going to be printed in the "cause" part of the error
+                    -- message, so we don't need to repeat them here.
+                throwing _StructuralUnliftingError "Expected an array but got something else"
+          {-# INLINE indexArrayDenotation #-}
+        in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
@@ -2187,6 +2289,12 @@ instance Flat DefaultFun where
               CaseList                        -> 88
               CaseData                        -> 89
 
+              DropList                        -> 90
+
+              LengthOfArray                   -> 91
+              ListToArray                     -> 92
+              IndexArray                      -> 93
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2278,6 +2386,10 @@ instance Flat DefaultFun where
               go 87 = pure ExpModInteger
               go 88 = pure CaseList
               go 89 = pure CaseData
+              go 90 = pure DropList
+              go 91 = pure LengthOfArray
+              go 92 = pure ListToArray
+              go 93 = pure IndexArray
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

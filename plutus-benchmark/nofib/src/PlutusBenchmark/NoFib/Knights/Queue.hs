@@ -5,6 +5,7 @@ module PlutusBenchmark.NoFib.Knights.Queue
     emptyQueue
   ) where
 
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude as Tx
 
 type Queue a = [a]
@@ -18,15 +19,15 @@ addFront x q = x:q
 {-# INLINABLE addFront #-}
 
 addBack :: a -> Queue a -> Queue a
-addBack x q = q Tx.++ [x]
+addBack x q = q List.++ [x]
 {-# INLINABLE addBack #-}
 
 addAllFront :: [a] -> Queue a -> Queue a
-addAllFront list q = list Tx.++ q
+addAllFront list q = list List.++ q
 {-# INLINABLE addAllFront #-}
 
 addAllBack :: [a] -> Queue a -> Queue a
-addAllBack list q = q Tx.++ list
+addAllBack list q = q List.++ list
 {-# INLINABLE addAllBack #-}
 
 inquireFront :: Queue a -> a

@@ -257,40 +257,45 @@ let
     Tuple2 : a -> b -> Tuple2 a b
 in
 letrec
-  !go : all a. integer -> List a -> Tuple2 (List a) (List a)
-    = /\a ->
-        \(ds : integer) (ds : List a) ->
-          List_match
-            {a}
-            ds
-            {all dead. Tuple2 (List a) (List a)}
-            (/\dead -> Tuple2 {List a} {List a} (Nil {a}) (Nil {a}))
-            (\(y : a) (ys : List a) ->
-               /\dead ->
-                 Bool_match
-                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
-                   {all dead. Tuple2 (List a) (List a)}
-                   (/\dead ->
-                      Tuple2
-                        {List a}
-                        {List a}
-                        ((let
-                             a = List a
-                           in
-                           \(c : a -> a -> a) (n : a) -> c y n)
-                           (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                           (Nil {a}))
-                        ys)
-                   (/\dead ->
-                      Tuple2_match
-                        {List a}
-                        {List a}
-                        (go {a} (subtractInteger ds 1) ys)
-                        {Tuple2 (List a) (List a)}
-                        (\(zs : List a) (ws : List a) ->
-                           Tuple2 {List a} {List a} (Cons {a} y zs) ws))
-                   {all dead. dead})
-            {all dead. dead}
+  !go : integer -> List string -> Tuple2 (List string) (List string)
+    = \(ds : integer) (ds : List string) ->
+        List_match
+          {string}
+          ds
+          {all dead. Tuple2 (List string) (List string)}
+          (/\dead ->
+             Tuple2 {List string} {List string} (Nil {string}) (Nil {string}))
+          (\(y : string) (ys : List string) ->
+             /\dead ->
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 ds) True False)
+                 {all dead. Tuple2 (List string) (List string)}
+                 (/\dead ->
+                    Tuple2
+                      {List string}
+                      {List string}
+                      ((let
+                           a = List string
+                         in
+                         \(c : string -> a -> a) (n : a) -> c y n)
+                         (\(ds : string) (ds : List string) ->
+                            Cons {string} ds ds)
+                         (Nil {string}))
+                      ys)
+                 (/\dead ->
+                    Tuple2_match
+                      {List string}
+                      {List string}
+                      (go (subtractInteger ds 1) ys)
+                      {Tuple2 (List string) (List string)}
+                      (\(zs : List string) (ws : List string) ->
+                         Tuple2
+                           {List string}
+                           {List string}
+                           (Cons {string} y zs)
+                           ws))
+                 {all dead. dead})
+          {all dead. dead}
 in
 letrec
   !go : List string -> integer
@@ -298,10 +303,9 @@ letrec
         List_match
           {string}
           ds
-          {all dead. integer}
-          (/\dead -> 0)
-          (\(x : string) (xs : List string) -> /\dead -> addInteger 1 (go xs))
-          {all dead. dead}
+          {integer}
+          0
+          (\(ds : string) (xs : List string) -> addInteger 1 (go xs))
 in
 letrec
   !concatBuiltinStrings : List string -> string
@@ -334,7 +338,7 @@ letrec
                         {all dead. Tuple2 (List string) (List string)}
                         (/\dead ->
                            Tuple2 {List string} {List string} (Nil {string}) ds)
-                        (/\dead -> go {string} n ds)
+                        (/\dead -> go n ds)
                         {all dead. dead})
                       {string}
                       (\(ipv : List string) (ipv : List string) ->
@@ -370,12 +374,13 @@ let
                v)
   !a : integer
     = trace {integer} (`$fShowInteger_$cshow` -1234567890) -1234567890
+  !b : integer = trace {integer} "This is an example" a
   !c : integer
     = trace
         {integer}
         (concatBuiltinStrings
            (go (`$fEnumBool_$cenumFromTo` 0 17) (Nil {string})))
-        a
+        b
   !d : integer
     = trace
         {integer}
@@ -393,7 +398,7 @@ let
             = (let
                   a = List integer
                 in
-                \(c : integer -> a -> a) (n : a) -> c a (c a (c c (c d n))))
+                \(c : integer -> a -> a) (n : a) -> c a (c b (c c (c d n))))
                 (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
                 (Nil {integer})
         in
@@ -452,7 +457,7 @@ multiplyInteger
                     {integer}
                     `$fShowInteger`
                     0
-                    a
+                    b
                     (Cons
                        {string}
                        ","

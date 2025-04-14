@@ -12,11 +12,16 @@ module PlutusIR.Transform.Inline.Utils where
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap (UniqueMap)
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote
 import PlutusCore.Rename
+import PlutusCore.Size
 import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
@@ -25,12 +30,7 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
-
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import PlutusCore.Name.UniqueMap (UniqueMap)
-import PlutusCore.Name.UniqueMap qualified as UMap
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.VarInfo qualified as VarInfo
 
 -- General infra:
 
@@ -57,16 +57,18 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo tyname name uni fun ann = InlineInfo
-    { _iiVarInfo         :: VarInfo.VarsInfo tyname name uni ann
+    { _iiVarInfo              :: VarInfo.VarsInfo tyname name uni ann
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages          :: Usages.Usages
+    , _iiUsages               :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints           :: InlineHints name ann
+    , _iiHints                :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinsInfo    :: BuiltinsInfo uni fun
+    , _iiBuiltinsInfo         :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
-    , _iiInlineConstants :: Bool
+    , _iiInlineConstants      :: Bool
     -- ^ should we inline constants?
+    , _iiInlineCallsiteGrowth :: Size
+    -- ^ inline threshold for callsite inlining
     }
 makeLenses ''InlineInfo
 
@@ -400,12 +402,14 @@ trivialType = \case
 
 shouldUnconditionallyInline ::
   (InliningConstraints tyname name uni fun) =>
+  -- | Whether we know that the binding is safe to inline. If so, bypass the purity check.
+  Bool ->
   Strictness ->
   name ->
   Term tyname name uni fun ann ->
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann Bool
-shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
+shouldUnconditionallyInline safe s n rhs body = preUnconditional ||^ postUnconditional
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
@@ -414,7 +418,7 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
     preUnconditional = do
       isTermPure <- checkPurity rhs
-      nameUsedAtMostOnce n &&^ effectSafe body s n isTermPure
+      nameUsedAtMostOnce n &&^ (pure safe ||^ effectSafe body s n isTermPure)
 
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
     -- purity]. This is the case where we don't know that the number of occurrences is
@@ -422,4 +426,7 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
       inlineConstants <- view iiInlineConstants
-      pure $ isBindingPure && sizeIsAcceptable inlineConstants rhs && costIsAcceptable rhs
+      pure $
+        (safe || isBindingPure)
+          && sizeIsAcceptable inlineConstants rhs
+          && costIsAcceptable rhs

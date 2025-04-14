@@ -164,18 +164,6 @@
       = /\a ->
           \(eq : a -> a -> Bool) ->
             letrec
-              !go : List a -> List a -> List a
-                = \(ds : List a) ->
-                    List_match
-                      {a}
-                      ds
-                      {all dead. List a -> List a}
-                      (/\dead -> \(x : List a) -> x)
-                      (\(x : a) (xs : List a) ->
-                         /\dead -> \(b : List a) -> go xs (deleteBy {a} eq x b))
-                      {all dead. dead}
-            in
-            letrec
               !nubBy' : List a -> List a -> List a
                 = \(ds : List a) (ds : List a) ->
                     List_match
@@ -213,9 +201,21 @@
                                {all dead. dead})
                       {all dead. dead}
             in
+            letrec
+              !go : List a -> List a -> List a
+                = \(acc : List a) (ds : List a) ->
+                    List_match
+                      {a}
+                      ds
+                      {all dead. List a}
+                      (/\dead -> acc)
+                      (\(x : a) (xs : List a) ->
+                         /\dead -> go (deleteBy {a} eq x acc) xs)
+                      {all dead. dead}
+            in
             \(xs : List a) (ys : List a) ->
               let
-                !r : List a = let !z : List a = nubBy' ys (Nil {a}) in go xs z
+                !r : List a = go (nubBy' ys (Nil {a})) xs
               in
               letrec
                 !go : List a -> List a
@@ -1139,6 +1139,34 @@
     !leaves : all a. Tree a -> List a
       = /\a ->
           letrec
+            !go : List (List a) -> List a
+              = \(ds : List (List a)) ->
+                  List_match
+                    {List a}
+                    ds
+                    {all dead. List a}
+                    (/\dead -> Nil {a})
+                    (\(x : List a) (xs : List (List a)) ->
+                       /\dead ->
+                         let
+                           !r : List a = go xs
+                         in
+                         letrec
+                           !go : List a -> List a
+                             = \(ds : List a) ->
+                                 List_match
+                                   {a}
+                                   ds
+                                   {all dead. List a}
+                                   (/\dead -> r)
+                                   (\(x : a) (xs : List a) ->
+                                      /\dead -> Cons {a} x (go xs))
+                                   {all dead. dead}
+                         in
+                         go x)
+                    {all dead. dead}
+          in
+          letrec
             !go : List (Tree a) -> List (List a)
               = \(ds : List (Tree a)) ->
                   List_match
@@ -1168,45 +1196,7 @@
                         (\(ds : a) (ds : List a) -> Cons {a} ds ds)
                         (Nil {a}))
                    (\(ipv : Tree a) (ipv : List (Tree a)) ->
-                      /\dead ->
-                        let
-                          !xs : List (List a) = go ds
-                        in
-                        (let
-                            b = List a
-                          in
-                          \(c : a -> b -> b) (n : b) ->
-                            letrec
-                              !go : List (List a) -> b
-                                = \(ds : List (List a)) ->
-                                    List_match
-                                      {List a}
-                                      ds
-                                      {all dead. b}
-                                      (/\dead -> n)
-                                      (\(x : List a) (xs : List (List a)) ->
-                                         /\dead ->
-                                           let
-                                             !y : b = go xs
-                                           in
-                                           letrec
-                                             !go : List a -> b
-                                               = \(ds : List a) ->
-                                                   List_match
-                                                     {a}
-                                                     ds
-                                                     {all dead. b}
-                                                     (/\dead -> y)
-                                                     (\(x : a) (xs : List a) ->
-                                                        /\dead -> c x (go xs))
-                                                     {all dead. dead}
-                                           in
-                                           go x)
-                                      {all dead. dead}
-                            in
-                            go xs)
-                          (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                          (Nil {a}))
+                      /\dead -> let !eta : List (List a) = go ds in go eta)
                    {all dead. dead})
   in
   letrec

@@ -227,8 +227,12 @@ FrameCase cs : stack <| e = case e of
           where
             go [] s         = s
             go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
-        Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
-    _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
+        Nothing ->
+            throwingWithCause
+                _MachineError
+                (MissingCaseBranchMachineError i)
+                (Just $ ckValueToTerm e)
+    _ -> throwingWithCause _MachineError NonConstrScrutinizedMachineError (Just $ ckValueToTerm e)
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
 --

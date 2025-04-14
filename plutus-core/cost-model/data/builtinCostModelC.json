@@ -707,6 +707,36 @@
             "type": "constant_cost"
         }
     },
+    "lengthOfArray" : {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "listToArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
+    "indexArray": {
+        "cpu": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 99999999999999,
+            "type": "constant_cost"
+        }
+    },
     "quotientInteger": {
         "cpu": {
             "arguments": {
@@ -1139,6 +1169,19 @@
         },
         "memory": {
             "arguments": 100000000000,
+            "type": "constant_cost"
+        }
+    },
+    "dropList": {
+        "cpu": {
+            "arguments": {
+                "intercept": 116711,
+                "slope": 1957
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 4,
             "type": "constant_cost"
         }
     }

@@ -21,6 +21,7 @@ test_inline =
             (runTest withConstantInlining)
             [ "var"
             , "builtin"
+            , "callsite-6970"
             , "callsite-non-trivial-body"
             , "constant"
             , "transitive"
@@ -65,7 +66,7 @@ test_inline =
         <>  [runTest withoutConstantInlining "inlineConstantsOff"]
   where
     runTest constantInlining =
-      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC constantInlining tc mempty def)) pTerm
+      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC 0 constantInlining tc def def)) pTerm
     withConstantInlining = True
     withoutConstantInlining = False
 
@@ -75,4 +76,4 @@ prop_inline biVariant =
   withMaxSuccess numTestsForPassProp $
     testPassProp
       runQuote
-      $ \tc -> inlinePassSC True tc mempty (def {_biSemanticsVariant = biVariant})
+      $ \tc -> inlinePassSC 0 True tc def (def {_biSemanticsVariant = biVariant})

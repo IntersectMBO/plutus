@@ -91,7 +91,7 @@ internalTests = testGroup "Tools: Intervals" [
           \x -> x >= 65 % 100 && x <= 90 % 100
 
     , TSQ.testProperty "rationals should be generated within the boundaries" $
-        withMaxSuccess 100 $ TSQ.forAll (choose' @Rational (0,1)) $
+        TSQ.forAll (choose' @Rational (0,1)) $
           \x -> x >= 0 && x <= 100
     ]
   ]

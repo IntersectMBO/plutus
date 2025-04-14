@@ -37,13 +37,13 @@ There is no requirement on the return value of a Plutus V1 script: script evalua
 
 A Plutus V1 spending script receives three arguments corresponding to datum, redeemer and script context.
 All arguments are encoded as `BuiltinData`.
-Thus in Plutus Tx, a spending script has the following type:
+Thus in Plinth, a spending script has the following type:
 
 ```haskell
 BuiltinData -> BuiltinData -> BuiltinData -> any
 ```
 
-To create a Plutus script using Plutus Tx, it is common to first write a function that takes the corresponding Haskell domain types and returns `Bool`.
+To create a Plutus script using Plinth, it is common to first write a function that takes the corresponding Haskell domain types and returns `Bool`.
 For example, the following function can be used to implement the main business logic of a Plutus V1 spending script:
 
 ```haskell
@@ -68,7 +68,7 @@ myV1SpendingScriptCompiled :: CompiledCode (BuiltinData -> BuiltinData -> Builti
 myV1SpendingScriptCompiled = $$(PlutusTx.compile [||myV1SpendingScriptUntyped||])
 ```
 
-`unsafeFromBuiltinData` is a method from the [`UnsafeFromData`](http://localhost:3000/docs/working-with-scripts/ledger-language-version) class.
+`unsafeFromBuiltinData` is a method from the [`UnsafeFromData`](https://plutus.cardano.intersectmbo.org/haddock/master/plutus-ledger-api/PlutusLedgerApi-V1.html#t:UnsafeFromData) class.
 Each call to `unsafeFromBuiltinData` decodes a `BuiltinData` into a value of a Haskell domain type, failing if the conversion fails.
 The `check` function takes a `Bool` and returns a `BuiltinUnit`, throwing an error if the input is `False`.
 It is needed because returning `False` does not cause the validation to fail; to fail the validation, an error needs to be thrown.
@@ -78,7 +78,7 @@ In this example the script happens to return `BuiltinUnit`, but this is not a re
 ### Minting, Certifying and Rewarding Scripts
 
 Unlike spending scripts, Plutus V1 scripts for minting, certifying and rewarding purposes take one fewer argument: there is no datum argument.
-Thus in Plutus Tx, a minting, certifying or rewarding script should have the following type:
+Thus in Plinth, a minting, certifying or rewarding script should have the following type:
 
 ```haskell
 BuiltinData -> BuiltinData -> any
@@ -109,7 +109,7 @@ Plutus V2 was enabled at the Vasil hard fork, which introduced the Babbage era.
 
 Plutus V2 shares several similarities with Plutus V1:
 - It supports the same four script purposes.
-- The number of arguments a Plutus V2 script receives is identical to Plutus V1: three for minting scripts, and two for other script purposes.
+- The number of arguments a Plutus V2 script receives is identical to Plutus V1: three for spending scripts, and two for other script purposes.
 - Script evaluation succeeds as long as no errors occur and the budget is not exceeded.
 
 The differences between Plutus V1 and Plutus V2 include:
@@ -136,9 +136,9 @@ Additional key differences between Plutus V3 and V1/V2 include:
 4. For now, Plutus V3 supports Plutus Core 1.1.0, a Plutus Core language version that introduced [sums-of-products](https://cips.cardano.org/cip/CIP-0085), as well as more builtin functions than Plutus V2.
    However, we plan to enable all Plutus Core versions and all builtin functions across all ledger language versions in the future.
 
-The first two points above are attributed to [CIP-69](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0069/), whereas the third point is attributed to [CIP-117](https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0117/).
+The first two points above are attributed to [CIP-69](https://cips.cardano.org/cip/CIP-69), whereas the third point is attributed to [CIP-117](https://cips.cardano.org/cip/CIP-0117).
 
-In other words, all Plutus V3 scripts should have the following type in Plutus Tx:
+In other words, all Plutus V3 scripts should have the following type in Plinth:
 
 ```haskell
 BuiltinData -> BuiltinUnit

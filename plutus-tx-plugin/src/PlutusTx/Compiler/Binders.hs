@@ -17,6 +17,7 @@ import PlutusIR qualified as PIR
 import Control.Monad.Reader
 
 import Data.Traversable
+import Data.Tuple.Extra
 
 -- Binder helpers
 
@@ -33,12 +34,14 @@ variable *last* (so it is on the outside, so will be first when applying).
 withVarScoped ::
     CompilingDefault uni fun m ann =>
     GHC.Var ->
+    Ann ->
+    Maybe (PIRTerm uni fun) ->
     (PIR.VarDecl PIR.TyName PIR.Name uni Ann -> m a) ->
     m a
-withVarScoped v k = do
+withVarScoped v ann def k = do
     let ghcName = GHC.getName v
-    var <- compileVarFresh annMayInline v
-    local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
+    var <- compileVarFresh ann v
+    local (\c -> c {ccScope=pushName ghcName var def (ccScope c)}) (k var)
 
 -- | Like `withVarScoped`, but takes a `PIRType`, and uses it for the type
 -- of the compiled `GHC.Var`.
@@ -51,19 +54,19 @@ withVarTyScoped ::
 withVarTyScoped v t k = do
     let ghcName = GHC.getName v
     var <- compileVarWithTyFresh annMayInline v t
-    local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
+    local (\c -> c {ccScope=pushName ghcName var Nothing (ccScope c)}) (k var)
 
 withVarsScoped ::
     CompilingDefault uni fun m ann =>
-    [GHC.Var] ->
+    [(GHC.Var, Maybe (PIRTerm uni fun))] ->
     ([PIR.VarDecl PIR.TyName PIR.Name uni Ann] -> m a) ->
     m a
 withVarsScoped vs k = do
-    vars <- for vs $ \v -> do
+    vars <- for vs $ \(v, def) -> do
         let name = GHC.getName v
         var' <- compileVarFresh annMayInline v
-        pure (name, var')
-    local (\c -> c {ccScope=pushNames vars (ccScope c)}) (k (fmap snd vars))
+        pure (name, var', def)
+    local (\c -> c {ccScope=pushNames vars (ccScope c)}) (k (fmap snd3 vars))
 
 withTyVarScoped ::
     Compiling uni fun m ann =>
@@ -91,13 +94,13 @@ withTyVarsScoped vs k = do
 -- will be in scope when running the second argument.
 mkLamAbsScoped ::
     CompilingDefault uni fun m ann =>
+    Ann ->
     GHC.Var ->
     m (PIRTerm uni fun) ->
     m (PIRTerm uni fun)
-mkLamAbsScoped v body = withVarScoped v $ \(PIR.VarDecl _ n t) -> PIR.LamAbs annMayInline n t <$> body
-
-mkIterLamAbsScoped :: CompilingDefault uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
-mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
+mkLamAbsScoped ann v body =
+    withVarScoped v ann Nothing $ \(PIR.VarDecl _ n t) ->
+        PIR.LamAbs ann n t <$> body
 
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.

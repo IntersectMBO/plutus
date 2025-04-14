@@ -1,8 +1,7 @@
-{-# OPTIONS_GHC
- -O0 -fmax-simplifier-iterations=0
- -fno-omit-interface-pragmas
- -fno-ignore-interface-pragmas
-#-}
+{-# OPTIONS_GHC -O0 -fmax-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+
 module Budget.WithoutGHCOptimisations where
 
 import PlutusTx.Prelude qualified as PlutusTx

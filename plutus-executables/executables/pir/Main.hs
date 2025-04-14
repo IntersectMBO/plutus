@@ -7,6 +7,8 @@
 
 module Main where
 
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables qualified as Paths
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -20,6 +22,7 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Plated
 import PlutusPrelude
+import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (coerced, (^..))
@@ -32,7 +35,6 @@ import Data.IntMap qualified as IM
 import Data.List (sortOn)
 import Data.Text qualified as T
 import Options.Applicative
-import Text.Megaparsec (errorBundlePretty)
 
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
@@ -281,6 +283,10 @@ runPrint (PrintOptions inp outp mode) = do
             StdOutput       -> putStrLn printed
             NoOutput        -> pure ()
 
+
+versioner :: Parser (a -> a)
+versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
+
 ---------------- Main ----------------
 
 main :: IO ()
@@ -294,7 +300,7 @@ main = do
         Print    opts -> runPrint opts
   where
     infoOpts =
-      info (pPirOptions <**> helper)
+      info (pPirOptions <**> versioner <**> helper)
            ( fullDesc
            <> header "PIR tool"
            <> progDesc ("This program provides a number of utilities for dealing with "

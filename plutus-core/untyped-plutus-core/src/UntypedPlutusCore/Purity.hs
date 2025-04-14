@@ -16,20 +16,24 @@ module UntypedPlutusCore.Purity
   , unEvalOrder
   , EvalTerm (..)
   , Purity (..)
+  , WorkFreedom (..)
   , termEvaluationOrder
   ) where
 
 import Data.DList qualified as DList
 import Data.Typeable (Proxy (..))
-import PlutusCore.Arity (builtinArity)
+import PlutusCore.Arity (Param (..), builtinArity)
 import PlutusCore.Builtin.Meaning (ToBuiltinMeaning (..))
 import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
 import Prettyprinter (vsep, (<+>))
-import UntypedPlutusCore.Core (splitApplication)
-import UntypedPlutusCore.Core.Type (Term (..))
+import Universe.Core (Closed, Everywhere, GShow)
+import UntypedPlutusCore.Contexts (AppCtx (..), fillAppCtx, splitAppCtx)
+import UntypedPlutusCore.Core (Term (..))
+import UntypedPlutusCore.Core.Instance.Eq ()
 
 -- | Is this pure? Either yes, or maybe not.
 data Purity = MaybeImpure | Pure
+  deriving stock (Eq, Show)
 
 instance Pretty Purity where
   pretty MaybeImpure = "impure?"
@@ -37,6 +41,7 @@ instance Pretty Purity where
 
 -- | Is this term essentially work-free? Either yes, or maybe not.
 data WorkFreedom = MaybeWork | WorkFree
+  deriving stock (Eq, Show)
 
 instance Pretty WorkFreedom where
   pretty MaybeWork = "maybe work?"
@@ -50,11 +55,28 @@ data EvalTerm name uni fun a
   | EvalTerm Purity WorkFreedom (Term name uni fun a)
 
 instance
-  (PrettyBy config (Term name uni fun a))
-  => PrettyBy config (EvalTerm name uni fun a)
-  where
-  prettyBy _ Unknown                    = "<unknown>"
-  prettyBy config (EvalTerm eff work t) = pretty eff <+> pretty work <> ":" <+> prettyBy config t
+ ( Show name
+ , Everywhere uni Show
+ , Show fun
+ , Show a
+ , GShow uni
+ , Closed uni
+ ) => Show (EvalTerm name uni fun a) where
+  show = \case
+    Unknown -> "<unknown>"
+    EvalTerm purity work t ->
+      "EvalTerm " <> show purity <> " " <> show work <> " " <> show t
+
+instance (PrettyBy config (Term name uni fun a))
+  => PrettyBy config (EvalTerm name uni fun a) where
+  prettyBy _ Unknown = "<unknown>"
+  prettyBy config (EvalTerm eff work t) =
+    pretty eff <+> pretty work <> ":" <+> prettyBy config t
+
+instance Eq (Term name uni fun a) => Eq (EvalTerm name uni fun a) where
+  Unknown == Unknown                         = True
+  (EvalTerm p1 w1 t1) == (EvalTerm p2 w2 t2) = p1 == p2 && w1 == w2 && t1 == t2
+  _ == _                                     = False
 
 -- We use a DList here for efficient and lazy concatenation
 
@@ -79,7 +101,8 @@ unEvalOrder (EvalOrder ts) =
 evalThis :: EvalTerm name uni fun a -> EvalOrder name uni fun a
 evalThis = EvalOrder . DList.singleton
 
-instance (PrettyBy config (Term name uni fun a)) => PrettyBy config (EvalOrder name uni fun a) where
+instance (PrettyBy config (Term name uni fun a)) =>
+  PrettyBy config (EvalOrder name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
@@ -100,16 +123,62 @@ termEvaluationOrder
   -> EvalOrder name uni fun a
 termEvaluationOrder builtinSemanticsVariant = goTerm
  where
+  goTerm :: Term name uni fun a -> EvalOrder name uni fun a
   goTerm = \case
-    t@(splitApplication -> (Builtin _ann fun, args)) ->
-      foldMap (goTerm . snd) args <> evalOrder
+    (splitAppCtx -> (builtin@(Builtin _ann fun), appCtx)) ->
+      appCtxEvalOrder appCtx <> go arity appCtx
      where
-      evalOrder =
-        if length args < length (builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun)
-          then -- If it's unsaturated, we definitely don't do any work
-            evalThis (EvalTerm Pure WorkFree t)
-          else -- If it's saturated or oversaturated, we might have an effect here
-            evalThis (EvalTerm MaybeImpure MaybeWork t)
+      arity = builtinArity @uni @fun (Proxy @uni) builtinSemanticsVariant fun
+
+      appCtxEvalOrder :: AppCtx name uni fun a -> EvalOrder name uni fun a
+      appCtxEvalOrder = \case
+        AppCtxEnd -> mempty
+        AppCtxTerm _ t rest -> goTerm t <> appCtxEvalOrder rest
+        AppCtxType _ rest -> appCtxEvalOrder rest
+
+      go :: [Param] -> AppCtx name uni fun a -> EvalOrder name uni fun a
+      go parameters appContext =
+        case parameters of
+          -- All builtin parameters have been applied,
+          -- (such term is considered impure).
+          [] -> maybeImpureWork
+
+          -- A term parameter is waiting to be applied
+          TermParam : otherParams ->
+            case appContext of
+              AppCtxEnd ->
+                -- Builtin is not fully saturated with term arguments, thus pure.
+                pureWorkFree
+              AppCtxType _ann _remainingAppCtx ->
+                -- Term parameter expected, type argument applied.
+                -- Error is impure.
+                maybeImpureWork
+              AppCtxTerm _ann _argTerm remainingAppCtx ->
+                go otherParams remainingAppCtx
+
+          -- A type parameter is waiting to be forced
+          TypeParam : otherParams ->
+            case appContext of
+              AppCtxEnd ->
+                -- Builtin is not fully saturated with type arguments, thus pure.
+                pureWorkFree
+              AppCtxTerm _ann _term _remainingAppCtx ->
+                -- Type parameter expected, term argument applied.
+                -- Error is impure.
+                maybeImpureWork
+              AppCtxType _ann remainingAppCtx ->
+                go otherParams remainingAppCtx
+
+        where
+        maybeImpureWork :: EvalOrder name uni fun a
+        maybeImpureWork = evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+
+        pureWorkFree :: EvalOrder name uni fun a
+        pureWorkFree = evalThis (EvalTerm Pure WorkFree reconstructed)
+
+        reconstructed :: Term name uni fun a
+        reconstructed = fillAppCtx builtin appCtx
+
     t@(Apply _ fun arg) ->
       -- first the function
       goTerm fun

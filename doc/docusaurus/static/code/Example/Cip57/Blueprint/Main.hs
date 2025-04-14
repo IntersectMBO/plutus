@@ -28,6 +28,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 -- END pragmas
@@ -45,6 +46,7 @@ import PlutusLedgerApi.V1.DCert qualified as V1
 import PlutusLedgerApi.V1.Time qualified as V1
 import PlutusLedgerApi.V1.Tx qualified as V1
 import PlutusLedgerApi.V3 qualified as V3
+import PlutusTx.AssocMap (Map)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 
 -- END imports
@@ -74,6 +76,7 @@ data MyRedeemer = R0 | R1 V3.Lovelace | R2 V3.Value
 data MyParams = MkMyParams
   { myBool          :: Bool
   , myInteger       :: Integer
+  , myMap           :: Map Integer Bool
   , myDCert         :: V1.DCert
   , myScriptTag     :: V1.ScriptTag
   , myRedeemerPtr   :: V1.RedeemerPtr

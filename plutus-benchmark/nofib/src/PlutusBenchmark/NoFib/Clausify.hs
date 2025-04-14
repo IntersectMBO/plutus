@@ -13,6 +13,7 @@ module PlutusBenchmark.NoFib.Clausify where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Plutus
 import Prelude qualified as Haskell
@@ -104,12 +105,12 @@ negin p               = p
 
 -- does any symbol appear in both consequent and antecedent of clause
 tautclause :: LRVars -> Bool
-tautclause (c,a) = [x | x <- c, x `elem` a] /= []
+tautclause (c,a) = [x | x <- c, x `List.elem` a] /= []
 {-# INLINABLE tautclause #-}
 
 -- form unique clausal axioms excluding tautologies
 unicl :: [Formula] -> [LRVars]
-unicl a = foldr unicl' [] a
+unicl a = List.foldr unicl' [] a
           where
           unicl' p x = if tautclause cp then x else insert cp x
                        where

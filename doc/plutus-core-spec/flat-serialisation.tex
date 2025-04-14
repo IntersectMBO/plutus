@@ -85,7 +85,7 @@ multiple of 8; if $s$ is a sequence such that $\length(s)$ is already a multiple
 then $\pad$ still adds an extra byte of padding; $\pad$ is used both for
 internal alignment (for example, to make sure that the contents of a bytestring
 are aligned on byte boundaries) and at the end of a complete encoding of a
-Plutus Core program to to make the length a multiple of 8 bits.
+Plutus Core program to make the length a multiple of 8 bits.
 Symbolically,
 $$
 \pad(s)  = s \cdot \pp{k} \quad \text{if $\length(s) = 8n+k$ with $n,k \in \N$ and $0 \leq k \leq 7$}
@@ -407,7 +407,7 @@ does not happen here, but does in some later decoders.
                                                            &&\ \text{and}\ \dConstant{\tn}(s') =(s'', c) \\
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
-  \Dterm(\bits{0111} \cdot s)  &= (s', b) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
+  \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
   \Dterm(\bits{1000} \cdot s)  &= (s', \Constr{i}{l}) &&\quad \text{if } \D_{64}(s) = (s', i) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
   \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
@@ -696,6 +696,8 @@ and forth between builtin names and their tags.
   Builtin & Binary & Decimal\\
   \hline
  \TT{expModInteger}   & $\bits{1010111}$  & 87 \\
+ \TT{caseList}        & $\bits{1011000}$  & 88 \\
+ \TT{caseData}        & $\bits{1011001}$  & 89 \\
 \hline
 \end{tabular}
 \caption{Tags for built-in functions (batch 6)}

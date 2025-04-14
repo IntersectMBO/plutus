@@ -31,6 +31,7 @@ open import RawU using (tag2TyTag; tmCon)
 open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
 open import Untyped.Reduction using (iterApp)
 ```
 
@@ -46,22 +47,24 @@ data CaseReduce : Relation where
 ## Decision Procedure
 
 ```
-isCaseReduce? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation CaseReduce {X})
+isCaseReduce? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Translation CaseReduce {X} ast ast')
 
 justEq : {X : Set} {x x₁ : X} → (just x) ≡ (just x₁) → x ≡ x₁
 justEq refl = refl
 
 {-# TERMINATING #-}
-isCR? : {X : Set} {{_ : DecEq X}} → Binary.Decidable CaseReduce
+isCR? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (CaseReduce ast ast')
 isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
-... | no ¬p = no λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _)) }
+... | no ¬p = ce (λ { (casereduce _ _) → ¬p (iscase (isconstr _ (allterms _)) (allterms _))} ) caseReduceT ast ast'
 ... | yes (iscase (isconstr i (allterms vs)) (allterms xs)) with lookup? i xs in xv
-...          | nothing = no λ { (casereduce p _) → case trans (sym xv) p of λ { () } }
+...          | nothing = ce (λ { (casereduce p _) → case trans (sym xv) p of λ { () }} ) caseReduceT ast ast'
 ...          | just x with isCaseReduce? (iterApp x vs) ast'
-...                  | yes p = yes (casereduce xv p)
-...                  | no ¬t = no λ { (casereduce p t) → ¬t (subst (λ x → Translation CaseReduce (iterApp x vs) ast') (justEq (trans (sym p) xv)) t)}
+...                  | proof p = proof (casereduce xv p)
+...                  | ce ¬t t b a = ce (λ { (casereduce p t) → ¬t (subst (λ x → Translation CaseReduce (iterApp x vs) ast') (justEq (trans (sym p) xv)) t)}) t b a
 
-isCaseReduce? = translation? isCR?
+isCaseReduce? = translation? caseReduceT isCR?
+
+UCaseReduce = Translation CaseReduce
 
 ```
 ## An Example:

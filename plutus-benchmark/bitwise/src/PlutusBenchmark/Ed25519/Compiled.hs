@@ -13,7 +13,6 @@ module PlutusBenchmark.Ed25519.Compiled
 
 import PlutusBenchmark.Ed25519 (checkValid)
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.IsData (toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude

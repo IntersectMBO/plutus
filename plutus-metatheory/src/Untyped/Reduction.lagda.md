@@ -193,6 +193,7 @@ tran-⟶* refl b→c = b→c
 tran-⟶* (trans x a→b) refl = trans x a→b
 tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x₁ b→c))
 
+{-
 value-¬⟶ : ∀ {X : Set}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
 value-¬⟶ v = {!!}
 
@@ -201,6 +202,7 @@ value-¬⟶ v = {!!}
 
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
+-}
 
 ```
 ## Progress

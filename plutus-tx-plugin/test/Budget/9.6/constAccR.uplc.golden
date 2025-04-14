@@ -1,16 +1,16 @@
 (program
    1.1.0
-   ((\fix1 ->
-       fix1
-         (\go ds -> force (case ds [(delay 42), (\x xs -> delay (go xs))]))
-         (fix1
-            (\go n ->
-               force
-                 (force
-                    (force ifThenElse
-                       (lessThanEqualsInteger n 0)
-                       (delay (delay (constr 0 [])))
+   ((\s -> s s)
+      (\s ds -> force (case ds [(delay 42), (\x xs -> delay (s s xs))]))
+      ((\s -> s s)
+         (\s n ->
+            force
+              (force
+                 (force ifThenElse
+                    (lessThanEqualsInteger n 0)
+                    (delay (delay (constr 0 [])))
+                    (delay
                        (delay
-                          (delay (constr 1 [1, (go (subtractInteger n 1))]))))))
-            1000))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+                          (constr 1
+                             [1, ((\x -> s s x) (subtractInteger n 1))]))))))
+         1000)))

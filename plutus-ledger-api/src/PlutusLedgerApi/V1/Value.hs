@@ -65,14 +65,13 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data (Data, Typeable)
+import Data.Data (Data)
 import Data.Function ((&))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
-import PlutusTx qualified
 import PlutusTx.AssocMap (Map)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Blueprint (emptySchemaInfo)
@@ -83,9 +82,9 @@ import PlutusTx.Blueprint.Schema (MapSchema (..), PairSchema (..), Schema (..), 
                                   withSchemaInfo)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List qualified
+import PlutusTx.List qualified as List
 import PlutusTx.Ord qualified as Ord
-import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.Prelude as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
@@ -267,7 +266,7 @@ There is no 'Ord Value' instance since 'Value' is only a partial order, so 'comp
 do the right thing in some cases.
  -}
 newtype Value = Value { getValue :: Map CurrencySymbol (Map TokenName Integer) }
-    deriving stock (Generic, Data, Typeable, Haskell.Show)
+    deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
@@ -367,7 +366,7 @@ currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
 currencySymbolValueOf value cur = withCurrencySymbol cur value 0 \tokens ->
   -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
   -- the latter materializes the intermediate result of `Map.elems tokens`.
-  PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
+  List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 {-# INLINABLE currencySymbolValueOf #-}
 
 -- | The list of 'CurrencySymbol's of a 'Value'.
@@ -550,9 +549,9 @@ unordEqWith is0 eqV = goBoth where
     goBoth :: [(k, v)] -> [(k, v)] -> Bool
     -- One spine is longer than the other one, but this still can result in a succeeding equality
     -- check if the non-empty list only contains zero values.
-    goBoth []                 kvsR                             = all (is0 . snd) kvsR
+    goBoth []                 kvsR                             = List.all (is0 . snd) kvsR
     -- Symmetric to the previous case.
-    goBoth kvsL               []                               = all (is0 . snd) kvsL
+    goBoth kvsL               []                               = List.all (is0 . snd) kvsL
     -- Both spines are non-empty.
     goBoth ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
         -- We could've avoided having this clause if we always searched for the right key-value pair
@@ -576,7 +575,7 @@ unordEqWith is0 eqV = goBoth where
                 | is0 vR    = goRight acc kvsR'
                 -- @revAppend@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
-                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (List.revAppend acc kvsR') else False
                 | otherwise = goRight (kvR : acc) kvsR'
 {-# INLINABLE unordEqWith #-}
 
@@ -596,7 +595,7 @@ eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) 
 {-# INLINABLE eq #-}
 
 newtype Lovelace = Lovelace { getLovelace :: Integer }
-  deriving stock (Generic, Typeable)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow Lovelace)
   deriving anyclass (HasBlueprintDefinition)
   deriving newtype

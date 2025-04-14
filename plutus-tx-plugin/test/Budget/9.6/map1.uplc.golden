@@ -1,174 +1,168 @@
 (program
    1.1.0
-   ((\fix1 ->
-       (\`$fEnumBool_$cenumFromTo`
-         n ->
-          (\caseList' ->
+   ((\`$fEnumBool_$cenumFromTo`
+      n ->
+       (\caseList' ->
+          (\nt ->
              (\nt ->
-                (\nt ->
-                   (\lookup ->
-                      constr 0
-                        [ (lookup (\i -> iData i) unIData n nt)
-                        , (lookup (\i -> iData i) unIData (addInteger 5 n) nt)
-                        , (lookup (\i -> iData i) unIData (addInteger 10 n) nt)
-                        , (lookup (\i -> iData i) unIData (addInteger 20 n) nt)
-                        , (lookup
-                             (\i -> iData i)
-                             unIData
-                             (addInteger 5 n)
-                             nt) ])
-                     (\`$dToData`
-                       `$dUnsafeFromData`
-                       ds
+                (\lookup ->
+                   constr 0
+                     [ (lookup (\i -> iData i) unIData n nt)
+                     , (lookup (\i -> iData i) unIData (addInteger 5 n) nt)
+                     , (lookup (\i -> iData i) unIData (addInteger 10 n) nt)
+                     , (lookup (\i -> iData i) unIData (addInteger 20 n) nt)
+                     , (lookup (\i -> iData i) unIData (addInteger 5 n) nt) ])
+                  (\`$dToData`
+                    `$dUnsafeFromData`
+                    ds
+                    ds ->
+                     force
+                       (case
+                          ((\k ->
+                              force
+                                ((\s ->
+                                    s s)
+                                   (\s
+                                     arg ->
+                                      delay
+                                        (caseList'
+                                           (constr 1 [])
+                                           (\hd ->
+                                              force
+                                                (force
+                                                   (force
+                                                      ifThenElse
+                                                      (equalsData
+                                                         k
+                                                         (force (force fstPair)
+                                                            hd))
+                                                      (delay
+                                                         (delay
+                                                            (\ds ->
+                                                               constr 0
+                                                                 [ (force
+                                                                      (force
+                                                                         sndPair)
+                                                                      hd) ])))
+                                                      (delay
+                                                         (delay
+                                                            (force
+                                                               (s
+                                                                  s
+                                                                  (delay
+                                                                     (\x ->
+                                                                        x)))))))))))
+                                   (delay (\x -> x)))
+                                ds)
+                             (`$dToData` ds))
+                          [ (\a -> delay (constr 0 [(`$dUnsafeFromData` a)]))
+                          , (delay (constr 1 [])) ])))
+               ((\k ->
+                   force
+                     ((\s -> s s)
+                        (\s arg ->
+                           delay
+                             (caseList'
+                                []
+                                (\hd ->
+                                   force
+                                     (force
+                                        (force ifThenElse
+                                           (equalsData
+                                              k
+                                              (force (force fstPair) hd))
+                                           (delay (delay (\x -> x)))
+                                           (delay
+                                              (delay
+                                                 (\eta ->
+                                                    force mkCons
+                                                      hd
+                                                      (force
+                                                         (s s (delay (\x -> x)))
+                                                         eta)))))))))
+                        (delay (\x -> x))))
+                  (iData (addInteger 5 n))
+                  nt))
+            ((\z ->
+                (\go eta ->
+                   go eta)
+                  ((\s ->
+                      s s)
+                     (\s
                        ds ->
                         force
                           (case
-                             ((\k ->
-                                 force
-                                   (fix1
-                                      (\go
-                                        arg ->
-                                         delay
-                                           (caseList'
-                                              (constr 1 [])
-                                              (\hd ->
+                             ds
+                             [ (delay z)
+                             , (\y
+                                 ys ->
+                                  delay
+                                    ((\ds ->
+                                        (\k ->
+                                           (\a ->
+                                              (\nilCase ->
                                                  force
-                                                   (force
-                                                      (force
-                                                         ifThenElse
-                                                         (equalsData
-                                                            k
-                                                            (force
-                                                               (force fstPair)
-                                                               hd))
-                                                         (delay
-                                                            (delay
-                                                               (\ds ->
-                                                                  constr 0
-                                                                    [ (force
-                                                                         (force
-                                                                            sndPair)
-                                                                         hd) ])))
-                                                         (delay
-                                                            (delay
-                                                               (force
-                                                                  (go
-                                                                     (delay
-                                                                        (\x ->
-                                                                           x)))))))))))
-                                      (delay (\x -> x)))
-                                   ds)
-                                (`$dToData` ds))
-                             [ (\a -> delay (constr 0 [(`$dUnsafeFromData` a)]))
-                             , (delay (constr 1 [])) ])))
-                  ((\k ->
-                      force
-                        (fix1
-                           (\go arg ->
-                              delay
-                                (caseList'
-                                   []
-                                   (\hd tl ->
-                                      force
-                                        (force
-                                           (force ifThenElse
-                                              (equalsData
-                                                 k
-                                                 (force (force fstPair) hd))
-                                              (delay (delay tl))
-                                              (delay
-                                                 (delay
-                                                    (force mkCons
-                                                       hd
-                                                       (force
-                                                          (go (delay (\x -> x)))
-                                                          tl)))))))))
-                           (delay (\x -> x)))
-                        nt)
-                     (iData (addInteger 5 n))))
-               ((\z ->
-                   (\go eta ->
-                      go eta)
-                     (fix1
-                        (\go
-                          ds ->
-                           force
-                             (case
-                                ds
-                                [ (delay z)
-                                , (\y
-                                    ys ->
-                                     delay
-                                       ((\ds ->
-                                           (\k ->
-                                              (\a ->
-                                                 (\nilCase ->
-                                                    force
-                                                      (fix1
-                                                         (\go
-                                                           arg ->
-                                                            delay
-                                                              (caseList'
-                                                                 nilCase
-                                                                 (\hd
-                                                                   tl ->
-                                                                    force
+                                                   ((\s ->
+                                                       s s)
+                                                      (\s
+                                                        arg ->
+                                                         delay
+                                                           (caseList'
+                                                              nilCase
+                                                              (\hd ->
+                                                                 force
+                                                                   (force
                                                                       (force
-                                                                         (force
-                                                                            ifThenElse
-                                                                            (equalsData
-                                                                               k
+                                                                         ifThenElse
+                                                                         (equalsData
+                                                                            k
+                                                                            (force
                                                                                (force
-                                                                                  (force
-                                                                                     fstPair)
-                                                                                  hd))
+                                                                                  fstPair)
+                                                                               hd))
+                                                                         (delay
                                                                             (delay
-                                                                               (delay
-                                                                                  (force
-                                                                                     mkCons
-                                                                                     (mkPairData
-                                                                                        k
-                                                                                        a)
-                                                                                     tl)))
+                                                                               (force
+                                                                                  mkCons
+                                                                                  (mkPairData
+                                                                                     k
+                                                                                     a))))
+                                                                         (delay
                                                                             (delay
-                                                                               (delay
-                                                                                  (force
-                                                                                     mkCons
-                                                                                     hd
-                                                                                     (force
-                                                                                        (go
-                                                                                           (delay
-                                                                                              (\x ->
-                                                                                                 x)))
-                                                                                        tl)))))))))
-                                                         (delay (\x -> x)))
-                                                      ds)
-                                                   (force mkCons
-                                                      (mkPairData k a)
-                                                      []))
-                                                (iData y))
-                                             (iData (addInteger n y)))
-                                          (go ys))) ]))))
-                  (force mkCons (mkPairData (iData n) (I 0)) [])
-                  (`$fEnumBool_$cenumFromTo` 1 10)))
-            (\z f xs ->
-               force
-                 (force (force chooseList)
-                    xs
-                    (delay z)
-                    (delay (f (force headList xs) (force tailList xs))))))
-         (fix1
-            (\`$fEnumBool_$cenumFromTo` x lim ->
-               force
-                 (force
-                    (force ifThenElse
-                       (lessThanEqualsInteger x lim)
+                                                                               (\eta ->
+                                                                                  force
+                                                                                    mkCons
+                                                                                    hd
+                                                                                    (force
+                                                                                       (s
+                                                                                          s
+                                                                                          (delay
+                                                                                             (\x ->
+                                                                                                x)))
+                                                                                       eta)))))))))
+                                                      (delay (\x -> x)))
+                                                   ds)
+                                                (force mkCons
+                                                   (mkPairData k a)
+                                                   []))
+                                             (iData y))
+                                          (iData (addInteger n y)))
+                                       (s s ys))) ]))))
+               (force mkCons (mkPairData (iData n) (I 0)) [])
+               (`$fEnumBool_$cenumFromTo` 1 10)))
+         (\z f xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay z)
+                 (delay (f (force headList xs) (force tailList xs))))))
+      ((\s -> s s)
+         (\s x lim ->
+            force
+              (force
+                 (force ifThenElse
+                    (lessThanEqualsInteger x lim)
+                    (delay
                        (delay
-                          (delay
-                             (constr 1
-                                [ x
-                                , (`$fEnumBool_$cenumFromTo`
-                                     (addInteger 1 x)
-                                     lim) ])))
-                       (delay (delay (constr 0 []))))))))
-      (\f -> (\s -> s s) (\s -> f (\x -> s s x)))))
+                          (constr 1 [x, ((\x -> s s x) (addInteger 1 x) lim)])))
+                    (delay (delay (constr 0 [])))))))))

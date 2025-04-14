@@ -16,6 +16,7 @@ import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
+import PlutusCore.Size (Size)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (termSize)
@@ -159,28 +160,32 @@ supply, and the performance cost does not currently seem relevant. So it's fine.
 inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePassSC ic tcconfig hints binfo =
-    renamePass <> inlinePass ic tcconfig hints binfo
+inlinePassSC thresh ic tcconfig hints binfo =
+    renamePass <> inlinePass thresh ic tcconfig hints binfo
 
 inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePass ic tcconfig hints binfo =
+inlinePass thresh ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
-      (inline ic hints binfo )
+      (inline thresh ic hints binfo )
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
@@ -189,15 +194,17 @@ inlinePass ic tcconfig hints binfo =
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> InlineHints name ann
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline ic hints binfo t = let
+inline thresh ic hints binfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo ic
+        inlineInfo = InlineInfo vinfo usgs hints binfo ic thresh
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
@@ -377,7 +384,7 @@ processSingleBinding
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
+    (TermBind _ s v@(VarDecl ann n _) rhs0) -> do
         -- we want to do unconditional inline if possible
         maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
@@ -398,7 +405,7 @@ processSingleBinding body = \case
                         -- have unique names
                         (MkVarInfo s (Done (dupable rhs)))
                 pure $ Just $ TermBind ann s v rhs
-    (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
+    (TypeBind _ v@(TyVarDecl ann n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
     b -> -- Just process all the subterms
@@ -422,15 +429,16 @@ maybeAddSubst body ann s n rhs0 = do
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
-    let hinted = shouldInline hints ann n
-
-    if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs)
-    else
-        ifM
-            (shouldUnconditionallyInline s n rhs body)
-            (extendAndDrop (Done $ dupable rhs))
-            (pure $ Just rhs)
+    case shouldInline hints ann n of
+      AlwaysInline ->
+        -- if we've been told specifically, then do it right away
+        extendAndDrop (Done $ dupable rhs)
+      hint ->
+        let safeToInline = hint == SafeToInline
+         in ifM
+              (shouldUnconditionallyInline safeToInline s n rhs body)
+              (extendAndDrop (Done $ dupable rhs))
+              (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun ann

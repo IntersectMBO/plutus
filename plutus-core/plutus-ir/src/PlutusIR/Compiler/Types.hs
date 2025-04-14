@@ -8,15 +8,15 @@
 {-# LANGUAGE TypeOperators         #-}
 module PlutusIR.Compiler.Types where
 
-import PlutusIR qualified as PIR
-import PlutusIR.Compiler.Provenance
-import PlutusIR.Error
-
-import Control.Monad (when)
-import Control.Monad.Except (MonadError)
-import Control.Monad.Reader (MonadReader, local)
 
 import Control.Lens
+import Control.Monad (when)
+import Control.Monad.Error.Lens (throwing)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (MonadReader, local)
+import Data.Default.Class
+import Data.Text qualified as T
+import Prettyprinter (viaShow)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
@@ -24,16 +24,16 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.Size (Size)
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
+import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Error
 import PlutusIR.Transform.RewriteRules.Internal (RewriteRules)
 import PlutusPrelude
-
-import Control.Monad.Error.Lens (throwing)
-import Data.Text qualified as T
-import PlutusIR.Analysis.Builtins
-import Prettyprinter (viaShow)
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -95,6 +95,8 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierRemoveDeadBindings :: Bool
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     , _coInlineConstants                :: Bool
+    , _coInlineFix                      :: Bool
+    , _coInlineCallsiteGrowth           :: Size
     -- Profiling
     , _coProfile                        :: Bool
     , _coRelaxedFloatin                 :: Bool
@@ -123,8 +125,10 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierInline = True
   , _coDoSimplifierEvaluateBuiltins = True
   , _coDoSimplifierStrictifyBindings = True
-  , _coInlineHints = mempty
+  , _coInlineHints = def
   , _coInlineConstants = True
+  , _coInlineFix = True
+  , _coInlineCallsiteGrowth = 5
   , _coProfile = False
   , _coRelaxedFloatin = True
   , _coCaseOfCaseConservative = True
@@ -219,6 +223,7 @@ type Compiling m e uni fun a =
     , MonadError e m
     , MonadQuote m
     , Ord a
+    , AnnInline a
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
     -- Pretty printing instances

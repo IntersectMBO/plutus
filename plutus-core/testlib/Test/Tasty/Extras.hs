@@ -1,9 +1,9 @@
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Test.Tasty.Extras
     ( Layer (..)
@@ -24,25 +24,37 @@ module Test.Tasty.Extras
     , goldenVsDoc
     , goldenVsDocM
     , nestedGoldenVsText
+    , nestedGoldenVsTextPredM
     , nestedGoldenVsTextM
     , nestedGoldenVsDoc
     , nestedGoldenVsDocM
     , makeVersionedFilePath
+    -- * Prettier equality assertions
+    , assertEqualPretty
+    , (%=?)
+    , (%?=)
     ) where
 
 import PlutusPrelude hiding (toList)
 
+import Control.Monad (unless)
 import Control.Monad.Free.Church (F (runF), MonadFree, liftF)
-import Control.Monad.Reader
+import Control.Monad.Reader (MonadReader (ask, local), ReaderT (..), asks, mapReaderT)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Version
-import GHC.Exts
+import Data.Text.IO qualified as TIO
+import Data.Text.Lazy qualified as Text
+import Data.Version (showVersion)
+import GHC.Exts (IsList (Item, fromList, toList))
+import GHC.Stack (HasCallStack)
 import System.FilePath (joinPath, (</>))
-import System.Info
-import Test.Tasty
-import Test.Tasty.Golden
+import System.Info (compilerVersion)
+import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty.Golden (createDirectoriesAndWriteFile, goldenVsStringDiff)
+import Test.Tasty.Golden.Advanced (goldenTest)
+import Test.Tasty.HUnit (Assertion, assertFailure)
+import Text.Pretty.Simple (OutputOptions (..), defaultOutputOptionsDarkBg, pShowOpt)
 
 -- | We use the GHC version number to create directories with names like `9.2`
 -- and `9.6` containing golden files whose contents depend on the GHC version.
@@ -206,6 +218,28 @@ goldenVsDocM name ref val = goldenVsTextM name ref $ render <$> val
 nestedGoldenVsText :: TestName -> FilePath -> Text -> TestNested
 nestedGoldenVsText name ext = nestedGoldenVsTextM name ext . pure
 
+{-| Compare the contents of a file under a name prefix against a 'Text'
+using a predicate.
+-}
+nestedGoldenVsTextPredM
+  :: TestName
+  -- ^ The name of the test
+  -> FilePath
+  -- ^ The file extension
+  -> IO Text
+  -- ^ The text-producing action to execute
+  -> (Text -> Text -> Bool)
+  -- ^ How to compare golden file contents with the produced text
+  -> TestNested
+nestedGoldenVsTextPredM name ext action predicate = do
+  filePath <- asks $ foldr (</>) (name ++ ext ++ ".golden")
+  embed $ goldenTest name (TIO.readFile filePath) action
+    do \golden actual -> pure
+        if predicate golden actual
+          then Nothing
+          else Just "Predicate failed on golden file"
+    do createDirectoriesAndWriteFile filePath . BSL.fromStrict . encodeUtf8
+
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
 nestedGoldenVsTextM name ext text = do
@@ -219,3 +253,63 @@ nestedGoldenVsDoc name ext = nestedGoldenVsDocM name ext . pure
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestNested
 nestedGoldenVsDocM name ext val = nestedGoldenVsTextM name ext $ render <$> val
+
+{-| Asserts that the specified actual value is equal to the expected value.
+The output message will contain the prefix, the expected value, and the
+actual value.
+
+If the prefix is the empty string (i.e., @\"\"@), then the prefix is omitted
+and only the expected and actual values are output.
+-}
+assertEqualPretty
+  :: (Eq a, Show a, HasCallStack)
+  => String
+  -- ^ The message prefix
+  -> a
+  -- ^ The expected value
+  -> a
+  -- ^ The actual value
+  -> Assertion
+assertEqualPretty preface expected actual =
+  unless (actual == expected) (assertFailure msg)
+ where
+  msg =
+    (if null preface then "" else preface)
+      ++ "\n--- Expected: ---\n"
+      ++ prettyStr expected
+      ++ "\n\n--- Actual: ---\n"
+      ++ prettyStr actual
+
+  prettyStr :: Show a => a -> String
+  prettyStr = Text.unpack . pShowOpt defaultOutputOptionsDarkBg
+    { outputOptionsCompact = False
+    , outputOptionsCompactParens = False
+    , outputOptionsIndentAmount = 2
+    , outputOptionsPageWidth = 120
+    }
+
+infix 1 %=?, %?=
+
+{-| Asserts that the specified actual value is equal to the expected value
+  (with the /expected/ value on the left-hand side).
+-}
+(%=?)
+  :: (Eq a, Show a, HasCallStack)
+  => a
+  -- ^ The expected value
+  -> a
+  -- ^ The actual value
+  -> Assertion
+expected %=? actual = assertEqualPretty "" expected actual
+
+{-| Asserts that the specified actual value is equal to the expected value
+  (with the /actual/ value on the left-hand side).
+-}
+(%?=)
+  :: (Eq a, Show a, HasCallStack)
+  => a
+  -- ^ The actual value
+  -> a
+  -- ^ The expected value
+  -> Assertion
+actual %?= expected = assertEqualPretty "" expected actual

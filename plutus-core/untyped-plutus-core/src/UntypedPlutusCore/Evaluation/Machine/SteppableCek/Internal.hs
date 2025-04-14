@@ -157,13 +157,13 @@ computeCek !ctx !_ (Builtin _ bn) = do
 -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
-    case es of
-        (t : rest) -> computeCek (FrameConstr ann env i rest EmptyStack ctx) env t
-        []         -> returnCek ctx $ VConstr i EmptyStack
+    pure $ case es of
+        (t : rest) -> Computing (FrameConstr ann env i rest EmptyStack ctx) env t
+        []         -> Returning ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
-    computeCek (FrameCases ann env cs ctx) env scrut
+    pure $ Computing (FrameCases ann env cs ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure
@@ -205,13 +205,13 @@ returnCek (FrameCases ann env cs ctx) e = case e of
     -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
     -- "apparently good" value.
     (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                    throwingDischarged _MachineError (MissingCaseBranch i) e
+                    throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
-        Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
-    _ -> throwingDischarged _MachineError NonConstrScrutinized e
+        Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
+    _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;

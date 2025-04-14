@@ -9,6 +9,15 @@ This module contains the formalisation of builtins.
 module Builtin where
 ```
 
+
+## TODO: add the rest of the builtins
+
+After the metatheory is synced with the rest of the codebase, remove the following pragma:
+
+```
+{-# FOREIGN GHC {-# OPTIONS_GHC -Wno-incomplete-patterns #-} #-}
+```
+
 ## Imports
 
 ```
@@ -331,11 +340,12 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
 open SugaredSignature using (signature) public
 
--- The arity of a builtin, according to its signature.
+-- The number of type arguments expected
 arity₀ : Builtin → ℕ
 arity₀ b = (Sig.fv⋆ (signature b)) Data.Nat.+ (Sig.fv♯ (signature b))
 
--- FIXME: This should be arity₁
+-- This should be arity₁ but is left as arity because it is used
+-- elsewhere
 arity : Builtin → ℕ
 arity b = length (Sig.args (signature b))
 
@@ -574,7 +584,7 @@ postulate
 {-# FOREIGN GHC builtinResultToMaybe :: BuiltinResult a -> Maybe a #-}
 {-# FOREIGN GHC builtinResultToMaybe = reoption #-}
 
-{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature_V2 k m s #-}
+{-# COMPILE GHC verifyEd25519Sig = \k m s -> builtinResultToMaybe $ verifyEd25519Signature k m s #-}
 {-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifyEcdsaSecp256k1Signature k m s #-}
 {-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> builtinResultToMaybe $ verifySchnorrSecp256k1Signature k m s #-}
 

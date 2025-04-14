@@ -1,6 +1,9 @@
-# This job enforces that: either some changelog.d/** files were added by the 
+# This workflow enforces that: either some changelog.d/** files were added by the 
 # PR, or the PR has the "No Changelog Required" label.  
-  
+# 
+# This workflow runs on all pull requests, and on pull request label changes.
+
+
 name: "🏷️ Changelog Label"
 
 on:
@@ -20,7 +23,7 @@ jobs:
 
       - name: Find Changed Files
         id: changed-files
-        uses: tj-actions/changed-files@main
+        uses: step-security/changed-files@main
         with:
           files: '**/changelog.d/**'
 

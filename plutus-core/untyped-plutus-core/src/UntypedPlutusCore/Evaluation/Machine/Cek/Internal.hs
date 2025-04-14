@@ -1,12 +1,14 @@
 -- editorconfig-checker-disable-file
 -- | The CEK machine.
 
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DeriveAnyClass           #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE ImplicitParams           #-}
+{-# LANGUAGE InstanceSigs             #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE NPlusKPatterns           #-}
@@ -52,6 +54,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , GivenCekReqs
     , GivenCekSpender
     , StepCounter
+    , NumberOfStepCounters
     , CounterSize
     , TotalCountIndex
     , Slippage
@@ -81,6 +84,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
+import Control.Exception qualified as Exception
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -97,6 +101,7 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
 import Data.Word
+import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -311,9 +316,23 @@ We keep the counters for each step in the first indices, so we can index them si
 the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
+-- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
+-- error-prone and has caused a bug in the past.
+type CountConstructorsEnum :: (GHC.Type -> GHC.Type) -> Nat
+type family CountConstructorsEnum rep where
+    CountConstructorsEnum U1         = 1
+    CountConstructorsEnum (M1 _ _ f) = CountConstructorsEnum f
+    CountConstructorsEnum (f :+: g)  = CountConstructorsEnum f + CountConstructorsEnum g
+    CountConstructorsEnum V1         = TypeError ('Text "Cannot be empty")
+    CountConstructorsEnum (f :*: g)  = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum (K1 _ _)   = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum (Rec1 _)   = TypeError ('Text "Cannot be a non-enumeration type")
+    CountConstructorsEnum Par1       =
+        TypeError ('Text "If you really want a parameterized type, handle this clause")
+
 -- | The number of step counters that we need, should be the same as the number of constructors
 -- of 'StepKind'.
-type NumberOfStepCounters = 9
+type NumberOfStepCounters = CountConstructorsEnum (Rep StepKind)
 -- | The total number of counters that we need, one extra for the total counter.
 -- See Note [Structure of the step counter]
 type CounterSize = NumberOfStepCounters + 1
@@ -441,19 +460,49 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
-instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
+instance ThrowableBuiltins uni fun =>
+        MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
     -- See Note [Throwing exceptions in ST].
     throwError = CekM . throwM
 
     -- See Note [Catching exceptions in ST].
-    a `catchError` h = CekM . unsafeIOToST $ aIO `catch` hIO where
+    catchError
+        :: forall a.
+           CekM uni fun s a
+        -> (CekEvaluationException NamedDeBruijn uni fun -> CekM uni fun s a)
+        -> CekM uni fun s a
+    a `catchError` h =
+        -- Here in addition to catching 'CekEvaluationException' we also catch common GHC exceptions
+        -- in case one of them somehow gets triggered during script execution (which would be a bug
+        -- on our side). We could probably use @enclosed-exceptions@, but spawning a thread per
+        -- script is expensive. We could also use type-based disambiguation like @unliftio@ does,
+        -- but it fails if an exception whose type indicates that it's a sync one gets thrown in an
+        -- async way.
+        -- Alexey Kuleshevich told us that the node catches exceptions anyway, so what we're doing
+        -- here is for easing debugging and error reporting, it's not a proper safety measure. Hence
+        -- catching several common exception types is enough.
+        CekM . unsafeIOToST $ aIO `catches`
+            [ Handler hIO
+            , panicHandler @IOError
+            , panicHandler @Exception.ErrorCall
+            , panicHandler @Exception.ArithException
+            , panicHandler @Exception.ArrayException
+            ]
+      where
         aIO = unsafeRunCekM a
         hIO = unsafeRunCekM . h
 
-        -- | Unsafely run a 'CekM' computation in the 'IO' monad by converting the
-        -- underlying 'ST' to it.
+        -- Unsafely run a 'CekM' computation in the 'IO' monad by converting the underlying 'ST' to
+        -- it.
         unsafeRunCekM :: CekM uni fun s a -> IO a
         unsafeRunCekM = unsafeSTToIO . unCekM
+
+        panicHandler :: forall e. Exception e => Handler IO a
+        panicHandler =
+            Handler $ \(err :: e) -> hIO $
+                ErrorWithCause
+                    (StructuralEvaluationError . PanicMachineError $ displayException err)
+                    Nothing
 
 instance AsEvaluationFailure CekUserError where
     _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
@@ -731,12 +780,12 @@ enterComputeCek = computeCek
         -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
         -- "apparently good" value.
         (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                        throwingDischarged _MachineError (MissingCaseBranch i) e
+                        throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
         -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
-        _ -> throwingDischarged _MachineError NonConstrScrutinized e
+            Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
+        _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.
@@ -813,7 +862,7 @@ enterComputeCek = computeCek
         resetCounter ctr
     -- It's very important for this definition not to get inlined. Inlining it caused performance to
     -- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931
-    {-# OPAQUE spendAccumulatedBudget #-}
+    {-# NOINLINE spendAccumulatedBudget #-}
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
@@ -878,7 +927,7 @@ enterComputeCek = computeCek
     -- | Look up a variable name in the environment.
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-        Env.safeIndexOneCont
+        Env.contIndexOne
             (throwingWithCause _MachineError OpenTermEvaluatedMachineError . Just $ Var () varName)
             pure
             varEnv

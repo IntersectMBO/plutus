@@ -1,17 +1,1 @@
-program
-  1.1.0
-  (force
-     (delay
-        (\`Lift.Spec.Z` `match_Lift.Spec.Z` ->
-           force
-             (delay
-                (\`Lift.Spec.SynExample` `match_Lift.Spec.SynExample` ->
-                   `Lift.Spec.SynExample`))
-             (\arg_0 -> constr 0 [arg_0])
-             (\x ->
-                delay
-                  (\`case_Lift.Spec.SynExample` ->
-                     case x [`case_Lift.Spec.SynExample`]))
-             (`Lift.Spec.Z` 1)))
-     (\arg_0 -> constr 0 [arg_0])
-     (\x -> delay (\`case_Lift.Spec.Z` -> case x [`case_Lift.Spec.Z`])))
+program 1.1.0 (constr 0 [(constr 0 [1])])

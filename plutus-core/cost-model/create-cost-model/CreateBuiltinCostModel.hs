@@ -125,6 +125,10 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramFindFirstSetBit                 = "findFirstSetBitModel"
   , paramRipemd_160                      = "ripemd_160Model"
   , paramExpModInteger                   = "expModIntegerModel"
+  , paramDropList                        = "dropListModel"
+  , paramLengthOfArray                   = "lengthOfArrayModel"
+  , paramListToArray                     = "listToArrayModel"
+  , paramIndexArray                      = "indexArrayModel"
   }
 
 
@@ -264,7 +268,15 @@ createBuiltinCostModel bmfile rfile = do
   paramFindFirstSetBit                 <- getParams readCF1 paramFindFirstSetBit
   -- And another hash function
   paramRipemd_160                      <- getParams readCF1 paramRipemd_160
+  -- Batch 6
   paramExpModInteger                   <- getParams readCF3 paramExpModInteger
+  -- paramCaseList
+  -- paramCaseData
+  paramDropList                        <- getParams readCF2 paramDropList
+  -- Arrays
+  paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray
+  paramListToArray                     <- getParams readCF1 paramListToArray
+  paramIndexArray                      <- getParams readCF2 paramIndexArray
 
   pure $ BuiltinCostModelBase {..}
 

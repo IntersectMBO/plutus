@@ -4,6 +4,8 @@
 
 module Main (main) where
 
+import Data.Version.Extras (gitAwareVersionInfo)
+import Paths_plutus_executables qualified as Paths
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Data
@@ -80,7 +82,7 @@ plutus ::
   ParserInfo Command
 plutus langHelpText =
     info
-      (plutusOpts <**> helper)
+      (plutusOpts <**> versioner <**> helper)
       (fullDesc <> header "Typed Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
@@ -194,7 +196,6 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _) = do
   let optimised = prog  -- No PLC optimisations at present!
   writeProgram outp ofmt mode optimised
 
-
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
@@ -225,6 +226,11 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
   case ofmt of
     Textual       -> writePrettyToOutput outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
+
+---------------- Version ----------------
+
+versioner :: Parser (a -> a)
+versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
 
 ---------------- Driver ----------------
 

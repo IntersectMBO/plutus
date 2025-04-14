@@ -15,18 +15,19 @@ x-ghc-framework-version: 8.0.2-9.6-1
 x-last-ide-version:      HfM1.6.0
 
 executable UTxO
-  main-is:          Main.hs
+  main-is:            Main.hs
   build-depends:
       base
     , bytestring
     , containers
     , cryptohash
-    , cryptonite
+    , crypton
     , hashable
     , memory
     , template-haskell
 
-  default-language: Haskell2010
+  default-language:   Haskell2010
+  default-extensions: ImportQualifiedPost
   other-modules:
     Examples.Keys
     Examples.PubKey

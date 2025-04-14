@@ -64,7 +64,9 @@ data PluginOptions = PluginOptions
   , _posCoverageBoolean                :: Bool
   , _posRelaxedFloatin                 :: Bool
   , _posCaseOfCaseConservative         :: Bool
+  , _posInlineCallsiteGrowth           :: Int
   , _posInlineConstants                :: Bool
+  , _posInlineFix                      :: Bool
   , _posPreserveLogging                :: Bool
   -- ^ Whether to try and retain the logging behaviour of the program.
   , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -157,7 +159,7 @@ pluginOptions =
           desc =
             "When conservative optimisation is used, only the optimisations that \
             \never make the program worse (in terms of cost or size) are employed. \
-            \Implies `no-relaxed-float-in`, `no-inline-constants`, \
+            \Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, \
             \`no-simplifier-evaluate-builtins`, and `preserve-logging`."
        in ( k
           , PluginOption
@@ -171,11 +173,13 @@ pluginOptions =
               , Implication (== True) posPreserveLogging True
               , Implication (== True) posCaseOfCaseConservative True
               , Implication (== True) posInlineConstants False
+              , Implication (== True) posInlineFix False
               , Implication (== True) posDoSimplifierEvaluateBuiltins False
               , Implication (== False) posRelaxedFloatin True
               , Implication (== False) posPreserveLogging False
               , Implication (== False) posCaseOfCaseConservative False
               , Implication (== False) posInlineConstants True
+              , Implication (== False) posInlineFix True
               , Implication (== False) posDoSimplifierEvaluateBuiltins True
               ]
           )
@@ -191,12 +195,24 @@ pluginOptions =
     , let k = "dump-uplc"
           desc = "Dump Untyped Plutus Core"
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+    , let k = "inline-callsite-growth"
+          desc =
+            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a \
+            \callsite if it increases the AST size; `n` allows inlining if the AST size grows by \
+            \no more than `n`. Keep in mind that doing so does not mean the final program \
+            \will be bigger, since inlining can often unlock further optimizations."
+       in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "inline-constants"
           desc =
             "Always inline constants. Inlining constants always reduces script \
             \costs slightly, but may increase script sizes if a large constant \
             \is used more than once. Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
+    , let k = "inline-fix"
+          desc =
+            "Always inline fixed point combinators. This is generally preferable as \
+            \it often enables further optimization, though it may increase script size."
+       in (k, PluginOption typeRep (setTrue k) posInlineFix desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
        in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -340,8 +356,10 @@ defaultPluginOptions =
     , _posCoverageBoolean = False
     , _posRelaxedFloatin = True
     , _posCaseOfCaseConservative = False
+    , _posInlineCallsiteGrowth = 5
     , _posInlineConstants = True
-    , _posPreserveLogging = False
+    , _posInlineFix = True
+    , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     }

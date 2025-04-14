@@ -15,7 +15,7 @@ If it already has the `INLINEABLE` pragma, try adding the GHC flags
 `-fno-ignore-interface-pragmas` and `-fno-omit-interface-pragmas`.
 
 If this doesn't resolve the issue, or if the identifier in question isn't directly defined in the code but is produced by GHC optimizations,
-ensure that you apply all GHC flags listed in [GHC Extensions, Flags and Pragmas](./using-plutus-tx/extensions-flags-pragmas.md).
+ensure that you apply all GHC flags listed in [GHC Extensions, Flags and Pragmas](./using-plinth/extensions-flags-pragmas.md).
 These flags disable GHC optimizations that can interfere with the plugin, and ensure that unfoldings are neither omitted nor ignored.
 
 If the identifier with missing unfolding is from `base` or invoked by a function from `base`, you should use instead the corresponding function from the `plutus-tx` package.
@@ -29,7 +29,7 @@ Not only does GHCi often hide unfoldings from the plugin, but it may also introd
 
 ### "Unsupported feature: Cannot case on a value on type: \{type\}"
 
-If `{type}` is a builtin type like `BuiltinBool`: to convert a builtin type to the corresponding Haskell type (such as `BuiltinBool` to `Bool` or `BuiltinList` to a Haskell list) in Plutus Tx, you should use `fromOpaque`.
+If `{type}` is a builtin type like `BuiltinBool`: to convert a builtin type to the corresponding Haskell type (such as `BuiltinBool` to `Bool` or `BuiltinList` to a Haskell list) in Plinth, you should use `fromOpaque`.
 Pattern matching on the builtin type or using `fromBuiltin` is not permitted, and will lead to the above error.
 
 If `{type}` is a GHC type like `GHC.Num.Integer.Integer`: you may be using operations from `base` (such as `GHC.Classes.==`) on that type, or using a literal of that type in a pattern.
@@ -47,20 +47,20 @@ case (x :: Maybe Integer) of Just y | y PlutusTx.== 42 -> ...
 
 ### "Unsupported feature: Cannot construct a value of type"
 
-Conversely, to convert a Haskell type to the corresponding builtin type in Plutus Tx, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
+Conversely, to convert a Haskell type to the corresponding builtin type in Plinth, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
 
 ## Runtime Issues
 
 ### Missing Trace Messages
 
-If your expected trace messages are missing, check the following [plugin flags](./delve-deeper/plutus-tx-compiler-options.md):
+If your expected trace messages are missing, check the following [plugin flags](./delve-deeper/plinth-compiler-options.md):
 
 - If the `remove-trace` flag (default off) is on, all trace messages will be removed.
 - If the `preserve-logging` flag (default off) is off, the compiler may remove some trace messages during optimization.
 
 ### Unexpected Evaluation Failure
 
-It is usually [advisable](./using-plutus-tx/extensions-flags-pragmas.md) to use the `Strict` extension when writing Plutus Tx, which improves performance.
+It is usually [advisable](./using-plinth/extensions-flags-pragmas.md) to use the `Strict` extension when writing Plinth, which improves performance.
 However, be cautious, as this can result in unexpected evaluation failures.
 Consider the following script:
 
@@ -108,6 +108,6 @@ However, in this instance, you can simply tell it to defer any errors to runtime
 
 ## Error codes
 
-Some Plutus Tx library functions produce error messages when failing.
+Some Plinth library functions produce error messages when failing.
 To reduce code size, error codes are used instead of full error messages.
 The mapping from error codes to error messages can be found in [`PlutusTx.ErrorCodes`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/src/PlutusTx.ErrorCodes.html#plutusPreludeErrorCodes).

@@ -13,7 +13,7 @@ module VerifiedCompilation.UInline where
 ```
 open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
-open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
+open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
 open import Untyped.RenamingSubstitution using (_[_])
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
@@ -23,7 +23,7 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; inlineT)
 ```
 ## Translation Relation
 
@@ -41,10 +41,10 @@ data pureInline : Relation where
 
 _ : pureInline {⊥} (ƛ (` nothing) · error) error
 _ = inline (tr reflexive)
-
+{-
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
-
+-}
 ```
 However, this has several intermediate values that are very hard to determine for a decision procedure.
 
@@ -74,9 +74,10 @@ data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
 _ = var (var (sub (last-sub reflexive)))
 
+{-
 _ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
-
 _ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
+-}
 ```
 # Inline implies pureInline
 ```
@@ -87,25 +88,28 @@ postulate
 ## Decision Procedure
 
 ```
-isInline? : {X : Set} {{_ : DecEq X}} → Binary.Decidable (Translation (Inline □))
+isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Translation (Inline □) ast ast')
 
 {-# TERMINATING #-}
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → Binary.Decidable (Inline e)
+isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → (ast ast' : X ⊢) → ProofOrCE (Inline e ast ast')
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
-...     | yes p = yes (var p)
-...     | no ¬p = no λ { (var p) → ¬p p }
+...     | proof p = proof (var p)
+...     | ce ¬p t b a = ce (λ { (var xx) → ¬p xx}) t b a
 isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
-isIl? □ ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) }
-isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = no λ { (var p) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub t) → ¬ƛ (islambda (isterm _)) ; (sub p) → ¬ƛ (islambda (isterm _)) }
-isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = no (λ ())
+isIl? □ ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _))}) inlineT ast ast'
+isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub x) → ¬ƛ (islambda (isterm _)) ; (sub xx) → ¬ƛ (islambda (isterm _))}) inlineT ast ast'
+isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = ce (λ { ()}) inlineT (ƛ x) ast'
 isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? (x [ v ]) ast')
-... | yes t = yes (last-sub t)
-... | no ¬t = no λ { (last-sub t) → ¬t t }
+... | proof t = proof (last-sub t)
+... | ce ¬p t b a = ce (λ { (last-sub x) → ¬p x}) t b a
 isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
-... | yes p = yes (sub p)
-... | no ¬p = no λ { (sub p) → ¬p p }
+... | proof p = proof (sub p)
+... | ce ¬p t b a = ce (λ { (sub xx) → ¬p xx}) t b a
 
-isInline? = translation? (isIl? □)
+isInline? = translation? inlineT (isIl? □)
+
+UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UInline = Translation (Inline □)
 
 ```

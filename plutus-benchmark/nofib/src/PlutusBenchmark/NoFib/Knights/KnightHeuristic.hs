@@ -10,6 +10,7 @@ module PlutusBenchmark.NoFib.Knights.KnightHeuristic
 import PlutusBenchmark.NoFib.Knights.ChessSetList
 import PlutusBenchmark.NoFib.Knights.Sort (quickSort)
 
+import PlutusTx.List as List
 import PlutusTx.Prelude as Tx
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD
@@ -55,7 +56,7 @@ descendents board =
   if (canJumpFirst board) && (deadEnd (addPiece (firstPiece board) board))
   then []
   else
-      let l = Tx.length singles in
+      let l = List.length singles in
       if l == 0 then map snd (quickSort (descAndNo board))
       else if l == 1 then singles
            else []           -- Going to be dead end
@@ -70,7 +71,7 @@ singleDescend board =[x | (y,x) <- descAndNo board, y==1]
 
 descAndNo :: ChessSet -> [(Integer,ChessSet)]
 descAndNo board
-   = [(Tx.length (possibleMoves (deleteFirst x)),x) | x <- allDescend board]
+   = [(List.length (possibleMoves (deleteFirst x)),x) | x <- allDescend board]
 {-# INLINABLE descAndNo #-}
 
 allDescend :: ChessSet -> [ChessSet]
@@ -84,7 +85,7 @@ possibleMoves board
 {-# INLINABLE possibleMoves #-}
 
 deadEnd :: ChessSet -> Bool
-deadEnd board = (Tx.length (possibleMoves board)) == 0
+deadEnd board = List.length (possibleMoves board) == 0
 {-# INLINABLE deadEnd #-}
 
 canJumpFirst :: ChessSet -> Bool

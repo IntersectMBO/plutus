@@ -27,6 +27,7 @@ import UntypedPlutusCore.Transform.Simplifier
 import Control.Monad
 import Data.List as List (foldl')
 import Data.Typeable
+import Data.Vector.Orphans ()
 
 simplifyProgram ::
     forall name uni fun m a.
@@ -96,7 +97,11 @@ termSimplifier opts builtinSemanticsVariant =
         >=> forceDelay
         >=> caseOfCase'
         >=> caseReduce
-        >=> inline (_soInlineConstants opts) (_soInlineHints opts) builtinSemanticsVariant
+        >=> inline
+              (_soInlineCallsiteGrowth opts)
+              (_soInlineConstants opts)
+              (_soInlineHints opts)
+              builtinSemanticsVariant
 
     caseOfCase' ::
       Term name uni fun a ->

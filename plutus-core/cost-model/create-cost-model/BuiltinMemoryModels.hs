@@ -170,6 +170,11 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramFindFirstSetBit                 = Id $ ModelOneArgumentConstantCost 1
   , paramRipemd_160                      = Id $ hashMemModel Hash.ripemd_160
   , paramExpModInteger                   = Id $ ModelThreeArgumentsConstantCost 100000000000 -- FIXME: stub
+  -- paramCaseList
+  -- paramCaseData
+  , paramDropList                        = Id $ ModelTwoArgumentsConstantCost 4
+  , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost    99
+  , paramListToArray                     = Id $ ModelOneArgumentConstantCost    99
+  , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost   99
   }
   where identityFunction = OneVariableLinearFunction 0 1
-

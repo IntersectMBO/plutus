@@ -13,6 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
     , ListCostedByLength(..)
+    , ArrayCostedByLength(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -27,6 +28,8 @@ import Data.Functor
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Data.Word
 import GHC.Exts (Int (I#))
 import GHC.Integer
@@ -218,6 +221,15 @@ instance ExMemoryUsage (ListCostedByLength a) where
     -- realistic input should be that large; however if you're going to use this then be
     -- sure to convince yourself that it's safe.
 
+newtype ArrayCostedByLength a = ArrayCostedByLength { unArrayCostedByLength :: Vector a }
+instance ExMemoryUsage (ArrayCostedByLength a) where
+    memoryUsage (ArrayCostedByLength l) = singletonRose . fromIntegral $ Vector.length l
+    {-# INLINE memoryUsage #-}
+    -- Note that this uses `fromIntegral`, which will narrow large values to
+    -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
+    -- realistic input should be that large; however if you're going to use this then be
+    -- sure to convince yourself that it's safe.
+
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
@@ -228,7 +240,7 @@ memoryUsageInteger 0 = 1
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
-{-# OPAQUE memoryUsageInteger #-}
+{-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
     memoryUsage i = singletonRose $ memoryUsageInteger i
@@ -293,12 +305,22 @@ addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
 {-# INLINE addConstantRose #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
+    -- sizeof([a]) = (1 + 3N) words + N * sizeof(v)
     memoryUsage = CostRose nilCost . map (addConstantRose consRose . memoryUsage) where
         -- As per https://wiki.haskell.org/GHC/Memory_Footprint
         nilCost = 1
         {-# INLINE nilCost #-}
         consRose = singletonRose 3
         {-# INLINE consRose #-}
+    {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage a => ExMemoryUsage (Vector a) where
+    -- sizeof(Vector v) = (7 + N) words + N * sizeof(v)
+    memoryUsage v = CostRose arrayCost [ memoryUsage a | a <- Vector.toList v ]
+      where
+        arrayCost :: SatInt
+        arrayCost = 7 + fromIntegral (Vector.length v)
+        {-# INLINE arrayCost #-}
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
@@ -340,7 +362,7 @@ getting the memoryUsage instances to call those.
 
 g1ElementCost :: CostRose
 g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
-{-# OPAQUE g1ElementCost #-}
+{-# NOINLINE g1ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G1.Element where
     memoryUsage _ = g1ElementCost
@@ -348,7 +370,7 @@ instance ExMemoryUsage BLS12_381.G1.Element where
 
 g2ElementCost :: CostRose
 g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
-{-# OPAQUE g2ElementCost #-}
+{-# NOINLINE g2ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G2.Element where
     memoryUsage _ = g2ElementCost
@@ -356,7 +378,7 @@ instance ExMemoryUsage BLS12_381.G2.Element where
 
 mlResultElementCost :: CostRose
 mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
-{-# OPAQUE mlResultElementCost #-}
+{-# NOINLINE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
     memoryUsage _ = mlResultElementCost

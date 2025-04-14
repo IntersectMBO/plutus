@@ -1,4 +1,79 @@
 
+<a id='changelog-1.44.0.0'></a>
+# 1.44.0.0 — 2025-04-03
+
+## Removed
+
+- Removed `Data.AssocMap.toDataList` because it suffers from the bug described in https://github.com/IntersectMBO/plutus/issues/6085.
+
+## Added
+
+- `PlutusTx.Data.List.destructList`, which takes a list along with a list of
+  desired indices, and generates variables bound to the elements at those indices.
+
+- `PlutusTx.Data.List.caseList` and `caseList'`, for matching on `List`s.
+
+## Changed
+
+- `PlutusTx.Lift.liftCode` and related functions now apply the default PIR and UPLC
+  optimizations during code lifting. To disable these optimizations, use `liftCodeUnopt`
+  and related functions.
+
+- `PlutusTx.Prelude` no longer re-exports `PlutusTx.List`. There are now two separate
+  list modules: `PlutusTx.List` and `PlutusTx.Data.List`. Pick the one that fits your
+  use case and import it explicitly.
+
+- `PlutusTx.Prelude` no longer re-exports `PlutusTx.Foldable` or `PlutusTx.Traversable`.
+  These typeclasses are generally discouraged due to their performance overhead.
+  For example, instead of using `PlutusTx.Foldable.foldMap`, consider rewriting
+  your code using `PlutusTx.List.foldr`.
+
+- `PlutusTx.Prelude` now re-exports `BuiltinBool`, `BuiltinList`, `BuiltinPair`,
+  `ToData`, `FromData` and `UnsafeFromData`.
+
+<a id='changelog-1.43.0.0'></a>
+# 1.43.0.0 — 2025-03-20
+
+## Added
+
+- Added more standard library functions to `Data.List`.
+
+- Added new conversion functions from Data-backed `Map` and Data-backed `List`.
+
+- New `Data.AssocMap` library functions: `filter`, `mapWithKey`, `mapMaybe` and `mapMaybeWithKey`.
+
+## Changed
+
+- The conversion functions between `Data.AssocMap.Map` and different kinds of lists are now named according to which type of list they support.
+
+- Slightly improved the performance of some of the existing `Data.AssocMap` functions.
+
+<a id='changelog-1.42.0.0'></a>
+# 1.42.0.0 — 2025-03-04
+
+## Added
+
+- `PlutusTx.Function.fix`, Plinth's equivalent of `Data.Function.fix`.
+
+- Module `PlutusTx.Optimize.SpaceTime`, containing utilities for space-time tradeoff,
+  such as recursion unrolling.
+
+- Added `PlutusTx.Data.List.null`.
+
+- Added `PlutusTx.Optimize.Inline.inline`. This works like `GHC.Magic.inline`, and can be used
+  in the form of `inline f` or `inline (f args)`.
+
+- Added more functions to PlutusTx.Data.List.
+
+## Changed
+
+-
+- Remove un-needed dervied Typeable instances.
+
+- Allow `PlutusTx.Optimize.Inline.inline` to inline local bindings.
+
+- Removes the constructor id check from the code `AsData` generates for product types, resulting in better performance.
+
 <a id='changelog-1.37.0.0'></a>
 # 1.37.0.0 — 2024-11-25
 

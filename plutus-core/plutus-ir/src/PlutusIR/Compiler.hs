@@ -30,7 +30,10 @@ module PlutusIR.Compiler (
     coDoSimplifierStrictifyBindings,
     coDoSimplifierRewrite,
     coDoSimplifierKnownCon,
+    coInlineConstants,
+    coInlineFix,
     coInlineHints,
+    coInlineCallsiteGrowth,
     coProfile,
     coRelaxedFloatin,
     coCaseOfCaseConservative,
@@ -137,6 +140,7 @@ simplifierIteration suffix = do
   preserveLogging <- view (ccOpts . coPreserveLogging)
   rules <- view ccRewriteRules
   ic <- view (ccOpts . coInlineConstants)
+  thresh <- view (ccOpts . coInlineCallsiteGrowth)
 
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
@@ -145,10 +149,9 @@ simplifierIteration suffix = do
       , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
       , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
-      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC ic tcconfig hints binfo
+      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC thresh ic tcconfig hints binfo
       , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
       ]
-
 
 simplifier :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 simplifier = do

@@ -98,7 +98,7 @@ $$
 We have injections
 \begin{align*}
   \inj_C: \denote{\ty{integer}} \times \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
-  \inj_M: \denote{\ty{data}} \times \denote{\ty{data}}^*  & \to \denote{\ty{data}} \\
+  \inj_M: (\denote{\ty{data}} \times \denote{\ty{data}})^*  & \to \denote{\ty{data}} \\
   \inj_L: \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
   \inj_I: \denote{\ty{integer}} & \to \denote{\ty{data}} \\
   inj_B: \denote{\ty{bytestring}} & \to \denote{\ty{data}} \\
@@ -106,7 +106,7 @@ We have injections
 \noindent and projections
 \begin{align*}
   \proj_C: \denote{\ty{data}} & \to \withError{(\denote{\ty{integer}} \times \denote{\ty{data}}^*)}\\
-  \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}}^*)}\\
+  \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}})^*}\\
   \proj_L: \denote{\ty{data}} & \to \withError{\denote{\ty{data}}^* }\\
   \proj_I: \denote{\ty{data}} & \to \withError{\denote{\ty{integer}}}\\
   \proj_B: \denote{\ty{data}} & \to \withError{\denote{\ty{bytestring}} }\\
@@ -259,14 +259,14 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{verifyEd25519Signature}          & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
     & Verify an \TT{Ed25519} digital signature. &  Yes
     & \ref{note:digital-signature-verification-functions}, \ref{note:ed25519-signature-verification}\\[2mm]
-    \TT{ifThenElse}               & $[\forall a_*, \ty{bool}, a_*, a_*] \to a_*$
+    \TT{ifThenElse}               & $[\forall\star, \ty{bool}, \star, \star] \to \star$
                                                  & \text{$(\true,t_1,t_2) \mapsto t_1$}
                                                  \text{$(\false,t_1,t_2) \mapsto t_2$} & No & \\[2mm]
-    \TT{chooseUnit}               & $[\forall a_*, \ty{unit}, a_*] \to a_*$        & $((), t) \mapsto t$ & No & \\[2mm]
-    \TT{trace}                    & $[\forall a_*, \ty{string}, a_*] \to a_*$      & $ (s,t) \mapsto t$ & No & \ref{note:trace}\\[2mm]
+    \TT{chooseUnit}               & $[\forall\star, \ty{unit}, \star] \to \star$        & $((), t) \mapsto t$ & No & \\[2mm]
+    \TT{trace}                    & $[\forall\star, \ty{string}, \star] \to \star$      & $ (s,t) \mapsto t$ & No & \ref{note:trace}\\[2mm]
     \TT{fstPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to a_\#$       & $(x,y) \mapsto x$ & No & \\[2mm]
     \TT{sndPair}                  & $[\forall a_\#, \forall b_\#, \pairOf{a_\#}{b_\#}] \to b_\#$       & $(x,y) \mapsto y$ & No & \\[2mm]
-    \TT{chooseList}               & $[\forall a_\#, \forall b_*, \listOf{a_\#}, b_*, b_*] \to b_*$
+    \TT{chooseList}               & $[\forall a_\#, \forall\star, \listOf{a_\#}, \star, \star] \to \star$
                                               & \text{$([], t_1, t_2) \mapsto t_1$,} \text{$([x_1,\ldots,x_n],t_1,t_2) \mapsto t_2\ (n \geq 1)$}. & No & \\[2mm]
     \TT{mkCons}                   & $[\forall a_\#, a_\#, \listOf{a_\#}] \to \listOf{a _\#}$  & $(x,[x_1,\ldots,x_n]) \mapsto [x,x_1,\ldots,x_n]$ & No & \\[2mm]
     \TT{headList}                 & $[\forall a_\#, \listOf{a_\#}] \to a_\#$               & $[]\mapsto \errorX, [x_1,x_2, \ldots, x_n] \mapsto x_1$ & Yes & \\[2mm]
@@ -274,7 +274,7 @@ it applies at each possible monomorphisation in an obvious way.
                                         &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \\[2mm]
     \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \true,
                                                                                                     [x_1,\ldots, x_n] \mapsto \false$ & No & \\[2mm]
-    \TT{chooseData}               & $[\forall a_*, \ty{data}, a_*, a_*, a_*, a_*, a_*] \to a_*$
+    \TT{chooseData}               & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \star$
     & $ (d,t_C, t_M, t_L, t_I, t_B) $
     \smallskip
     \newline  % The big \{ was abutting the text above
@@ -329,7 +329,7 @@ $$
 \nomenclature[Azz]{$\quotfn$, $\remfn$}{Integer division operations}
 
 \noindent The $\divfn$ and $\modfn$ functions form a pair, as do $\quotfn$ and $\remfn$;
-$\divfn$ should not be used in combination with $\modfn$, not should $\quotfn$ be used
+$\divfn$ should not be used in combination with $\remfn$, nor should $\quotfn$ be used
 with $\modfn$.
 
 For positive divisors $b$, $\divfn$ truncates downwards and $\modfn$ always
@@ -346,7 +346,7 @@ all of these functions return the error value $\errorX$.
         \hline
         $+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\
         $-$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
-        $+$ & $-$ & $-$ & $+$ & $+$ & $+$ \\
+        $+$ & $-$ & $-$ & $-$ & $-$ & $+$ \\
         $-$ & $-$ & $+$ & $-$ & $+$ & $-$ \\
         \hline
         \end{tabular}
@@ -364,9 +364,9 @@ all of these functions return the error value $\errorX$.
 
 \note{The \texttt{consByteString} function.}
 \label{note:consbytestring}
-In built-in semantics varinat 1, the first argument of \texttt{consByteString}
+In built-in semantics variant 1, the first argument of \texttt{consByteString}
 is an arbitrary integer which will be reduced modulo 256 before being prepended
-to the second argument.  In built-in semantics varaint 2 we require that the first
+to the second argument.  In built-in semantics variant 2 we require that the first
 argument lies between 0 and 255 (inclusive): in any other case an error will
 occur.
 
