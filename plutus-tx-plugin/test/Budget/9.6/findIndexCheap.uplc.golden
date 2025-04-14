@@ -8,12 +8,10 @@
               ds
               [ (delay (constr 1 []))
               , (\x xs ->
-                   delay
-                     (force
-                        (force ifThenElse
-                           (lessThanEqualsInteger 10 x)
-                           (delay ((\x -> s s x) (addInteger 1 i) xs))
-                           (delay (constr 0 [i]))))) ]))
+                   force ifThenElse
+                     (lessThanEqualsInteger 10 x)
+                     (delay ((\x -> s s x) (addInteger 1 i) xs))
+                     (delay (constr 0 [i]))) ]))
       0
       (constr 1
          [ 1

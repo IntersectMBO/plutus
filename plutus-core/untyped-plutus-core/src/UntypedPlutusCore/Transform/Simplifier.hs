@@ -62,6 +62,7 @@ data SimplifierStage
   | CaseReduce
   | Inline
   | CSE
+  | DelayForce
 
 data Simplification name uni fun a =
   Simplification

@@ -19,6 +19,7 @@ import UntypedPlutusCore.Simplify.Opts as Opts
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
+import UntypedPlutusCore.Transform.DelayForce (delayForce)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
@@ -85,7 +86,8 @@ termSimplifier opts builtinSemanticsVariant =
       Int ->
       Term name uni fun a ->
       SimplifierT name uni fun a m (Term name uni fun a)
-    cseNTimes n = foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i]) [1..n]
+    cseNTimes n =
+        foldl' (>=>) pure $ concatMap (\i -> [cseStep i, simplifyStep i, delayForce]) [1..n]
 
     -- generate simplification step
     simplifyStep ::

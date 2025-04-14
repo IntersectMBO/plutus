@@ -575,17 +575,15 @@
                                                                                                         [ (delay
                                                                                                              (constr 0
                                                                                                                 [  ]))
-                                                                                                        , (delay
-                                                                                                             (force
-                                                                                                                (case
-                                                                                                                   (cse
-                                                                                                                      a)
-                                                                                                                   [ (delay
-                                                                                                                        (constr 0
-                                                                                                                           [  ]))
-                                                                                                                   , (delay
-                                                                                                                        (go
-                                                                                                                           ds)) ]))) ]))
+                                                                                                        , (case
+                                                                                                             (cse
+                                                                                                                a)
+                                                                                                             [ (delay
+                                                                                                                  (constr 0
+                                                                                                                     [  ]))
+                                                                                                             , (delay
+                                                                                                                  (go
+                                                                                                                     ds)) ]) ]))
                                                                                                   (`$fEqStakingCredential_$c==`
                                                                                                      obsScriptCred'))
                                                                                                ((\s ->
