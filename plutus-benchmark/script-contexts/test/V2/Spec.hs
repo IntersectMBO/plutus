@@ -7,7 +7,7 @@ module V2.Spec (allTests) where
 import Data.Text qualified as Text
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, ignoreTestIfHpcEnabled, runTestNested, testNestedGhc)
+import Test.Tasty.Extras (TestNested, ignoreThisTestIfHpcIsEnabled, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
@@ -51,7 +51,7 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
         compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
-    , ignoreTestIfHpcEnabled $
+    , ignoreThisTestIfHpcIsEnabled $
           runTestGhcSOP
                [
                     Tx.goldenSize "checkScriptContext1" $
@@ -96,7 +96,7 @@ testCheckSOPSc2 = testGroup "checkScriptContext2"
           compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
-    , ignoreTestIfHpcEnabled $
+    , ignoreThisTestIfHpcIsEnabled $
           runTestGhcSOP
                [
                     Tx.goldenSize "checkScriptContext2" $
@@ -163,7 +163,7 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
 
 testSOPFwdStakeTrick :: TestTree
 testSOPFwdStakeTrick =
-     ignoreTestIfHpcEnabled $
+     ignoreThisTestIfHpcIsEnabled $
           runTestGhcSOP
                [ Tx.goldenSize "sopFwdStakeTrick" testCode
                , Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode

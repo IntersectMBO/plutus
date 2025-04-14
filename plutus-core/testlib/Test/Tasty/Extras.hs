@@ -34,7 +34,7 @@ module Test.Tasty.Extras
     , assertEqualPretty
     , (%=?)
     , (%?=)
-    , ignoreTestIfHpcEnabled
+    , ignoreThisTestIfHpcIsEnabled
     ) where
 
 import PlutusPrelude hiding (toList)
@@ -320,10 +320,10 @@ actual %?= expected = assertEqualPretty "" expected actual
 {-|
 Some tests inspect GHC code, but GHC code gets instrumented when using HPC
 (Haskell Program Coverage), which causes those tests to fail.
-This flag disables those tests when the custom __HPC_ENABLED__ flag is defined.
+This function disables those tests when the custom __HPC_ENABLED__ flag is defined.
 -}
-ignoreTestIfHpcEnabled :: TestTree -> TestTree
-ignoreTestIfHpcEnabled t =
+ignoreThisTestIfHpcIsEnabled :: TestTree -> TestTree
+ignoreThisTestIfHpcIsEnabled t =
 #ifdef __HPC_ENABLED__
     ignoreTest t
 #else

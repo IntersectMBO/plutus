@@ -19,7 +19,7 @@ import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
 import System.FilePath ((</>))
 import System.IO (hPutStrLn)
 import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.Extras (ignoreTestIfHpcEnabled)
+import Test.Tasty.Extras (ignoreThisTestIfHpcIsEnabled)
 import UntypedPlutusCore.Size qualified as UPLC
 
 main :: IO ()
@@ -82,4 +82,4 @@ main = withUtf8 $ do
         ]
 
   -- Write the measures to the actual file
-  defaultMain $ ignoreTestIfHpcEnabled marloweTests
+  defaultMain $ ignoreThisTestIfHpcIsEnabled marloweTests
