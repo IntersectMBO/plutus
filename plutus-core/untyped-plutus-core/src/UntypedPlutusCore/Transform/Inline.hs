@@ -488,9 +488,9 @@ effectSafe body n termIsPure = do
   return $
     termIsPure
       || isFirstVarBeforeEffects builtinSemantics n body
-      || (not preserveLogging && isVarImmediatelyEvaluated n body)
+      || (not preserveLogging && isVarEventuallyEvaluated n body)
  where
-  isVarImmediatelyEvaluated name = maybe False not . isVarDelayed name
+  isVarEventuallyEvaluated name = maybe False not . isVarDelayed name
 
 {-| Should we inline? Should only inline things that won't duplicate work
 or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']
