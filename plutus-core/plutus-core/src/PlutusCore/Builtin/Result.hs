@@ -166,7 +166,7 @@ GHC Core. Not doing so results in 20+% larger Core for builtins.
 
 However in a few specific cases we use @NOINLINE@ instead to get tighter Core. @NOINLINE@ is the
 same as @OPAQUE@ except the latter _actually_ prevents GHC from inlining the definition unlike the
-former (we use the former because we currently have to support GHC-8.10).
+former (we use the former because we currently have to support !!! GHC-8.10).
 See this for details: https://github.com/ghc-proposals/ghc-proposals/blob/5577fd008924de8d89cfa9855fa454512e7dcc75/proposals/0415-opaque-pragma.rst
 
 It's hard to predict where @NOINLINE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
