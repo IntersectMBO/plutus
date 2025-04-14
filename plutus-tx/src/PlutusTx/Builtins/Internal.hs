@@ -882,7 +882,6 @@ expModInteger ::
   BuiltinInteger
 expModInteger b e m =
   -- (fromInteger @Rational) correctly throws an underflow exception upon negative integer
-  -- both for GHC8.10 and GHC>=9
   case ExpMod.expMod b e (fromInteger m) of
     BuiltinFailure logs err -> traceAll (logs <> pure (display err)) $
       Haskell.error "expModInteger errored."

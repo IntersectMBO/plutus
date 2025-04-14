@@ -10,9 +10,6 @@
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-} -- needed for asData pattern synonyms
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-#if !MIN_VERSION_base(4,15,0)
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-#endif
 
 module PlutusLedgerApi.V1.Data.Contexts (
   -- * Pending transactions and related types

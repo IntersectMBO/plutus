@@ -21,7 +21,6 @@ let
         ghc96-coverage.modules = [{
           doCoverage = true;
         }];
-        ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
       };

@@ -41,10 +41,9 @@ import Control.Monad.Reader (MonadReader, ReaderT, ask, asks, local, runReaderT)
 import Control.Monad.State (StateT, gets, modify, runStateT)
 import Control.Monad.Trans qualified as Trans
 
-import Language.Haskell.TH qualified as TH hiding (newName)
+import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
-import Language.Haskell.TH.Syntax qualified as TH hiding (newName)
-import Language.Haskell.TH.Syntax.Compat qualified as TH
+import Language.Haskell.TH.Syntax qualified as TH
 
 import Data.Map qualified as Map
 import Data.Set qualified as Set
@@ -275,13 +274,13 @@ compileType = \case
     TH.AppT t1 t2 -> do
         t1' <- compileType t1
         t2' <- compileType t2
-        pure . TH.examineSplice $ [|| CompileTypeScope (TyApp () <$> unCompileTypeScope ($$(TH.liftSplice t1')) <*> unCompileTypeScope ($$(TH.liftSplice t2'))) ||]
+        pure . TH.examineCode $ [|| CompileTypeScope (TyApp () <$> unCompileTypeScope ($$(TH.liftCode t1')) <*> unCompileTypeScope ($$(TH.liftCode t2'))) ||]
     t@(TH.ConT name) -> compileTypeableType t name
     -- See Note [Type variables]
     t@(TH.VarT name) -> do
         isLocal <- asks (Set.member name)
         if isLocal
-        then pure . TH.examineSplice $ [||
+        then pure . TH.examineCode $ [||
               CompileTypeScope $ do
                   vars <- ask
                   case Map.lookup name vars of
@@ -301,9 +300,9 @@ compileTypeableType ty name = do
     -- `typeRep` we can get back into typed land quickly.
     let trep :: TH.TExpQ CompileType
         trep = TH.unsafeTExpCoerce [| CompileType (typeRep (Proxy :: Proxy $(pure ty))) |]
-    pure . TH.examineSplice $ [||
+    pure . TH.examineCode $ [||
           let trep' :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
-              trep' = Trans.lift $ unCompileType ($$(TH.liftSplice trep))
+              trep' = Trans.lift $ unCompileType ($$(TH.liftCode trep))
           in CompileTypeScope $ do
               maybeType <- lookupType () name
               case maybeType of
@@ -336,10 +335,10 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
             [ TH.ConstructorInfo {TH.constructorFields=[argTy]} ] -> (compileType <=< normalizeAndResolve) argTy
             _ -> throwError $ UserLiftError "Newtypes must have a single constructor with a single argument"
         deps <- gets getTyConDeps
-        pure . TH.examineSplice $ [||
+        pure . TH.examineCode $ [||
             let
                 argTy' :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
-                argTy' = unCompileTypeScope $$(TH.liftSplice argTy)
+                argTy' = unCompileTypeScope $$(TH.liftCode argTy)
                 act :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
                 act = do
                     maybeDefined <- lookupType () tyName
@@ -358,10 +357,10 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
     else do
         constrExprs <- traverse compileConstructorDecl cons
         deps <- gets getTyConDeps
-        pure . TH.examineSplice $ [||
+        pure . TH.examineCode $ [||
           let
               constrExprs' :: [CompileDeclFun]
-              constrExprs' = $$(TH.liftSplice $ tyListE constrExprs)
+              constrExprs' = $$(TH.liftCode $ tyListE constrExprs)
               act :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
               act = do
                 maybeDefined <- lookupType () tyName
@@ -398,10 +397,10 @@ compileConstructorDecl
     -> THCompile (TH.TExpQ CompileDeclFun)
 compileConstructorDecl TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys} = do
     tyExprs <- traverse (compileType <=< normalizeAndResolve) argTys
-    pure . TH.examineSplice $ [||
+    pure . TH.examineCode $ [||
          let
              tyExprs' :: forall fun . [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
-             tyExprs' = fmap (\x -> unCompileTypeScope x) $$(TH.liftSplice $ tyListE tyExprs)
+             tyExprs' = fmap (\x -> unCompileTypeScope x) $$(TH.liftCode $ tyListE tyExprs)
           -- we won't know the result type until runtime, so take it as an argument
           in CompileDeclFun $ \resultType -> do
               tys' <- sequence tyExprs'
@@ -456,18 +455,18 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                     [argExpr] -> pure argExpr
                     _         -> throwError $ UserLiftError "Newtypes must have a single constructor with a single argument"
             else
-                pure . TH.examineSplice $ [||
+                pure . TH.examineCode $ [||
                     -- We bind all the splices with explicit signatures to ensure we
                     -- get type errors as soon as possible, and to aid debugging.
                     let
                         liftExprs' :: [CompileTerm]
-                        liftExprs' = $$(TH.liftSplice $ tyListE liftExprs)
+                        liftExprs' = $$(TH.liftCode $ tyListE liftExprs)
                         -- We need the `unsafeTExpCoerce` since this will necessarily involve
                         -- types we don't know now: the type which this instance is for (which
                         -- appears in the proxy argument). However, since we know the type of
                         -- `typeRep` we can get back into typed land quickly.
                         trep :: CompileType
-                        trep = $$(TH.unsafeSpliceCoerce [| CompileType (typeRep (Proxy :: Proxy $(TH.conT tyName))) |])
+                        trep = $$(TH.unsafeCodeCoerce [| CompileType (typeRep (Proxy :: Proxy $(TH.conT tyName))) |])
                     in CompileTerm $ do
                         -- force creation of datatype
                         _ <- unCompileType trep
@@ -485,7 +484,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         -- because 'Type' does not determine 'fun' (unlike 'Term' in 'liftExprs\''
                         -- above).
                         let tyExprs' :: [RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())]
-                            tyExprs' = fmap (\x -> unCompileTypeScope x) $$(TH.liftSplice $ tyListE tyExprs)
+                            tyExprs' = fmap (\x -> unCompileTypeScope x) $$(TH.liftCode $ tyListE tyExprs)
                         -- The types are compiled in an (empty) local scope.
                         types <- flip runReaderT mempty $ sequence tyExprs'
 
