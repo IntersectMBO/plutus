@@ -7,7 +7,6 @@ module Transform.Inline.Spec where
 
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (runStateT)
-import Data.Maybe (fromMaybe, isNothing)
 import PlutusCore.Annotation (Inline (MayInline))
 import PlutusCore.Quote (runQuote)
 import PlutusPrelude (def)
@@ -18,7 +17,7 @@ import UntypedPlutusCore.Test.Term.Construction (addInteger, app, case_, delay, 
                                                  uniqueNames4, var)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), InlineInfo (..), InlineM, S (..),
                                            Subst (..), TermEnv (..), effectSafe,
-                                           isFirstVarBeforeEffects, isVarDelayed)
+                                           isFirstVarBeforeEffects, isVarEventuallyEvaluated)
 
 test_inline :: TestTree
 test_inline =
@@ -28,16 +27,16 @@ test_inline =
         "var is before or after effects"
         testVarBeforeAfterEffects
     , testGroup
-        "isVarDelayed"
+        "isVarEventuallyEvaluated"
         [ testCase
             "a var is delayed if it's inside a delay"
-            testVarIsDelayedInDelay
+            testVarIsEventuallyEvaluatedDelay
         , testCase
             "a var is delayed if it's inside a lambda"
-            testVarDelayedInLambda
+            testVarIsEventuallyEvaluatedLambda
         , testCase
             "a var is delayed if it's inside a case branch"
-            testVarIsDelayedInCaseBranch
+            testVarIsEventuallyEvaluatedCaseBranch
         ]
     , testGroup
         "effectSafe"
@@ -68,42 +67,42 @@ testVarBeforeAfterEffects = do
     addInteger (addInteger (var a) (var b)) (var c)
   (a, b, c) = uniqueNames3 "a" "b" "c"
 
-testVarIsDelayedInDelay :: Assertion
-testVarIsDelayedInDelay = do
-  assertBool "var 'a' is delayed in delay" $
-    fromMaybe False (isVarDelayed a term)
-  assertBool "var 'b' is not delayed outside of the delay" $
-    maybe False not (isVarDelayed b term)
-  assertBool "it's not known if var 'c' is delayed" $
-    isNothing (isVarDelayed c term)
+testVarIsEventuallyEvaluatedDelay :: Assertion
+testVarIsEventuallyEvaluatedDelay = do
+  assertBool "var 'a' is not eventually evaluated in delay" $
+    not (isVarEventuallyEvaluated a term)
+  assertBool "var 'b' is eventually evaluated outside of the delay" $
+    isVarEventuallyEvaluated b term
+  assertBool "it's not known if var 'c' is eventually evaluated" $
+    not (isVarEventuallyEvaluated c term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = delay (var a `addInteger` var b) `addInteger` var b
 
   (a, b, c) = uniqueNames3 "a" "b" "c"
 
-testVarDelayedInLambda :: Assertion
-testVarDelayedInLambda = do
-  assertBool "var 'a' is delayed in lambda body" $
-    fromMaybe False (isVarDelayed a term)
-  assertBool "var 'c' is not delayed outside of the lambda" $
-    maybe False not (isVarDelayed c term)
-  assertBool "it's not known if var 'd' is delayed" $
-    isNothing (isVarDelayed d term)
+testVarIsEventuallyEvaluatedLambda :: Assertion
+testVarIsEventuallyEvaluatedLambda = do
+  assertBool "var 'a' is not eventually evaluated in lambda body" $
+    not (isVarEventuallyEvaluated a term)
+  assertBool "var 'c' is eventually evaluated outside of the lambda" $
+    isVarEventuallyEvaluated c term
+  assertBool "it's not known if var 'd' is eventually evaluated" $
+    not (isVarEventuallyEvaluated d term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = lam b (var a `addInteger` var c) `app` var c
 
   (a, b, c, d) = uniqueNames4 "a" "b" "c" "d"
 
-testVarIsDelayedInCaseBranch :: Assertion
-testVarIsDelayedInCaseBranch = do
-  assertBool "var 'a' is delayed in case branch" $
-    fromMaybe False (isVarDelayed a term)
-  assertBool "var 'b' is not delayed outside of the case branch" $
-    maybe False not (isVarDelayed b term)
-  assertBool "it is not know if var 'd' is delayed or not" $
-    isNothing (isVarDelayed d term)
+testVarIsEventuallyEvaluatedCaseBranch :: Assertion
+testVarIsEventuallyEvaluatedCaseBranch = do
+  assertBool "var 'a' is not eventually evaluated in case branch" $
+    not (isVarEventuallyEvaluated a term)
+  assertBool "var 'b' is eventually evaluated outside of the case branch" $
+    isVarEventuallyEvaluated b term
+  assertBool "it is not known if var 'd' is eventually evaluated" $
+    not (isVarEventuallyEvaluated d term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = case_ (var b) [var a, var b, var c]

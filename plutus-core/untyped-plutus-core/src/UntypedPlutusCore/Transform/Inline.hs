@@ -31,7 +31,7 @@ module UntypedPlutusCore.Transform.Inline (
   Subst (..),
   TermEnv (..),
   isFirstVarBeforeEffects,
-  isVarDelayed,
+  isVarEventuallyEvaluated,
   effectSafe,
 ) where
 
@@ -432,47 +432,33 @@ isFirstVarBeforeEffects builtinSemanticsVariant n t =
   go (Unknown : _) = False
   go [] = False
 
-{-| Check if all the variable occurrences are "delayed".
-This means that a variable is used in either of the following ways:
-  * inside a 'delay' term
-  * inside a lambda body
-  * inside a case branch
+{-| Check if any of the variable occurrences are guaranteed to be eventually
+  evaluated. This means that at least one occurrence of a variable is found
+  outside of the following:
+  * 'delay' term
+  * lambda body
+  * case branch
 -}
-isVarDelayed
+isVarEventuallyEvaluated
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
   => name
   -> Term name uni fun a
-  -> Maybe Bool
-isVarDelayed name term = do
-  case go False [] term of
-    [] -> Nothing
-    xs -> Just (and xs)
+  -> Bool
+isVarEventuallyEvaluated name = go
  where
-  go :: Bool -> [Bool] -> Term name uni fun a -> [Bool]
-  go delayed usages = \case
-    Var _ann name' ->
-      if name == name'
-        then delayed : usages
-        else usages
-    LamAbs _ann _paramName body ->
-      go True usages body
-    Apply _ann t1 t2 ->
-      go delayed usages t1 ++ go delayed usages t2
-    Force _ann t ->
-      go delayed usages t
-    Delay _ann t ->
-      go True usages t
-    Constant{} ->
-      usages
-    Builtin{} ->
-      usages
-    Error{} ->
-      usages
-    Constr _ann _idx terms ->
-      concatMap (go delayed usages) terms
-    Case _ann scrut branches ->
-      go delayed usages scrut ++ concatMap (go True usages) branches
+  go :: Term name uni fun a -> Bool
+  go = \case
+    Var _ann name' -> name == name'
+    LamAbs _ann _paramName _body -> False
+    Apply _ann t1 t2 -> go t1 || go t2
+    Force _ann t -> go t
+    Delay _ann _term -> False
+    Constant{} -> False
+    Builtin{} -> False
+    Error{} -> False
+    Constr _ann _idx terms -> any go terms
+    Case _ann scrut _branches -> go scrut
 
 effectSafe
   :: forall name uni fun a
@@ -480,7 +466,7 @@ effectSafe
   => Term name uni fun a
   -> name
   -> Bool
-  -- ^ is it pure?
+  -- ^ is it pure? See Note [Inlining and purity]
   -> InlineM name uni fun a Bool
 effectSafe body n termIsPure = do
   preserveLogging <- view iiPreserveLogging
@@ -489,8 +475,6 @@ effectSafe body n termIsPure = do
     termIsPure
       || isFirstVarBeforeEffects builtinSemantics n body
       || (not preserveLogging && isVarEventuallyEvaluated n body)
- where
-  isVarEventuallyEvaluated name = maybe False not . isVarDelayed name
 
 {-| Should we inline? Should only inline things that won't duplicate work
 or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']
