@@ -13,7 +13,8 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
+import PlutusTx.Test (goldenBudgetAndSize, goldenEvalCekCatch, goldenPirReadable,
+                      goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
