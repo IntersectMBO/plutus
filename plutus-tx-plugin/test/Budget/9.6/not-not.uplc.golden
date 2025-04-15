@@ -4,10 +4,9 @@
        force
          (case
             (force
-               (force
-                  (force ifThenElse
-                     (lessThanInteger 0 x)
-                     (delay (delay (constr 1 [])))
-                     (delay (delay (constr 0 []))))))
+               (force ifThenElse
+                  (lessThanInteger 0 x)
+                  (delay (constr 1 []))
+                  (delay (constr 0 []))))
             [(delay (constr 1 [])), (delay (constr 0 []))]))
       1))

@@ -130,12 +130,19 @@
  This means that we can fully reduce the term in a single traversal of the term, as described
  in the original algorithm.
 -}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns  #-}
 module UntypedPlutusCore.Transform.ForceDelay
     ( forceDelay
     ) where
 
+import PlutusCore.Builtin (BuiltinSemanticsVariant)
+import PlutusCore.Default (DefaultFun (IfThenElse), DefaultUni)
+import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Purity (isPure, isWorkFree)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceDelay), SimplifierT,
                                                recordSimplification)
 
@@ -147,20 +154,32 @@ import Data.Foldable as Foldable (foldl')
  detailed above. For implementation details see 'optimisationProcedure'.
 -}
 forceDelay
-    :: Monad m
-    => Term name uni fun a
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+    => BuiltinSemanticsVariant fun
+    -> Term name uni fun a
     -> SimplifierT name uni fun a m (Term name uni fun a)
-forceDelay term = do
-    let result = transformOf termSubterms processTerm term
+forceDelay semVar term = do
+    let result = transformOf termSubterms (processTerm semVar) term
     recordSimplification term ForceDelay result
     return result
 
 {- | Checks whether the term is of the right form, and "pushes"
  the 'Force' down into the underlying lambda abstractions.
 -}
-processTerm :: Term name uni fun a -> Term name uni fun a
-processTerm = \case
+processTerm
+    :: (uni ~ DefaultUni, fun ~ DefaultFun)
+    => BuiltinSemanticsVariant fun -> Term name uni fun a -> Term name uni fun a
+processTerm semVar = \case
     Force _ (Delay _ t) -> t
+    -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
+    -- pure and work-free anyway.
+    Force _ (splitApplication ->
+        ( Force annForce (Builtin annIf IfThenElse)
+        , [cond, (trueAnn, (Delay _ trueAlt)), (falseAnn, (Delay _ falseAlt))]
+        )) | all (\alt -> isPure semVar alt && isWorkFree semVar alt) [trueAlt, falseAlt] ->
+            mkIterApp
+                (Force annForce (Builtin annIf IfThenElse))
+                [cond, (trueAnn, trueAlt), (falseAnn, falseAlt)]
     original@(Force _ subTerm) ->
         case optimisationProcedure subTerm of
             Just result -> result
