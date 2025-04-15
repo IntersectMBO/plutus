@@ -13,6 +13,7 @@ import GHC.Num.Integer
 -- similar to `Default.Builtins.nonZeroSecondArg`
 -- We don't really need it because integerPowMod# returns `()` on zero mod, but we put
 -- in case of future implementation changes.
+-- TODO https://github.com/IntersectMBO/plutus-private/issues/1474
 expMod _ _ 0 = fail "Cannot divide by zero"
 expMod b e m =
     case integerPowMod# b e m of

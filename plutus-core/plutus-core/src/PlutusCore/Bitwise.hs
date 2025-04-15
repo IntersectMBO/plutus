@@ -51,8 +51,7 @@ We make `integerToByteString` and `replicateByte` fail if they're called with ar
 cause the length of the result to exceed about 8K bytes because the execution time becomes difficult
 to predict accurately beyond this point (benchmarks on a number of different machines show that the
 CPU time increases smoothly for inputs up to about 8K then increases sharply, becoming chaotic after
-about 14K).  This restriction may be removed once a more efficient implementation becomes available,
-which may happen when we no longer have to support !!! GHC 8.10. -}
+about 14K).  This restriction may be removed once a more efficient implementation becomes available.-}
 {- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
    Plutus Core so that we can continue to support the current behaviour for old scripts.-}
 maximumOutputLength :: Integer
