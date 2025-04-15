@@ -29,7 +29,7 @@ open import Data.Empty using (⊥)
 open import Function.Base using (case_of_)
 open import Untyped.CEK using (lookup?)
 open import VerifiedCompilation.UntypedViews using (isDelay?; isTerm?; isLambda?; isdelay; isterm; islambda)
-open import Untyped.Reduction using (iterApp)
+open import Untyped.Reduction using (iterApp; Arity; want; no-builtin; sat)
 ```
 ## Saturation
 
@@ -37,37 +37,6 @@ The `sat` function is used to measure whether a builtin at the bottom of a
 sub-tree of `force` and applications is now saturated and ready to reduce.
 
 ```
--- TODO: This code will move to Untyped.Reduction once we merge
--- PR #7008.
-
-data Arity : Set where
-  no-builtin : Arity
-  want : ℕ → ℕ → Arity
-
--- This is a Phil Wadler approved hack...
-postulate
-  interleave-error : ∀ {A : Set} → A
-
-sat : {X : Set} → X ⊢ → Arity
-sat (` x) = no-builtin
-sat (ƛ t) = no-builtin
-sat (t · t₁) with sat t
-... | no-builtin = no-builtin
-... | want zero zero = want zero zero -- This will reduce the left first...
-... | want zero (suc a₁) = want zero a₁
-... | want (suc a₀) a₁ = interleave-error
-sat (force t) with sat t
-... | no-builtin = no-builtin
-... | want zero a₁ = interleave-error
-... | want (suc a₀) a₁ = want a₀ a₁
-sat (delay t) = no-builtin
-sat (con x) = no-builtin
-sat (constr i xs) = no-builtin
-sat (case t ts) = no-builtin
--- We assume no spontaneously reducing builtins!
-sat (builtin b) = want (arity₀ b) (arity b)
-sat error = no-builtin
-
 data Pure {X : Set} : (X ⊢) → Set where
     force : {t : X ⊢} → Pure t → Pure (force (delay t))
 

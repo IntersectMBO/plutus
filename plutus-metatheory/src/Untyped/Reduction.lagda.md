@@ -43,21 +43,21 @@ want-injective₁ : {a₀ a₁ b₀ b₁ : ℕ} → want a₀ a₁ ≡ want b₀
 want-injective₁ refl = refl
 
 postulate
-  impossible : ∀ {A : Set} → A
+  interleave-error : ∀ {A : Set} → A
 
 sat : {X : Set} → X ⊢ → Arity
 sat (` x) = no-builtin
 sat (ƛ t) = no-builtin
 sat (t · t₁) with sat t
 ... | no-builtin = no-builtin
-... | want (suc a₀) a₁ = impossible -- This reduces to error
+... | want (suc a₀) a₁ = interleave-error -- This reduces to error
 ... | want zero (suc a₁) = want zero a₁
 ... | want zero zero = want zero zero -- This should reduce lower down the tree...
 sat (force t) with sat t
 ... | no-builtin = no-builtin
-... | want zero zero = impossible
+... | want zero zero = interleave-error  -- This reduces to error
 ... | want (suc a₀) a₁ = want a₀ a₁
-... | want zero (suc a₁) = impossible -- This reduces to error
+... | want zero (suc a₁) = interleave-error -- This reduces to error
 sat (delay t) = no-builtin
 sat (con x) = no-builtin
 sat (constr i xs) = no-builtin
