@@ -129,6 +129,16 @@
  We can easily avoid this situation by removing the force-delay pairs in the same pass.
  This means that we can fully reduce the term in a single traversal of the term, as described
  in the original algorithm.
+
+ We also turn
+
+ > force (force ifThenElse (delay x) (delay y))
+
+ into
+
+ > force ifThenElse x y
+
+ if both @x@ and @y@ are pure and work-free.
 -}
 {-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE TypeFamilies  #-}
@@ -174,11 +184,11 @@ processTerm semVar = \case
     -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
     -- pure and work-free anyway.
     Force _ (splitApplication ->
-        ( Force annForce (Builtin annIf IfThenElse)
+        ( forceIfThenElse@(Force _ (Builtin _ IfThenElse))
         , [cond, (trueAnn, (Delay _ trueAlt)), (falseAnn, (Delay _ falseAlt))]
         )) | all (\alt -> isPure semVar alt && isWorkFree semVar alt) [trueAlt, falseAlt] ->
             mkIterApp
-                (Force annForce (Builtin annIf IfThenElse))
+                forceIfThenElse
                 [cond, (trueAnn, trueAlt), (falseAnn, falseAlt)]
     original@(Force _ subTerm) ->
         case optimisationProcedure subTerm of

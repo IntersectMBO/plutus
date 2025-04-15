@@ -204,8 +204,9 @@ termEvaluationOrder builtinSemanticsVariant = goTerm
     t@(Constr _ _ ts) ->
       -- first the arguments, in left-to-right order
       foldMap goTerm ts
-        -- then the whole term, which means constructing the value, so work
-        <> evalThis (EvalTerm Pure MaybeWork t)
+        -- then the whole term, which means constructing the value, so work, unless there's no
+        -- arguments, in which case it's not more work than evaluating, say, a @Delay@ node
+        <> evalThis (EvalTerm Pure (if null ts then WorkFree else MaybeWork) t)
     t@(Case _ scrut _) ->
       -- first the scrutinee
       goTerm scrut

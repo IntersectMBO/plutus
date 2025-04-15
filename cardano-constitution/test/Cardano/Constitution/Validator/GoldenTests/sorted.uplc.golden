@@ -1324,11 +1324,10 @@ program
                 (equalsInteger eta eta)
                 (delay (constr 0 []))
                 (delay
-                   (force
-                      (force ifThenElse
-                         (lessThanEqualsInteger eta eta)
-                         (delay (constr 2 []))
-                         (delay (constr 1 []))))))))
+                   (force ifThenElse
+                      (lessThanEqualsInteger eta eta)
+                      (constr 2 [])
+                      (constr 1 []))))))
      (\ds ds ->
         case
           ds
