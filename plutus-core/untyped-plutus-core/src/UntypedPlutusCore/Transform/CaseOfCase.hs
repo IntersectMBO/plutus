@@ -10,9 +10,19 @@
 
 into
 
+either
+
 @
-    force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts))
+    force (force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts)))
 @
+
+or
+
+@
+    force ifThenElse b (case (constr t) alts) (case (constr f) alts)
+@
+
+depending on whether the inner @delay@s are necessary to preserve semantics or not.
 
 This is always an improvement.
 -}
@@ -27,8 +37,7 @@ import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseOfCase), Sim
 import Control.Lens
 
 caseOfCase
-    :: fun ~ PLC.DefaultFun
-    => Monad m
+    :: (fun ~ PLC.DefaultFun, Monad m)
     => Term name uni fun a
     -> SimplifierT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
@@ -36,18 +45,32 @@ caseOfCase term = do
   recordSimplification term CaseOfCase result
   return result
 
-processTerm :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun a
+processTerm :: fun ~ PLC.DefaultFun => Term name uni fun a -> Term name uni fun a
 processTerm = \case
   Case ann scrut alts
     | ( ite@(Force a (Builtin _ PLC.IfThenElse))
         , [cond, (trueAnn, true@Constr{}), (falseAnn, false@Constr{})]
         ) <-
         splitApplication scrut ->
-        Force a $
-          mkIterApp
-            ite
-            [ cond
-            , (trueAnn, Delay trueAnn (Case ann true alts))
-            , (falseAnn, Delay falseAnn (Case ann false alts))
-            ]
+        if and $ alts <&> \case
+            Constr{}   -> True
+            Constant{} -> True
+            Delay{}    -> True
+            Var{}      -> True
+            _          -> False
+          then
+            mkIterApp
+              ite
+              [ cond
+              , (trueAnn, Case ann true alts)
+              , (falseAnn, Case ann false alts)
+              ]
+          else
+            Force a $
+              mkIterApp
+                ite
+                [ cond
+                , (trueAnn, Delay trueAnn (Case ann true alts))
+                , (falseAnn, Delay falseAnn (Case ann false alts))
+                ]
   other -> other

@@ -11,10 +11,9 @@
                     ((\x ->
                         (\eta ->
                            force
-                             (force
-                                (force ifThenElse
-                                   (lessThanInteger (unIData x) 8)
-                                   (delay (delay (s s eta)))
-                                   (delay (delay (constr 0 []))))))
+                             (force ifThenElse
+                                (lessThanInteger (unIData x) 8)
+                                (delay (s s eta))
+                                (delay (constr 0 []))))
                           (force tailList ds))
                        (force headList ds))))))))
