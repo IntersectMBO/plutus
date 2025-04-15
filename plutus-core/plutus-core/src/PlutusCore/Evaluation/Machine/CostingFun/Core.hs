@@ -405,9 +405,10 @@ evaluateThing
   -> CostingInteger
   -> CostingInteger
   -> CostingInteger
+  -> CostingInteger
 evaluateThing
   (Thing (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  x y = c00 + c11*x*y + c12*x*y*y
+  a b m = (c00 + c11*b*m + c12*b*m*m) * (1 + a `div` (20 * m))
 {-# INLINE evaluateThing #-}
 
 -- FIXME: we could use ModelConstantOrOneArgument for
@@ -695,10 +696,11 @@ runThreeArgumentModel
              in CostLast $ evaluateTwoVariableQuadraticFunction f size2 size3
 
 runThreeArgumentModel (ModelThreeArgumentsThing f) =
-  lazy $ \_ costs2 costs3 ->
-           let !size2 = sumCostStream costs2
+  lazy $ \costs1 costs2 costs3 ->
+           let !size1 = sumCostStream costs1
+               !size2 = sumCostStream costs2
                !size3 = sumCostStream costs3
-           in CostLast $ evaluateThing f size2 size3
+           in CostLast $ evaluateThing f size1 size2 size3
 
 {-# OPAQUE runThreeArgumentModel #-}
 
