@@ -8,12 +8,14 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MagicHash      #-}
 {-# LANGUAGE UnboxedTuples  #-}
+{-# LANGUAGE ViewPatterns   #-}
 
 module Data.SatInt
     ( -- Not exporting the constructor, so that 'coerce' doesn't work, see 'unsafeToSatInt'.
       SatInt (unSatInt)
     , unsafeToSatInt
     , fromSatInt
+    , scaleBy
     ) where
 
 import Codec.Serialise (Serialise)
@@ -158,3 +160,9 @@ productSI l       = prod l 1
   "sum/SatInt"          sum = sumSI;
   "product/SatInt"      product = productSI
   #-}
+
+
+
+-- | scaleBy n p q x y = n(1+(p/q)*x/y) = n(qy+px) / qy
+scaleBy :: SatInt -> Int -> Int -> SatInt -> SatInt -> SatInt
+scaleBy (fromSatInt -> n) p q (fromSatInt -> x) (fromSatInt -> y) = SI $ (n*(q*y+p*x)) `div` (q*y)

@@ -57,6 +57,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import Control.DeepSeq
 import Data.Default.Class
 import Data.Hashable
+import Data.SatInt (scaleBy)
 import Deriving.Aeson
 import GHC.Exts
 import Language.Haskell.TH.Syntax hiding (Name, newName)
@@ -408,7 +409,7 @@ evaluateThing
   -> CostingInteger
 evaluateThing
   (Thing (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  a b m = (c00 + c11*b*m + c12*b*m*m) * (1 + a `div` (20 * m))
+  a b m = scaleBy (c00 + c11*b*m + c12*b*m*m) 1 20 a m
 {-# INLINE evaluateThing #-}
 
 -- FIXME: we could use ModelConstantOrOneArgument for
