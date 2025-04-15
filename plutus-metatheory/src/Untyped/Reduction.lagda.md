@@ -89,12 +89,30 @@ data Value {X : Set} : X ⊢ → Set where
   ƛ : {a : (Maybe X) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
   builtin : {b : Builtin} → Value (builtin b)
-  unsat₀ : {a₀ a₁ : ℕ} {t : X ⊢}
-                → sat t ≡ want (suc a₀) a₁
-                → Value t
-  unsat₁ : {a₁ : ℕ} {t : X ⊢}
-                → sat t ≡ want zero (suc a₁)
-                → Value t
+
+  -- To be a Value, a term needs to be still unsaturated
+  -- after it has been force'd or had something applied
+  -- hence, unsat-builtin₀ and unsat-builtin₁ have
+  -- (suc (suc _)) requirements.
+  unsat₀ : {t : X ⊢} {a₀ a₁ : ℕ}
+            → sat t ≡ want (suc (suc a₀)) a₁
+            → Value t
+            → Value (force t)
+
+  -- unsat-builtin₀₋₁ handles the case where
+  -- we consume the last type argument but
+  -- still have some unsaturated term args.
+  unsat₀₋₁ : {t : X ⊢} {a₁ : ℕ}
+            → sat t ≡ want (suc zero) (suc a₁)
+            → Value t
+            → Value (force t)
+
+  unsat₁ : {t t₁ : X ⊢} {a₁ : ℕ}
+            → sat t ≡ want zero (suc (suc a₁))
+            → Value t
+            → Value t₁
+            → Value (t · t₁)
+
   constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
   error : Value error
 
@@ -129,9 +147,12 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   force-error : force error ⟶ error
 
   -- Builtins that are saturated will reduce
-  sat-builtin : {t : X ⊢}
-              → sat t ≡ want zero zero
-              → t ⟶ reduceBuiltin t
+  sat-app-builtin : {t₁ t₂ : X ⊢}
+              → sat (t₁ · t₂) ≡ want zero zero
+              → (t₁ · t₂) ⟶ reduceBuiltin (t₁ · t₂)
+  sat-force-builtin : {t : X ⊢}
+              → sat (force t) ≡ want zero zero
+              → (force t) ⟶ reduceBuiltin (force t)
 
   case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
               → lookup? i ts ≡ just t
@@ -195,7 +216,15 @@ tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x
 
 {-
 value-¬⟶ : ∀ {X : Set}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
-value-¬⟶ v = {!!}
+value-¬⟶ {M = M} delay = λ ()
+value-¬⟶ {M = M} ƛ = λ ()
+value-¬⟶ {M = M} con = λ ()
+value-¬⟶ {M = M} builtin = λ ()
+value-¬⟶ {M = M} (unsat₀ x v) = {!!}
+value-¬⟶ {M = M} (unsat₀₋₁ x v) = {!!}
+value-¬⟶ {M = M} (unsat₁ x v₁ v₂) = {!!}
+value-¬⟶ {M = M} (constr x) = {!!}
+value-¬⟶ {M = M} error = λ ()
 
 ⟶-¬value : ∀ {X : Set}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
@@ -203,7 +232,6 @@ value-¬⟶ v = {!!}
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
 -}
-
 ```
 ## Progress
 ```
@@ -235,33 +263,40 @@ progress (L · R) with progress L
 ...     | con = step app-con
 ...     | constr x = step app-constr
 ...     | error = step error₁
-...     | unsat₀ x = step (app-interleave-error x)
-...     | unsat₁ sat-l≡want with sat L in sat-l
-...       | want zero (suc zero) = step (sat-builtin (sat-app-step {t = L} {t₁ = R} sat-l))
-...       | want zero (suc (suc a₁)) = done (unsat₁ (sat-app-step {t = L} {t₁ = R} sat-l))
+progress ((force t) · R) | done VL | done VR | unsat₀ s v = step (app-interleave-error (sat-force-step {t = t} s))
+progress ((force t) · R) | done VL | done VR | unsat₀₋₁ s v with sat (force t) in sat-ft
+... | no-builtin = contradiction (Eq.trans (Eq.sym sat-ft) (sat-force-step {t = t} s)) λ ()
+... | want zero zero = step (ξ₁ (sat-force-builtin sat-ft))
+... | want zero (suc zero)  = step (sat-app-builtin (sat-app-step {t = force t} {t₁ = R} sat-ft))
+... | want zero (suc (suc a₁)) = done (unsat₁ sat-ft VL VR)
+... | want (suc a₀) a₁ = step (app-interleave-error sat-ft)
+progress ((t · t₁) · R) | done VL | done VR | unsat₁ sat-l≡want v v₁ with sat (t · t₁) in sat-L
+...       | no-builtin = contradiction (Eq.trans (Eq.sym (sat-app-step {t = t} {t₁ = t₁} sat-l≡want)) sat-L ) λ ()
+...       | want (suc a₀) a₁ = step (app-interleave-error sat-L)
+...       | want zero zero = step (ξ₁ (sat-app-builtin sat-L))
+...       | want zero (suc zero) = step (sat-app-builtin (sat-app-step {t = t · t₁} {t₁ = R} sat-L))
+...       | want zero (suc (suc a₁)) = done (unsat₁ sat-L VL VR)
 progress ((builtin b) · R) | done VL | done VR | builtin with arity b in arity-b
 ... | a₁ with arity₀ b in arity₀-b
 ...   | suc a₀ = step (app-interleave-error (cong₂ want arity₀-b arity-b))
-progress (builtin b · R) | done VL | done VR | builtin | suc zero | zero  = step (sat-builtin (sat-app-step {t = (builtin b)} {t₁ = R} (cong₂ want arity₀-b arity-b)))
-progress (builtin b · R) | done VL | done VR | builtin | suc (suc a₁) | zero  = done (unsat₁ (sat-app-step {a₁ = (suc a₁)} {t = (builtin b)} {t₁ = R}  (cong₂ want arity₀-b arity-b)))
+progress (builtin b · R) | done VL | done VR | builtin | suc zero | zero  = step (sat-app-builtin (sat-app-step {t = (builtin b)} {t₁ = R} (cong₂ want arity₀-b arity-b)))
+progress (builtin b · R) | done VL | done VR | builtin | suc (suc a₁) | zero  = done (unsat₁ (cong₂ want arity₀-b arity-b) VL VR)
 progress (force m) with progress m
 ... | step x = step (ξ₃ x)
 ... | fail = step force-error
 ... | done x with sat m in sat-m
 ...   | want zero a₁ = step (force-interleave-error sat-m)
-...   | want (suc (suc a₀)) a₁ = done (unsat₀ (sat-force-step {a₀ = (suc a₀)} {a₁ = a₁} {t = m} sat-m))
-...   | want (suc zero) zero = step (sat-builtin (sat-force-step {t = m} sat-m))
-...   | want (suc zero) (suc a₁) = done (unsat₁ (sat-force-step {a₁ = (suc a₁)} {t = m} sat-m))
-
+...   | want (suc (suc a₀)) a₁ = done (unsat₀ sat-m x)
+...   | want (suc zero) zero = step (sat-force-builtin (sat-force-step {t = m} sat-m))
+...   | want (suc zero) (suc a₁) = done (unsat₀₋₁ sat-m x)
 progress (force (ƛ m)) | done Vm | no-builtin = step force-ƛ
 progress (force (m · m₁)) | done Vm | no-builtin = step force-app
-progress (force (force m)) | done (unsat₀ x) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) x) λ ()
-progress (force (force m)) | done (unsat₁ x) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) x) λ ()
+progress (force (force m)) | done (unsat₀ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
+progress (force (force m)) | done (unsat₀₋₁ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
 progress (force (delay m)) | done Vm | no-builtin = step force-delay
 progress (force (con x)) | done Vm | no-builtin = step force-con
 progress (force (constr i xs)) | done Vm | no-builtin = step force-constr
-progress (force (case m ts)) | done (unsat₀ x) | no-builtin  = contradiction x (λ ())
-progress (force (case m ts)) | done (unsat₁ x) | no-builtin  = contradiction x (λ ())
+progress (force (case m ts)) | done () | no-builtin
 progress (force error) | done Vm | no-builtin = step force-error
 
 progress (delay M) = done delay
@@ -279,12 +314,11 @@ progress (constr i (x ∷ xs)) with progress x
 progress (case (ƛ x) ts) = step case-ƛ
 progress (case (x · x₁) ts) with progress (x · x₁)
 ... | step x₂ = step (case-reduce x₂)
-... | done (unsat₀ x₂) = step (case-unsat₀ x₂)
-... | done (unsat₁ x₂) = step (case-unsat₁ x₂)
+... | done (unsat₁ s Vm Vm₁) = step (case-unsat₁ (sat-app-step {t = x} {t₁ = x₁} s))
 progress (case (force x) ts) with progress (force x)
 ... | step x₁ = step (case-reduce x₁)
-... | done (unsat₀ x₁) = step (case-unsat₀ x₁)
-... | done (unsat₁ x₁) = step (case-unsat₁ x₁)
+... | done (unsat₀ s Vm) = step (case-unsat₀ (sat-force-step {t = x} s))
+... | done (unsat₀₋₁ s Vm) = step (case-unsat₁ (sat-force-step {t = x} s))
 progress (case (delay x) ts) = step case-delay
 progress (case (con x) ts) = step case-con
 progress (case (constr i xs) ts) with lookup? i ts in lookup-i
@@ -292,8 +326,7 @@ progress (case (constr i xs) ts) with lookup? i ts in lookup-i
 ... | just t = step (case-constr lookup-i)
 progress (case (case x ts₁) ts) with progress (case x ts₁)
 ... | step x' = step (case-reduce x')
-... | done (unsat₀ x₁) = done (unsat₀ x₁)
-... | done (unsat₁ x₁) = done (unsat₁ x₁)
+... | done ()
 progress (case (builtin b) ts) = step case-builtin
 progress (case error ts) = step case-error
 progress (builtin b) = done builtin
