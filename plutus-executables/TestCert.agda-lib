@@ -1,0 +1,5 @@
+depend:
+  plutus-metatheory
+  standard-library-2.1.1
+include: .
+  name: test-cert
