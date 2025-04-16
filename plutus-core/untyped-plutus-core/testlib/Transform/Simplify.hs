@@ -317,8 +317,9 @@ forceDelayMultiApply = runQuote $ do
       two = mkConstant @Integer () 2
       three = mkConstant @Integer () 3
       term =
-        Force () $
-          mkIterAppNoAnn
+        LamAbs () funcVar
+        $ Force ()
+          $ mkIterAppNoAnn
             ( LamAbs () x1 $
                 LamAbs () x2 $
                   LamAbs () x3 $
@@ -403,7 +404,8 @@ forceDelayComplex = runQuote $ do
                                       , Var () z2
                                       ]
       app =
-        Apply
+        LamAbs () funcVar
+        $ Apply
           ()
           ( Force () $
               mkIterAppNoAnn
