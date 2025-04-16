@@ -9,6 +9,9 @@ import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 
+mkAgdaTrace
+  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+  -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))]
 mkAgdaTrace (SimplifierTrace simplTrace) = reverse $ processAgdaAST <$> simplTrace
   where
     processAgdaAST Simplification {beforeAST, stage, afterAST} =
