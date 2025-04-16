@@ -21,6 +21,7 @@ on:
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
       - "🏛️ Plinth Template"
+      - "📊 Code Coverage Report"
 
 jobs:
   Send:

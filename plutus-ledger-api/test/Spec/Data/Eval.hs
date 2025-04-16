@@ -32,7 +32,7 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
-import Test.Tasty.HUnit
+import Test.Tasty.Extras (ignoreTestIfHpcEnabled)
 
 {- Note [Direct UPLC code]
 For this test-suite we write the programs directly in the UPLC AST,
@@ -125,11 +125,13 @@ evaluationContextNoThunks =
             !evalCtx <- mkEvaluationContextV ll
             failIfThunk =<< noThunks [] evalCtx
 
+
 tests :: TestTree
 tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
+    , ignoreTestIfHpcEnabled evaluationContextNoThunks
     , evaluationContextNoThunks
     ]
 
