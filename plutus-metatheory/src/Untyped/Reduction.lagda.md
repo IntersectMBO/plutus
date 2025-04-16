@@ -232,6 +232,7 @@ value-¬⟶ {M = M} error = λ ()
 ⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
 -}
+
 ```
 ## Progress
 ```
@@ -257,7 +258,7 @@ progress (L · R) with progress L
 ... | done VL with progress R
 ...   | fail = step error₂
 ...   | step R⟶R' = step (ξ₂ VL R⟶R')
-...   | done VR with VL -- For the first time I see why Phil prefers typed languages!...
+...   | done VR with VL
 ...     | delay = step app-delay
 ...     | ƛ = step (β VR)
 ...     | con = step app-con
