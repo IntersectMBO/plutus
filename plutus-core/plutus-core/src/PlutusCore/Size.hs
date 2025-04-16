@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Size
@@ -24,6 +25,7 @@ newtype Size = Size
     { unSize :: Integer
     } deriving stock (Show)
       deriving newtype (Pretty, Eq, Ord, Num)
+      deriving anyclass (PrettyBy config)
       deriving (Semigroup, Monoid) via Sum Integer
 
 -- | Count the number of AST nodes in a kind.
