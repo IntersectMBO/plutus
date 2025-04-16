@@ -9,8 +9,8 @@ import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseReduce), SimplifierT,
                                                recordSimplification)
 
-import Control.Lens (transformOf)
-import Data.Vector qualified as V
+import Control.Lens (ix, transformOf, (^?))
+import Data.Foldable (toList)
 
 caseReduce
     :: Monad m
@@ -23,6 +23,6 @@ caseReduce term = do
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-    Case ann (Constr _ i args) cs | Just c <- (V.!?) cs (fromIntegral i) ->
+    Case ann (Constr _ i args) cs | Just c <- toList cs ^? ix (fromIntegral i) ->
                                     mkIterApp c ((ann,) <$> args)
     t                                                     -> t
