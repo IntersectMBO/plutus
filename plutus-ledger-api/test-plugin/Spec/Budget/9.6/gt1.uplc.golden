@@ -1,0 +1,534 @@
+(program
+   1.1.0
+   ((\go ->
+       (\go ->
+          (\go ->
+             (\go ->
+                (\union ->
+                   (\equalsByteString ->
+                      (\go
+                        l
+                        r ->
+                         force
+                           (case
+                              (go (go (force union equalsByteString l r)))
+                              [ (delay
+                                   (force
+                                      (case
+                                         ((\cse ->
+                                             cse
+                                               (\ds -> go ds)
+                                               (cse
+                                                  (\v ->
+                                                     force ifThenElse
+                                                       (equalsInteger 0 v)
+                                                       (constr 0 [])
+                                                       (constr 1 []))
+                                                  (\x y ->
+                                                     force ifThenElse
+                                                       (equalsInteger x y)
+                                                       (constr 0 [])
+                                                       (constr 1 []))))
+                                            (\is ->
+                                               (\go ->
+                                                  (\go
+                                                    eqV ->
+                                                     (\goBoth eta eta ->
+                                                        goBoth eta eta)
+                                                       ((\s ->
+                                                           s s)
+                                                          (\s
+                                                            ds
+                                                            kvsR ->
+                                                             force
+                                                               (case
+                                                                  ds
+                                                                  [ (delay
+                                                                       (go
+                                                                          kvsR))
+                                                                  , (\ipv
+                                                                      ipv ->
+                                                                       delay
+                                                                         (force
+                                                                            (case
+                                                                               kvsR
+                                                                               [ (delay
+                                                                                    (go
+                                                                                       ds))
+                                                                               , (\ipv
+                                                                                   ipv ->
+                                                                                    delay
+                                                                                      (case
+                                                                                         ipv
+                                                                                         [ (\kL
+                                                                                             vL ->
+                                                                                              (\goRight ->
+                                                                                                 case
+                                                                                                   ipv
+                                                                                                   [ (\kR
+                                                                                                       vR ->
+                                                                                                        force
+                                                                                                          (case
+                                                                                                             (equalsByteString
+                                                                                                                kL
+                                                                                                                kR)
+                                                                                                             [ (delay
+                                                                                                                  (force
+                                                                                                                     (case
+                                                                                                                        (eqV
+                                                                                                                           vL
+                                                                                                                           vR)
+                                                                                                                        [ (delay
+                                                                                                                             (s
+                                                                                                                                s
+                                                                                                                                ipv
+                                                                                                                                ipv))
+                                                                                                                        , (delay
+                                                                                                                             (constr 1
+                                                                                                                                [  ])) ])))
+                                                                                                             , (delay
+                                                                                                                  (force
+                                                                                                                     (case
+                                                                                                                        (is
+                                                                                                                           vL)
+                                                                                                                        [ (delay
+                                                                                                                             (s
+                                                                                                                                s
+                                                                                                                                ipv
+                                                                                                                                kvsR))
+                                                                                                                        , (delay
+                                                                                                                             (goRight
+                                                                                                                                (force
+                                                                                                                                   (case
+                                                                                                                                      (is
+                                                                                                                                         vR)
+                                                                                                                                      [ (delay
+                                                                                                                                           (constr 0
+                                                                                                                                              [  ]))
+                                                                                                                                      , (delay
+                                                                                                                                           (constr 1
+                                                                                                                                              [ ipv
+                                                                                                                                              , (constr 0
+                                                                                                                                                   [  ]) ])) ]))
+                                                                                                                                ipv)) ]))) ])) ])
+                                                                                                ((\s ->
+                                                                                                    s
+                                                                                                      s)
+                                                                                                   (\s
+                                                                                                     ds
+                                                                                                     ds ->
+                                                                                                      force
+                                                                                                        (case
+                                                                                                           ds
+                                                                                                           [ (delay
+                                                                                                                (constr 1
+                                                                                                                   [  ]))
+                                                                                                           , (\kvR
+                                                                                                               kvsR' ->
+                                                                                                                delay
+                                                                                                                  (case
+                                                                                                                     kvR
+                                                                                                                     [ (\kR
+                                                                                                                         vR ->
+                                                                                                                          force
+                                                                                                                            (case
+                                                                                                                               (is
+                                                                                                                                  vR)
+                                                                                                                               [ (delay
+                                                                                                                                    (s
+                                                                                                                                       s
+                                                                                                                                       ds
+                                                                                                                                       kvsR'))
+                                                                                                                               , (delay
+                                                                                                                                    (force
+                                                                                                                                       (case
+                                                                                                                                          (equalsByteString
+                                                                                                                                             kL
+                                                                                                                                             kR)
+                                                                                                                                          [ (delay
+                                                                                                                                               (force
+                                                                                                                                                  (case
+                                                                                                                                                     (eqV
+                                                                                                                                                        vL
+                                                                                                                                                        vR)
+                                                                                                                                                     [ (delay
+                                                                                                                                                          (s
+                                                                                                                                                             s
+                                                                                                                                                             ipv
+                                                                                                                                                             ((\s ->
+                                                                                                                                                                 s
+                                                                                                                                                                   s)
+                                                                                                                                                                (\s
+                                                                                                                                                                  ds
+                                                                                                                                                                  a ->
+                                                                                                                                                                   force
+                                                                                                                                                                     (case
+                                                                                                                                                                        ds
+                                                                                                                                                                        [ (delay
+                                                                                                                                                                             a)
+                                                                                                                                                                        , (\x
+                                                                                                                                                                            xs ->
+                                                                                                                                                                             delay
+                                                                                                                                                                               (s
+                                                                                                                                                                                  s
+                                                                                                                                                                                  xs
+                                                                                                                                                                                  (constr 1
+                                                                                                                                                                                     [ x
+                                                                                                                                                                                     , a ]))) ]))
+                                                                                                                                                                ds
+                                                                                                                                                                kvsR')))
+                                                                                                                                                     , (delay
+                                                                                                                                                          (constr 1
+                                                                                                                                                             [  ])) ])))
+                                                                                                                                          , (delay
+                                                                                                                                               (s
+                                                                                                                                                  s
+                                                                                                                                                  (constr 1
+                                                                                                                                                     [ kvR
+                                                                                                                                                     , ds ])
+                                                                                                                                                  kvsR')) ]))) ])) ])) ])))) ])) ]))) ]))))
+                                                    ((\s ->
+                                                        s s)
+                                                       (\s
+                                                         ds ->
+                                                          force
+                                                            (case
+                                                               ds
+                                                               [ (delay
+                                                                    (constr 0
+                                                                       []))
+                                                               , (\x
+                                                                   xs ->
+                                                                    delay
+                                                                      (case
+                                                                         x
+                                                                         [ (\ipv
+                                                                             ipv ->
+                                                                              force
+                                                                                (case
+                                                                                   (is
+                                                                                      ipv)
+                                                                                   [ (delay
+                                                                                        (s
+                                                                                           s
+                                                                                           xs))
+                                                                                   , (delay
+                                                                                        (constr 1
+                                                                                           [  ])) ])) ])) ]))))
+                                                 ((\s ->
+                                                     s s)
+                                                    (\s
+                                                      ds ->
+                                                       force
+                                                         (case
+                                                            ds
+                                                            [ (delay
+                                                                 (constr 0 []))
+                                                            , (\x
+                                                                xs ->
+                                                                 delay
+                                                                   (case
+                                                                      x
+                                                                      [ (\ipv
+                                                                          ipv ->
+                                                                           force
+                                                                             (case
+                                                                                (is
+                                                                                   ipv)
+                                                                                [ (delay
+                                                                                     (s
+                                                                                        s
+                                                                                        xs))
+                                                                                , (delay
+                                                                                     (constr 1
+                                                                                        [  ])) ])) ])) ]))))
+                                            l
+                                            r)
+                                         [ (delay (constr 1 []))
+                                         , (delay (constr 0 [])) ])))
+                              , (delay (constr 1 [])) ]))
+                        ((\s ->
+                            s s)
+                           (\s
+                             ds ->
+                              force
+                                (case
+                                   ds
+                                   [ (delay (constr 0 []))
+                                   , (\x
+                                       xs ->
+                                        delay
+                                          (constr 1
+                                             [ (case
+                                                  x
+                                                  [ (\c
+                                                      a ->
+                                                       constr 0
+                                                         [ c
+                                                         , (case
+                                                              a
+                                                              [ (\b -> go b)
+                                                              , (\a
+                                                                  b ->
+                                                                   force
+                                                                     union
+                                                                     equalsByteString
+                                                                     a
+                                                                     b)
+                                                              , (\a ->
+                                                                   go
+                                                                     a) ]) ]) ])
+                                             , (s s xs) ])) ]))))
+                     (\x y ->
+                        force ifThenElse
+                          (equalsByteString x y)
+                          (constr 0 [])
+                          (constr 1 [])))
+                  (delay
+                     ((\go
+                        `$dEq`
+                        ds
+                        ds ->
+                         (\go ->
+                            (\rs'' ->
+                               (\s -> s s)
+                                 (\s ds ->
+                                    force
+                                      (case
+                                         ds
+                                         [ (delay rs'')
+                                         , (\x xs ->
+                                              delay
+                                                (constr 1 [x, (s s xs)])) ]))
+                                 (go ds))
+                              (go
+                                 ((\s ->
+                                     s s)
+                                    (\s
+                                      ds ->
+                                       force
+                                         (case
+                                            ds
+                                            [ (delay (constr 0 []))
+                                            , (\x
+                                                xs ->
+                                                 delay
+                                                   ((\xs ->
+                                                       force
+                                                         (case
+                                                            (case
+                                                               x
+                                                               [ (\c ->
+                                                                    (\go ds ->
+                                                                       go ds)
+                                                                      ((\s ->
+                                                                          s s)
+                                                                         (\s
+                                                                           ds ->
+                                                                            force
+                                                                              (case
+                                                                                 ds
+                                                                                 [ (delay
+                                                                                      (constr 0
+                                                                                         [  ]))
+                                                                                 , (\x
+                                                                                     xs ->
+                                                                                      delay
+                                                                                        (case
+                                                                                           x
+                                                                                           [ (\c'
+                                                                                               ds ->
+                                                                                                force
+                                                                                                  (case
+                                                                                                     (`$dEq`
+                                                                                                        c'
+                                                                                                        c)
+                                                                                                     [ (delay
+                                                                                                          (constr 1
+                                                                                                             [  ]))
+                                                                                                     , (delay
+                                                                                                          (s
+                                                                                                             s
+                                                                                                             xs)) ])) ])) ])))) ])
+                                                            [ (delay
+                                                                 (constr 1
+                                                                    [x, xs]))
+                                                            , (delay xs) ]))
+                                                      (s s xs))) ]))
+                                    ds)))
+                           ((\s ->
+                               s s)
+                              (\s
+                                ds ->
+                                 force
+                                   (case
+                                      ds
+                                      [ (delay (constr 0 []))
+                                      , (\x
+                                          xs ->
+                                           delay
+                                             (constr 1
+                                                [ (case
+                                                     x
+                                                     [ (\c
+                                                         i ->
+                                                          constr 0
+                                                            [ c
+                                                            , ((\s ->
+                                                                  s s)
+                                                                 (\s
+                                                                   ds ->
+                                                                    force
+                                                                      (case
+                                                                         ds
+                                                                         [ (delay
+                                                                              (constr 2
+                                                                                 [ i ]))
+                                                                         , (\ds
+                                                                             xs' ->
+                                                                              delay
+                                                                                (case
+                                                                                   ds
+                                                                                   [ (\c'
+                                                                                       i ->
+                                                                                        force
+                                                                                          (case
+                                                                                             (`$dEq`
+                                                                                                c'
+                                                                                                c)
+                                                                                             [ (delay
+                                                                                                  (constr 1
+                                                                                                     [ i
+                                                                                                     , i ]))
+                                                                                             , (delay
+                                                                                                  (s
+                                                                                                     s
+                                                                                                     xs')) ])) ])) ]))
+                                                                 ds) ]) ])
+                                                , (s s xs) ])) ]))))
+                        ((\s -> s s)
+                           (\s ds ->
+                              force
+                                (case
+                                   ds
+                                   [ (delay (constr 0 []))
+                                   , (\x xs ->
+                                        delay
+                                          (constr 1
+                                             [ (case
+                                                  x
+                                                  [ (\c a ->
+                                                       constr 0
+                                                         [c, (constr 0 [a])]) ])
+                                             , (s s xs) ])) ]))))))
+               ((\s -> s s)
+                  (\s ds ->
+                     force
+                       (case
+                          ds
+                          [ (delay (constr 0 []))
+                          , (\x xs ->
+                               delay
+                                 (constr 1
+                                    [ (case
+                                         x
+                                         [ (\c a ->
+                                              constr 0 [c, (constr 0 [a])]) ])
+                                    , (s s xs) ])) ]))))
+            ((\s -> s s)
+               (\s ds ->
+                  force
+                    (case
+                       ds
+                       [ (delay (constr 0 []))
+                       , (\x xs ->
+                            delay
+                              (constr 1
+                                 [ (case
+                                      x
+                                      [(\c a -> constr 0 [c, (constr 2 [a])])])
+                                 , (s s xs) ])) ]))))
+         ((\s ->
+             s s)
+            (\s
+              ds ->
+               force
+                 (case
+                    ds
+                    [ (delay (constr 0 []))
+                    , (\ds
+                        xs ->
+                         (\go ->
+                            delay (case ds [(\ds x -> go x)]))
+                           ((\s ->
+                               s s)
+                              (\s
+                                ds ->
+                                 force
+                                   (case
+                                      ds
+                                      [ (delay (s s xs))
+                                      , (\ds
+                                          xs ->
+                                           delay
+                                             (case
+                                                ds
+                                                [ (\ds
+                                                    x ->
+                                                     force
+                                                       (case
+                                                          (case
+                                                             x
+                                                             [ (\b ->
+                                                                  force
+                                                                    ifThenElse
+                                                                    (lessThanInteger
+                                                                       0
+                                                                       b)
+                                                                    (constr 1
+                                                                       [])
+                                                                    (constr 0
+                                                                       []))
+                                                             , (\a
+                                                                 b ->
+                                                                  force
+                                                                    ifThenElse
+                                                                    (lessThanInteger
+                                                                       a
+                                                                       b)
+                                                                    (constr 1
+                                                                       [])
+                                                                    (constr 0
+                                                                       []))
+                                                             , (\a ->
+                                                                  force
+                                                                    ifThenElse
+                                                                    (lessThanInteger
+                                                                       a
+                                                                       0)
+                                                                    (constr 1
+                                                                       [])
+                                                                    (constr 0
+                                                                       [])) ])
+                                                          [ (delay (s s xs))
+                                                          , (delay
+                                                               (constr 1
+                                                                  [  ])) ])) ])) ])))) ]))))
+      ((\s -> s s)
+         (\s ds ->
+            force
+              (case
+                 ds
+                 [ (delay (constr 0 []))
+                 , (\ds xs ->
+                      delay
+                        (case
+                           ds
+                           [ (\ds x ->
+                                force
+                                  (force
+                                     (force ifThenElse
+                                        (equalsInteger 0 x)
+                                        (delay (delay (s s xs)))
+                                        (delay
+                                           (delay (constr 1 [])))))) ])) ])))))

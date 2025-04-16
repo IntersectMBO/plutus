@@ -1,0 +1,451 @@
+(program
+   1.1.0
+   ((\caseList' ->
+       (\`$fUnsafeFromDataThese_$cunsafeFromBuiltinData` ->
+          (\f ->
+             (\`$fToDataThese_$ctoBuiltinData` ->
+                (\`$fToDataInteger_$ctoBuiltinData` ->
+                   (\go ->
+                      (\map ->
+                         (\`$fToDataMap_$ctoBuiltinData` ->
+                            (\safeAppend
+                              l
+                              r ->
+                               (\p ->
+                                  (\union ->
+                                     force
+                                       ((\s ->
+                                           s s)
+                                          (\s
+                                            arg ->
+                                             delay
+                                               (caseList'
+                                                  (constr 0 [])
+                                                  (\hd ->
+                                                     force
+                                                       (case
+                                                          (p
+                                                             (unMapData
+                                                                (force
+                                                                   (force
+                                                                      sndPair)
+                                                                   hd)))
+                                                          [ (delay
+                                                               (force
+                                                                  (s
+                                                                     s
+                                                                     (delay
+                                                                        (\x ->
+                                                                           x)))))
+                                                          , (delay
+                                                               (\ds ->
+                                                                  constr 1
+                                                                    [])) ]))))
+                                          (delay (\x -> x)))
+                                       (map
+                                          (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+                                             (\eta -> unMapData eta)
+                                             (\eta -> unMapData eta))
+                                          `$fToDataMap_$ctoBuiltinData`
+                                          (\k ->
+                                             case
+                                               k
+                                               [ (\b ->
+                                                    map
+                                                      unIData
+                                                      (`$fToDataThese_$ctoBuiltinData`
+                                                         `$fToDataInteger_$ctoBuiltinData`
+                                                         `$fToDataInteger_$ctoBuiltinData`)
+                                                      (\ds -> constr 0 [ds])
+                                                      b)
+                                               , (\a
+                                                   b ->
+                                                    union
+                                                      unIData
+                                                      unIData
+                                                      `$fToDataInteger_$ctoBuiltinData`
+                                                      `$fToDataInteger_$ctoBuiltinData`
+                                                      a
+                                                      b)
+                                               , (\a ->
+                                                    map
+                                                      unIData
+                                                      (`$fToDataThese_$ctoBuiltinData`
+                                                         `$fToDataInteger_$ctoBuiltinData`
+                                                         `$fToDataInteger_$ctoBuiltinData`)
+                                                      (\ds -> constr 2 [ds])
+                                                      a) ])
+                                          (union
+                                             (\eta -> unMapData eta)
+                                             (\eta -> unMapData eta)
+                                             `$fToDataMap_$ctoBuiltinData`
+                                             `$fToDataMap_$ctoBuiltinData`
+                                             l
+                                             r)))
+                                    (\`$dUnsafeFromData`
+                                      `$dUnsafeFromData`
+                                      `$dToData`
+                                      `$dToData`
+                                      ds ->
+                                       (\lookup' ->
+                                          (\goRight
+                                            ds ->
+                                             (\goLeft ->
+                                                (\goRight ->
+                                                   safeAppend
+                                                     (force goLeft ds)
+                                                     (goRight ds))
+                                                  (force goRight))
+                                               ((\s ->
+                                                   s s)
+                                                  (\s
+                                                    arg ->
+                                                     delay
+                                                       (caseList'
+                                                          []
+                                                          (\hd
+                                                            tl ->
+                                                             (\v ->
+                                                                (\k ->
+                                                                   force
+                                                                     (case
+                                                                        (lookup'
+                                                                           k
+                                                                           ds)
+                                                                        [ (\r ->
+                                                                             delay
+                                                                               (force
+                                                                                  mkCons
+                                                                                  (mkPairData
+                                                                                     k
+                                                                                     (`$fToDataThese_$ctoBuiltinData`
+                                                                                        `$dToData`
+                                                                                        `$dToData`
+                                                                                        (constr 1
+                                                                                           [ (`$dUnsafeFromData`
+                                                                                                v)
+                                                                                           , (`$dUnsafeFromData`
+                                                                                                r) ])))
+                                                                                  (force
+                                                                                     (s
+                                                                                        s
+                                                                                        (delay
+                                                                                           (\x ->
+                                                                                              x)))
+                                                                                     tl)))
+                                                                        , (delay
+                                                                             (force
+                                                                                mkCons
+                                                                                (mkPairData
+                                                                                   k
+                                                                                   (`$fToDataThese_$ctoBuiltinData`
+                                                                                      `$dToData`
+                                                                                      `$dToData`
+                                                                                      (constr 2
+                                                                                         [ (`$dUnsafeFromData`
+                                                                                              v) ])))
+                                                                                (force
+                                                                                   (s
+                                                                                      s
+                                                                                      (delay
+                                                                                         (\x ->
+                                                                                            x)))
+                                                                                   tl))) ]))
+                                                                  (force
+                                                                     (force
+                                                                        fstPair)
+                                                                     hd))
+                                                               (force
+                                                                  (force
+                                                                     sndPair)
+                                                                  hd))))
+                                                  (delay (\x -> x))))
+                                            ((\s ->
+                                                s s)
+                                               (\s
+                                                 arg ->
+                                                  delay
+                                                    (caseList'
+                                                       []
+                                                       (\hd
+                                                         tl ->
+                                                          (\v ->
+                                                             (\k ->
+                                                                force
+                                                                  (case
+                                                                     (lookup'
+                                                                        k
+                                                                        ds)
+                                                                     [ (\r ->
+                                                                          delay
+                                                                            (force
+                                                                               mkCons
+                                                                               (mkPairData
+                                                                                  k
+                                                                                  (`$fToDataThese_$ctoBuiltinData`
+                                                                                     `$dToData`
+                                                                                     `$dToData`
+                                                                                     (constr 1
+                                                                                        [ (`$dUnsafeFromData`
+                                                                                             v)
+                                                                                        , (`$dUnsafeFromData`
+                                                                                             r) ])))
+                                                                               (force
+                                                                                  (s
+                                                                                     s
+                                                                                     (delay
+                                                                                        (\x ->
+                                                                                           x)))
+                                                                                  tl)))
+                                                                     , (delay
+                                                                          (force
+                                                                             mkCons
+                                                                             (mkPairData
+                                                                                k
+                                                                                (`$fToDataThese_$ctoBuiltinData`
+                                                                                   `$dToData`
+                                                                                   `$dToData`
+                                                                                   (constr 0
+                                                                                      [ (`$dUnsafeFromData`
+                                                                                           v) ])))
+                                                                             (force
+                                                                                (s
+                                                                                   s
+                                                                                   (delay
+                                                                                      (\x ->
+                                                                                         x)))
+                                                                                tl))) ]))
+                                                               (force
+                                                                  (force
+                                                                     fstPair)
+                                                                  hd))
+                                                            (force
+                                                               (force sndPair)
+                                                               hd))))
+                                               (delay (\x -> x))))
+                                         (\k ->
+                                            (\go m ->
+                                               force go m)
+                                              ((\s ->
+                                                  s s)
+                                                 (\s
+                                                   arg ->
+                                                    delay
+                                                      (caseList'
+                                                         (constr 1 [])
+                                                         (\hd ->
+                                                            force
+                                                              (force
+                                                                 (force
+                                                                    ifThenElse
+                                                                    (equalsData
+                                                                       k
+                                                                       (force
+                                                                          (force
+                                                                             fstPair)
+                                                                          hd))
+                                                                    (delay
+                                                                       (delay
+                                                                          (\ds ->
+                                                                             constr 0
+                                                                               [ (force
+                                                                                    (force
+                                                                                       sndPair)
+                                                                                    hd) ])))
+                                                                    (delay
+                                                                       (delay
+                                                                          (force
+                                                                             (s
+                                                                                s
+                                                                                (delay
+                                                                                   (\x ->
+                                                                                      x)))))))))))
+                                                 (delay (\x -> x))))))
+                                 (force go))
+                              ((\s ->
+                                  s s)
+                                 (\s
+                                   xs
+                                   xs ->
+                                    caseList'
+                                      xs
+                                      (\hd
+                                        tl ->
+                                         (\v ->
+                                            (\k ->
+                                               (\eta ->
+                                                  (\cse ->
+                                                     (\nilCase ->
+                                                        force
+                                                          ((\s ->
+                                                              s s)
+                                                             (\s
+                                                               arg ->
+                                                                delay
+                                                                  (caseList'
+                                                                     nilCase
+                                                                     (\hd ->
+                                                                        force
+                                                                          (force
+                                                                             (force
+                                                                                ifThenElse
+                                                                                (equalsData
+                                                                                   k
+                                                                                   (force
+                                                                                      (force
+                                                                                         fstPair)
+                                                                                      hd))
+                                                                                (delay
+                                                                                   (delay
+                                                                                      cse))
+                                                                                (delay
+                                                                                   (delay
+                                                                                      (\eta ->
+                                                                                         force
+                                                                                           mkCons
+                                                                                           hd
+                                                                                           (force
+                                                                                              (s
+                                                                                                 s
+                                                                                                 (delay
+                                                                                                    (\x ->
+                                                                                                       x)))
+                                                                                              eta)))))))))
+                                                             (delay (\x -> x)))
+                                                          eta)
+                                                       (cse []))
+                                                    (force mkCons
+                                                       (mkPairData k v)))
+                                                 (s s tl xs))
+                                              (force (force fstPair) hd))
+                                           (force (force sndPair) hd))
+                                      xs)))
+                           (\ds -> mapData ds))
+                        (\`$dUnsafeFromData` `$dToData` f ->
+                           force
+                             ((\s -> s s)
+                                (\s arg ->
+                                   delay
+                                     (caseList'
+                                        []
+                                        (\hd eta ->
+                                           force mkCons
+                                             (mkPairData
+                                                (force (force fstPair) hd)
+                                                (`$dToData`
+                                                   (f
+                                                      (`$dUnsafeFromData`
+                                                         (force (force sndPair)
+                                                            hd)))))
+                                             (force (s s (delay (\x -> x)))
+                                                eta))))
+                                (delay (\x -> x)))))
+                     ((\s ->
+                         s s)
+                        (\s
+                          arg ->
+                           delay
+                             (caseList'
+                                (constr 0 [])
+                                (\hd ->
+                                   force
+                                     (case
+                                        (case
+                                           (`$fUnsafeFromDataThese_$cunsafeFromBuiltinData`
+                                              unIData
+                                              unIData
+                                              (force (force sndPair) hd))
+                                           [ (\b -> f 0 b)
+                                           , (\a b -> f a b)
+                                           , (\a -> f a 0) ])
+                                        [ (delay
+                                             (force (s s (delay (\x -> x)))))
+                                        , (delay (\ds -> constr 1 [])) ]))))
+                        (delay (\x -> x))))
+                  (\i -> iData i))
+               (\`$dToData` `$dToData` ds ->
+                  case
+                    ds
+                    [ (\arg -> constrData 1 (force mkCons (`$dToData` arg) []))
+                    , (\arg arg ->
+                         constrData
+                           2
+                           (force mkCons
+                              (`$dToData` arg)
+                              (force mkCons (`$dToData` arg) [])))
+                    , (\arg ->
+                         constrData 0 (force mkCons (`$dToData` arg) [])) ]))
+            (\x y ->
+               force ifThenElse
+                 (lessThanInteger x y)
+                 (constr 1 [])
+                 (constr 0 [])))
+         (\`$dUnsafeFromData`
+           `$dUnsafeFromData`
+           d ->
+            (\tup ->
+               (\index ->
+                  (\args ->
+                     force
+                       (force
+                          (force
+                             ifThenElse
+                             (equalsInteger 0 index)
+                             (delay
+                                (delay
+                                   (constr 2
+                                      [ (`$dUnsafeFromData`
+                                           (force headList args)) ])))
+                             (delay
+                                (delay
+                                   (force
+                                      (force
+                                         (force
+                                            ifThenElse
+                                            (equalsInteger 1 index)
+                                            (delay
+                                               (delay
+                                                  (constr 0
+                                                     [ (`$dUnsafeFromData`
+                                                          (force headList
+                                                             args)) ])))
+                                            (delay
+                                               (delay
+                                                  (force
+                                                     (force
+                                                        (force
+                                                           ifThenElse
+                                                           (equalsInteger
+                                                              2
+                                                              index)
+                                                           (delay
+                                                              (delay
+                                                                 (constr 1
+                                                                    [ (`$dUnsafeFromData`
+                                                                         (force
+                                                                            headList
+                                                                            args))
+                                                                    , (`$dUnsafeFromData`
+                                                                         (force
+                                                                            headList
+                                                                            (force
+                                                                               tailList
+                                                                               args))) ])))
+                                                           (delay
+                                                              (delay
+                                                                 ((\x ->
+                                                                     error)
+                                                                    (force
+                                                                       trace
+                                                                       "PT1"
+                                                                       (constr 0
+                                                                          [  ]))))))))))))))))))
+                    (force (force sndPair) tup))
+                 (force (force fstPair) tup))
+              (unConstrData d)))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

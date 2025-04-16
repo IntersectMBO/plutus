@@ -1,0 +1,30 @@
+(program
+   1.1.0
+   ((\go value cur ->
+       (\s -> s s)
+         (\s ds ->
+            force
+              (case
+                 ds
+                 [ (delay 0)
+                 , (\ds xs' ->
+                      delay
+                        (case
+                           ds
+                           [ (\c' i ->
+                                force
+                                  (force
+                                     (force ifThenElse
+                                        (equalsByteString c' cur)
+                                        (delay (delay (go i)))
+                                        (delay (delay (s s xs')))))) ])) ]))
+         value)
+      ((\s -> s s)
+         (\s ds ->
+            force
+              (case
+                 ds
+                 [ (delay 0)
+                 , (\x xs ->
+                      delay
+                        (case x [(\ds amt -> addInteger amt (s s xs))])) ])))))

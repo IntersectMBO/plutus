@@ -12,7 +12,8 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Optimize.Inline (inline)
-import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
+import PlutusTx.Test (goldenBudgetAndSize, goldenEvalCekCatch, goldenPirReadable,
+                      goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
@@ -28,7 +29,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudget
+      , goldenBudgetAndSize
           "noinline"
           ( notInlined
               `unsafeApplyCode` liftCodeDef 1
@@ -44,7 +45,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudget
+      , goldenBudgetAndSize
           "inline-once"
           ( inlineOnce
               `unsafeApplyCode` liftCodeDef 1
@@ -60,7 +61,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudget
+      , goldenBudgetAndSize
           "inline-once-applied"
           ( inlineOnceApplied
               `unsafeApplyCode` liftCodeDef 1
@@ -76,7 +77,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudget
+      , goldenBudgetAndSize
           "inline-twice"
           ( inlineTwice
               `unsafeApplyCode` liftCodeDef 1

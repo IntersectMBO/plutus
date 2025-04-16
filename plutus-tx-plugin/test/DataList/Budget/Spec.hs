@@ -47,7 +47,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudget
+      , goldenBudgetAndSize
           "makeList"
           ( makeList
               `unsafeApplyCode` liftCodeDef 1

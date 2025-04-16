@@ -208,7 +208,7 @@ tests = testNested "Budget" . pure $ testNestedGhc
   , goldenEvalCekCatch
       "listIndexing"
       [compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput]
-  , goldenBudget
+  , goldenBudgetAndSize
       "listIndexing"
       (compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput)
 

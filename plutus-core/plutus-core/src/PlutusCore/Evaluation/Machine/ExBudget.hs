@@ -9,7 +9,7 @@
 {- Note [Strict Data for budgeting]
 
 Without the StrictData pragma here, we get a memory leak during evaluation
-because large unevaluated arthimetic expressions build up.  Strictness is only
+because large unevaluated arithmetic expressions build up.  Strictness is only
 really required for ExBudget, but it's simpler if we jut make
 everything strict, and it doesn't seem to do any harm.
 -}
@@ -99,11 +99,11 @@ possible to adjust them at runtime.
        because it's sometimes useful to work with the data interactively and this
        makes the numbers a lot more human-readable.
 
-     * The coefficents from the R models are returned to the Haskell code in
+     * The coefficients from the R models are returned to the Haskell code in
        CreateBuiltinCostModel and written out to a JSON file.  To avoid the
        use of floats in JSON and in cost prediction at runtime (which might be
        machine-dependent if floats were used), numbers are multiplied by 10^6
-       and rounded to the nearest integer, shfting from the microsecond scale to
+       and rounded to the nearest integer, shifting from the microsecond scale to
        the picosecond scale.  This rescaling is safe because all of our models
        are (currently) linear in their inputs.
 
@@ -120,7 +120,7 @@ possible to adjust them at runtime.
    the ongoing resource consumption during script execution.
 
    All budget calculations are (at least on 64-bit machines) done using the
-   'SatInt' type which deals with overflow by truncating excessivly large values
+   'SatInt' type which deals with overflow by truncating excessively large values
    to the maximum 'SatInt' value, 2^63-1.  In picoseconds this is about 106
    days, which should suffice for any code we expect to run.  Memory budgeting
    is entirely in terms of machine words, and floating-point issues are
@@ -172,13 +172,13 @@ class ExBudgetBuiltin fun exBudgetCat where
 instance ExBudgetBuiltin fun () where
     exBudgetBuiltin _ = ()
 
-data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
+data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory}
     deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerInitialCharacter] ExBudget
     -- LowerInitialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
--- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
+-- | Subtract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget
 minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1-c2) (m1-m2)
 {-# INLINE minusExBudget #-}
