@@ -18,13 +18,17 @@ This is always an improvement.
 -}
 module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
 
+import PlutusPrelude
+
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseOfCase), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens
+import Data.Set qualified as Set
 
 caseOfCase
     :: fun ~ PLC.DefaultFun
@@ -50,4 +54,15 @@ processTerm = \case
             , (trueAnn, Delay trueAnn (Case ann true alts))
             , (falseAnn, Delay falseAnn (Case ann false alts))
             ]
+  original@(Case annOuter (Case annInner scrut altsInner) altsOuter) ->
+    maybe
+      original
+      (Case annInner scrut)
+      (do
+        constrs <- for altsInner $ \case
+          c@(Constr _ i _) -> Just (i, c)
+          _                -> Nothing
+        -- See Note [Case-of-case and duplicating code].
+        guard $ length (Set.fromList . toList $ fmap fst constrs) == length constrs
+        pure $ constrs <&> \(_, c) -> CaseReduce.processTerm $ Case annOuter c altsOuter)
   other -> other

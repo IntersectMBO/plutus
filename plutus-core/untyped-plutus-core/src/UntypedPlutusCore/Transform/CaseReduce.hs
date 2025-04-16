@@ -2,6 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 module UntypedPlutusCore.Transform.CaseReduce
     ( caseReduce
+    , processTerm
     ) where
 
 import PlutusCore.MkPlc
