@@ -23,6 +23,7 @@ module PlutusCore.Test (
   rethrow,
   runTPlc,
   runUPlc,
+  runUPlcBudget,
   runUPlcFull,
   runUPlcLogs,
   ppCatch,
