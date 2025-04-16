@@ -98,6 +98,7 @@ benchExpModInteger2 _gen =
    Overall we get a good fit with t~I(y*z^2)+I(y*z).
 -}
 
+-- Takes about 50 minutes with 625 inputs.
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
