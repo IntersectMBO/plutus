@@ -48,9 +48,8 @@ import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, 
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU)
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
@@ -116,7 +115,7 @@ renderExcess tData mData diff =
 goldenBudgetAndSize :: TestName -> CompiledCode a -> TestNested
 goldenBudgetAndSize name compiledCode = do
   nestedGoldenVsDocM name ".budget-and-size" $ ppCatch $ do
-    ExBudget cpu mem <- runUPlcBudget [compiledCode]
+    PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
     size <- UPLC.programSize <$> toUPlc compiledCode
     let contents = "cpu: " <> pretty cpu <> "\nmem: " <> pretty mem <> "\nsize: " <> pretty size
     pure (render @Text contents)
