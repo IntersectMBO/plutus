@@ -156,8 +156,50 @@ class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> CostRose
 
-instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
-    memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
+{- Note [Alternative memory usage instances].  The `memoryUsage` function provides
+ a measure of the size of an object for costing purposes, the idea being that
+ the time taken to execute a builtin, and the memory used to contain its result,
+ will depend on the size of the inputs.  The name `memoryUsage` is perhaps a
+ misnomer: it was originally supposed to measure (in 64-bit words) the heap
+ space required to store an object, but this is not always the correct measure
+ to use.  For example, the time taken by `AddInteger` or `MultiplyInteger` will
+ depend on the logarithms of the inputs (and the logarithm is proportional to
+ the memory occupied by the inputs), and the memory occupied by the result will
+ be some function of the memory occupied by the inputs, so for these functions
+ the actual memory usage is a sensible size measure.  However, calling
+ `replicateByte n b` function allocates a number of bytes which is equal to the
+ actual value of `n`, which will be exponentially greater than the memoory
+ occupied by `n`, so this case the memory usage is not a sensible size measure.
+ In most cases the default `memoryUsage` function returns the actual memory
+ usage, butto deal with cases like `replicateByte` we occasionally use newtype
+ wrappers which define a different size measure (see `IntegerCostedLiterally`
+ below).  Polymorhpic types require some care though: see Note [ExMemoryUsage
+ for polymorphic types].
+-}
+
+{- Note [ExMemoryUsage for polymorphic types].  For polymorphic types such as
+ `pair, `list`, and `array` DO NOT use newtype wrappers to define alternative
+ size measures.  The denotations of functions which take polymorphic arguments
+ use `SomeConstant` and this willl ignore newtype wrappers and will only use the
+ default `memoryUsage` function, which could lead to unexpected results.
+ Furthermore, actual memory usage is typically not a good size measure for
+ polymorphic arguments: the time taken to process a list, for example, will
+ typically depend only on the length of the list and not the size of the
+ contents.  Currently all such functions are parametrically polymorphic and only
+ manipulate pointers without inspecting the contents of their polymorphic
+ arguments, so it is reasonable to use size measures which depend only on the
+ surface structure of polymorphic objects. -}
+
+instance ExMemoryUsage (a, b) where
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage [a] where
+  memoryUsage l = singletonRose . fromIntegral $ length l
+  {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage (Vector a) where
+    memoryUsage l = singletonRose . fromIntegral $ Vector.length l
     {-# INLINE memoryUsage #-}
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
@@ -280,29 +322,20 @@ addConstantRose (CostRose cost1 forest1) (CostRose cost2 forest2) =
     CostRose (cost1 + cost2) (forest1 ++ forest2)
 {-# INLINE addConstantRose #-}
 
-instance ExMemoryUsage [a] where
-  memoryUsage l = singletonRose . fromIntegral $ length l
-  {-# INLINE memoryUsage #-}
-
-instance ExMemoryUsage (Vector a) where
-    memoryUsage l = singletonRose . fromIntegral $ Vector.length l
-    {-# INLINE memoryUsage #-}
-
-{- Another naive traversal for size.  This accounts for the number of nodes in
-   a Data object, and also the sizes of the contents of the nodes.  This is not
-   ideal, but it seems to be the best we can do.  At present this only comes
-   into play for 'equalsData', which is implemented using the derived
-   implementation of '==' (fortunately the costing functions are lazy, so this
-   won't be called for things like 'unBData' which have constant costing
-   functions because they only have to look at the top node).  The problem is
-   that when we call 'equalsData' the comparison will take place entirely in
-   Haskell, so the costing functions for the contents of 'I' and 'B' nodes
-   won't be called.  Thus if we just counted the number of nodes the sizes of
-   'I 2' and 'B <huge bytestring>' would be the same but they'd take different
-   amounts of time to compare.  It's not clear how to trade off the costs of
-   processing a node and processing the contents of nodes: the implementation
-   below compromises by charging four units per node, but we may wish to revise
-   this after experimentation.
+{- A naive traversal for size.  This accounts for the number of nodes in a Data
+   object and also the sizes of the contents of the nodes.  This is not ideal,
+   but it seems to be the best we can do.  At present this only comes into play
+   for 'equalsData', which is implemented using the derived implementation of
+   '==' (fortunately the costing functions are lazy, so this won't be called for
+   things like 'unBData' which have constant costing functions because they only
+   have to look at the top node).  The problem is that when we call 'equalsData'
+   the comparison will take place entirely in Haskell, so the costing functions
+   for the contents of 'I' and 'B' nodes won't be called.  Thus if we just
+   counted the number of nodes the sizes of 'I 2' and 'B <huge bytestring>'
+   would be the same but they'd take different amounts of time to compare.  It's
+   not clear how to trade off the costs of processing a node and processing the
+   contents of nodes: the implementation below compromises by charging four
+   units per node, but we may wish to revise this after experimentation.
 -}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
