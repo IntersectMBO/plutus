@@ -543,7 +543,7 @@ an additional let-binding:
 )
 @
 
-This is likely caused by the @$fApplicativeMaybe_$cpure@ in the CoreExpr. In !!! GHC 8,
+This is likely caused by the @$fApplicativeMaybe_$cpure@ in the CoreExpr. In GHC 8,
 it is inlined into @Just@.
 -}
 monadicDo :: CompiledCode (Maybe Integer)
