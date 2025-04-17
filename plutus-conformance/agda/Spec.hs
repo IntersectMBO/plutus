@@ -130,6 +130,13 @@ failingEvaluationTests =
     "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
   , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
   , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
   ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
@@ -200,6 +207,13 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
   , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-01"
   , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
