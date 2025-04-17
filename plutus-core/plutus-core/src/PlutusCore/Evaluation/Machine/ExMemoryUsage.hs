@@ -168,7 +168,7 @@ class ExMemoryUsage a where
  be some function of the memory occupied by the inputs, so for these functions
  the actual memory usage is a sensible size measure.  However, calling
  `replicateByte n b` function allocates a number of bytes which is equal to the
- actual value of `n`, which will be exponentially greater than the memoory
+ actual value of `n`, which will be exponentially greater than the memory
  occupied by `n`, so this case the memory usage is not a sensible size measure.
  In most cases the default `memoryUsage` function returns the actual memory
  usage, butto deal with cases like `replicateByte` we occasionally use newtype
@@ -180,7 +180,7 @@ class ExMemoryUsage a where
 {- Note [ExMemoryUsage for polymorphic types].  For polymorphic types such as
  `pair, `list`, and `array` DO NOT use newtype wrappers to define alternative
  size measures.  The denotations of functions which take polymorphic arguments
- use `SomeConstant` and this willl ignore newtype wrappers and will only use the
+ use `SomeConstant` and this will ignore newtype wrappers and will only use the
  default `memoryUsage` function, which could lead to unexpected results.
  Furthermore, actual memory usage is typically not a good size measure for
  polymorphic arguments: the time taken to process a list, for example, will
