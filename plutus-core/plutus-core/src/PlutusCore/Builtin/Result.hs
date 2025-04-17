@@ -159,7 +159,7 @@ instance Pretty BuiltinError where
     pretty (BuiltinUnliftingEvaluationError err) = "Builtin evaluation failure:" <+> pretty err
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
-{- Note [INLINE and NOINLINE on error-related definitions]
+{- Note [INLINE and OPAQUE on error-related definitions]
 We mark error-related definitions such as prisms like '_StructuralUnliftingError' and regular
 functions like 'throwNotAConstant' with @INLINE@, because this produces significantly less cluttered
 GHC Core. Not doing so results in 20+% larger Core for builtins.
@@ -168,7 +168,7 @@ However in a few specific cases we use @OPAQUE@ instead to get tighter Core. @OP
 same as @NOINLINE@ except the former _actually_ prevents GHC from inlining the definition unlike the
 former. See this for details: https://github.com/ghc-proposals/ghc-proposals/blob/5577fd008924de8d89cfa9855fa454512e7dcc75/proposals/0415-opaque-pragma.rst
 
-It's hard to predict where @NOINLINE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
+It's hard to predict where @OPAQUE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
 mostly just looking into the Core and seeing where there's obvious duplication that can be removed.
 Such cases tend to be functions returning a value of a concrete error type (as opposed to a type
 variable).
