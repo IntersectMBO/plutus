@@ -114,7 +114,6 @@ data Value {X : Set} : X ⊢ → Set where
             → Value (t · t₁)
 
   constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
-  error : Value error
 
 value-constr-recurse : {i : ℕ} {vs : List (X ⊢)} → Value (constr i vs) → All Value vs
 value-constr-recurse (constr All.[]) = All.[]
@@ -175,7 +174,6 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   -- Many of the things that you can force that aren't delay
   force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
   force-con : {c : TmCon} → force (con c) ⟶ error
-  force-app : {a b : X ⊢} → force (a · b) ⟶ error
   force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
 
   -- Currently, this assumes type arguments have to come first
@@ -263,7 +261,6 @@ progress (L · R) with progress L
 ...     | ƛ = step (β VR)
 ...     | con = step app-con
 ...     | constr x = step app-constr
-...     | error = step error₁
 progress ((force t) · R) | done VL | done VR | unsat₀ s v = step (app-interleave-error (sat-force-step {t = t} s))
 progress ((force t) · R) | done VL | done VR | unsat₀₋₁ s v with sat (force t) in sat-ft
 ... | no-builtin = contradiction (Eq.trans (Eq.sym sat-ft) (sat-force-step {t = t} s)) λ ()
@@ -291,7 +288,7 @@ progress (force m) with progress m
 ...   | want (suc zero) zero = step (sat-force-builtin (sat-force-step {t = m} sat-m))
 ...   | want (suc zero) (suc a₁) = done (unsat₀₋₁ sat-m x)
 progress (force (ƛ m)) | done Vm | no-builtin = step force-ƛ
-progress (force (m · m₁)) | done Vm | no-builtin = step force-app
+progress (force (m · m₁)) | done (unsat₁ sat-m≡want Vm Vm₁) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-app-step {t = m} {t₁ = m₁} sat-m≡want)) λ ()
 progress (force (force m)) | done (unsat₀ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
 progress (force (force m)) | done (unsat₀₋₁ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
 progress (force (delay m)) | done Vm | no-builtin = step force-delay
@@ -331,7 +328,7 @@ progress (case (case x ts₁) ts) with progress (case x ts₁)
 progress (case (builtin b) ts) = step case-builtin
 progress (case error ts) = step case-error
 progress (builtin b) = done builtin
-progress error = done error
+progress error = fail
 
 ```
 ## "Reduction" Equivalence
