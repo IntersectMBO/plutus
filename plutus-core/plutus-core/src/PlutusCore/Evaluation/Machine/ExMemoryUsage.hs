@@ -171,9 +171,9 @@ class ExMemoryUsage a where
  actual value of `n`, which will be exponentially greater than the memory
  occupied by `n`, so this case the memory usage is not a sensible size measure.
  In most cases the default `memoryUsage` function returns the actual memory
- usage, butto deal with cases like `replicateByte` we occasionally use newtype
+ usage, but to deal with cases like `replicateByte` we occasionally use newtype
  wrappers which define a different size measure (see `IntegerCostedLiterally`
- below).  Polymorhpic types require some care though: see Note [ExMemoryUsage
+ below).  Polymorphic types require some care though: see Note [ExMemoryUsage
  for polymorphic types].
 -}
 
