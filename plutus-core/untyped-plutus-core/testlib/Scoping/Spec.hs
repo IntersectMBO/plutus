@@ -54,7 +54,7 @@ test_names = testGroup "names"
         (genTerm @DefaultFun)
         T.BindingRemovalNotOk
         T.PrerenameYes
-        (evalSimplifierT . forceDelay)
+        (evalSimplifierT . forceDelay maxBound)
     , T.test_scopingGood "inline"
         (genTerm @DefaultFun)
         T.BindingRemovalOk

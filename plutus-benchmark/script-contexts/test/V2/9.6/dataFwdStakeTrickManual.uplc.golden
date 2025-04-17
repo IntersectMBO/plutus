@@ -10,24 +10,16 @@
                         (\rest ->
                            (\wdrlAtOne ->
                               force
-                                (force
-                                   (force ifThenElse
-                                      (equalsData r_stake_cred wdrlAtZero)
-                                      (delay (delay (constr 0 [])))
-                                      (delay
-                                         (delay
-                                            (force
-                                               (force
-                                                  (force ifThenElse
-                                                     (equalsData
-                                                        r_stake_cred
-                                                        wdrlAtOne)
-                                                     (delay
-                                                        (delay (constr 0 [])))
-                                                     (delay
-                                                        (delay
-                                                           (force lookForCred
-                                                              rest)))))))))))
+                                (force ifThenElse
+                                   (equalsData r_stake_cred wdrlAtZero)
+                                   (delay (constr 0 []))
+                                   (delay
+                                      (force
+                                         (force ifThenElse
+                                            (equalsData r_stake_cred wdrlAtOne)
+                                            (delay (constr 0 []))
+                                            (delay
+                                               (force lookForCred rest)))))))
                              (force (force fstPair) (force headList rest)))
                           (force tailList wdrl))
                        (force (force fstPair) (force headList wdrl)))
@@ -80,13 +72,11 @@
                                 (constr 0 [])))
                       (\p tl ->
                          force
-                           (force
-                              (force ifThenElse
-                                 (equalsData
-                                    r_stake_cred
-                                    (force (force fstPair) p))
-                                 (delay (delay (constr 0 [])))
-                                 (delay
-                                    (delay
-                                       (force (lookForCred (delay (\x -> x)))
-                                          tl))))))))))))
+                           (force ifThenElse
+                              (equalsData
+                                 r_stake_cred
+                                 (force (force fstPair) p))
+                              (delay (constr 0 []))
+                              (delay
+                                 (force (lookForCred (delay (\x -> x)))
+                                    tl))))))))))

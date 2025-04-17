@@ -65,65 +65,56 @@
                                                                            (\args ->
                                                                               force
                                                                                 (force
-                                                                                   (force
-                                                                                      ifThenElse
-                                                                                      (equalsInteger
-                                                                                         0
-                                                                                         index)
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (constr 2
-                                                                                               [ (unIData
-                                                                                                    (force
-                                                                                                       headList
-                                                                                                       args)) ])))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (force
+                                                                                   ifThenElse
+                                                                                   (equalsInteger
+                                                                                      0
+                                                                                      index)
+                                                                                   (delay
+                                                                                      (constr 2
+                                                                                         [ (unIData
+                                                                                              (force
+                                                                                                 headList
+                                                                                                 args)) ]))
+                                                                                   (delay
+                                                                                      (force
+                                                                                         (force
+                                                                                            ifThenElse
+                                                                                            (equalsInteger
+                                                                                               1
+                                                                                               index)
+                                                                                            (delay
+                                                                                               (constr 0
+                                                                                                  [ (unIData
+                                                                                                       (force
+                                                                                                          headList
+                                                                                                          args)) ]))
+                                                                                            (delay
                                                                                                (force
                                                                                                   (force
                                                                                                      ifThenElse
                                                                                                      (equalsInteger
-                                                                                                        1
+                                                                                                        2
                                                                                                         index)
                                                                                                      (delay
-                                                                                                        (delay
-                                                                                                           (constr 0
-                                                                                                              [ (unIData
+                                                                                                        (constr 1
+                                                                                                           [ (unIData
+                                                                                                                (force
+                                                                                                                   headList
+                                                                                                                   args))
+                                                                                                           , (unIData
+                                                                                                                (force
+                                                                                                                   headList
                                                                                                                    (force
-                                                                                                                      headList
-                                                                                                                      args)) ])))
+                                                                                                                      tailList
+                                                                                                                      args))) ]))
                                                                                                      (delay
-                                                                                                        (delay
+                                                                                                        ((\x ->
+                                                                                                            error)
                                                                                                            (force
-                                                                                                              (force
-                                                                                                                 (force
-                                                                                                                    ifThenElse
-                                                                                                                    (equalsInteger
-                                                                                                                       2
-                                                                                                                       index)
-                                                                                                                    (delay
-                                                                                                                       (delay
-                                                                                                                          (constr 1
-                                                                                                                             [ (unIData
-                                                                                                                                  (force
-                                                                                                                                     headList
-                                                                                                                                     args))
-                                                                                                                             , (unIData
-                                                                                                                                  (force
-                                                                                                                                     headList
-                                                                                                                                     (force
-                                                                                                                                        tailList
-                                                                                                                                        args))) ])))
-                                                                                                                    (delay
-                                                                                                                       (delay
-                                                                                                                          ((\x ->
-                                                                                                                              error)
-                                                                                                                             (force
-                                                                                                                                trace
-                                                                                                                                "PT1"
-                                                                                                                                (constr 0
-                                                                                                                                   [  ]))))))))))))))))))
+                                                                                                              trace
+                                                                                                              "PT1"
+                                                                                                              (constr 0
+                                                                                                                 [  ]))))))))))))
                                                                              (force
                                                                                 (force
                                                                                    sndPair)
@@ -359,70 +350,50 @@
                             (constr 1 [])
                             (\hd ->
                                force
-                                 (force
-                                    (force ifThenElse
-                                       (equalsData k (force (force fstPair) hd))
-                                       (delay
-                                          (delay
-                                             (\ds ->
-                                                constr 0
-                                                  [ (force (force sndPair)
-                                                       hd) ])))
-                                       (delay
-                                          (delay
-                                             (force
-                                                (s s (delay (\x -> x)))))))))))
+                                 (force ifThenElse
+                                    (equalsData k (force (force fstPair) hd))
+                                    (delay
+                                       (\ds ->
+                                          constr 0
+                                            [(force (force sndPair) hd)]))
+                                    (delay (force (s s (delay (\x -> x)))))))))
                     (delay (\x -> x)))))
-         ((\s ->
-             s s)
-            (\s
-              xs
-              xs ->
+         ((\s -> s s)
+            (\s xs xs ->
                caseList'
                  xs
-                 (\hd
-                   tl ->
+                 (\hd tl ->
                     (\v ->
                        (\k ->
                           (\eta ->
                              (\nilCase ->
                                 force
-                                  ((\s ->
-                                      s s)
-                                     (\s
-                                       arg ->
+                                  ((\s -> s s)
+                                     (\s arg ->
                                         delay
                                           (caseList'
                                              nilCase
                                              (\hd ->
                                                 force
-                                                  (force
-                                                     (force
-                                                        ifThenElse
-                                                        (equalsData
-                                                           k
-                                                           (force
-                                                              (force fstPair)
-                                                              hd))
-                                                        (delay
-                                                           (delay
-                                                              (force mkCons
-                                                                 (mkPairData
-                                                                    k
-                                                                    v))))
-                                                        (delay
-                                                           (delay
-                                                              (\eta ->
-                                                                 force
-                                                                   mkCons
-                                                                   hd
-                                                                   (force
-                                                                      (s
-                                                                         s
-                                                                         (delay
-                                                                            (\x ->
-                                                                               x)))
-                                                                      eta)))))))))
+                                                  (force ifThenElse
+                                                     (equalsData
+                                                        k
+                                                        (force (force fstPair)
+                                                           hd))
+                                                     (delay
+                                                        (force mkCons
+                                                           (mkPairData k v)))
+                                                     (delay
+                                                        (\eta ->
+                                                           force mkCons
+                                                             hd
+                                                             (force
+                                                                (s
+                                                                   s
+                                                                   (delay
+                                                                      (\x ->
+                                                                         x)))
+                                                                eta)))))))
                                      (delay (\x -> x)))
                                   eta)
                                (force mkCons (mkPairData k v) []))

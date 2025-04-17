@@ -71,7 +71,7 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core                      ^>=1.44
+    , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib
     , process
     , text
@@ -345,6 +345,7 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.Purity
+    MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -632,6 +633,7 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
@@ -660,7 +662,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.44
+    , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based

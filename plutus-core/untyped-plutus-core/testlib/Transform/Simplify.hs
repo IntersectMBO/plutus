@@ -10,7 +10,8 @@ import PlutusCore.MkPlc (mkConstant, mkIterApp, mkIterAppNoAnn)
 import PlutusCore.Quote (Quote, freshName, runQuote)
 import Test.Tasty (TestTree, testGroup)
 import Transform.Simplify.Lib (goldenVsCse, goldenVsSimplified)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
+import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..), UVarDecl (..))
+import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1
@@ -117,19 +118,32 @@ basicInline = runQuote $ do
   n <- freshName "a"
   pure $ Apply () (LamAbs () n (Var () n)) (mkConstant @Integer () 1)
 
+-- | A helper function to create a term which tests whether the inliner
+-- behaves as expected for a given pure or impure term. It receives
+-- a 'Quote' that produces a term together with a list of free variables.
+-- The free variables are bound at the top level of the final term in order
+-- to ensure that the produced final term is well-scoped.
 mkInlinePurityTest
-  :: Quote (Term Name PLC.DefaultUni PLC.DefaultFun ())
+  :: Quote ([Name], Term Name PLC.DefaultUni PLC.DefaultFun ())
   -> Term Name PLC.DefaultUni PLC.DefaultFun ()
 mkInlinePurityTest termToInline = runQuote $ do
   a <- freshName "a"
   b <- freshName "b"
   -- In `[(\a . \b . a) termToInline]`, `termToInline` will be inlined
   -- if and only if it is pure.
-  Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
+  (freeVars, term) <- termToInline
+  let withTopLevelBindings =
+        mkIterLamAbs
+          (UVarDecl () <$> freeVars)
+  pure
+    $ withTopLevelBindings
+    $ Apply () (LamAbs () a $ LamAbs () b $ Var () a) term
 
 -- | A single @Var@ is pure.
 inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-inlinePure1 = mkInlinePurityTest $ Var () <$> freshName "a"
+inlinePure1 = mkInlinePurityTest $ do
+  a <- freshName "a"
+  pure ([a], Var () a)
 
 {- | @force (delay a)@ is pure.
 
@@ -137,7 +151,9 @@ Note that this relies on @forceDelayCancel@ to cancel the @force@ and the @delay
 otherwise the inliner would treat the term as impure.
 -}
 inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-inlinePure2 = mkInlinePurityTest $ Force () . Delay () . Var () <$> freshName "a"
+inlinePure2 = mkInlinePurityTest $ do
+  a <- freshName "a"
+  pure ([a], Force () $ Delay () $ Var () a)
 
 {- | @[(\x -> \y -> [x x]) (con integer 1)]@ is pure.
 
@@ -149,11 +165,13 @@ inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure3 = mkInlinePurityTest $ do
   x <- freshName "x"
   y <- freshName "y"
-  pure $
-    Apply
-      ()
-      (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
-      (mkConstant @Integer () 1)
+  let t =
+        Apply
+          ()
+          (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
+          (mkConstant @Integer () 1)
+      vars = []
+  pure (vars, t)
 
 {- | @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure,
 but it is very tricky to see so. It requires us to match up a force and a
@@ -163,19 +181,21 @@ inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure4 = mkInlinePurityTest $ do
   x <- freshName "x"
   y <- freshName "y"
-  pure . Force () $
-    Apply
-      ()
-      (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
-      (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
+  let term =
+        Force ()
+        $ Apply
+          ()
+          (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
+          (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
+  pure ([], term)
 
 -- | @error@ is impure.
 inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-inlineImpure1 = mkInlinePurityTest $ pure $ Error ()
+inlineImpure1 = mkInlinePurityTest $ pure ([], Error ())
 
 -- | @force (delay error)@ is impure.
 inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-inlineImpure2 = mkInlinePurityTest $ pure . Force () . Delay () $ Error ()
+inlineImpure2 = mkInlinePurityTest $ pure ([], Force () . Delay () $ Error ())
 
 {- | @force (force (force (delay (delay (delay (error))))))@ is impure, since it
 is the same as @error@.
@@ -184,21 +204,31 @@ inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure3 =
   mkInlinePurityTest
     $ pure
-      . Force ()
+      ( []
+      , Force ()
       . Force ()
       . Force ()
       . Delay ()
       . Delay ()
       . Delay ()
-    $ Error ()
+      $ Error ()
+      )
 
 {- | @force (force (force (delay (delay a))))@ is impure, since @a@ may expand
 to an impure term such as @error@.
 -}
 inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-inlineImpure4 =
-  mkInlinePurityTest $
-    Force () . Force () . Force () . Delay () . Delay () . Var () <$> freshName "a"
+inlineImpure4 = mkInlinePurityTest $ do
+  a <- freshName "a"
+  let term =
+        Force ()
+        . Force ()
+        . Force ()
+        . Delay ()
+        . Delay ()
+        . Var ()
+        $ a
+  pure ([a], term)
 
 {- | @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
@@ -223,7 +253,8 @@ callsiteInline = runQuote $ do
             , mkIterAppNoAnn (Var () a) [mkConstant @Integer () 2]
             ]
       arg = LamAbs () x . LamAbs () y $ mkIterAppNoAnn (Var () g) [Var () y, Var () x]
-  pure $ Apply () fun arg
+      termWithBoundTopLevel = LamAbs () f $ LamAbs () g $ Apply () fun arg
+  pure termWithBoundTopLevel
 
 multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 multiApp = runQuote $ do
@@ -286,8 +317,9 @@ forceDelayMultiApply = runQuote $ do
       two = mkConstant @Integer () 2
       three = mkConstant @Integer () 3
       term =
-        Force () $
-          mkIterAppNoAnn
+        LamAbs () funcVar
+        $ Force ()
+          $ mkIterAppNoAnn
             ( LamAbs () x1 $
                 LamAbs () x2 $
                   LamAbs () x3 $
@@ -372,7 +404,8 @@ forceDelayComplex = runQuote $ do
                                       , Var () z2
                                       ]
       app =
-        Apply
+        LamAbs () funcVar
+        $ Apply
           ()
           ( Force () $
               mkIterAppNoAnn
@@ -453,36 +486,42 @@ cseExpensive = plus arg arg'
     arg = mkArg [0 .. 200]
     arg' = mkArg [0 .. 200]
 
+testSimplifyInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testSimplifyInputs =
+  [ ("basic", basic)
+  , ("nested", nested)
+  , ("extraDelays", extraDelays)
+  , ("floatDelay1", floatDelay1)
+  , ("floatDelay2", floatDelay2)
+  , ("floatDelay3", floatDelay3)
+  , ("interveningLambda", interveningLambda)
+  , ("basicInline", basicInline)
+  , ("callsiteInline", callsiteInline)
+  , ("inlinePure1", inlinePure1)
+  , ("inlinePure2", inlinePure2)
+  , ("inlinePure3", inlinePure3)
+  , ("inlinePure4", inlinePure4)
+  , ("inlineImpure1", inlineImpure1)
+  , ("inlineImpure2", inlineImpure2)
+  , ("inlineImpure3", inlineImpure3)
+  , ("inlineImpure4", inlineImpure4)
+  , ("multiApp", multiApp)
+  , ("forceDelayNoApps", forceDelayNoApps)
+  , ("forceDelayNoAppsLayered", forceDelayNoAppsLayered)
+  , ("forceDelaySimple", forceDelaySimple)
+  , ("forceDelayMultiApply", forceDelayMultiApply)
+  , ("forceDelayMultiForce", forceDelayMultiForce)
+  , ("forceDelayComplex", forceDelayComplex)
+  ]
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
-    [ goldenVsSimplified "basic" basic
-    , goldenVsSimplified "nested" nested
-    , goldenVsSimplified "extraDelays" extraDelays
-    , goldenVsSimplified "floatDelay1" floatDelay1
-    , goldenVsSimplified "floatDelay2" floatDelay2
-    , goldenVsSimplified "floatDelay3" floatDelay3
-    , goldenVsSimplified "interveningLambda" interveningLambda
-    , goldenVsSimplified "basicInline" basicInline
-    , goldenVsSimplified "callsiteInline" callsiteInline
-    , goldenVsSimplified "inlinePure1" inlinePure1
-    , goldenVsSimplified "inlinePure2" inlinePure2
-    , goldenVsSimplified "inlinePure3" inlinePure3
-    , goldenVsSimplified "inlinePure4" inlinePure4
-    , goldenVsSimplified "inlineImpure1" inlineImpure1
-    , goldenVsSimplified "inlineImpure2" inlineImpure2
-    , goldenVsSimplified "inlineImpure3" inlineImpure3
-    , goldenVsSimplified "inlineImpure4" inlineImpure4
-    , goldenVsSimplified "multiApp" multiApp
-    , goldenVsSimplified "forceDelayNoApps" forceDelayNoApps
-    , goldenVsSimplified "forceDelayNoAppsLayered" forceDelayNoAppsLayered
-    , goldenVsSimplified "forceDelaySimple" forceDelaySimple
-    , goldenVsSimplified "forceDelayMultiApply" forceDelayMultiApply
-    , goldenVsSimplified "forceDelayMultiForce" forceDelayMultiForce
-    , goldenVsSimplified "forceDelayComplex" forceDelayComplex
-    , goldenVsCse "cse1" cse1
-    , goldenVsCse "cse2" cse2
-    , goldenVsCse "cse3" cse3
-    , goldenVsCse "cseExpensive" cseExpensive
-    ]
+    $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
+    <>
+      [ goldenVsCse "cse1" cse1
+      , goldenVsCse "cse2" cse2
+      , goldenVsCse "cse3" cse3
+      , goldenVsCse "cseExpensive" cseExpensive
+      ]
