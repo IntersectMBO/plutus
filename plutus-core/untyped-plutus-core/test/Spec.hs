@@ -17,6 +17,7 @@ import Flat.Spec (test_flat)
 import Generators (test_parsing)
 import Scoping.Spec (test_names)
 import Transform.CaseOfCase.Test (test_caseOfCase)
+import Transform.Inline.Spec (test_inline)
 import Transform.Simplify (test_simplify)
 
 import Test.Tasty
@@ -31,6 +32,7 @@ main = do
       , test_builtins
       , test_budget
       , test_caseOfCase
+      , test_inline
       , test_golden
       , test_tallying
       , test_NumberOfStepCounters

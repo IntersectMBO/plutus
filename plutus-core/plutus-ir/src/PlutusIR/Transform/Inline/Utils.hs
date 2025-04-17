@@ -276,17 +276,21 @@ remove a binding that we inline.
 
 For strict bindings, the answer is that we can't: we will delay the effects to the use site,
 so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure,
-or if we can prove that the effects don't change. We take a conservative view on this,
-saying that no effects change if:
+or if we can prove that the effects don't change.
+We take a conservative view on this, saying that no effects change if:
 - The variable is clearly the first possibly-effectful term evaluated in the body
 - The variable is used exactly once (so we won't duplicate or remove effects)
 
 For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
 unconditionally.
 
-TODO: if we are not in conservative optimization mode and we're allowed to move/duplicate
+If we are not in conservative optimization mode and we're allowed to move/duplicate
 effects, then we could relax these criteria (e.g. say that the binding must be evaluted
-*somewhere*, but not necessarily before any other effects), but we don't currently.
+*somewhere*, but not necessarily before any other effects).
+
+One instance of this is when logging preservation is disabled then we inline
+variables that are dertermined to get eventually evaluated anyway: such that
+have at least one occurrence outside of a 'delay', lambda or a case branch.
 -}
 
 nameUsedAtMostOnce :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun

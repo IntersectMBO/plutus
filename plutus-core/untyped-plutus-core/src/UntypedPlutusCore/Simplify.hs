@@ -102,6 +102,7 @@ termSimplifier opts builtinSemanticsVariant =
         >=> inline
               (_soInlineCallsiteGrowth opts)
               (_soInlineConstants opts)
+              (_soPreserveLogging opts)
               (_soInlineHints opts)
               builtinSemanticsVariant
 

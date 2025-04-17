@@ -4,7 +4,7 @@ module Scoping.Spec where
 
 import Generators (genProgram, genTerm)
 
-import UntypedPlutusCore (_soInlineHints, defaultSimplifyOpts)
+import UntypedPlutusCore (_soInlineHints, _soPreserveLogging, defaultSimplifyOpts)
 import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
@@ -59,5 +59,10 @@ test_names = testGroup "names"
         (genTerm @DefaultFun)
         T.BindingRemovalOk
         T.PrerenameYes
-        (evalSimplifierT . inline 0 True (_soInlineHints defaultSimplifyOpts) maxBound)
+        (evalSimplifierT .
+          inline 0
+            True
+            (_soPreserveLogging defaultSimplifyOpts)
+            (_soInlineHints defaultSimplifyOpts)
+            maxBound )
     ]
