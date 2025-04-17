@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module PlutusTx.Optimize.Inline (inline) where
 
 import Prelude

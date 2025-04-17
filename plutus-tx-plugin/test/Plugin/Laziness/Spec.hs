@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
