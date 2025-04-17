@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module PlutusTx.Function (fix) where
 
 fix :: forall a b. ((a -> b) -> a -> b) -> a -> b

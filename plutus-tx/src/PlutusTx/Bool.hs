@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module PlutusTx.Bool (Bool(..), (&&), (||), not, otherwise) where
 
 {-
