@@ -252,8 +252,8 @@ typeMismatchError uniExp uniAct =
         , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
         , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
         ]
--- See Note [INLINE and NOINLINE on error-related definitions].
-{-# NOINLINE typeMismatchError #-}
+-- See Note [INLINE and OPAQUE on error-related definitions].
+{-# OPAQUE typeMismatchError #-}
 
 -- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we

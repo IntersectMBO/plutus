@@ -67,7 +67,7 @@ builtinCostModelVariantA :: BuiltinCostModel
 builtinCostModelVariantA =
     $$(readJSONFromFile DFP.builtinCostModelFileA)
 -- This is a huge record, inlining it is wasteful.
-{-# NOINLINE builtinCostModelVariantA #-}
+{-# OPAQUE builtinCostModelVariantA #-}
 
 {- Note [No inlining for CekMachineCosts]
 We don't want this to get inlined, as otherwise the default 'CekMachineCosts'
@@ -77,7 +77,7 @@ the costing parameters provided by the ledger. -}
 cekMachineCostsVariantA :: CekMachineCosts
 cekMachineCostsVariantA =
   $$(readJSONFromFile DFP.cekMachineCostsFileA)
-{-# NOINLINE cekMachineCostsVariantA #-}
+{-# OPAQUE cekMachineCostsVariantA #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
     Note that this is not necessarily the cost model in use on the chain at any
@@ -94,13 +94,13 @@ cekCostModelVariantA = CostModel cekMachineCostsVariantA builtinCostModelVariant
 builtinCostModelVariantB :: BuiltinCostModel
 builtinCostModelVariantB =
     $$(readJSONFromFile DFP.builtinCostModelFileB)
-{-# NOINLINE builtinCostModelVariantB #-}
+{-# OPAQUE builtinCostModelVariantB #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantB :: CekMachineCosts
 cekMachineCostsVariantB =
   $$(readJSONFromFile DFP.cekMachineCostsFileB)
-{-# NOINLINE cekMachineCostsVariantB #-}
+{-# OPAQUE cekMachineCostsVariantB #-}
 
 cekCostModelVariantB :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantB = CostModel cekMachineCostsVariantB builtinCostModelVariantB
@@ -108,13 +108,13 @@ cekCostModelVariantB = CostModel cekMachineCostsVariantB builtinCostModelVariant
 builtinCostModelVariantC :: BuiltinCostModel
 builtinCostModelVariantC =
     $$(readJSONFromFile DFP.builtinCostModelFileC)
-{-# NOINLINE builtinCostModelVariantC #-}
+{-# OPAQUE builtinCostModelVariantC #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantC :: CekMachineCosts
 cekMachineCostsVariantC =
   $$(readJSONFromFile DFP.cekMachineCostsFileC)
-{-# NOINLINE cekMachineCostsVariantC #-}
+{-# OPAQUE cekMachineCostsVariantC #-}
 
 cekCostModelVariantC :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariantC
