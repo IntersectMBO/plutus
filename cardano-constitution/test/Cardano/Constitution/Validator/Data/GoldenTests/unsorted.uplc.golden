@@ -49,46 +49,40 @@ program
                                                                                                                                           (\cse ->
                                                                                                                                              force
                                                                                                                                                (force
-                                                                                                                                                  (force
-                                                                                                                                                     ifThenElse
-                                                                                                                                                     (equalsInteger
-                                                                                                                                                        0
-                                                                                                                                                        cse)
-                                                                                                                                                     (delay
-                                                                                                                                                        (delay
-                                                                                                                                                           (constr 0
-                                                                                                                                                              [ (force
-                                                                                                                                                                   caseData_go
-                                                                                                                                                                   (unMapData
+                                                                                                                                                  ifThenElse
+                                                                                                                                                  (equalsInteger
+                                                                                                                                                     0
+                                                                                                                                                     cse)
+                                                                                                                                                  (delay
+                                                                                                                                                     (constr 0
+                                                                                                                                                        [ (force
+                                                                                                                                                             caseData_go
+                                                                                                                                                             (unMapData
+                                                                                                                                                                (force
+                                                                                                                                                                   headList
+                                                                                                                                                                   (force
+                                                                                                                                                                      tailList
                                                                                                                                                                       (force
-                                                                                                                                                                         headList
                                                                                                                                                                          (force
-                                                                                                                                                                            tailList
-                                                                                                                                                                            (force
-                                                                                                                                                                               (force
-                                                                                                                                                                                  sndPair)
-                                                                                                                                                                               cse))))) ])))
-                                                                                                                                                     (delay
-                                                                                                                                                        (delay
-                                                                                                                                                           (force
-                                                                                                                                                              (force
+                                                                                                                                                                            sndPair)
+                                                                                                                                                                         cse))))) ]))
+                                                                                                                                                  (delay
+                                                                                                                                                     (force
+                                                                                                                                                        (force
+                                                                                                                                                           ifThenElse
+                                                                                                                                                           (equalsInteger
+                                                                                                                                                              2
+                                                                                                                                                              cse)
+                                                                                                                                                           (delay
+                                                                                                                                                              ((\l ->
+                                                                                                                                                                  constr 1
+                                                                                                                                                                    [  ])
                                                                                                                                                                  (force
-                                                                                                                                                                    ifThenElse
-                                                                                                                                                                    (equalsInteger
-                                                                                                                                                                       2
-                                                                                                                                                                       cse)
-                                                                                                                                                                    (delay
-                                                                                                                                                                       (delay
-                                                                                                                                                                          ((\l ->
-                                                                                                                                                                              constr 1
-                                                                                                                                                                                [  ])
-                                                                                                                                                                             (force
-                                                                                                                                                                                (force
-                                                                                                                                                                                   sndPair)
-                                                                                                                                                                                cse))))
-                                                                                                                                                                    (delay
-                                                                                                                                                                       (delay
-                                                                                                                                                                          error))))))))))
+                                                                                                                                                                    (force
+                                                                                                                                                                       sndPair)
+                                                                                                                                                                    cse)))
+                                                                                                                                                           (delay
+                                                                                                                                                              error))))))
                                                                                                                                             (force
                                                                                                                                                (force
                                                                                                                                                   fstPair)
@@ -107,27 +101,24 @@ program
                                                                                                                                                            ((\tup ->
                                                                                                                                                                force
                                                                                                                                                                  (force
-                                                                                                                                                                    (force
-                                                                                                                                                                       ifThenElse
-                                                                                                                                                                       (equalsInteger
-                                                                                                                                                                          5
+                                                                                                                                                                    ifThenElse
+                                                                                                                                                                    (equalsInteger
+                                                                                                                                                                       5
+                                                                                                                                                                       (force
                                                                                                                                                                           (force
+                                                                                                                                                                             fstPair)
+                                                                                                                                                                          tup))
+                                                                                                                                                                    (delay
+                                                                                                                                                                       (force
+                                                                                                                                                                          headList
+                                                                                                                                                                          (force
+                                                                                                                                                                             tailList
                                                                                                                                                                              (force
-                                                                                                                                                                                fstPair)
-                                                                                                                                                                             tup))
-                                                                                                                                                                       (delay
-                                                                                                                                                                          (delay
-                                                                                                                                                                             (force
-                                                                                                                                                                                headList
                                                                                                                                                                                 (force
-                                                                                                                                                                                   tailList
-                                                                                                                                                                                   (force
-                                                                                                                                                                                      (force
-                                                                                                                                                                                         sndPair)
-                                                                                                                                                                                      tup)))))
-                                                                                                                                                                       (delay
-                                                                                                                                                                          (delay
-                                                                                                                                                                             error)))))
+                                                                                                                                                                                   sndPair)
+                                                                                                                                                                                tup))))
+                                                                                                                                                                    (delay
+                                                                                                                                                                       error)))
                                                                                                                                                               (unConstrData
                                                                                                                                                                  (force
                                                                                                                                                                     headList
@@ -1041,33 +1032,19 @@ program
                                                                  (constr 1 [])
                                                                  (constr 0 []))
                                                           , (\x y ->
-                                                               force
-                                                                 (force
-                                                                    (force
-                                                                       ifThenElse
-                                                                       (lessThanEqualsInteger
-                                                                          x
-                                                                          y)
-                                                                       (delay
-                                                                          (delay
-                                                                             y))
-                                                                       (delay
-                                                                          (delay
-                                                                             x)))))
+                                                               force ifThenElse
+                                                                 (lessThanEqualsInteger
+                                                                    x
+                                                                    y)
+                                                                 y
+                                                                 x)
                                                           , (\x y ->
-                                                               force
-                                                                 (force
-                                                                    (force
-                                                                       ifThenElse
-                                                                       (lessThanEqualsInteger
-                                                                          x
-                                                                          y)
-                                                                       (delay
-                                                                          (delay
-                                                                             x))
-                                                                       (delay
-                                                                          (delay
-                                                                             y))))) ])
+                                                               force ifThenElse
+                                                                 (lessThanEqualsInteger
+                                                                    x
+                                                                    y)
+                                                                 x
+                                                                 y) ])
                                                        preds
                                                        (unIData eta)))
                                              , (\paramValues ->
@@ -1092,26 +1069,23 @@ program
                                                                                   d' ->
                                                                                    force
                                                                                      (force
-                                                                                        (force
-                                                                                           ifThenElse
-                                                                                           (equalsInteger
-                                                                                              n
-                                                                                              n')
-                                                                                           (delay
-                                                                                              (delay
-                                                                                                 (force
-                                                                                                    ifThenElse
-                                                                                                    (equalsInteger
-                                                                                                       d
-                                                                                                       d')
-                                                                                                    (constr 0
-                                                                                                       [  ])
-                                                                                                    (constr 1
-                                                                                                       [  ]))))
-                                                                                           (delay
-                                                                                              (delay
-                                                                                                 (constr 1
-                                                                                                    [  ])))))) ]) ])
+                                                                                        ifThenElse
+                                                                                        (equalsInteger
+                                                                                           n
+                                                                                           n')
+                                                                                        (delay
+                                                                                           (force
+                                                                                              ifThenElse
+                                                                                              (equalsInteger
+                                                                                                 d
+                                                                                                 d')
+                                                                                              (constr 0
+                                                                                                 [  ])
+                                                                                              (constr 1
+                                                                                                 [  ])))
+                                                                                        (delay
+                                                                                           (constr 1
+                                                                                              [  ])))) ]) ])
                                                                 , (\ds ds ->
                                                                      case
                                                                        ds
@@ -1263,44 +1237,30 @@ program
                     ((\s -> s s)
                        (\s n d ->
                           force
-                            (force
-                               (force ifThenElse
-                                  (equalsInteger 0 d)
-                                  (delay (delay error))
-                                  (delay
-                                     (delay
-                                        (force
-                                           (force
-                                              (force ifThenElse
-                                                 (lessThanInteger d 0)
-                                                 (delay
-                                                    (delay
-                                                       ((\x -> s s x)
-                                                          (subtractInteger 0 n)
-                                                          (subtractInteger
-                                                             0
-                                                             d))))
-                                                 (delay
-                                                    (delay
-                                                       ((\gcd' ->
-                                                           constr 0
-                                                             [ (quotientInteger
-                                                                  n
-                                                                  gcd')
-                                                             , (quotientInteger
-                                                                  d
-                                                                  gcd') ])
-                                                          (euclid
-                                                             n
-                                                             d))))))))))))))
+                            (force ifThenElse
+                               (equalsInteger 0 d)
+                               (delay error)
+                               (delay
+                                  (force
+                                     (force ifThenElse
+                                        (lessThanInteger d 0)
+                                        (delay
+                                           ((\x -> s s x)
+                                              (subtractInteger 0 n)
+                                              (subtractInteger 0 d)))
+                                        (delay
+                                           ((\gcd' ->
+                                               constr 0
+                                                 [ (quotientInteger n gcd')
+                                                 , (quotientInteger d gcd') ])
+                                              (euclid n d))))))))))
                  ((\s -> s s)
                     (\s x y ->
                        force
-                         (force
-                            (force ifThenElse
-                               (equalsInteger 0 y)
-                               (delay (delay x))
-                               (delay (delay (s s y (modInteger x y)))))))))
+                         (force ifThenElse
+                            (equalsInteger 0 y)
+                            (delay x)
+                            (delay (s s y (modInteger x y)))))))
               (\`$dOrd` ds ds ->
                  (\s -> s s)
                    (\s ds ->
@@ -1376,18 +1336,14 @@ program
               force ifThenElse (equalsInteger x y) (constr 0 []) (constr 1 [])))
         (\eta eta ->
            force
-             (force
-                (force ifThenElse
-                   (equalsInteger eta eta)
-                   (delay (delay (constr 0 [])))
-                   (delay
-                      (delay
-                         (force
-                            (force
-                               (force ifThenElse
-                                  (lessThanEqualsInteger eta eta)
-                                  (delay (delay (constr 2 [])))
-                                  (delay (delay (constr 1 []))))))))))))
+             (force ifThenElse
+                (equalsInteger eta eta)
+                (delay (constr 0 []))
+                (delay
+                   (force ifThenElse
+                      (lessThanEqualsInteger eta eta)
+                      (constr 2 [])
+                      (constr 1 []))))))
      (\ds ds ->
         case
           ds
