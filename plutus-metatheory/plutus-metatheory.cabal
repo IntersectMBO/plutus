@@ -348,6 +348,7 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.Purity
+    MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -635,6 +636,7 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.Reduction
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.List
