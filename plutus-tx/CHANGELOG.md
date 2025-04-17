@@ -1,4 +1,15 @@
 
+<a id='changelog-1.45.0.0'></a>
+# 1.45.0.0 — 2025-04-15
+
+## Added
+
+- Module `PlutusTx.BuiltinList`, containing functions for operating on `BuiltinList`.
+
+## Changed
+
+- `PlutusTx.List.indexBuiltinList` is replaced by `PlutusTx.BuiltinList.!!`.
+
 <a id='changelog-1.44.0.0'></a>
 # 1.44.0.0 — 2025-04-03
 

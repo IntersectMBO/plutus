@@ -19,7 +19,6 @@ import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import Data.Set qualified as Set
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
-import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List.TH (destructList)
@@ -212,15 +211,6 @@ tests = testNested "Budget" . pure $ testNestedGhc
   , goldenBudget
       "listIndexing"
       (compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput)
-
-  , goldenUPlcReadable "builtinListIndexing" compiledBuiltinListIndexing
-  , goldenPirReadable "builtinListIndexing" compiledBuiltinListIndexing
-  , goldenEvalCekCatch
-      "builtinListIndexing"
-      [compiledBuiltinListIndexing `unsafeApplyCode` liftCodeDef builtinListIndexingInput]
-  , goldenBudget
-      "builtinListIndexing"
-      (compiledBuiltinListIndexing `unsafeApplyCode` liftCodeDef builtinListIndexingInput)
 
   , goldenBudget "toFromData" compiledToFromData
   , goldenUPlcReadable "toFromData" compiledToFromData
@@ -491,15 +481,8 @@ compiledListIndexing :: CompiledCode ([PlutusTx.BuiltinData] -> PlutusTx.Builtin
 compiledListIndexing = $$(compile [||
       \xs -> xs List.!! 5 ||])
 
-compiledBuiltinListIndexing :: CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData)
-compiledBuiltinListIndexing = $$(compile [||
-      \d -> BI.unsafeDataAsList d `List.indexBuiltinList` 5 ||])
-
 listIndexingInput :: [PlutusTx.BuiltinData]
 listIndexingInput = IsData.toBuiltinData <$> [1 :: Integer .. 10]
-
-builtinListIndexingInput :: PlutusTx.BuiltinData
-builtinListIndexingInput = IsData.toBuiltinData listIndexingInput
 
 compiledToFromData :: CompiledCode (Either Integer (Maybe (Bool, Integer, Bool)))
 compiledToFromData = $$(compile [||

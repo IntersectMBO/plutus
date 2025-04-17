@@ -6,28 +6,28 @@ let
     Unit : Unit
 in
 letrec
-  !go : list data -> integer -> data
-    = \(xs : list data) (i : integer) ->
+  !go : list integer -> integer -> integer
+    = \(xs : list integer) (i : integer) ->
         (let
-            r = Unit -> Unit -> data
+            r = Unit -> Unit -> integer
           in
-          \(z : r) (f : data -> list data -> r) (xs : list data) ->
+          \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
             chooseList
-              {data}
+              {integer}
               {all dead. r}
               xs
               (/\dead -> z)
-              (/\dead -> f (headList {data} xs) (tailList {data} xs))
+              (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
               {r})
           (\(ds : Unit) ->
              let
                !x : Unit = trace {Unit} "PT22" Unit
              in
-             error {Unit -> data})
-          (\(x : data) (xs : list data) (ds : Unit) (eta : Unit) ->
+             error {Unit -> integer})
+          (\(x : integer) (xs : list integer) (ds : Unit) (eta : Unit) ->
              Bool_match
                (case Bool (equalsInteger 0 i) [False, True])
-               {all dead. data}
+               {all dead. integer}
                (/\dead -> x)
                (/\dead -> go xs (subtractInteger i 1))
                {all dead. dead})
@@ -35,4 +35,4 @@ letrec
           Unit
           Unit
 in
-\(d : data) -> let !xs : list data = unListData d in go xs 5
+\(v : list integer) -> go v 5

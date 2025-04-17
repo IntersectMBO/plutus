@@ -189,12 +189,9 @@ passed? (just (cert (ce _ _ _ _))) = false
 passed? (just (cert (proof _))) = true
 passed? nothing = false
 
-runCertifierMain : List (SimplifierTag × Untyped × Untyped) → IO ⊤
+runCertifierMain : List (SimplifierTag × Untyped × Untyped) → Maybe Bool
 runCertifierMain asts with runCertifier asts
-... | just (cert (proof a)) =
-  putStrLn "The compilation was successfully certified."
-... | just (cert (ce ¬p t b a)) =
-  putStrLn "The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate."
-... | nothing =
-  putStrLn "The certifier was unable to check the compilation. Please open a bug report at https://www.github.com/IntersectMBO/plutus."
+... | just (cert (proof a)) = just true
+... | just (cert (ce ¬p t b a)) = just false
+... | nothing = nothing
 {-# COMPILE GHC runCertifierMain as runCertifierMain #-}

@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\go d -> go (unListData d) 5)
+   ((\go v -> go v 5)
       ((\s -> s s)
          (\s xs i ->
             force

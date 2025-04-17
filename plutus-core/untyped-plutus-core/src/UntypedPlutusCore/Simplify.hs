@@ -8,6 +8,8 @@ module UntypedPlutusCore.Simplify (
     simplifyProgram,
     simplifyProgramWithTrace,
     InlineHints (..),
+    termSimplifier,
+    module UntypedPlutusCore.Transform.Simplifier,
 ) where
 
 import PlutusCore.Compiler.Types
@@ -94,7 +96,9 @@ termSimplifier opts builtinSemanticsVariant =
       SimplifierT name uni fun a m (Term name uni fun a)
     simplifyStep _ =
         floatDelay
-        >=> forceDelay
+        >=> case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
+            (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
+            _                      -> pure
         >=> caseOfCase'
         >=> caseReduce
         >=> inline
