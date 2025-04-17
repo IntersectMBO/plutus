@@ -10,6 +10,7 @@ import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import GHC.IO.Encoding (setLocaleEncoding)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 import PlutusCore qualified as PLC
+import PlutusCore.MkPlc (mkConstant)
 import System.Exit
 import System.FilePath
 import System.IO
@@ -171,6 +172,50 @@ mkUPLCTest simplifierFunc name input = testCase name $
       Nothing ->
         assertFailure "The certifier exited with an error."
 
+mkMockTracePair
+  :: SimplifierStage
+  -> Term Name DefaultUni DefaultFun ()
+  -> Term Name DefaultUni DefaultFun ()
+  -> SimplifierTrace Name DefaultUni DefaultFun ()
+mkMockTracePair stage before' after' =
+  SimplifierTrace
+    { simplifierTrace =
+        [ Simplification
+            { beforeAST = before'
+            , stage = stage
+            , afterAST = after'
+            }
+        ]
+    }
+
+runCertifierWithMockTrace
+  :: SimplifierTrace Name DefaultUni DefaultFun ()
+  -> IO Bool
+runCertifierWithMockTrace trace = do
+  let rawAgdaTrace = mkAgdaTrace trace
+  case runCertifierMain rawAgdaTrace of
+    Just result -> pure result
+    Nothing ->
+      assertFailure "The certifier exited with an error."
+
+testTrivialSuccess1 :: TestTree
+testTrivialSuccess1 =
+  testCase "testTrivialSuccess1" $ do
+    let before' = mkConstant () (1 :: Integer)
+        after' = mkConstant () (1 :: Integer)
+        trace = mkMockTracePair FloatDelay before' after'
+    result <- runCertifierWithMockTrace trace
+    assertBool "The certifier returned false." result
+
+testTrivialFailure1 :: TestTree
+testTrivialFailure1 =
+  testCase "testTrivialFailure1" $ do
+    let before' = mkConstant () (1 :: Integer)
+        after' = mkConstant () (2 :: Integer)
+        trace = mkMockTracePair FloatDelay before' after'
+    result <- runCertifierWithMockTrace trace
+    assertBool "The certifier returned true when it shouldn't have." (not result)
+
 mkUPLCSimplifierTest
   :: String
   -> Term Name DefaultUni DefaultFun ()
@@ -197,6 +242,10 @@ main = do
         $ fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs'
     , testGroup "uplc cse tests"
         $ fmap (uncurry mkUPLCCseTest) testCseInputs
+    , testGroup "certifier unit tests"
+        [ testTrivialSuccess1
+        , testTrivialFailure1
+        ]
     ]
   where
     -- TODO(https://github.com/IntersectMBO/plutus-private/issues/1541):
