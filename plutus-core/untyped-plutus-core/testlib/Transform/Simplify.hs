@@ -472,7 +472,7 @@ cse3 = runQuote $ do
         mkIterApp
           (LamAbs () z (plus (con 2) (plus (Var () z) (Var () z))))
           [((), plus (con 0) (Var () x))]
-  pure $ LamAbs () x (mkIterApp (Var () f) [((), arg1), ((), arg2)])
+  pure $ LamAbs () f $ LamAbs () x (mkIterApp (Var () f) [((), arg1), ((), arg2)])
 
 --  ((1+2) + (3+4) + ...)
 --  +
@@ -514,14 +514,17 @@ testSimplifyInputs =
   , ("forceDelayComplex", forceDelayComplex)
   ]
 
+testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputs =
+  [ ("cse1", cse1)
+  , ("cse2", cse2)
+  , ("cse3", cse3)
+  , ("cseExpensive", cseExpensive)
+  ]
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
     $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
-    <>
-      [ goldenVsCse "cse1" cse1
-      , goldenVsCse "cse2" cse2
-      , goldenVsCse "cse3" cse3
-      , goldenVsCse "cseExpensive" cseExpensive
-      ]
+    <> fmap (uncurry goldenVsCse) testCseInputs
