@@ -37,7 +37,7 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally, ListCostedByLength,
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
@@ -133,10 +133,6 @@ smallConstant tr
             (SomeConst c1, SomeConst c2) -> SomeConst (c1, c2)
     | trList `App` trElem <- tr
     , Just HRefl <- eqTypeRep trList (typeRep @[]) =
-        case smallConstant trElem of
-          SomeConst c -> SomeConst ([] `asTypeOf` [c])
-    | trList' `App` trElem <- tr
-    , Just HRefl <- eqTypeRep trList' (typeRep @ListCostedByLength) =
         case smallConstant trElem of
           SomeConst c -> SomeConst ([] `asTypeOf` [c])
     | trArray `App` trElem <- tr

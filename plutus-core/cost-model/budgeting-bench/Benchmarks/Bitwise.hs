@@ -7,7 +7,6 @@ import Generators
 import PlutusCore
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
-                                                    ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), flattenCostRose,
                                                     memoryUsage)
 
@@ -140,14 +139,7 @@ benchWriteBits =
       -- Given an integer k, return a list of updates which write a bit 10*k
       -- times.  Here k will range from 1 to numSamples, which is 150.
       inputs = zip3 xs positions (replicate numSamples True)
-  in createThreeTermBuiltinBenchElementwiseWithWrappers
-       (id, ListCostedByLength, id)
-       WriteBits [] inputs
-  {- This is like createThreeTermBuiltinBenchElementwise except that the benchmark
-   name contains the length of the list of updates, not the memory usage.  The
-   denotation of WriteBits in Default.Builtins must wrap its second and third
-   arguments in ListCostedByLength to make sure that the correct ExMemoryUsage
-   instance is called for costing. -}
+  in createThreeTermBuiltinBenchElementwise  WriteBits [] inputs
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as

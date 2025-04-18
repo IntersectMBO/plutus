@@ -17,7 +17,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally, ListCostedByLength,
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 import PlutusCore.Generators.QuickCheck.Builtin
@@ -116,10 +116,6 @@ genConstant tr
     , Just HRefl <- eqTypeRep trList (typeRep @[]) =
         case genConstant trElem of
             SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
-    | trList' `App` trElem <- tr
-    , Just HRefl <- eqTypeRep trList' (typeRep @ListCostedByLength) =
-        case genConstant trElem of
-          SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
     | trArray `App` trElem <- tr
     , Just HRefl <- eqTypeRep trArray (typeRep @Vector) =
         case genConstant trElem of

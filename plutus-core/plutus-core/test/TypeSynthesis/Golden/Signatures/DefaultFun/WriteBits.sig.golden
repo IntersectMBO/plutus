@@ -1,1 +1,1 @@
-ByteString -> ListCostedByLength Integer -> Bool -> BuiltinResult ByteString
+ByteString -> [Integer] -> Bool -> BuiltinResult ByteString
