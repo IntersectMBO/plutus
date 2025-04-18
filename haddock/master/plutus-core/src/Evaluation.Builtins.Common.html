@@ -1,0 +1,3287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Common</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#unsafeSplitStructuralOperational"
+	><span class="hs-identifier"
+	  >unsafeSplitStructuralOperational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#evaluateCek"
+	><span class="hs-identifier"
+	  >evaluateCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#evaluateCekNoEmit"
+	><span class="hs-identifier"
+	  >evaluateCekNoEmit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#readKnownCek"
+	><span class="hs-identifier"
+	  >readKnownCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+	><span class="hs-identifier"
+	  >typecheckAnd</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCek"
+	><span class="hs-identifier"
+	  >typecheckEvaluateCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCekNoEmit"
+	><span class="hs-identifier"
+	  >typecheckEvaluateCekNoEmit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html#typecheckReadKnownCek"
+	><span class="hs-identifier"
+	  >typecheckReadKnownCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Compiler.Erase.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Compiler.Erase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExMemoryUsage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html"
+	><span class="hs-identifier"
+	  >PlutusCore.TypeCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Bifunctor.html"
+	><span class="hs-identifier"
+	  >Data.Bifunctor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type check and evaluate a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="local-6989586621679251180"
+      ><span id="local-6989586621679251181"
+	><span id="local-6989586621679251183"
+	  ><span id="local-6989586621679251196"
+	    ><span class="annot"
+	      ><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+		><span class="hs-identifier hs-type"
+		  >typecheckAnd</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-36"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251183"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Typecheckable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+		><span class="hs-identifier hs-type"
+		  >GEq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-37"
+	      ></span
+	      ><span
+	      >       </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+		><span class="hs-identifier hs-type"
+		  >Closed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+		><span class="hs-identifier hs-type"
+		  >ExMemoryUsage</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-38"
+	      ></span
+	      ><span
+	      >       </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-39"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+		><span class="hs-identifier hs-type"
+		  >BuiltinSemanticsVariant</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-40"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+		><span class="hs-identifier hs-type"
+		  >MachineParameters</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+		><span class="hs-identifier hs-type"
+		  >CekMachineCosts</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekValue"
+		><span class="hs-identifier hs-type"
+		  >CekValue</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      >
+</span
+	      ><span id="line-41"
+	      ></span
+	      ><span
+	      >            </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >UPLC.Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251196"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-42"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+		><span class="hs-identifier hs-type"
+		  >CostingPart</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251180"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251181"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251183"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251196"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="typecheckAnd"
+      ><span class="annot"
+	><span class="annottext"
+	  >typecheckAnd :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Closed uni, Everywhere uni ExMemoryUsage) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; a)
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m a
+</span
+	  ><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typecheckAnd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251436"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621679251436"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251437"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineParameters CekMachineCosts fun (CekValue uni fun ())
+-&gt; Term Name uni fun () -&gt; a
+</span
+	  ><a href="#local-6989586621679251437"
+	  ><span class="hs-identifier hs-var"
+	    >action</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251438"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostingPart uni fun
+</span
+	  ><a href="#local-6989586621679251438"
+	  ><span class="hs-identifier hs-var"
+	    >costingPart</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251439"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+</span
+	  ><a href="#local-6989586621679251439"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>QuoteT m a -&gt; m a
+forall (m :: * -&gt; *) a. Monad m =&gt; QuoteT m a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#runQuoteT"
+	><span class="hs-identifier hs-var"
+	  >TPLC.runQuoteT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(QuoteT m a -&gt; m a) -&gt; QuoteT m a -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Here we don't use 'getDefTypeCheckConfig', to cover the absurd case where</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- builtins can change their type according to their 'BuiltinSemanticsVariant'.</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679251441"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeCheckConfig uni fun
+</span
+	  ><a href="#local-6989586621679251441"
+	  ><span class="hs-identifier hs-var"
+	    >tcConfig</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig -&gt; BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun
+forall (uni :: * -&gt; *) fun.
+KindCheckConfig -&gt; BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.Internal.html#TypeCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >TypeCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>KindCheckConfig
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#defKindCheckConfig"
+	><span class="hs-identifier hs-var"
+	  >defKindCheckConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinTypes uni fun -&gt; TypeCheckConfig uni fun)
+-&gt; QuoteT m (BuiltinTypes uni fun)
+-&gt; QuoteT m (TypeCheckConfig uni fun)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; () -&gt; QuoteT m (BuiltinTypes uni fun)
+forall err term (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+(MonadKindCheck err term uni fun ann m, Typecheckable uni fun) =&gt;
+BuiltinSemanticsVariant fun -&gt; ann -&gt; m (BuiltinTypes uni fun)
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#builtinMeaningsToTypes"
+	><span class="hs-identifier hs-var"
+	  >builtinMeaningsToTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621679251436"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Normalized (Type TyName uni ())
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; QuoteT m (Normalized (Type TyName uni ()))
+forall err (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadTypeCheckPlc err uni fun ann m =&gt;
+TypeCheckConfig uni fun
+-&gt; Term TyName Name uni fun ann
+-&gt; m (Normalized (Type TyName uni ()))
+</span
+	><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#inferType"
+	><span class="hs-identifier hs-var"
+	  >TPLC.inferType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeCheckConfig uni fun
+</span
+	><a href="#local-6989586621679251441"
+	><span class="hs-identifier hs-var"
+	  >tcConfig</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679251439"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; QuoteT m a
+forall a. a -&gt; QuoteT m a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#return"
+	><span class="hs-identifier hs-var"
+	  >return</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; QuoteT m a)
+-&gt; (Term Name uni fun () -&gt; a)
+-&gt; Term Name uni fun ()
+-&gt; QuoteT m a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+-&gt; Term Name uni fun () -&gt; a
+</span
+	><a href="#local-6989586621679251437"
+	><span class="hs-identifier hs-var"
+	  >action</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	><a href="#local-6989586621679251448"
+	><span class="hs-identifier hs-var"
+	  >runtime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term Name uni fun () -&gt; QuoteT m a)
+-&gt; Term Name uni fun () -&gt; QuoteT m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun () -&gt; Term Name uni fun ()
+forall name tyname (uni :: * -&gt; *) fun ann.
+HasUnique name TermUnique =&gt;
+Term tyname name uni fun ann -&gt; Term name uni fun ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Compiler.Erase.html#eraseTerm"
+	><span class="hs-identifier hs-var"
+	  >TPLC.eraseTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679251439"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679251448"
+      ><span class="annot"
+	><span class="annottext"
+	  >runtime :: MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	  ><a href="#local-6989586621679251448"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runtime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; CostModel
+     CekMachineCosts (CostingPart (UniOf (CekValue uni fun ())) fun)
+-&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ())
+forall (uni :: * -&gt; *) fun builtincosts val machinecosts.
+(CostingPart uni fun ~ builtincosts, HasMeaningIn uni val,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostModel machinecosts builtincosts
+-&gt; MachineParameters machinecosts fun val
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineParameters"
+	><span class="hs-identifier hs-var"
+	  >mkMachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621679251436"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModel
+   CekMachineCosts (CostingPart (UniOf (CekValue uni fun ())) fun)
+ -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ()))
+-&gt; CostModel
+     CekMachineCosts (CostingPart (UniOf (CekValue uni fun ())) fun)
+-&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-comment"
+      >-- FIXME: make sure we have the the correct cost model for the semantics variant.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >                   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekMachineCosts
+-&gt; CostingPart (UniOf (CekValue uni fun ())) fun
+-&gt; CostModel
+     CekMachineCosts (CostingPart (UniOf (CekValue uni fun ())) fun)
+forall machinecosts builtincosts.
+machinecosts -&gt; builtincosts -&gt; CostModel machinecosts builtincosts
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier hs-var"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CekMachineCosts
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekMachineCostsForTesting"
+	><span class="hs-identifier hs-var"
+	  >defaultCekMachineCostsForTesting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingPart uni fun
+CostingPart (UniOf (CekValue uni fun ())) fun
+</span
+	><a href="#local-6989586621679251438"
+	><span class="hs-identifier hs-var"
+	  >costingPart</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type check and evaluate a term, logging enabled.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="local-6989586621679251289"
+      ><span id="local-6989586621679251290"
+	><span id="local-6989586621679251291"
+	  ><span class="annot"
+	    ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCek"
+	      ><span class="hs-identifier hs-type"
+		>typecheckEvaluateCek</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-56"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	      ><span class="hs-identifier hs-type"
+		>MonadError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Error</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251291"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Typecheckable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	      ><span class="hs-identifier hs-type"
+		>GEq</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-57"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	      ><span class="hs-identifier hs-type"
+		>ExMemoryUsage</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+	      ><span class="hs-identifier hs-type"
+		>PrettyUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-58"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-59"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinSemanticsVariant</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-60"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+	      ><span class="hs-identifier hs-type"
+		>CostingPart</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-61"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-62"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251291"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	      ><span class="hs-identifier hs-type"
+		>EvaluationResult</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251289"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251290"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	      ><span class="hs-identifier hs-type"
+		>Text</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="typecheckEvaluateCek"
+      ><span class="annot"
+	><span class="annottext"
+	  >typecheckEvaluateCek :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *).
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Everywhere uni ExMemoryUsage, PrettyUni uni, Pretty fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()), [Text])
+</span
+	  ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCek"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typecheckEvaluateCek</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251527"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621679251527"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun ()
+    -&gt; (EvaluationResult (Term Name uni fun ()), [Text]))
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()), [Text])
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Closed uni, Everywhere uni ExMemoryUsage) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; a)
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m a
+</span
+	><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+	><span class="hs-identifier hs-var"
+	  >typecheckAnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621679251527"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((MachineParameters CekMachineCosts fun (CekValue uni fun ())
+  -&gt; Term Name uni fun ()
+  -&gt; (EvaluationResult (Term Name uni fun ()), [Text]))
+ -&gt; CostingPart uni fun
+ -&gt; Term TyName Name uni fun ()
+ -&gt; m (EvaluationResult (Term Name uni fun ()), [Text]))
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun ()
+    -&gt; (EvaluationResult (Term Name uni fun ()), [Text]))
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()), [Text])
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679251528"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	  ><a href="#local-6989586621679251528"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   (EvaluationException
+      (MachineError fun) CekUserError (Term Name uni fun ()))
+   (Term Name uni fun ())
+ -&gt; EvaluationResult (Term Name uni fun ()))
+-&gt; (Either
+      (EvaluationException
+         (MachineError fun) CekUserError (Term Name uni fun ()))
+      (Term Name uni fun ()),
+    [Text])
+-&gt; (EvaluationResult (Term Name uni fun ()), [Text])
+forall a b c. (a -&gt; b) -&gt; (a, c) -&gt; (b, c)
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Bifunctor.html#first"
+	><span class="hs-identifier hs-var"
+	  >first</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     (MachineError fun) CekUserError (Term Name uni fun ()))
+  (Term Name uni fun ())
+-&gt; EvaluationResult (Term Name uni fun ())
+forall structural term operational a.
+(PrettyPlc structural, PrettyPlc term, Typeable structural,
+ Typeable term) =&gt;
+Either (EvaluationException structural operational term) a
+-&gt; EvaluationResult a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#unsafeSplitStructuralOperational"
+	><span class="hs-identifier hs-var"
+	  >unsafeSplitStructuralOperational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Either
+    (EvaluationException
+       (MachineError fun) CekUserError (Term Name uni fun ()))
+    (Term Name uni fun ()),
+  [Text])
+ -&gt; (EvaluationResult (Term Name uni fun ()), [Text]))
+-&gt; (Term Name uni fun ()
+    -&gt; (Either
+          (EvaluationException
+             (MachineError fun) CekUserError (Term Name uni fun ()))
+          (Term Name uni fun ()),
+        [Text]))
+-&gt; Term Name uni fun ()
+-&gt; (EvaluationResult (Term Name uni fun ()), [Text])
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode uni fun
+-&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ())
+-&gt; Term Name uni fun ()
+-&gt; (Either
+      (EvaluationException
+         (MachineError fun) CekUserError (Term Name uni fun ()))
+      (Term Name uni fun ()),
+    [Text])
+forall (uni :: * -&gt; *) fun ann.
+ThrowableBuiltins uni fun =&gt;
+EmitterMode uni fun
+-&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; Term Name uni fun ann
+-&gt; (Either
+      (CekEvaluationException Name uni fun) (Term Name uni fun ()),
+    [Text])
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#evaluateCek"
+	><span class="hs-identifier hs-var"
+	  >evaluateCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode uni fun
+forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logEmitter"
+	><span class="hs-identifier hs-var"
+	  >logEmitter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	><a href="#local-6989586621679251528"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type check and evaluate a term, logging disabled.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="local-6989586621679251351"
+      ><span id="local-6989586621679251352"
+	><span id="local-6989586621679251353"
+	  ><span class="annot"
+	    ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCekNoEmit"
+	      ><span class="hs-identifier hs-type"
+		>typecheckEvaluateCekNoEmit</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-69"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	      ><span class="hs-identifier hs-type"
+		>MonadError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Error</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251353"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Typecheckable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	      ><span class="hs-identifier hs-type"
+		>GEq</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-70"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+	      ><span class="hs-identifier hs-type"
+		>ExMemoryUsage</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+	      ><span class="hs-identifier hs-type"
+		>PrettyUni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-71"
+	    ></span
+	    ><span
+	    >       </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-72"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinSemanticsVariant</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-73"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+	      ><span class="hs-identifier hs-type"
+		>CostingPart</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-74"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>TPLC.Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-75"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251353"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	      ><span class="hs-identifier hs-type"
+		>EvaluationResult</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>UPLC.Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251351"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679251352"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="typecheckEvaluateCekNoEmit"
+      ><span class="annot"
+	><span class="annottext"
+	  >typecheckEvaluateCekNoEmit :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *).
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Everywhere uni ExMemoryUsage, PrettyUni uni, Pretty fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()))
+</span
+	  ><a href="Evaluation.Builtins.Common.html#typecheckEvaluateCekNoEmit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typecheckEvaluateCekNoEmit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251571"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621679251571"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; EvaluationResult (Term Name uni fun ()))
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()))
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Closed uni, Everywhere uni ExMemoryUsage) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; a)
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m a
+</span
+	><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+	><span class="hs-identifier hs-var"
+	  >typecheckAnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621679251571"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((MachineParameters CekMachineCosts fun (CekValue uni fun ())
+  -&gt; Term Name uni fun () -&gt; EvaluationResult (Term Name uni fun ()))
+ -&gt; CostingPart uni fun
+ -&gt; Term TyName Name uni fun ()
+ -&gt; m (EvaluationResult (Term Name uni fun ())))
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; EvaluationResult (Term Name uni fun ()))
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (EvaluationResult (Term Name uni fun ()))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679251572"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	  ><a href="#local-6989586621679251572"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     (MachineError fun) CekUserError (Term Name uni fun ()))
+  (Term Name uni fun ())
+-&gt; EvaluationResult (Term Name uni fun ())
+forall structural term operational a.
+(PrettyPlc structural, PrettyPlc term, Typeable structural,
+ Typeable term) =&gt;
+Either (EvaluationException structural operational term) a
+-&gt; EvaluationResult a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#unsafeSplitStructuralOperational"
+	><span class="hs-identifier hs-var"
+	  >unsafeSplitStructuralOperational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   (EvaluationException
+      (MachineError fun) CekUserError (Term Name uni fun ()))
+   (Term Name uni fun ())
+ -&gt; EvaluationResult (Term Name uni fun ()))
+-&gt; (Term Name uni fun ()
+    -&gt; Either
+         (EvaluationException
+            (MachineError fun) CekUserError (Term Name uni fun ()))
+         (Term Name uni fun ()))
+-&gt; Term Name uni fun ()
+-&gt; EvaluationResult (Term Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+-&gt; Term Name uni fun ()
+-&gt; Either
+     (EvaluationException
+        (MachineError fun) CekUserError (Term Name uni fun ()))
+     (Term Name uni fun ())
+forall (uni :: * -&gt; *) fun ann.
+ThrowableBuiltins uni fun =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; Term Name uni fun ann
+-&gt; Either
+     (CekEvaluationException Name uni fun) (Term Name uni fun ())
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#evaluateCekNoEmit"
+	><span class="hs-identifier hs-var"
+	  >evaluateCekNoEmit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+</span
+	><a href="#local-6989586621679251572"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Type check and convert a Plutus Core term to a Haskell value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span id="local-6989586621679251360"
+      ><span id="local-6989586621679251361"
+	><span id="local-6989586621679251362"
+	  ><span id="local-6989586621679251363"
+	    ><span class="annot"
+	      ><a href="Evaluation.Builtins.Common.html#typecheckReadKnownCek"
+		><span class="hs-identifier hs-type"
+		  >typecheckReadKnownCek</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-82"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251362"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Typecheckable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+		><span class="hs-identifier hs-type"
+		  >GEq</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-83"
+	      ></span
+	      ><span
+	      >       </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+		><span class="hs-operator hs-type"
+		  >`Everywhere`</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExMemoryUsage.html#ExMemoryUsage"
+		><span class="hs-identifier hs-type"
+		  >ExMemoryUsage</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+		><span class="hs-identifier hs-type"
+		  >PrettyUni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-84"
+	      ></span
+	      ><span
+	      >       </span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownType.html#ReadKnown"
+		><span class="hs-identifier hs-type"
+		  >ReadKnown</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >UPLC.Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251363"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-85"
+	      ></span
+	      ><span
+	      >       </span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-86"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+		><span class="hs-identifier hs-type"
+		  >BuiltinSemanticsVariant</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-87"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+		><span class="hs-identifier hs-type"
+		  >CostingPart</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-88"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >TPLC.Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-89"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251362"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+		><span class="hs-identifier hs-type"
+		  >Either</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEvaluationException"
+		><span class="hs-identifier hs-type"
+		  >CekEvaluationException</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251360"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251361"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679251363"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="typecheckReadKnownCek"
+      ><span class="annot"
+	><span class="annottext"
+	  >typecheckReadKnownCek :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Everywhere uni ExMemoryUsage, PrettyUni uni, Pretty fun,
+ ReadKnown (Term Name uni fun ()) a) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (Either (CekEvaluationException Name uni fun) a)
+</span
+	  ><a href="Evaluation.Builtins.Common.html#typecheckReadKnownCek"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typecheckReadKnownCek</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679251592"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621679251592"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun ()
+    -&gt; Either (CekEvaluationException Name uni fun) a)
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m (Either (CekEvaluationException Name uni fun) a)
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+(MonadError (Error uni fun ()) m, Typecheckable uni fun, GEq uni,
+ Closed uni, Everywhere uni ExMemoryUsage) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; (MachineParameters CekMachineCosts fun (CekValue uni fun ())
+    -&gt; Term Name uni fun () -&gt; a)
+-&gt; CostingPart uni fun
+-&gt; Term TyName Name uni fun ()
+-&gt; m a
+</span
+	><a href="Evaluation.Builtins.Common.html#typecheckAnd"
+	><span class="hs-identifier hs-var"
+	  >typecheckAnd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621679251592"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters CekMachineCosts fun (CekValue uni fun ())
+-&gt; Term Name uni fun ()
+-&gt; Either (CekEvaluationException Name uni fun) a
+forall (uni :: * -&gt; *) fun a ann.
+(ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a) =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; Term Name uni fun ann
+-&gt; Either (CekEvaluationException Name uni fun) a
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html#readKnownCek"
+	><span class="hs-identifier hs-var"
+	  >readKnownCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
