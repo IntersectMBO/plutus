@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,9 +11,6 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
-#if !MIN_VERSION_base(4, 15, 0)
-{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
-#endif
 
 module Plugin.Typeclasses.Spec where
 

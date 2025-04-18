@@ -6,7 +6,7 @@ module PlutusTx.Optimize.SpaceTime (peel, unroll) where
 
 import Prelude
 
-import Language.Haskell.TH.Syntax.Compat qualified as TH
+import Language.Haskell.TH.Syntax qualified as TH
 import PlutusTx.Function (fix)
 
 {-| Given @n@, and the step function for a recursive function, peel @n@ layers
@@ -38,11 +38,11 @@ peel
   :: forall a b
    . Int
   -- ^ How many recursion steps to move outside of the recursion loop.
-  -> (TH.SpliceQ (a -> b) -> TH.SpliceQ (a -> b))
+  -> (TH.Code TH.Q (a -> b) -> TH.Code TH.Q (a -> b))
   {- ^ Function that given a continuation splice returns
   a splice representing a single recursion step calling this continuation.
   -}
-  -> TH.SpliceQ (a -> b)
+  -> TH.Code TH.Q (a -> b)
 peel 0 f = [||fix \self -> $$(f [||self||])||]
 peel n f
   | n > 0 = f (peel (n - 1) f)
@@ -74,11 +74,11 @@ unroll
   :: forall a b
    . Int
   -- ^ How many recursion steps to perform inside the recursion loop.
-  -> (TH.SpliceQ (a -> b) -> TH.SpliceQ (a -> b))
+  -> (TH.Code TH.Q (a -> b) -> TH.Code TH.Q (a -> b))
   {- ^ Function that given a continuation splice returns
   a splice representing a single recursion step calling this continuation.
   -}
-  -> TH.SpliceQ (a -> b)
+  -> TH.Code TH.Q (a -> b)
 unroll n f = [||fix \self -> $$(nTimes n f [||self||])||]
 
 -- | Apply a function @n@ times to a given value.

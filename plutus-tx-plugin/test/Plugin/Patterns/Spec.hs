@@ -14,7 +14,6 @@
 
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Plugin.Patterns.Spec where
 

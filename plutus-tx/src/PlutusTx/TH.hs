@@ -9,7 +9,6 @@ module PlutusTx.TH (
 import Data.Proxy
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
-import Language.Haskell.TH.Syntax.Compat qualified as TH
 import PlutusTx.Code
 import PlutusTx.Plugin.Utils
 
@@ -19,17 +18,17 @@ import Data.ByteString qualified as BS
 import Prelude
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
-compile :: TH.SpliceQ a -> TH.SpliceQ (CompiledCode a)
+compile :: TH.Code TH.Q a -> TH.Code TH.Q (CompiledCode a)
 -- See Note [Typed TH]
-compile e = TH.unsafeSpliceCoerce $ compileUntyped $ TH.unType <$> TH.examineSplice e
+compile e = TH.unsafeCodeCoerce $ compileUntyped $ TH.unType <$> TH.examineCode e
 
 -- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.
-loadFromFile :: FilePath -> TH.SpliceQ (CompiledCode a)
-loadFromFile fp = TH.liftSplice $ do
+loadFromFile :: FilePath -> TH.Code TH.Q (CompiledCode a)
+loadFromFile fp = TH.liftCode $ do
     -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
     -- so we lift the bytestring and construct the value in the quote.
     bs <- liftIO $ BS.readFile fp
-    TH.examineSplice [|| SerializedCode bs Nothing mempty ||]
+    TH.examineCode [|| SerializedCode bs Nothing mempty ||]
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we

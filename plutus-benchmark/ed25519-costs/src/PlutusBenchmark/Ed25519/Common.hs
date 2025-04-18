@@ -76,7 +76,7 @@ listOfByteStringsOfLength :: Integer -> Integer -> [ByteString]
 listOfByteStringsOfLength n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
-{-# NOINLINE listOfByteStringsOfLength #-}
+{-# OPAQUE listOfByteStringsOfLength #-}
 
 {- | Create a list of valid (verification key, message, signature, data key)
    quadruples.  The DSIGN infrastructure lets us do this in a fairly generic

@@ -43,28 +43,19 @@ import Foreign.Marshal.Utils (copyBytes, fillBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (peekByteOff, peekElemOff, pokeByteOff, pokeElemOff)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
-import GHC.Exts (Int (I#))
-import GHC.Integer.Logarithms (integerLog2#)
 import GHC.IO.Unsafe (unsafeDupablePerformIO)
+import GHC.Num.Integer (integerLog2)
 
 {- Note [Input length limitation for IntegerToByteString].
 We make `integerToByteString` and `replicateByte` fail if they're called with arguments which would
 cause the length of the result to exceed about 8K bytes because the execution time becomes difficult
 to predict accurately beyond this point (benchmarks on a number of different machines show that the
 CPU time increases smoothly for inputs up to about 8K then increases sharply, becoming chaotic after
-about 14K).  This restriction may be removed once a more efficient implementation becomes available,
-which may happen when we no longer have to support GHC 8.10. -}
+about 14K).  This restriction may be removed once a more efficient implementation becomes available.-}
 {- NB: if we do relax the length restriction then we will need two variants of integerToByteString in
    Plutus Core so that we can continue to support the current behaviour for old scripts.-}
 maximumOutputLength :: Integer
 maximumOutputLength = 8192
-
-{- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
-   strictly positive.  This is essentially copied from GHC.Num.Integer, which
-   has integerLog2 but only in GHC >= 9.0. We should use the library function
-   instead when we stop supporting 8.10. -}
-integerLog2 :: Integer -> Int
-integerLog2 !i = I# (integerLog2# i)
 
 -- | Wrapper for 'unsafeIntegerToByteString' to make it more convenient to define as a builtin.
 integerToByteString :: Bool -> Integer -> Integer -> BuiltinResult ByteString

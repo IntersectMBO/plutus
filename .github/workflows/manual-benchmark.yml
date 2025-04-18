@@ -5,7 +5,7 @@
 # The this workflow will run the benchmark with the given NAME, first against 
 # the current branch and then comparing the results against the master branch.
 # If the optional [GHC] is provided, the benchmark will be run with the given 
-# GHC version (one of ghc810, ghc96, ghc98, ghc910), otherwise the default GHC 
+# GHC version (one of ghc96, ghc98, ghc910), otherwise the default GHC 
 # version (ghc96) will be used.
 
 name: "🚀 Manual Benchmark"
@@ -48,7 +48,7 @@ jobs:
         uses: actions/github-script@main
         with:
           script: |
-            const regex = /^\/benchmark\s*([^\s]*)\s*(ghc810|ghc96|ghc98|ghc910)?\s*$/;
+            const regex = /^\/benchmark\s*([^\s]*)\s*(ghc96|ghc98|ghc910)?\s*$/;
             const comment = context.payload.comment.body;
             const match = comment.match(regex)
             if (match !== null && match.length == 3 && match[1] !== '') {
