@@ -147,10 +147,21 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
-mkUPLCSimplifierTest :: String -> Term Name DefaultUni DefaultFun () -> TestTree
-mkUPLCSimplifierTest name input = testCase name $
+type SimplifierFunc
+  = Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> PLC.Quote
+      ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+      , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+      )
+
+mkUPLCTest
+  :: SimplifierFunc
+  -> String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCTest simplifierFunc name input = testCase name $
   let rawAgdaTrace = PLC.runQuote $ do
-        simplifierTrace <- snd <$> testSimplify input
+        simplifierTrace <- snd <$> simplifierFunc input
         return $ mkAgdaTrace simplifierTrace
   in
     case runCertifierMain rawAgdaTrace of
@@ -158,6 +169,18 @@ mkUPLCSimplifierTest name input = testCase name $
         assertBool "The certifier returned false." result
       Nothing ->
         assertFailure "The certifier exited with an error."
+
+mkUPLCSimplifierTest
+  :: String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCSimplifierTest = mkUPLCTest testSimplify
+
+mkUPLCCseTest
+  :: String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCCseTest = mkUPLCTest testCse
 
 main :: IO ()
 main = do
@@ -171,6 +194,8 @@ main = do
     --                $ makeSerialisationExampleTests exampleNames
     , testGroup "uplc simplifier tests"
         $ fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs'
+    , testGroup "uplc cse tests"
+        $ fmap (uncurry mkUPLCCseTest) testCseInputs
     ]
   where
     -- TODO(https://github.com/IntersectMBO/plutus-private/issues/1541):
