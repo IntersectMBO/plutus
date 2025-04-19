@@ -26,6 +26,7 @@ import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (CaseBuiltin (..))
+import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseOfCase), SimplifierT,
@@ -43,8 +44,22 @@ caseOfCase term = do
   recordSimplification term CaseOfCase result
   return result
 
-processTerm :: CaseBuiltin (Term name uni fun a) uni => Term name uni fun a -> Term name uni fun a
+processTerm
+    :: fun ~ PLC.DefaultFun
+    => CaseBuiltin (Term name uni fun a) uni => Term name uni fun a -> Term name uni fun a
 processTerm = \case
+  Case ann scrut alts
+    | ( ite@(Force a (Builtin _ PLC.IfThenElse))
+        , [cond, (trueAnn, true@Constr{}), (falseAnn, false@Constr{})]
+        ) <-
+        splitApplication scrut ->
+        Force a $
+          mkIterApp
+            ite
+            [ cond
+            , (trueAnn, Delay trueAnn (Case ann true alts))
+            , (falseAnn, Delay falseAnn (Case ann false alts))
+            ]
   original@(Case annOuter (Case annInner scrut altsInner) altsOuter) ->
     maybe
       original

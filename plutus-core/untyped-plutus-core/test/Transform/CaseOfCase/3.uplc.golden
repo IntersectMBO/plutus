@@ -1,5 +1,9 @@
-(case
-  [ [ [ (force (builtin ifThenElse)) b ] (constr 0 x xs) ] (constr 1) ]
-  f
-  (con integer 2)
+(force
+  [
+    [
+      [ (force (builtin ifThenElse)) b ]
+      (delay (case (constr 0 x xs) f (con integer 2)))
+    ]
+    (delay (case (constr 1) f (con integer 2)))
+  ]
 )
