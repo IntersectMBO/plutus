@@ -33,13 +33,16 @@ let
                        {all dead. dead})
           in
           go
-  !greaterThanEqualsInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) False True
 in
 \(xs : list integer) ->
   Tuple2
     {Maybe integer}
     {Maybe integer}
-    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 8) xs)
-    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 12) xs)
+    (find
+       {integer}
+       (\(v : integer) -> case Bool (lessThanInteger v 8) [True, False])
+       xs)
+    (find
+       {integer}
+       (\(v : integer) -> case Bool (lessThanInteger v 12) [True, False])
+       xs)

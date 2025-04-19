@@ -34,6 +34,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
+import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
@@ -271,22 +272,27 @@ inferTypeM t@(Constr ann resTy i args) = do
 -- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
 -- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
-inferTypeM (Case ann resTy scrut cases) = do
+inferTypeM (Case ann resTy scrut branches) = do
     vResTy <- normalizeTypeM $ void resTy
     vScrutTy <- inferTypeM scrut
 
     -- We don't know exactly what to expect, we only know that it should
     -- be a SOP with the right number of sum alternatives
-    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length cases - 1]
+    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length branches - 1]
         expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
     case unNormalized vScrutTy of
-        TySOP _ sTys -> case zipExact cases sTys of
-            Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+        TySOP _ sTys -> case zipExact branches sTys of
+            Just branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
-            -- for the number of cases
+            -- for the number of branches
             Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        TyBuiltin _ someUni -> case annotateCaseBuiltin someUni branches of
+            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
+                -- made of sub-parts of a normalized type, so normalized
+                checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
+            Left () -> undefined
         -- scrutinee does not have a SOP type at all
         _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 

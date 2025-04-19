@@ -11,10 +11,10 @@
                  (delay
                     ((\x xs ds eta ->
                         force
-                          (force ifThenElse
+                          (case
                              (equalsInteger 0 i)
-                             (delay x)
-                             (delay (s s xs (subtractInteger i 1)))))
+                             [ (delay (s s xs (subtractInteger i 1)))
+                             , (delay x) ]))
                        (force headList xs)
                        (force tailList xs))))
               (constr 0 [])

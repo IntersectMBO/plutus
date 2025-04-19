@@ -170,7 +170,7 @@ computeCek !_ !_ (Error _) =
 
 returnCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
@@ -211,6 +211,9 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
+    VCon val -> case caseBuiltin val cs of
+        Left ()   -> throwingDischarged _MachineError undefined e
+        Right res -> pure $ Computing ctx env res
     _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
 
 -- | @force@ a term and proceed.
@@ -221,7 +224,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
 -- if v is anything else, fail.
 forceEvaluate
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => ann
     -> Context uni fun ann
     -> CekValue uni fun ann
@@ -253,7 +256,7 @@ forceEvaluate _ !_ val =
 -- If v is anything else, fail.
 applyEvaluate
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => ann
     -> Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
@@ -279,7 +282,7 @@ applyEvaluate _ !_ val _ =
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
-    :: ThrowableBuiltins uni fun
+    :: (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni)
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -294,7 +297,7 @@ runCekDeBruijn params mode emitMode term =
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -322,7 +325,7 @@ type CekTrans uni fun ann s = Trans (CekM uni fun s) (CekState uni fun ann)
 
 -- | The state transition function of the machine.
 cekTrans :: forall uni fun ann s
-           . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+           . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
            => CekTrans uni fun ann s
 cekTrans = \case
     Starting term          -> pure $ Computing NoFrame Env.empty term
@@ -335,7 +338,7 @@ cekTrans = \case
 -- Returns the constructed transition function paired with the methods to live access the running budget.
 mkCekTrans
     :: forall cost uni fun ann m s
-    . ( ThrowableBuiltins uni fun
+    . ( ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni
       , PrimMonad m, s ~ PrimState m) -- the outer monad that initializes the transition function
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
@@ -454,7 +457,7 @@ returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine an
 --
 -- and proceed with the returning phase of the CEK machine.
 evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
+    :: (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => ann
     -> Context uni fun ann
     -> fun

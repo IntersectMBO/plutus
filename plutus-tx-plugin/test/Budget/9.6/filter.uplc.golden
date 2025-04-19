@@ -11,10 +11,9 @@
                    delay
                      ((\xs ->
                          force
-                           (force ifThenElse
+                           (case
                               (equalsInteger 0 (modInteger x 2))
-                              (delay (constr 1 [x, xs]))
-                              (delay xs)))
+                              [(delay xs), (delay (constr 1 [x, xs]))]))
                         (s s xs))) ]))
       (constr 1
          [ 1
