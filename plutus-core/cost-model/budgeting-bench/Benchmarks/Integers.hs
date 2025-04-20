@@ -129,7 +129,7 @@ benchExpModInteger _gen =
 
       as = (pow 2 255 -19) : fmap (\n -> pow 2 (160*n) - 999) [25,50..625]  -- up to 2^10000 - 999
 
-      moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..25]
+      moduli = fmap (\n -> pow 2 (256*n) - 11) [1, 3..25]
       bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
       -- ^ Largest number less than modulus with binary expansion 1111...1
       -- Should be about worst case
