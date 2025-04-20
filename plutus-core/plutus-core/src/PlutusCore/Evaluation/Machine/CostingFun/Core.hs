@@ -409,7 +409,7 @@ evaluateThing
   -> CostingInteger
 evaluateThing
   (Thing (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  a b m = scaleBy (c00 + c11*b*m + c12*b*m*m) 1 20 a m
+  a b m = scaleBy (c00 + c11*b*m + c12*b*m*m) 1 200 a m
 {-# INLINE evaluateThing #-}
 
 -- FIXME: we could use ModelConstantOrOneArgument for
