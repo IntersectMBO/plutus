@@ -1,0 +1,7 @@
+(program
+  1.0.0
+  [
+    [ (builtin xorByteString) (con integer 11) ]
+    (con (list integer) [22,33,44,55,66,77])
+  ]
+)
