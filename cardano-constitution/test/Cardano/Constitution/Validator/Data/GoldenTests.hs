@@ -22,7 +22,7 @@ import Data.Maybe
 import Data.String
 import System.FilePath
 import Test.Tasty
-import Test.Tasty.Extras (ignoreThisTestIfHpcIsEnabled)
+import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import Test.Tasty.Golden
 
 import Helpers.Guardrail
@@ -68,11 +68,11 @@ test_readable_uplc = testGroup "ReadableUplc" $ M.elems $
 
 tests :: TestTreeWithTestState
 tests = testGroup' "Golden" $ fmap const
-        [ ignoreThisTestIfHpcIsEnabled test_cbor
-        , ignoreThisTestIfHpcIsEnabled test_budget_large
-        , ignoreThisTestIfHpcIsEnabled test_budget_small
+        [ ignoreTestWhenHpcEnabled test_cbor
+        , ignoreTestWhenHpcEnabled test_budget_large
+        , ignoreTestWhenHpcEnabled test_budget_small
         , test_readable_pir
-        , ignoreThisTestIfHpcIsEnabled test_readable_uplc
+        , ignoreTestWhenHpcEnabled test_readable_uplc
         ]
 
 -- HELPERS

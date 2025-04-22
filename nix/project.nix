@@ -24,12 +24,12 @@ let
           # below represent the largest subset that can be enabled without 
           # breaking tests.
           # packages.cardano-constitution.doCoverage = true;
+          # packages.plutus-tx.doCoverage = true;
           packages.plutus-conformance.doCoverage = true;
           packages.plutus-core.doCoverage = true;
           packages.plutus-executables.doCoverage = true;
           packages.plutus-tx-test-util.doCoverage = true;
           packages.plutus-ledger-api.doCoverage = true;
-          # packages.plutus-tx.doCoverage = true;
 
           packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
           # plutus-benchmark
