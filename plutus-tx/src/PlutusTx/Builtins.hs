@@ -485,7 +485,16 @@ pairToPair :: BI.BuiltinPair a b -> (a, b)
 pairToPair tup = (BI.fst tup, BI.snd tup)
 {-# INLINE pairToPair #-}
 
+<<<<<<< HEAD
 sopListToArray :: (HasToOpaque a arep, MkNil arep) => [a] -> BI.BuiltinArray arep
+=======
+-- | Turn a normal pair into a builtin pair, useful in patterns.
+pairFromPair :: (a, b) -> BI.BuiltinPair a b
+pairFromPair = BI.BuiltinPair
+{-# INLINE pairFromPair #-}
+
+sopListToArray :: (HasToOpaque a arep, MkNil arep) =>  [a] -> BI.BuiltinArray arep
+>>>>>>> 14e3427f6c (PlutusTx.Data.List & PlutusTx.BuiltinList - Feature Parity)
 sopListToArray l = BI.listToArray (toOpaque l)
 {-# INLINEABLE sopListToArray #-}
 

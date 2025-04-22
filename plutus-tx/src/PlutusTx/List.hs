@@ -4,48 +4,49 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.List (
-  uncons,
-  null,
-  length,
-  map,
-  and,
-  or,
-  any,
-  all,
-  elem,
-  notElem,
-  find,
-  filter,
-  listToMaybe,
-  uniqueElement,
-  findIndices,
-  findIndex,
-  foldr,
-  foldl,
-  revAppend,
-  reverse,
-  concat,
-  concatMap,
-  zip,
-  unzip,
-  (++),
-  (!!),
-  head,
-  last,
-  tail,
-  take,
-  drop,
-  splitAt,
-  nub,
-  nubBy,
-  zipWith,
-  dropWhile,
-  replicate,
-  partition,
-  sort,
-  sortBy,
-  elemBy,
-) where
+    uncons,
+    null,
+    length,
+    map,
+    mapMaybe,
+    and,
+    or,
+    any,
+    all,
+    elem,
+    notElem,
+    find,
+    filter,
+    listToMaybe,
+    uniqueElement,
+    findIndices,
+    findIndex,
+    foldr,
+    foldl,
+    revAppend,
+    reverse,
+    concat,
+    concatMap,
+    zip,
+    unzip,
+    (++),
+    (!!),
+    head,
+    last,
+    tail,
+    take,
+    drop,
+    splitAt,
+    nub,
+    nubBy,
+    zipWith,
+    dropWhile,
+    replicate,
+    partition,
+    sort,
+    sortBy,
+    elemBy,
+    ) where
 
 import PlutusTx.Bool (Bool (..), not, otherwise, (||))
 import PlutusTx.Builtins (Integer)
@@ -54,7 +55,7 @@ import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
 import PlutusTx.Trace (traceError)
-import Prelude (Maybe (..), (.))
+import Prelude (Maybe (..), maybe, (.))
 
 {- HLINT ignore -}
 
@@ -93,6 +94,20 @@ map f = go
     [] -> []
     x : xs -> f x : go xs
 {-# INLINEABLE map #-}
+
+-- | Plutus Tx version of 'Data.List.mapMaybe'.
+--
+--   >>> mapMaybe (\i -> if odd i then Just i else Nothing) [1, 2, 3, 4]
+--   [1,3]
+--
+mapMaybe :: forall a b. (a -> Maybe b) -> [a] -> [b]
+mapMaybe f = go
+  where
+    go :: [a] -> [b]
+    go = \case
+        []   -> []
+        x:xs -> maybe (go xs) (\y -> y:go xs) (f x)
+{-# INLINABLE mapMaybe #-}
 
 -- | Returns the conjunction of a list of Bools.
 and :: [Bool] -> Bool
@@ -247,6 +262,17 @@ findIndex f = go 0
   12
 -}
 infixl 9 !!
+(!!) :: forall a. [a] -> Integer -> a
+_   !! n0 | n0 < 0 = traceError negativeIndexError -- Builtin . lessThan
+xs0 !! n0 = go n0 xs0
+  where
+    go :: Integer -> [a] -> a
+    go _ []       = traceError indexTooLargeError
+    go n (x : xs) =
+        if Builtins.equalsInteger n 0
+            then x
+            else go (Builtins.subtractInteger n 1) xs
+{-# INLINABLE (!!) #-}
 
 (!!) :: forall a. [a] -> Integer -> a
 _ !! n0 | n0 < 0 = traceError negativeIndexError
@@ -378,6 +404,7 @@ nubBy eq l = nubBy' l []
 {-# INLINEABLE nubBy #-}
 
 -- | Plutus Tx version of 'Data.List.zipWith'.
+-- TODO loses elements if the lists are of different lengths
 zipWith :: forall a b c. (a -> b -> c) -> [a] -> [b] -> [c]
 zipWith f = go
  where

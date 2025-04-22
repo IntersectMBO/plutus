@@ -274,7 +274,7 @@ class MkNil arep where
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData
-instance MkNil (BuiltinPair BuiltinData BuiltinData)
+instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
   toOpaque = goList
