@@ -19,7 +19,24 @@ let
           enableLibraryProfiling = true;
         }];
         ghc96-coverage.modules = [{
-          doCoverage = true;
+          # NOTE: Enabling coverage for some packages breaks tests due to HPC 
+          # (Haskell Program Coverage) instrumentation. The packages listed 
+          # below represent the largest subset that can be enabled without 
+          # breaking tests.
+          # packages.cardano-constitution.doCoverage = true;
+          # packages.plutus-tx.doCoverage = true;
+          packages.plutus-conformance.doCoverage = true;
+          packages.plutus-core.doCoverage = true;
+          packages.plutus-executables.doCoverage = true;
+          packages.plutus-tx-test-util.doCoverage = true;
+          packages.plutus-ledger-api.doCoverage = true;
+
+          packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
+          # plutus-benchmark
+          # plutus-metatheory
+          # plutus-tx
+          # plutus-tx-plugin
+          # docusaurus-examples
         }];
         ghc810.compiler-nix-name = "ghc810";
         ghc98.compiler-nix-name = "ghc98";

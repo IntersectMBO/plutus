@@ -19,6 +19,7 @@ import PlutusLedgerApi.V3 (ExCPU (..), ExMemory (..))
 import System.FilePath ((</>))
 import System.IO (hPutStrLn)
 import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import UntypedPlutusCore.Size qualified as UPLC
 
 main :: IO ()
@@ -65,19 +66,20 @@ main = withUtf8 $ do
           Lib.measureProgram
           [benchmarkToUPLC Data.rolePayoutValidator bench | bench <- rolePayout]
 
+  let marloweTests = testGroup "Marlowe"
+        [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
+            for_
+              (semanticsMeasures <> rolePayoutMeasures)
+              \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+                hPutStrLn writeHandle $
+                  List.intercalate "\t" [show cpu, show mem, show size]
+        , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
+            for_
+              (dataSemanticsMeasures <> dataRolePayoutMeasures)
+              \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
+                hPutStrLn writeHandle $
+                  List.intercalate "\t" [show cpu, show mem, show size]
+        ]
+
   -- Write the measures to the actual file
-  defaultMain
-    $ testGroup "Marlowe"
-    [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
-        for_
-          (semanticsMeasures <> rolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
-            hPutStrLn writeHandle $
-              List.intercalate "\t" [show cpu, show mem, show size]
-    , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
-        for_
-          (dataSemanticsMeasures <> dataRolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.Size size) ->
-            hPutStrLn writeHandle $
-              List.intercalate "\t" [show cpu, show mem, show size]
-    ]
+  defaultMain $ ignoreTestWhenHpcEnabled marloweTests

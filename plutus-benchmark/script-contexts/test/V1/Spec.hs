@@ -5,7 +5,7 @@ module V1.Spec (allTests) where
 import Data.Text qualified as Text
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
+import Test.Tasty.Extras (TestNested, ignoreTestWhenHpcEnabled, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
@@ -47,7 +47,10 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
         compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
-    , runTestGhcSOP [ Tx.goldenSize "checkScriptContext1" $
+    , ignoreTestWhenHpcEnabled $
+          runTestGhcSOP
+               [
+                    Tx.goldenSize "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
@@ -59,7 +62,7 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)
                    , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
                         [SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)]
-          ]
+               ]
     ]
 
 testCheckDataSc1 :: TestTree
@@ -89,19 +92,21 @@ testCheckSOPSc2 = testGroup "checkScriptContext2"
           compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
-    , runTestGhcSOP [ Tx.goldenSize "checkScriptContext2" $
-                        SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenPirReadable "checkScriptContext2" $
-                        SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext2-4" $
-                        SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext2-20" $
-                        SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)]
-                   ]
+    , ignoreTestWhenHpcEnabled $
+          runTestGhcSOP
+               [ Tx.goldenSize "checkScriptContext2" $
+                    SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
+               , Tx.goldenPirReadable "checkScriptContext2" $
+                    SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
+               , Tx.goldenBudget "checkScriptContext2-4" $
+                    SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
+               , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
+                    [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)]
+               , Tx.goldenBudget "checkScriptContext2-20" $
+                    SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)
+               , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
+                    [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)]
+               ]
     ]
 
 testCheckDataSc2 :: TestTree
