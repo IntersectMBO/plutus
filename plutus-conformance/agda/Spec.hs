@@ -123,7 +123,21 @@ agdaEvalUplcProg WithoutCosting =
  "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
 -}
 failingEvaluationTests :: [FilePath]
-failingEvaluationTests = []
+failingEvaluationTests =
+  [ -- These "array" tests fail because the Agda code doesn't know about arrays yet
+    -- TODO: remove these tests once "Add new array type and builtins to Agda
+    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
+    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
+  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
+  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
+  ]
 
 {-| A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
@@ -185,6 +199,21 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+  , -- These "array" tests fail because the Agda code doesn't know about arrays yet
+    -- TODO: remove these tests once "Add new array type and builtins to Agda
+    -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
+    "test-cases/uplc/evaluation/builtin/constant/array/emptyArray"
+  , "test-cases/uplc/evaluation/builtin/constant/array/simpleArray"
+  , "test-cases/uplc/evaluation/builtin/constant/array/unitArray"
+  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-01"
+  , "test-cases/uplc/evaluation/builtin/constant/array/illTypedArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/listToArray/listToArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/lengthOfArray/lengthOfArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/indexArray/indexArray-03"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.

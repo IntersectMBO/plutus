@@ -148,7 +148,6 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
-
 type SimplifierFunc
   = Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
