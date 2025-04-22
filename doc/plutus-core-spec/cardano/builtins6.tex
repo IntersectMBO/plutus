@@ -63,6 +63,36 @@ The sixth batch of builtin operations is defined in Table~\ref{table:built-in-fu
             [x_{k+1}, \ldots, x_n]  & \text{if $1  \leq k \leq n-1$} \\ \relax
             []                     &\text{if $k \geq n$}\\
         \end{array}\right.$} &  & \\
+    \TT{lengthOfArray} 
+      & $[\forall a_\#, \arrayOf{a_\#}] \to \ty{integer}$ 
+      & $[] \mapsto 0$
+        \newline 
+        $[x_1] \mapsto 1$
+        \newline 
+        $[x_1,\ldots,x_n] \mapsto n$ 
+      &  
+      & \\
+    \TT{listToArray} 
+      & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$ 
+      & $[] \mapsto []$
+        \newline 
+        $[x_1] \mapsto [x_1]$
+        \newline 
+        $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]$ 
+      &  
+      & \\
+    \TT{indexArray} 
+      & $[\forall a_\#, \arrayOf{a_\#}, \ty{integer}]$ \text{$\;\;\; \to \ty{a_\#}$}
+      &  $([x_1,\ldots,x_n], k)$
+        \smallskip
+        \newline
+        \text{$\;\;\mapsto \left\{ \begin{array}{ll}
+            \errorX   & \text{if $k < 0$} \\ \relax %
+            x_{k+1}   & \text{if $0 \leq k \leq n-1$} \\ \relax
+            \errorX   & \text{if $k > n-1$}\\
+        \end{array}\right.$}  
+      & Yes
+      & \\
 \hline
 \end{longtable}
 
