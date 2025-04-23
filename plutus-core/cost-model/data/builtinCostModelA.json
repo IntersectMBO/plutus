@@ -1146,12 +1146,19 @@
     },
     "expModInteger": {
         "cpu": {
-            "arguments": 100000000000,
-            "type": "constant_cost"
+            "arguments": {
+                "coefficient00": 3590169,
+                "coefficient11": 65,
+                "coefficient12": 1
+            },
+            "type": "exp_mod_cost"
         },
         "memory": {
-            "arguments": 100000000000,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_in_z"
         }
     },
     "dropList": {

@@ -17,8 +17,8 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally, ListCostedByLength,
-                                                    NumBytesCostedAsNumWords)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog, IntegerCostedLiterally,
+                                                    ListCostedByLength, NumBytesCostedAsNumWords)
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 import PlutusCore.Generators.QuickCheck.Builtin
 
@@ -96,6 +96,7 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Natural) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = genArbitraryBuiltin @Integer
+    | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedByLog) = genArbitraryBuiltin @Integer
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = genArbitraryBuiltin @Bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = genArbitraryBuiltin @Text

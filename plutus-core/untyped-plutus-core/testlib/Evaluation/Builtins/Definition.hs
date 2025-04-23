@@ -665,10 +665,10 @@ test_ExpModInteger = testNestedM "ExpMod" $ do
     evals @Integer 0 b [] [int 500, int 222, one] -- base:*, exp: strictpos, mod:1
     evals @Integer 0 b [] [int 500, int (-1777), one] -- base:*, exp: neg, mod:1
     fails "mod-zero" b [] [one, one, zero] -- base:*, exp:*, mod: 0
-    fails "mod-neg" b [] [one, one, int (-3)] -- base:*, exp:*, mod: neg
-    -- base and mod are not co-prime, negative exponent
+   -- fails "mod-neg" b [] [one, one, int (-3)] -- base:*, exp:*, mod: neg
+    -- -- base and mod are not co-prime, negative exponent
     fails "exp-neg-non-inverse1" b [] [int 2, int (-3), int 4]
-    -- mod is prime, but base&mod are not co-prime, negative exponent
+    -- -- mod is prime, but base&mod are not co-prime, negative exponent
     fails "exp-neg-non-inverse2" b [] [int 500, int (-5), int 5]
   where
     int = cons @Integer

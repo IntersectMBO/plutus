@@ -8,6 +8,7 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE MagicHash      #-}
 {-# LANGUAGE UnboxedTuples  #-}
+{-# LANGUAGE ViewPatterns   #-}
 
 module Data.SatInt
     ( -- Not exporting the constructor, so that 'coerce' doesn't work, see 'unsafeToSatInt'.

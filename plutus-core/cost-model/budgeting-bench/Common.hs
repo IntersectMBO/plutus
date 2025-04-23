@@ -243,6 +243,29 @@ createTwoTermBuiltinBenchWithFlag fun tys flag ys zs =
                        [bgroup (showMemoryUsage y) [mkBM y z | z <- zs] | y <- ys]]
   where mkBM y z = benchDefault (showMemoryUsage z) $ mkApp3 fun tys flag y z
 
+{- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
+   ys::[b], create a collection of benchmarks which run f on all pairs in
+   {(x,y}: x in xs, y in ys}. -}
+createTwoTermBuiltinBenchWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , NFData a
+     , NFData b
+     )
+  => (a -> a', b-> b')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> Benchmark
+createTwoTermBuiltinBenchWithWrappers (wrapX, wrapY) fun tys xs ys =
+  bgroup (show fun) [bgroup (showMemoryUsage (wrapX x)) [mkBM x y | y <- ys] | x <- xs]
+  where mkBM x y = benchDefault (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
+
 {- | Given a builtin function f of type a * b -> _ together with a list of (a,b)
    pairs, create a collection of benchmarks which run f on all of the pairs in
    the list.  This can be used when the worst-case execution time of a
@@ -353,3 +376,32 @@ createThreeTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY, wrapZ) fun tys
   )
   inputs
   where mkBM x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp3 fun tys x y z
+
+
+createThreeTermBuiltinBenchWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , ExMemoryUsage c'
+     , NFData a
+     , NFData b
+     , NFData c
+     )
+  => (a -> a', b-> b', c -> c')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> [c]
+  -> Benchmark
+createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
+  bgroup (show fun)
+   [bgroup (showMemoryUsage (wrapX x))
+    [bgroup (showMemoryUsage (wrapY y))
+      [mkBM x y z | z <- zs] | y <- ys] | x <- xs]
+  where mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
+

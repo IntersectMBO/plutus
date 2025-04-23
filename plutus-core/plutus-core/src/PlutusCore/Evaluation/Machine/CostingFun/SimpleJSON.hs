@@ -58,6 +58,21 @@ instance FromJSON TwoVariableQuadraticFunction where
                 obj .: "c00" <*> obj .: "c10" <*> obj .: "c01" <*>
                 obj .: "c20" <*> obj .: "c11" <*> obj .: "c02"
 
+data ExpModCostingFunction =
+    ExpModCostingFunction
+    { emcfcoeff00_ :: Integer
+    , emcfcoeff11_ :: Integer
+    , emcfcoeff12_ :: Integer
+    }
+    deriving stock (Show, Lift)
+
+instance FromJSON ExpModCostingFunction where
+    parseJSON = withObject "ExpMod costing function" $ \obj ->
+                ExpModCostingFunction <$>
+                obj .: "coefficient00" <*>
+                obj .: "coefficient11" <*>
+                obj .: "coefficient12"
+
 {- | This type reflects what is actually in the JSON.  The stuff in
    CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
    for the model types applicable to the various ModelNArguments types; it also
@@ -80,6 +95,7 @@ data Model
     | QuadraticInY          OneVariableQuadraticFunction
     | QuadraticInZ          OneVariableQuadraticFunction
     | QuadraticInXAndY      TwoVariableQuadraticFunction
+    | ExpModCost            ExpModCostingFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
@@ -122,6 +138,7 @@ instance FromJSON Model where
                "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
                "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
                "quadratic_in_x_and_y"        -> QuadraticInXAndY      <$> parseJSON args
+               "exp_mod_cost"                -> ExpModCost            <$> parseJSON args
                "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
                "linear_in_max_yz"            -> LinearInMaxYZ         <$> parseJSON args
                "linear_in_y_and_z"           -> LinearInYAndZ         <$> parseJSON args

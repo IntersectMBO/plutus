@@ -23,10 +23,12 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , Coefficient20(..)
     , Coefficient11(..)
     , Coefficient02(..)
+    , Coefficient12(..)
     , OneVariableLinearFunction(..)
     , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
     , TwoVariableQuadraticFunction(..)
+    , ExpModCostingFunction(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)  -- Deprecated: see below.
     , ModelConstantOrOneArgument(..)
@@ -196,6 +198,13 @@ newtype Coefficient11 = Coefficient11
 -- coefficient of a two-variable polynomial.
 newtype Coefficient02 = Coefficient02
     { unCoefficient02 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree (1,2)
+-- coefficient of a two-variable polynomial.
+newtype Coefficient12 = Coefficient12
+    { unCoefficient12 :: CostingInteger
     } deriving stock (Generic, Lift)
       deriving newtype (Show, Eq, Num, NFData)
 
@@ -382,6 +391,28 @@ evaluateTwoVariableQuadraticFunction
   -- We want to be absolutely sure that we don't get back a negative number
   -- here: see Note [Minimum values for two-variable quadratic costing functions]
 {-# INLINE evaluateTwoVariableQuadraticFunction #-}
+
+-- | c00 + c01x*y + c12x*y^2
+data ExpModCostingFunction = ExpModCostingFunction
+  { coefficient00 :: Coefficient00
+  , coefficient11 :: Coefficient11
+  , coefficient12 :: Coefficient12
+  } deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
+
+evaluateExpModCostingFunction
+  :: ExpModCostingFunction
+  -> CostingInteger
+  -> CostingInteger
+  -> CostingInteger
+  -> CostingInteger
+evaluateExpModCostingFunction
+   (ExpModCostingFunction
+    (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
+  a b m = if m <= 5*a
+          then c00 + c11*b*m + c12*b*m*m
+          else 2 * (c00 + c11*b*m + c12*b*m*m)
+{-# INLINE evaluateExpModCostingFunction #-}
 
 -- FIXME: we could use ModelConstantOrOneArgument for
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
@@ -592,14 +623,16 @@ runTwoArgumentModel
 ---------------- Three-argument costing functions ----------------
 
 data ModelThreeArguments =
-    ModelThreeArgumentsConstantCost          CostingInteger
-  | ModelThreeArgumentsLinearInX             OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInY             OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInZ             OneVariableLinearFunction
-  | ModelThreeArgumentsQuadraticInZ          OneVariableQuadraticFunction
-  | ModelThreeArgumentsLiteralInYOrLinearInZ OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInMaxYZ         OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInYAndZ         TwoVariableLinearFunction
+  ModelThreeArgumentsConstantCost             CostingInteger
+  | ModelThreeArgumentsLinearInX              OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInY              OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInZ              OneVariableLinearFunction
+  | ModelThreeArgumentsQuadraticInZ           OneVariableQuadraticFunction
+  | ModelThreeArgumentsLiteralInYOrLinearInZ  OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInMaxYZ          OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInYAndZ          TwoVariableLinearFunction
+  | ModelThreeArgumentsQuadraticInYAndZ       TwoVariableQuadraticFunction
+  | ModelThreeArgumentsExpModCost             ExpModCostingFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -657,6 +690,21 @@ runThreeArgumentModel
     (ModelThreeArgumentsLinearInYAndZ (TwoVariableLinearFunction intercept slope2 slope3)) =
         lazy $ \_costs1 costs2 costs3 ->
             scaleLinearlyTwoVariables intercept slope2 costs2 slope3 costs3
+
+runThreeArgumentModel
+  (ModelThreeArgumentsQuadraticInYAndZ f) =
+          lazy $ \_ costs2 costs3 ->
+             let !size2 = sumCostStream costs2
+                 !size3 = sumCostStream costs3
+             in CostLast $ evaluateTwoVariableQuadraticFunction f size2 size3
+
+runThreeArgumentModel (ModelThreeArgumentsExpModCost f) =
+  lazy $ \costs1 costs2 costs3 ->
+           let !size1 = sumCostStream costs1
+               !size2 = sumCostStream costs2
+               !size3 = sumCostStream costs3
+           in CostLast $ evaluateExpModCostingFunction f size1 size2 size3
+
 {-# NOINLINE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].

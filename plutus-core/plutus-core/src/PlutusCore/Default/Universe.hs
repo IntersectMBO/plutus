@@ -48,6 +48,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength (..),
+                                                    IntegerCostedByLog (..),
                                                     IntegerCostedLiterally (..),
                                                     ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..))
@@ -498,6 +499,13 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     MakeKnownIn DefaultUni term IntegerCostedLiterally
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term IntegerCostedLiterally
+
+deriving newtype instance
+    KnownTypeAst tyname DefaultUni IntegerCostedByLog
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term IntegerCostedByLog
+deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term IntegerCostedByLog
 
 deriving newtype instance KnownTypeAst tyname DefaultUni a =>
     KnownTypeAst tyname DefaultUni (ListCostedByLength a)

@@ -1,1 +1,1 @@
-Integer -> Integer -> Natural -> BuiltinResult Natural
+IntegerCostedByLog -> IntegerCostedByLog -> IntegerCostedByLog -> BuiltinResult Natural
