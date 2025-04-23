@@ -1,4 +1,0 @@
-pure work-free: var1-1
-pure work-free: var2-2
-pure work-free: var3-3
-impure? maybe work?: force ifThenElse var1-1 var2-2 var3-3

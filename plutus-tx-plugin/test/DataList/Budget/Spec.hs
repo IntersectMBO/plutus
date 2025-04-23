@@ -21,23 +21,23 @@ tests =
       [ goldenPirReadable "length" length
       , goldenUPlcReadable "length" length
       , goldenEvalCekCatch "length" [length `unsafeApplyCode` l]
-      , goldenBudgetAndSize "length" (length `unsafeApplyCode` l)
+      , goldenBudget "length" (length `unsafeApplyCode` l)
       , goldenPirReadable "filter" filter
       , goldenUPlcReadable "filter" filter
       , goldenEvalCekCatch "filter" [filter `unsafeApplyCode` l]
-      , goldenBudgetAndSize "filter" (filter `unsafeApplyCode` l)
+      , goldenBudget "filter" (filter `unsafeApplyCode` l)
       , goldenPirReadable "any" any
       , goldenUPlcReadable "any" any
       , goldenEvalCekCatch "any" [any `unsafeApplyCode` l]
-      , goldenBudgetAndSize "any" (any `unsafeApplyCode` l)
+      , goldenBudget "any" (any `unsafeApplyCode` l)
       , goldenPirReadable "elem" elem
       , goldenUPlcReadable "elem" elem
       , goldenEvalCekCatch "elem" [elem `unsafeApplyCode` l]
-      , goldenBudgetAndSize "elem" (elem `unsafeApplyCode` l)
+      , goldenBudget "elem" (elem `unsafeApplyCode` l)
       , goldenPirReadable "partition" partition
       , goldenUPlcReadable "partition" partition
       , goldenEvalCekCatch "partition" [partition `unsafeApplyCode` l]
-      , goldenBudgetAndSize "partition" (partition `unsafeApplyCode` l)
+      , goldenBudget "partition" (partition `unsafeApplyCode` l)
       , goldenPirReadable "makeList" makeList
       , goldenUPlcReadable "makeList" makeList
       , goldenEvalCekCatch
@@ -47,7 +47,7 @@ tests =
               `unsafeApplyCode` liftCodeDef 2
               `unsafeApplyCode` liftCodeDef 3
           ]
-      , goldenBudgetAndSize
+      , goldenBudget
           "makeList"
           ( makeList
               `unsafeApplyCode` liftCodeDef 1

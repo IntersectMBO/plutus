@@ -28,7 +28,7 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget and size testing
-  goldenBudgetAndSize
+  goldenBudget
 ) where
 
 import Prelude
@@ -112,9 +112,9 @@ renderExcess tData mData diff =
     <> "Remaining headroom: "
     <> show diff
 
-goldenBudgetAndSize :: TestName -> CompiledCode a -> TestNested
-goldenBudgetAndSize name compiledCode = do
-  nestedGoldenVsDocM name ".budget-and-size" $ ppCatch $ do
+goldenBudget :: TestName -> CompiledCode a -> TestNested
+goldenBudget name compiledCode = do
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
     PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
     size <- UPLC.programSize <$> toUPlc compiledCode
     let contents = "cpu: " <> pretty cpu <> "\nmem: " <> pretty mem <> "\nsize: " <> pretty size

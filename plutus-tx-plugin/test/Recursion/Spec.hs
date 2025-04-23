@@ -36,7 +36,7 @@ tests =
       , goldenEvalCekCatch
           "length-direct"
           [compiledLengthDirect `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudgetAndSize
+      , goldenBudget
           "length-direct"
           (compiledLengthDirect `unsafeApplyCode` liftCodeDef [1 .. 10])
       , -- length function implemented using fix
@@ -46,7 +46,7 @@ tests =
       , goldenEvalCekCatch
           "length-fix"
           [compiledLengthFix `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudgetAndSize
+      , goldenBudget
           "length-fix"
           (compiledLengthFix `unsafeApplyCode` liftCodeDef [1 .. 10])
       , -- length function implemented using fix
@@ -57,7 +57,7 @@ tests =
       , goldenEvalCekCatch
           "length-peeled"
           [compiledLengthPeeled `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudgetAndSize
+      , goldenBudget
           "length-peeled"
           (compiledLengthPeeled `unsafeApplyCode` liftCodeDef [1 .. 10])
       , -- length function implemented using fix
@@ -68,7 +68,7 @@ tests =
       , goldenEvalCekCatch
           "length-unrolled"
           [compiledLengthUnrolled `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudgetAndSize
+      , goldenBudget
           "length-unrolled"
           (compiledLengthUnrolled `unsafeApplyCode` liftCodeDef [1 .. 10])
       ]

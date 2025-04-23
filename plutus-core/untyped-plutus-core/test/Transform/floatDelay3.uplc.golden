@@ -1,1 +1,0 @@
-addInteger (force (delay 1)) (force (delay 1))

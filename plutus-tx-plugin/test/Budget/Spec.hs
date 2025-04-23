@@ -38,167 +38,167 @@ makeLift ''MaybeD
 
 tests :: TestNested
 tests = testNested "Budget" . pure $ testNestedGhc
-  [ goldenBudgetAndSize "sum" compiledSum
+  [ goldenBudget "sum" compiledSum
   , goldenUPlcReadable "sum" compiledSum
   , goldenPirReadable "sum" compiledSum
   , goldenEvalCekCatch "sum" [compiledSum]
 
-  , goldenBudgetAndSize "anyCheap" compiledAnyCheap
+  , goldenBudget "anyCheap" compiledAnyCheap
   , goldenUPlcReadable "anyCheap" compiledAnyCheap
   , goldenPirReadable "anyCheap" compiledAnyCheap
   , goldenEvalCekCatch "anyCheap" [compiledAnyCheap]
 
-  , goldenBudgetAndSize "anyExpensive" compiledAnyExpensive
+  , goldenBudget "anyExpensive" compiledAnyExpensive
   , goldenUPlcReadable "anyExpensive" compiledAnyExpensive
   , goldenPirReadable "anyExpensive" compiledAnyExpensive
   , goldenEvalCekCatch "anyExpensive" [compiledAnyExpensive]
 
-  , goldenBudgetAndSize "anyEmptyList" compiledAnyEmptyList
+  , goldenBudget "anyEmptyList" compiledAnyEmptyList
   , goldenUPlcReadable "anyEmptyList" compiledAnyEmptyList
   , goldenPirReadable "anyEmptyList" compiledAnyEmptyList
   , goldenEvalCekCatch "anyEmptyList" [compiledAnyEmptyList]
 
-  , goldenBudgetAndSize "allCheap" compiledAllCheap
+  , goldenBudget "allCheap" compiledAllCheap
   , goldenUPlcReadable "allCheap" compiledAllCheap
   , goldenPirReadable "allCheap" compiledAllCheap
   , goldenEvalCekCatch "allCheap" [compiledAllCheap]
 
-  , goldenBudgetAndSize "allExpensive" compiledAllExpensive
+  , goldenBudget "allExpensive" compiledAllExpensive
   , goldenUPlcReadable "allExpensive" compiledAllExpensive
   , goldenPirReadable "allExpensive" compiledAllExpensive
   , goldenEvalCekCatch "allExpensive" [compiledAllExpensive]
 
-  , goldenBudgetAndSize "allEmptyList" compiledAllEmptyList
+  , goldenBudget "allEmptyList" compiledAllEmptyList
   , goldenUPlcReadable "allEmptyList" compiledAllEmptyList
   , goldenPirReadable "allEmptyList" compiledAllEmptyList
   , goldenEvalCekCatch "allEmptyList" [compiledAllEmptyList]
 
-  , goldenBudgetAndSize "findCheap" compiledFindCheap
+  , goldenBudget "findCheap" compiledFindCheap
   , goldenUPlcReadable "findCheap" compiledFindCheap
   , goldenPirReadable "findCheap" compiledFindCheap
   , goldenEvalCekCatch "findCheap" [compiledFindCheap]
 
-  , goldenBudgetAndSize "findExpensive" compiledFindExpensive
+  , goldenBudget "findExpensive" compiledFindExpensive
   , goldenUPlcReadable "findExpensive" compiledFindExpensive
   , goldenPirReadable "findExpensive" compiledFindExpensive
   , goldenEvalCekCatch "findExpensive" [compiledFindExpensive]
 
-  , goldenBudgetAndSize "findEmptyList" compiledFindEmptyList
+  , goldenBudget "findEmptyList" compiledFindEmptyList
   , goldenUPlcReadable "findEmptyList" compiledFindEmptyList
   , goldenPirReadable "findEmptyList" compiledFindEmptyList
   , goldenEvalCekCatch "findEmptyList" [compiledFindEmptyList]
 
-  , goldenBudgetAndSize "findIndexCheap" compiledFindIndexCheap
+  , goldenBudget "findIndexCheap" compiledFindIndexCheap
   , goldenUPlcReadable "findIndexCheap" compiledFindIndexCheap
   , goldenPirReadable "findIndexCheap" compiledFindIndexCheap
   , goldenEvalCekCatch "findIndexCheap" [compiledFindIndexCheap]
 
-  , goldenBudgetAndSize "findIndexExpensive" compiledFindIndexExpensive
+  , goldenBudget "findIndexExpensive" compiledFindIndexExpensive
   , goldenUPlcReadable "findIndexExpensive" compiledFindIndexExpensive
   , goldenPirReadable "findIndexExpensive" compiledFindIndexExpensive
   , goldenEvalCekCatch "findIndexExpensive" [compiledFindIndexExpensive]
 
-  , goldenBudgetAndSize "findIndexEmptyList" compiledFindIndexEmptyList
+  , goldenBudget "findIndexEmptyList" compiledFindIndexEmptyList
   , goldenUPlcReadable "findIndexEmptyList" compiledFindIndexEmptyList
   , goldenPirReadable "findIndexEmptyList" compiledFindIndexEmptyList
   , goldenEvalCekCatch "findIndexEmptyList" [compiledFindIndexEmptyList]
 
-  , goldenBudgetAndSize "filter" compiledFilter
+  , goldenBudget "filter" compiledFilter
   , goldenUPlcReadable "filter" compiledFilter
   , goldenPirReadable "filter" compiledFilter
   , goldenEvalCekCatch "filter" [compiledFilter]
 
-  , goldenBudgetAndSize "andCheap" compiledAndCheap
+  , goldenBudget "andCheap" compiledAndCheap
   , goldenUPlcReadable "andCheap" compiledAndCheap
   , goldenPirReadable "andCheap" compiledAndCheap
   , goldenEvalCekCatch "andCheap" [compiledAndCheap]
 
-  , goldenBudgetAndSize "andExpensive" compiledAndExpensive
+  , goldenBudget "andExpensive" compiledAndExpensive
   , goldenUPlcReadable "andExpensive" compiledAndExpensive
   , goldenPirReadable "andExpensive" compiledAndExpensive
   , goldenEvalCekCatch "andExpensive" [compiledAndExpensive]
 
-  , goldenBudgetAndSize "orCheap" compiledOrCheap
+  , goldenBudget "orCheap" compiledOrCheap
   , goldenUPlcReadable "orCheap" compiledOrCheap
   , goldenPirReadable "orCheap" compiledOrCheap
   , goldenEvalCekCatch "orCheap" [compiledOrCheap]
 
-  , goldenBudgetAndSize "orExpensive" compiledOrExpensive
+  , goldenBudget "orExpensive" compiledOrExpensive
   , goldenUPlcReadable "orExpensive" compiledOrExpensive
   , goldenPirReadable "orExpensive" compiledOrExpensive
   , goldenEvalCekCatch "orExpensive" [compiledOrExpensive]
 
-  , goldenBudgetAndSize "elemCheap" compiledElemCheap
+  , goldenBudget "elemCheap" compiledElemCheap
   , goldenUPlcReadable "elemCheap" compiledElemCheap
   , goldenPirReadable "elemCheap" compiledElemCheap
   , goldenEvalCekCatch "elemCheap" [compiledElemCheap]
 
-  , goldenBudgetAndSize "elemExpensive" compiledElemExpensive
+  , goldenBudget "elemExpensive" compiledElemExpensive
   , goldenUPlcReadable "elemExpensive" compiledElemExpensive
   , goldenPirReadable "elemExpensive" compiledElemExpensive
   , goldenEvalCekCatch "elemExpensive" [compiledElemExpensive]
 
-  , goldenBudgetAndSize "notElemCheap" compiledNotElemCheap
+  , goldenBudget "notElemCheap" compiledNotElemCheap
   , goldenUPlcReadable "notElemCheap" compiledNotElemCheap
   , goldenPirReadable "notElemCheap" compiledNotElemCheap
   , goldenEvalCekCatch "notElemCheap" [compiledNotElemCheap]
 
-  , goldenBudgetAndSize "notElemExpensive" compiledNotElemExpensive
+  , goldenBudget "notElemExpensive" compiledNotElemExpensive
   , goldenUPlcReadable "notElemExpensive" compiledNotElemExpensive
   , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
   , goldenEvalCekCatch "notElemExpensive" [compiledNotElemExpensive]
 
-  , goldenBudgetAndSize "lte0" compiledLte0
+  , goldenBudget "lte0" compiledLte0
   , goldenUPlcReadable "lte0" compiledLte0
   , goldenPirReadable "lte0" compiledLte0
   , goldenEvalCekCatch "lte0" [compiledLte0]
 
-  , goldenBudgetAndSize "gte0" compiledGte0
+  , goldenBudget "gte0" compiledGte0
   , goldenUPlcReadable "gte0" compiledGte0
   , goldenPirReadable "gte0" compiledGte0
   , goldenEvalCekCatch "gte0" [compiledGte0]
 
-  , goldenBudgetAndSize "recursiveLte0" compiledRecursiveLte0
+  , goldenBudget "recursiveLte0" compiledRecursiveLte0
   , goldenUPlcReadable "recursiveLte0" compiledRecursiveLte0
   , goldenPirReadable "recursiveLte0" compiledRecursiveLte0
   , goldenEvalCekCatch "recursiveLte0" [compiledRecursiveLte0]
 
-  , goldenBudgetAndSize "recursiveGte0" compiledRecursiveGte0
+  , goldenBudget "recursiveGte0" compiledRecursiveGte0
   , goldenUPlcReadable "recursiveGte0" compiledRecursiveGte0
   , goldenPirReadable "recursiveGte0" compiledRecursiveGte0
   , goldenEvalCekCatch "recursiveGte0" [compiledRecursiveGte0]
 
-  , goldenBudgetAndSize "sumL" compiledSumL
+  , goldenBudget "sumL" compiledSumL
   , goldenUPlcReadable "sumL" compiledSumL
   , goldenPirReadable "sumL" compiledSumL
   , goldenEvalCekCatch "sumL" [compiledSumL]
 
-  , goldenBudgetAndSize "sumR" compiledSumR
+  , goldenBudget "sumR" compiledSumR
   , goldenUPlcReadable "sumR" compiledSumR
   , goldenPirReadable "sumR" compiledSumR
   , goldenEvalCekCatch "sumR" [compiledSumR]
 
-  , goldenBudgetAndSize "constAccL" compiledConstAccL
+  , goldenBudget "constAccL" compiledConstAccL
   , goldenUPlcReadable "constAccL" compiledConstAccL
   , goldenPirReadable "constAccL" compiledConstAccL
   , goldenEvalCekCatch "constAccL" [compiledConstAccL]
 
-  , goldenBudgetAndSize "constAccR" compiledConstAccR
+  , goldenBudget "constAccR" compiledConstAccR
   , goldenUPlcReadable "constAccR" compiledConstAccR
   , goldenPirReadable "constAccR" compiledConstAccR
   , goldenEvalCekCatch "constAccR" [compiledConstAccR]
 
-  , goldenBudgetAndSize "constElL" compiledConstElL
+  , goldenBudget "constElL" compiledConstElL
   , goldenUPlcReadable "constElL" compiledConstElL
   , goldenPirReadable "constElL" compiledConstElL
   , goldenEvalCekCatch "constElL" [compiledConstElL]
 
-  , goldenBudgetAndSize "constElR" compiledConstElR
+  , goldenBudget "constElR" compiledConstElR
   , goldenUPlcReadable "constElR" compiledConstElR
   , goldenPirReadable "constElR" compiledConstElR
   , goldenEvalCekCatch "constElR" [compiledConstElR]
 
-  , goldenBudgetAndSize "null" compiledNull
+  , goldenBudget "null" compiledNull
   , goldenUPlcReadable "null" compiledNull
   , goldenPirReadable "null" compiledNull
   , goldenEvalCekCatch "null" [compiledNull]
@@ -208,73 +208,73 @@ tests = testNested "Budget" . pure $ testNestedGhc
   , goldenEvalCekCatch
       "listIndexing"
       [compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput]
-  , goldenBudgetAndSize
+  , goldenBudget
       "listIndexing"
       (compiledListIndexing `unsafeApplyCode` liftCodeDef listIndexingInput)
 
-  , goldenBudgetAndSize "toFromData" compiledToFromData
+  , goldenBudget "toFromData" compiledToFromData
   , goldenUPlcReadable "toFromData" compiledToFromData
   , goldenPirReadable "toFromData" compiledToFromData
   , goldenEvalCekCatch "toFromData" [compiledToFromData]
 
-  , goldenBudgetAndSize "not-not" compiledNotNot
+  , goldenBudget "not-not" compiledNotNot
   , goldenUPlcReadable "not-not" compiledNotNot
   , goldenPirReadable "not-not" compiledNotNot
   , goldenEvalCekCatch "not-not" [compiledNotNot]
 
-  , goldenBudgetAndSize "monadicDo" monadicDo
+  , goldenBudget "monadicDo" monadicDo
   , goldenUPlcReadable "monadicDo" monadicDo
   , goldenPirReadable "monadicDo" monadicDo
   , goldenEvalCekCatch "monadicDo" [monadicDo]
 
-  , goldenBudgetAndSize "sumAtIndices" (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
+  , goldenBudget "sumAtIndices" (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
   , goldenUPlcReadable "sumAtIndices" compiledSumAtIndices
   , goldenPirReadableU "sumAtIndices" compiledSumAtIndices
   , goldenEvalCekCatch "sumAtIndices" [compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput]
 
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
-  , goldenBudgetAndSize "applicative" applicative
+  , goldenBudget "applicative" applicative
   , goldenUPlcReadable "applicative" applicative
   , goldenPirReadable "applicative" applicative
   , goldenEvalCekCatch "applicative" [applicative]
 
-  , goldenBudgetAndSize "patternMatch" patternMatch
+  , goldenBudget "patternMatch" patternMatch
   , goldenUPlcReadable "patternMatch" patternMatch
   , goldenPirReadable "patternMatch" patternMatch
   , goldenEvalCekCatch "patternMatch" [patternMatch]
 
-  , goldenBudgetAndSize "show" compiledShow
+  , goldenBudget "show" compiledShow
   , goldenUPlcReadable "show" compiledShow
   , goldenPirReadable "show" compiledShow
 
   -- These test cases are for testing the float-in pass.
-  , goldenBudgetAndSize "ifThenElse1" compiledIfThenElse1
+  , goldenBudget "ifThenElse1" compiledIfThenElse1
   , goldenUPlcReadable "ifThenElse1" compiledIfThenElse1
   , goldenPirReadable "ifThenElse1" compiledIfThenElse1
   , goldenEvalCekCatch "ifThenElse1" [compiledIfThenElse1]
 
-  , goldenBudgetAndSize "ifThenElse2" compiledIfThenElse2
+  , goldenBudget "ifThenElse2" compiledIfThenElse2
   , goldenUPlcReadable "ifThenElse2" compiledIfThenElse2
   , goldenPirReadable "ifThenElse2" compiledIfThenElse2
   , goldenEvalCekCatch "ifThenElse2" [compiledIfThenElse2]
 
-  , goldenBudgetAndSize "matchAsDataE" matchAsData
+  , goldenBudget "matchAsDataE" matchAsData
   , goldenEvalCekCatch "matchAsDataE" [matchAsData]
 
   -- Demonstrate inconsistent handling of '&&' and '||'
   -- With GHC optimisations turned on
-  , goldenBudgetAndSize "andWithGHCOpts" compiledAndWithGHCOpts
+  , goldenBudget "andWithGHCOpts" compiledAndWithGHCOpts
   , goldenUPlcReadable "andWithGHCOpts" compiledAndWithGHCOpts
   , goldenPirReadable "andWithGHCOpts" compiledAndWithGHCOpts
   , goldenEvalCekCatch "andWithGHCOpts" [compiledAndWithGHCOpts]
   -- With GHC optimisations turned off
-  , goldenBudgetAndSize "andWithoutGHCOpts" compiledAndWithoutGHCOpts
+  , goldenBudget "andWithoutGHCOpts" compiledAndWithoutGHCOpts
   , goldenUPlcReadable "andWithoutGHCOpts" compiledAndWithoutGHCOpts
   , goldenPirReadable "andWithoutGHCOpts" compiledAndWithoutGHCOpts
   , goldenEvalCekCatch "andWithoutGHCOpts" [compiledAndWithoutGHCOpts]
   -- With the function definition in the local module
-  , goldenBudgetAndSize "andWithLocal" compiledAndWithLocal
+  , goldenBudget "andWithLocal" compiledAndWithLocal
   , goldenUPlcReadable "andWithLocal" compiledAndWithLocal
   , goldenPirReadable "andWithLocal" compiledAndWithLocal
   , goldenEvalCekCatch "andWithLocal" [compiledAndWithLocal]

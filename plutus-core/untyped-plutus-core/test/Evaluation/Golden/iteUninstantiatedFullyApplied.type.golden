@@ -1,7 +1,0 @@
-(Left Type mismatch at ()
-Expected a term of type
-  '(fun k l)' for some 'k' and 'l'
-But found one of type
-  '(all a (type) (fun (con bool) (fun a (fun a a))))'
-Namely,
-  '(builtin ifThenElse)')

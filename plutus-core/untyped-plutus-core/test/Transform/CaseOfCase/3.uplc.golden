@@ -1,9 +1,0 @@
-(force
-  [
-    [
-      [ (force (builtin ifThenElse)) b ]
-      (delay (case (constr 0 x xs) f (con integer 2)))
-    ]
-    (delay (case (constr 1) f (con integer 2)))
-  ]
-)

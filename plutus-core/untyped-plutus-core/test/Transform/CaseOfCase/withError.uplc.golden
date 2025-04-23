@@ -1,9 +1,0 @@
-(force
-  [
-    [
-      [ (force (builtin ifThenElse)) (con bool True) ]
-      (delay (case (constr 0) (con unit ()) (error)))
-    ]
-    (delay (case (constr 1) (con unit ()) (error)))
-  ]
-)

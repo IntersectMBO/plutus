@@ -22,27 +22,27 @@ tests =
       [ goldenPirReadable "map" map
       , goldenUPlcReadable "map" map
       , goldenEvalCekCatch "map" [map `unsafeApplyCode` l]
-      , goldenBudgetAndSize "map" (map `unsafeApplyCode` l)
+      , goldenBudget "map" (map `unsafeApplyCode` l)
       , goldenPirReadable "elem" elem
       , goldenUPlcReadable "elem" elem
       , goldenEvalCekCatch "elem" [elem `unsafeApplyCode` l]
-      , goldenBudgetAndSize "elem" (elem `unsafeApplyCode` l)
+      , goldenBudget "elem" (elem `unsafeApplyCode` l)
       , goldenPirReadable "find" find
       , goldenUPlcReadable "find" find
       , goldenEvalCekCatch "find" [find `unsafeApplyCode` l]
-      , goldenBudgetAndSize "find" (find `unsafeApplyCode` l)
+      , goldenBudget "find" (find `unsafeApplyCode` l)
       , goldenPirReadable "any" any
       , goldenUPlcReadable "any" any
       , goldenEvalCekCatch "any" [any `unsafeApplyCode` l]
-      , goldenBudgetAndSize "any" (any `unsafeApplyCode` l)
+      , goldenBudget "any" (any `unsafeApplyCode` l)
       , goldenPirReadable "all" all
       , goldenUPlcReadable "all" all
       , goldenEvalCekCatch "all" [all `unsafeApplyCode` l]
-      , goldenBudgetAndSize "all" (all `unsafeApplyCode` l)
+      , goldenBudget "all" (all `unsafeApplyCode` l)
       , goldenPirReadable "index" index
       , goldenUPlcReadable "index" index
       , goldenEvalCekCatch "index" [index `unsafeApplyCode` l]
-      , goldenBudgetAndSize "index" (index `unsafeApplyCode` l)
+      , goldenBudget "index" (index `unsafeApplyCode` l)
       ]
 
 map :: CompiledCode (P.BuiltinList Integer -> P.BuiltinList Integer)
