@@ -190,14 +190,30 @@ class ExMemoryUsage a where
  arguments, so it is reasonable to use size measures which depend only on the
  surface structure of polymorphic objects. -}
 
+{- We expect that all builtins which involve pairs will be constant cost and so
+   their memory usage will never be involved in any computations.  The memory
+   usage is set to maxBound so that we'll notice if this assumption is ever
+   violated -}
 instance ExMemoryUsage (a, b) where
-    memoryUsage _ = singletonRose 1
+    memoryUsage _ = singletonRose maxBound
     {-# INLINE memoryUsage #-}
 
+{- Note the the `memoryUsage` of an empty list is zero.  This shouldn't cause any
+ problems, but be sure to check that no costing function involving lists can
+ return zero for an empty list (or any other input).
+-}
+{- Calculating the memory usage by processing the entire spine of the list eagerly
+ is safe because there's no way to cheaply construct a long list: you either
+ make one using repeated mkCons, which is expensive, or return one from a
+ builtin, which has to be appropriately expensive too. -}
 instance ExMemoryUsage [a] where
   memoryUsage l = singletonRose . fromIntegral $ length l
   {-# INLINE memoryUsage #-}
 
+{- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
+ problems, but be sure to check that no costing function involving arrays can
+ return zero for an empty array (or any other input).
+-}
 instance ExMemoryUsage (Vector a) where
     memoryUsage l = singletonRose . fromIntegral $ Vector.length l
     {-# INLINE memoryUsage #-}
