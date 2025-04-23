@@ -1,0 +1,7 @@
+(Left Type mismatch at ()
+Expected a term of type
+  '(all a kind body)' for some 'a', 'kind' and 'body'
+But found one of type
+  '(fun (con integer) (con integer))'
+Namely,
+  '[ (builtin multiplyInteger) (con integer 11) ]')

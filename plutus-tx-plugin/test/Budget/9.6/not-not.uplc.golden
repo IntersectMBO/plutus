@@ -1,0 +1,4 @@
+(program
+   1.1.0
+   ((\x -> force ifThenElse (lessThanInteger 0 x) (constr 0 []) (constr 1 []))
+      1))

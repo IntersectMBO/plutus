@@ -1,0 +1,1 @@
+\(p : pair integer integer) -> fstPair {integer} {integer} p

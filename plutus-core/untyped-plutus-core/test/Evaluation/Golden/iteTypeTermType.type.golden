@@ -1,0 +1,10 @@
+(Left Type mismatch at ()
+Expected a term of type
+  '(all a kind body)' for some 'a', 'kind' and 'body'
+But found one of type
+  '(fun (con integer) (fun (con integer) (con integer)))'
+Namely,
+  '[
+    { (builtin ifThenElse) (con integer) }
+    [ [ (builtin lessThanEqualsInteger) (con integer 11) ] (con integer 22) ]
+  ]')

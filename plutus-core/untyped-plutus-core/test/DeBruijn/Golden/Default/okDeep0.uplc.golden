@@ -1,0 +1,6 @@
+(Right (program
+  1.1.0
+  (lam
+    i (lam i (lam i (lam i (lam i (lam i (lam i (lam i (lam i (lam i i)))))))))
+  )
+))

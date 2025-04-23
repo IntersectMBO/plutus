@@ -1,0 +1,7 @@
+(Left Kind mismatch at ()
+Expected a type of kind
+  '(type)'
+But found one of kind
+  '(fun (type) (type))'
+Namely,
+  '(lam a (type) (fun a a))')

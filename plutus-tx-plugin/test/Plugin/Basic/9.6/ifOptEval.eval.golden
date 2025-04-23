@@ -1,0 +1,6 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: divideInteger 1 0
+Final budget: ({cpu: 132030
+| mem: 101})
+Logs: Cannot divide by zero

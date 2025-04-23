@@ -1,0 +1,7 @@
+(Left Type mismatch at ()
+Expected a term of type
+  '(sop)'
+But found one of type
+  '(sop [(con integer)] [(con string)])'
+Namely,
+  '(constr (sop [(con integer)] [(con string)]) 0 (con integer 1))')

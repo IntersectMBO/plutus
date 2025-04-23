@@ -1,0 +1,7 @@
+(Left Type mismatch at ()
+Expected a term of type
+  '(sop)'
+But found one of type
+  '(con integer)'
+Namely,
+  '(con integer 1)')

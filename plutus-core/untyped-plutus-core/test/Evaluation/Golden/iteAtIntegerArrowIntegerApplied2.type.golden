@@ -1,0 +1,7 @@
+(Left Type mismatch at ()
+Expected a term of type
+  '(fun (con integer) (con integer))'
+But found one of type
+  '(fun (con integer) (fun (con integer) (con integer)))'
+Namely,
+  '(builtin multiplyInteger)')
