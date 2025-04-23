@@ -11,9 +11,39 @@
 \subsection{Batch 6}
 \label{sec:default-builtins-6}
 
+\subsubsection{Built-in type operators}
+\label{sec:built-in-type-operatos-6}
+The sixth batch adds type operators defined in Table~\ref{table:built-in-type-operators-6}. 
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{14mm}|l|l|}
+        \hline
+        Operator $\op$ & $\left|\op\right|$  & Denotation & Concrete Syntax\\
+        \hline
+        \texttt{array} 
+          & 1 
+          & $\denote{\arrayOf{t}} = \denote{t}^*$ 
+          & See below\\
+        \hline
+        \end{tabular}
+   \caption{Type operators, Batch 6}
+    \label{table:built-in-type-operators-6}
+\end{table}
+
+\paragraph{Concrete syntax for arrays.}
+An array of type $\texttt{array}(t)$ is written as a syntactic list
+\texttt{[$c_1, \ldots, c_n$]} where each $c_i$ lies in $\bitc_t$.
+Some valid constant expressions are thus:
+\begin{verbatim}
+   (con (array bool) [True, False, True])
+   (con (array integer) [])
+\end{verbatim}
+
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-6}
-The sixth batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
+The sixth batch of built-in types is defined in Table~\ref{table:built-in-types-6}.
+Operations are defined in Table~\ref{table:built-in-functions-6}.
 
 \setlength{\LTleft}{-12mm}  % Shift the table left a bit to centre it on the page
 \renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 25%
