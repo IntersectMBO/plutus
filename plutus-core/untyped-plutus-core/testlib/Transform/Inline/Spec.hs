@@ -20,7 +20,7 @@ import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Size (Size (..))
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), InlineInfo (..), InlineM, S (..),
                                            Subst (..), TermEnv (..), effectSafe,
-                                           isFirstVarBeforeEffects, isVarEventuallyEvaluated)
+                                           isFirstVarBeforeEffects, isStrictIn)
 
 test_inline :: TestTree
 test_inline =
@@ -30,7 +30,7 @@ test_inline =
         "var is before or after effects"
         testVarBeforeAfterEffects
     , testGroup
-        "isVarEventuallyEvaluated"
+        "isStrictIn"
         [ testCase
             "a var is delayed if it's inside a delay"
             testVarIsEventuallyEvaluatedDelay
@@ -73,11 +73,11 @@ testVarBeforeAfterEffects = do
 testVarIsEventuallyEvaluatedDelay :: Assertion
 testVarIsEventuallyEvaluatedDelay = do
   assertBool "var 'a' is not eventually evaluated in delay" $
-    not (isVarEventuallyEvaluated a term)
+    not (isStrictIn a term)
   assertBool "var 'b' is eventually evaluated outside of the delay" $
-    isVarEventuallyEvaluated b term
+    isStrictIn b term
   assertBool "it's not known if var 'c' is eventually evaluated" $
-    not (isVarEventuallyEvaluated c term)
+    not (isStrictIn c term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = delay (var a `addInteger` var b) `addInteger` var b
@@ -87,11 +87,11 @@ testVarIsEventuallyEvaluatedDelay = do
 testVarIsEventuallyEvaluatedLambda :: Assertion
 testVarIsEventuallyEvaluatedLambda = do
   assertBool "var 'a' is not eventually evaluated in lambda body" $
-    not (isVarEventuallyEvaluated a term)
+    not (isStrictIn a term)
   assertBool "var 'c' is eventually evaluated outside of the lambda" $
-    isVarEventuallyEvaluated c term
+    isStrictIn c term
   assertBool "it's not known if var 'd' is eventually evaluated" $
-    not (isVarEventuallyEvaluated d term)
+    not (isStrictIn d term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = lam b (var a `addInteger` var c) `app` var c
@@ -101,11 +101,11 @@ testVarIsEventuallyEvaluatedLambda = do
 testVarIsEventuallyEvaluatedCaseBranch :: Assertion
 testVarIsEventuallyEvaluatedCaseBranch = do
   assertBool "var 'a' is not eventually evaluated in case branch" $
-    not (isVarEventuallyEvaluated a term)
+    not (isStrictIn a term)
   assertBool "var 'b' is eventually evaluated outside of the case branch" $
-    isVarEventuallyEvaluated b term
+    isStrictIn b term
   assertBool "it is not known if var 'd' is eventually evaluated" $
-    not (isVarEventuallyEvaluated d term)
+    not (isStrictIn d term)
  where
   term :: Term Name DefaultUni DefaultFun ()
   term = case_ (var b) [var a, var b, var c]

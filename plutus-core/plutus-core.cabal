@@ -527,6 +527,7 @@ library plutus-ir
     PlutusIR.Parser
     PlutusIR.Pass
     PlutusIR.Purity
+    PlutusIR.Strictness
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseOfCase
