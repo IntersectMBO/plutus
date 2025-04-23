@@ -75,12 +75,8 @@ defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementSize 
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize x
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
 defaultConstantMeasure (tmCon (list t) []) = 1
-defaultConstantMeasure (tmCon (list t) (x ∷ xs)) =
-      3 + defaultConstantMeasure (tmCon t x)
-      + defaultConstantMeasure (tmCon (list t) xs)
-defaultConstantMeasure (tmCon (pair t u) (x , y)) =
-      1 + defaultConstantMeasure (tmCon t x)
-      + defaultConstantMeasure (tmCon u y)
+defaultConstantMeasure (tmCon (list t) l) = Utils.length l
+defaultConstantMeasure (tmCon (pair t u) (x , y)) = 1
 
 -- This is the main sizing function for Values
 -- It only measures constants. Other types should use models where the size

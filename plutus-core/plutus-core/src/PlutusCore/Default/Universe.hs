@@ -47,9 +47,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength (..),
-                                                    IntegerCostedLiterally (..),
-                                                    ListCostedByLength (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
@@ -498,20 +496,6 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     MakeKnownIn DefaultUni term IntegerCostedLiterally
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term IntegerCostedLiterally
-
-deriving newtype instance KnownTypeAst tyname DefaultUni a =>
-    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
-    MakeKnownIn DefaultUni term (ListCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
-    ReadKnownIn DefaultUni term (ListCostedByLength a)
-
-deriving newtype instance KnownTypeAst tyname DefaultUni a =>
-    KnownTypeAst tyname DefaultUni (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    MakeKnownIn DefaultUni term (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    ReadKnownIn DefaultUni term (ArrayCostedByLength a)
 
 deriving via AsInteger Natural instance
     KnownTypeAst tyname DefaultUni Natural

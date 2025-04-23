@@ -28,7 +28,6 @@ import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
-                                                    ListCostedByLength (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
@@ -1967,10 +1966,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar WriteBits =
         let writeBitsDenotation
               :: BS.ByteString
-              -> ListCostedByLength Integer
+              -> [Integer]
               -> Bool
               -> BuiltinResult BS.ByteString
-            writeBitsDenotation s (ListCostedByLength ixs) = Bitwise.writeBits s ixs
+            writeBitsDenotation s ixs = Bitwise.writeBits s ixs
             {-# INLINE writeBitsDenotation #-}
         in makeBuiltinMeaning
             writeBitsDenotation
