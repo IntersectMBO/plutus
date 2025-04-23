@@ -1,0 +1,4 @@
+Fixed
+-----
+
+- Deciding equality between builtins no longer gets stuck.

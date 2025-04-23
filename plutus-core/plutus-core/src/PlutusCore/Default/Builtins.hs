@@ -2123,7 +2123,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
             case uniListA of
               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
-              _ -> throwing _StructuralUnliftingError  "Expected an array but got something else"
+              _ -> throwing _StructuralUnliftingError  "Expected a list but got something else"
           {-# INLINE listToArrayDenotation #-}
         in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . unimplementedCostingFun)
 

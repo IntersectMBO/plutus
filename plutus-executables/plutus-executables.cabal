@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.44.0.0
+version:         1.45.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -65,11 +65,14 @@ common os-support
 library lib
   import:          lang, os-support, ghc-version-support
   hs-source-dirs:  src
-  exposed-modules: AgdaUnparse
+  exposed-modules:
+    AgdaTrace
+    AgdaUnparse
+
   build-depends:
     , base               >=4.9   && <5
     , bytestring
-    , plutus-core        ^>=1.44
+    , plutus-core        ^>=1.45
     , plutus-metatheory
     , text
 
@@ -86,7 +89,7 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core                      ^>=1.44
+    , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
@@ -102,7 +105,7 @@ executable plc
     , bytestring
     , flat                             ^>=0.6
     , optparse-applicative
-    , plutus-core                      ^>=1.44
+    , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -119,7 +122,7 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.44
+    , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib
     , plutus-executables:lib
     , plutus-metatheory
@@ -152,7 +155,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.44
+    , plutus-core        ^>=1.45
     , plutus-metatheory
     , process
     , tasty
@@ -171,7 +174,11 @@ test-suite test-certifier
   build-depends:
     , base
     , filepath
+    , plutus-core
     , plutus-core:plutus-core-testlib
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-executables:lib
+    , plutus-metatheory
     , process
     , tasty
     , tasty-hunit

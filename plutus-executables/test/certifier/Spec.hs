@@ -5,8 +5,11 @@
 
 module Main (main) where
 
+import AgdaTrace (mkAgdaTrace)
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import GHC.IO.Encoding (setLocaleEncoding)
+import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
+import PlutusCore qualified as PLC
 import System.Exit
 import System.FilePath
 import System.IO
@@ -14,6 +17,9 @@ import System.Process
 import Test.Tasty
 import Test.Tasty.Extras (goldenVsTextM)
 import Test.Tasty.HUnit
+import Transform.Simplify
+import Transform.Simplify.Lib
+import UntypedPlutusCore
 
 {- | Run an external executable with some arguments.  This is for use inside
     HUnit Assertions -}
@@ -123,9 +129,8 @@ srcTests =
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
   -- , "len"
-  -- TODO: uncomment when "Haskell ByteString != Agda String" issue is fixed
-  -- , "MinBS"
-    , "AA2-CSE"
+  , "MinBS"
+  , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
@@ -142,6 +147,41 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
+type SimplifierFunc
+  = Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> PLC.Quote
+      ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+      , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+      )
+
+mkUPLCTest
+  :: SimplifierFunc
+  -> String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCTest simplifierFunc name input = testCase name $
+  let rawAgdaTrace = PLC.runQuote $ do
+        simplifierTrace <- snd <$> simplifierFunc input
+        return $ mkAgdaTrace simplifierTrace
+  in
+    case runCertifierMain rawAgdaTrace of
+      Just result ->
+        assertBool "The certifier returned false." result
+      Nothing ->
+        assertFailure "The certifier exited with an error."
+
+mkUPLCSimplifierTest
+  :: String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCSimplifierTest = mkUPLCTest testSimplify
+
+mkUPLCCseTest
+  :: String
+  -> Term Name DefaultUni DefaultFun ()
+  -> TestTree
+mkUPLCCseTest = mkUPLCTest testCse
+
 main :: IO ()
 main = do
   setLocaleEncoding utf8
@@ -152,4 +192,18 @@ main = do
     , testGroup "serialisation certification"  $ makeSerialisationTests srcTests
     --, testGroup "example serialisation certification"
     --                $ makeSerialisationExampleTests exampleNames
+    , testGroup "uplc simplifier tests"
+        $ fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs'
+    , testGroup "uplc cse tests"
+        $ fmap (uncurry mkUPLCCseTest) testCseInputs
     ]
+  where
+    -- TODO(https://github.com/IntersectMBO/plutus-private/issues/1541):
+    --   this removes two tests which are currently failing; we should
+    --   fix the tests and add them back
+    testSimplifyInputs' =
+      filter
+        (\(name, _) ->
+          name /= "forceDelaySimple" && name /= "forceDelayComplex"
+        )
+        testSimplifyInputs

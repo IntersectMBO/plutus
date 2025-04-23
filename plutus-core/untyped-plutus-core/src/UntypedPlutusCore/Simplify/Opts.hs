@@ -8,6 +8,7 @@ module UntypedPlutusCore.Simplify.Opts
   , soConservativeOpts
   , soInlineConstants
   , soInlineCallsiteGrowth
+  , soPreserveLogging
   , defaultSimplifyOpts
   ) where
 
@@ -24,6 +25,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soInlineHints             :: InlineHints name a
   , _soInlineConstants         :: Bool
   , _soInlineCallsiteGrowth    :: Size
+  , _soPreserveLogging         :: Bool
   }
   deriving stock (Show)
 
@@ -38,4 +40,5 @@ defaultSimplifyOpts =
     , _soInlineHints = def
     , _soInlineConstants = True
     , _soInlineCallsiteGrowth = 5
+    , _soPreserveLogging = True
     }
