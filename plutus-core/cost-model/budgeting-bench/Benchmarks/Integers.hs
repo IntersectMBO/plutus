@@ -98,13 +98,13 @@ benchExpModInteger2 _gen =
    Overall we get a good fit with t~I(y*z^2)+I(y*z).
 -}
 
--- Takes about 50 minutes with 625 inputs.
+-- Takes about 16 minutes with these inputs.
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      moduli = fmap (\n -> pow 2 (256*n) - 11) [1, 3..25]
-      -- 256*n for size 800
+      moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..25]
+      -- 32*n for size 100, 256*n for size 800
       bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
       -- ^ Largest number less than modulus with binary expansion 1111...1
       -- Should be about worst case

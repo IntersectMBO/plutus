@@ -409,7 +409,7 @@ evaluateExpModCostingFunction
 evaluateExpModCostingFunction
    (ExpModCostingFunction
     (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  a b m = if m <= 5*a
+  a b m = if a <= 5*m
           then c00 + c11*b*m + c12*b*m*m
           else 2 * (c00 + c11*b*m + c12*b*m*m)
 {-# INLINE evaluateExpModCostingFunction #-}
