@@ -1,25 +1,6 @@
-{ pkgs, lib }:
+{ pkgs, lib, agda-tools }:
 
 { name, description, src }:
-
-let
-
-  latexEnvironment = pkgs.texliveFull;
-  # pkgs.texlive.combine {
-  #   inherit (pkgs.texlive)
-  #     acmart
-  #     bibtex
-  #     biblatex
-  #     collection-bibtexextra
-  #     collection-fontsextr
-  #     collection-fontsrecommended
-  #     collection-latex
-  #     collection-latexextr
-  #     collection-luatex
-  #     collection-mathscience scheme-small
-  #     latexmk;
-  # };
-in
 
 pkgs.stdenv.mkDerivation {
 
@@ -36,22 +17,21 @@ pkgs.stdenv.mkDerivation {
     ".agda"
     ".agda-lib"
     ".lagda"
-    ".md"
     ".latexmkrc"
     "Makefile"
   ];
 
   buildInputs = [
-    latexEnvironment
+    pkgs.texliveFull
     pkgs.zip
     agda-tools.agda-with-stdlib # Some papers need to compile Agda
   ];
 
-  phases = [ "buildPhase" ];
-
-  buildPhase = ''
+  installPhase = ''
+    mkdir -p $out
+    make clean
     make
-    cp *.pdf $out
+    cp *.pdf $out/
   '';
 
   meta = with lib; {

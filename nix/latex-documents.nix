@@ -64,14 +64,12 @@
     name = "system-f-in-agda-paper";
     description = "system-f in agda";
     src = self + /doc/papers/system-f-in-agda;
-    agdaFile = "paper.lagda";
   };
 
   unraveling-recursion-paper = build-latex-doc {
     name = "unraveling-recursion-paper";
     description = "unraveling recursion-paper";
     src = self + /doc/papers/unraveling-recursion;
-    agdaFile = "paper.lagda";
   };
 }
 
