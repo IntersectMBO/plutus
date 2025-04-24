@@ -16,9 +16,9 @@ tests :: TestTree
 tests =
   runTestGhc ["Lookup"] $
     flip concatMap sizes $ \sz ->
-      [ Tx.goldenBudgetAndSize ("match-scott-list-" ++ show sz) $
+      [ Tx.goldenBudget ("match-scott-list-" ++ show sz) $
         Compiled.mkMatchWithListsCode (Compiled.workloadOfSize sz)
-      , Tx.goldenBudgetAndSize ("match-builtin-list-" ++ show sz) $
+      , Tx.goldenBudget ("match-builtin-list-" ++ show sz) $
         Compiled.mkMatchWithBuiltinListsCode (Compiled.workloadOfSize sz)
       ]
   where

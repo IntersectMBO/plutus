@@ -47,7 +47,11 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , runTestGhc [Tx.goldenBundle' "clausify-F5" formula5example]
+               , runTestGhc
+                     [ Tx.goldenPirReadable "clausify-F5" formula5example
+                     , Tx.goldenBudget "clausify-F5" formula5example
+                     , Tx.goldenEvalCekCatch "clausify-F5" [formula5example]
+                     ]
                ]
     where formula5example = Clausify.mkClausifyCode Clausify.F5
 
@@ -65,7 +69,11 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , runTestGhc [Tx.goldenBundle' "knights10-4x4" knightsExample]
+              , runTestGhc
+                    [ Tx.goldenPirReadable "knights10-4x4" knightsExample
+                    , Tx.goldenBudget "knights10-4x4" knightsExample
+                    , Tx.goldenEvalCekCatch "knights10-4x4" [knightsExample]
+                    ]
               ]
     where knightsExample = Knights.mkKnightsCode 10 4
 
@@ -83,7 +91,11 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
-               , runTestGhc [Tx.goldenBundle' "queens4-bt" queens4btExample]
+               , runTestGhc
+                     [ Tx.goldenPirReadable "queens4-bt" queens4btExample
+                     , Tx.goldenBudget "queens4-bt" queens4btExample
+                     , Tx.goldenEvalCekCatch "queens4-bt" [queens4btExample]
+                     ]
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -91,7 +103,11 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
-               , runTestGhc [Tx.goldenBundle' "queens5-fc" queens5fcExample]
+               , runTestGhc
+                     [ Tx.goldenPirReadable "queens5-fc" queens5fcExample
+                     , Tx.goldenBudget "queens5-fc" queens5fcExample
+                     , Tx.goldenEvalCekCatch "queens5-fc" [queens5fcExample]
+                     ]
                ]
              ]
     where queens4btExample = Queens.mkQueensCode 4 Queens.Bt
@@ -154,4 +170,3 @@ allTests =
 
 main :: IO ()
 main = defaultMain allTests
-

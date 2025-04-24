@@ -77,7 +77,7 @@ tests = testNested "Budget" . pure $ testNestedGhc
   , goldenBundle' "toFromData" compiledToFromData
   , goldenBundle' "not-not" compiledNotNot
   , goldenBundle' "monadicDo" monadicDo
-  , goldenBundle' "sumAtIndices" (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
+  , goldenBundle "sumAtIndices" compiledSumAtIndices (compiledSumAtIndices `unsafeApplyCode` sumAtIndicesInput)
 
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
