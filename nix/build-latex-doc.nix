@@ -1,15 +1,33 @@
-{ pkgs, lib, agda-tools, build-latex }:
+{ pkgs, lib, agda-tools }:
 
-{ name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
+{ name, description, src, texFile ? null, agdaFile ? null }:
 
-build-latex {
+let
+
+  latexEnvironment = pkgs.texlive.combine {
+    inherit (pkgs.texlive)
+      acmart
+      bibtex
+      biblatex
+      collection-bibtexextra
+      collection-fontsextr
+      collection-fontsrecommended
+      collection-latex
+      collection-latexextr
+      collection-luatex
+      collection-mathscience scheme-small
+      latexmk;
+  };
+
+  agdaInputs = lib.optionals (agdaFile != null) [ agda-tools.agda-with-stdlib ];
+
+in
+
+pkgs.stdenv.mkDerivation {
 
   inherit name;
   inherit description;
-  inherit texFiles;
 
-  # A typical good filter for latex sources.
-  # This also includes files for cases where agda sources are being compiled.
   src = lib.sourceFilesBySuffices src [
     ".tex"
     ".bib"
@@ -20,18 +38,21 @@ build-latex {
     ".agda"
     ".agda-lib"
     ".lagda"
+    ".md"
+    ".latexmkrc"
+    "Makefile"
   ];
 
-  buildInputs = lib.optionals withAgda [ agda-tools.agda-with-stdlib ];
+  buildInputs = agdaInputs ++ [ latexEnvironment pkgs.zip ];
 
-  texInputs = {
-    inherit (pkgs.texlive)
-      acmart bibtex biblatex collection-bibtexextra collection-fontsextra
-      collection-fontsrecommended collection-latex collection-latexextra
-      collection-luatex collection-mathscience scheme-small;
-  };
+  phases = [ "buildPhase" ];
 
-  preBuild = lib.optionalString withAgda ''
+  buildPhase = ''
+    make
+    cp *.pdf $out
+  '';
+
+  preBuild = lib.optionalString (agdaFile != null) ''
     agda-with-stdlib --latex ${agdaFile} --latex-dir .
   '';
 

@@ -1,5 +1,5 @@
 all:
-	latexmk -pdf utxoma.tex
+	latexmk -pdf plutus.tex
 
 clean:
 	latexmk -C
