@@ -132,7 +132,6 @@ let
     inherit agda-tools;
     inherit r-with-packages;
     inherit build-latex-doc;
-    inherit build-latex;
     inherit extra-artifacts;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
