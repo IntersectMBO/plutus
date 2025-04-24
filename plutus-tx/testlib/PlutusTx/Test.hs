@@ -29,6 +29,10 @@ module PlutusTx.Test (
 
   -- * Budget and size testing
   goldenBudget,
+
+  -- * Combined testing
+  goldenBundle,
+  goldenBundle'
 ) where
 
 import Prelude
@@ -56,13 +60,10 @@ import PlutusCore.Test (TestNested, ToTPlc (..), ToUPlc (..), catchAll, goldenSi
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
-import PlutusIR.Transform.RewriteRules qualified as PIR
-import PlutusPrelude (Default, Typeable, unsafeFromRight, (.*))
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
-import Prettyprinter ()
-import Test.Tasty (TestName, TestTree)
-import Test.Tasty.Extras ()
-import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
+import PlutusIR.Transform.RewriteRules as PIR
+import PlutusPrelude
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc,
+                      unsafeApplyCode)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -128,6 +129,25 @@ goldenBudget name compiledCode = do
             <> "\nsize: "
             <> pretty size
     pure (render @Text contents)
+
+-- goldenBundle ::
+--   (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
+--   TestName ->
+--   CompiledCodeIn uni fun a ->
+--   CompiledCodeIn a ->
+--   TestNested
+goldenBundle name x y = do
+  goldenPirReadable name x
+  goldenUPlcReadable name x
+  goldenEvalCekCatch name [y]
+  goldenBudget name y
+
+
+goldenBundle' name x = do
+  goldenPirReadable name x
+  goldenUPlcReadable name x
+  goldenEvalCekCatch name [x]
+  goldenBudget name x
 
 -- Compilation testing
 

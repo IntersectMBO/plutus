@@ -30,46 +30,18 @@ tests =
     . pure
     $ testNestedGhc
       [ -- length function implemented using direct recursion
-        goldenUPlcReadable
-          "length-direct"
-          compiledLengthDirect
-      , goldenEvalCekCatch
-          "length-direct"
-          [compiledLengthDirect `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudget
-          "length-direct"
+        goldenBundle' "length-direct"
           (compiledLengthDirect `unsafeApplyCode` liftCodeDef [1 .. 10])
-      , -- length function implemented using fix
-        goldenUPlcReadable
-          "length-fix"
-          compiledLengthFix
-      , goldenEvalCekCatch
-          "length-fix"
-          [compiledLengthFix `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudget
-          "length-fix"
+        -- length function implemented using fix
+      , goldenBundle' "length-fix"
           (compiledLengthFix `unsafeApplyCode` liftCodeDef [1 .. 10])
-      , -- length function implemented using fix
+        -- length function implemented using fix
         -- with 3 steps "peeled off" before recursing
-        goldenUPlcReadable
-          "length-peeled"
-          compiledLengthPeeled
-      , goldenEvalCekCatch
-          "length-peeled"
-          [compiledLengthPeeled `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudget
-          "length-peeled"
+      , goldenBundle' "length-peeled"
           (compiledLengthPeeled `unsafeApplyCode` liftCodeDef [1 .. 10])
-      , -- length function implemented using fix
+        -- length function implemented using fix
         -- with 3 steps "unrolled" per each recursive call
-        goldenUPlcReadable
-          "length-unrolled"
-          compiledLengthUnrolled
-      , goldenEvalCekCatch
-          "length-unrolled"
-          [compiledLengthUnrolled `unsafeApplyCode` liftCodeDef [1 .. 10]]
-      , goldenBudget
-          "length-unrolled"
+      , goldenBundle' "length-unrolled"
           (compiledLengthUnrolled `unsafeApplyCode` liftCodeDef [1 .. 10])
       ]
 

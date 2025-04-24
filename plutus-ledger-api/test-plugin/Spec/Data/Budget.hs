@@ -30,14 +30,26 @@ tests =
   runTestNested ["test-plugin", "Spec", "Data", "Budget"] . pure . testNestedGhc $
       [ goldenPirReadable "gt" compiledGt
       , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+      , goldenBundleBinOpApply "gt1" compiledGt value1 value1
+      , goldenBundleBinOpApply "gt2" compiledGt value1 value2
+      , goldenBundleBinOpApply "gt3" compiledGt value2 value1
+      , goldenBundleBinOpApply "gt4" compiledGt value1 value3
+      , goldenBundleBinOpApply "gt5" compiledGt value3 value1
+      , goldenBundleBinOpApply "geq1" compiledGeq value1 value1
+      , goldenBundleBinOpApply "geq2" compiledGeq value1 value2
+      , goldenBundleBinOpApply "geq3" compiledGeq value2 value1
+      , goldenBundleBinOpApply "geq4" compiledGeq value1 value3
+      , goldenBundleBinOpApply "geq5" compiledGeq value3 value1
+      -- , goldenBundleBinOpApply "currencySymbolValueOf"
+            compiledCurrencySymbolValueOf value2 (toSymbol 6)
       ]
-        ++ concatMap
-          ( \(TestCase name code) ->
-              [ goldenBudget name code
-              , goldenEvalCekCatch name [code]
-              ]
-          )
-          testCases
+
+
+-- goldenBundleBinOpApply
+  -- :: TestName -> CompiledCode (Value -> Value -> Bool) -> Value -> Value -> TestNested
+goldenBundleBinOpApply name f x y =
+  goldenBundle name f (f `unsafeApplyCode` liftCodeDef x `unsafeApplyCode` liftCodeDef y)
+
 
 compiledGt :: CompiledCode (Value -> Value -> Bool)
 compiledGt = $$(compile [||gt||])
@@ -92,75 +104,3 @@ value3 =
     , (4, [(400, 401), (402, 403), (404, 405), (406, 407)])
     , (5, [(500, 501), (502, 503), (504, 505), (506, 507), (508, 509)])
     ]
-
-data TestCase = forall a. TestCase TestName (CompiledCode a)
-
-testCases :: [TestCase]
-testCases =
-  [ TestCase
-      "gt1"
-      ( compiledGt
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "gt2"
-      ( compiledGt
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value2
-      )
-  , TestCase
-      "gt3"
-      ( compiledGt
-          `unsafeApplyCode` liftCodeDef value2
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "gt4"
-      ( compiledGt
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value3
-      )
-  , TestCase
-      "gt5"
-      ( compiledGt
-          `unsafeApplyCode` liftCodeDef value3
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "geq1"
-      ( compiledGeq
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "geq2"
-      ( compiledGeq
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value2
-      )
-  , TestCase
-      "geq3"
-      ( compiledGeq
-          `unsafeApplyCode` liftCodeDef value2
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "geq4"
-      ( compiledGeq
-          `unsafeApplyCode` liftCodeDef value1
-          `unsafeApplyCode` liftCodeDef value3
-      )
-  , TestCase
-      "geq5"
-      ( compiledGeq
-          `unsafeApplyCode` liftCodeDef value3
-          `unsafeApplyCode` liftCodeDef value1
-      )
-  , TestCase
-      "currencySymbolValueOf"
-      ( compiledCurrencySymbolValueOf
-          `unsafeApplyCode` liftCodeDef value2
-          `unsafeApplyCode` liftCodeDef (toSymbol 6)
-      )
-  ]

@@ -16,32 +16,15 @@ import PlutusTx.TH (compile)
 tests :: TestNested
 tests =
   testNested "Strictness" . pure $ testNestedGhc
-    [ goldenEvalCekCatch "lambda-default" [lambdaDefault `unsafeApplyCode` bot]
-    , goldenPirReadable "lambda-default" lambdaDefault
-    , goldenUPlcReadable "lambda-default" lambdaDefault
-
+    [ goldenBundle "lambda-default" lambdaDefault (lambdaDefault `unsafeApplyCode` bot)
     -- FIXME: This should not crash, but it currently does.
-    , goldenEvalCekCatch "lambda-nonstrict" [lambdaNonStrict `unsafeApplyCode` bot]
-    , goldenPirReadable "lambda-nonstrict" lambdaNonStrict
-    , goldenUPlcReadable "lambda-nonstrict" lambdaNonStrict
-
-    , goldenEvalCekCatch "lambda-strict" [lambdaStrict `unsafeApplyCode` bot]
-    , goldenPirReadable "lambda-strict" lambdaStrict
-    , goldenUPlcReadable "lambda-strict" lambdaStrict
-
+    , goldenBundle "lambda-nonstrict" lambdaNonStrict (lambdaNonStrict `unsafeApplyCode` bot)
+    , goldenBundle "lambda-strict" lambdaStrict (lambdaStrict `unsafeApplyCode` bot)
     -- FIXME: This should crash (because the `Strict` extension is on), but it currently doesn't.
-    , goldenEvalCekCatch "let-default" [letDefault `unsafeApplyCode` one]
-    , goldenPirReadable "let-default" letDefault
-    , goldenUPlcReadable "let-default" letDefault
-
-    , goldenEvalCekCatch "let-nonstrict" [letNonStrict `unsafeApplyCode` one]
-    , goldenPirReadable "let-nonstrict" letNonStrict
-    , goldenUPlcReadable "let-nonstrict" letNonStrict
-
+    , goldenBundle "let-default" letDefault (letDefault `unsafeApplyCode` one)
+    , goldenBundle "let-nonstrict" letNonStrict (letNonStrict `unsafeApplyCode` one)
     -- FIXME: This should crash, but it currently doesn't.
-    , goldenEvalCekCatch "let-strict" [letStrict `unsafeApplyCode` one]
-    , goldenPirReadable "let-strict" letStrict
-    , goldenUPlcReadable "let-strict" letStrict
+    , goldenBundle "let-strict" letStrict (letStrict `unsafeApplyCode` one)
     ]
 
 lambdaDefault :: CompiledCode (Integer -> Integer -> Integer)
