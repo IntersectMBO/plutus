@@ -54,17 +54,17 @@
     src = self + /doc/plutus-report;
   };
 
+  utxoma-paper = build-latex-doc {
+    name = "utxoma-paper";
+    description = "utxoma";
+    src = self + /doc/papers/utxoma;
+  };
+
   system-f-in-agda-paper = build-latex-doc {
     name = "system-f-in-agda-paper";
     description = "system-f in agda";
     src = self + /doc/papers/system-f-in-agda;
     agdaFile = "paper.lagda";
-  };
-
-  utxoma-paper = build-latex-doc {
-    name = "utxoma-paper";
-    description = "utxoma";
-    src = self + /doc/papers/utxoma;
   };
 
   unraveling-recursion-paper = build-latex-doc {
