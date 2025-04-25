@@ -15,13 +15,14 @@ import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.MkPlc
-import PlutusCore.Pretty (Pretty)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn, mkTyBuiltin)
+import PlutusCore.Pretty (Pretty, display)
 import UntypedPlutusCore as UPLC hiding (Constr)
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
-import Criterion.Main
+import Criterion.Main (Benchmark, bench, bgroup, whnf)
+import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 
@@ -63,7 +64,7 @@ copyData :: Data -> Data
 copyData =
     \case
      Constr n l -> Constr (copyInteger n) (map copyData l)
-     Map l      -> Map $ map (\(a,b) -> (copyData a, copyData b)) l
+     Map l      -> Map $ map (bimap copyData copyData) l
      List l     -> List (map copyData l)
      I n        -> I $ copyInteger n
      B b        -> B $ copyByteString b
@@ -84,7 +85,14 @@ benchWith
 -- the result, so e.g. 'evaluateCek' won't work properly because it returns a pair whose components
 -- won't be evaluated by 'whnf'. We can't use 'nf' because it does too much work: for instance if it
 -- gets back a 'Data' value it'll traverse all of it.
-benchWith params name term = bench name $ whnf (evaluateCekNoEmit params) term
+benchWith params name term = bench name $
+  whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+  where
+    handleEvaluationErrors = \case
+      Right res -> res
+      Left (ErrorWithCause err cause) ->
+        error $
+          "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
@@ -191,14 +199,40 @@ createOneTermBuiltinBench
      , uni ~ DefaultUni
      , uni `HasTermLevel` a
      , ExMemoryUsage a
-     , NFData a)
+     , NFData a
+     )
   => fun
   -> [Type tyname uni ()]
   -> [a]
   -> Benchmark
-createOneTermBuiltinBench fun tys xs =
-  bgroup (show fun) [mkBM x | x <- xs]
-  where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 fun tys x
+createOneTermBuiltinBench = createOneTermBuiltinBenchWithWrapper id
+
+{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
+  cases we want to measure the (so-called) "memory usage" of a builtin argument
+  in a nonstandard way for benchmarking and costing purposes. This function
+  allows you to supply suitable wrapping functions in the benchmarks to achieve
+  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
+  builtin denotations to make sure that during script execution the inputs to
+  the costing functions are costed in the same way as the are in thhe
+  benchmmarks.
+-}
+createOneTermBuiltinBenchWithWrapper
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a'
+     , NFData a
+     )
+  => (a -> a')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBenchWithWrapper wrapX fun tys xs =
+  bgroup (show fun)
+    [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    | x <- xs
+    ]
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b], create a collection of benchmarks which run f on all pairs in
@@ -272,15 +306,7 @@ createTwoTermBuiltinBenchElementwise =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
-{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
-  cases we want to measure the (so-called) "memory usage" of a builtin argument
-  in a nonstandard way for benchmarking and costing purposes. This function
-  allows you to supply suitable wrapping functions in the benchmarks to achieve
-  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
-  builtin denotations to make sure that during script execution the inputs to
-  the costing functions are costed in the same way as the are in thhe
-  benchmmarks.
--}
+{- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
 createTwoTermBuiltinBenchElementwiseWithWrappers
   :: ( fun ~ DefaultFun
      , uni ~ DefaultUni

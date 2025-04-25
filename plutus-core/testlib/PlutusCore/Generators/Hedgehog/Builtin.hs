@@ -118,8 +118,7 @@ genConstant tr
             SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
     | trArray `App` trElem <- tr
     , Just HRefl <- eqTypeRep trArray (typeRep @Vector) =
-        case genConstant trElem of
-          SomeGen genElem -> SomeGen $ fmap Vector.fromList $ Gen.list (Range.linear 0 10) genElem
+        case genConstant trElem of SomeGen genElem -> SomeGen (genArray genElem)
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl
