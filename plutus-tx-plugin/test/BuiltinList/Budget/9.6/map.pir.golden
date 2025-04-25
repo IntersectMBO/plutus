@@ -1,5 +1,5 @@
 letrec
-  ~go : list integer -> list integer
+  !go : list integer -> list integer
     = (let
           r = list integer
         in

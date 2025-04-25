@@ -217,10 +217,6 @@ program
   letrec
     !validateParamValue : ParamValue -> data -> Bool
       = \(eta : ParamValue) (eta : data) ->
-          let
-            ~bl : list data = unListData eta
-            ~bl' : list data = tailList {data} bl
-          in
           ParamValue_match
             eta
             {all dead. Bool}
@@ -382,15 +378,19 @@ program
                            (/\dead -> y)
                            {all dead. dead}))
                    preds
-                   (ifThenElse
-                      {Unit -> Rational}
-                      (nullList {data} (tailList {data} bl'))
-                      (\(ds : Unit) ->
-                         unsafeRatio
-                           (unIData (headList {data} bl))
-                           (unIData (headList {data} bl')))
-                      (\(ds : Unit) -> error {Rational})
-                      Unit))
+                   (let
+                     !bl : list data = unListData eta
+                     !bl' : list data = tailList {data} bl
+                   in
+                   ifThenElse
+                     {Unit -> Rational}
+                     (nullList {data} (tailList {data} bl'))
+                     (\(ds : Unit) ->
+                        unsafeRatio
+                          (unIData (headList {data} bl))
+                          (unIData (headList {data} bl')))
+                     (\(ds : Unit) -> error {Rational})
+                     Unit))
             {all dead. dead}
     !validateParamValues : List ParamValue -> list data -> Bool
       = \(ds : List ParamValue) ->
@@ -5282,49 +5282,49 @@ program
     Maybe_match
       {List (Tuple2 data data)}
       (let
-        !ds : data
-          = headList
-              {data}
-              (tailList
+        !ds : pair integer (list data)
+          = unConstrData
+              (headList
                  {data}
                  (tailList
                     {data}
-                    (sndPair
-                       {integer}
-                       {list data}
-                       (unConstrData
-                          (let
-                            !ds : data
-                              = headList
-                                  {data}
-                                  (tailList
-                                     {data}
-                                     (tailList
+                    (tailList
+                       {data}
+                       (sndPair
+                          {integer}
+                          {list data}
+                          (unConstrData
+                             (let
+                               !si : pair integer (list data)
+                                 = unConstrData
+                                     (headList
                                         {data}
-                                        (sndPair
-                                           {integer}
-                                           {list data}
-                                           (unConstrData ds))))
-                            ~si : pair integer (list data) = unConstrData ds
-                          in
-                          Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsInteger
-                                  5
-                                  (fstPair {integer} {list data} si))
-                               True
-                               False)
-                            {all dead. data}
-                            (/\dead ->
-                               headList
-                                 {data}
-                                 (tailList
+                                        (tailList
+                                           {data}
+                                           (tailList
+                                              {data}
+                                              (sndPair
+                                                 {integer}
+                                                 {list data}
+                                                 (unConstrData ds)))))
+                             in
+                             Bool_match
+                               (ifThenElse
+                                  {Bool}
+                                  (equalsInteger
+                                     5
+                                     (fstPair {integer} {list data} si))
+                                  True
+                                  False)
+                               {all dead. data}
+                               (/\dead ->
+                                  headList
                                     {data}
-                                    (sndPair {integer} {list data} si)))
-                            (/\dead -> error {data})
-                            {all dead. dead})))))
-        ~ds : pair integer (list data) = unConstrData ds
+                                    (tailList
+                                       {data}
+                                       (sndPair {integer} {list data} si)))
+                               (/\dead -> error {data})
+                               {all dead. dead}))))))
         !x : integer = fstPair {integer} {list data} ds
       in
       Bool_match

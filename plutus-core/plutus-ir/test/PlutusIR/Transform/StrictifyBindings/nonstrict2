@@ -1,0 +1,17 @@
+(lam
+  x
+  (con integer)
+  (let
+    (nonrec)
+    (termbind
+      (nonstrict)
+      (vardecl y (con integer))
+      [ [ (builtin addInteger) (con integer 1) ] x ]
+    )
+    (lam z (con integer) [ [ (builtin multiplyInteger) y ] y ])
+  )
+)
+{- \x -> let ~y = x + 1 in \z -> y * y
+
+`y` is not strict in `\z -> y * y`, so `~y` should not be strictified.
+-}

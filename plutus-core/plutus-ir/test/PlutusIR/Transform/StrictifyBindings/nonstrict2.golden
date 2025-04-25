@@ -1,0 +1,5 @@
+\(x : integer) ->
+  let
+    ~y : integer = addInteger 1 x
+  in
+  \(z : integer) -> multiplyInteger y y

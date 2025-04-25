@@ -52,27 +52,28 @@ let
             (let
               !k : data = `$dToData` ds
             in
-            letrec
-              ~go : list (pair data data) -> Maybe data
-                = caseList'
-                    {pair data data}
-                    {Maybe data}
-                    (Nothing {data})
-                    (\(hd : pair data data) ->
-                       Bool_match
-                         (ifThenElse
-                            {Bool}
-                            (equalsData k (fstPair {data} {data} hd))
-                            True
-                            False)
-                         {all dead. list (pair data data) -> Maybe data}
-                         (/\dead ->
-                            \(ds : list (pair data data)) ->
-                              Just {data} (sndPair {data} {data} hd))
-                         (/\dead -> go)
-                         {all dead. dead})
-            in
-            go ds)
+            (letrec
+                !go : list (pair data data) -> Maybe data
+                  = caseList'
+                      {pair data data}
+                      {Maybe data}
+                      (Nothing {data})
+                      (\(hd : pair data data) ->
+                         Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (equalsData k (fstPair {data} {data} hd))
+                              True
+                              False)
+                           {all dead. list (pair data data) -> Maybe data}
+                           (/\dead ->
+                              \(ds : list (pair data data)) ->
+                                Just {data} (sndPair {data} {data} hd))
+                           (/\dead -> go)
+                           {all dead. dead})
+              in
+              go)
+              ds)
             {all dead. Maybe a}
             (\(a : data) -> /\dead -> Just {a} (`$dUnsafeFromData` a))
             (/\dead -> Nothing {a})
@@ -110,7 +111,7 @@ in
                    = mkCons {pair data data} (mkPairData k a) []
                in
                letrec
-                 ~go : list (pair data data) -> list (pair data data)
+                 !go : list (pair data data) -> list (pair data data)
                    = caseList'
                        {pair data data}
                        {list (pair data data)}
@@ -138,7 +139,7 @@ in
             !k : data = iData (addInteger 5 n)
           in
           letrec
-            ~go : list (pair data data) -> list (pair data data)
+            !go : list (pair data data) -> list (pair data data)
               = caseList'
                   {pair data data}
                   {list (pair data data)}

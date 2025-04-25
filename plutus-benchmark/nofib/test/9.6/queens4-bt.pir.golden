@@ -302,10 +302,10 @@
                                     (unionBy {integer} equalsInteger cs acc))
                                {all dead. dead})
                         (/\dead ->
-                           Unit_match
-                             (error {Unit})
-                             {List integer}
-                             (error {List integer}))
+                           let
+                             !defaultBody : List integer = error {List integer}
+                           in
+                           Unit_match (error {Unit}) {List integer} defaultBody)
                         {all dead. dead}))
             {all dead. dead}
   in
@@ -908,10 +908,10 @@
                       /\dead ->
                         unionBy {integer} equalsInteger cs (collect css))
                    (/\dead ->
-                      Unit_match
-                        (error {Unit})
-                        {List integer}
-                        (error {List integer}))
+                      let
+                        !defaultBody : List integer = error {List integer}
+                      in
+                      Unit_match (error {Unit}) {List integer} defaultBody)
                    {all dead. dead})
             {all dead. dead}
   in

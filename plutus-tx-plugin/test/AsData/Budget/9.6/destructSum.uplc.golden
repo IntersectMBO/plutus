@@ -61,7 +61,8 @@
                                                                            w))
                                                                      [])))))
                                                     (\void ->
-                                                       case error [error])))
+                                                       (\cse -> case cse [cse])
+                                                         error)))
                                             (\scrut cont fail ->
                                                (\l ->
                                                   (\l ->
@@ -81,8 +82,10 @@
                                                     (force tailList l))
                                                  (force (force sndPair)
                                                     (unConstrData scrut)))
-                                            (\void -> case error [error]))
+                                            (\void ->
+                                               (\cse -> case cse [cse]) error))
                                          (force (force sndPair) cse)))
-                                   (delay (case error [error]))))))))))
+                                   (delay
+                                      ((\cse -> case cse [cse]) error))))))))))
            (force (force fstPair) cse))
         (unConstrData d)))

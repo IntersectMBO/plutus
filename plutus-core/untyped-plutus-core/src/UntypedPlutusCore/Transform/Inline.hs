@@ -31,7 +31,7 @@ module UntypedPlutusCore.Transform.Inline (
   Subst (..),
   TermEnv (..),
   isFirstVarBeforeEffects,
-  isVarEventuallyEvaluated,
+  isStrictIn,
   effectSafe,
 ) where
 
@@ -432,20 +432,19 @@ isFirstVarBeforeEffects builtinSemanticsVariant n t =
   go (Unknown : _) = False
   go [] = False
 
-{-| Check if any of the variable occurrences are guaranteed to be eventually
-  evaluated. This means that at least one occurrence of a variable is found
-  outside of the following:
+{-| Check if the given name is strict in the given term.
+  This means that at least one occurrence of the name is found outside of the following:
   * 'delay' term
   * lambda body
   * case branch
 -}
-isVarEventuallyEvaluated
+isStrictIn
   :: forall name uni fun a
-   . (InliningConstraints name uni fun)
+   . (Eq name)
   => name
   -> Term name uni fun a
   -> Bool
-isVarEventuallyEvaluated name = go
+isStrictIn name = go
  where
   go :: Term name uni fun a -> Bool
   go = \case
@@ -474,7 +473,7 @@ effectSafe body n termIsPure = do
   return $
     termIsPure
       || isFirstVarBeforeEffects builtinSemantics n body
-      || (not preserveLogging && isVarEventuallyEvaluated n body)
+      || (not preserveLogging && isStrictIn n body)
 
 {-| Should we inline? Should only inline things that won't duplicate work
 or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']
