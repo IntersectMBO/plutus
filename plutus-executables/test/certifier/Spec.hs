@@ -17,7 +17,7 @@ main = do
   setLocaleEncoding utf8
   defaultMain $
     testGroup "Certification"
-    [ integrationTests
-    , simplifierTests
-    , unitTests
+    [ executableTests
+    , optimizerTests
+    , astTests
     ]
