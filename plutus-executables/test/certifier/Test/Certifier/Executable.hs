@@ -1,4 +1,4 @@
-module Test.Certifier.Integration where
+module Test.Certifier.Executable where
 
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
 import System.Exit

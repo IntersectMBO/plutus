@@ -1,4 +1,4 @@
-module Test.Certifier.Unit where
+module Test.Certifier.AST where
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant)

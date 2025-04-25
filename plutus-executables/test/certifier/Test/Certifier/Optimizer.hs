@@ -1,4 +1,4 @@
-module Test.Certifier.Simplifier where
+module Test.Certifier.Optimizer where
 
 import AgdaTrace (mkAgdaTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)

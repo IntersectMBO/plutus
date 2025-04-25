@@ -172,9 +172,9 @@ test-suite test-certifier
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
   other-modules:
-    Test.Certifier.Integration
-    Test.Certifier.Simplifier
-    Test.Certifier.Unit
+    Test.Certifier.AST
+    Test.Certifier.Executable
+    Test.Certifier.Optimizer
 
   build-depends:
     , base
