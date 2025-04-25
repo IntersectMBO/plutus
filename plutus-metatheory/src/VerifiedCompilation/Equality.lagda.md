@@ -156,7 +156,6 @@ procedures.
 record HsEq (A : Set) : Set where
   field
     hsEq : A → A → Agda.Builtin.Bool.Bool
-{-# COMPILE GHC HsEq = data EqDict (EqDict) #-}
 
 open HsEq {{...}} public
 ```
@@ -173,57 +172,18 @@ are structurally equal so unification will succeed, and the function will return
 `yes refl`, while `builtinEq (mkByteString "foo") (mkByteString "bar")` will get
 stuck because unification does not succeed.
 ```
-data HsBottom : Set where
-{-# COMPILE GHC HsBottom = data HsBottom () #-}
-
-fromHsBottom : HsBottom → ⊥ 
-fromHsBottom ()
-
-toHsBottom : ⊥ → HsBottom
-toHsBottom ()
-
-data HsEquiv {A : Set} (a : A) : A → Set where
-  hsRefl : HsEquiv a a
-{-# COMPILE GHC HsEquiv = data HsEquiv (HsRefl) #-}
-
-fromHsEquiv : ∀ {A : Set} {x y : A} → HsEquiv x y → x ≡ y
-fromHsEquiv hsRefl = refl
-
-toHsEquiv : ∀ {A : Set} {x y : A} → x ≡ y → HsEquiv x y
-toHsEquiv refl = hsRefl
-
-data HsDec {A : Set} (a b : A) : Set where
-  hsYes : HsEquiv a b → HsDec a b
-  hsNo : (HsEquiv a b → HsBottom) → HsDec a b
-{-# COMPILE GHC HsDec = data HsDec (HsYes | HsNo) #-}
-
-fromHsDec : ∀ {A : Set} {x y : A} → HsDec x y → Dec (x ≡ y)
-fromHsDec (hsYes p) = yes (fromHsEquiv p)
-fromHsDec (hsNo ¬p) = no λ x₁ → fromHsBottom (¬p (toHsEquiv x₁))
-
-toHsDec : ∀ {A : Set} {x y : A} → Dec (x ≡ y) → HsDec x y
-toHsDec (yes p) = hsYes (toHsEquiv p)
-toHsDec (no ¬p) = hsNo λ x₁ → toHsBottom (¬p (fromHsEquiv x₁))
-
 postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
-  magicNeg' : ∀ {A : Set} {a b : A} → HsEquiv a b → HsBottom
 
 magicBoolDec : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → Dec (a ≡ b)
 magicBoolDec true = yes primTrustMe
 magicBoolDec false = no magicNeg
 
-magicBoolDec' : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → HsDec a b
-magicBoolDec' true = hsYes (toHsEquiv primTrustMe)
-magicBoolDec' false = hsNo magicNeg'
-
-builtinEq' : {A : Set} {{_ : HsEq A}} (x y : A) → HsDec x y
-builtinEq' {A} x y with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
-... | refl = hsYes hsRefl
-{-# COMPILE GHC builtinEq' = (==) #-}
-
 builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
-builtinEq x y = fromHsDec (builtinEq' x y)
+builtinEq {A} x y with hsEq x y
+... | false = no magicNeg
+... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
+...             | refl = yes refl
 
 instance
   HsEqBytestring : HsEq U.ByteString
