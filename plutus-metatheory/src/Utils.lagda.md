@@ -178,6 +178,8 @@ postulate ByteString : Set
 postulate
   mkByteString : String → ByteString
 
+-- Should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqByteString : ByteString → ByteString → Bool
 eqByteString _ _ = Bool.true
 {-# COMPILE GHC eqByteString = (==) #-}
@@ -255,13 +257,18 @@ data DATA : Set where
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
 {-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
 
-postulate eqDATA : DATA → DATA → Bool
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqDATA : DATA → DATA → Bool
+eqDATA _ _ = Bool.true
 {-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqBls12-381-G1-Element : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
 eqBls12-381-G1-Element _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-G1-Element = (==) #-}
@@ -270,6 +277,8 @@ postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqBls12-381-G2-Element : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
 eqBls12-381-G2-Element _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-G2-Element = (==) #-}
@@ -278,6 +287,8 @@ postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
 eqBls12-381-MlResult _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
