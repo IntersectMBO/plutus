@@ -44,12 +44,12 @@ mkUPLCCseTest
   -> TestTree
 mkUPLCCseTest = mkUPLCTest testCse
 
-simplifierTests :: TestTree
-simplifierTests =
-  testGroup "uplc simplifier tests"
+optimizerTests :: TestTree
+optimizerTests =
+  testGroup "uplc optimizer tests"
     [ testGroup "cse tests"
         $ fmap (uncurry mkUPLCCseTest) testCseInputs
-    , testGroup "other optimisation tests"
+    , testGroup "simplification tests"
         $ fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs'
     ]
   where

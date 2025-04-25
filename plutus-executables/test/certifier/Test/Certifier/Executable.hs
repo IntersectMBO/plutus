@@ -139,9 +139,9 @@ makeSerialisationExampleTests :: [ String ] -> [ TestTree]
 makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
 -}
 
-integrationTests :: TestTree
-integrationTests =
-  testGroup "certifier integration tests"
+executableTests :: TestTree
+executableTests =
+  testGroup "certifier executable tests"
     [
     -- testGroup "example serialisation certification"
     --                $ makeSerialisationExampleTests exampleNames

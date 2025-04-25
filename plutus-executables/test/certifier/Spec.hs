@@ -8,9 +8,9 @@ module Main (main) where
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import Test.Tasty
 
-import Test.Certifier.AST (unitTests)
-import Test.Certifier.Executable (integrationTests)
-import Test.Certifier.Optimizer (simplifierTests)
+import Test.Certifier.AST (astTests)
+import Test.Certifier.Executable (executableTests)
+import Test.Certifier.Optimizer (optimizerTests)
 
 main :: IO ()
 main = do

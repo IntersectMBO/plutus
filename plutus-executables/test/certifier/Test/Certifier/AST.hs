@@ -80,9 +80,9 @@ testTrivialFailure1 =
     (mkConstant () (1 :: Integer))
     (mkConstant () (2 :: Integer))
 
-unitTests :: TestTree
-unitTests =
-  testGroup "certifier unit tests"
+astTests :: TestTree
+astTests =
+  testGroup "certifier ast tests"
     [ testTrivialSuccess1
     , testTrivialFailure1
     ]
