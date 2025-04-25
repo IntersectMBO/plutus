@@ -26,6 +26,7 @@ by about 35\% (without using compression).
 
 
 \section{Encoding and decoding}
+\label{sec:encoding-and-decoding}
 Firstly recall some notation from Section~\ref{sec:notation}.  The set of all
 finite sequences of bits is denoted by $\Bits = \{\bits{0},\bits{1}\}^*$.  For
 brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$ instead of
@@ -154,6 +155,44 @@ $\bits{1}$ bit, then emitting a $\bits{0}$ bit to mark the end of the list.
 \Dlist_X(\bits{0} \cdot s) &= (s,[])\\
 \Dlist_X(\bits{1} \cdot s) &= (s'', x \cdot l) \quad \text{if $D_X(s) = (s', x)$ and $\Dlist_X(s') = (s'', l).$}
 \end{align*}
+
+\subsection{Arrays}
+Arrays are encoded as a sequence of blocks of up to 255 elements.
+Each block is preceded by a single unsigned byte containing the count of elements in the block, 
+and the end of the encoding is marked by a zero-length block. 
+
+Let $X$ be the set of elements in the array for which we have defined an encoder $\E_X$ and a 
+decoder $\D_X$. We define an encoder $\Earray_X$ which encodes arrays of elements of $X$:
+
+$$
+\Earray_X(s, [x_1, \ldots, x_n]) =
+\begin{cases}
+  s \cdot \E_8(0) & \text{if } n = 0 \\
+  \text{let } k = \min(n, 255) \text{ in } \\
+  \Earray_X(s \cdot \E_8(k) \cdot \E_X(x_1) \cdots \E_X(x_k), [x_{k+1}, \ldots, x_n])
+    & \text{if } n > 0
+\end{cases}
+$$
+
+The corresponding decoder is given by:
+
+$$
+\Darray_X(s) =
+\begin{cases}
+  (s', []) & \text{if } \D_8(s) = (s', 0) \\
+  \text{let } (s', k) = \D_8(s) \text{ in } \\
+  \text{let } (s'', x_1) = \D_X(s') \text{ and } \ldots \text{ and } (s^{(k)}, x_k) = \D_X(s^{(k-1)}) \text{ in } \\
+  \text{let } (s''', l) = \Darray_X(s^{(k)}) \text{ in } \\
+  (s''', [x_1, \ldots, x_k] \cdot l) & \text{if } 1 \leq k \leq 255
+\end{cases}
+$$
+
+The decoder reads the initial byte to determine the length of the subsequent block. 
+If the length $k$ is greater than 0 and no more bytes are available to decode $k$ 
+elements of type $X$, the decoder would fail as per the general behaviour of decoders 
+described in Section~\ref{sec:encoding-and-decoding}. 
+The concatenation of the decoded block $[x_1, \ldots, x_k]$ with the recursively 
+decoded list $l$ (from the remainder $s^{(k)}$) forms the final result.
 
 \subsection{Natural numbers}
 We encode natural numbers by splitting their binary representations into
