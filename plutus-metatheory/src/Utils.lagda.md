@@ -178,7 +178,7 @@ postulate ByteString : Set
 postulate
   mkByteString : String → ByteString
 
--- Should only be used as part of deciding builtin equality.
+-- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
 eqByteString : ByteString → ByteString → Bool
 eqByteString _ _ = Bool.true
