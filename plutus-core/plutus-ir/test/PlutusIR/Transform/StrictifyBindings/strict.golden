@@ -1,0 +1,1 @@
+\(x : integer) -> let !y : integer = addInteger 1 x in multiplyInteger y y

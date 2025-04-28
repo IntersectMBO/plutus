@@ -23,6 +23,16 @@ See Note [The problem of inlining destructors] for why this pass exists.
 module UntypedPlutusCore.Transform.Inline (
   inline,
   InlineHints (..),
+
+  -- * Exported for testing
+  InlineM,
+  S (..),
+  InlineInfo (..),
+  Subst (..),
+  TermEnv (..),
+  isFirstVarBeforeEffects,
+  isStrictIn,
+  effectSafe,
 ) where
 
 import Control.Lens (forMOf, makeLenses, view, (%~), (&), (^.))
@@ -31,6 +41,7 @@ import Control.Monad.Reader (ReaderT (runReaderT))
 import Control.Monad.State (StateT, evalStateT, gets, modify')
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation (Inline (AlwaysInline, SafeToInline), InlineHints (..))
+import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Name.Unique (HasUnique, TermUnique (..), Unique (..))
@@ -132,6 +143,7 @@ data InlineInfo name fun a = InlineInfo
   , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _iiInlineConstants         :: Bool
   , _iiInlineCallsiteGrowth    :: Size
+  , _iiPreserveLogging         :: Bool
   }
 
 makeLenses ''InlineInfo
@@ -189,25 +201,34 @@ inline
   -- ^ inline threshold
   -> Bool
   -- ^ inline constants
+  -> Bool
+  -- ^ preserve logging
   -> InlineHints name a
   -> PLC.BuiltinSemanticsVariant fun
   -> Term name uni fun a
   -> SimplifierT name uni fun a m (Term name uni fun a)
-inline callsiteGrowth inlineConstants hints builtinSemanticsVariant t = do
-  result <-
-    liftQuote $
-      flip evalStateT mempty $
-        runReaderT
-          (processTerm t)
-          InlineInfo
-            { _iiUsages = Usages.termUsages t
-            , _iiHints = hints
-            , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
-            , _iiInlineConstants = inlineConstants
-            , _iiInlineCallsiteGrowth = callsiteGrowth
-            }
-  recordSimplification t Inline result
-  return result
+inline
+  callsiteGrowth
+  inlineConstants
+  preserveLogging
+  hints
+  builtinSemanticsVariant
+  t = do
+    result <-
+      liftQuote $
+        flip evalStateT mempty $
+          runReaderT
+            (processTerm t)
+            InlineInfo
+              { _iiUsages = Usages.termUsages t
+              , _iiHints = hints
+              , _iiBuiltinSemanticsVariant = builtinSemanticsVariant
+              , _iiInlineConstants = inlineConstants
+              , _iiInlineCallsiteGrowth = callsiteGrowth
+              , _iiPreserveLogging = preserveLogging
+              }
+    recordSimplification t Inline result
+    return result
 
 -- See Note [Differences from PIR inliner] 3
 
@@ -390,16 +411,16 @@ nameUsedAtMostOnce n = do
 isFirstVarBeforeEffects
   :: forall name uni fun ann
    . (InliningConstraints name uni fun)
-  => name
+  => BuiltinSemanticsVariant fun
+  -> name
   -> Term name uni fun ann
-  -> InlineM name uni fun ann Bool
-isFirstVarBeforeEffects n t = do
-  builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
+  -> Bool
+isFirstVarBeforeEffects builtinSemanticsVariant n t =
   -- This can in the worst case traverse a lot of the term, which could lead to
   -- us doing ~quadratic work as we process the program. However in practice
   -- most terms have a relatively short evaluation order before we hit Unknown,
   -- so it's not too bad.
-  pure $ go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant t))
+  go (unEvalOrder (termEvaluationOrder builtinSemanticsVariant t))
  where
   -- Found the variable we're looking for!
   go ((EvalTerm _ _ (Var _ n')) : _) | n == n' = True
@@ -411,17 +432,48 @@ isFirstVarBeforeEffects n t = do
   go (Unknown : _) = False
   go [] = False
 
+{-| Check if the given name is strict in the given term.
+  This means that at least one occurrence of the name is found outside of the following:
+  * 'delay' term
+  * lambda body
+  * case branch
+-}
+isStrictIn
+  :: forall name uni fun a
+   . (Eq name)
+  => name
+  -> Term name uni fun a
+  -> Bool
+isStrictIn name = go
+ where
+  go :: Term name uni fun a -> Bool
+  go = \case
+    Var _ann name' -> name == name'
+    LamAbs _ann _paramName _body -> False
+    Apply _ann t1 t2 -> go t1 || go t2
+    Force _ann t -> go t
+    Delay _ann _term -> False
+    Constant{} -> False
+    Builtin{} -> False
+    Error{} -> False
+    Constr _ann _idx terms -> any go terms
+    Case _ann scrut _branches -> go scrut
+
 effectSafe
   :: forall name uni fun a
    . (InliningConstraints name uni fun)
   => Term name uni fun a
   -> name
   -> Bool
-  -- ^ is it pure?
+  -- ^ is it pure? See Note [Inlining and purity]
   -> InlineM name uni fun a Bool
-effectSafe body n purity = do
-  immediatelyEvaluated <- isFirstVarBeforeEffects n body
-  pure $ purity || immediatelyEvaluated
+effectSafe body n termIsPure = do
+  preserveLogging <- view iiPreserveLogging
+  builtinSemantics <- view iiBuiltinSemanticsVariant
+  return $
+    termIsPure
+      || isFirstVarBeforeEffects builtinSemantics n body
+      || (not preserveLogging && isStrictIn n body)
 
 {-| Should we inline? Should only inline things that won't duplicate work
 or code.  See Note [Inlining approach and 'Secrets of the GHC Inliner']
