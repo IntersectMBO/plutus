@@ -1,36 +1,55 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 {- | A set of no-op built-in functions used in cost model calibration. Benchmarks
    based on these are used to estimate the overhead of calling a built-in
    function.
 -}
 
-module Benchmarks.Nops (makeBenchmarks) where
+module Benchmarks.Nops (makeBenchmarks, makeBenchmarks') where
 
 import Common
 import Generators (randBool, randNwords)
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result (evaluationFailure)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn)
 import PlutusCore.Pretty
 import PlutusPrelude
+import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Control.DeepSeq (force)
 import Criterion.Main (Benchmark, bgroup)
 
 import Data.Ix (Ix)
 import System.Random (StdGen)
+
+-- | Take a function and a list of arguments and apply the former to the latter.
+headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
+headSpine (Opaque f) = Opaque . \case
+    []      -> HeadOnly f
+    x0 : xs ->
+        -- It's critical to use 'foldr' here, so that deforestation kicks in.
+        -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+        -- of the trick.
+        HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
+{-# INLINE headSpine #-}
 
 {- | A benchmark that just loads the unit constant, which is about the minimal
    amount of work we can do.  This should give an idea of the cost of starting
@@ -77,8 +96,14 @@ data NopFun
     | Nop4o
     | Nop5o
     | Nop6o
+    | Nop1r  -- Return a HeadSpine object; inputs are terms to be applied
+    | Nop2r
+    | Nop3r
+    | Nop4r
+    | Nop5r
+    | Nop6r
     deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
-    deriving anyclass (PrettyBy PrettyConfigPlc)
+    deriving anyclass (NFData, PrettyBy PrettyConfigPlc)
 
 instance Pretty NopFun where
     pretty fun = pretty $ lowerInitialChar $ show fun
@@ -287,6 +312,83 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
+-- N functions, 1 argument.  Switch on argument, apply function to K arguments
+-- For caseList N=2 and K={0,2}; for caseData, N=5 and K={1,2}.
+-- Make our functions of the form \_ _ -> Int (different return values so they're not all the same)
+
+    -- Things returning a HeadSpine.  We have to give them values to be applied
+    -- to.  Experiments show that the position of the thing that's being applied
+    -- doesn't matter: we take the final one.
+    toBuiltinMeaning _semvar Nop1r =
+      let nop1rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque (HeadSpine val) b
+          nop1rDenotation f1 = headSpine f1 []
+          {-# INLINE nop1rDenotation #-}
+          in makeBuiltinMeaning
+             nop1rDenotation
+             (runCostingFunOneArgument . paramNop1)
+    toBuiltinMeaning _semvar Nop2r =
+      let nop2rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop2rDenotation f1 x = headSpine f1 [fromValue (), fromValue x]
+          {-# INLINE nop2rDenotation #-}
+          in makeBuiltinMeaning
+             nop2rDenotation
+             (runCostingFunTwoArguments . paramNop2)
+    toBuiltinMeaning _semvar Nop3r =
+      let nop3rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop3rDenotation _f1 f2 x = headSpine f2 [fromValue (), fromValue x]
+          {-# INLINE nop3rDenotation #-}
+          in makeBuiltinMeaning
+             nop3rDenotation
+             (runCostingFunThreeArguments . paramNop3)
+    toBuiltinMeaning _semvar Nop4r =
+      let nop4rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop4rDenotation _f1 _f2 f3 x = headSpine f3 [fromValue (), fromValue x]
+          {-# INLINE nop4rDenotation #-}
+          in makeBuiltinMeaning
+             nop4rDenotation
+             (runCostingFunFourArguments . paramNop4)
+    toBuiltinMeaning _semvar Nop5r =
+      let nop5rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop5rDenotation _f1 _f2 _f3 f4 x = headSpine f4 [fromValue (), fromValue x]
+          {-# INLINE nop5rDenotation #-}
+          in makeBuiltinMeaning
+             nop5rDenotation
+             (runCostingFunFiveArguments . paramNop5)
+    toBuiltinMeaning _semvar Nop6r =
+      let nop6rDenotation
+            :: Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Opaque val (() -> Integer -> b)
+            -> Integer
+            -> Opaque (HeadSpine val) b
+          nop6rDenotation _f1 _f2 _f3 _f4 f5 x = headSpine f5 [fromValue (), fromValue x]
+          {-# INLINE nop6rDenotation #-}
+          in makeBuiltinMeaning
+             nop6rDenotation
+             (runCostingFunSixArguments . paramNop6)
+
 instance Default (BuiltinSemanticsVariant NopFun) where
     def = NopFunSemanticsVariantX
 
@@ -313,116 +415,117 @@ instance Default (BuiltinSemanticsVariant NopFun) where
  -}
 
 benchNop1
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop1 nop rand gen =
-    let (x,_) = rand gen
-    in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop1 nop1 rand gen =
+  let (x,_) = rand gen
+  in bgroup (show nop1) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop1 [] x]
 
 benchNop2
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop2 nop rand gen =
-    let (x,gen1) = rand gen
-        (y,_)    = rand gen1
-    in bgroup (show nop)
-           [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 nop [] x y]
-           ]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop2 nop2 rand gen =
+  let (x,gen1) = rand gen
+      (y,_)    = rand gen1
+  in bgroup (show nop2)
+     [bgroup (showMemoryUsage x)
+       [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 nop2 [] x y]
+     ]
 
 benchNop3
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop3 nop rand gen =
-    let (x,gen1) = rand gen
-        (y,gen2) = rand gen1
-        (z,_)    = rand gen2
-    in bgroup (show nop)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 nop [] x y z]
-            ]
-           ]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop3 nop3 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,_)    = rand gen2
+  in bgroup (show nop3)
+     [bgroup (showMemoryUsage x)
+       [bgroup (showMemoryUsage y)
+         [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 nop3 [] x y z]
+       ]
+     ]
 
 benchNop4
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop4 nop rand gen =
-    let (x,gen1) = rand gen
-        (y,gen2) = rand gen1
-        (z,gen3) = rand gen2
-        (t,_)    = rand gen3
-    in bgroup (show nop)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 nop [] x y z t]
-             ]
-            ]
-           ]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop4 nop4 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,gen3) = rand gen2
+      (t,_)    = rand gen3
+  in bgroup (show nop4)
+     [bgroup (showMemoryUsage x)
+       [bgroup (showMemoryUsage y)
+         [bgroup (showMemoryUsage z)
+           [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 nop4 [] x y z t]
+         ]
+       ]
+     ]
 
 benchNop5
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop5 nop rand gen =
-    let (x,gen1) = rand gen
-        (y,gen2) = rand gen1
-        (z,gen3) = rand gen2
-        (t,gen4) = rand gen3
-        (u,_)    = rand gen4
-    in bgroup (show nop)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
-              ]
-             ]
-            ]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop5 nop5 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,gen3) = rand gen2
+      (t,gen4) = rand gen3
+      (u,_)    = rand gen4
+  in bgroup (show nop5)
+     [bgroup (showMemoryUsage x)
+       [bgroup (showMemoryUsage y)
+         [bgroup (showMemoryUsage z)
+           [bgroup (showMemoryUsage t)
+             [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 nop5 [] x y z t u]
            ]
+         ]
+       ]
+     ]
 
 benchNop6
-    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
-    => NopFun
-    -> (StdGen -> (a, StdGen))
-    -> StdGen
-    -> Benchmark
-benchNop6 nop rand gen =
-    let (x,gen1) = rand gen
-        (y,gen2) = rand gen1
-        (z,gen3) = rand gen2
-        (t,gen4) = rand gen3
-        (u,gen5) = rand gen4
-        (v,_)    = rand gen5
-    in bgroup (show nop)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
-               ]
-              ]
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop6 nop6 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,gen3) = rand gen2
+      (t,gen4) = rand gen3
+      (u,gen5) = rand gen4
+      (v,_)    = rand gen5
+  in bgroup (show nop6)
+     [bgroup (showMemoryUsage x)
+       [bgroup (showMemoryUsage y)
+         [bgroup (showMemoryUsage z)
+           [bgroup (showMemoryUsage t)
+             [bgroup (showMemoryUsage u)
+               [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 nop6 [] x y z t u v]
              ]
-            ]
            ]
+         ]
+       ]
+     ]
 
 
+-- For HeadSpine, our generator should return a two-argument function that returns a random integer.
 -- | The actual benchmarks
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -434,7 +537,12 @@ makeBenchmarks gen =
    -- The subsidiary functions below make it a lot easier to see that we're
    -- benchmarking the right things with the right benchmarking functions.
    -- Maybe we could use some TH instead.
-    where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
+    where mkBMs
+            :: (DefaultUni `Contains` b, ExMemoryUsage b, NFData b)
+            => ((NopFun -> (StdGen -> (b, StdGen)) -> StdGen -> Benchmark) -> t -> a)
+            -> (t, t, t, t, t, t)
+            -> [a]
+          mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
               [ mkBM benchNop1 nop1
               , mkBM benchNop2 nop2
               , mkBM benchNop3 nop3
@@ -442,5 +550,213 @@ makeBenchmarks gen =
               , mkBM benchNop5 nop5
               , mkBM benchNop6 nop6 ]
           mkBmB benchfn nop = benchfn nop randBool gen
-          mkBmI benchfn nop = benchfn nop (randNwords 1)  gen
-          -- Benchmark using Integer inputs with memory usage 1
+          mkBmI benchfn nop = benchfn nop (randNwords 1) gen
+
+instantiate
+  :: fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+instantiate fun tys = mkIterInstNoAnn (builtin () fun) tys
+
+
+mkApp1'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp1' !fun !tys (force -> !x) =
+  eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [mkConstant () x]
+
+mkApp2'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp2' !fun !tys !term1 (force -> !x) =
+  eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [term1, mkConstant () x]
+
+mkApp3'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp3' !fun !tys !term1 !term2 (force -> !x) =
+  eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [term1, term2, mkConstant () x]
+
+mkApp4'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp4' !fun !tys !term1 !term2 !term3  (force -> !x) =
+  eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [term1, term2, term3, mkConstant () x]
+
+mkApp5'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp5' !fun !tys !term1 !term2 !term3 !term4 (force -> !x) =
+  eraseTerm $ mkIterAppNoAnn (instantiate fun tys) [term1, term2, term3, term4, mkConstant () x]
+
+mkApp6'
+  :: (UPLC.HasUnique name UPLC.TermUnique, Contains uni a, NFData a)
+  => fun
+  -> [Type tyname uni ()]
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> Term tyname name uni fun ()
+  -> a
+  -> UPLC.Term name uni fun ()
+mkApp6' !fun !tys !term1 !term2 !term3 !term4 !term5 (force -> !x) =
+  eraseTerm $
+  mkIterAppNoAnn (instantiate fun tys)
+  [term1, term2, term3, term4, term5, mkConstant () x]
+
+benchNop1'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop1' nop1 _rand _gen =
+  let n = 11 :: Integer
+  in bgroup (show nop1) [benchWith nopCostParameters (showMemoryUsage n) $ mkApp1' nop1 [unit] n]
+
+benchNop2'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop2' nop2 rand gen =
+  let (x,_) = rand gen
+      n = 22 :: Integer
+  in bgroup (show nop2)
+     [bgroup "1"
+       [benchWith nopCostParameters (showMemoryUsage n) $ mkApp2' nop2 [unit] x n]
+     ]
+
+benchNop3'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop3' nop3 rand gen =
+  let (x,gen1) = rand gen
+      (y,_)    = rand gen1
+      n = 33 :: Integer
+  in bgroup (show nop3)
+     [bgroup "1"
+       [bgroup "1"
+         [benchWith nopCostParameters (showMemoryUsage n) $ mkApp3' nop3 [unit] x y n]
+       ]
+     ]
+
+benchNop4'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop4' nop4 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,_)    = rand gen2
+      n = 44 :: Integer
+  in bgroup (show nop4)
+     [bgroup "1"  -- There is an ExMemoryUsage instance, but "showMemoryUsage" causes an error.
+       [bgroup "1" -- We don't care about the size of the term anyway, since it just passed through.
+         [bgroup "1"
+           [benchWith nopCostParameters (showMemoryUsage n) $ mkApp4' nop4 [unit] x y z n]
+         ]
+       ]
+     ]
+
+-- WAIT! The arguments are actually typed terms at the point where we call
+-- showMemoryUsage, but after we create the full term we erase it.  Should we
+-- just create untyped terms instead?
+
+benchNop5'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop5' nop5 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,gen3) = rand gen2
+      (t,_)    = rand gen3
+      n = 55 :: Integer
+  in bgroup (show nop5)
+     [bgroup "1"
+       [bgroup "1"
+         [bgroup "1"
+           [bgroup "1"
+             [benchWith nopCostParameters (showMemoryUsage n) $ mkApp5' nop5 [unit] x y z t n]
+           ]
+         ]
+       ]
+     ]
+
+
+benchNop6'
+  :: NopFun
+  -> (StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop6' nop6 rand gen =
+  let (x,gen1) = rand gen
+      (y,gen2) = rand gen1
+      (z,gen3) = rand gen2
+      (t,gen4) = rand gen3
+      (u,_)    = rand gen4
+      n = 66 :: Integer
+  in bgroup (show nop6)
+     [bgroup "1"
+       [bgroup "1"
+         [bgroup "1"
+           [bgroup "1"
+             [bgroup "1"
+               [benchWith nopCostParameters (showMemoryUsage n) $
+                mkApp6' nop6 [unit] x y z t u n]
+             ]
+           ]
+         ]
+       ]
+     ]
+
+makeBenchmarks' :: StdGen -> [Benchmark]
+makeBenchmarks' gen0 =
+  mkBMs mkBmR (Nop1r, Nop2r, Nop3r, Nop4r, Nop5r, Nop6r)
+  where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
+          [ mkBM benchNop1' nop1
+          , mkBM benchNop2' nop2
+          , mkBM benchNop3' nop3
+          , mkBM benchNop4' nop4
+          , mkBM benchNop5' nop5
+          , mkBM benchNop6' nop6 ]
+        mkBmR benchfn nop = benchfn nop randFun gen0
+        randFun :: StdGen -> (Term TyName Name DefaultUni NopFun (), StdGen)
+        -- \(u:unit) -> \(n:integer) -> x (random integer)
+        randFun gen =
+          let (_x,gen') = randNwords 1 gen
+              u = Name "u" (Unique 1)
+              n = Name "n" (Unique 2)
+          in (LamAbs () u unit (LamAbs () n integer (mkConstant () ())), gen')
+
+

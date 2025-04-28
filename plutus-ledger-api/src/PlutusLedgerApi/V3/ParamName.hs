@@ -313,7 +313,6 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
---  not enabled yet:
 --    ExpModInteger'cpu'arguments
 --    ExpModInteger'memory'arguments
 --    DropList'cpu'arguments'intercept
