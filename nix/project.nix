@@ -73,7 +73,7 @@ let
               pkgs.ocaml-ng.ocamlPackages_4_10.findlib
               pkgs.coqPackages_8_13.coq
               pkgs.coqPackages_8_13.mathcomp
-              pkgs.coqPackages_8_13.coq-ext-lib
+              pkgs.coqPackages_8_13.ExtLib
               pkgs.coqPackages_8_13.ssreflect
               pkgs.coqPackages_8_13.equations
             ];
