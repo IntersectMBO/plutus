@@ -21,7 +21,7 @@ module PlutusCore.TypeCheck.Internal
 import PlutusCore.Builtin
 import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
 import PlutusCore.Error (AsTypeError (_TypeError), ExpectedShapeOr (ExpectedExact, ExpectedShape),
-                         TypeError (FreeTypeVariableE, FreeVariableE, KindMismatch, NameMismatch, TyNameMismatch, TypeMismatch, UnknownBuiltinFunctionE))
+                         TypeError (..))
 import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
 import PlutusCore.Name.Unique (HasText (theText), Name (Name), Named (Named), TermUnique,
                                TyName (TyName), TypeUnique, theUnique)
@@ -577,7 +577,7 @@ inferTypeM (Case ann resTy scrut branches) = do
             Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
-            Left () -> undefined
+            Left err -> throwing _TypeError $ UnsupportedCaseBuiltin ann err
         -- scrutinee does not have a SOP type at all
         _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 

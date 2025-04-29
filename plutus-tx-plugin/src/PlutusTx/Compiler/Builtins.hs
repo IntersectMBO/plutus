@@ -30,6 +30,7 @@ import PlutusTx.PIRTypes
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
@@ -329,6 +330,8 @@ defineBuiltinType name ty = do
 -- | Add definitions for all the builtin terms to the environment.
 defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTerms = do
+    datatypeStyle <- asks $ coDatatypeStyle . ccOpts
+
     -- Error
     -- See Note [Delaying error]
     func <- delayedErrorFunc
@@ -364,18 +367,23 @@ defineBuiltinTerms = do
     for_ enumerate $ \fun ->
         let defineBuiltinInl impl = defineBuiltinTerm annMayInline impl $ mkBuiltin fun
         in case fun of
-            PLC.IfThenElse -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
-                fmap (const annMayInline) . runQuote $ do
-                    a <- freshTyName "a"
-                    b <- freshName "b"
-                    x <- freshName "x"
-                    y <- freshName "y"
-                    return
-                        . PIR.tyAbs () a (PLC.Type ())
-                        . PIR.lamAbs () b (PLC.mkTyBuiltin @_ @Bool ())
-                        . PIR.lamAbs () x (PLC.TyVar () a)
-                        . PIR.lamAbs () y (PLC.TyVar () a)
-                        $ PIR.kase () (PLC.TyVar () a) (PIR.Var () b) [PIR.Var () y, PIR.Var () x]
+            PLC.IfThenElse -> case datatypeStyle of
+                PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.ifThenElse
+                PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
+                    fmap (const annMayInline) . runQuote $ do
+                        a <- freshTyName "a"
+                        b <- freshName "b"
+                        x <- freshName "x"
+                        y <- freshName "y"
+                        return
+                            . PIR.tyAbs () a (PLC.Type ())
+                            . PIR.lamAbs () b (PLC.mkTyBuiltin @_ @Bool ())
+                            . PIR.lamAbs () x (PLC.TyVar () a)
+                            . PIR.lamAbs () y (PLC.TyVar () a)
+                            $ PIR.kase ()
+                                (PLC.TyVar () a)
+                                (PIR.Var () b)
+                                [PIR.Var () y, PIR.Var () x]
             PLC.ChooseUnit -> defineBuiltinInl 'Builtins.chooseUnit
 
             -- Bytestrings

@@ -292,7 +292,7 @@ inferTypeM (Case ann resTy scrut branches) = do
             Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
-            Left () -> undefined
+            Left err -> throwing _TypeError $ UnsupportedCaseBuiltin ann err
         -- scrutinee does not have a SOP type at all
         _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 

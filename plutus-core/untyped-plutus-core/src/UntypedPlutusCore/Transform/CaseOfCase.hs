@@ -19,6 +19,21 @@ Example:
       C1 a -> case x of { D1 -> w; D2 -> z; }
       C2 b -> case y of { D1 -> w; D2 -> z; }
 @
+
+We also transform
+
+@
+    case ((force ifThenElse) b (constr t) (constr f)) alts
+@
+
+into
+
+@
+    force (force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts)))
+@
+
+This is always an improvement.
+
 -}
 module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
 
@@ -57,8 +72,8 @@ processTerm = \case
           mkIterApp
             ite
             [ cond
-            , (trueAnn, Delay trueAnn (Case ann true alts))
-            , (falseAnn, Delay falseAnn (Case ann false alts))
+            , (trueAnn, Delay trueAnn . CaseReduce.processTerm $ Case ann true alts)
+            , (falseAnn, Delay falseAnn . CaseReduce.processTerm $ Case ann false alts)
             ]
   original@(Case annOuter (Case annInner scrut altsInner) altsOuter) ->
     maybe

@@ -19,6 +19,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules qualified as PIR
 
 import PlutusCore.Annotation
@@ -46,10 +47,11 @@ type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions {
-      coProfile     :: ProfileOpts
-    , coCoverage    :: CoverageOpts
-    , coRemoveTrace :: Bool
-    , coInlineFix   :: Bool
+      coProfile       :: ProfileOpts
+    , coCoverage      :: CoverageOpts
+    , coDatatypeStyle :: PIR.DatatypeStyle
+    , coRemoveTrace   :: Bool
+    , coInlineFix     :: Bool
     }
 
 data CompileContext uni fun = CompileContext {

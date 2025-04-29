@@ -786,7 +786,7 @@ enterComputeCek = computeCek
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
         VCon val -> case caseBuiltin val cs of
-            Left ()   -> throwingDischarged _MachineError undefined e
+            Left err  -> throwingDischarged _MachineError (CaseBuiltinError err) e
             Right res -> computeCek ctx env res
         _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
 

@@ -538,20 +538,32 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
 
 instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
     caseBuiltin (Some (ValueOf uni x)) branches = case uni of
+        -- TODO: It feels like we should support having only one branch to verify that a condition
+        -- is true and fail otherwise, but that requires changing the order of branches, which on
+        -- the one hand is weird and on the other hand matches the order for if-then-else, which is
+        -- nice.
         DefaultUniBool
             | Vector.length branches == 2 -> Right $ branches Vector.! fromEnum x
-            | otherwise -> Left ()
+            | otherwise -> Left $ fold
+                [ "'case' on a 'Bool' must have exactly two branches, but were given "
+                , showText $ Vector.length branches
+                ]
         DefaultUniInteger
             | 0 <= x && x < fromIntegral (Vector.length branches) ->
                 Right $ branches Vector.! fromIntegral x
-            | otherwise -> Left ()
-        _ -> Left ()
+            | otherwise -> Left $ fold
+                [ "'case "
+                , showText x
+                , "' is out of bounds for the given number of branches: "
+                , showText $ Vector.length branches
+                ]
+        _ -> Left $ display uni <> " isn't supported in 'case'"
 
 instance AnnotateCaseBuiltin DefaultUni where
     annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
         DefaultUniBool    -> Right $ map (, []) branches
         DefaultUniInteger -> Right $ map (, []) branches
-        _                 -> Left ()
+        _                 -> Left $ display uni <> " isn't supported in 'case'"
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
