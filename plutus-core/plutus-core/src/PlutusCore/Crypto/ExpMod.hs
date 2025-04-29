@@ -21,7 +21,7 @@ expMod b e m
   -- ^ Just in case: GHC.Num.Integer.integerRecip# gets this wrong.  Note that 0
   -- is invertible modulo 1, with inverse 0.
   | b == 0 && e < 0 = failNonInvertible 0 m
-  -- ^ GHC.Num.Integer.integerPowMod# incorrectly returns 0 in this case.
+  -- ^ integerPowMod# incorrectly returns 0 in this case.
   | otherwise =
       case integerPowMod# b e m of
         (# n | #)  -> pure n
