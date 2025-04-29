@@ -461,6 +461,7 @@ library untyped-plutus-core-testlib
     Generators
     Scoping.Spec
     Transform.CaseOfCase.Test
+    Transform.Inline.Spec
     Transform.Simplify
     Transform.Simplify.Lib
 
@@ -527,6 +528,7 @@ library plutus-ir
     PlutusIR.Parser
     PlutusIR.Pass
     PlutusIR.Purity
+    PlutusIR.Strictness
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseOfCase

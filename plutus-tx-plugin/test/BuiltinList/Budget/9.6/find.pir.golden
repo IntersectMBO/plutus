@@ -11,7 +11,7 @@ let
     = /\a ->
         \(p : a -> Bool) ->
           letrec
-            ~go : list a -> Maybe a
+            !go : list a -> Maybe a
               = (let
                     r = Maybe a
                   in

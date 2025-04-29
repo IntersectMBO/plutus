@@ -218,10 +218,6 @@ program
   letrec
     !validateParamValue : ParamValue -> data -> Bool
       = \(eta : ParamValue) (eta : data) ->
-          let
-            ~bl : list data = unListData eta
-            ~bl' : list data = tailList {data} bl
-          in
           ParamValue_match
             eta
             {all dead. Bool}
@@ -372,15 +368,19 @@ program
                            (/\dead -> y)
                            {all dead. dead}))
                    preds
-                   (ifThenElse
-                      {Unit -> Rational}
-                      (nullList {data} (tailList {data} bl'))
-                      (\(ds : Unit) ->
-                         unsafeRatio
-                           (unIData (headList {data} bl))
-                           (unIData (headList {data} bl')))
-                      (\(ds : Unit) -> error {Rational})
-                      Unit))
+                   (let
+                     !bl : list data = unListData eta
+                     !bl' : list data = tailList {data} bl
+                   in
+                   ifThenElse
+                     {Unit -> Rational}
+                     (nullList {data} (tailList {data} bl'))
+                     (\(ds : Unit) ->
+                        unsafeRatio
+                          (unIData (headList {data} bl))
+                          (unIData (headList {data} bl')))
+                     (\(ds : Unit) -> error {Rational})
+                     Unit))
             {all dead. dead}
     !validateParamValues : List ParamValue -> list data -> Bool
       = \(ds : List ParamValue) ->

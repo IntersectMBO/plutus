@@ -12,8 +12,8 @@ import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
 import UntypedPlutusCore (Name, SimplifierTrace, Term, defaultSimplifyOpts, runSimplifierT,
-                          simplifyTerm, soInlineCallsiteGrowth, soMaxCseIterations,
-                          soMaxSimplifierIterations, termSimplifier)
+                          soInlineCallsiteGrowth, soMaxCseIterations, soMaxSimplifierIterations,
+                          soPreserveLogging, termSimplifier)
 
 -- TODO Fix duplication with other golden tests, quite annoying
 goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
@@ -43,6 +43,7 @@ testSimplify =
           & soMaxSimplifierIterations .~ 1
           & soMaxCseIterations .~ 0
           & soInlineCallsiteGrowth .~ 0
+          & soPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
@@ -50,11 +51,23 @@ goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsCse name =
   goldenVsPretty ".uplc.golden" name
     . PLC.runQuote
-    . simplifyTerm
+    . fmap fst
+    . testCse
+
+testCse
+  :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> PLC.Quote
+      ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+      , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+      )
+testCse =
+    runSimplifierT
+    . termSimplifier
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does
           & soMaxSimplifierIterations .~ 0
           & soMaxCseIterations .~ 1
           & soInlineCallsiteGrowth .~ 0
+          & soPreserveLogging .~ False
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)

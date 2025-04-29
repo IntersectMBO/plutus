@@ -53,6 +53,9 @@ in
                    {all dead. integer}
                    (/\dead -> 1)
                    (/\dead ->
-                      Unit_match (error {Unit}) {integer} (error {integer}))
+                      let
+                        !defaultBody : integer = error {integer}
+                      in
+                      Unit_match (error {Unit}) {integer} defaultBody)
                    {all dead. dead}))
          {all dead. dead})

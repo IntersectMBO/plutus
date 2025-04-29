@@ -78,9 +78,10 @@ let
        List (Tuple2 k a)
     = /\k a ->
         \(`$dUnsafeFromData` : (\a -> data -> a) k)
-         (`$dUnsafeFromData` : (\a -> data -> a) a) ->
+         (`$dUnsafeFromData` : (\a -> data -> a) a)
+         (d : (\k a -> list (pair data data)) k a) ->
           letrec
-            ~go : list (pair data data) -> List (Tuple2 k a)
+            !go : list (pair data data) -> List (Tuple2 k a)
               = caseList'
                   {pair data data}
                   {List (Tuple2 k a)}
@@ -95,7 +96,7 @@ let
                           (`$dUnsafeFromData` (sndPair {data} {data} hd)))
                        (go tl))
           in
-          \(d : (\k a -> list (pair data data)) k a) -> go d
+          go d
 in
 letrec
   !goList : List (Tuple2 data data) -> list (pair data data)
@@ -821,9 +822,11 @@ let
      all k a.
        (\a -> a -> data) k -> k -> (\k a -> list (pair data data)) k a -> Bool
     = /\k a ->
-        \(`$dToData` : (\a -> a -> data) k) (ds : k) ->
+        \(`$dToData` : (\a -> a -> data) k)
+         (ds : k)
+         (ds : (\k a -> list (pair data data)) k a) ->
           letrec
-            ~go : list (pair data data) -> Bool
+            !go : list (pair data data) -> Bool
               = caseList'
                   {pair data data}
                   {Bool}
@@ -841,7 +844,7 @@ let
                        (/\dead -> go)
                        {all dead. dead})
           in
-          \(ds : (\k a -> list (pair data data)) k a) -> go ds
+          go ds
   !null : all a. (\a -> list data) a -> Bool
     = /\a ->
         \(eta : (\a -> list data) a) ->
@@ -1414,10 +1417,10 @@ in
                                   in
                                   True)
                                (/\dead ->
-                                  Unit_match
-                                    (error {Unit})
-                                    {Bool}
-                                    (error {Bool}))
+                                  let
+                                    !defaultBody : Bool = error {Bool}
+                                  in
+                                  Unit_match (error {Unit}) {Bool} defaultBody)
                                {all dead. dead})
                           {all dead. dead})
                      {all dead. dead})

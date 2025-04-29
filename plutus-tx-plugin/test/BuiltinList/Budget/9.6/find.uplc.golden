@@ -12,24 +12,17 @@
                    case (lessThanInteger v 12) [(constr 0 []), (constr 1 [])])
                 xs) ])
         (\p ->
-           force
-             ((\s -> s s)
-                (\s arg ->
-                   delay
-                     (\xs ->
-                        force
-                          (force (force chooseList)
-                             xs
-                             (delay (constr 1 []))
-                             (delay
-                                ((\x xs ->
-                                    force
-                                      (case
-                                         (p x)
-                                         [ (delay (constr 0 [x]))
-                                         , (delay
-                                              (force (s s (delay (\x -> x)))
-                                                 xs)) ]))
-                                   (force headList xs)
-                                   (force tailList xs))))))
-                (delay (\x -> x))))))
+           (\s -> s s)
+             (\s xs ->
+                force
+                  (force (force chooseList)
+                     xs
+                     (delay (constr 1 []))
+                     (delay
+                        ((\x xs ->
+                            force
+                              (case
+                                 (p x)
+                                 [(delay (constr 0 [x])), (delay (s s xs))]))
+                           (force headList xs)
+                           (force tailList xs))))))))

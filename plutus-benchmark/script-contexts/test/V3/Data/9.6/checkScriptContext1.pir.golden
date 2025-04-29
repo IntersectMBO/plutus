@@ -71,7 +71,10 @@
          d
          (\(txi : data) (ds : data) (ds : data) -> MkSolo {data} txi)
          (\(void : unit) ->
-            Unit_match (error {Unit}) {Solo data} (error {Solo data})))
+            let
+              !defaultBody : Solo data = error {Solo data}
+            in
+            Unit_match (error {Unit}) {Solo data} defaultBody))
       {Unit}
       (\(ipv : data) ->
          Bool_match

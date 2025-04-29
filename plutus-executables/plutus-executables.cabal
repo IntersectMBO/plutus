@@ -171,6 +171,11 @@ test-suite test-certifier
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
+  other-modules:
+    Test.Certifier.AST
+    Test.Certifier.Executable
+    Test.Certifier.Optimizer
+
   build-depends:
     , base
     , filepath

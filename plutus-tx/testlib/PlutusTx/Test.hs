@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -26,9 +27,8 @@ module PlutusTx.Test (
   goldenEvalCekCatch,
   goldenEvalCekLog,
 
-  -- * Budget testing
+  -- * Budget and size testing
   goldenBudget
-
 ) where
 
 import Prelude
@@ -48,6 +48,7 @@ import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, 
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
@@ -113,10 +114,13 @@ renderExcess tData mData diff =
     <> "Remaining headroom: "
     <> show diff
 
--- Budget testing
-
 goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = goldenUEvalBudget name [compiledCode]
+goldenBudget name compiledCode = do
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
+    PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
+    size <- UPLC.programSize <$> toUPlc compiledCode
+    let contents = "cpu: " <> pretty cpu <> "\nmem: " <> pretty mem <> "\nsize: " <> pretty size
+    pure (render @Text contents)
 
 -- Compilation testing
 

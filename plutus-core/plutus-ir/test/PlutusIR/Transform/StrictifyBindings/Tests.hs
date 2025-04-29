@@ -22,6 +22,9 @@ test_strictifyBindings =
             , "impure1"
             , "unused"
             , "conapp"
+            , "strict"
+            , "nonstrict1"
+            , "nonstrict2"
             ]
 
 prop_strictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
