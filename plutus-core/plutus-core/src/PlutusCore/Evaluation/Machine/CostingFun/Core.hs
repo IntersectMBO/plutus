@@ -387,6 +387,7 @@ evaluateTwoVariableQuadraticFunction
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
 -- the cost model parameters since the minimum value would come first instead of
 -- last.
+-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1554.
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept

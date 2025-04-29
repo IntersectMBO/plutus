@@ -156,6 +156,7 @@ runCkM runtime emitting a = runST $ do
     pure (errOrRes, logs)
 
 -- FIXME: make sure that the specification is up to date and that this matches.
+-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
@@ -191,6 +192,7 @@ _     |> var@Var{}               =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 
 -- FIXME: make sure that the specification is up to date and that this matches.
+-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
 -- | The returning part of the CK machine. Rules are as follows:
 --
 -- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
