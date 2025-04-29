@@ -14,10 +14,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-#if !MIN_VERSION_base(4,15,0)
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-#endif
-
 module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
@@ -53,10 +49,8 @@ import Data.Vector.Strict qualified as Vector
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
-#if MIN_VERSION_base(4,15,0)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
-#endif
 import NoThunks.Class (NoThunks)
 import Prettyprinter (viaShow)
 
@@ -2060,9 +2054,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- See Note [Operational vs structural errors within builtins].
                 case uniListA of
                     DefaultUniList _ ->
--- We only support @base-4.15@ and higher, because prior versions don't expose the same interface to
--- 'Integer'.
-#if MIN_VERSION_base(4,15,0)
                         -- The fastest way of dropping elements from a list is by operating on
                         -- an unboxed int (i.e. an 'Int#'). We could implement that manually, but
                         -- 'drop' in @Prelude@ already does that under the hood, so we just need to
@@ -2100,9 +2091,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                                _ ->
                                    throwing _StructuralUnliftingError
                                        "Panic: unreachable clause executed"
-#else
-                        throwing _StructuralUnliftingError "'dropList' is not supported on GHC-8.10"
-#endif
                     _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning

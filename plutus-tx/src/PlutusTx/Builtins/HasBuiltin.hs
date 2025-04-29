@@ -1,13 +1,8 @@
-{-# LANGUAGE CPP                      #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
-
-#if !MIN_VERSION_base(4, 15, 0)
-{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
-#endif
 
 module PlutusTx.Builtins.HasBuiltin where
 

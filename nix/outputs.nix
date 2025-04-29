@@ -71,15 +71,12 @@ let
     (latex-documents);
 
   project-variants-hydra-jobs = {
-    ghc810 = (project.flake { }).hydraJobs.ghc810;
     ghc96 = (project.flake { }).hydraJobs.ghc96;
     ghc98 = (project.flake { }).hydraJobs.ghc98;
     ghc910 = (project.flake { }).hydraJobs.ghc910;
   };
 
   project-variants-roots-and-plan-nix = {
-    ghc810.roots = project-variants-hydra-jobs.ghc810.roots;
-    ghc810.plan-nix = project-variants-hydra-jobs.ghc810.plan-nix;
     ghc96.roots = project-variants-hydra-jobs.ghc96.roots;
     ghc96.plan-nix = project-variants-hydra-jobs.ghc96.plan-nix;
     ghc98.roots = project-variants-hydra-jobs.ghc98.roots;
@@ -95,7 +92,6 @@ let
 
   non-profiled-shells = rec {
     default = ghc96;
-    ghc810 = mkShell project.projectVariants.ghc810;
     ghc96 = mkShell project.projectVariants.ghc96;
     ghc98 = mkShell project.projectVariants.ghc98;
     ghc910 = mkShell project.projectVariants.ghc910;

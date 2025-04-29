@@ -213,8 +213,8 @@ mkSimplPass dflags =
         }
 
 {- Note [Marker resolution]
-We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
-explained in: <http://hackage.haskell.org/package/ghc-8.10.1/docs/GhcPlugins.html#v:thNameToGhcName>
+We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as explained in:
+<https://hackage.haskell.org/package/ghc-9.6.6/docs/GHC-Plugins.html#v:thNameToGhcName>
 
 The GHC haddock suggests that the "exact syntax" will always succeed because it is statically
 resolved here (inside this Plugin module);
