@@ -21,8 +21,10 @@ import PlutusPrelude
 import Evaluation.Builtins.Bitwise.CIP0122 qualified as CIP0122
 import Evaluation.Builtins.Bitwise.CIP0123 qualified as CIP0123
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
-import Evaluation.Builtins.Common
+import Evaluation.Builtins.Common (typecheckAnd, typecheckEvaluateCek, typecheckEvaluateCekNoEmit,
+                                   typecheckReadKnownCek)
 import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Integer.ExpModInteger (test_expModInteger_properties)
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
                                                   ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
@@ -1247,6 +1249,7 @@ test_definition =
         , test_HashSizes
         , test_SignatureVerification
         , test_BLS12_381
+        , test_expModInteger_properties
         , test_Other
         , test_Version
         , test_ConsByteString

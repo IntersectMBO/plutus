@@ -1,9 +1,10 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( unsafeSplitStructuralOperational
+{-    ( unsafeSplitStructuralOperational
     , evaluateCek
     , evaluateCekNoEmit
     , readKnownCek
@@ -11,7 +12,10 @@ module Evaluation.Builtins.Common
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
-    ) where
+    ,
+    )
+-}
+where
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Builtin
@@ -20,16 +24,21 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.TypeCheck
+import PlutusPrelude (def)
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Monad.Except
 import Data.Bifunctor
+import Data.ByteString (ByteString)
 import Data.Text (Text)
+
+import Test.Tasty.QuickCheck (Property, property, (===))
 
 -- | Type check and evaluate a term.
 typecheckAnd
@@ -89,3 +98,80 @@ typecheckReadKnownCek
     -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek semvar =
     typecheckAnd semvar readKnownCek
+
+
+-- TPLC/UPLC utilities
+
+type PlcTerm  = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
+type PlcError = TPLC.Error TPLC.DefaultUni TPLC.DefaultFun ()
+type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
+
+-- Possible CEK evluation results, flattened out
+data CekResult =
+    TypeCheckError PlcError
+  | CekError
+  | CekSuccess UplcTerm
+    deriving stock (Eq, Show)
+
+evalTerm :: PlcTerm -> CekResult
+evalTerm term =
+    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+    of Left e -> TypeCheckError e
+       Right x  ->
+           case x of
+             TPLC.EvaluationFailure   -> CekError
+             TPLC.EvaluationSuccess s -> CekSuccess s
+
+integer :: Integer -> PlcTerm
+integer = mkConstant ()
+
+zero :: PlcTerm
+zero = integer 0
+
+one :: PlcTerm
+one = integer 1
+
+true :: PlcTerm
+true = mkConstant () True
+
+false :: PlcTerm
+false = mkConstant () False
+
+bytestring :: ByteString -> PlcTerm
+bytestring = mkConstant ()
+
+mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
+mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
+
+mkApp2 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
+mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
+
+falseResult :: CekResult
+falseResult = CekSuccess $ mkConstant () False
+
+trueResult :: CekResult
+trueResult = CekSuccess $ mkConstant () True
+
+
+-- QuickCheck utilities
+
+-- | Term evaluates successfully
+ok :: PlcTerm -> Property
+ok t = property $
+       case evalTerm t of
+         CekSuccess _ -> True
+         _            -> False
+
+-- | Term fails to evaluate successfully
+fails :: PlcTerm -> Property
+fails t = evalTerm t === CekError
+
+-- Check that two terms evaluate successfully and return the same result
+evalOkEq :: PlcTerm -> PlcTerm -> Property
+evalOkEq t1 t2 =
+    case evalTerm t1 of
+      r@(CekSuccess _) -> r === evalTerm t2
+      _                -> property False
+
+
+
