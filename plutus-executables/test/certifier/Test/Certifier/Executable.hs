@@ -120,6 +120,7 @@ srcTests =
   [ "inc"
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
+  -- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1555.
   -- , "len"
   , "MinBS"
   , "AA2-CSE"
@@ -143,6 +144,7 @@ executableTests :: TestTree
 executableTests =
   testGroup "certifier executable tests"
     [
+    -- TODO: tracked by https://github.com/IntersectMBO/plutus-private/issues/1556
     -- testGroup "example serialisation certification"
     --                $ makeSerialisationExampleTests exampleNames
     testGroup "simple certification"  $ makeTestTree srcTests
