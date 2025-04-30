@@ -3,7 +3,6 @@ title: Utils
 layout: page
 ---
 ```
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utils where
 ```
 ## Imports
