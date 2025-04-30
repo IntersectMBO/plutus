@@ -7,6 +7,7 @@ import UntypedPlutusCore
 import AgdaTrace (mkAgdaTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
+import Data.Text.Encoding qualified as Text
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -80,9 +81,27 @@ testTrivialFailure1 =
     (mkConstant () (1 :: Integer))
     (mkConstant () (2 :: Integer))
 
+testByteStringEqSuccess :: TestTree
+testByteStringEqSuccess =
+  testFailure
+    "bytestrings expected to not be equal"
+    FloatDelay
+    (mkConstant () (Text.encodeUtf8 "foo"))
+    (mkConstant () (Text.encodeUtf8 "bar"))
+
+testByteStringEqFailure :: TestTree
+testByteStringEqFailure =
+  testSuccess
+    "bytestrings expected to be equal"
+    FloatDelay
+    (mkConstant () (Text.encodeUtf8 "foo"))
+    (mkConstant () (Text.encodeUtf8 "foo"))
+
 astTests :: TestTree
 astTests =
   testGroup "certifier ast tests"
     [ testTrivialSuccess1
     , testTrivialFailure1
+    , testByteStringEqSuccess
+    , testByteStringEqFailure
     ]

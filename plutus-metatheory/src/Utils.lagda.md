@@ -176,8 +176,12 @@ postulate ByteString : Set
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 postulate
-  eqByteString : ByteString → ByteString → Bool
   mkByteString : String → ByteString
+
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqByteString : ByteString → ByteString → Bool
+eqByteString _ _ = Bool.true
 {-# COMPILE GHC eqByteString = (==) #-}
 
 ```
@@ -253,31 +257,76 @@ data DATA : Set where
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
 {-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
 
-postulate eqDATA : DATA → DATA → Bool
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+{-# TERMINATING #-}
+eqDATA : DATA → DATA → Bool
+eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
+    (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
+  Data.Bool.∧
+    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))  
+eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (bDATA x₂) = Bool.false
+eqDATA (MapDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (MapDATA m₁) (MapDATA m₂) =
+  L.and
+    (L.zipWith
+      (λ (x₁ , y₁) (x₂ , y₂) → eqDATA x₁ x₂ Data.Bool.∧ eqDATA y₁ y₂)
+      (toList m₁)
+      (toList m₂)
+    )
+eqDATA (MapDATA x) (ListDATA x₁) = Bool.false 
+eqDATA (MapDATA x) (iDATA x₁) = Bool.false
+eqDATA (MapDATA x) (bDATA x₁) = Bool.false
+eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (ListDATA x) (MapDATA x₁) = Bool.false
+eqDATA (ListDATA x) (ListDATA x₁) = L.and (L.zipWith eqDATA (toList x) (toList x₁))
+eqDATA (ListDATA x) (iDATA x₁) = Bool.false
+eqDATA (ListDATA x) (bDATA x₁) = Bool.false
+eqDATA (iDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (iDATA x) (MapDATA x₁) = Bool.false
+eqDATA (iDATA x) (ListDATA x₁) = Bool.false
+eqDATA (iDATA i₁) (iDATA i₂) = Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂)
+eqDATA (iDATA x) (bDATA x₁) = Bool.false
+eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (bDATA x) (MapDATA x₁) = Bool.false
+eqDATA (bDATA x) (ListDATA x₁) = Bool.false
+eqDATA (bDATA x) (iDATA x₁) = Bool.false
+-- Warning: eqByteString is always trivially true at the Agda level.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
 {-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
-postulate
-  eqBls12-381-G1-Element : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqBls12-381-G1-Element : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+eqBls12-381-G1-Element _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-G1-Element = (==) #-}
 
 postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
-postulate
-  eqBls12-381-G2-Element : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqBls12-381-G2-Element : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+eqBls12-381-G2-Element _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-G2-Element = (==) #-}
 
 postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 
-postulate
-  eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+-- Agda implementation should only be used as part of deciding builtin equality.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqBls12-381-MlResult : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+eqBls12-381-MlResult _ _ = Bool.true
 {-# COMPILE GHC eqBls12-381-MlResult = (==) #-}
 ```
 
