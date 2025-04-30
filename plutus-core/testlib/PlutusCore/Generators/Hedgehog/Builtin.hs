@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -118,8 +119,7 @@ genConstant tr
             SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
     | trArray `App` trElem <- tr
     , Just HRefl <- eqTypeRep trArray (typeRep @Vector) =
-        case genConstant trElem of
-          SomeGen genElem -> SomeGen $ fmap Vector.fromList $ Gen.list (Range.linear 0 10) genElem
+        case genConstant trElem of SomeGen genElem -> SomeGen (genArray genElem)
     | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
         genConstant trEl
@@ -134,3 +134,7 @@ genConstant tr
     | otherwise =
         error $
             "genConstant: I don't know how to generate constants of this type: " <> show tr
+
+  where
+    genArray :: Gen x -> Gen (Vector x)
+    genArray = fmap Vector.fromList . Gen.list (Range.linear 0 10)
