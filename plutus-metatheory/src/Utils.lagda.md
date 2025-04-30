@@ -3,6 +3,7 @@ title: Utils
 layout: page
 ---
 ```
+{-# OPTIONS --allow-unsolved-metas #-}
 module Utils where
 ```
 ## Imports
@@ -259,8 +260,44 @@ data DATA : Set where
 
 -- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+{-# TERMINATING #-}
 eqDATA : DATA → DATA → Bool
-eqDATA _ _ = Bool.true
+eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
+    (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
+  Data.Bool.∧
+    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))  
+eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (bDATA x₂) = Bool.false
+eqDATA (MapDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (MapDATA m₁) (MapDATA m₂) =
+  L.and
+    (L.zipWith
+      (λ (x₁ , y₁) (x₂ , y₂) → eqDATA x₁ x₂ Data.Bool.∧ eqDATA y₁ y₂)
+      (toList m₁)
+      (toList m₂)
+    )
+eqDATA (MapDATA x) (ListDATA x₁) = Bool.false 
+eqDATA (MapDATA x) (iDATA x₁) = Bool.false
+eqDATA (MapDATA x) (bDATA x₁) = Bool.false
+eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (ListDATA x) (MapDATA x₁) = Bool.false
+eqDATA (ListDATA x) (ListDATA x₁) = L.and (L.zipWith eqDATA (toList x) (toList x₁))
+eqDATA (ListDATA x) (iDATA x₁) = Bool.false
+eqDATA (ListDATA x) (bDATA x₁) = Bool.false
+eqDATA (iDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (iDATA x) (MapDATA x₁) = Bool.false
+eqDATA (iDATA x) (ListDATA x₁) = Bool.false
+eqDATA (iDATA i₁) (iDATA i₂) = Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂)
+eqDATA (iDATA x) (bDATA x₁) = Bool.false
+eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (bDATA x) (MapDATA x₁) = Bool.false
+eqDATA (bDATA x) (ListDATA x₁) = Bool.false
+eqDATA (bDATA x) (iDATA x₁) = Bool.false
+-- Warning: eqByteString is always trivially true at the Agda level.
+-- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
+eqDATA (bDATA b₁) (bDATA b₂) = eqByteString b₁ b₂
 {-# COMPILE GHC eqDATA = (==) #-}
 
 postulate Bls12-381-G1-Element : Set
