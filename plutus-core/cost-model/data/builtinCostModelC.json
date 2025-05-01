@@ -844,6 +844,41 @@
                 "slope": 1
             },
             "type": "linear_in_max_yz"
+    "indexArray": {
+        "cpu": {
+            "arguments": 194922,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 32,
+            "type": "constant_cost"
+        }
+    },
+    "lengthOfArray": {
+        "cpu": {
+            "arguments": 198994,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 10,
+            "type": "constant_cost"
+        }
+    },
+    "listToArray": {
+        "cpu": {
+            "arguments": {
+                "intercept": 307802,
+                "slope": 8496
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 7,
+                "slope": 1
+            },
+            "type": "linear_in_x"
+>>>>>>> master
         }
     },
     "quotientInteger": {

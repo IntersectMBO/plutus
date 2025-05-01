@@ -499,7 +499,6 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
-#if MIN_VERSION_base(4,15,0)
     test_TrackCostsWith "retaining" 10000 $ \term -> do
         let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
             -- 'DList'.
@@ -523,19 +522,6 @@ test_TrackCostsRetaining =
                         , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
-#else
-    -- FIXME: @effectfully
-    -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>
-    -- TrackCosts: retaining:                                                             FAIL (0.51s)
-    -- untyped-plutus-core/test/Evaluation/Builtins/Definition.hs:482:
-    -- Too many elements picked up by GC
-    -- Expected at most: 5
-    -- But got: 6
-    -- The result was: [6829,0,0,0,0,3173]
-    -- Use -p '/TrackCosts: retaining/' to rerun this test only.
-    testCase "TrackCosts: retaining" $ do
-        assertBool "dummy" $ not . null $ DList.singleton 'x' -- Avoid 'redundant-imports' warning
-#endif
 
 typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assertion
 typecheckAndEvalToOutOfEx term =

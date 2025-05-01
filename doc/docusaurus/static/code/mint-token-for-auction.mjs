@@ -78,7 +78,7 @@ const redeemer = {
 const tx = new Transaction({ initiator: wallet })
 tx.mintAsset(mintingPolicy, token, redeemer)
 const unsignedTx = await tx.setRequiredSigners([walletAddress]).build()
-const signedTx = wallet.signTx(unsignedTx)
+const signedTx = await wallet.signTx(unsignedTx)
 const txHash = await wallet.submitTx(signedTx)
 
 console.log(

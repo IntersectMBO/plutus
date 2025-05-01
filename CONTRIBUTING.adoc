@@ -209,9 +209,9 @@ The primary development version should be whichever version the Cardano node is 
 Supported versions older than the primary development version are deprecated, and we can drop them as soon as the Cardano node has moved to a later GHC version.
 
 At the moment, our supported GHC versions are:
-- 8.10 (deprecated)
 - 9.6 (primary)
 - 9.8
+- 9.10
 
 === Plugin support
 
@@ -228,7 +228,7 @@ We currently support the plugin on:
 === Per-version tooling
 
 We have a dev shell for each supported GHC version which you can use if you need to fix issues on that specific version.
-You can access them like this: `nix develop .#ghc810`.
+You can access them like this: `nix develop .#ghc98`.
 
 Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
 

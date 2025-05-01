@@ -263,9 +263,9 @@ a lambda (see https://github.com/IntersectMBO/plutus/pull/4621), however it does
 faster, generates more Core and doesn't take much to break, hence we choose the hacky 'lazy'
 version.
 
-Since we want @run*Model@ functions to partially compute, we mark them as @NOINLINE@ to prevent GHC
-from inlining them and breaking the sharing friendliness. Without the @NOINLINE@ Core doesn't seem
-to be worse, however it was verified that no @NOINLINE@ causes a slowdown in both the @validation@
+Since we want @run*Model@ functions to partially compute, we mark them as @OPAQUE@ to prevent GHC
+from inlining them and breaking the sharing friendliness. Without the @OPAQUE@ Core doesn't seem
+to be worse, however it was verified that no @OPAQUE@ causes a slowdown in both the @validation@
 and @nofib@ benchmarks.
 
 Note that looking at the generated Core isn't really enough. We might have enemies down the pipeline,
@@ -308,7 +308,7 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
     lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
     lazy $ \costs1 -> scaleLinearly intercept slope costs1
-{-# NOINLINE runOneArgumentModel #-}
+{-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
 
@@ -418,6 +418,7 @@ evaluateExpModCostingFunction
 -- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
 -- the cost model parameters since the minimum value would come first instead of
 -- last.
+-- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1554.
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
@@ -617,7 +618,7 @@ runTwoArgumentModel
              let !size1 = sumCostStream costs1
                  !size2 = sumCostStream costs2
              in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
-{-# NOINLINE runTwoArgumentModel #-}
+{-# OPAQUE runTwoArgumentModel #-}
 
 
 ---------------- Three-argument costing functions ----------------
@@ -704,8 +705,7 @@ runThreeArgumentModel (ModelThreeArgumentsExpModCost f) =
                !size2 = sumCostStream costs2
                !size3 = sumCostStream costs3
            in CostLast $ evaluateExpModCostingFunction f size1 size2 size3
-
-{-# NOINLINE runThreeArgumentModel #-}
+{-# OPAQUE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].
 runCostingFunThreeArguments
@@ -748,7 +748,7 @@ runFourArgumentModel
     -> CostStream
     -> CostStream
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> CostLast c
-{-# NOINLINE runFourArgumentModel #-}
+{-# OPAQUE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].
 runCostingFunFourArguments
@@ -794,7 +794,7 @@ runFiveArgumentModel
     -> CostStream
     -> CostStream
 runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> CostLast c
-{-# NOINLINE runFiveArgumentModel #-}
+{-# OPAQUE runFiveArgumentModel #-}
 
 -- See Note [runCostingFun* API].
 runCostingFunFiveArguments
@@ -842,7 +842,7 @@ runSixArgumentModel
     -> CostStream
     -> CostStream
 runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> CostLast c
-{-# NOINLINE runSixArgumentModel #-}
+{-# OPAQUE runSixArgumentModel #-}
 
 -- See Note [runCostingFun* API].
 runCostingFunSixArguments

@@ -41,7 +41,7 @@ let
                 scrut
                 {r}
                 (\(ipv : integer) -> fail ())
-                (\(a : a) (b : a) -> cont b)
+                (\(ds : a) (b : a) -> cont b)
 in
 \(ds : Example string) ->
   let
@@ -57,5 +57,5 @@ in
          {integer}
          {string}
          ds
-         (\(s : string) -> 1)
+         (\(ds : string) -> 1)
          (\(void : unit) -> 0))
