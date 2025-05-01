@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-{-    ( unsafeSplitStructuralOperational
+    ( unsafeSplitStructuralOperational
     , evaluateCek
     , evaluateCekNoEmit
     , readKnownCek
@@ -12,9 +12,24 @@ module Evaluation.Builtins.Common
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
-    ,
+    , PlcTerm
+    , UplcTerm
+    , CekResult (..)
+    , evalTerm
+    , mkApp1
+    , mkApp2
+    , ok
+    , fails
+    , evalOkEq
+    , integer
+    , bytestring
+    , zero
+    , one
+    , true
+    , false
+    , trueResult
+    , falseResult
     )
--}
 where
 
 import PlutusCore qualified as TPLC
@@ -131,20 +146,14 @@ zero = integer 0
 one :: PlcTerm
 one = integer 1
 
+bytestring :: ByteString -> PlcTerm
+bytestring = mkConstant ()
+
 true :: PlcTerm
 true = mkConstant () True
 
 false :: PlcTerm
 false = mkConstant () False
-
-bytestring :: ByteString -> PlcTerm
-bytestring = mkConstant ()
-
-mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
-mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
-
-mkApp2 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
 
 falseResult :: CekResult
 falseResult = CekSuccess $ mkConstant () False
@@ -152,6 +161,11 @@ falseResult = CekSuccess $ mkConstant () False
 trueResult :: CekResult
 trueResult = CekSuccess $ mkConstant () True
 
+mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
+mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
+
+mkApp2 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
+mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
 
 -- QuickCheck utilities
 
