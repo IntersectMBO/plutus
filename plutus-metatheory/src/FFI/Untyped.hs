@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
 
-module Untyped where
+module FFI.Untyped where
 
 import PlutusCore.Data hiding (Constr)
 import PlutusCore.Default

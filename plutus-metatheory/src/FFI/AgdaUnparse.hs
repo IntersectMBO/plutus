@@ -1,9 +1,10 @@
-module AgdaUnparse where
+module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
 import Data.Functor.Identity
 import Data.Text (Text)
 import Data.Text qualified as T
+import FFI.Untyped qualified as AgdaFFI
 import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -12,7 +13,6 @@ import PlutusCore.Data (Data)
 import PlutusCore.Data qualified as Data
 import PlutusCore.Default (DSum (..))
 import PlutusPrelude
-import Untyped qualified as AgdaFFI
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Transform.Simplifier
 

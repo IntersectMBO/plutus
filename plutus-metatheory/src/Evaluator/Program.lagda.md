@@ -83,7 +83,7 @@ postulate
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
-{-# FOREIGN GHC import qualified Untyped as U #-}
+{-# FOREIGN GHC import qualified FFI.Untyped as U #-}
 {-# FOREIGN GHC import Raw #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
