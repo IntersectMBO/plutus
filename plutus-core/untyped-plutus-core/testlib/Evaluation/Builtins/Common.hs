@@ -27,8 +27,8 @@ module Evaluation.Builtins.Common
     , one
     , true
     , false
-    , trueResult
-    , falseResult
+    , cekSuccessFalse
+    , cekSuccessTrue
     )
 where
 
@@ -155,11 +155,11 @@ true = mkConstant () True
 false :: PlcTerm
 false = mkConstant () False
 
-falseResult :: CekResult
-falseResult = CekSuccess $ mkConstant () False
+cekSuccessFalse :: CekResult
+cekSuccessFalse = CekSuccess $ mkConstant () False
 
-trueResult :: CekResult
-trueResult = CekSuccess $ mkConstant () True
+cekSuccessTrue :: CekResult
+cekSuccessTrue = CekSuccess $ mkConstant () True
 
 mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
 mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
