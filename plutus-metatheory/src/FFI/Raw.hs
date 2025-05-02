@@ -5,7 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
-module Raw where
+module FFI.Raw where
 
 import Data.ByteString as BS hiding (map)
 import Data.Text qualified as T

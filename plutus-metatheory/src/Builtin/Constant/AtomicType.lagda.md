@@ -37,7 +37,7 @@ data AtomicTyCon : Set where
   aBls12-381-g2-element : AtomicTyCon
   aBls12-381-mlresult   : AtomicTyCon
 
-{-# FOREIGN GHC import Raw #-}
+{-# FOREIGN GHC import FFI.Raw #-}
 {-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData | ATyConBLS12_381_G1_Element | ATyConBLS12_381_G2_Element | ATyConBLS12_381_MlResult) #-}
 
 ```

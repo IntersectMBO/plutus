@@ -86,7 +86,7 @@ uglyTypeError TooFewCases = "TooFewCases"
 uglyTypeError TooManyCases = "TooManyCases"
 
 -- the haskell version of Error is defined in Raw
-{-# FOREIGN GHC import Raw #-}
+{-# FOREIGN GHC import FFI.Raw #-}
 {-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError | JsonError) #-}
 ```
 

@@ -84,7 +84,7 @@ postulate
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 {-# FOREIGN GHC import qualified FFI.Untyped as U #-}
-{-# FOREIGN GHC import Raw #-}
+{-# FOREIGN GHC import FFI.Raw #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}
@@ -101,7 +101,7 @@ postulate
 {-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
 {-# COMPILE GHC convPU = U.convP #-}
 
-{-# FOREIGN GHC import Opts #-}
+{-# FOREIGN GHC import FFI.Opts #-}
 ```
 
 ## Evaluators
