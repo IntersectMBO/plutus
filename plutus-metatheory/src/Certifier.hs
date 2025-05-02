@@ -2,6 +2,10 @@ module Certifier (runCertifier) where
 
 import FFI.AgdaUnparse (agdaUnparse)
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
+import FFI.Untyped (UTerm)
+
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Transform.Simplifier
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
@@ -13,7 +17,7 @@ runCertifier
   -- ^ The trace produced by the simplification process
   -> IO ()
 runCertifier (Just certName) simplTrace = do
-  let rawAgdaTrace = mkAgdaTrace simplTrace
+  let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True ->
       putStrLn "The compilation was successfully certified."
@@ -29,7 +33,7 @@ runCertifier (Just certName) simplTrace = do
   writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
 runCertifier Nothing _ = pure ()
 
-rawCertificate :: String -> [(SimplifierStage, (AgdaFFI.UTerm, AgdaFFI.UTerm))] -> String
+rawCertificate :: String -> [(SimplifierStage, (UTerm, UTerm))] -> String
 rawCertificate certName rawTrace =
   "module " <> certName <> " where\
   \\n\

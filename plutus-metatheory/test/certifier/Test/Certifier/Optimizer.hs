@@ -1,6 +1,6 @@
 module Test.Certifier.Optimizer where
 
-import AgdaTrace (mkAgdaTrace)
+import FFI.SimplifierTrace (mkFfiSimplifierTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 import PlutusCore qualified as PLC
 import Test.Tasty
@@ -24,7 +24,7 @@ mkUPLCTest
 mkUPLCTest simplifierFunc name input = testCase name $
   let rawAgdaTrace = PLC.runQuote $ do
         simplifierTrace <- snd <$> simplifierFunc input
-        return $ mkAgdaTrace simplifierTrace
+        return $ mkFfiSimplifierTrace simplifierTrace
   in
     case runCertifierMain rawAgdaTrace of
       Just result ->

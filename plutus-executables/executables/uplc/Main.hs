@@ -23,7 +23,6 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Transform.Simplifier
 
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)

@@ -681,3 +681,24 @@ test-suite test-NEAT
     , Stream
     , tasty
     , tasty-hunit
+
+test-suite test-certifier
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/certifier
+  other-modules:
+    Test.Certifier.AST
+    Test.Certifier.Optimizer
+
+  build-depends:
+    , base
+    , filepath
+    , plutus-core
+    , plutus-core:plutus-core-testlib
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-metatheory
+    , process
+    , tasty
+    , tasty-hunit
+    , text

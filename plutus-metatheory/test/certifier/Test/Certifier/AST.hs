@@ -4,7 +4,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant)
 import UntypedPlutusCore
 
-import AgdaTrace (mkAgdaTrace)
+import FFI.SimplifierTrace (mkFfiSimplifierTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
 import Data.Text.Encoding qualified as Text
@@ -31,7 +31,7 @@ runCertifierWithMockTrace
   :: SimplifierTrace Name DefaultUni DefaultFun ()
   -> IO Bool
 runCertifierWithMockTrace trace = do
-  let rawAgdaTrace = mkAgdaTrace trace
+  let rawAgdaTrace = mkFfiSimplifierTrace trace
   case runCertifierMain rawAgdaTrace of
     Just result -> pure result
     Nothing ->
