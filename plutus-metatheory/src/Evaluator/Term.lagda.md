@@ -65,7 +65,7 @@ open ERROR
 {-# FOREIGN GHC import Data.Functor #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
-{-# FOREIGN GHC import FFI.Raw #-}
+{-# FOREIGN GHC import Raw #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}

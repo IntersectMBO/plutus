@@ -84,7 +84,7 @@ postulate
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 {-# FOREIGN GHC import qualified FFI.Untyped as U #-}
-{-# FOREIGN GHC import FFI.Raw #-}
+{-# FOREIGN GHC import Raw #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}

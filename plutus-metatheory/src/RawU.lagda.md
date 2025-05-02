@@ -60,7 +60,7 @@ open import Algorithmic using (⟦_⟧)
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# FOREIGN GHC import PlutusCore #-}
-{-# FOREIGN GHC import FFI.Raw #-}
+{-# FOREIGN GHC import Raw #-}
 ```
 
 ## A (Haskell) Universe for types

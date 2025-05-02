@@ -46,7 +46,7 @@ data RawTy where
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu | RTySOP) #-}
 
-{-# FOREIGN GHC import FFI.Raw #-}
+{-# FOREIGN GHC import Raw #-}
 
 data RawTyCon where
   atomic     : AtomicTyCon → RawTyCon

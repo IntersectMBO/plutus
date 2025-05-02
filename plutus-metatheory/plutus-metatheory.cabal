@@ -91,9 +91,9 @@ library
     Certifier
     FFI.AgdaUnparse
     FFI.Opts
-    FFI.Raw
     FFI.SimplifierTrace
     FFI.Untyped
+    Raw
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two

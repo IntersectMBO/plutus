@@ -27,7 +27,7 @@ open import Data.Maybe using (Maybe; just; nothing; maybe)
                            renaming (_>>=_ to mbind) public
 open import Data.Unit using (⊤)
 
-{-# FOREIGN GHC import FFI.Raw #-}
+{-# FOREIGN GHC import Raw #-}
 
 ```
 ## Either
