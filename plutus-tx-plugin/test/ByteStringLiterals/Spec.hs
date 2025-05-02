@@ -36,7 +36,7 @@ tests =
         , test_CompileBuiltinByteStringLiteral_utf8
         , test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringUtf8
         , test_CompileBuiltinByteStringLiteral_hex
-        , test_CompileBuiltinByteStringLiteral2_hex
+        , test_CompileBuiltinByteStringLiteral_hex_imported
         , test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex
         ]
     ]
@@ -149,7 +149,7 @@ test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringUtf8 =
 
 test_CompileBuiltinByteStringLiteral_hex :: TestTree
 test_CompileBuiltinByteStringLiteral_hex =
-  testCase "BuiltinByteStringHex" do
+  testCase "BuiltinByteStringHex (local)" do
     term compiledLiteral @?= expectedUplc
  where
   compiledLiteral :: CompiledCode BuiltinByteStringHex =
@@ -190,11 +190,11 @@ test_CompileBuiltinByteStringLiteral_hex =
           ||]
       )
 
-test_CompileBuiltinByteStringLiteral2_hex :: TestTree
-test_CompileBuiltinByteStringLiteral2_hex =
-  testCase "BuiltinByteStringHex" $
+test_CompileBuiltinByteStringLiteral_hex_imported :: TestTree
+test_CompileBuiltinByteStringLiteral_hex_imported =
+  testCase "BuiltinByteStringHex (imported)" $
     term $$(compile [||Lib.hex||])
-      @?= Constant () (Some (ValueOf DefaultUniByteString "\240"))
+      @?= Constant () (Some (ValueOf DefaultUniByteString "\240\209"))
 
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex :: TestTree
 test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =

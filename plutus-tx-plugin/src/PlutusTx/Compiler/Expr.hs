@@ -76,6 +76,7 @@ import Control.Monad.Reader (ask, asks, local)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Char8 qualified as BSC
 import Data.Generics.Uniplate.Data (transform, universeBi)
 import Data.List (elemIndex, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
@@ -109,17 +110,34 @@ String literals are handled specially, see Note [String literals].
 -}
 
 {- Note [unpackFoldrCString#]
-This function is introduced by rewrite rules, and usually eliminated by them in concert with `build`.
+This function is introduced by rewrite rules, and usually eliminated by them
+in concert with `build`.
 
-However, since we often mark things as INLINABLE, we get pre-optimization Core where only the
-first transformation has fired. So we need to do something with the function.
+However, since we often mark things as INLINABLE, we get pre-optimization Core
+where only the first transformation has fired. So we need to do something with
+the function.
 
-- We can't easily turn it into a normal fold expression, since we'd need to make a lambda and
-  we're not in 'CoreM' so we can't make fresh names.
-- We can't easily translate it to a builtin, since we don't support higher-order functions.
+- We can't easily turn it into a normal fold expression, since we'd need to make
+  a lambda and we're not in 'CoreM' so we can't make fresh names.
 
-So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" the original rewrite
-rule.
+- We can't easily translate it to a builtin, since we don't support higher-order
+  functions.
+
+So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo"
+the original rewrite rule.
+
+Moreover, in some cases GHC generates such expressions where the first literal
+character is "un-consed" from its tail, for example:
+
+    GHC.Types.:
+      @GHC.Types.Char
+      (GHC.Types.C# 'f'#)
+      (GHC.Base.build
+        @GHC.Types.Char
+        (\@b -> GHC.CString.unpackFoldrCString# @b "0d1"#)
+      )
+
+Then we re-do the cons after un-doing the original rewrite rule.
 -}
 
 compileLiteral ::
@@ -149,14 +167,44 @@ tryStringLiteralAsBytes coreExpr = case coreExpr of
   GHC.Var isUnpackCStringUtf8 `GHC.App` GHC.Lit (GHC.LitString bytes)
     | GHC.getName isUnpackCStringUtf8 == GHC.unpackCStringUtf8Name ->
         Just bytes
-  -- See Note [unpackFoldrCString#]
-  GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
-    | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName ->
-      tryStringLiteralAsBytes expr
-  -- GHC helpfully generates an empty list for the empty string literal instead of a 'LitString'
+
+  {- See Note [unpackFoldrCString#]
+
+  Example GHC Core expr this pattern matches:
+    GHC.Base.build
+      @GHC.Types.Char
+      (\@b -> GHC.CString.unpackFoldrCString# @b "0d1"#)
+
+  -}
+  GHC.Var build
+    `GHC.App` GHC.Type (GHC.TyConApp charTyCon _kindOrType)
+    `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+      | GHC.getName build == GHC.buildName
+      , GHC.getName unpack == GHC.unpackCStringFoldrName
+      , GHC.getName charTyCon == GHC.charTyConName ->
+        tryStringLiteralAsBytes expr
+  {-
+  Example GHC Core expr this pattern matches:
+    GHC.Types.: @GHC.Types.Char (GHC.Types.C# 'f'#) expr
+  -}
+  ( GHC.Var consId
+    `GHC.App` (GHC.Type (GHC.TyConApp charTyCon _kindOrType))
+    `GHC.App` (GHC.Var cSharp `GHC.App` GHC.Lit (GHC.LitChar c))
+    ) `GHC.App` expr
+    | GHC.getName charTyCon == GHC.charTyConName
+    , Just consDataCon <- GHC.isDataConId_maybe consId
+    , GHC.consDataCon == consDataCon
+    , Just charDataCon <- GHC.isDataConId_maybe cSharp
+    , GHC.charDataCon == charDataCon  ->
+      BSC.cons c <$> tryStringLiteralAsBytes expr
+
+  -- GHC helpfully generates an empty list for the empty string literal instead
+  -- of a 'LitString'
   GHC.Var nil `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc)
-    | nil == GHC.dataConWorkId GHC.nilDataCon, GHC.getName tc == GHC.charTyConName ->
+    | nil == GHC.dataConWorkId GHC.nilDataCon
+    , GHC.getName tc == GHC.charTyConName ->
       Just mempty
+
   -- Chase variable references! GHC likes to lift string constants to variables,
   -- that is not good for us!
   GHC.Var (GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) ->
@@ -201,10 +249,13 @@ If 'ByteString' contains a codepoint that is not in this range, the function wil
 -}
 utf8CodePointsAsBytes :: Compiling uni fun m ann => BS.ByteString -> m BS.ByteString
 utf8CodePointsAsBytes bs =
-  case gracefullyDecodeUtf8Bytes (BS.unpack bs) of
-    Just bytes -> pure $ BS.pack bytes
+  case tryUtf8CodePointsAsBytes bs of
+    Just bytes -> pure bytes
     Nothing -> throwPlain . CompilationError $
       "ByteString literal is expected to contain only codepoints in the range 0 - 255 (0x00 - 0xFF)"
+
+tryUtf8CodePointsAsBytes :: BS.ByteString -> Maybe BS.ByteString
+tryUtf8CodePointsAsBytes = fmap BS.pack . gracefullyDecodeUtf8Bytes . BS.unpack
   where
     {-
     Why not use 'Data.Text.Encoding'?
