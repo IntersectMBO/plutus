@@ -174,7 +174,6 @@ tryStringLiteralAsBytes coreExpr = case coreExpr of
     GHC.Base.build
       @GHC.Types.Char
       (\@b -> GHC.CString.unpackFoldrCString# @b "0d1"#)
-
   -}
   GHC.Var build
     `GHC.App` GHC.Type (GHC.TyConApp charTyCon _kindOrType)
@@ -187,16 +186,16 @@ tryStringLiteralAsBytes coreExpr = case coreExpr of
   Example GHC Core expr this pattern matches:
     GHC.Types.: @GHC.Types.Char (GHC.Types.C# 'f'#) expr
   -}
-  ( GHC.Var consId
-    `GHC.App` (GHC.Type (GHC.TyConApp charTyCon _kindOrType))
+  GHC.Var consId
+    `GHC.App` GHC.Type (GHC.TyConApp charTyCon _kindOrType)
     `GHC.App` (GHC.Var cSharp `GHC.App` GHC.Lit (GHC.LitChar c))
-    ) `GHC.App` expr
-    | GHC.getName charTyCon == GHC.charTyConName
-    , Just consDataCon <- GHC.isDataConId_maybe consId
-    , GHC.consDataCon == consDataCon
-    , Just charDataCon <- GHC.isDataConId_maybe cSharp
-    , GHC.charDataCon == charDataCon  ->
-      BSC.cons c <$> tryStringLiteralAsBytes expr
+    `GHC.App` expr
+      | GHC.getName charTyCon == GHC.charTyConName
+      , Just consDataCon <- GHC.isDataConId_maybe consId
+      , GHC.consDataCon == consDataCon
+      , Just charDataCon <- GHC.isDataConId_maybe cSharp
+      , GHC.charDataCon == charDataCon  ->
+        BSC.cons c <$> tryStringLiteralAsBytes expr
 
   -- GHC helpfully generates an empty list for the empty string literal instead
   -- of a 'LitString'
