@@ -16,11 +16,6 @@ category:        Language
 build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
-flag certify
-  default:     False
-  manual:      True
-  description: Build with the Agda-based compiler certification tool.
-
 source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
@@ -129,9 +124,6 @@ library
     , serialise
     , tagged
     , text
-
--- if flag(certify)
---   build-depends: plutus-metatheory
 
 library plutus-ledger-api-testlib
   import:          lang
