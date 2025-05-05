@@ -99,6 +99,7 @@ library
 
   if flag(certify)
     build-depends: plutus-metatheory
+    cpp-options:   -DCERTIFY
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
