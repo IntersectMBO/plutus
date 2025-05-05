@@ -17,12 +17,12 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. Bool}
             (/\dead -> False)
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. Bool}
                  (/\dead -> True)
                  (/\dead -> traceError {Bool} "PT1")
@@ -42,18 +42,18 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             Bool_match
-              (ifThenElse {Bool} (equalsInteger 0 index) True False)
+              (case Bool (equalsInteger 0 index) [False, True])
               {all dead. Extended a}
               (/\dead -> NegInf {a})
               (/\dead ->
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                   (case Bool (equalsInteger 1 index) [False, True])
                    {all dead. Extended a}
                    (/\dead ->
                       Finite {a} (`$dUnsafeFromData` (headList {data} args)))
                    (/\dead ->
                       Bool_match
-                        (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                        (case Bool (equalsInteger 2 index) [False, True])
                         {all dead. Extended a}
                         (/\dead -> PosInf {a})
                         (/\dead -> traceError {Extended a} "PT1")
@@ -71,7 +71,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. GovernanceActionId}
             (/\dead ->
                GovernanceActionId
@@ -121,12 +121,12 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. Credential}
             (/\dead -> PubKeyCredential (unBData (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. Credential}
                  (/\dead -> ScriptCredential (unBData (headList {data} args)))
                  (/\dead -> traceError {Credential} "PT1")
@@ -145,12 +145,12 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             Bool_match
-              (ifThenElse {Bool} (equalsInteger 1 index) True False)
+              (case Bool (equalsInteger 1 index) [False, True])
               {all dead. Maybe a}
               (/\dead -> Nothing {a})
               (/\dead ->
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. Maybe a}
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -217,7 +217,7 @@
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 y) True False)
+            (case Bool (equalsInteger 0 y) [False, True])
             {all dead. integer}
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
@@ -227,12 +227,12 @@
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 d) True False)
+            (case Bool (equalsInteger 0 d) [False, True])
             {all dead. Rational}
             (/\dead -> traceError {Rational} "PT3")
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (lessThanInteger d 0) True False)
+                 (case Bool (lessThanInteger d 0) [False, True])
                  {all dead. Rational}
                  (/\dead ->
                     unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
@@ -254,7 +254,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. ProposalProcedure}
             (/\dead ->
                let
@@ -271,7 +271,7 @@
                    !args : list data = sndPair {integer} {list data} tup
                  in
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. GovernanceAction}
                    (/\dead ->
                       let
@@ -289,7 +289,7 @@
                            (headList {data} (tailList {data} l))))
                    (/\dead ->
                       Bool_match
-                        (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                        (case Bool (equalsInteger 1 index) [False, True])
                         {all dead. GovernanceAction}
                         (/\dead ->
                            HardForkInitiation
@@ -307,11 +307,7 @@
                                  = sndPair {integer} {list data} tup
                              in
                              Bool_match
-                               (ifThenElse
-                                  {Bool}
-                                  (equalsInteger 0 index)
-                                  True
-                                  False)
+                               (case Bool (equalsInteger 0 index) [False, True])
                                {all dead. ProtocolVersion}
                                (/\dead ->
                                   ProtocolVersion
@@ -324,11 +320,7 @@
                                {all dead. dead}))
                         (/\dead ->
                            Bool_match
-                             (ifThenElse
-                                {Bool}
-                                (equalsInteger 2 index)
-                                True
-                                False)
+                             (case Bool (equalsInteger 2 index) [False, True])
                              {all dead. GovernanceAction}
                              (/\dead ->
                                 TreasuryWithdrawals
@@ -344,11 +336,10 @@
                                      (headList {data} (tailList {data} args))))
                              (/\dead ->
                                 Bool_match
-                                  (ifThenElse
-                                     {Bool}
+                                  (case
+                                     Bool
                                      (equalsInteger 3 index)
-                                     True
-                                     False)
+                                     [False, True])
                                   {all dead. GovernanceAction}
                                   (/\dead ->
                                      NoConfidence
@@ -358,11 +349,10 @@
                                           (headList {data} args)))
                                   (/\dead ->
                                      Bool_match
-                                       (ifThenElse
-                                          {Bool}
+                                       (case
+                                          Bool
                                           (equalsInteger 4 index)
-                                          True
-                                          False)
+                                          [False, True])
                                        {all dead. GovernanceAction}
                                        (/\dead ->
                                           let
@@ -409,11 +399,10 @@
                                                       tup
                                               in
                                               Bool_match
-                                                (ifThenElse
-                                                   {Bool}
+                                                (case
+                                                   Bool
                                                    (equalsInteger 0 index)
-                                                   True
-                                                   False)
+                                                   [False, True])
                                                 {all dead.
                                                    Tuple2 integer integer}
                                                 (/\dead ->
@@ -438,11 +427,10 @@
                                                  unsafeRatio a b)))
                                        (/\dead ->
                                           Bool_match
-                                            (ifThenElse
-                                               {Bool}
+                                            (case
+                                               Bool
                                                (equalsInteger 5 index)
-                                               True
-                                               False)
+                                               [False, True])
                                             {all dead. GovernanceAction}
                                             (/\dead ->
                                                NewConstitution
@@ -471,11 +459,10 @@
                                                          tup
                                                  in
                                                  Bool_match
-                                                   (ifThenElse
-                                                      {Bool}
+                                                   (case
+                                                      Bool
                                                       (equalsInteger 0 index)
-                                                      True
-                                                      False)
+                                                      [False, True])
                                                    {all dead. Maybe bytestring}
                                                    (/\dead ->
                                                       `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
@@ -489,11 +476,10 @@
                                                    {all dead. dead}))
                                             (/\dead ->
                                                Bool_match
-                                                 (ifThenElse
-                                                    {Bool}
+                                                 (case
+                                                    Bool
                                                     (equalsInteger 6 index)
-                                                    True
-                                                    False)
+                                                    [False, True])
                                                  {all dead. GovernanceAction}
                                                  (/\dead -> InfoAction)
                                                  (/\dead ->
@@ -521,7 +507,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. DRep}
             (/\dead ->
                DRep
@@ -529,12 +515,12 @@
                     (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. DRep}
                  (/\dead -> DRepAlwaysAbstain)
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. DRep}
                       (/\dead -> DRepAlwaysNoConfidence)
                       (/\dead -> traceError {DRep} "PT1")
@@ -553,12 +539,12 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. Delegatee}
             (/\dead -> DelegStake (unBData (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. Delegatee}
                  (/\dead ->
                     DelegVote
@@ -566,7 +552,7 @@
                          (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. Delegatee}
                       (/\dead ->
                          DelegStakeVote
@@ -598,7 +584,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. TxCert}
             (/\dead ->
                TxCertRegStaking
@@ -610,7 +596,7 @@
                     (headList {data} (tailList {data} args))))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. TxCert}
                  (/\dead ->
                     TxCertUnRegStaking
@@ -622,7 +608,7 @@
                          (headList {data} (tailList {data} args))))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. TxCert}
                       (/\dead ->
                          TxCertDelegStaking
@@ -632,11 +618,7 @@
                               (headList {data} (tailList {data} args))))
                       (/\dead ->
                          Bool_match
-                           (ifThenElse
-                              {Bool}
-                              (equalsInteger 3 index)
-                              True
-                              False)
+                           (case Bool (equalsInteger 3 index) [False, True])
                            {all dead. TxCert}
                            (/\dead ->
                               let
@@ -650,11 +632,10 @@
                                 (unIData (headList {data} (tailList {data} l))))
                            (/\dead ->
                               Bool_match
-                                (ifThenElse
-                                   {Bool}
+                                (case
+                                   Bool
                                    (equalsInteger 4 index)
-                                   True
-                                   False)
+                                   [False, True])
                                 {all dead. TxCert}
                                 (/\dead ->
                                    TxCertRegDRep
@@ -666,11 +647,10 @@
                                            (tailList {data} args))))
                                 (/\dead ->
                                    Bool_match
-                                     (ifThenElse
-                                        {Bool}
+                                     (case
+                                        Bool
                                         (equalsInteger 5 index)
-                                        True
-                                        False)
+                                        [False, True])
                                      {all dead. TxCert}
                                      (/\dead ->
                                         TxCertUpdateDRep
@@ -678,11 +658,10 @@
                                              (headList {data} args)))
                                      (/\dead ->
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger 6 index)
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. TxCert}
                                           (/\dead ->
                                              TxCertUnRegDRep
@@ -694,11 +673,10 @@
                                                      (tailList {data} args))))
                                           (/\dead ->
                                              Bool_match
-                                               (ifThenElse
-                                                  {Bool}
+                                               (case
+                                                  Bool
                                                   (equalsInteger 7 index)
-                                                  True
-                                                  False)
+                                                  [False, True])
                                                {all dead. TxCert}
                                                (/\dead ->
                                                   TxCertPoolRegister
@@ -712,11 +690,10 @@
                                                              args))))
                                                (/\dead ->
                                                   Bool_match
-                                                    (ifThenElse
-                                                       {Bool}
+                                                    (case
+                                                       Bool
                                                        (equalsInteger 8 index)
-                                                       True
-                                                       False)
+                                                       [False, True])
                                                     {all dead. TxCert}
                                                     (/\dead ->
                                                        TxCertPoolRetire
@@ -732,13 +709,12 @@
                                                                   args))))
                                                     (/\dead ->
                                                        Bool_match
-                                                         (ifThenElse
-                                                            {Bool}
+                                                         (case
+                                                            Bool
                                                             (equalsInteger
                                                                9
                                                                index)
-                                                            True
-                                                            False)
+                                                            [False, True])
                                                          {all dead. TxCert}
                                                          (/\dead ->
                                                             TxCertAuthHotCommittee
@@ -754,13 +730,12 @@
                                                                        args))))
                                                          (/\dead ->
                                                             Bool_match
-                                                              (ifThenElse
-                                                                 {Bool}
+                                                              (case
+                                                                 Bool
                                                                  (equalsInteger
                                                                     10
                                                                     index)
-                                                                 True
-                                                                 False)
+                                                                 [False, True])
                                                               {all dead. TxCert}
                                                               (/\dead ->
                                                                  TxCertResignColdCommittee
@@ -795,7 +770,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. Voter}
             (/\dead ->
                CommitteeVoter
@@ -803,7 +778,7 @@
                     (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. Voter}
                  (/\dead ->
                     DRepVoter
@@ -811,7 +786,7 @@
                          (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. Voter}
                       (/\dead ->
                          StakePoolVoter (unBData (headList {data} args)))
@@ -829,7 +804,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. TxOutRef}
             (/\dead ->
                TxOutRef
@@ -864,7 +839,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. TxOut}
             (/\dead ->
                let
@@ -879,7 +854,7 @@
                    !args : list data = sndPair {integer} {list data} tup
                  in
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. Address}
                    (/\dead ->
                       Address
@@ -896,11 +871,10 @@
                                   = sndPair {integer} {list data} tup
                               in
                               Bool_match
-                                (ifThenElse
-                                   {Bool}
+                                (case
+                                   Bool
                                    (equalsInteger 0 index)
-                                   True
-                                   False)
+                                   [False, True])
                                 {all dead. StakingCredential}
                                 (/\dead ->
                                    StakingHash
@@ -908,11 +882,10 @@
                                         (headList {data} args)))
                                 (/\dead ->
                                    Bool_match
-                                     (ifThenElse
-                                        {Bool}
+                                     (case
+                                        Bool
                                         (equalsInteger 1 index)
-                                        True
-                                        False)
+                                        [False, True])
                                      {all dead. StakingCredential}
                                      (/\dead ->
                                         let
@@ -949,22 +922,18 @@
                    !args : list data = sndPair {integer} {list data} tup
                  in
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. OutputDatum}
                    (/\dead -> NoOutputDatum)
                    (/\dead ->
                       Bool_match
-                        (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                        (case Bool (equalsInteger 1 index) [False, True])
                         {all dead. OutputDatum}
                         (/\dead ->
                            OutputDatumHash (unBData (headList {data} args)))
                         (/\dead ->
                            Bool_match
-                             (ifThenElse
-                                {Bool}
-                                (equalsInteger 2 index)
-                                True
-                                False)
+                             (case Bool (equalsInteger 2 index) [False, True])
                              {all dead. OutputDatum}
                              (/\dead -> OutputDatum (headList {data} args))
                              (/\dead -> traceError {OutputDatum} "PT1")
@@ -987,7 +956,7 @@
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. TxInInfo}
             (/\dead ->
                TxInInfo
@@ -1057,7 +1026,7 @@
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (ifThenElse {Bool} (equalsInteger 0 index) True False)
+          (case Bool (equalsInteger 0 index) [False, True])
           {all dead. ScriptContext}
           (/\dead ->
              let
@@ -1071,7 +1040,7 @@
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 (case Bool (equalsInteger 0 index) [False, True])
                  {all dead. TxInfo}
                  (/\dead ->
                     let
@@ -1191,7 +1160,7 @@
                         !args : list data = sndPair {integer} {list data} tup
                       in
                       Bool_match
-                        (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                        (case Bool (equalsInteger 0 index) [False, True])
                         {all dead. Interval integer}
                         (/\dead ->
                            Interval
@@ -1205,11 +1174,7 @@
                                  = sndPair {integer} {list data} tup
                              in
                              Bool_match
-                               (ifThenElse
-                                  {Bool}
-                                  (equalsInteger 0 index)
-                                  True
-                                  False)
+                               (case Bool (equalsInteger 0 index) [False, True])
                                {all dead. LowerBound integer}
                                (/\dead ->
                                   LowerBound
@@ -1234,11 +1199,7 @@
                                  = sndPair {integer} {list data} tup
                              in
                              Bool_match
-                               (ifThenElse
-                                  {Bool}
-                                  (equalsInteger 0 index)
-                                  True
-                                  False)
+                               (case Bool (equalsInteger 0 index) [False, True])
                                {all dead. UpperBound integer}
                                (/\dead ->
                                   UpperBound
@@ -1271,21 +1232,16 @@
                                 = sndPair {integer} {list data} tup
                             in
                             Bool_match
-                              (ifThenElse
-                                 {Bool}
-                                 (equalsInteger 0 index)
-                                 True
-                                 False)
+                              (case Bool (equalsInteger 0 index) [False, True])
                               {all dead. ScriptPurpose}
                               (/\dead ->
                                  Minting (unBData (headList {data} args)))
                               (/\dead ->
                                  Bool_match
-                                   (ifThenElse
-                                      {Bool}
+                                   (case
+                                      Bool
                                       (equalsInteger 1 index)
-                                      True
-                                      False)
+                                      [False, True])
                                    {all dead. ScriptPurpose}
                                    (/\dead ->
                                       Spending
@@ -1293,11 +1249,10 @@
                                            (headList {data} args)))
                                    (/\dead ->
                                       Bool_match
-                                        (ifThenElse
-                                           {Bool}
+                                        (case
+                                           Bool
                                            (equalsInteger 2 index)
-                                           True
-                                           False)
+                                           [False, True])
                                         {all dead. ScriptPurpose}
                                         (/\dead ->
                                            Rewarding
@@ -1305,11 +1260,10 @@
                                                 (headList {data} args)))
                                         (/\dead ->
                                            Bool_match
-                                             (ifThenElse
-                                                {Bool}
+                                             (case
+                                                Bool
                                                 (equalsInteger 3 index)
-                                                True
-                                                False)
+                                                [False, True])
                                              {all dead. ScriptPurpose}
                                              (/\dead ->
                                                 Certifying
@@ -1323,11 +1277,10 @@
                                                            args))))
                                              (/\dead ->
                                                 Bool_match
-                                                  (ifThenElse
-                                                     {Bool}
+                                                  (case
+                                                     Bool
                                                      (equalsInteger 4 index)
-                                                     True
-                                                     False)
+                                                     [False, True])
                                                   {all dead. ScriptPurpose}
                                                   (/\dead ->
                                                      Voting
@@ -1337,13 +1290,12 @@
                                                              args)))
                                                   (/\dead ->
                                                      Bool_match
-                                                       (ifThenElse
-                                                          {Bool}
+                                                       (case
+                                                          Bool
                                                           (equalsInteger
                                                              5
                                                              index)
-                                                          True
-                                                          False)
+                                                          [False, True])
                                                        {all dead. ScriptPurpose}
                                                        (/\dead ->
                                                           Proposing
@@ -1394,29 +1346,26 @@
                                    = sndPair {integer} {list data} tup
                                in
                                Bool_match
-                                 (ifThenElse
-                                    {Bool}
+                                 (case
+                                    Bool
                                     (equalsInteger 0 index)
-                                    True
-                                    False)
+                                    [False, True])
                                  {all dead. Vote}
                                  (/\dead -> VoteNo)
                                  (/\dead ->
                                     Bool_match
-                                      (ifThenElse
-                                         {Bool}
+                                      (case
+                                         Bool
                                          (equalsInteger 1 index)
-                                         True
-                                         False)
+                                         [False, True])
                                       {all dead. Vote}
                                       (/\dead -> VoteYes)
                                       (/\dead ->
                                          Bool_match
-                                           (ifThenElse
-                                              {Bool}
+                                           (case
+                                              Bool
                                               (equalsInteger 2 index)
-                                              True
-                                              False)
+                                              [False, True])
                                            {all dead. Vote}
                                            (/\dead -> Abstain)
                                            (/\dead -> traceError {Vote} "PT1")
@@ -1461,12 +1410,12 @@
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 (case Bool (equalsInteger 0 index) [False, True])
                  {all dead. ScriptInfo}
                  (/\dead -> MintingScript (unBData (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                      (case Bool (equalsInteger 1 index) [False, True])
                       {all dead. ScriptInfo}
                       (/\dead ->
                          SpendingScript
@@ -1478,11 +1427,7 @@
                               (headList {data} (tailList {data} args))))
                       (/\dead ->
                          Bool_match
-                           (ifThenElse
-                              {Bool}
-                              (equalsInteger 2 index)
-                              True
-                              False)
+                           (case Bool (equalsInteger 2 index) [False, True])
                            {all dead. ScriptInfo}
                            (/\dead ->
                               RewardingScript
@@ -1490,11 +1435,10 @@
                                    (headList {data} args)))
                            (/\dead ->
                               Bool_match
-                                (ifThenElse
-                                   {Bool}
+                                (case
+                                   Bool
                                    (equalsInteger 3 index)
-                                   True
-                                   False)
+                                   [False, True])
                                 {all dead. ScriptInfo}
                                 (/\dead ->
                                    CertifyingScript
@@ -1505,11 +1449,10 @@
                                            (tailList {data} args))))
                                 (/\dead ->
                                    Bool_match
-                                     (ifThenElse
-                                        {Bool}
+                                     (case
+                                        Bool
                                         (equalsInteger 4 index)
-                                        True
-                                        False)
+                                        [False, True])
                                      {all dead. ScriptInfo}
                                      (/\dead ->
                                         VotingScript
@@ -1517,11 +1460,10 @@
                                              (headList {data} args)))
                                      (/\dead ->
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger 5 index)
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. ScriptInfo}
                                           (/\dead ->
                                              ProposingScript

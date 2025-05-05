@@ -398,6 +398,10 @@ compileMarkedExpr locStr codeTy origE = do
             ccOpts = CompileOptions {
                 coProfile=_posProfile opts
                 ,coCoverage=coverage
+                ,coDatatypeStyle =
+                    if _posPlcTargetVersion opts < PLC.plcVersion110
+                        then PIR.ScottEncoding
+                        else PIR.SumsOfProducts
                 ,coRemoveTrace=_posRemoveTrace opts
                 ,coInlineFix=_posInlineFix opts},
             ccFlags = flags,
@@ -456,6 +460,7 @@ runCompiler ::
 runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+    datatypeStyle <- asks $ coDatatypeStyle . ccOpts
     let plcVersion = opts ^. posPlcTargetVersion
 
     let hints = UPLC.InlineHints $ \ann _ -> case ann of
@@ -514,9 +519,7 @@ runCompiler moduleName opts expr = do
                  -- 1. The only other choice you can make is new version + Scott encoding, and
                  -- there's really no reason to pick that
                  -- 2. This is consistent with what we do in Lift
-                 & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle)
-                    (if plcVersion < PLC.plcVersion110
-                        then PIR.ScottEncoding else PIR.SumsOfProducts)
+                 & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) datatypeStyle
                  -- TODO: ensure the same as the one used in the plugin
                  & set PIR.ccBuiltinsInfo def
                  & set PIR.ccBuiltinCostModel def

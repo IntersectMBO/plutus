@@ -37,12 +37,12 @@ in
     (elem
        {integer}
        (\(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False)
+          case Bool (equalsInteger x y) [False, True])
        8
        xs)
     (elem
        {integer}
        (\(x : integer) (y : integer) ->
-          ifThenElse {Bool} (equalsInteger x y) True False)
+          case Bool (equalsInteger x y) [False, True])
        12
        xs)
