@@ -166,6 +166,7 @@ library plutus-tx-testlib
     Hedgehog.Laws.Lattice
     Hedgehog.Laws.Ord
     PlutusTx.Test
+    PlutusTx.Test.Orphans
 
   build-depends:
     , base                             >=4.9   && <5
