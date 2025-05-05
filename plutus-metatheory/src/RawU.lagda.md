@@ -164,7 +164,7 @@ data Untyped : Set where
   UConstr : ℕ → List Untyped → Untyped
   UCase : Untyped → List Untyped → Untyped
 
-{-# FOREIGN GHC import Untyped #-}
+{-# FOREIGN GHC import FFI.Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
 ```
 

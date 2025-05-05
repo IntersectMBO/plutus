@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-module Opts where
+module FFI.Opts where
 
 import Data.Semigroup ((<>))
 import Data.Text qualified as T

@@ -62,20 +62,6 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-library lib
-  import:          lang, os-support, ghc-version-support
-  hs-source-dirs:  src
-  exposed-modules:
-    AgdaTrace
-    AgdaUnparse
-
-  build-depends:
-    , base               >=4.9   && <5
-    , bytestring
-    , plutus-core        ^>=1.45
-    , plutus-metatheory
-    , text
-
 executable pir
   import:         lang
   main-is:        pir/Main.hs
@@ -124,7 +110,6 @@ executable uplc
     , optparse-applicative
     , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib
-    , plutus-executables:lib
     , plutus-metatheory
     , prettyprinter
     , serialise
@@ -171,24 +156,14 @@ test-suite test-certifier
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
-  other-modules:
-    Test.Certifier.AST
-    Test.Certifier.Executable
-    Test.Certifier.Optimizer
-
+  other-modules:      Test.Certifier.Executable
   build-depends:
     , base
     , filepath
-    , plutus-core
     , plutus-core:plutus-core-testlib
-    , plutus-core:untyped-plutus-core-testlib
-    , plutus-executables:lib
-    , plutus-metatheory
     , process
     , tasty
     , tasty-hunit
     , text
 
-  build-tool-depends:
-    , plutus-executables:plc
-    , plutus-executables:uplc
+  build-tool-depends: plutus-executables:uplc
