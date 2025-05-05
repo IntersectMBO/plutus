@@ -18,8 +18,7 @@ module PlutusTx.Test (
   goldenSize,
 
   -- * Evaluation for testing
-  runPlcCek,
-  runPlcCekTrace,
+  module Run.Uplc,
 
   -- * Golden evaluation testing
   goldenEvalCek,
@@ -33,15 +32,12 @@ module PlutusTx.Test (
 
 import Prelude
 
-import Control.Exception (SomeException (..))
-import Control.Lens (Field1 (_1), view, (^.))
-import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
-import Data.Either.Extras (fromRightM)
+import Control.Lens (Field1 (_1), view)
+import Control.Monad.Except (runExceptT)
 import Data.Text (Text)
 import Flat (Flat)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty (Pretty, PrettyConfigClassic, PrettyConfigName, PrettyUni, pretty,
                           prettyBy, prettyClassicSimple, prettyPlcClassicSimple, prettyReadable,
                           prettyReadableSimple, render)
@@ -50,56 +46,12 @@ import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenU
                         runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
-import PlutusPrelude (unsafeFromRight, (.*))
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
+import PlutusTx.Test.Run.Uplc as Run.Uplc (runPlcCek, runPlcCekTrace)
 import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
---------------------------------------------------------------------------------
--- Evaluation for testing ------------------------------------------------------
-
-runPlcCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
-  -> ExceptT
-       SomeException
-       IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCek values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-  fromRightM (throwError . SomeException) $
-    UPLC.evaluateCekNoEmit
-      PLC.defaultCekParametersForTesting
-      (p ^. UPLC.progTerm)
-
-runPlcCekTrace
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
-  -> ExceptT
-       SomeException
-       IO
-       ( [Text]
-       , UPLC.CekExTally PLC.DefaultFun
-       , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-       )
-runPlcCekTrace values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-  let (result, UPLC.TallyingSt tally _, logOut) =
-        UPLC.runCek
-          PLC.defaultCekParametersForTesting
-          UPLC.tallying
-          UPLC.logEmitter
-          (p ^. UPLC.progTerm)
-  res <- fromRightM (throwError . SomeException) result
-  pure (logOut, tally, res)
-
---------------------------------------------------------------------------------
--- Golden testing utils --------------------------------------------------------
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
