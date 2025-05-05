@@ -444,6 +444,7 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
+    Evaluation.Builtins.Integer.ExpModInteger
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
     Evaluation.Debug

@@ -1,0 +1,5 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: expModInteger 0 -1 7
+Logs were:
+expMod: 0 is not invertible modulo 7
