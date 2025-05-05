@@ -1,5 +1,5 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE KindSignatures  #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Main (main) where
@@ -11,12 +11,12 @@ import PlutusTx.Code (CompiledCode, sizePlc)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
-import PlutusTx.TH (compile)
 import PlutusTx.Test
+import PlutusTx.TH (compile)
+import Prelude
 import Test.Tasty (TestName, TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNested, testNested)
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
-import Prelude
 
 main :: IO ()
 main =

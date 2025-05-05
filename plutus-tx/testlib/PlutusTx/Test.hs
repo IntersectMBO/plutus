@@ -2,7 +2,6 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -19,8 +18,7 @@ module PlutusTx.Test (
   goldenSize,
 
   -- * Evaluation for testing
-  runPlcCek,
-  runPlcCekTrace,
+  module Run.Uplc,
 
   -- * Golden evaluation testing
   goldenEvalCek,
@@ -34,15 +32,11 @@ module PlutusTx.Test (
 
 import Prelude
 
-import Control.Exception (SomeException (..))
-import Control.Lens (Field1 (_1), view, (^.))
-import Control.Monad.Except (ExceptT, MonadError (throwError))
-import Data.Either.Extras (fromRightM)
+import Control.Lens (Field1 (_1), view)
 import Data.Text (Text)
 import Flat (Flat)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty (Pretty, PrettyConfigClassic, PrettyConfigName, PrettyUni, pretty,
                           prettyBy, prettyClassicSimple, prettyPlcClassicSimple, prettyReadable,
                           prettyReadableSimple, render)
@@ -53,70 +47,10 @@ import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
+import PlutusTx.Test.Run.Uplc as Run.Uplc
 import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
---------------------------------------------------------------------------------
--- Evaluation for testing ------------------------------------------------------
-
-runPlcCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => a
-  -> ExceptT
-       SomeException
-       IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCek val = do
-  term <- toUPlc val
-  fromRightM (throwError . SomeException) $
-    UPLC.evaluateCekNoEmit
-      PLC.defaultCekParametersForTesting
-      (term ^. UPLC.progTerm)
-
-runPlcCekBudget
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => a
-  -> ExceptT
-       SomeException
-       IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
-runPlcCekBudget val = do
-  term <- toUPlc val
-  fromRightM (throwError . SomeException) $ do
-    let
-      (evalRes, UPLC.CountingSt budget) =
-        UPLC.runCekNoEmit
-          PLC.defaultCekParametersForTesting
-          UPLC.counting
-          (term ^. UPLC.progTerm)
-
-    (,budget) <$> evalRes
-
-runPlcCekTrace
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => a
-  -> ExceptT
-       SomeException
-       IO
-       ( [Text]
-       , UPLC.CekExTally PLC.DefaultFun
-       , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-       )
-runPlcCekTrace value = do
-  term <- toUPlc value
-  let (result, UPLC.TallyingSt tally _, logOut) =
-        UPLC.runCek
-          PLC.defaultCekParametersForTesting
-          UPLC.tallying
-          UPLC.logEmitter
-          (term ^. UPLC.progTerm)
-  res <- fromRightM (throwError . SomeException) result
-  pure (logOut, tally, res)
-
---------------------------------------------------------------------------------
--- Evaluation for testing: golden files ----------------------------------------
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
@@ -198,8 +132,7 @@ goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
 goldenEvalCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => TestName -> a -> TestNested
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
 goldenEvalCek name term =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple <$> rethrow (runPlcCek term)
