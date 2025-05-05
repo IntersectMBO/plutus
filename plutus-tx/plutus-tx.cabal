@@ -166,6 +166,7 @@ library plutus-tx-testlib
     Hedgehog.Laws.Lattice
     Hedgehog.Laws.Ord
     PlutusTx.Test
+    PlutusTx.Test.Golden
     PlutusTx.Test.Orphans
     PlutusTx.Test.Run.Uplc
 
