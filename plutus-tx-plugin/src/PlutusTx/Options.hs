@@ -38,6 +38,11 @@ import Prettyprinter
 import Text.Read (readMaybe)
 import Type.Reflection
 
+#ifdef CERTIFY
+import Control.Applicative (many, optional, (<|>))
+import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
+#endif
+
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion               :: PLC.Version
   , _posDoTypecheck                    :: Bool
@@ -302,7 +307,11 @@ pluginOptions =
             <> "This certificate provides evidence that the compiler optimizations have "
             <> "preserved the functional behavior of the original program. "
             <> "Currently, this is only supported for the UPLC compilation pipeline."
-       in (k, PluginOption typeRep (readOption k) posCertify desc [])
+          p = optional $ do
+            firstC <- upperChar
+            rest <- many (alphaNumChar <|> char '_' <|> char '\\')
+            pure (firstC : rest)
+       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
 #endif
     ]
 

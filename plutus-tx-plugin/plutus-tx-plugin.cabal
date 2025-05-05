@@ -98,7 +98,10 @@ library
     , uniplate
 
   if flag(certify)
-    build-depends: plutus-metatheory
+    build-depends:
+      , megaparsec
+      , plutus-metatheory
+
     cpp-options:   -DCERTIFY
 
 executable gen-plugin-opts-doc
