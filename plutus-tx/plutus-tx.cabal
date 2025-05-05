@@ -167,6 +167,7 @@ library plutus-tx-testlib
     Hedgehog.Laws.Ord
     PlutusTx.Test
     PlutusTx.Test.Orphans
+    PlutusTx.Test.Run.Uplc
 
   build-depends:
     , base                             >=4.9   && <5
