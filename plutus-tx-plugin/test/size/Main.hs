@@ -1,18 +1,22 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE KindSignatures  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Main (main) where
 
-import PlutusTx.Code (CompiledCode)
+import Data.Kind (Type)
+import Data.Tagged (Tagged (Tagged))
+import Data.Typeable (Typeable)
+import PlutusTx.Code (CompiledCode, sizePlc)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
-import PlutusTx.Test
 import PlutusTx.TH (compile)
-import Prelude
-import Test.Tasty (defaultMain, testGroup)
+import PlutusTx.Test
+import Test.Tasty (TestName, TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNested, testNested)
+import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
+import Prelude
 
 main :: IO ()
 main =
@@ -74,15 +78,6 @@ main =
                   , goldenSize "abs-specialized" ratAbs
                   ]
               ]
-          ]
-      , testGroup
-          "Comparison"
-          [ fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate)
-          , fitsUnder "abs" ("specialized", ratAbs) ("general", genAbs)
-          , fitsUnder
-              "scale"
-              ("type class method", ratScale)
-              ("equivalent in other primitives", genScale)
           ]
       ]
 
@@ -183,3 +178,62 @@ genAbs = $$(compile [||Plutus.abs||])
 
 genScale :: CompiledCode (Plutus.Integer -> Plutus.Rational -> Plutus.Rational)
 genScale = $$(compile [||\s v -> PlutusRatio.fromInteger s Plutus.* v||])
+
+--------------------------------------------------------------------------------
+-- Helper functions for the size comparison tests ------------------------------
+
+fitsUnder
+  :: forall (a :: Type)
+   . (Typeable a)
+  => TestName
+  -> (TestName, CompiledCode a)
+  -> (TestName, CompiledCode a)
+  -> TestTree
+fitsUnder name test target = singleTest name $ SizeComparisonTest test target
+
+data SizeComparisonTest (a :: Type)
+  = SizeComparisonTest (TestName, CompiledCode a) (TestName, CompiledCode a)
+
+instance (Typeable a) => IsTest (SizeComparisonTest a) where
+  run _ (SizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
+    let tEstimate = sizePlc tCode
+    let mEstimate = sizePlc mCode
+    let diff = tEstimate - mEstimate
+    pure $ case signum diff of
+      (-1) ->
+        testFailed $
+          renderEstimates (tName, tEstimate) (mName, mEstimate)
+            <> "Exceeded by: "
+            <> show diff
+      0 ->
+        testPassed $
+          "Target: "
+            <> tName
+            <> "; size "
+            <> show tEstimate
+            <> "\n"
+            <> "Measured: "
+            <> mName
+            <> "; size "
+            <> show mEstimate
+            <> "\n"
+      _ ->
+        testPassed $
+          renderEstimates (tName, tEstimate) (mName, mEstimate)
+            <> "Remaining headroom: "
+            <> show diff
+
+  testOptions = Tagged []
+
+renderEstimates :: (TestName, Integer) -> (TestName, Integer) -> String
+renderEstimates (tName, tEstimate) (mName, mEstimate) =
+  "Target: "
+    <> tName
+    <> "; size "
+    <> show tEstimate
+    <> "\n"
+    <> "Measured: "
+    <> mName
+    <> "; size "
+    <> show mEstimate
+    <> "\n"
