@@ -563,8 +563,8 @@ runCompiler moduleName opts expr = do
 
 #ifdef CERTIFY
     let optCertify = opts ^. posCertify
-    (simplTrace, uplcP) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-    runCertifier optCertify simplTrace
+    (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+    liftIO $ runCertifier optCertify simplTrace
 #else
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
 #endif

@@ -75,7 +75,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
 #ifdef CERTIFY
-  , _posCertify                        :: Maybe Text
+  , _posCertify                        :: Maybe String
 #endif
   }
 
