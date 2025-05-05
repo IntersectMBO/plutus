@@ -1,13 +1,10 @@
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusTx.Test (
   -- * Size tests
@@ -36,7 +33,7 @@ module PlutusTx.Test (
 import Prelude
 
 import Control.Exception (SomeException (..))
-import Control.Lens (Field1 (_1))
+import Control.Lens (Field1 (_1), view, (^.))
 import Control.Monad.Except (ExceptT, MonadError (throwError))
 import Data.Either.Extras (fromRightM)
 import Data.Kind (Type)
@@ -44,22 +41,18 @@ import Data.Tagged (Tagged (Tagged))
 import Data.Text (Text)
 import Flat (Flat)
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Pretty (PrettyConfigClassic, PrettyConfigName, PrettyConst, PrettyUni,
-                          prettyClassicSimple, prettyPlcClassicSimple, prettyReadable,
-                          prettyReadableSimple)
-import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Test (TestNested, ToTPlc (..), ToUPlc (..), catchAll, goldenSize, goldenTPlc,
-                        goldenUPlc, goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM,
-                        ppCatch, rethrow)
-import PlutusIR.Analysis.Builtins qualified as PIR
+import PlutusCore.Pretty (Pretty, PrettyConfigClassic, PrettyConfigName, PrettyUni, pretty,
+                          prettyBy, prettyClassicSimple, prettyPlcClassicSimple, prettyReadable,
+                          prettyReadableSimple, render)
+import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenUPlc,
+                        goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
-import PlutusIR.Transform.RewriteRules as PIR
-import PlutusPrelude
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
+import PlutusPrelude (Typeable)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, sizePlc)
+import PlutusTx.Test.Orphans ()
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Extras ()
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
@@ -182,10 +175,14 @@ goldenPirBy
 goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
--- Evaluation testing
+--------------------------------------------------------------------------------
+-- Evaluation for testing: golden files ----------------------------------------
 
--- TODO: rationalize with the functions exported from PlcTestUtils
-goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
+goldenEvalCek
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => TestName
+  -> a
+  -> TestNested
 goldenEvalCek name term =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple <$> rethrow (runPlcCek term)
@@ -193,7 +190,7 @@ goldenEvalCek name term =
 goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
 goldenEvalCekLog name term =
   nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace term)
+    prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace term)
 
 goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode =
@@ -211,36 +208,8 @@ goldenEvalCekCatchBudget name compiledCode =
             <> prettyPlcClassicSimple termRes
     pure (render @Text contents)
 
--- Helpers
-
-instance
-  (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-  => ToUPlc (CompiledCodeIn uni fun a) uni fun
-  where
-  toUPlc v = do
-    v' <- catchAll $ getPlcNoAnn v
-    toUPlc v'
-
-instance
-  ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-  , PLC.GEq uni
-  , PLC.Typecheckable uni fun
-  , PLC.Closed uni
-  , uni `PLC.Everywhere` PrettyConst
-  , Pretty fun
-  , uni `PLC.Everywhere` Flat
-  , Flat fun
-  , Default (PLC.CostingPart uni fun)
-  , Default (PIR.BuiltinsInfo uni fun)
-  , Default (PIR.RewriteRules uni fun)
-  )
-  => ToTPlc (CompiledCodeIn uni fun a) uni fun
-  where
-  toTPlc v = do
-    mayV' <- catchAll $ getPir v
-    case mayV' of
-      Nothing -> fail "No PIR available"
-      Just v' -> toTPlc v'
+--------------------------------------------------------------------------------
+-- Evaluation for testing ------------------------------------------------------
 
 runPlcCek
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
