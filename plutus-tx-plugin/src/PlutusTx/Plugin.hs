@@ -86,6 +86,7 @@ import System.IO.Unsafe (unsafePerformIO)
 
 #ifdef CERTIFY
 import Certifier (runCertifier)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 #endif
 
 data PluginCtx = PluginCtx
@@ -564,7 +565,11 @@ runCompiler moduleName opts expr = do
 #ifdef CERTIFY
     let optCertify = opts ^. posCertify
     (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-    liftIO $ runCertifier optCertify simplTrace
+    liftIO $ do
+        posix <- getPOSIXTime
+        let ts = round posix :: Integer
+            optCertifyWithTs = (<> show ts) <$> optCertify
+        runCertifier optCertifyWithTs simplTrace
 #else
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
 #endif

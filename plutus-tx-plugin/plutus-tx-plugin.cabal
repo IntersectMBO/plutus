@@ -101,6 +101,7 @@ library
     build-depends:
       , megaparsec
       , plutus-metatheory
+      , time
 
     cpp-options:   -DCERTIFY
 
