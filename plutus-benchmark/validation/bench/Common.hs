@@ -1,7 +1,13 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+
 module Common (
-    benchWith
+      benchWith
+    , mkBMs
+    , prepareFilePaths
+    , getScriptDirectory
+    , QuickFlag(..)
     , unsafeUnflat
     , mkEvalCtx
     , benchTermCek
@@ -9,16 +15,16 @@ module Common (
     , Term
     ) where
 
-import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
+import PlutusBenchmark.Common (BenchmarkClass (..), benchTermCek, getConfig, getDataDir, mkEvalCtx)
 import PlutusBenchmark.NaturalSort
 
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
-import Criterion.Main
+import Criterion.Main (runMode)
 import Criterion.Main.Options (Mode, parseWith)
-import Criterion.Types (Config (..))
+import Criterion.Types (Benchmarkable, Config (..))
 import Options.Applicative
 
 import Data.ByteString qualified as BS
@@ -26,6 +32,7 @@ import Data.List (isPrefixOf)
 import Flat
 import System.Directory (listDirectory)
 import System.FilePath
+import Test.Tasty.Options (IsOption (..), safeRead)
 
 {- | Benchmarks based on validations obtained using
 plutus-use-cases:plutus-use-cases-scripts, which runs various contracts on the
@@ -83,7 +90,6 @@ unsafeUnflat file contents =
         Right (UPLC.UnrestrictedProgram prog) -> prog
 
 ----------------------- Main -----------------------
-
 -- Extend the options to include `--quick`: see eg https://github.com/haskell/criterion/pull/206
 data BenchOptions = BenchOptions
   { quick        :: Bool
@@ -102,28 +108,40 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
+-- Ingredient for quick option
+newtype QuickFlag = MkQuickFlag Bool
+
+instance IsOption QuickFlag where
+  defaultValue = MkQuickFlag False
+  parseValue = fmap MkQuickFlag . safeRead
+  optionName = pure "quick"
+  optionHelp = pure "Run only a small subset of the benchmarks"
+
+-- Make benchmarks for the given files in the directory
+mkBMs :: forall a. BenchmarkClass a => (FilePath -> BS.ByteString -> a) -> FilePath -> [FilePath] -> [Benchmark a]
+mkBMs act dir files = map mkScriptBM files
+  where
+    mkScriptBM :: FilePath -> Benchmark a
+    mkScriptBM file =
+        env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
+            bench (dropExtension file) $ act file scriptBS
+
+prepareFilePaths :: Bool -> [FilePath] -> [FilePath]
+prepareFilePaths isQuick files = if isQuick
+  then files1 `withAnyPrefixFrom` quickPrefixes
+  else files1
+  where
+    -- naturalSort puts the filenames in a better order than Data.List.Sort
+    files1 = naturalSort $ filter (isExtensionOf ".flat") files -- Just in case there's anything else in the directory.
+
 benchWith :: (FilePath -> BS.ByteString -> Benchmarkable) -> IO ()
 benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
     options <- execParser $ parserInfo cfg
     scriptDirectory <- getScriptDirectory
     files0 <- listDirectory scriptDirectory  -- Just the filenames, not the full paths
-    let -- naturalSort puts the filenames in a better order than Data.List.Sort
-        files1 = naturalSort $ filter (isExtensionOf ".flat") files0  -- Just in case there's anything else in the directory.
-        files = if quick options
-                then files1 `withAnyPrefixFrom` quickPrefixes
-                else files1
-    runMode (otherOptions options) $ mkBMs scriptDirectory files
- where
-
-    -- Make benchmarks for the given files in the directory
-    mkBMs :: FilePath -> [FilePath] -> [Benchmark]
-    mkBMs dir files = map (mkScriptBM dir) files
-
-    mkScriptBM :: FilePath -> FilePath -> Benchmark
-    mkScriptBM dir file =
-        env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
-            bench (dropExtension file) $ act file scriptBS
+    let files = prepareFilePaths (quick options) files0
+    runMode (otherOptions options) $ mkBMs act scriptDirectory files
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
