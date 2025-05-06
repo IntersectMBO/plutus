@@ -24,7 +24,7 @@ let
           }];
           ghc96-certify.modules = [{
             packages.plutus-tx-plugin.configureFlags = [ "-f certify" ];
-            plutus-tx-plugin.components.library.build-tools = [ agda-tools.agda-with-stdlib-and-metatheory ];
+            packages.plutus-tx-plugin.components.library.build-tools = [ agda-tools.agda-with-stdlib-and-metatheory ];
           }];
           ghc98.compiler-nix-name = "ghc98";
           ghc910.compiler-nix-name = "ghc910";
