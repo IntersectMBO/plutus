@@ -8,7 +8,6 @@ module PlutusTx.Test.Util.Compiled (
   toAnonDeBruijnProg,
   toNamedDeBruijnTerm,
   compiledCodeToTerm,
-  haskellValueToTerm,
   cekResultMatchesHaskellValue,
 )
 where
@@ -49,12 +48,6 @@ We use this a lot.
 compiledCodeToTerm :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
 compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in body
 
-{-| Lift a Haskell value to a PLC term.  The constraints get a bit out of control
-   if we try to do this over an arbitrary universe.
--}
-haskellValueToTerm :: (Tx.Lift DefaultUni a) => a -> Term
-haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
-
 {-| Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled
    from).  We evaluate the lifted Haskell value as well, because lifting may
@@ -69,7 +62,9 @@ cekResultMatchesHaskellValue
   -> hask
   -> k
 cekResultMatchesHaskellValue actual matches expected =
-  unsafeRunTermCek actual `matches` unsafeRunTermCek (haskellValueToTerm expected)
+  matches
+    (unsafeRunTermCek actual)
+    (unsafeRunTermCek (compiledCodeToTerm (Tx.liftCodeDef expected)))
  where
   unsafeRunTermCek :: Term -> EvaluationResult Term
   unsafeRunTermCek =

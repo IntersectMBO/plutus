@@ -10,7 +10,6 @@ module PlutusBenchmark.Common
     , toAnonDeBruijnTerm
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
-    , haskellValueToTerm
     , benchProgramCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
@@ -39,7 +38,8 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import PlutusTx.Test.Util.Compiled
+import PlutusTx.Test.Util.Compiled (Program, Term, cekResultMatchesHaskellValue, compiledCodeToTerm,
+                                    toAnonDeBruijnProg, toAnonDeBruijnTerm, toNamedDeBruijnTerm)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
