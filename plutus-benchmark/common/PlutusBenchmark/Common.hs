@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
@@ -14,7 +13,6 @@ module PlutusBenchmark.Common
     , haskellValueToTerm
     , benchProgramCek
     , unsafeRunTermCek
-    , runTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , mkMostRecentEvalCtx
