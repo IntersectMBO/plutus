@@ -29,6 +29,7 @@ let
             modules = [{
               packages = {
                 plutus-tx-plugin.configureFlags = [ "-f certify" ];
+                plutus-tx-plugin.components.library.build-tools = [ agda-tools.agda-with-stdlib-and-metatheory ];
               };
             }];
           };
