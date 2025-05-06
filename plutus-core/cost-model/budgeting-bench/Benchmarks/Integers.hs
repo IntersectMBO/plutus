@@ -45,29 +45,30 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
-{- `expModInteger a e m` calculates a^e modulo m; if e is negative then the
-function fails unless gcd(a,m) = 1, in which case there is an integer a' such
-that aa' is congruent to 1 modulo m, and then `expModInteger a e m` is defined
-to be `expModInteger a' (-e) m`.  If 0 <= a <= m-1 and e>=0 then the time taken
-by expModInteger varies linearly with the size of e (and the worst case is when
-e is one less than a power of two) and quadratically with the size of m.  A good
-model can be obtained by fitting a function of the form A + Byz + Cyz^2
-(y=size(e), z=size(m)) to the results of the benchmarks.  For most values of `a`
-(except for things like 0 and 1), the time taken for exponentiation is
-independent of the size of `a` because many intermediate powers have to be
-calculated, and these quickly grow so that their size is similar to that of `m`.
-In the benchmarks we use `a = m div 3` to start with a value of reasonable size.
+{- `expModInteger a e m` calculates `a^e` modulo `m`; if `e` is negative then the
+function fails unless gcd(a,m) = 1, in which case there is an integer `a'` such
+that `a*a'` is congruent to 1 modulo `m`, and then `expModInteger a e m` is
+defined to be `expModInteger a' (-e) m`.  If `0 <= a <= m-1` and `e>=0` then the
+time taken by expModInteger varies linearly with the size of `e` (and the worst
+case is when `e` is one less than a power of two) and quadratically with the
+size of `m`.  A good model can be obtained by fitting a function of the form A +
+Byz + Cyz^2 (y=size(e), z=size(m)) to the results of the benchmarks.  For most
+values of `a` (except for things like 0 and 1), the time taken for
+exponentiation is independent of the size of `a` because many intermediate
+powers have to be calculated, and these quickly grow so that their size is
+similar to that of `m`.  In the benchmarks we use `a = m div 3` to start with a
+value of reasonable size.
 
 In the costing function for `expModInteger` we measure sizes in units of 8-bit
 bytes (rather than the default of 64-bit words) in order to get benchmark
-results with a reasonable granularity.  For exponents e<0 a little extra time is
-required to perform an initial modular inversion, but this only adds a percent
-or two to the execution time so for simplicity we benchmark only with positive
-values of e. For values of a with size(a)>>size(m) an extra modular reduction
-has to be performed before starting the main calculation.  It is difficult to
-model the effect of this precisely, so we impose an extra charge by doubling the
-cost of `expModInteger` for larger values of a with large sizes; to avoid this,
-call `modInteger` before calling `expModInteger`.
+results with a reasonable granularity.  For exponents `e<0` a little extra time
+is required to perform an initial modular inversion, but this only adds a
+percent or two to the execution time so for simplicity we benchmark only with
+positive values of `e`. For values of `a` with `size(a)>>size(m)` an extra
+modular reduction has to be performed before starting the main calculation.  It
+is difficult to model the effect of this precisely, so we impose an extra charge
+by increasing the cost of `expModInteger` by 50% for values of `a` with large
+sizes; to avoid the penalty, call `modInteger` before calling `expModInteger`.
 -}
 
 benchExpModInteger :: StdGen -> Benchmark
