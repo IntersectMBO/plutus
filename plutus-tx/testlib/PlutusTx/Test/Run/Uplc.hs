@@ -12,6 +12,7 @@ import Control.Lens ((^.))
 import Control.Monad.Except (ExceptT, MonadError (throwError))
 import Data.Either.Extras (fromRightM)
 import Data.Text (Text)
+import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -21,6 +22,8 @@ import PlutusTx.Test.Orphans ()
 import Test.Tasty.Extras ()
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+
+type Term = UPLC.Term PLC.Name DefaultUni DefaultFun ()
 
 runPlcCek
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
