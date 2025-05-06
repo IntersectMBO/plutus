@@ -5,7 +5,7 @@
 module Evaluation.Builtins.BLS12_381.TestClasses
 where
 
-import Evaluation.Builtins.BLS12_381.Utils (PlcTerm, bytestring, mkApp1, mkApp2)
+import Evaluation.Builtins.Common (PlcTerm, bytestring, mkApp1, mkApp2)
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
