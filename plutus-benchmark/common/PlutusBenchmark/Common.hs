@@ -12,7 +12,6 @@ module PlutusBenchmark.Common
     , compiledCodeToTerm
     , haskellValueToTerm
     , benchProgramCek
-    , unsafeRunTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , mkMostRecentEvalCtx
