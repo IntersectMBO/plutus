@@ -4,8 +4,7 @@ import Common
 import Generators
 
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByLog (..))
-
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes (..))
 
 import Criterion.Main
 import GHC.Num.Integer
@@ -46,105 +45,48 @@ benchSameTwoIntegers gen builtinName =
    createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
     where (numbers,_) = makeBiggerIntegerArgs gen
 
-{-
-benchExpModInteger :: StdGen -> Benchmark
-benchExpModInteger _gen =
-  let builtinName = ExpModInteger
-      pow (a::Integer) (b::Integer) = a^b
-      p = (pow 2 255)
-      -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97 674011
-      --   × 1932 601194 339139 344835 240473 879578 700967 872768 315843 651779
---      d = p `div` 20
---      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
-      inputs = fmap (\n -> 2^n-1) [1,20..255::Integer]
-      moduli = [p]
-  in createThreeTermBuiltinBenchWithWrappers
-     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
-     builtinName []
-     (fmap (\n -> n) inputs)
-     (fmap (\n -> n) inputs)
-     moduli
+{- `expModInteger a e m` calculates a^e modulo m; if e is negative then the
+function fails unless gcd(a,m) = 1, in which case there is an integer a' such
+that aa' is congruent to 1 modulo m, and then `expModInteger a e m` is defined
+to be `expModInteger a' (-e) m`.  If 0 <= a <= m-1 and e>=0 then the time taken
+by expModInteger varies linearly with the size of e (and the worst case is when
+e is one less than a power of two) and quadratically with the size of m.  A good
+model can be obtained by fitting a function of the form A + Byz + Cyz^2
+(y=size(e), z=size(m)) to the results of the benchmarks.  For most values of `a`
+(except for things like 0 and 1), the time taken for exponentiation is
+independent of the size of `a` because many intermediate powers have to be
+calculated, and these quickly grow so that their size is similar to that of `m`.
+In the benchmarks we use `a = m div 3` to start with a value of reasonable size.
+
+In the costing function for `expModInteger` we measure sizes in units of 8-bit
+bytes (rather than the default of 64-bit words) in order to get benchmark
+results with a reasonable granularity.  For exponents e<0 a little extra time is
+required to perform an initial modular inversion, but this only adds a percent
+or two to the execution time so for simplicity we benchmark only with positive
+values of e. For values of a with size(a)>>size(m) an extra modular reduction
+has to be performed before starting the main calculation.  It is difficult to
+model the effect of this precisely, so we impose an extra charge by doubling the
+cost of `expModInteger` for larger values of a with large sizes; to avoid this,
+call `modInteger` before calling `expModInteger`.
 -}
 
-{-
-benchExpModInteger2 :: StdGen -> Benchmark
-benchExpModInteger2 _gen =
-  let builtinName = ExpModInteger
-      pow (a::Integer) (b::Integer) = a^b
---      p = (pow 2 255) - 19
-      p = (pow 2 100) + 400
-      -- 2^255 + 400 = 2^4 × 3 × 9907 × 644977 × 97674011
-      --   × 1932601194339139344835240473879578700967872768315843651779
---      d = p `div` 20
---      inputs = fmap (\n -> 2^n-1) [1,10..255::Integer]
-      xs = fmap (\n -> pow 2 (16*n) - 999) [1..625]  -- up to 2^10000 - 999
-      ys = [pow 2 250]
-      moduli = [p]
-  in createThreeTermBuiltinBenchWithWrappers
-     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
-     builtinName []
-     xs
-     ys
-     moduli
--- 1669877/248/256
--}
-
-{- The time taken by `expModInteger a b m` doesn't depend too much on a (as long
- as it's not something like 0 or 1), but it does depend on `b` and `m`.  So we
- benchmark with b and m varying over quite a large range, but a fixed for each m.
--}
-{- For fixed m and a, the time taken varies linearly with log a (ie, the number of
-   bits); for fixed a and b, the time taken varies quadratically with log m.
-   Overall we get a good fit with t~I(y*z^2)+I(y*z).
--}
-
--- Takes about 16 minutes with these inputs.
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
-      moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..25]
-      -- 32*n for size 100, 256*n for size 800
-      bs = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
-      -- ^ Largest number less than modulus with binary expansion 1111...1
-      -- Should be about worst case
+      moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..31]
+      -- ^ 16 entries, sizes = 4, 12, ..., 124 bytes
+      es = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
+      -- ^ Largest number less than modulus with binary expansion 1111...1.
+      -- This is the worst case.
 
   in bgroup (show fun)
-     [bgroup (showMemoryUsage (IntegerCostedByLog (z `div` 3)))
-       [bgroup (showMemoryUsage (IntegerCostedByLog y))
-         [mkBM x y z | x <- [z `div` 3] ] | y <- bs ] | z <- moduli ]
-  where mkBM x y z =
-          benchDefault (showMemoryUsage (IntegerCostedByLog z)) $
-          mkApp3 ExpModInteger [] x y z
-
-
-{- Benchmark over a 3-dimensional space of inputs: takes ~6 hours
--}
-{-
-benchExpModInteger :: StdGen -> Benchmark
-benchExpModInteger _gen =
-  let fun = ExpModInteger
-      pow (a::Integer) (b::Integer) = a^b
-
-      as = (pow 2 255 -19) : fmap (\n -> pow 2 (32*n) - 999) [25,50..625]  -- up to 2^10000 - 999
-
-      moduli = fmap (\n -> pow 2 (256*n) - 11) [1, 3..25]
-      bs = [1] -- fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
-      -- ^ Largest number less than modulus with binary expansion 1111...1
-      -- Should be about worst case
---      moduli = fmap (\n -> pow 2 (80*n) - 11) [1, 3..25]
---      Byte sizes = [10,30,50,70,90,110,130,150,170,190,210,230,250] : up to 2^2000
-      -- ^ Approximately [2^40, 2^80, ..., 2^1000], but we don't want powers of 2
-      -- as = fmap (\n -> n `div` 3) moduli
-
-  in createThreeTermBuiltinBenchWithWrappers
-     (IntegerCostedByLog, IntegerCostedByLog, IntegerCostedByLog)
-     fun
-     []
-     as
-     bs
-     moduli
--}
+     [bgroup (showMemoryUsage (IntegerCostedByNumBytes (m `div` 3)))
+       [bgroup (showMemoryUsage (IntegerCostedByNumBytes e))
+         [mkBM a e m | a <- [m `div` 3] ] | e <- es ] | m <- moduli ]
+  where mkBM a e m =
+          benchDefault (showMemoryUsage (IntegerCostedByNumBytes m)) $
+          mkApp3 ExpModInteger [] a e m
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =

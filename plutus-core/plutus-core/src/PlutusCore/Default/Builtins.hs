@@ -23,7 +23,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedByLog (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedByNumBytes (..),
                                                     IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
@@ -2023,14 +2023,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ExpModInteger =
         let expModIntegerDenotation
-              :: IntegerCostedByLog
-              -> IntegerCostedByLog
-              -> IntegerCostedByLog
+              :: IntegerCostedByNumBytes
+              -> IntegerCostedByNumBytes
+              -> IntegerCostedByNumBytes
               -> BuiltinResult Natural
             expModIntegerDenotation
-              (IntegerCostedByLog a)
-              (IntegerCostedByLog b)
-              (IntegerCostedByLog m) =
+              (IntegerCostedByNumBytes a)
+              (IntegerCostedByNumBytes b)
+              (IntegerCostedByNumBytes m) =
                  if m < 0
                  then fail "expModInteger: negative modulus"
                  else ExpMod.expMod a b (naturalFromInteger m)

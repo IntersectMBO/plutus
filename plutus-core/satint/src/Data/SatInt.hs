@@ -15,6 +15,7 @@ module Data.SatInt
       SatInt (unSatInt)
     , unsafeToSatInt
     , fromSatInt
+    , dividedBy
     ) where
 
 import Codec.Serialise (Serialise)
@@ -25,6 +26,7 @@ import Data.Csv
 import Data.Primitive (Prim)
 import GHC.Base
 import GHC.Generics
+import GHC.Natural
 import GHC.Real
 import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
@@ -78,6 +80,17 @@ instance Num SatInt where
     | x > maxBoundInteger  = maxBound
     | x < minBoundInteger  = minBound
     | otherwise            = SI (fromInteger x)
+
+-- | Divide a `SatInt` by a natural number.  If the natural number is zero,
+-- return `maxBound`; if we're at the maximum or minimum value then leave the
+-- input unaltered. This should never throw.
+dividedBy :: SatInt -> Natural -> SatInt
+dividedBy _ 0  = maxBound
+dividedBy x@(SI n) d =
+  if n == maxBound || n == minBound
+  then  x
+  else SI (n `div` (fromIntegral d))
+{-# INLINE dividedBy #-}
 
 maxBoundInteger :: Integer
 maxBoundInteger = toInteger maxInt

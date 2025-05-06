@@ -393,6 +393,7 @@ evaluateTwoVariableQuadraticFunction
 {-# INLINE evaluateTwoVariableQuadraticFunction #-}
 
 -- | c00 + c01x*y + c12x*y^2
+-- This is used only for `expModInteger`, whose costing is quite complex.
 data ExpModCostingFunction = ExpModCostingFunction
   { coefficient00 :: Coefficient00
   , coefficient11 :: Coefficient11
@@ -400,6 +401,12 @@ data ExpModCostingFunction = ExpModCostingFunction
   } deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
+{- | Calculate the cost of calling `expModInteger a e m` where a is of size aa, e
+is of size ee, and m is of size mm.  If aa>5*mm then the cost is increased by
+50% to impose a penalty for the extra cost of initially reducing `a` modulo `m`.
+If large values of `a` really are required then the penalty can be avoided by
+calling `modInteger` before `expModInteger`.
+-}
 evaluateExpModCostingFunction
   :: ExpModCostingFunction
   -> CostingInteger
@@ -409,17 +416,19 @@ evaluateExpModCostingFunction
 evaluateExpModCostingFunction
    (ExpModCostingFunction
     (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  a b m = if a <= 5*m
-          then c00 + c11*b*m + c12*b*m*m
-          else 2 * (c00 + c11*b*m + c12*b*m*m)
+  aa ee mm = if aa <= 5*mm
+          then cost0
+          else cost0 + (cost0 `dividedBy` 2)
+  where cost0 = c00 + c11*ee*mm + c12*ee*mm*mm
 {-# INLINE evaluateExpModCostingFunction #-}
 
--- FIXME: we could use ModelConstantOrOneArgument for
--- ModelTwoArgumentsSubtractedSizes instead, but that would change the order of
--- the cost model parameters since the minimum value would come first instead of
--- last.
--- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1554.
 -- | s * (x - y) + I
+{- In principle we could use ModelConstantOrOneArgument here, but that would
+change the order of the cost model parameters since the minimum value would come
+first instead of last, so for the time being we use a special type. We may be
+able to change this later if we move to a self-describing cost model format
+where the cost model parameters include the type of the costing function. See
+Note [Backward compatibility for costing functions]. -}
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
     , modelSubtractedSizesSlope     :: Slope
@@ -427,9 +436,9 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
--- | NB: this is subsumed by ModelConstantOrOneArgument, but we have to keep it
--- for the time being.  See Note [Backward compatibility for costing functions].
 -- | if p then s*x else c; p depends on usage
+{- NB: this is subsumed by ModelConstantOrOneArgument, but we have to keep it
+-- for the time being.  See Note [Backward compatibility for costing functions]. -}
 data ModelConstantOrLinear = ModelConstantOrLinear
     { modelConstantOrLinearConstant  :: CostingInteger
     , modelConstantOrLinearIntercept :: Intercept
