@@ -88,16 +88,16 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base                 >=4.9   && <5
+    , base                         >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
     , directory
     , filepath
-    , flat                 ^>=0.6
-    , plutus-core          ^>=1.46
-    , plutus-ledger-api    ^>=1.46
-    , plutus-tx-test-util
+    , flat                         ^>=0.6
+    , plutus-core                  ^>=1.46
+    , plutus-ledger-api            ^>=1.46
+    , plutus-tx:plutus-tx-testlib
     , tasty
     , tasty-golden
     , temporary
