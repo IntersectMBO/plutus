@@ -73,8 +73,7 @@ goldenBundle
 goldenBundle name x y = do
   goldenPirReadable name x
   goldenUPlcReadable name x
-  goldenEvalCekCatch name y
-  goldenBudget name y
+  goldenEvalCekCatchBudget name y
 
 goldenBundle'
   :: TestName
@@ -136,24 +135,17 @@ goldenEvalCek
   => TestName
   -> a
   -> TestNested
-goldenEvalCek name values =
+goldenEvalCek name value =
   nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple <$> rethrow (runPlcCek values)
+    prettyPlcClassicSimple <$> rethrow (runPlcCek value)
 
 goldenEvalCekCatch
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
   => TestName -> a -> TestNested
-goldenEvalCekCatch name values =
+goldenEvalCekCatch name value =
   nestedGoldenVsDocM name ".eval" $
     either (pretty . show) prettyPlcClassicSimple
-      <$> runExceptT (runPlcCek values)
-
-goldenEvalCekLog
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => TestName -> a -> TestNested
-goldenEvalCekLog name values =
-  nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace values)
+      <$> runExceptT (runPlcCek value)
 
 goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode =
@@ -170,3 +162,10 @@ goldenEvalCekCatchBudget name compiledCode =
             <> "\n\n"
             <> prettyPlcClassicSimple termRes
     pure (render @Text contents)
+
+goldenEvalCekLog
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => TestName -> a -> TestNested
+goldenEvalCekLog name value =
+  nestedGoldenVsDocM name ".eval" $
+    prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace value)
