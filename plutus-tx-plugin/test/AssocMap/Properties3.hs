@@ -30,9 +30,9 @@ import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm,
-                                    unsafeRunTermCek)
+import PlutusTx.Test.Run.Code (codeResult, evaluateCompiledCode, evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
+
 import PlutusTx.These (These (..))
 
 import AssocMap.Semantics
@@ -127,7 +127,9 @@ mDecodedAssocMap
 mDecodedAssocMap =
   $$( compile
         [||
-        fmap (PlutusTx.sort . AssocMap.toList) . P.fromBuiltinData . P.toBuiltinData
+        fmap (PlutusTx.sort . AssocMap.toList)
+          . P.fromBuiltinData
+          . P.toBuiltinData
         ||]
     )
 
@@ -139,7 +141,10 @@ decodedDataAssocMap
 decodedDataAssocMap =
   $$( compile
         [||
-        PlutusTx.sort . Data.AssocMap.toSOPList . P.unsafeFromBuiltinData . P.toBuiltinData
+        PlutusTx.sort
+          . Data.AssocMap.toSOPList
+          . P.unsafeFromBuiltinData
+          . P.toBuiltinData
         ||]
     )
 
@@ -151,7 +156,10 @@ decodedAssocMap
 decodedAssocMap =
   $$( compile
         [||
-        PlutusTx.sort . AssocMap.toList . P.unsafeFromBuiltinData . P.toBuiltinData
+        PlutusTx.sort
+          . AssocMap.toList
+          . P.unsafeFromBuiltinData
+          . P.toBuiltinData
         ||]
     )
 
@@ -164,20 +172,21 @@ unionSpec = property $ do
       assocMap2 = semanticsToAssocMap assocMapS2
       dataAssocMap1 = semanticsToDataAssocMap assocMapS1
       dataAssocMap2 = semanticsToDataAssocMap assocMapS2
-      expected = mapS haskellToPlutusThese $ sortS $ unionS assocMapS1 assocMapS2
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        unionProgram
-          `unsafeApplyCode` (liftCodeDef assocMap1)
-          `unsafeApplyCode` (liftCodeDef assocMap2)
+      expected =
+        mapS haskellToPlutusThese $
+          sortS $
+            unionS assocMapS1 assocMapS2
+  evaluationResultMatchesHaskell
+    ( unionProgram
+        `unsafeApplyCode` liftCodeDef assocMap1
+        `unsafeApplyCode` liftCodeDef assocMap2
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataUnionProgram
-          `unsafeApplyCode` (liftCodeDef dataAssocMap1)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap2)
+  evaluationResultMatchesHaskell
+    ( dataUnionProgram
+        `unsafeApplyCode` liftCodeDef dataAssocMap1
+        `unsafeApplyCode` liftCodeDef dataAssocMap2
     )
     (===)
     expected
@@ -193,19 +202,17 @@ unionWithSpec = property $ do
       dataAssocMap2 = semanticsToDataAssocMap assocMapS2
       merge i1 _ = i1
       expected = unionWithS merge assocMapS1 assocMapS2
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        unionWithProgram
-          `unsafeApplyCode` (liftCodeDef assocMap1)
-          `unsafeApplyCode` (liftCodeDef assocMap2)
+  evaluationResultMatchesHaskell
+    ( unionWithProgram
+        `unsafeApplyCode` liftCodeDef assocMap1
+        `unsafeApplyCode` liftCodeDef assocMap2
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataUnionWithProgram
-          `unsafeApplyCode` (liftCodeDef dataAssocMap1)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap2)
+  evaluationResultMatchesHaskell
+    ( dataUnionWithProgram
+        `unsafeApplyCode` liftCodeDef dataAssocMap1
+        `unsafeApplyCode` liftCodeDef dataAssocMap2
     )
     (===)
     expected
@@ -215,39 +222,22 @@ builtinDataEncodingSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-  unsafeRunTermCek
-    ( compiledCodeToTerm $
-        encodedDataAssocMap `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
-    === unsafeRunTermCek
-      ( compiledCodeToTerm $
-          encodedAssocMap `unsafeApplyCode` (liftCodeDef assocMap)
-      )
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mDecodedAssocMap
-          `unsafeApplyCode` (liftCodeDef assocMap)
-    )
+      evalResult = codeResult . evaluateCompiledCode
+  evalResult (encodedDataAssocMap `unsafeApplyCode` liftCodeDef dataAssocMap)
+    === evalResult (encodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    (mDecodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
     (===)
     (Just assocMapS)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mDecodedDataAssocMap
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
+  evaluationResultMatchesHaskell
+    (mDecodedDataAssocMap `unsafeApplyCode` liftCodeDef dataAssocMap)
     (===)
     (Just assocMapS)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        decodedAssocMap
-          `unsafeApplyCode` (liftCodeDef assocMap)
-    )
+  evaluationResultMatchesHaskell
+    (decodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
     (===)
     assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        decodedDataAssocMap
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
+  evaluationResultMatchesHaskell
+    (decodedDataAssocMap `unsafeApplyCode` liftCodeDef dataAssocMap)
     (===)
     assocMapS

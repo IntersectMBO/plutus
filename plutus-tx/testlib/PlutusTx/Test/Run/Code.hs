@@ -1,5 +1,7 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE RecordWildCards   #-}
 
 module PlutusTx.Test.Run.Code where
@@ -15,6 +17,8 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Pretty (Render (render), prettyPlcClassicSimple)
 import PlutusTx.Code (CompiledCode, getPlc)
+import PlutusTx.Lift.Class qualified as Tx
+import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
 import Test.Tasty.HUnit (Assertion, assertFailure)
 import UntypedPlutusCore (DefaultFun, DefaultUni, progTerm)
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CountingSt (..), counting,
@@ -43,6 +47,22 @@ evaluatesToError = not . evaluatesWithoutError
 
 evaluatesWithoutError :: CompiledCode a -> Bool
 evaluatesWithoutError code = isRight (codeResult (evaluateCompiledCode code))
+
+{-| Evaluate 'CompiledCode' and check that the result matches a given Haskell value
+   (perhaps obtained by running the Haskell code that the term was compiled
+   from).  We evaluate the lifted Haskell value as well, because lifting may
+   produce reducible terms. The function is polymorphic in the comparison
+   operator so that we can use it with both HUnit Assertions and QuickCheck
+   Properties.
+-}
+evaluationResultMatchesHaskell
+  :: (Tx.Lift DefaultUni hask)
+  => CompiledCode a
+  -> (forall r. (Eq r, Show r) => r -> r -> k)
+  -> hask
+  -> k
+evaluationResultMatchesHaskell actual =
+  cekResultMatchesHaskellValue (compiledCodeToTerm actual)
 
 --------------------------------------------------------------------------------
 -- Assertions ------------------------------------------------------------------
