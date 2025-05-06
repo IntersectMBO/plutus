@@ -465,8 +465,6 @@ test-suite plutus-benchmark-script-contexts-tests
 
   build-depends:
     , base                             >=4.9   && <5
-    , plutus-benchmark-common
-    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.46
     , plutus-tx-plugin                 ^>=1.46
@@ -474,7 +472,6 @@ test-suite plutus-benchmark-script-contexts-tests
     , script-contexts-internal
     , tasty
     , tasty-hunit
-    , text
 
 ---------------- Marlowe scripts ----------------
 
