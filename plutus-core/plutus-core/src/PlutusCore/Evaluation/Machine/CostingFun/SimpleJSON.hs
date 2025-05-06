@@ -95,12 +95,12 @@ data Model
     | QuadraticInY          OneVariableQuadraticFunction
     | QuadraticInZ          OneVariableQuadraticFunction
     | QuadraticInXAndY      TwoVariableQuadraticFunction
-    | ExpModCost            ExpModCostingFunction
     | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal    Integer Model
     | ConstBelowDiagonal    Integer Model
     | ConstOffDiagonal      Integer Model
+    | ExpModCost            ExpModCostingFunction
       deriving stock (Show, Lift)
 
 {- The JSON representation consists of a list of pairs of (type, arguments)

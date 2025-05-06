@@ -109,6 +109,15 @@ record TwoVariableQuadraticFunction : Set where
 
 {-# COMPILE GHC TwoVariableQuadraticFunction = data TwoVariableQuadraticFunction(TwoVariableQuadraticFunction) #-}
 
+record ExpModCostingFunction : Set where
+    constructor mkExpModCostingFunction
+    field
+        coeff00 : CostingNat
+        coeff11 : CostingNat
+        coeff12 : CostingNat
+
+{-# COMPILE GHC ExpModCostingFunction = data ExpModCostingFunction(ExpModCostingFunction) #-}
+
 data RawModel : Set where
     ConstantCost          : CostingNat → RawModel
     AddedSizes            : LinearFunction → RawModel
@@ -128,12 +137,13 @@ data RawModel : Set where
     ConstAboveDiagonal    : CostingNat → RawModel → RawModel
     ConstBelowDiagonal    : CostingNat → RawModel → RawModel
     ConstOffDiagonal      : CostingNat → RawModel → RawModel
+    ExpModCost            : ExpModCostingFunction → RawModel
 
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes |
     MultipliedSizes | MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
     LiteralInYOrLinearInZ | LinearInMaxYZ | LinearInYAndZ |QuadraticInY |
     QuadraticInZ | QuadraticInXAndY | SubtractedSizes | ConstAboveDiagonal |
-    ConstBelowDiagonal | ConstOffDiagonal) #-}
+    ConstBelowDiagonal | ConstOffDiagonal | ExpModCost) #-}
 
 record CpuAndMemoryModel : Set where
      constructor mkCpuAndMemoryModel

@@ -147,9 +147,10 @@ failingEvaluationTests =
 -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  -- These currently fail because (a) the Agda code doesn't know about the
-  -- IntegerCostedLiterally size measure used by `replicateByte`, and (b)
-  -- GHC 8.0 can't deal with `dropList`.
+  -- These currently fail because the Agda code doesn't know about the
+  -- IntegerCostedLiterally size measure used by `replicateByte` or the
+  -- IntegerCostedByNumBytes  measure used by `expModInteger`, and (b)
+  -- GHC 8.10 can't deal with `dropList` (but we've got rid of 8.10 now)
   [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
   , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
@@ -168,6 +169,11 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
+  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-03"
+  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-04"
+  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-05"
   , -- These "array" tests fail because the Agda code doesn't know about arrays yet
     -- TODO: remove these tests once "Add new array type and builtins to Agda
     -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465
