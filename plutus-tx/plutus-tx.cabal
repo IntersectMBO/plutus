@@ -185,6 +185,7 @@ library plutus-tx-testlib
     , prettyprinter
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , text
 
 test-suite plutus-tx-test
