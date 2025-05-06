@@ -154,10 +154,14 @@ runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
       then c
       else runModel m (x ∷ y ∷ [])
 runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
-  let a = sizeOf x
-      b = sizeOf y
-      c = sizeOf z
-  in c00 + c11 * b * c + c12 * b * c * c
+  let aa = sizeOf x  -- For expModInteger we should use the size measured in bytes, not words
+      ee = sizeOf y
+      mm = sizeOf z
+      cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
+  in if mm <ᵇ aa
+     then cost0 + (cost0 / 2)
+     else cost0
+
   -- ^ THIS IS INCOMPLETE: the real costing function branches if a > 5*c; however we measure
   -- sizes in bytes instead of words for expModInteger, so it gives incorrect results anyway.
 runModel (literalCostIn n m) xs with lookup xs n
