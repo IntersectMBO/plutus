@@ -402,7 +402,7 @@ data ExpModCostingFunction = ExpModCostingFunction
   deriving anyclass (NFData)
 
 {- | Calculate the cost of calling `expModInteger a e m` where a is of size aa, e
-is of size ee, and m is of size mm.  If aa>5*mm then the cost is increased by
+is of size ee, and m is of size mm.  If aa>mm then the cost is increased by
 50% to impose a penalty for the extra cost of initially reducing `a` modulo `m`.
 If large values of `a` really are required then the penalty can be avoided by
 calling `modInteger` before `expModInteger`.
@@ -416,7 +416,7 @@ evaluateExpModCostingFunction
 evaluateExpModCostingFunction
    (ExpModCostingFunction
     (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
-  aa ee mm = if aa <= 5*mm
+  aa ee mm = if aa <= mm
              then cost0
              else cost0 + (cost0 `dividedBy` 2)
   where cost0 = c00 + c11*ee*mm + c12*ee*mm*mm
