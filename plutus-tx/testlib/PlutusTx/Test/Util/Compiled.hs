@@ -9,7 +9,6 @@ module PlutusTx.Test.Util.Compiled (
   toNamedDeBruijnTerm,
   compiledCodeToTerm,
   haskellValueToTerm,
-  unsafeRunTermCek,
   cekResultMatchesHaskellValue,
 )
 where
@@ -71,13 +70,12 @@ cekResultMatchesHaskellValue
   -> k
 cekResultMatchesHaskellValue actual matches expected =
   unsafeRunTermCek actual `matches` unsafeRunTermCek (haskellValueToTerm expected)
-
--- | Just run a term to obtain an `EvaluationResult` (used for tests etc.)
-unsafeRunTermCek :: Term -> EvaluationResult Term
-unsafeRunTermCek =
-  unsafeSplitStructuralOperational
-    . (\(res, _, _) -> res)
-    . runCekDeBruijn
-      PLC.defaultCekParametersForTesting
-      Cek.restrictingEnormous
-      Cek.noEmitter
+ where
+  unsafeRunTermCek :: Term -> EvaluationResult Term
+  unsafeRunTermCek =
+    unsafeSplitStructuralOperational
+      . (\(res, _, _) -> res)
+      . runCekDeBruijn
+        PLC.defaultCekParametersForTesting
+        Cek.restrictingEnormous
+        Cek.noEmitter
