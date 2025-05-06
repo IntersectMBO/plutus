@@ -12,23 +12,29 @@ let
 
       src = ../.;
 
-      flake.variants = {
-        ghc96 = { }; # Alias for the default project
-        ghc96-profiled.modules = [{
-          enableProfiling = true;
-          enableLibraryProfiling = true;
-        }];
-        ghc96-coverage.modules = [{
-          doCoverage = true;
-        }];
-        ghc96-certify.modules = [{
-          packages = {
-            plutus-tx-plugin.configureFlags = [ "-f certify" ];
+      flake.variants =
+        let
+          ghc96 = { }; # Alias for the default project
+        in
+        {
+          inherit ghc96;
+          ghc96-profiled.modules = [{
+            enableProfiling = true;
+            enableLibraryProfiling = true;
+          }];
+          ghc96-coverage.modules = [{
+            doCoverage = true;
+          }];
+          ghc96-certify = lib.recursiveUpdate ghc96 {
+            modules = [{
+              packages = {
+                plutus-tx-plugin.configureFlags = [ "-f certify" ];
+              };
+            }];
           };
-        }];
-        ghc98.compiler-nix-name = "ghc98";
-        ghc910.compiler-nix-name = "ghc910";
-      };
+          ghc98.compiler-nix-name = "ghc98";
+          ghc910.compiler-nix-name = "ghc910";
+        };
 
       inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
 
