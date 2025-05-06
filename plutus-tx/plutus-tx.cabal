@@ -168,6 +168,7 @@ library plutus-tx-testlib
     PlutusTx.Test
     PlutusTx.Test.Golden
     PlutusTx.Test.Orphans
+    PlutusTx.Test.Run.Code
     PlutusTx.Test.Run.Uplc
 
   build-depends:
