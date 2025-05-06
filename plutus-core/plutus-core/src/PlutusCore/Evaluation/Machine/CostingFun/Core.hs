@@ -417,8 +417,8 @@ evaluateExpModCostingFunction
    (ExpModCostingFunction
     (Coefficient00 c00) (Coefficient11 c11) (Coefficient12 c12))
   aa ee mm = if aa <= 5*mm
-          then cost0
-          else cost0 + (cost0 `dividedBy` 2)
+             then cost0
+             else cost0 + (cost0 `dividedBy` 2)
   where cost0 = c00 + c11*ee*mm + c12*ee*mm*mm
 {-# INLINE evaluateExpModCostingFunction #-}
 
