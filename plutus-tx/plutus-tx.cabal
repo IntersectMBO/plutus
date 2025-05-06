@@ -184,6 +184,7 @@ library plutus-tx-testlib
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , plutus-tx                        ^>=1.46
+    , prettyprinter
     , tasty
     , tasty-hedgehog
     , tasty-hunit
