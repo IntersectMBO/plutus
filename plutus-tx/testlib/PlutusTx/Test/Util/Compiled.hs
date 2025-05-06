@@ -1,7 +1,5 @@
-{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE RankNTypes       #-}
 
 module PlutusTx.Test.Util.Compiled (
   Program,
@@ -12,18 +10,15 @@ module PlutusTx.Test.Util.Compiled (
   compiledCodeToTerm,
   haskellValueToTerm,
   unsafeRunTermCek,
-  runTermCek,
   cekResultMatchesHaskellValue,
 )
 where
 
-import Prelude
-
-import Data.Text (Text)
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusTx qualified as Tx
+import Prelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
@@ -53,13 +48,29 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
 We use this a lot.
 -}
 compiledCodeToTerm :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
-compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
+compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in body
 
 {-| Lift a Haskell value to a PLC term.  The constraints get a bit out of control
    if we try to do this over an arbitrary universe.
 -}
 haskellValueToTerm :: (Tx.Lift DefaultUni a) => a -> Term
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
+
+{-| Evaluate a PLC term and check that the result matches a given Haskell value
+   (perhaps obtained by running the Haskell code that the term was compiled
+   from).  We evaluate the lifted Haskell value as well, because lifting may
+   produce reducible terms. The function is polymorphic in the comparison
+   operator so that we can use it with both HUnit Assertions and QuickCheck
+   Properties.
+-}
+cekResultMatchesHaskellValue
+  :: (Tx.Lift DefaultUni hask)
+  => Term
+  -> (forall r. (Eq r, Show r) => r -> r -> k)
+  -> hask
+  -> k
+cekResultMatchesHaskellValue actual matches expected =
+  unsafeRunTermCek actual `matches` unsafeRunTermCek (haskellValueToTerm expected)
 
 -- | Just run a term to obtain an `EvaluationResult` (used for tests etc.)
 unsafeRunTermCek :: Term -> EvaluationResult Term
@@ -70,32 +81,3 @@ unsafeRunTermCek =
       PLC.defaultCekParametersForTesting
       Cek.restrictingEnormous
       Cek.noEmitter
-
--- | Just run a term.
-runTermCek
-  :: Term
-  -> ( Either (CekEvaluationException UPLC.NamedDeBruijn DefaultUni DefaultFun) Term
-     , [Text]
-     )
-runTermCek =
-  (\(res, _, logs) -> (res, logs))
-    . runCekDeBruijn
-      PLC.defaultCekParametersForTesting
-      Cek.restrictingEnormous
-      Cek.logEmitter
-
-{-| Evaluate a PLC term and check that the result matches a given Haskell value
-   (perhaps obtained by running the Haskell code that the term was compiled
-   from).  We evaluate the lifted Haskell value as well, because lifting may
-   produce reducible terms. The function is polymorphic in the comparison
-   operator so that we can use it with both HUnit Assertions and QuickCheck
-   Properties.
--}
-cekResultMatchesHaskellValue
-  :: (Tx.Lift DefaultUni a)
-  => Term
-  -> (EvaluationResult Term -> EvaluationResult Term -> b)
-  -> a
-  -> b
-cekResultMatchesHaskellValue term matches value =
-  unsafeRunTermCek term `matches` unsafeRunTermCek (haskellValueToTerm value)
