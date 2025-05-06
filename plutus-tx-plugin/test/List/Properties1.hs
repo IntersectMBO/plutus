@@ -21,7 +21,11 @@
 
 module List.Properties1 where
 
-import PlutusTx.Builtins as B
+import Data.List qualified as Haskell
+import Hedgehog (Property, forAll, property, (===))
+import Hedgehog.Gen qualified as Gen
+import List.Semantics
+import PlutusTx.Builtins qualified as B
 import PlutusTx.Code
 import PlutusTx.Data.List qualified as Data
 import PlutusTx.Data.List qualified as Data.List
@@ -29,15 +33,8 @@ import PlutusTx.Foldable qualified as F
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
-
-import Data.List qualified as Haskell
-
-import Hedgehog (Property, forAll, property, (===))
-import Hedgehog.Gen qualified as Gen
-
-import List.Semantics
 
 toSOPProgram :: CompiledCode (Data.List Integer -> [Integer])
 toSOPProgram = $$(compile [||Data.List.toSOP||])
@@ -50,11 +47,8 @@ toSOPSpec = property $ do
   listS <- forAll genListS
   let list = semanticsToDataList listS
       expected = semanticsToList listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        toSOPProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (toSOPProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     expected
 
@@ -63,11 +57,8 @@ fromSOPSpec = property $ do
   listS <- forAll genListS
   let list = semanticsToList listS
       expected = semanticsToDataList listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        fromSOPProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (fromSOPProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     expected
 
@@ -86,19 +77,17 @@ appendSpec = property $ do
       dataList1 = semanticsToDataList listS1
       dataList2 = semanticsToDataList listS2
       expected = appendS listS1 listS2
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        appendProgram
-          `unsafeApplyCode` liftCodeDef list1
-          `unsafeApplyCode` liftCodeDef list2
+  evaluationResultMatchesHaskell
+    ( appendProgram
+        `unsafeApplyCode` liftCodeDef list1
+        `unsafeApplyCode` liftCodeDef list2
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAppendProgram
-          `unsafeApplyCode` liftCodeDef dataList1
-          `unsafeApplyCode` liftCodeDef dataList2
+  evaluationResultMatchesHaskell
+    ( dataAppendProgram
+        `unsafeApplyCode` liftCodeDef dataList1
+        `unsafeApplyCode` liftCodeDef dataList2
     )
     (===)
     (semanticsToDataList expected)
@@ -116,19 +105,17 @@ findSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = findS (> num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        findProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( findProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFindProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFindProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -146,19 +133,17 @@ findIndicesSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = findIndicesS (> num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        findIndicesProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( findIndicesProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFindIndicesProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFindIndicesProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
@@ -176,19 +161,17 @@ filterSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = filterS (> num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        filterProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( filterProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFilterProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFilterProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
@@ -217,19 +200,17 @@ mapMaybeSpec = property $ do
       dataList = semanticsToDataList listS
       expected :: ListS Integer
       expected = mapMaybeS (\x -> if x > num then Just 1 else Nothing) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mapMaybeProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( mapMaybeProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMapMaybeProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataMapMaybeProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
@@ -247,19 +228,17 @@ anySpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = anyS (> num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        anyProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( anyProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAnyProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataAnyProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -277,19 +256,17 @@ allSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = allS (> num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        allProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( allProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAllProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataAllProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -317,19 +294,17 @@ foldMapSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = foldMapS (\x -> if x > num then Just [x] else Nothing) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        foldMapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( foldMapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFoldMapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFoldMapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -347,19 +322,17 @@ mapSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = mapS (+ num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( mapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataMapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
@@ -376,18 +349,12 @@ lengthSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = lengthS listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        lengthProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (lengthProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataLengthProgram
-          `unsafeApplyCode` liftCodeDef dataList
-    )
+  evaluationResultMatchesHaskell
+    (dataLengthProgram `unsafeApplyCode` liftCodeDef dataList)
     (===)
     expected
 
@@ -403,17 +370,15 @@ unconsSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = unconsS listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        unconsProgram
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( unconsProgram
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     ((fmap . fmap) semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataUnconsProgram
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataUnconsProgram
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     ((fmap . fmap) semanticsToDataList expected)
@@ -430,18 +395,12 @@ andSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = andS listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        andProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (andProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAndProgram
-          `unsafeApplyCode` liftCodeDef dataList
-    )
+  evaluationResultMatchesHaskell
+    (dataAndProgram `unsafeApplyCode` liftCodeDef dataList)
     (===)
     expected
 
@@ -457,18 +416,12 @@ orSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = Haskell.or list
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        orProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (orProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataOrProgram
-          `unsafeApplyCode` liftCodeDef dataList
-    )
+  evaluationResultMatchesHaskell
+    (dataOrProgram `unsafeApplyCode` liftCodeDef dataList)
     (===)
     expected
 
@@ -485,19 +438,17 @@ elemSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = elemS num listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        elemProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( elemProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataElemProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataElemProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -515,19 +466,17 @@ notElemSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = notElemS num listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        notElemProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( notElemProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataNotElemProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataNotElemProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -545,19 +494,17 @@ foldrSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = foldrS (-) num listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        foldrProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( foldrProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFoldrProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFoldrProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -575,19 +522,17 @@ foldlSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = foldlS (-) num listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        foldlProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( foldlProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFoldlProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataFoldlProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
@@ -604,17 +549,13 @@ concatSpec = property $ do
   let list = semanticsToList <$> semanticsToList listS
       dataList = semanticsToDataList $ mapS semanticsToDataList listS
       expected = concatS listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        concatProgram
-          `unsafeApplyCode` liftCodeDef list
-    )
+  evaluationResultMatchesHaskell
+    (concatProgram `unsafeApplyCode` liftCodeDef list)
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataConcatProgram
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataConcatProgram
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
@@ -632,19 +573,17 @@ concatMapSpec = property $ do
   let list = semanticsToList listS
       dataList = semanticsToDataList listS
       expected = concatMapS (replicateS num) listS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        concatMapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef list
+  evaluationResultMatchesHaskell
+    ( concatMapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataConcatMapProgram
-          `unsafeApplyCode` liftCodeDef num
-          `unsafeApplyCode` liftCodeDef dataList
+  evaluationResultMatchesHaskell
+    ( dataConcatMapProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
