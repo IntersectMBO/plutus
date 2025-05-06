@@ -10,17 +10,16 @@ module ShortCircuit.Spec (tests) where
 import ShortCircuit.WithGHCOptimisations qualified as WithOptimisations
 import ShortCircuit.WithoutGHCOptimisations qualified as WithoutOptimisations
 
-import Control.Lens ((&), (^.))
+import Control.Lens ((&))
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
-import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
+import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Test.Run.Code (codeResult, evaluateCompiledCode)
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
-import UntypedPlutusCore.Core.Type (Term (Constr), progTerm)
-import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
+import UntypedPlutusCore.Core.Type (Term (Constr))
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm)
 
 -- These tests are here to ensure that the short-circuiting behaviour of the logical operators
 -- is preserved when the code is compiled with and without GHC optimisations.
@@ -47,11 +46,10 @@ tests =
 -- Helpers -----------------------------------------------------------------------------------------
 
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
-assertResult expected code = do
-  let plc = getPlc code ^. progTerm
-  case runCekDeBruijn defaultCekParametersForTesting counting noEmitter plc of
-    (Left ex, _counting, _logs)      -> assertFailure $ show ex
-    (Right actual, _counting, _logs) -> assertEqual "Evaluation has succeeded" expected actual
+assertResult expected code =
+  case codeResult (evaluateCompiledCode code) of
+    Left ex      -> assertFailure $ show ex
+    Right actual -> assertEqual "Evaluation has succeeded" expected actual
 
 false' :: CompiledCode Bool
 false' = liftCodeDef False

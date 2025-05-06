@@ -11,6 +11,7 @@ import Control.Lens ((^.))
 import Control.Monad.Except (ExceptT, MonadError (throwError))
 import Data.Either.Extras (fromRightM)
 import Data.Text (Text)
+import PlutusCore (DefaultFun, DefaultUni)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Test (ToUPlc (..))
@@ -21,13 +22,11 @@ import Test.Tasty.Extras ()
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
+type Term = UPLC.Term PLC.Name DefaultUni DefaultFun ()
+
 runPlcCek
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
-  -> ExceptT
-       SomeException
-       IO
-       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+  :: (ToUPlc uplc DefaultUni DefaultFun)
+  => [uplc] -> ExceptT SomeException IO Term
 runPlcCek values = do
   ps <- traverse toUPlc values
   let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
@@ -37,15 +36,9 @@ runPlcCek values = do
       (p ^. UPLC.progTerm)
 
 runPlcCekTrace
-  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
-  -> ExceptT
-       SomeException
-       IO
-       ( [Text]
-       , UPLC.CekExTally PLC.DefaultFun
-       , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-       )
+  :: (ToUPlc uplc DefaultUni DefaultFun)
+  => [uplc]
+  -> ExceptT SomeException IO ([Text], UPLC.CekExTally DefaultFun, Term)
 runPlcCekTrace values = do
   ps <- traverse toUPlc values
   let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
