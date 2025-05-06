@@ -159,7 +159,7 @@ runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
       c = sizeOf z
   in c00 + c11 * b * c + c12 * b * c * c
   -- ^ THIS IS INCOMPLETE: the real costing function branches if a > 5*c; however we measure
-  -- sizes in bytes instead of words for expModInteger, so it doesn't work anyway.
+  -- sizes in bytes instead of words for expModInteger, so it gives incorrect results anyway.
 runModel (literalCostIn n m) xs with lookup xs n
 ... | V-con (atomic aInteger) (pos (suc n)) = (n / 8) + 1
   --only uses the literal size if positive integer.
