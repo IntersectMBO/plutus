@@ -184,6 +184,7 @@ library plutus-tx-testlib
     , plutus-tx                        ^>=1.46
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , text
 
 test-suite plutus-tx-test
