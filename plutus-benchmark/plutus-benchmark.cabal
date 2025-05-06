@@ -474,7 +474,6 @@ test-suite plutus-benchmark-script-contexts-tests
     , script-contexts-internal
     , tasty
     , tasty-hunit
-    , text
 
 ---------------- Marlowe scripts ----------------
 
