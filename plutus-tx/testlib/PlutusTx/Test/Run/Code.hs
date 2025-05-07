@@ -19,6 +19,7 @@ import PlutusTx qualified as Tx
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Eval as Eval
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import Prettyprinter
 import Test.Tasty.HUnit (Assertion, assertFailure)
 import UntypedPlutusCore (DefaultUni)
 
@@ -64,3 +65,11 @@ assertEvaluatesWithError code = do
             , "Evaluation traces:"
             , Text.unlines evalResultTraces
             ]
+
+--------------------------------------------------------------------------------
+-- Utilities -------------------------------------------------------------------
+
+applyLifted
+  :: (Tx.Lift DefaultUni a)
+  => Tx.CompiledCode (a -> b) -> a -> Tx.CompiledCode b
+applyLifted f a = Tx.unsafeApplyCode f (Tx.liftCodeDef a)
