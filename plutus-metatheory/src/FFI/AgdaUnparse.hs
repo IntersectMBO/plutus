@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module FFI.AgdaUnparse where
 
 import Data.ByteString (ByteString)
@@ -63,9 +65,9 @@ instance AgdaUnparse Bool where
   agdaUnparse False = "false"
 
 instance AgdaUnparse Char where
-  agdaUnparse c = [c]
+  agdaUnparse c = show c
 instance AgdaUnparse Text where
-  agdaUnparse = T.unpack
+  agdaUnparse = show . T.unpack
 
 instance AgdaUnparse ByteString where
   agdaUnparse bs = "(mkByteString " <> show bs <> ")"
@@ -100,6 +102,22 @@ instance AgdaUnparse BLS12_381.G2.Element where
 instance AgdaUnparse BLS12_381.Pairing.MlResult where
   agdaUnparse = show
 
+instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
+  agdaUnparse PLC.DefaultUniInteger = "integer"
+  agdaUnparse PLC.DefaultUniByteString = "bytestring"
+  agdaUnparse PLC.DefaultUniString = "string"
+  agdaUnparse PLC.DefaultUniBool = "bool"
+  agdaUnparse PLC.DefaultUniUnit = "unit"
+  agdaUnparse PLC.DefaultUniData = "pdata"
+  agdaUnparse (PLC.DefaultUniList t) =
+    "(list " ++ agdaUnparse t ++ ")"
+  agdaUnparse (PLC.DefaultUniPair t1 t2) =
+    "(pair " ++ agdaUnparse t1 ++ " " ++ agdaUnparse t2 ++ ")"
+  agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = "bls12-381-g1-element"
+  agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = "bls12-381-g2-element"
+  agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
+  agdaUnparse _ = error "oh no... anyway"
+
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
 agdaUnparseValue dSum =
   "(tagCon " ++
@@ -117,9 +135,14 @@ agdaUnparseValue dSum =
       PLC.ValueOf PLC.DefaultUniData _ :=> Identity val ->
         "pdata " ++ agdaUnparse val
       PLC.ValueOf (PLC.DefaultUniList elemType) _ :=> Identity val ->
-        "list " ++ agdaUnparseDList elemType val
+        "(list " ++ agdaUnparse elemType ++ ") " ++ agdaUnparseDList elemType val
       PLC.ValueOf (PLC.DefaultUniPair type1 type2) _ :=> Identity val ->
-        "pair " ++ agdaUnparseDPair type1 type2 val
+        "(pair "
+        ++ agdaUnparse type1
+        ++ " "
+        ++ agdaUnparse type2
+        ++ ") "
+        ++ agdaUnparseDPair type1 type2 val
       PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element _ :=> Identity val ->
         "bls12-381-g1-element " ++  agdaUnparse val
       PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element _ :=> Identity val ->
