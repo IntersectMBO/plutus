@@ -16,6 +16,7 @@ module PlutusCore.Crypto.BLS12_381.G1
     , compressed_generator
     , memSizeBytes
     , compressedSizeBytes
+    , multiScalarMul
     ) where
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
@@ -170,3 +171,7 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve1)
 -- | Compressed size of a G1 point (48 bytes)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)
+
+-- | Multi-scalar multiplication of G1 points.
+multiScalarMul :: [(Element,Integer)] -> Element
+multiScalarMul = coerce (BlstBindings.blsMSM @BlstBindings.Curve1)

@@ -184,6 +184,9 @@ data DefaultFun
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- BLS12_381 multiscalar multiplication
+    | Bls12_381_G1_multiScalarMul
+    | Bls12_381_G2_multiScalarMul
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -2131,6 +2134,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
+    toBuiltinMeaning _semvar Bls12_381_G1_multiScalarMul =
+        let bls12_381_G1_multiScalarMulDenotation
+                :: [(BLS12_381.G1.Element, Integer)] -> BLS12_381.G1.Element
+            bls12_381_G1_multiScalarMulDenotation = BLS12_381.G1.multiScalarMul
+            {-# INLINE bls12_381_G1_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G1_multiScalarMulDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
+    toBuiltinMeaning _semvar Bls12_381_G2_multiScalarMul =
+        let bls12_381_G2_multiScalarMulDenotation
+                :: [(BLS12_381.G2.Element, Integer)] -> BLS12_381.G2.Element
+            bls12_381_G2_multiScalarMulDenotation = BLS12_381.G2.multiScalarMul
+            {-# INLINE bls12_381_G2_multiScalarMulDenotation #-}
+        in makeBuiltinMeaning
+            bls12_381_G2_multiScalarMulDenotation
+            (runCostingFunOneArgument . unimplementedCostingFun)
+
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -2282,6 +2303,9 @@ instance Flat DefaultFun where
               ListToArray                     -> 92
               IndexArray                      -> 93
 
+              Bls12_381_G1_multiScalarMul     -> 94
+              Bls12_381_G2_multiScalarMul     -> 95
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -2377,6 +2401,8 @@ instance Flat DefaultFun where
               go 91 = pure LengthOfArray
               go 92 = pure ListToArray
               go 93 = pure IndexArray
+              go 94 = pure Bls12_381_G1_multiScalarMul
+              go 95 = pure Bls12_381_G2_multiScalarMul
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

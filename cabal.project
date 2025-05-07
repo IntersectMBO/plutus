@@ -71,6 +71,16 @@ source-repository-package
   location: https://github.com/jaccokrijnen/plutus-cert
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
 
+-- Add srp to a custom fork of cardano-base that adds BLS12_381 multi scalar multiplication
+source-repository-package
+  type: git
+  location: https://github.com/perturbing/cardano-base
+  tag: 06dfaecc1898c5f87baaeb428e9e07b7339a016d
+  --sha256: sha256-BZjS68UQwci0BKVJaISrmwucfqp3U8sWv/yYlpWvnxk=
+  subdir:
+    cardano-crypto-class
+    cardano-crypto-praos
+
 allow-newer:
   -- https://github.com/tweag/HaskellR/pull/420
   , inline-r:singletons-th
