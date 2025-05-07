@@ -38,7 +38,7 @@ module PlutusTx.Test (
 import Prelude
 
 import Control.Exception (SomeException (..))
-import Control.Lens (Field1 (_1), view, (^.))
+import Control.Lens (Field1 (_1))
 import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
 import Data.Either.Extras (fromRightM)
 import Data.Kind (Type)
@@ -49,8 +49,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
-                          PrettyConfigName, PrettyConst, PrettyUni, Render (render),
+import PlutusCore.Pretty (PrettyConfigClassic, PrettyConfigName, PrettyConst, PrettyUni,
                           prettyClassicSimple, prettyPlcClassicSimple, prettyReadable,
                           prettyReadableSimple)
 import PlutusCore.Pretty qualified as PLC
@@ -63,6 +62,9 @@ import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
+import Test.Tasty (TestName, TestTree)
+import Test.Tasty.Extras ()
+import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 

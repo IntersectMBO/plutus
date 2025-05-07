@@ -177,7 +177,6 @@ library plutus-tx-testlib
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , plutus-tx                        ^>=1.45
-    , prettyprinter
     , tagged
     , tasty
     , tasty-hedgehog
