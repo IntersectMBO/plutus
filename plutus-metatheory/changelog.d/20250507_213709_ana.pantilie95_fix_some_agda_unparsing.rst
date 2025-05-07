@@ -1,0 +1,4 @@
+Fixed
+-----
+
+- Fixed a few Agda unparsing issues which were causing syntax errors in the certifier's generated certificates.
