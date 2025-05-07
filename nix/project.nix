@@ -21,8 +21,6 @@ let
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
         ghc96-coverage.modules = [{
-          # NOTE: Enabling coverage for some packages breaks tests due to HPC 
-          # (Haskell Program Coverage) instrumentation. 
           packages.plutus-core.doCoverage = true;
         }];
       };
