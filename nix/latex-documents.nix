@@ -10,6 +10,7 @@
     name = "eutxo-paper";
     description = "eutxo";
     src = self + /doc/papers/eutxo;
+    output-pdf-name = "eutxo.pdf"; # Needed to distinguish from EUTxO_MultiSig_States.pdf
   };
 
   eutxoma-paper = build-latex-doc {

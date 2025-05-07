@@ -1,6 +1,6 @@
 { pkgs, lib, agda-tools }:
 
-{ name, description, src }:
+{ name, description, src, output-pdf-name ? "*.pdf" }:
 
 pkgs.stdenv.mkDerivation {
 
@@ -31,7 +31,7 @@ pkgs.stdenv.mkDerivation {
     mkdir -p $out
     make clean
     make
-    cp *.pdf $out/
+    cp ${output-pdf-name} $out/
   '';
 
   meta = with lib; {
