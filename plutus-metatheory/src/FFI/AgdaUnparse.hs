@@ -116,7 +116,8 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = "bls12-381-g1-element"
   agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = "bls12-381-g2-element"
   agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
-  agdaUnparse _ = error "oh no... anyway"
+  agdaUnparse (PLC.DefaultUniArray _) = error "Arrays are currently not supported."
+  agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
 agdaUnparseValue dSum =
@@ -149,7 +150,10 @@ agdaUnparseValue dSum =
         "bls12-381-g2-element " ++  agdaUnparse val
       PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
         "bls12-381-mlresult " ++ agdaUnparse val
-      _ -> error "agdaUnparseValue: unexpected value"
+      PLC.ValueOf (PLC.DefaultUniArray _) _ :=> Identity _ ->
+        error "Arrays are currently not supported."
+      PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
+        error "Application of an unknown type is not supported."
   ++ ")"
   where
     agdaUnparseDList elemType xs =
