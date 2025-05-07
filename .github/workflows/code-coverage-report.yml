@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches: 
-      - test-coverage # TODO remove me before merging
+      - coverage-plutus-core # TODO remove me before merging
 
 jobs:
   deploy:
