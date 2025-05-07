@@ -12,11 +12,12 @@ module PlutusTx.Test.Util.Compiled (
 )
 where
 
+import Prelude
+
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusTx qualified as Tx
-import Prelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 

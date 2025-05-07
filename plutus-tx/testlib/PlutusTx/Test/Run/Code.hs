@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE RecordWildCards    #-}
 
 module PlutusTx.Test.Run.Code where
 
@@ -10,15 +11,19 @@ import Prelude
 
 import Control.Lens.Operators ((^.))
 import Data.Either (isRight)
+import Data.SatInt (unSatInt)
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Formatting (commas, format)
 import PlutusCore.DeBruijn.Internal (NamedDeBruijn)
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
-import PlutusCore.Pretty (Render (render), prettyPlcClassicSimple)
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Pretty
+import PlutusTx qualified as Tx
 import PlutusTx.Code (CompiledCode, getPlc)
-import PlutusTx.Lift.Class qualified as Tx
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import Prettyprinter
 import Test.Tasty.HUnit (Assertion, assertFailure)
 import UntypedPlutusCore (DefaultFun, DefaultUni, progTerm)
 import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CountingSt (..), counting,
@@ -33,6 +38,57 @@ data CodeResult = CodeResult
   , codeBudget :: ExBudget
   , codeTraces :: [Text]
   }
+  deriving stock (Show)
+
+instance Pretty CodeResult where
+  pretty
+    CodeResult
+      { codeBudget =
+        ExBudget
+          { exBudgetCPU = ExCPU cpu
+          , exBudgetMemory = ExMemory mem
+          }
+      , ..
+      } =
+      vsep
+        [ case codeResult of
+            Left err ->
+              vsep
+                [ "Evaluation FAILED:"
+                , indent 2 $ prettyPlcClassicSimple err
+                ]
+            Right term ->
+              vsep
+                [ "Evaluation was SUCCESSFUL, result is:"
+                , indent 2 $ prettyPlcReadableSimple term
+                ]
+        , mempty
+        , "Execution budget spent:"
+        , indent 2 $
+            vsep
+              [ "CPU" <+> pretty (format commas (unSatInt cpu))
+              , "MEM" <+> pretty (format commas (unSatInt mem))
+              ]
+        , mempty
+        , if null codeTraces
+            then "No traces were emitted"
+            else
+              vsep
+                [ "Evaluation"
+                    <+> plural "trace" "traces" (length codeTraces)
+                    <> ":"
+                , indent 2 $
+                    vsep $
+                      zipWith
+                        (\idx trace -> pretty idx <> dot <+> pretty trace)
+                        [1 :: Int ..]
+                        codeTraces
+                ]
+        , mempty
+        ]
+
+prettyCodeResult :: CodeResult -> Text
+prettyCodeResult = display
 
 evaluateCompiledCode :: CompiledCode a -> CodeResult
 evaluateCompiledCode code = CodeResult{..}
@@ -93,3 +149,11 @@ assertEvaluatesWithError code = do
             , "Evaluation traces:"
             , Text.unlines codeTraces
             ]
+
+--------------------------------------------------------------------------------
+-- Utilities -------------------------------------------------------------------
+
+applyLifted
+  :: (Tx.Lift DefaultUni a)
+  => Tx.CompiledCode (a -> b) -> a -> Tx.CompiledCode b
+applyLifted f a = Tx.unsafeApplyCode f (Tx.liftCodeDef a)
