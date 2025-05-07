@@ -58,6 +58,25 @@ executable example-cip57
     , plutus-tx          ^>=1.46
     , plutus-tx-plugin   ^>=1.46
 
+executable example-evaluation
+  import:           lang, ghc-version-support, os-support
+  main-is:          Example/Evaluation/Main.hs
+  hs-source-dirs:   static/code
+  default-language: Haskell2010
+  other-modules:    Paths_docusaurus_examples
+  build-depends:
+    , base                         ^>=4.18
+    , plutus-tx                    ^>=1.46
+    , plutus-tx-plugin             ^>=1.46
+    , plutus-tx:plutus-tx-testlib
+    , text
+
+  ghc-options:
+    -Wno-missing-signatures -fno-full-laziness
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fno-spec-constr -fno-specialise -fno-strictness
+    -fno-unbox-small-strict-fields -fno-unbox-strict-fields
+
 executable quickstart
   import:           lang, ghc-version-support, os-support
   main-is:          QuickStart.hs

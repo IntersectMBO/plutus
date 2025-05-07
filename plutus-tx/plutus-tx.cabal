@@ -175,6 +175,7 @@ library plutus-tx-testlib
   build-depends:
     , base                             >=4.9   && <5
     , flat                             ^>=0.6
+    , formatting
     , hedgehog
     , lens
     , mtl
