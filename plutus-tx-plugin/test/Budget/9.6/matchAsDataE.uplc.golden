@@ -23,5 +23,7 @@
                                 (force ifThenElse
                                    (equalsInteger 1 ds)
                                    (delay 1)
-                                   (delay (case error [error])))) ])))) ])
+                                   (delay
+                                      ((\cse -> case cse [cse])
+                                         error)))) ])))) ])
       (Constr 0 [I 1])))
