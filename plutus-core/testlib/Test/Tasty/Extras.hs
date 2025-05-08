@@ -34,7 +34,7 @@ module Test.Tasty.Extras
     , assertEqualPretty
     , (%=?)
     , (%?=)
-    , ignoreTetWhenHpcEnabled
+    , ignoreTestWhenHpcEnabled
     ) where
 
 import PlutusPrelude hiding (toList)
