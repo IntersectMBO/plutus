@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments        #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -33,6 +34,7 @@ module Test.Tasty.Extras
     , assertEqualPretty
     , (%=?)
     , (%?=)
+    , ignoreTetWhenHpcEnabled
     ) where
 
 import PlutusPrelude hiding (toList)
@@ -51,6 +53,7 @@ import GHC.Stack (HasCallStack)
 import System.FilePath (joinPath, (</>))
 import System.Info (compilerVersion)
 import Test.Tasty (TestName, TestTree, testGroup)
+import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.Golden (createDirectoriesAndWriteFile, goldenVsStringDiff)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.HUnit (Assertion, assertFailure)
@@ -313,3 +316,18 @@ expected %=? actual = assertEqualPretty "" expected actual
   -- ^ The expected value
   -> Assertion
 actual %?= expected = assertEqualPretty "" expected actual
+
+
+{-|
+Some tests inspect GHC code, but GHC code gets instrumented when using HPC
+(Haskell Program Coverage), which causes those tests to fail.
+This function disables those tests when the custom __HPC_ENABLED__ flag is defined.
+-}
+ignoreTestWhenHpcEnabled :: TestTree -> TestTree
+ignoreTestWhenHpcEnabled t =
+#ifdef __HPC_ENABLED__
+    ignoreTest t
+#else
+    let _preventsUnusedBindsWarnings = ignoreTest t
+    in t
+#endif
