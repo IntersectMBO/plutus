@@ -57,16 +57,14 @@ powers have to be calculated, and these quickly grow so that their size is
 similar to that of `m`.  In the benchmarks we use `a = m div 3` to start with a
 value of reasonable size.
 
-In the costing function for `expModInteger` we measure sizes in units of 8-bit
-bytes (rather than the default of 64-bit words) in order to get benchmark
-results with a reasonable granularity.  For exponents `e<0` a little extra time
-is required to perform an initial modular inversion, but this only adds a
-percent or two to the execution time so for simplicity we benchmark only with
-positive values of `e`. For values of `a` with `size(a)>>size(m)` an extra
-modular reduction has to be performed before starting the main calculation.  It
-is difficult to model the effect of this precisely, so we impose an extra charge
-by increasing the cost of `expModInteger` by 50% for values of `a` with large
-sizes; to avoid the penalty, call `modInteger` before calling `expModInteger`.
+For exponents `e<0` a little extra time is required to perform an initial
+modular inversion, but this only adds a percent or two to the execution time so
+for simplicity we benchmark only with positive values of `e`. For values of `a`
+with `size(a)>size(m)` an extra modular reduction has to be performed before
+starting the main calculation.  It is difficult to model the effect of this
+precisely, so we impose an extra charge by increasing the cost of
+`expModInteger` by 50% for values of `a` with large sizes; to avoid the penalty,
+call `modInteger` before calling `expModInteger`.
 -}
 
 benchExpModInteger :: StdGen -> Benchmark

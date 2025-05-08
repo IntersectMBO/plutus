@@ -154,7 +154,7 @@ runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
       then c
       else runModel m (x ∷ y ∷ [])
 runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
-  let aa = sizeOf x  -- For expModInteger we should use the size measured in bytes, not words
+  let aa = sizeOf x
       ee = sizeOf y
       mm = sizeOf z
       cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
