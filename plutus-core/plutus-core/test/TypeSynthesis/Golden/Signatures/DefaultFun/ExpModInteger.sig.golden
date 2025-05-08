@@ -1,1 +1,1 @@
-IntegerCostedByNumBytes -> IntegerCostedByNumBytes -> IntegerCostedByNumBytes -> BuiltinResult Natural
+Integer -> Integer -> Integer -> BuiltinResult Natural
