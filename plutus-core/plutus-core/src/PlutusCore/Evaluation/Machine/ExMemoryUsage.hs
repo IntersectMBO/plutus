@@ -260,9 +260,7 @@ memoryUsageBytes :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
 -- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
 -- keep this special case for the time being though.
-memoryUsageBytes 0 = 1
-memoryUsageBytes i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8)+ 1
--- memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
+memoryUsageBytes = memoryUsageInteger
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
 {-# OPAQUE memoryUsageBytes #-}
