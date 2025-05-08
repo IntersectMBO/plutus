@@ -633,7 +633,7 @@ runTwoArgumentModel
 ---------------- Three-argument costing functions ----------------
 
 data ModelThreeArguments =
-  ModelThreeArgumentsConstantCost             CostingInteger
+    ModelThreeArgumentsConstantCost           CostingInteger
   | ModelThreeArgumentsLinearInX              OneVariableLinearFunction
   | ModelThreeArgumentsLinearInY              OneVariableLinearFunction
   | ModelThreeArgumentsLinearInZ              OneVariableLinearFunction
