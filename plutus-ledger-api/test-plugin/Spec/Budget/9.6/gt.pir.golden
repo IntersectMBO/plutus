@@ -43,104 +43,6 @@ let
 in
 letrec
   !go :
-     List
-       (Tuple2
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring (These integer integer))) ->
-     Bool
-    = \(ds :
-          List
-            (Tuple2
-               bytestring
-               ((\k v -> List (Tuple2 k v))
-                  bytestring
-                  (These integer integer)))) ->
-        List_match
-          {Tuple2
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring (These integer integer))}
-          ds
-          {all dead. Bool}
-          (/\dead -> True)
-          (\(ds :
-               Tuple2
-                 bytestring
-                 ((\k v -> List (Tuple2 k v))
-                    bytestring
-                    (These integer integer)))
-            (xs :
-               List
-                 (Tuple2
-                    bytestring
-                    ((\k v -> List (Tuple2 k v))
-                       bytestring
-                       (These integer integer)))) ->
-             letrec
-               !go : List (Tuple2 bytestring (These integer integer)) -> Bool
-                 = \(ds : List (Tuple2 bytestring (These integer integer))) ->
-                     List_match
-                       {Tuple2 bytestring (These integer integer)}
-                       ds
-                       {all dead. Bool}
-                       (/\dead -> go xs)
-                       (\(ds : Tuple2 bytestring (These integer integer))
-                         (xs :
-                            List (Tuple2 bytestring (These integer integer))) ->
-                          /\dead ->
-                            Tuple2_match
-                              {bytestring}
-                              {These integer integer}
-                              ds
-                              {Bool}
-                              (\(ds : bytestring) (x : These integer integer) ->
-                                 Bool_match
-                                   (These_match
-                                      {integer}
-                                      {integer}
-                                      x
-                                      {Bool}
-                                      (\(b : integer) ->
-                                         ifThenElse
-                                           {Bool}
-                                           (lessThanInteger 0 b)
-                                           False
-                                           True)
-                                      (\(a : integer) (b : integer) ->
-                                         ifThenElse
-                                           {Bool}
-                                           (lessThanInteger a b)
-                                           False
-                                           True)
-                                      (\(a : integer) ->
-                                         ifThenElse
-                                           {Bool}
-                                           (lessThanInteger a 0)
-                                           False
-                                           True))
-                                   {all dead. Bool}
-                                   (/\dead -> go xs)
-                                   (/\dead -> False)
-                                   {all dead. dead}))
-                       {all dead. dead}
-             in
-             /\dead ->
-               Tuple2_match
-                 {bytestring}
-                 {(\k v -> List (Tuple2 k v))
-                    bytestring
-                    (These integer integer)}
-                 ds
-                 {Bool}
-                 (\(ds : bytestring)
-                   (x :
-                      (\k v -> List (Tuple2 k v))
-                        bytestring
-                        (These integer integer)) ->
-                    go x))
-          {all dead. dead}
-in
-letrec
-  !go :
      List (Tuple2 bytestring integer) ->
      List (Tuple2 bytestring (These integer integer))
     = \(ds : List (Tuple2 bytestring integer)) ->
@@ -282,68 +184,68 @@ let
                     {all dead. dead}
           in
           let
-            !rs' : List (Tuple2 k r)
-              = (let
-                    a = Tuple2 k r
-                  in
-                  \(p : a -> Bool) ->
-                    letrec
-                      !go : List a -> List a
-                        = \(ds : List a) ->
-                            List_match
-                              {a}
-                              ds
-                              {all dead. List a}
-                              (/\dead -> Nil {a})
-                              (\(x : a) (xs : List a) ->
-                                 /\dead ->
-                                   let
-                                     !xs : List a = go xs
-                                   in
-                                   Bool_match
-                                     (p x)
-                                     {all dead. List a}
-                                     (/\dead -> Cons {a} x xs)
-                                     (/\dead -> xs)
-                                     {all dead. dead})
-                              {all dead. dead}
-                    in
-                    \(eta : List a) -> go eta)
-                  (\(ds : Tuple2 k r) ->
-                     Tuple2_match
-                       {k}
-                       {r}
-                       ds
-                       {Bool}
-                       (\(c : k) ->
-                          letrec
-                            !go : List (Tuple2 k v) -> Bool
-                              = \(ds : List (Tuple2 k v)) ->
-                                  List_match
-                                    {Tuple2 k v}
-                                    ds
-                                    {all dead. Bool}
-                                    (/\dead -> True)
-                                    (\(x : Tuple2 k v)
-                                      (xs : List (Tuple2 k v)) ->
-                                       /\dead ->
-                                         Tuple2_match
-                                           {k}
-                                           {v}
-                                           x
-                                           {Bool}
-                                           (\(c' : k) (ds : v) ->
-                                              Bool_match
-                                                (`$dEq` c' c)
-                                                {all dead. Bool}
-                                                (/\dead -> False)
-                                                (/\dead -> go xs)
-                                                {all dead. dead}))
-                                    {all dead. dead}
-                          in
-                          \(ds : r) -> go ds))
-                  ds
-            !rs'' : List (Tuple2 k (These v r)) = go rs'
+            !rs'' : List (Tuple2 k (These v r))
+              = go
+                  ((let
+                       a = Tuple2 k r
+                     in
+                     \(p : a -> Bool) ->
+                       letrec
+                         !go : List a -> List a
+                           = \(ds : List a) ->
+                               List_match
+                                 {a}
+                                 ds
+                                 {all dead. List a}
+                                 (/\dead -> Nil {a})
+                                 (\(x : a) (xs : List a) ->
+                                    /\dead ->
+                                      let
+                                        !xs : List a = go xs
+                                      in
+                                      Bool_match
+                                        (p x)
+                                        {all dead. List a}
+                                        (/\dead -> Cons {a} x xs)
+                                        (/\dead -> xs)
+                                        {all dead. dead})
+                                 {all dead. dead}
+                       in
+                       \(eta : List a) -> go eta)
+                     (\(ds : Tuple2 k r) ->
+                        Tuple2_match
+                          {k}
+                          {r}
+                          ds
+                          {Bool}
+                          (\(c : k) ->
+                             letrec
+                               !go : List (Tuple2 k v) -> Bool
+                                 = \(ds : List (Tuple2 k v)) ->
+                                     List_match
+                                       {Tuple2 k v}
+                                       ds
+                                       {all dead. Bool}
+                                       (/\dead -> True)
+                                       (\(x : Tuple2 k v)
+                                         (xs : List (Tuple2 k v)) ->
+                                          /\dead ->
+                                            Tuple2_match
+                                              {k}
+                                              {v}
+                                              x
+                                              {Bool}
+                                              (\(c' : k) (ds : v) ->
+                                                 Bool_match
+                                                   (`$dEq` c' c)
+                                                   {all dead. Bool}
+                                                   (/\dead -> False)
+                                                   (/\dead -> go xs)
+                                                   {all dead. dead}))
+                                       {all dead. dead}
+                             in
+                             \(ds : r) -> go ds))
+                     ds)
           in
           letrec
             !go : List (Tuple2 k (These v r)) -> List (Tuple2 k (These v r))
@@ -358,10 +260,7 @@ let
                        /\dead -> Cons {Tuple2 k (These v r)} x (go xs))
                     {all dead. dead}
           in
-          let
-            !ls' : List (Tuple2 k (These v r)) = go ds
-          in
-          go ls'
+          go (go ds)
 in
 letrec
   !go :
@@ -476,6 +375,104 @@ letrec
                                    integer) ->
                                go a))))
                  (go xs))
+          {all dead. dead}
+in
+letrec
+  !go :
+     List
+       (Tuple2
+          bytestring
+          ((\k v -> List (Tuple2 k v)) bytestring (These integer integer))) ->
+     Bool
+    = \(ds :
+          List
+            (Tuple2
+               bytestring
+               ((\k v -> List (Tuple2 k v))
+                  bytestring
+                  (These integer integer)))) ->
+        List_match
+          {Tuple2
+             bytestring
+             ((\k v -> List (Tuple2 k v)) bytestring (These integer integer))}
+          ds
+          {all dead. Bool}
+          (/\dead -> True)
+          (\(ds :
+               Tuple2
+                 bytestring
+                 ((\k v -> List (Tuple2 k v))
+                    bytestring
+                    (These integer integer)))
+            (xs :
+               List
+                 (Tuple2
+                    bytestring
+                    ((\k v -> List (Tuple2 k v))
+                       bytestring
+                       (These integer integer)))) ->
+             letrec
+               !go : List (Tuple2 bytestring (These integer integer)) -> Bool
+                 = \(ds : List (Tuple2 bytestring (These integer integer))) ->
+                     List_match
+                       {Tuple2 bytestring (These integer integer)}
+                       ds
+                       {all dead. Bool}
+                       (/\dead -> go xs)
+                       (\(ds : Tuple2 bytestring (These integer integer))
+                         (xs :
+                            List (Tuple2 bytestring (These integer integer))) ->
+                          /\dead ->
+                            Tuple2_match
+                              {bytestring}
+                              {These integer integer}
+                              ds
+                              {Bool}
+                              (\(ds : bytestring) (x : These integer integer) ->
+                                 Bool_match
+                                   (These_match
+                                      {integer}
+                                      {integer}
+                                      x
+                                      {Bool}
+                                      (\(b : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger 0 b)
+                                           False
+                                           True)
+                                      (\(a : integer) (b : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger a b)
+                                           False
+                                           True)
+                                      (\(a : integer) ->
+                                         ifThenElse
+                                           {Bool}
+                                           (lessThanInteger a 0)
+                                           False
+                                           True))
+                                   {all dead. Bool}
+                                   (/\dead -> go xs)
+                                   (/\dead -> False)
+                                   {all dead. dead}))
+                       {all dead. dead}
+             in
+             /\dead ->
+               Tuple2_match
+                 {bytestring}
+                 {(\k v -> List (Tuple2 k v))
+                    bytestring
+                    (These integer integer)}
+                 ds
+                 {Bool}
+                 (\(ds : bytestring)
+                   (x :
+                      (\k v -> List (Tuple2 k v))
+                        bytestring
+                        (These integer integer)) ->
+                    go x))
           {all dead. dead}
 in
 let
@@ -759,31 +756,15 @@ in
       bytestring
       ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
   Bool_match
-    (let
-      !m :
-         List
-           (Tuple2
-              bytestring
-              ((\k v -> List (Tuple2 k v)) bytestring (These integer integer)))
-        = let
-          !mp :
-             List
-               (Tuple2
-                  bytestring
-                  (These
-                     ((\k v -> List (Tuple2 k v)) bytestring integer)
-                     ((\k v -> List (Tuple2 k v)) bytestring integer)))
-            = union
-                {bytestring}
-                {(\k v -> List (Tuple2 k v)) bytestring integer}
-                {(\k v -> List (Tuple2 k v)) bytestring integer}
-                equalsByteString
-                l
-                r
-        in
-        go mp
-    in
-    go m)
+    (go
+       (go
+          (union
+             {bytestring}
+             {(\k v -> List (Tuple2 k v)) bytestring integer}
+             {(\k v -> List (Tuple2 k v)) bytestring integer}
+             equalsByteString
+             l
+             r)))
     {all dead. Bool}
     (/\dead ->
        Bool_match

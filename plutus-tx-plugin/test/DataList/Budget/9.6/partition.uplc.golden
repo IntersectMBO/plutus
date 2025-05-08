@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\go l -> force go l)
+   (force
       ((\s -> s s)
          (\s arg ->
             delay

@@ -9,6 +9,16 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
+  !go : integer -> List integer
+    = \(n : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
+          {all dead. dead}
+in
+letrec
   !go : List integer -> Bool
     = \(ds : List integer) ->
         List_match
@@ -26,17 +36,4 @@ letrec
                  {all dead. dead})
           {all dead. dead}
 in
-letrec
-  !go : integer -> List integer
-    = \(n : integer) ->
-        Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
-          {all dead. dead}
-in
-let
-  !ls : List integer = go 1000
-in
-go ls
+go (go 1000)

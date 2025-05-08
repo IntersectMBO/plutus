@@ -51,10 +51,7 @@ let
                                       /\dead -> Cons {b} x (go xs))
                                    {all dead. dead}
                          in
-                         let
-                           !l : List b = f x
-                         in
-                         go l)
+                         go (f x))
                     {all dead. dead}
           in
           \(eta : List a) -> go eta
@@ -814,36 +811,26 @@ let
   !filter :
      all a.
        (\a -> data -> a) a ->
-       (\a -> a -> data) a ->
        (a -> Bool) ->
        (\a -> list data) a ->
        (\a -> list data) a
     = /\a ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) a)
-         (`$dToData` : (\a -> a -> data) a)
-         (pred : a -> Bool) ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (pred : a -> Bool) ->
           letrec
-            !go : (\a -> list data) a -> (\a -> list data) a
-              = \(ds : (\a -> list data) a) ->
+            !go : list data -> list data
+              = \(xs : list data) ->
                   caseList'
                     {data}
-                    {(\a -> list data) a}
+                    {list data}
                     []
-                    (\(x : data) (eta : list data) ->
-                       let
-                         !h : a = `$dUnsafeFromData` x
-                       in
+                    (\(h : data) (t : list data) ->
                        Bool_match
-                         (pred h)
-                         {all dead. (\a -> list data) a}
-                         (/\dead ->
-                            let
-                              !nt : list data = go eta
-                            in
-                            mkCons {data} (`$dToData` h) nt)
-                         (/\dead -> go eta)
+                         (pred (`$dUnsafeFromData` h))
+                         {all dead. list data}
+                         (/\dead -> mkCons {data} h (go t))
+                         (/\dead -> go t)
                          {all dead. dead})
-                    ds
+                    xs
           in
           \(eta : (\a -> list data) a) -> go eta
   !member :
@@ -874,8 +861,7 @@ let
           \(ds : (\k a -> list (pair data data)) k a) -> go ds
   !null : all a. (\a -> list data) a -> Bool
     = /\a ->
-        \(eta : (\a -> list data) a) ->
-          ifThenElse {Bool} (nullList {data} eta) True False
+        \(l : list data) -> ifThenElse {Bool} (nullList {data} l) True False
   !txOutRefId : data -> bytestring
     = \(ds : data) ->
         unBData
@@ -988,7 +974,6 @@ in
                      (filter
                         {data}
                         `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                        (\(x : data) -> x)
                         (\(x : data) ->
                            let
                              !v : data
@@ -1061,7 +1046,6 @@ in
                           (filter
                              {data}
                              `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                             (\(x : data) -> x)
                              (\(v : data) ->
                                 let
                                   !eta : data

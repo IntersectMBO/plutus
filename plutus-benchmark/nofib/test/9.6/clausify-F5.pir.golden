@@ -1,15 +1,38 @@
-(let
-    data Unit | Unit_match where
-      Unit : Unit
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
+(letrec
+    data Formula | Formula_match where
+      Con : Formula -> Formula -> Formula
+      Dis : Formula -> Formula -> Formula
+      Eqv : Formula -> Formula -> Formula
+      Imp : Formula -> Formula -> Formula
+      Not : Formula -> Formula
+      Sym : integer -> Formula
   in
   letrec
     data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
   in
+  letrec
+    !split' : Formula -> List Formula -> List Formula
+      = \(ds : Formula) (a : List Formula) ->
+          let
+            !defaultBody : List Formula = Cons {Formula} ds a
+          in
+          Formula_match
+            ds
+            {List Formula}
+            (\(p : Formula) (q : Formula) -> split' p (split' q a))
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) -> defaultBody)
+            (\(default_arg0 : integer) -> defaultBody)
+  in
   let
+    data Unit | Unit_match where
+      Unit : Unit
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
     !fail : unit -> Tuple2 (List integer) (List integer)
       = \(ds : unit) ->
           Unit_match
@@ -82,15 +105,6 @@
                (/\dead -> x)
                (/\dead -> y)
                {all dead. dead})
-  in
-  letrec
-    data Formula | Formula_match where
-      Con : Formula -> Formula -> Formula
-      Dis : Formula -> Formula -> Formula
-      Eqv : Formula -> Formula -> Formula
-      Imp : Formula -> Formula -> Formula
-      Not : Formula -> Formula
-      Sym : integer -> Formula
   in
   letrec
     !insert : all t. Ord t -> t -> List t -> List t
@@ -705,22 +719,6 @@
                    {all dead. dead})
             {all dead. dead}
   in
-  letrec
-    !split' : Formula -> List Formula -> List Formula
-      = \(ds : Formula) (a : List Formula) ->
-          let
-            !defaultBody : List Formula = Cons {Formula} ds a
-          in
-          Formula_match
-            ds
-            {List Formula}
-            (\(p : Formula) (q : Formula) -> split' p (split' q a))
-            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
-            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
-            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
-            (\(default_arg0 : Formula) -> defaultBody)
-            (\(default_arg0 : integer) -> defaultBody)
-  in
   let
     data StaticFormula | StaticFormula_match where
       F : StaticFormula
@@ -857,55 +855,50 @@
             (\(default_arg0 : integer) -> ds)
   in
   \(eta : StaticFormula) ->
-    let
-      !a : List Formula
-        = let
-          !p : Formula
-            = disin
-                (negin
-                   (elim
-                      (StaticFormula_match
-                         eta
-                         {all dead. Formula}
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Sym 1))
-                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
-                              (Eqv (Eqv (Sym 4) (Sym 5)) (Eqv (Sym 6) (Sym 7))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                              (Eqv
-                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                                 (Eqv (Sym 1) (Sym 1))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                              (Eqv
-                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
-                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))))
-                         (/\dead ->
-                            Eqv
-                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
-                              (Eqv
-                                 (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
-                                 (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9)))))
-                         {all dead. dead})))
-        in
-        split' p (Nil {Formula})
-    in
-    go a)
+    go
+      (split'
+         (disin
+            (negin
+               (elim
+                  (StaticFormula_match
+                     eta
+                     {all dead. Formula}
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Sym 1))
+                          (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                          (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                          (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                          (Eqv (Eqv (Sym 4) (Sym 5)) (Eqv (Sym 6) (Sym 7))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                          (Eqv
+                             (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                             (Eqv (Sym 1) (Sym 1))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                          (Eqv
+                             (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                             (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))))
+                     (/\dead ->
+                        Eqv
+                          (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                          (Eqv
+                             (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
+                             (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9)))))
+                     {all dead. dead}))))
+         (Nil {Formula})))
   (let
     data `PlutusBenchmark.NoFib.Clausify.StaticFormula` | `match_PlutusBenchmark.NoFib.Clausify.StaticFormula` where
       `PlutusBenchmark.NoFib.Clausify.F1` :

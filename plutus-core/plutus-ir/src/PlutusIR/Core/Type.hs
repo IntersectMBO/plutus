@@ -29,6 +29,8 @@ module PlutusIR.Core.Type
   , progAnn
   , progVer
   , progTerm
+  , isTypeBind
+  , isTermBind
   ) where
 
 import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
@@ -256,3 +258,9 @@ bindingAnn = \case
   TermBind a _ _ _ -> a
   TypeBind a _ _   -> a
   DatatypeBind a _ -> a
+
+isTypeBind :: Binding tyname name uni fun a -> Bool
+isTypeBind = \case TypeBind{} -> True; _ -> False
+
+isTermBind :: Binding tyname name uni fun a -> Bool
+isTermBind = \case TermBind{} -> True; _ -> False

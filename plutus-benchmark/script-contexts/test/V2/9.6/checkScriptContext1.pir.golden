@@ -753,40 +753,37 @@
               (equalsInteger
                  0
                  (modInteger
-                    (let
-                      !eta : List TxOut
-                        = TxInfo_match
-                            ipv
-                            {List TxOut}
-                            (\(ds : List TxInInfo)
-                              (ds : List TxInInfo)
-                              (ds : List TxOut)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   bytestring
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer))
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   bytestring
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer))
-                              (ds : List DCert)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   StakingCredential
-                                   integer)
-                              (ds : Interval integer)
-                              (ds : List bytestring)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v)) ScriptPurpose data)
-                              (ds : (\k v -> List (Tuple2 k v)) bytestring data)
-                              (ds : bytestring) ->
-                               ds)
-                    in
-                    go eta)
+                    (go
+                       (TxInfo_match
+                          ipv
+                          {List TxOut}
+                          (\(ds : List TxInInfo)
+                            (ds : List TxInInfo)
+                            (ds : List TxOut)
+                            (ds :
+                               (\k v -> List (Tuple2 k v))
+                                 bytestring
+                                 ((\k v -> List (Tuple2 k v))
+                                    bytestring
+                                    integer))
+                            (ds :
+                               (\k v -> List (Tuple2 k v))
+                                 bytestring
+                                 ((\k v -> List (Tuple2 k v))
+                                    bytestring
+                                    integer))
+                            (ds : List DCert)
+                            (ds :
+                               (\k v -> List (Tuple2 k v))
+                                 StakingCredential
+                                 integer)
+                            (ds : Interval integer)
+                            (ds : List bytestring)
+                            (ds :
+                               (\k v -> List (Tuple2 k v)) ScriptPurpose data)
+                            (ds : (\k v -> List (Tuple2 k v)) bytestring data)
+                            (ds : bytestring) ->
+                             ds)))
                     2))
               True
               False)

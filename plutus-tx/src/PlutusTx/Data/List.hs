@@ -60,6 +60,8 @@ module PlutusTx.Data.List (
     fromSOP,
 ) where
 
+import PlutusPrelude (coerceArg, coerceVia)
+
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.Internal (BuiltinList)
 import PlutusTx.Builtins.Internal qualified as BI
@@ -77,8 +79,9 @@ import Prelude qualified as Haskell
 
 -- | A list type backed directly by 'Data'. It is meant to be used whenever fast
 -- encoding/decoding to/from 'Data' is needed.
-newtype List a = List (BuiltinList BuiltinData)
-  deriving stock (Haskell.Show, Haskell.Eq)
+newtype List a = List
+  { unList :: BuiltinList BuiltinData
+  } deriving stock (Haskell.Show, Haskell.Eq)
 
 instance Eq (List a) where
     {-# INLINEABLE (==) #-}
@@ -86,7 +89,7 @@ instance Eq (List a) where
 
 instance ToData (List a) where
     {-# INLINEABLE toBuiltinData #-}
-    toBuiltinData (List l) = BI.mkList l
+    toBuiltinData = coerceVia (. unList) BI.mkList
 
 instance FromData (List a) where
     {-# INLINEABLE fromBuiltinData #-}
@@ -94,7 +97,7 @@ instance FromData (List a) where
 
 instance UnsafeFromData (List a) where
     {-# INLINEABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData = List . BI.unsafeDataAsList
+    unsafeFromBuiltinData = coerceVia (List .) BI.unsafeDataAsList
 
 instance (UnsafeFromData a, Pretty a) => Pretty (List a) where
     {-# INLINEABLE pretty #-}
@@ -139,7 +142,7 @@ caseList
   -> List a
   -> r
 -- See Note [Making the cons case non-strict in caseList and caseList']
-caseList n ~c (List l) = B.caseList n (\x -> c (unsafeFromBuiltinData x) . List) l
+caseList n ~c = coerceArg $ B.caseList n (coerceArg . c . unsafeFromBuiltinData)
 {-# INLINEABLE caseList #-}
 
 {-| Like `caseList`, except the nil case takes an `r` directly, which is evaluated strictly.
@@ -156,17 +159,17 @@ caseList'
   -> List a
   -> r
 -- See Note [Making the cons case non-strict in caseList and caseList']
-caseList' n ~c (List l) = B.caseList' n (\x -> c (unsafeFromBuiltinData x) . List) l
+caseList' n ~c = coerceArg $ B.caseList' n (coerceArg . c . unsafeFromBuiltinData)
 {-# INLINEABLE caseList' #-}
 
 null :: List a -> Bool
-null = B.null . coerce @_ @(BuiltinList BuiltinData)
+null = coerceVia (. unList) B.null
 {-# INLINEABLE null #-}
 
 -- | Prepend an element to the list.
 infixr 5 <|
 (<|) :: (ToData a) => a -> List a -> List a
-(<|) h = coerce . BI.mkCons (toBuiltinData h) . coerce
+(<|) h = coerce $ BI.mkCons (toBuiltinData h)
 {-# INLINEABLE (<|) #-}
 
 -- | Synonym for `<|`.
@@ -217,7 +220,7 @@ findIndices pred' = go 0
   where
     go i =
         caseList'
-            mempty
+            nil
             (\h t ->
                 let indices = go (B.addInteger 1 i) t
                  in if pred' h
@@ -229,15 +232,14 @@ findIndices pred' = go 0
 -- | Filter a list using a predicate.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
-filter :: (UnsafeFromData a, ToData a) => (a -> Bool) -> List a -> List a
-filter pred1 = go
+filter :: forall a. (UnsafeFromData a) => (a -> Bool) -> List a -> List a
+filter pred1 = coerce go
   where
-    go =
-        caseList'
-            mempty
-            (\h t ->
-                if pred1 h then h <| go t else go t
-            )
+    go = \xs ->
+        B.caseList'
+            B.mkNil
+            (\h t -> if pred1 (unsafeFromBuiltinData h) then BI.mkCons h (go t) else go t)
+            xs
 {-# INLINEABLE filter #-}
 
 -- | Map a function over a list and discard the results that are 'Nothing'.
@@ -249,7 +251,7 @@ mapMaybe f = go
   where
     go =
         caseList'
-            mempty
+            nil
             (\h t ->
                 case f h of
                     Just b  -> b <| go t
@@ -298,21 +300,17 @@ foldMap f = go
 -- that are expensive to decode from 'BuiltinData', or if the result of applying
 -- 'f' is expensive to encode to 'BuiltinData'.
 map :: (UnsafeFromData a, ToData b) => (a -> b) -> List a -> List b
-map f = coerce go
+map f = go
   where
     go =
         caseList'
-            B.mkNil
-            (\h t ->
-                BI.mkCons
-                    (toBuiltinData $ f h)
-                    (go t)
-            )
+            nil
+            (\h t -> f h <| go t)
 {-# INLINEABLE map #-}
 
 -- | Get the length of a list.
 length :: List a -> Integer
-length (List l) = go l
+length = coerceVia (. unList) go
   where
     go = BI.caseList' 0 (\_ -> B.addInteger 1 . go)
 {-# INLINEABLE length #-}
@@ -352,7 +350,7 @@ and = go
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 or :: List Bool -> Bool
-or = go . coerce
+or = go
   where
     go =
         caseList'
@@ -364,13 +362,12 @@ or = go . coerce
 -- Note: this function can leverage the better performance of equality checks
 -- for 'BuiltinData'.
 elem :: (ToData a) => a -> List a -> Bool
-elem x = go . coerce
+elem (toBuiltinData -> x) = coerce go
   where
     go =
-        let x' = toBuiltinData x
-        in B.caseList'
+        B.caseList'
             False
-            (\h t -> x' == h || go t)
+            (\h t -> x == h || go t)
 {-# INLINEABLE elem #-}
 
 -- | Check if an element is not in the list.
@@ -382,32 +379,29 @@ notElem x = not . elem x
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 foldr :: (UnsafeFromData a) => (a -> b -> b) -> b -> List a -> b
-foldr f z = go z . coerce
+foldr f z = go
   where
-    go u =
-        B.caseList'
-            u
-            (\h -> f (unsafeFromBuiltinData h) . go u)
+    go =
+        caseList'
+            z
+            (\h -> f h . go)
 {-# INLINEABLE foldr #-}
 
 -- | Fold a list from the left.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 foldl :: (UnsafeFromData a) => (b -> a -> b) -> b -> List a -> b
-foldl f z = go z . coerce
+foldl f z = go z
   where
     go acc =
-        B.caseList'
+        caseList'
             acc
-            (\h t ->
-                let h' = unsafeFromBuiltinData h
-                in go (f acc h') t
-            )
+            (\h -> go (f acc h))
 {-# INLINEABLE foldl #-}
 
 -- | Flatten a list of lists into a single list.
 concat :: List (List a) -> List a
-concat = foldr append mempty
+concat = foldr append nil
 {-# INLINEABLE concat #-}
 
 -- | Map a function over a list and concatenate the results.
@@ -452,7 +446,8 @@ infixl 9 !!
 
 -- | Append two lists in reverse order.
 revAppend :: List a -> List a -> List a
-revAppend (List l) (List l') = List $ rev l l'
+revAppend =
+    coerce @(BuiltinList BuiltinData -> BuiltinList BuiltinData -> BuiltinList BuiltinData) rev
   where
     rev l1 l2 =
         B.caseList'
@@ -463,7 +458,7 @@ revAppend (List l) (List l') = List $ rev l l'
 
 -- | Reverse a list.
 reverse :: List a -> List a
-reverse l = revAppend l mempty
+reverse l = revAppend l nil
 {-# INLINEABLE reverse #-}
 
 -- | Replicate a value n times.
@@ -480,14 +475,12 @@ replicate n (toBuiltinData -> x) = coerce $ go n
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 findIndex :: (UnsafeFromData a) => (a -> Bool) -> List a -> Maybe Integer
-findIndex pred' = go 0 . coerce
+findIndex pred' = go 0
   where
     go i =
-        B.caseList'
+        caseList'
             Nothing
-            (\h t ->
-                if pred' (unsafeFromBuiltinData h) then Just i else go (B.addInteger 1 i) t
-            )
+            (\h t -> if pred' h then Just i else go (B.addInteger 1 i) t)
 {-# INLINEABLE findIndex #-}
 
 -- | Split a list of pairs into a pair of lists.
@@ -569,12 +562,12 @@ last =
 -- | Return the tail of a list.
 -- Warning: this is a partial function and will fail if the list is empty.
 tail :: forall a . List a -> List a
-tail = coerce @(BuiltinList BuiltinData) @(List a) . B.tail . coerce
+tail = coerce @(BuiltinList BuiltinData -> BuiltinList BuiltinData) B.tail
 {-# INLINEABLE tail #-}
 
 -- | Take the first n elements from the list.
 take :: forall a . Integer -> List a -> List a
-take n = coerce $ go n
+take = coerce go
   where
     go :: Integer -> BuiltinList BuiltinData -> BuiltinList BuiltinData
     go n' =
@@ -589,41 +582,31 @@ take n = coerce $ go n
 
 -- | Drop the first n elements from the list.
 drop :: forall a . Integer -> List a -> List a
-drop n = coerce $ go n
-  where
-    go :: Integer -> BuiltinList BuiltinData -> BuiltinList BuiltinData
-    go n' xs =
-        if n' <= 0
-            then xs
-            else
-                B.caseList'
-                    B.mkNil
-                    (\_ -> go (B.subtractInteger n' 1))
-                    xs
-{-# INLINEABLE drop #-}
+drop =
+    coerce
+        @(Integer -> BuiltinList BuiltinData -> BuiltinList BuiltinData)
+        BI.drop
+{-# INLINE drop #-}
 
 -- | Drop elements from the list while the predicate holds.
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 dropWhile :: forall a . (UnsafeFromData a) => (a -> Bool) -> List a -> List a
 dropWhile pred1 =
-    coerce @_ @(List a -> List a) $ go
+    go
   where
-    go :: BuiltinList BuiltinData -> BuiltinList BuiltinData
     go xs =
-        B.caseList'
-            B.mkNil
-            (\h t ->
-                if pred1 (unsafeFromBuiltinData h) then go t else xs
-            )
+        caseList'
+            nil
+            (\h t -> if pred1 h then go t else xs)
             xs
 {-# INLINEABLE dropWhile #-}
 
 -- | Split a list at a given index.
 splitAt :: forall a . Integer -> List a -> (List a, List a)
-splitAt n l =
-    coerce $ go n (coerce @_ @(BuiltinList BuiltinData) l)
+splitAt = coerce go
   where
+    go :: Integer -> BuiltinList BuiltinData -> (BuiltinList BuiltinData, BuiltinList BuiltinData)
     go n' xs =
         if n' <= 0
             then (B.mkNil, xs)
@@ -631,11 +614,8 @@ splitAt n l =
                 B.caseList'
                     (B.mkNil, B.mkNil)
                     (\h t ->
-                        if B.equalsInteger n' 0
-                            then (B.mkNil, coerce @_ @(BuiltinList BuiltinData) l)
-                            else
-                                let (l1, l2) = go (B.subtractInteger n' 1) t
-                                in (BI.mkCons h l1, l2)
+                        let (l1, l2) = go (B.subtractInteger n' 1) t
+                        in (BI.mkCons h l1, l2)
                     )
                     xs
 {-# INLINEABLE splitAt #-}
@@ -644,12 +624,12 @@ splitAt n l =
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 elemBy :: (UnsafeFromData a) => (a -> a -> Bool) -> a -> List a -> Bool
-elemBy pred2 x = go . coerce
+elemBy pred2 x = go
   where
     go =
-        B.caseList'
+        caseList'
             False
-            (\h t -> pred2 (unsafeFromBuiltinData h) x || go t)
+            (\h t -> pred2 h x || go t)
 {-# INLINEABLE elemBy #-}
 
 -- | Removes elements from the list that satisfy a binary predicate.
@@ -681,16 +661,14 @@ nub = nubBy (==)
 -- Warning: this function can be very inefficient if the list contains elements
 -- that are expensive to decode from 'BuiltinData'.
 partition :: (UnsafeFromData a) => (a -> Bool) -> List a -> (List a, List a)
-partition pred1 l =
-    coerce $ go (coerce l)
+partition pred1 = coerce go
   where
     go =
         B.caseList'
             (B.mkNil, B.mkNil)
             (\h t ->
-                let h' = unsafeFromBuiltinData h
-                    (l1, l2) = go t
-                in if pred1 h'
+                let (l1, l2) = go t
+                in if pred1 (unsafeFromBuiltinData h)
                     then (h `BI.mkCons` l1, l2)
                     else (l1, h `BI.mkCons` l2)
             )

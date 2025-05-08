@@ -35,4 +35,4 @@ letrec
                      Tuple2 {list data} {list data} ipv (mkCons {data} h ipv))
                   {all dead. dead}))
 in
-\(l : (\a -> list data) integer) -> go l
+go

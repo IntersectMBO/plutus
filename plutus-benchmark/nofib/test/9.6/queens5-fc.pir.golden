@@ -834,26 +834,17 @@
                                                                                        {all dead.
                                                                                           dead}
                                                                              in
-                                                                             let
-                                                                               !eta :
-                                                                                  List
-                                                                                    integer
-                                                                                 = interval
-                                                                                     1
-                                                                                     ds
-                                                                             in
                                                                              go
-                                                                               eta))
+                                                                               (interval
+                                                                                  1
+                                                                                  ds)))
                                                                      ds)
                                                               {all dead. dead}
                                                     in
-                                                    let
-                                                      !eta : List integer
-                                                        = interval
-                                                            (addInteger 1 var')
-                                                            ds
-                                                    in
-                                                    go eta)))))
+                                                    go
+                                                      (interval
+                                                         (addInteger 1 var')
+                                                         ds))))))
                            {all dead. dead})
                  in
                  letrec
@@ -972,11 +963,7 @@
                                                               c Unknown ds)
                                                          {all dead. dead}
                                                in
-                                               let
-                                                 !eta : List integer
-                                                   = interval 1 ds
-                                               in
-                                               go eta)
+                                               go (interval 1 ds))
                                              (\(ds : ConflictSet)
                                                (ds : List ConflictSet) ->
                                                 Cons {ConflictSet} ds ds)
@@ -984,10 +971,7 @@
                                           ds)
                                    {all dead. dead}
                          in
-                         let
-                           !eta : List integer = interval 1 ds
-                         in
-                         go eta)))
+                         go (interval 1 ds))))
   in
   letrec
     !go : integer -> List ConflictSet -> ConflictSet
@@ -1139,6 +1123,18 @@
     !leaves : all a. Tree a -> List a
       = /\a ->
           letrec
+            !go : List (Tree a) -> List (List a)
+              = \(ds : List (Tree a)) ->
+                  List_match
+                    {Tree a}
+                    ds
+                    {all dead. List (List a)}
+                    (/\dead -> Nil {List a})
+                    (\(x : Tree a) (xs : List (Tree a)) ->
+                       /\dead -> Cons {List a} (leaves {a} x) (go xs))
+                    {all dead. dead}
+          in
+          letrec
             !go : List (List a) -> List a
               = \(ds : List (List a)) ->
                   List_match
@@ -1166,18 +1162,6 @@
                          go x)
                     {all dead. dead}
           in
-          letrec
-            !go : List (Tree a) -> List (List a)
-              = \(ds : List (Tree a)) ->
-                  List_match
-                    {Tree a}
-                    ds
-                    {all dead. List (List a)}
-                    (/\dead -> Nil {List a})
-                    (\(x : Tree a) (xs : List (Tree a)) ->
-                       /\dead -> Cons {List a} (leaves {a} x) (go xs))
-                    {all dead. dead}
-          in
           \(ds : Tree a) ->
             Tree_match
               {a}
@@ -1196,7 +1180,7 @@
                         (\(ds : a) (ds : List a) -> Cons {a} ds ds)
                         (Nil {a}))
                    (\(ipv : Tree a) (ipv : List (Tree a)) ->
-                      /\dead -> let !eta : List (List a) = go ds in go eta)
+                      /\dead -> go (go ds))
                    {all dead. dead})
   in
   letrec

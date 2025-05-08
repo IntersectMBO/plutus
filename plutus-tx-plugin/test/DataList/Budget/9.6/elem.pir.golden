@@ -24,4 +24,4 @@ letrec
                {all dead. dead})
           {Bool}
 in
-\(eta : (\a -> list data) integer) -> go eta
+go

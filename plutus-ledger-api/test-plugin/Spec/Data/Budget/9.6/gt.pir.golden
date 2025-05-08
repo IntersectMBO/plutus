@@ -352,7 +352,6 @@ let
             let
               !goRight : list (pair data data) -> list (pair data data)
                 = goRight
-              !goLeft : list (pair data data) -> list (pair data data) = goLeft
             in
             safeAppend (goLeft ds) (goRight ds)
 in

@@ -4,10 +4,10 @@ let
     False : Bool
 in
 letrec
-  !go : (\a -> list data) integer -> (\a -> list data) integer
-    = \(ds : (\a -> list data) integer) ->
+  !go : list data -> list data
+    = \(xs : list data) ->
         (let
-            r = (\a -> list data) integer
+            r = list data
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
             chooseList
@@ -18,20 +18,13 @@ letrec
               (/\dead -> f (headList {data} xs) (tailList {data} xs))
               {r})
           []
-          (\(x : data) (eta : list data) ->
-             let
-               !h : integer = unIData x
-             in
+          (\(h : data) (t : list data) ->
              Bool_match
-               (ifThenElse {Bool} (lessThanInteger h 8) False True)
-               {all dead. (\a -> list data) integer}
-               (/\dead ->
-                  let
-                    !nt : list data = go eta
-                  in
-                  mkCons {data} (iData h) nt)
-               (/\dead -> go eta)
+               (ifThenElse {Bool} (lessThanInteger (unIData h) 8) False True)
+               {all dead. list data}
+               (/\dead -> mkCons {data} h (go t))
+               (/\dead -> go t)
                {all dead. dead})
-          ds
+          xs
 in
 \(eta : (\a -> list data) integer) -> go eta

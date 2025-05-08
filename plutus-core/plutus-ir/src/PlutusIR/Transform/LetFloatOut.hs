@@ -12,6 +12,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
+import PlutusIR.Core (isTypeBind)
 import PlutusIR.Purity
 import PlutusIR.Subst
 
@@ -497,9 +498,6 @@ hasNoEffects binfo vinfo = \case
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
     TermBind _ Strict _ t    -> isPure binfo vinfo t
-
-isTypeBind :: Binding tyname name uni fun a -> Bool
-isTypeBind = \case TypeBind{} -> True; _ -> False
 
 -- | Breaks down linear let nonrecs by
 -- the rule: {let nonrec (b:bs) in t} === {let nonrec b in let nonrec bs in t}

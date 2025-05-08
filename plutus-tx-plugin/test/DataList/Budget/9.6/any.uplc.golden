@@ -1,19 +1,18 @@
 (program
    1.1.0
-   ((\go eta -> go eta)
-      ((\s -> s s)
-         (\s ds ->
-            force
-              (force (force chooseList)
-                 ds
-                 (delay (constr 1 []))
-                 (delay
-                    ((\x ->
-                        (\eta ->
-                           force
-                             (force ifThenElse
-                                (lessThanInteger (unIData x) 8)
-                                (delay (s s eta))
-                                (delay (constr 0 []))))
-                          (force tailList ds))
-                       (force headList ds))))))))
+   ((\s -> s s)
+      (\s xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay (constr 1 []))
+              (delay
+                 ((\eta ->
+                     (\t ->
+                        force
+                          (force ifThenElse
+                             (lessThanInteger (unIData eta) 8)
+                             (delay (s s t))
+                             (delay (constr 0 []))))
+                       (force tailList xs))
+                    (force headList xs)))))))

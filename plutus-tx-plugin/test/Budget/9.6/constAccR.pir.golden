@@ -1,7 +1,22 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
+in
+letrec
+  !go : integer -> List integer
+    = \(n : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
+          {all dead. dead}
 in
 letrec
   !go : List integer -> integer
@@ -14,22 +29,4 @@ letrec
           (\(x : integer) (xs : List integer) -> /\dead -> go xs)
           {all dead. dead}
 in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
-letrec
-  !go : integer -> List integer
-    = \(n : integer) ->
-        Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
-          {all dead. dead}
-in
-let
-  !ls : List integer = go 1000
-in
-go ls
+go (go 1000)

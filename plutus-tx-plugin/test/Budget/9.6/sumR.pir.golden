@@ -30,7 +30,4 @@ letrec
              Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
           {all dead. dead}
 in
-let
-  !ls : List integer = `$fEnumBool_$cenumFromTo` 1 1000
-in
-go ls
+go (`$fEnumBool_$cenumFromTo` 1 1000)

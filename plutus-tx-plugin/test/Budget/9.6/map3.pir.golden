@@ -320,7 +320,6 @@ in
     !nt : list (pair data data)
       = let
         !goRight : list (pair data data) -> list (pair data data) = goRight
-        !goLeft : list (pair data data) -> list (pair data data) = goLeft
       in
       safeAppend (goLeft nt) (goRight nt)
   in

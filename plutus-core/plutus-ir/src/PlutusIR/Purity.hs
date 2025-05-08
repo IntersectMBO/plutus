@@ -25,13 +25,14 @@ import Data.List.NonEmpty qualified as NE
 import PlutusCore.Builtin (BuiltinMeaning (..), ToBuiltinMeaning (..), TypeScheme (..))
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy))
-import PlutusIR (Binding (TermBind), Name, Recursivity (NonRec, Rec),
-                 Strictness (NonStrict, Strict), Term (..), TyName)
+import PlutusIR (Binding (TermBind), Name, Recursivity (NonRec), Strictness (NonStrict, Strict),
+                 Term (..), TyName)
 import PlutusIR.Analysis.Builtins (BuiltinsInfo, biSemanticsVariant, builtinArityInfo)
 import PlutusIR.Analysis.VarInfo (VarInfo (DatatypeConstructor), VarsInfo, lookupVarInfo,
                                   varInfoStrictness)
 import PlutusIR.Contexts (AppContext (..), Saturation (Oversaturated, Saturated, Undersaturated),
                           fillAppContext, saturates, splitApplication)
+import PlutusIR.Core (isTermBind, isTypeBind)
 import Prettyprinter (vsep, (<+>))
 
 saturatesScheme :: AppContext tyname name uni fun a -> TypeScheme val args res -> Maybe Bool
@@ -140,17 +141,20 @@ termEvaluationOrder binfo vinfo = goTerm
  where
   goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
   goTerm = \case
-    t@(Let _ NonRec bs b) ->
-      -- first the bindings, in order
-      goBindings (NE.toList bs)
-        -- then the body
-        <> goTerm b
-        -- then the whole term, which will lead to applications (so work)
-        <> evalThis (EvalTerm Pure MaybeWork t)
-    Let _ Rec _ _ ->
-      -- Hard to know what gets evaluated first in a recursive let-binding,
-      -- just give up
-      evalThis Unknown
+    t@(Let _ rec bs b) ->
+      if rec == NonRec || length (filter isTermBind $ NE.toList bs) <= 1
+        then
+          -- first the bindings, in order
+          goBindings (NE.toList bs)
+            -- then the body
+            <> goTerm b
+            -- then the whole term, which will lead to applications (so work, unless it's just type
+            -- applications compiling to force-delay pairs).
+            <> evalThis (EvalTerm Pure (if all isTypeBind bs then WorkFree else MaybeWork) t)
+        else
+          -- Hard to know what gets evaluated first in a mutually recursive let-binding,
+          -- just give up
+          evalThis Unknown
     -- If we can view as a builtin application, then handle that specially
     (splitApplication -> (Builtin a fun, args)) -> goBuiltinApp a fun args
     -- If we can view as a constructor application, then handle that specially.

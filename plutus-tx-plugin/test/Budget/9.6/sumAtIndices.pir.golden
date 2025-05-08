@@ -1,10 +1,10 @@
-\(d-1579 : data) ->
+\(d-1484 : data) ->
   let
-    !nt-1580 : list data = tailList {data} (unListData d-1579)
-    !s-1581 : integer = unIData (headList {data} nt-1580)
-    !nt-1582 : list data
-      = tailList {data} (tailList {data} (tailList {data} nt-1580))
-    !s-1583 : integer = unIData (headList {data} nt-1582)
-    !s-1584 : integer = unIData (headList {data} (tailList {data} nt-1582))
+    !nt-1485 : list data = tailList {data} (unListData d-1484)
+    !s-1486 : integer = unIData (headList {data} nt-1485)
+    !nt-1487 : list data
+      = tailList {data} (tailList {data} (tailList {data} nt-1485))
+    !s-1488 : integer = unIData (headList {data} nt-1487)
+    !s-1489 : integer = unIData (headList {data} (tailList {data} nt-1487))
   in
-  addInteger (addInteger s-1581 s-1583) s-1584
+  addInteger (addInteger s-1486 s-1488) s-1489

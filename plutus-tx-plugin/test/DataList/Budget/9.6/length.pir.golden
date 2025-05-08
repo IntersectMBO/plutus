@@ -13,4 +13,4 @@ letrec
              addInteger 1 (go (tailList {data} xs)))
           {integer}
 in
-\(ds : (\a -> list data) integer) -> go ds
+go

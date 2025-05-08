@@ -2,20 +2,17 @@
    1.1.0
    ((\go eta -> go eta)
       ((\s -> s s)
-         (\s ds ->
+         (\s xs ->
             force
               (force (force chooseList)
-                 ds
+                 xs
                  (delay [])
                  (delay
-                    ((\eta ->
-                        (\h ->
-                           force
-                             (force ifThenElse
-                                (lessThanInteger h 8)
-                                (delay (s s eta))
-                                (delay
-                                   ((\nt -> force mkCons (iData h) nt)
-                                      (s s eta)))))
-                          (unIData (force headList ds)))
-                       (force tailList ds))))))))
+                    ((\h t ->
+                        force
+                          (force ifThenElse
+                             (lessThanInteger (unIData h) 8)
+                             (delay (s s t))
+                             (delay (force mkCons h (s s t)))))
+                       (force headList xs)
+                       (force tailList xs))))))))
