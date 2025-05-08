@@ -26,7 +26,7 @@ import PlutusTx.TH (compile)
 
 tests :: TestTree
 tests =
-  runTestNested ["test-plugin", "Spec", "Data", "SriptContext"] . pure . testNestedGhc $
+  runTestNested ["test-plugin", "Spec", "Data", "ScriptContext"] . pure . testNestedGhc $
     [ goldenPirReadable "alwaysSucceeds" compiledAlwaysSucceeds
     , goldenUPlcReadable "alwaysSucceeds" compiledAlwaysSucceeds
     , goldenPirReadable "succeedsIfHasDatum" compiledSucceedsIfHasDatum
