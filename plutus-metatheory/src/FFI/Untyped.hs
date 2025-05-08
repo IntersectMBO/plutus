@@ -25,7 +25,7 @@ data UTerm = UVar Integer
            | UForce UTerm
            | UConstr Integer [UTerm]
            | UCase UTerm [UTerm]
-           deriving Show
+           deriving (Eq, Show)
 
 unIndex :: Index -> Integer
 unIndex (Index n) = toInteger n
