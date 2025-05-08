@@ -47,8 +47,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes (..),
-                                                    IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
@@ -497,12 +496,6 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     MakeKnownIn DefaultUni term IntegerCostedLiterally
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term IntegerCostedLiterally
-deriving newtype instance
-    KnownTypeAst tyname DefaultUni IntegerCostedByNumBytes
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    MakeKnownIn DefaultUni term IntegerCostedByNumBytes
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
-    ReadKnownIn DefaultUni term IntegerCostedByNumBytes
 
 deriving via AsInteger Natural instance
     KnownTypeAst tyname DefaultUni Natural

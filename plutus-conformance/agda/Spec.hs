@@ -148,8 +148,7 @@ failingEvaluationTests =
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
   -- These currently fail because the Agda code doesn't know about the
-  -- IntegerCostedLiterally size measure used by `replicateByte` and `dropList`
-  -- or the IntegerCostedByNumBytes measure used by `expModInteger`.
+  -- IntegerCostedLiterally size measure used by `replicateByte` and `dropList`.
   [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
   , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
@@ -168,11 +167,6 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-01"
-  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-02"
-  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-03"
-  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-04"
-  , "test-cases/uplc/evaluation/builtin/semantics/expModInteger/expMod-05"
   , -- These "array" tests fail because the Agda code doesn't know about arrays yet
     -- TODO: remove these tests once "Add new array type and builtins to Agda
     -- metatheory" is done https://github.com/IntersectMBO/plutus-private/issues/1465

@@ -12,7 +12,6 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
-    , IntegerCostedByNumBytes(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -252,25 +251,6 @@ instance ExMemoryUsage Natural where
 
 instance ExMemoryUsage Word8 where
     memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
-
-{- | Calculate a 'CostingInteger' for the size of the given 'Integer', measured in
-   8-bit bytes. -}
-memoryUsageBytes :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1)
--- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
--- keep this special case for the time being though.
-memoryUsageBytes 0 = 1
-memoryUsageBytes i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8)+ 1
--- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
--- function anyway.
-{-# OPAQUE memoryUsageBytes #-}
-
-{- A wrapper to measure the size of an integer in bytes.  We use this for some
- builtins where a relatively high resolution is required for accurate costing. -}
-newtype IntegerCostedByNumBytes = IntegerCostedByNumBytes { unIntegerCostedByNumBytes :: Integer }
-instance ExMemoryUsage IntegerCostedByNumBytes where
-    memoryUsage (IntegerCostedByNumBytes n) = singletonRose $ memoryUsageBytes n
     {-# INLINE memoryUsage #-}
 
 {- | When invoking a built-in function, a value of type `NumBytesCostedAsNumWords`

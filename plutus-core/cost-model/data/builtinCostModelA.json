@@ -1153,9 +1153,9 @@
     "expModInteger": {
         "cpu": {
             "arguments": {
-                "coefficient00": 3757519,
-                "coefficient11": 3829,
-                "coefficient12": 115
+                "coefficient00": 607153,
+                "coefficient11": 231697,
+                "coefficient12": 53144
             },
             "type": "exp_mod_cost"
         },

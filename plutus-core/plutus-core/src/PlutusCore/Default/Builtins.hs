@@ -23,8 +23,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedByNumBytes (..),
-                                                    IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)
@@ -2023,17 +2022,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar ExpModInteger =
         let expModIntegerDenotation
-              :: IntegerCostedByNumBytes
-              -> IntegerCostedByNumBytes
-              -> IntegerCostedByNumBytes
+              :: Integer
+              -> Integer
+              -> Integer
               -> BuiltinResult Natural
-            expModIntegerDenotation
-              (IntegerCostedByNumBytes a)
-              (IntegerCostedByNumBytes b)
-              (IntegerCostedByNumBytes m) =
-                 if m < 0
-                 then fail "expModInteger: negative modulus"
-                 else ExpMod.expMod a b (naturalFromInteger m)
+            expModIntegerDenotation a b m =
+              if m < 0
+              then fail "expModInteger: negative modulus"
+              else ExpMod.expMod a b (naturalFromInteger m)
             {-# INLINE expModIntegerDenotation #-}
         in makeBuiltinMeaning
             expModIntegerDenotation

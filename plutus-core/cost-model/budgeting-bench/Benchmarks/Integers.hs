@@ -2,9 +2,7 @@ module Benchmarks.Integers (makeBenchmarks) where
 
 import Common
 import Generators
-
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes (..))
 
 import Criterion.Main
 import GHC.Num.Integer
@@ -82,11 +80,11 @@ benchExpModInteger _gen =
       -- This is the worst case.
 
   in bgroup (show fun)
-     [bgroup (showMemoryUsage (IntegerCostedByNumBytes (m `div` 3)))
-       [bgroup (showMemoryUsage (IntegerCostedByNumBytes e))
+     [bgroup (showMemoryUsage (m `div` 3))
+       [bgroup (showMemoryUsage e)
          [mkBM a e m | a <- [m `div` 3] ] | e <- es ] | m <- moduli ]
   where mkBM a e m =
-          benchDefault (showMemoryUsage (IntegerCostedByNumBytes m)) $
+          benchDefault (showMemoryUsage m) $
           mkApp3 ExpModInteger [] a e m
 
 makeBenchmarks :: StdGen -> [Benchmark]

@@ -37,7 +37,7 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes, IntegerCostedLiterally,
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally,
                                                     NumBytesCostedAsNumWords)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
@@ -116,7 +116,6 @@ smallConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @NumBytesCostedAsNumWords) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedLiterally) = SomeConst (0 :: Integer)
-    | Just HRefl <- eqTypeRep tr (typeRep @IntegerCostedByNumBytes) = SomeConst (0 :: Integer)
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeConst False
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeConst $ BS.pack []
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
