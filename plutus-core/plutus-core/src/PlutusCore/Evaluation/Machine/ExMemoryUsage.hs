@@ -262,7 +262,6 @@ memoryUsageBytes :: Integer -> CostingInteger
 -- keep this special case for the time being though.
 memoryUsageBytes 0 = 1
 memoryUsageBytes i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8)+ 1
--- memoryUsageBits i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
 -- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
 -- function anyway.
 {-# OPAQUE memoryUsageBytes #-}
