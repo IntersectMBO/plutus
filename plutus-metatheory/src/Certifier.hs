@@ -6,7 +6,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromJust)
 
-import FFI.AgdaUnparse (agdaUnparse)
+import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
 import FFI.Untyped (UTerm)
 
@@ -67,79 +67,108 @@ rawCertificate certName rawTrace =
   \\ncertificate = refl\
   \\n"
 
-type AstId = Int
 type EquivClass = Int
 
-data Ast = Ast
-  { astId      :: AstId
-  , equivClass :: Maybe EquivClass
-  , astTerm    :: UTerm
+newtype Representatives a = Representatives [a]
+
+data TermWithId = TermWithId
+  { termId :: Int
+  , term   :: UTerm
   }
 
-initAst :: AstId -> UTerm -> Ast
-initAst astId term =
-  Ast
-    { astId = astId
-    , equivClass = Nothing
-    , astTerm = term
-    }
+data Ast = Ast
+  { equivClass    :: EquivClass
+  , astTermWithId :: TermWithId
+  }
 
-unsafeEquivClass :: Ast -> EquivClass
-unsafeEquivClass ast =
-  case equivClass ast of
-    Just cl -> cl
-    Nothing -> error "EquivClass is missing."
+getTermId :: Ast -> Int
+getTermId Ast {astTermWithId = TermWithId {termId} } = termId
 
-mkAgdaTrace :: [(SimplifierStage, (UTerm, UTerm))] -> [(SimplifierStage, (EquivClass, EquivClass))]
-mkAgdaTrace sTrace =
-  let initTr = initAstTrace sTrace
-      allRawAsts = initTr >>= (\(stage, (before, after)) -> [before, after])
-      groupedAsts = findEquivClasses allRawAsts
-      processedAsts = groupedAsts >>= NE.toList
-      processedAstTrace = processAstTrace processedAsts initTr
-   in fmap (\(st, (bf, af)) -> (st, (unsafeEquivClass bf, unsafeEquivClass af))) processedAstTrace
+data Certificate = Certificate
+  { certName     :: String
+  , certTrace    :: [(SimplifierStage, (Ast, Ast))]
+  , certReprAsts :: Representatives Ast
+  }
 
-processAstTrace :: [Ast] -> [(SimplifierStage, (Ast, Ast))] -> [(SimplifierStage, (Ast, Ast))]
-processAstTrace _ [] = []
-processAstTrace allAsts ((stage, (rawBefore, rawAfter)) : rest) =
-  let Just processedBefore = find (\ast -> astId ast == astId rawBefore) allAsts
-      Just processedAfter = find (\ast -> astId ast == astId rawAfter) allAsts
-   in (stage, (processedBefore, processedAfter)) : processAstTrace allAsts rest
+instance AgdaUnparse Ast where
+  agdaUnparse Ast {equivClass} = "Ast" <> show equivClass
 
-initAstTrace :: [(SimplifierStage, (UTerm, UTerm))] -> [(SimplifierStage, (Ast, Ast))]
-initAstTrace sTrace = go 0 sTrace
+
+
+mkCertificate :: String -> [(SimplifierStage, (UTerm, UTerm))] -> Certificate
+mkCertificate certName rawTrace =
+  let traceWithIds = addIds rawTrace
+      allTermWithIds = extractTermWithIds traceWithIds
+      groupedAsts = findEquivClasses allTermWithIds
+      allAsts = groupedAsts >>= NE.toList
+      certTrace = mkAstTrace allAsts traceWithIds
+      certReprAsts = getRepresentatives groupedAsts
+   in Certificate
+        { certName
+        , certTrace
+        , certReprAsts
+        }
   where
-    go :: AstId -> [(SimplifierStage, (UTerm, UTerm))] -> [(SimplifierStage, (Ast, Ast))]
-    go _ [] = []
-    go astId ((stage, (before, after)) : rest) =
-      let beforeAst = initAst astId before
-          afterAst = initAst (astId + 1) after
-       in (stage, (beforeAst, afterAst)) : go (astId + 2) rest
+    addIds
+      :: [(SimplifierStage, (UTerm, UTerm))]
+      -> [(SimplifierStage, (TermWithId, TermWithId))]
+    addIds = go 0
+      where
+        go
+          :: Int
+          -> [(SimplifierStage, (UTerm, UTerm))]
+          -> [(SimplifierStage, (TermWithId, TermWithId))]
+        go _ [] = []
+        go id ((stage, (before, after)) : rest) =
+          let beforeWithId = TermWithId id before
+              afterWithId = TermWithId (id + 1) after
+           in (stage, (beforeWithId, afterWithId)) : go (id + 2) rest
 
-findEquivClasses :: [Ast] -> [NonEmpty Ast]
-findEquivClasses =
-  go 0 . NE.groupBy (\x y -> astTerm x == astTerm y)
-  where
-    go :: EquivClass -> [NonEmpty Ast] -> [NonEmpty Ast]
-    go _ [] = []
-    go cl (asts : rest) =
-      let asts' = fmap (\x -> x {equivClass = Just cl}) asts
-       in asts' : go (cl + 1) rest
+    extractTermWithIds
+      :: [(SimplifierStage, (TermWithId, TermWithId))]
+      -> [TermWithId]
+    extractTermWithIds = concatMap (\(_, (before, after)) -> [before, after])
 
-chooseRepresentatives :: [NonEmpty Ast] -> [Ast]
-chooseRepresentatives = fmap NE.head
+    findEquivClasses :: [TermWithId] -> [NonEmpty Ast]
+    findEquivClasses =
+      go 0 . NE.groupBy (\x y -> term x == term y)
+      where
+        go :: EquivClass -> [NonEmpty TermWithId] -> [NonEmpty Ast]
+        go _ [] = []
+        go cl (ts : rest) =
+          let asts = fmap (\t -> Ast {astTermWithId = t, equivClass = cl}) ts
+           in asts : go (cl + 1) rest
 
-mkAgdaAstFiles :: [Ast] -> [(FilePath, String)]
-mkAgdaAstFiles = fmap go
-  where
-    go ast =
-      let agdaAst = agdaUnparse (astTerm ast)
-          agdaId = fromJust . equivClass $ ast
-          agdaIdStr = "ast" <> show agdaId
-          agdaAstTy = agdaIdStr <> " : Untyped"
-          agdaAstDef = agdaIdStr <> " = " <> agdaAst
-          agdaAstFile = "Ast" <> show agdaId <> ".agda"
-       in (agdaAstFile, mkAstModule agdaIdStr agdaAstTy agdaAstDef)
+    getRepresentatives :: [NonEmpty Ast] -> Representatives Ast
+    getRepresentatives = Representatives . fmap NE.head
+
+    mkAsts :: [TermWithId] -> [Ast]
+    mkAsts = findEquivClasses >=> NE.toList
+
+    mkAstTrace
+      :: [Ast]
+      -> [(SimplifierStage, (TermWithId, TermWithId))]
+      -> [(SimplifierStage, (Ast, Ast))]
+    mkAstTrace _ [] = []
+    mkAstTrace allAsts ((stage, (rawBefore, rawAfter)) : rest) =
+      let Just processedBefore = find (\ast -> getTermId ast == termId rawBefore) allAsts
+          Just processedAfter = find (\ast -> getTermId ast == termId rawAfter) allAsts
+       in (stage, (processedBefore, processedAfter)) : mkAstTrace allAsts rest
+
+mkAstModuleName :: Ast -> String
+mkAstModuleName Ast { equivClass } =
+  "Ast" <> show equivClass
+
+mkAgdaAstFile :: Ast -> (FilePath, String)
+mkAgdaAstFile ast =
+  let agdaAst = agdaUnparse (term . astTermWithId $ ast)
+      agdaId = equivClass ast
+      agdaModuleName = mkAstModuleName ast
+      agdaIdStr = "ast" <> show agdaId
+      agdaAstTy = agdaIdStr <> " : Untyped"
+      agdaAstDef = agdaIdStr <> " = " <> agdaAst
+      agdaAstFile = agdaModuleName <> ".agda"
+   in (agdaAstFile, mkAstModule agdaModuleName agdaAstTy agdaAstDef)
 
 mkAstModule :: String -> String -> String -> String
 mkAstModule agdaIdStr agdaAstTy agdaAstDef =
@@ -164,4 +193,3 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
   \\n\
   \\n" <> agdaAstTy <> "\n\
   \\n" <> agdaAstDef <> "\n"
-

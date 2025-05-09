@@ -21,6 +21,9 @@ import UntypedPlutusCore.Transform.Simplifier
 usToHyphen :: String -> String
 usToHyphen = map (\c -> if c == '_' then '-' else c)
 
+newtype AgdaId = AgdaId String
+  deriving (Eq, Ord)
+
 -- | A class for types that can be unparsed to Agda code.
 class AgdaUnparse a where
   agdaUnparse :: a -> String
