@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Unit.Polymorphic.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- A universe polymorphic unit type, as a Lift of the Level 0 one.</a>
+<a id="173" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="247" class="Symbol">{-#</a> <a id="251" class="Keyword">OPTIONS</a> <a id="259" class="Pragma">--cubical-compatible</a> <a id="280" class="Pragma">--safe</a> <a id="287" class="Symbol">#-}</a>
+
+<a id="292" class="Keyword">module</a> <a id="299" href="Data.Unit.Polymorphic.Base.html" class="Module">Data.Unit.Polymorphic.Base</a> <a id="326" class="Keyword">where</a>
+
+<a id="333" class="Keyword">open</a> <a id="338" class="Keyword">import</a> <a id="345" href="Level.html" class="Module">Level</a>
+<a id="351" class="Keyword">import</a> <a id="358" href="Data.Unit.Base.html" class="Module">Data.Unit.Base</a> <a id="373" class="Symbol">as</a> <a id="376" class="Module">⊤</a>
+
+<a id="379" class="Comment">------------------------------------------------------------------------</a>
+<a id="452" class="Comment">-- A unit type defined as a synonym</a>
+
+<a id="⊤"></a><a id="489" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a> <a id="491" class="Symbol">:</a> <a id="493" class="Symbol">{</a><a id="494" href="Data.Unit.Polymorphic.Base.html#494" class="Bound">ℓ</a> <a id="496" class="Symbol">:</a> <a id="498" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="503" class="Symbol">}</a> <a id="505" class="Symbol">→</a> <a id="507" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="511" href="Data.Unit.Polymorphic.Base.html#494" class="Bound">ℓ</a>
+<a id="513" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a> <a id="515" class="Symbol">{</a><a id="516" href="Data.Unit.Polymorphic.Base.html#516" class="Bound">ℓ</a><a id="517" class="Symbol">}</a> <a id="519" class="Symbol">=</a> <a id="521" href="Level.html#409" class="Record">Lift</a> <a id="526" href="Data.Unit.Polymorphic.Base.html#516" class="Bound">ℓ</a> <a id="528" href="Agda.Builtin.Unit.html#175" class="Record">⊤.⊤</a>
+
+<a id="tt"></a><a id="533" href="Data.Unit.Polymorphic.Base.html#533" class="Function">tt</a> <a id="536" class="Symbol">:</a> <a id="538" class="Symbol">{</a><a id="539" href="Data.Unit.Polymorphic.Base.html#539" class="Bound">ℓ</a> <a id="541" class="Symbol">:</a> <a id="543" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="548" class="Symbol">}</a> <a id="550" class="Symbol">→</a> <a id="552" href="Data.Unit.Polymorphic.Base.html#489" class="Function">⊤</a> <a id="554" class="Symbol">{</a><a id="555" href="Data.Unit.Polymorphic.Base.html#539" class="Bound">ℓ</a><a id="556" class="Symbol">}</a>
+<a id="558" href="Data.Unit.Polymorphic.Base.html#533" class="Function">tt</a> <a id="561" class="Symbol">=</a> <a id="563" href="Level.html#466" class="InductiveConstructor">lift</a> <a id="568" href="Agda.Builtin.Unit.html#212" class="InductiveConstructor">⊤.tt</a>
+</pre></body></html>
