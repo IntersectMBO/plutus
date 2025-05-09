@@ -73,6 +73,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , directory
     , extra
     , filepath
     , ghc-prim

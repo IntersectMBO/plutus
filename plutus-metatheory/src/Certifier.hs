@@ -5,6 +5,7 @@ import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromJust)
+import System.Directory (createDirectory)
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
@@ -36,40 +37,11 @@ runCertifier (Just certName) simplTrace = do
       putStrLn
         "The certifier was unable to check the compilation. \
         \Please open a bug report at https://www.github.com/IntersectMBO/plutus."
-  writeFile (certName ++ ".agda") (rawCertificate certName rawAgdaTrace)
+  let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
+  writeCertificateProject cert
 runCertifier Nothing _ = pure ()
 
-rawCertificate :: String -> [(SimplifierStage, (UTerm, UTerm))] -> String
-rawCertificate certName rawTrace =
-  "module " <> certName <> " where\
-  \\n\
-  \\nopen import VerifiedCompilation\
-  \\nopen import VerifiedCompilation.Certificate\
-  \\nopen import Untyped\
-  \\nopen import RawU\
-  \\nopen import Builtin\
-  \\nopen import Data.Unit\
-  \\nopen import Data.Nat\
-  \\nopen import Data.Integer\
-  \\nopen import Utils\
-  \\nimport Agda.Builtin.Bool\
-  \\nimport Relation.Nullary\
-  \\nimport VerifiedCompilation.UntypedTranslation\
-  \\nopen import Agda.Builtin.Maybe\
-  \\nopen import Data.Empty using (⊥)\
-  \\nopen import Data.Bool.Base using (Bool; false; true)\
-  \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
-  \\n\
-  \\nasts : List (SimplifierTag × Untyped × Untyped)\
-  \\nasts = " <> agdaUnparse rawTrace <>
-  "\n\
-  \\ncertificate : passed? (runCertifier asts) ≡ true\
-  \\ncertificate = refl\
-  \\n"
-
 type EquivClass = Int
-
-newtype Representatives a = Representatives [a]
 
 data TermWithId = TermWithId
   { termId :: Int
@@ -87,13 +59,8 @@ getTermId Ast {astTermWithId = TermWithId {termId} } = termId
 data Certificate = Certificate
   { certName     :: String
   , certTrace    :: [(SimplifierStage, (Ast, Ast))]
-  , certReprAsts :: Representatives Ast
+  , certReprAsts :: [Ast]
   }
-
-instance AgdaUnparse Ast where
-  agdaUnparse Ast {equivClass} = "Ast" <> show equivClass
-
-
 
 mkCertificate :: String -> [(SimplifierStage, (UTerm, UTerm))] -> Certificate
 mkCertificate certName rawTrace =
@@ -139,8 +106,8 @@ mkCertificate certName rawTrace =
           let asts = fmap (\t -> Ast {astTermWithId = t, equivClass = cl}) ts
            in asts : go (cl + 1) rest
 
-    getRepresentatives :: [NonEmpty Ast] -> Representatives Ast
-    getRepresentatives = Representatives . fmap NE.head
+    getRepresentatives :: [NonEmpty Ast] -> [Ast]
+    getRepresentatives = fmap NE.head
 
     mkAsts :: [TermWithId] -> [Ast]
     mkAsts = findEquivClasses >=> NE.toList
@@ -193,3 +160,100 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
   \\n\
   \\n" <> agdaAstTy <> "\n\
   \\n" <> agdaAstDef <> "\n"
+
+mkAgdaOpenImport :: String -> String
+mkAgdaOpenImport agdaModuleName =
+  "\\nopen import " <> agdaModuleName
+
+newtype AgdaVar = AgdaVar String
+
+instance AgdaUnparse AgdaVar where
+  agdaUnparse (AgdaVar var) = var
+
+mkCertificateFile :: Certificate -> (FilePath, String)
+mkCertificateFile Certificate { certName, certTrace, certReprAsts } =
+  let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
+      agdaTrace =
+        agdaUnparse
+        $ (\(st, (ast1, ast2)) ->
+            (st
+            , (AgdaVar $ "ast" <> (show . equivClass) ast1
+              , AgdaVar $ "ast" <> (show . equivClass) ast2
+              )
+            )
+          )
+        <$> certTrace
+      certFile = certName <> ".agda"
+   in (certFile, mkCertificateModule certName agdaTrace imports)
+
+mkCertificateModule :: String -> String -> [String] -> String
+mkCertificateModule certModule agdaTrace imports =
+  "module " <> certModule <> " where\
+  \\n\
+  \\nopen import VerifiedCompilation\
+  \\nopen import VerifiedCompilation.Certificate\
+  \\nopen import Untyped\
+  \\nopen import RawU\
+  \\nopen import Builtin\
+  \\nopen import Data.Unit\
+  \\nopen import Data.Nat\
+  \\nopen import Data.Integer\
+  \\nopen import Utils\
+  \\nimport Agda.Builtin.Bool\
+  \\nimport Relation.Nullary\
+  \\nimport VerifiedCompilation.UntypedTranslation\
+  \\nopen import Agda.Builtin.Maybe\
+  \\nopen import Data.Empty using (⊥)\
+  \\nopen import Data.Bool.Base using (Bool; false; true)\
+  \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
+  \\n" <> unlines imports <> "\\n" <>
+  "\\n\
+  \\nasts : List (SimplifierTag × Untyped × Untyped)\
+  \\nasts = " <> agdaTrace <>
+  "\n\
+  \\ncertificate : passed? (runCertifier asts) ≡ true\
+  \\ncertificate = refl\
+  \\n"
+
+data AgdaCertificateProject = AgdaCertificateProject
+  { mainModule :: (FilePath, String)
+  , astModules :: [(FilePath, String)]
+  , projectDir :: FilePath
+  , agdalib    :: (FilePath, String)
+  }
+
+mkAgdaLib :: String -> (FilePath, String)
+mkAgdaLib name =
+  let contents =
+        "name: " <> name <>
+        "\\ndepend:\
+        \\n  standard-library-2.1.1\
+        \\n  plutus-metatheory\
+        \\ninclude: src"
+   in (name <> ".agda-lib", contents)
+
+mkAgdaCertificateProject
+  :: Certificate
+  -> AgdaCertificateProject
+mkAgdaCertificateProject cert =
+  let name = certName cert
+      mainModule = mkCertificateFile cert
+      astModules = fmap mkAgdaAstFile (certReprAsts cert)
+      projectDir = name
+      agdalib = mkAgdaLib name
+   in AgdaCertificateProject { mainModule, astModules, projectDir, agdalib }
+
+writeCertificateProject
+  :: AgdaCertificateProject
+  -> IO ()
+writeCertificateProject AgdaCertificateProject { mainModule, astModules, projectDir, agdalib } = do
+  let (mainModulePath, mainModuleContents) = mainModule
+      (agdalibPath, agdalibContents) = agdalib
+      astModulePaths = fmap fst astModules
+      astModuleContents = fmap snd astModules
+  createDirectory projectDir
+  createDirectory (projectDir <> "/src")
+  writeFile (projectDir <> "/src/" <> mainModulePath) mainModuleContents
+  writeFile (projectDir <> "/" <> agdalibPath) agdalibContents
+  mapM_ (\(path, contents) -> writeFile (projectDir <> "/src/" <> path) contents) astModules
+  putStrLn $ "Agda certificate project written to " <> projectDir
