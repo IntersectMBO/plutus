@@ -163,7 +163,7 @@ mkAstModule agdaIdStr agdaAstTy agdaAstDef =
 
 mkAgdaOpenImport :: String -> String
 mkAgdaOpenImport agdaModuleName =
-  "\\nopen import " <> agdaModuleName
+  "open import " <> agdaModuleName
 
 newtype AgdaVar = AgdaVar String
 
@@ -206,8 +206,8 @@ mkCertificateModule certModule agdaTrace imports =
   \\nopen import Data.Empty using (⊥)\
   \\nopen import Data.Bool.Base using (Bool; false; true)\
   \\nopen import Agda.Builtin.Equality using (_≡_; refl)\
-  \\n" <> unlines imports <> "\\n" <>
-  "\\n\
+  \\n" <> unlines imports <> "\n" <>
+  "\n\
   \\nasts : List (SimplifierTag × Untyped × Untyped)\
   \\nasts = " <> agdaTrace <>
   "\n\
@@ -226,7 +226,7 @@ mkAgdaLib :: String -> (FilePath, String)
 mkAgdaLib name =
   let contents =
         "name: " <> name <>
-        "\\ndepend:\
+        "\ndepend:\
         \\n  standard-library-2.1.1\
         \\n  plutus-metatheory\
         \\ninclude: src"
