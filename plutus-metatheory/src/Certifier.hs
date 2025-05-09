@@ -1,6 +1,7 @@
 module Certifier (runCertifier) where
 
 import Control.Monad ((>=>))
+import Data.Char (toUpper)
 import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
@@ -25,6 +26,7 @@ runCertifier
   -- ^ The trace produced by the simplification process
   -> IO ()
 runCertifier (Just certName) simplTrace = do
+  certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True ->
@@ -38,9 +40,18 @@ runCertifier (Just certName) simplTrace = do
       putStrLn
         "The certifier was unable to check the compilation. \
         \Please open a bug report at https://www.github.com/IntersectMBO/plutus."
-  let cert = mkAgdaCertificateProject $ mkCertificate certName rawAgdaTrace
+  let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
   writeCertificateProject cert
 runCertifier Nothing _ = pure ()
+
+validCertName :: String -> IO String
+validCertName [] = error "Certificate name cannot be empty"
+validCertName name@(fstC : rest) =
+  if all isValidChar name
+    then pure (toUpper fstC : rest)
+    else error $ "Certificate name contains invalid characters: " <> name
+  where
+    isValidChar c = c `elem` ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "_-"
 
 type EquivClass = Int
 

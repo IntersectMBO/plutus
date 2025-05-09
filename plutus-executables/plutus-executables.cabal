@@ -159,6 +159,7 @@ test-suite test-certifier
   other-modules:      Test.Certifier.Executable
   build-depends:
     , base
+    , directory
     , filepath
     , plutus-core:plutus-core-testlib
     , process

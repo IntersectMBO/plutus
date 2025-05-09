@@ -1,9 +1,13 @@
 module Test.Certifier.Executable where
 
+import Data.Char (toUpper)
+import Data.List (subsequences, (\\))
 import Data.Text qualified as T (Text, dropEnd, pack, takeWhileEnd, unpack)
+import System.Directory (getCurrentDirectory, listDirectory, setCurrentDirectory)
 import System.Exit
 import System.FilePath
 import System.Process
+
 import Test.Tasty
 import Test.Tasty.Extras (goldenVsTextM)
 import Test.Tasty.HUnit
@@ -23,18 +27,25 @@ runProg prog args stdin' = do
     ExitSuccess   -> pure ()
   return $ T.pack output
 
-makeUplcCert :: [ String ] -> String -> IO T.Text
+makeUplcCert :: [ String ] -> String -> IO (T.Text, FilePath)
 makeUplcCert path name = do
     let inputfile = foldr (</>) ("UPLC" </> name ++ ".uplc") path
     let args = ["optimise", "--certify", "TestCert",
                 "--input", inputfile,
                 "--print-mode", "Classic"]
-    runProg "uplc" args []
+    curDir <- getCurrentDirectory
+    beforeFiles <- listDirectory curDir
+    res <- runProg "uplc" args []
+    afterFiles <- listDirectory curDir
+    case afterFiles \\ beforeFiles of
+      [certDir] -> pure (res, certDir)
+      _ -> assertFailure $ "Expected a single new directory, but got: "
+        ++ show afterFiles ++ " \\ " ++ show beforeFiles
 
 makeGoldenUplcCert :: [ String ] -> String -> TestTree
 makeGoldenUplcCert path name = do
     let goldenfile = foldr (</>) ("Golden" </> name ++ ".golden") path
-    let result = makeUplcCert path name
+        result = fst <$> makeUplcCert path name
     goldenVsTextM name goldenfile result
 
 -- These come from `uplc example -a`
@@ -67,11 +78,10 @@ makeExampleM testname = do
 
 makeExample :: String -> Assertion
 makeExample testname = do
-  result <- makeExampleM testname
-  let lastLine = T.takeWhileEnd (/='\n') $ T.dropEnd 1 result
+  result <- T.unpack <$> makeExampleM testname
   assertBool
-    (testname ++ " fails to certify: " ++ T.unpack lastLine)
-    $ "The compilation was successfully certified." == lastLine
+    (testname ++ " fails to certify")
+    $ "The compilation was successfully certified." `elem` subsequences result
 
 -- Serialisation tests: run the certifier to make a certificate,
 -- then try to load it in Agda.
@@ -83,22 +93,12 @@ runAgda file = do
 
 agdaTestCert :: [ String ] -> String -> Assertion
 agdaTestCert path name = do
-    _ <- makeUplcCert path name
-    makeAgdaLibFile
+    (_, certDir) <- makeUplcCert path name
+    setCurrentDirectory (certDir </> "src")
     (resCode, resText) <- runAgda "TestCert.agda"
     assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
-
-makeAgdaLibFile :: Assertion
-makeAgdaLibFile = do
-    let name = "TestCert.agda-lib"
-    let contents = unlines
-          [ "depend:"
-          , "  plutus-metatheory"
-          , "  standard-library-2.1.1"
-          , "include: ."
-          , "  name: test-cert"
-          ]
-    writeFile name contents
+  where
+    toUpperFirst (x:xs) = toUpper x : xs
 
 {-
 agdaExampleCert :: String -> Assertion
