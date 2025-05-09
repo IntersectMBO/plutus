@@ -3,7 +3,7 @@ title: VerifiedCompilation.UForceDelay
 layout: page
 ---
 
-# Force-Delay Translation Phase
+# Inliner Translation Phase
 ```
 module VerifiedCompilation.UInline where
 
@@ -15,7 +15,7 @@ open import VerifiedCompilation.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
-open import Untyped.RenamingSubstitution using (_[_])
+open import Untyped.RenamingSubstitution using (_[_]; weaken)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
@@ -24,74 +24,176 @@ open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; inlineT)
+import RawU
+open import Data.List using (List; []; _∷_)
 ```
 ## Translation Relation
 
-Abstractly, inlining is much like β-reduction - where a term is applied to a lambda,
-the term is substituted in. This can be expressed quite easily and cleanly with the
-substitution operation from the general metatheory.
+Abstractly, inlining is much like β-reduction - where a term is applied to a
+lambda, the term is substituted in. However, the UPLC compiler's inliner
+sometimes performs "partial" inlining, where some instances of a variable are
+inlined and some not. This is straightforward in the Haskell, which retains
+variable names, but requires some more complexity to work with de Bruijn
+indicies and intrinsic scopes.
+
+The Haskell code works by building an environment of variable values and then
+inlines from these. We can replicate that here, although we need to track the
+applications and the bindings separately to keep them in the right order.
+
+The scope of the terms needs to be handled carefully - as we descend into
+lambdas things need to be weakened. However, where "complete" inlining
+occurs the variables move back "up" a stage. In the relation this is handled
+by weakening the right hand side term to bring the scopes into line, rather
+than by trying to "strengthen" a subset of variables in an even more confusing
+fashion.
+
+A list of terms is fine for tracking unbound applications.
+```
+variable
+  X Y : Set
+
+listWeaken : List (X ⊢) → List ((Maybe X) ⊢)
+listWeaken [] = []
+listWeaken (v ∷ vs) = ((weaken v) ∷ (listWeaken vs))
+```
+Where a term is bound by a lambda, we need to enforce rules about the scopes.
+Particularly, we need to enforce the `Maybe` system of de Bruijn indexing, so
+that the subsequent functions can pattern match appropriately.
 
 ```
-data pureInline : Relation where
-  tr : {X : Set} {{_ : DecEq X}} {x x' : X ⊢} → Translation pureInline x x' → pureInline x x'
-  _⨾_ : {X : Set} {{_ : DecEq X}} {x x' x'' : X ⊢} → pureInline x x' → pureInline x' x'' → pureInline x x''
-  inline : {X : Set} {{_ : DecEq X}}{x' : X ⊢} {x : Maybe X ⊢} {y : X ⊢}
-         → pureInline (x [ y ]) x'
-         → pureInline (ƛ x · y) x'
+data Bind : (X : Set) → Set₁ where
+  □ : Bind X
+  _,_ : (b : Bind X) → (Maybe X ⊢) → Bind (Maybe X)
 
-_ : pureInline {⊥} (ƛ (` nothing) · error) error
-_ = inline (tr reflexive)
-{-
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
--}
-```
-However, this has several intermediate values that are very hard to determine for a decision procedure.
+bind : Bind X → X ⊢ → Bind (Maybe X)
+bind b t = (b , weaken t)
 
-The Haskell code works by building an environment of variable values and then inlines from these. We can
-replicate that here to try and make the decision procedure easier.
 ```
-data Env {X : Set}{{_ : DecEq X}} : Set where
-  □ : Env
-  _,_ : Env {X} → (X ⊢) → Env {X}
+Note that `get` weakens the terms as it retrieves them. This is because we are
+in the scope of the "tip" element. This is works out correctly, despite the fact
+that the terms were weakened once when they were bound.
+```
+get : Bind X → X → Maybe (X ⊢)
+get □ x = nothing
+get (b , v) nothing = just v
+get (b , v) (just x) with get b x
+... | nothing = nothing
+... | just v₁ = just (weaken v₁)
 
 ```
 # Decidable Inline Type
 
-This type is closer to how the Haskell code works, and also closer to the way Jacco's inline example works in the literature.
+This recurses to the Translation type, but it needs to not do that initially or
+the `translation?` decision procedure will recurse infinitely, so it is
+limited to only matching a `Translation` in a non-empty environment.
 
-It recurses to the Translation type, but it needs to not do that initially or the `translation?` decision procedure
-will recurse infinitely. Instead there is the `last-sub` constructor to allow the recursion only if at least
-something has happened.
-
+Translation requires the `Relation` to be defined on an arbitrary,
+unconstrained scope, but `Inlined a e` would be constrained by the
+scope of the terms in `a` and `e`. Consequently we have to introduce a
+new scope `Y`, but will only have constructors for places where this
+matches the scope of the environment.
 ```
 
-data Inline {X : Set} {{ _ : DecEq X}} : Env {X} → (X ⊢) → (X ⊢) → Set₁ where
-  var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
-  last-sub : {x : (Maybe X) ⊢ } {y v : X ⊢} → Translation (Inline □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
-  sub : {x : (Maybe X) ⊢ } {y v v₁ : X ⊢} {e : Env} → Inline (e , v₁) (x [ v ]) y → Inline ((e , v₁) , v) (ƛ x) y
+data Inlined : List (X ⊢) → Bind X → {Y : Set} {{ _ : DecEq Y}} → (Y ⊢) → (Y ⊢) → Set₁ where
+  sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t : X ⊢}
+          → (get b v) ≡ just t
+          → Inlined e b (` v) t
 
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Inline □ (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = var (var (sub (last-sub reflexive)))
+  complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
+          → Inlined (v ∷ e) b t₁ t₂
+          → Inlined e b (t₁ · v) t₂
+  partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
+          → Inlined (v ∷ e) b t₁ t₂
+          → Inlined e b (t₁ · v) (t₂ · v)
 
-{-
-_ : {X : Set} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
-_ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
--}
+  ƛ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X}  {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
+          → Inlined (listWeaken e) (bind b v) t₁ t₂
+          → Inlined (v ∷ e) b (ƛ t₁) (ƛ t₂)
+  -- Binding on only the "before" term requires weakening the "after" term to match scopes.
+  ƛ+ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
+          → Inlined (listWeaken e) (bind b v) t₁ (weaken t₂)
+          → Inlined (v ∷ e) b (ƛ t₁) t₂
+
+  -- Two forms on "non-empty" environments.
+  tran₁ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
+          → Translation (Inlined (v ∷ e) b) t₁ t₂
+          → Inlined (v ∷ e) b t₁ t₂
+  tran₂ : {{ _ : DecEq X}} {e : List ((Maybe X) ⊢)} {b : Bind X} {v : X ⊢} {t₁ t₂ : Maybe X ⊢}
+          → Translation (Inlined e (bind b v)) t₁ t₂
+          → Inlined e (bind b v) t₁ t₂
+
+Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
+Inline = Translation (Inlined {X = ⊥} [] □)
+
 ```
-# Inline implies pureInline
+# Examples
+
 ```
---- TODO
 postulate
-  Inline→pureInline : {X : Set} {{ _ : DecEq X}} → {x y : X ⊢} → Inline □ x y → pureInline x y
+  Vars : Set
+  a b f g : Vars
+  eqVars : DecEq Vars
+  Zero One Two : RawU.TmCon
+
+instance
+  EqVars : DecEq Vars
+  EqVars = eqVars
+
+```
+"Complete" inlining is just substitution in the same way as β-reduction.
+```
+open import VerifiedCompilation.UntypedTranslation using (match; istranslation; app; ƛ)
+beforeEx1 : Vars ⊢
+beforeEx1 = (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b))
+
+afterEx1 : Vars ⊢
+afterEx1 = ((` a) · (` b))
+
+ex1 : Inlined {X = Vars} [] □ beforeEx1 afterEx1
+ex1 = complete (complete (ƛ+
+                           (ƛ+ (tran₂ (match (app (istranslation (sub refl)) (istranslation (sub refl))))))))
+
+```
+Partial inlining is allowed, so  `(\a -> f (a 0 1) (a 2)) g` can become  `(\a -> f (g 0 1) (a 2)) g`
+```
+beforeEx2 : Vars ⊢
+beforeEx2 = (ƛ (((` (just f)) · (((` nothing) · (con Zero)) · (con One))) · ((` nothing) · (con Two)) )) · (` g)
+
+afterEx2 : Vars ⊢
+afterEx2 = (ƛ (((` (just f)) · (((` (just g)) · (con Zero)) · (con One))) · ((` nothing) · (con Two)) )) · (` g)
+
+ex2 : Inlined {X = Vars} [] □ {Vars} beforeEx2 afterEx2
+ex2 = partial (ƛ (partial
+                   (tran₂
+                    (match
+                     (app (match TransMatch.var)
+                      (istranslation (partial (partial (sub refl)))))))))
+
+```
+Interleaved inlining and not inlining should also work, along with correcting the scopes
+as lambdas are removed.
+```
+Ex3Vars = Maybe (Maybe ⊥)
+
+beforeEx3 : Ex3Vars ⊢
+beforeEx3 = (ƛ ((ƛ ((` (just nothing)) · (` nothing))) · (` (just nothing)))) · (` nothing)
+
+afterEx3 : Ex3Vars ⊢
+afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
+
+ex3 : Inlined {X = Ex3Vars} [] □ {Ex3Vars} beforeEx3 afterEx3
+ex3 = complete (ƛ+ (partial (ƛ (partial (sub refl)))))
+
 ```
 ## Decision Procedure
 
 ```
-isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Translation (Inline □) ast ast')
+isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inline ast ast')
 
 {-# TERMINATING #-}
-isIl? : {X : Set} {{_ : DecEq X}} → (e : Env {X}) → (ast ast' : X ⊢) → ProofOrCE (Inline e ast ast')
+isIl? : {X : Set} {{_ : DecEq X}} → (e : List (X ⊢)) → (b : Bind X) → {Y : Set} {{_ : DecEq Y}} → (ast ast' : Y ⊢) → ProofOrCE (Inlined e b ast ast')
+isIl? e b ast ast' = {!!}
+{-
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
 ...     | proof p = proof (var p)
@@ -106,10 +208,8 @@ isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (is
 isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
 ... | proof p = proof (sub p)
 ... | ce ¬p t b a = ce (λ { (sub xx) → ¬p xx}) t b a
+-}
 
-isInline? = translation? inlineT (isIl? □)
-
-UInline : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-UInline = Translation (Inline □)
+isInline? = translation? inlineT (isIl? [] □)
 
 ```
