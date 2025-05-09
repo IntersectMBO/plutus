@@ -1,4 +1,23 @@
 
+<a id='changelog-1.46.0.0'></a>
+# 1.46.0.0 — 2025-05-09
+
+## Removed
+
+- GHC 8.10 is no longer supported.  The supported GHC versions are 9.6 (primary), 9.8, and 9.10.
+
+## Added
+
+- In #7042 implemented force-delay cancellation when delays appear under ifThenElse
+
+## Changed
+
+- When logs preservation is disabled compiler will inline even "impure" terms
+that are determined to be eventually evaluated anyway.
+
+- Enhanced PIR's StrictifyBindings pass with strictness analysis, allowing
+  many more non-strict bindings to be strictified, thereby reducing overhead.
+
 <a id='changelog-1.45.0.0'></a>
 # 1.45.0.0 — 2025-04-15
 
