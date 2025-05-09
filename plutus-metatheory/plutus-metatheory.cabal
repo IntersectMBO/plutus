@@ -73,6 +73,7 @@ library
     , base
     , bytestring
     , composition-prelude
+    , directory
     , extra
     , filepath
     , ghc-prim
@@ -84,6 +85,7 @@ library
     , plutus-core:plutus-core-execlib
     , process
     , text
+    , time
     , transformers
 
   exposed-modules: Paths_plutus_metatheory

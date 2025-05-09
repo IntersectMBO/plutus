@@ -159,11 +159,10 @@ test-suite test-certifier
   other-modules:      Test.Certifier.Executable
   build-depends:
     , base
+    , directory
     , filepath
-    , plutus-core:plutus-core-testlib
     , process
     , tasty
     , tasty-hunit
-    , text
 
   build-tool-depends: plutus-executables:uplc
