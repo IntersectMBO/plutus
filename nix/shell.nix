@@ -61,6 +61,8 @@ let
 
   common-pkgs = [
     agda-tools.agda
+    agda-tools.agda-with-stdlib
+    agda-tools.agda-with-stdlib-and-metatheory
     agda-tools.agda-mode
     agda-tools.generate-malonzo-code
 
