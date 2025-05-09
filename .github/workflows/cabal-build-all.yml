@@ -20,7 +20,7 @@ jobs:
     runs-on: [plutus-ci, self-hosted]
     strategy:
       matrix:
-        ghc: [ghc910, ghc96, ghc98]
+        ghc: [ghc910, ghc96, ghc98, ghc96-certify]
       fail-fast: false
 
     steps:
