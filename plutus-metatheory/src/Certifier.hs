@@ -5,6 +5,7 @@ import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromJust)
+import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import System.Directory (createDirectory)
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
@@ -251,9 +252,11 @@ writeCertificateProject AgdaCertificateProject { mainModule, astModules, project
       (agdalibPath, agdalibContents) = agdalib
       astModulePaths = fmap fst astModules
       astModuleContents = fmap snd astModules
-  createDirectory projectDir
-  createDirectory (projectDir <> "/src")
-  writeFile (projectDir <> "/src/" <> mainModulePath) mainModuleContents
-  writeFile (projectDir <> "/" <> agdalibPath) agdalibContents
-  mapM_ (\(path, contents) -> writeFile (projectDir <> "/src/" <> path) contents) astModules
-  putStrLn $ "Agda certificate project written to " <> projectDir
+  time <- systemNanoseconds <$> getSystemTime
+  let actualProjectDir = projectDir <> "-" <> show time
+  createDirectory actualProjectDir
+  createDirectory (actualProjectDir <> "/src")
+  writeFile (actualProjectDir <> "/src/" <> mainModulePath) mainModuleContents
+  writeFile (actualProjectDir <> "/" <> agdalibPath) agdalibContents
+  mapM_ (\(path, contents) -> writeFile (actualProjectDir <> "/src/" <> path) contents) astModules
+  putStrLn $ "Agda certificate project written to " <> actualProjectDir
