@@ -78,6 +78,9 @@ let
     ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
   };
 
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
+
   packages =
     exposed-haskell-packages //
     static-haskell-packages //
@@ -99,6 +102,7 @@ let
       (project-variants-hydra-jobs) //
       (windows-packages) //
       (packages) //
+      { inherit project-coverage-report; } //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
@@ -129,11 +133,13 @@ let
     inherit r-with-packages;
     inherit build-latex-doc;
     inherit extra-artifacts;
+    inherit windows-packages;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
     inherit metatheory-agda-library;
+    inherit project-coverage-report;
   };
 
 in
