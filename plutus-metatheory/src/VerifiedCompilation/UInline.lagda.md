@@ -33,12 +33,21 @@ Abstractly, inlining is much like β-reduction - where a term is applied to a
 lambda, the term is substituted in. However, the UPLC compiler's inliner
 sometimes performs "partial" inlining, where some instances of a variable are
 inlined and some not. This is straightforward in the Haskell, which retains
-variable names, but requires some more complexity to work with de Brujin
+variable names, but requires some more complexity to work with de Bruijn
 indicies and intrinsic scopes.
 
 The Haskell code works by building an environment of variable values and then
 inlines from these. We can replicate that here, although we need to track the
 applications and the bindings separately to keep them in the right order.
+
+The scope of the terms needs to be handled carefully - as we descend into
+lambdas things need to be weakened. However, where "complete" inlining
+occurs the variables move back "up" a stage. In the relation this is handled
+by weakening the right hand side term to bring the scopes into line, rather
+than by trying to "strengthen" a subset of variables in an even more confusing
+fashion.
+
+A list of terms is fine for tracking unbound applications.
 ```
 variable
   X Y : Set
@@ -46,7 +55,12 @@ variable
 listWeaken : List (X ⊢) → List ((Maybe X) ⊢)
 listWeaken [] = []
 listWeaken (v ∷ vs) = ((weaken v) ∷ (listWeaken vs))
+```
+Where a term is bound by a lambda, we need to enforce rules about the scopes.
+Particularly, we need to enforce the `Maybe` system of de Bruijn indexing, so
+that the subsequent functions can pattern match appropriately.
 
+```
 data Bind : (X : Set) → Set₁ where
   □ : Bind X
   _,_ : (b : Bind X) → (Maybe X ⊢) → Bind (Maybe X)
@@ -55,7 +69,9 @@ bind : Bind X → X ⊢ → Bind (Maybe X)
 bind b t = (b , weaken t)
 
 ```
-Note that `get` weakens the terms as it retrieves them.
+Note that `get` weakens the terms as it retrieves them. This is because we are
+in the scope of the "tip" element. This is works out correctly, despite the fact
+that the terms were weakened once when they were bound.
 ```
 get : Bind X → X → Maybe (X ⊢)
 get □ x = nothing
@@ -67,7 +83,7 @@ get (b , v) (just x) with get b x
 ```
 # Decidable Inline Type
 
-It recurses to the Translation type, but it needs to not do that initially or
+This recurses to the Translation type, but it needs to not do that initially or
 the `translation?` decision procedure will recurse infinitely, so it is
 limited to only matching a `Translation` in a non-empty environment.
 
@@ -82,18 +98,22 @@ data Inlined : List (X ⊢) → Bind X → {Y : Set} {{ _ : DecEq Y}} → (Y ⊢
   sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t : X ⊢}
           → (get b v) ≡ just t
           → Inlined e b (` v) t
+
   complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Inlined (v ∷ e) b t₁ t₂
           → Inlined e b (t₁ · v) t₂
   partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Inlined (v ∷ e) b t₁ t₂
           → Inlined e b (t₁ · v) (t₂ · v)
+
   ƛ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X}  {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
           → Inlined (listWeaken e) (bind b v) t₁ t₂
           → Inlined (v ∷ e) b (ƛ t₁) (ƛ t₂)
+  -- Binding on only the "before" term requires weakening the "after" term to match scopes.
   ƛ+ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
           → Inlined (listWeaken e) (bind b v) t₁ (weaken t₂)
           → Inlined (v ∷ e) b (ƛ t₁) t₂
+
   -- Two forms on "non-empty" environments.
   tran₁ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Translation (Inlined (v ∷ e) b) t₁ t₂
@@ -150,6 +170,21 @@ ex2 = partial (ƛ (partial
                       (istranslation (partial (partial (sub refl)))))))))
 
 ```
+Interleaved inlining and not inlining should also work, along with correcting the scopes
+as lambdas are removed.
+```
+Ex3Vars = Maybe (Maybe ⊥)
+
+beforeEx3 : Ex3Vars ⊢
+beforeEx3 = (ƛ ((ƛ ((` (just nothing)) · (` nothing))) · (` (just nothing)))) · (` nothing)
+
+afterEx3 : Ex3Vars ⊢
+afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
+
+ex3 : Inlined {X = Ex3Vars} [] □ {Ex3Vars} beforeEx3 afterEx3
+ex3 = complete (ƛ+ (partial (ƛ (partial (sub refl)))))
+
+```
 ## Decision Procedure
 
 ```
@@ -157,7 +192,7 @@ isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inli
 
 {-# TERMINATING #-}
 isIl? : {X : Set} {{_ : DecEq X}} → (e : List (X ⊢)) → (b : Bind X) → {Y : Set} {{_ : DecEq Y}} → (ast ast' : Y ⊢) → ProofOrCE (Inlined e b ast ast')
-isIl? e ast ast' = {!!}
+isIl? e b ast ast' = {!!}
 {-
 isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
 ... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
