@@ -69,6 +69,16 @@ renderTwoVariableQuadraticFunction
     printf "max(%d, %d + %d*%s + %d*%s + %d*%s^2 + %d*%s*%s + %d*%s^2)"
     minVal c00 c10 var1 c01 var2 c20 var1 c11 var1 var2 c02 var2
 
+renderExpModCostingFunction
+  :: ExpModCostingFunction
+  -> String
+  -> String
+  -> String
+renderExpModCostingFunction
+  (ExpModCostingFunction c00 c11 c12) var1 var2 =
+    printf "%d + %d*%s*%s + %d*%s*%s^2"
+    c00 c11 var1 var2 c12 var1 var2
+
 -- FIXME.  This is arguably slightly incorrect because some of the arguments are
 -- wrapped in newtypes that change the memory usage instance of their content
 -- and this isn't reflected in the output.  We're able to fix this for
@@ -93,6 +103,7 @@ renderModel =
      QuadraticInY          f   -> [ renderOneVariableQuadraticFunction f "y" ]
      QuadraticInZ          f   -> [ renderOneVariableQuadraticFunction f "z" ]
      QuadraticInXAndY      f   -> [ renderTwoVariableQuadraticFunction f "x" "y" ]
+     ExpModCost            f   -> [ renderExpModCostingFunction f "y" "z" ]
      LinearInMaxYZ         f   -> [ renderLinearFunction f "max(y,z)" ]
      LinearInYAndZ         f   -> [ renderTwoVariableLinearFunction f "y" "z" ]
      LiteralInYOrLinearInZ f -> [ "if y==0"

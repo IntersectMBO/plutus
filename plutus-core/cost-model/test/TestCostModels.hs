@@ -334,6 +334,8 @@ main =
               , $(genTest 2 "lessThanInteger")       Everywhere
               , $(genTest 2 "lessThanEqualsInteger") Everywhere
               , $(genTest 2 "equalsInteger")         Everywhere
+              -- , $(genTest 3 "expModInteger")
+              -- ^ Doesn't work because of the penalty for initial modular reduction.
 
               -- Bytestrings
               , $(genTest 2 "appendByteString")         Everywhere
@@ -378,6 +380,7 @@ main =
               , $(genTest 1 "headList")
               , $(genTest 1 "tailList")
               , $(genTest 1 "nullList")
+              , $(genTest 2 "dropList") Everywhere
 
               -- Arrays
               , $(genTest 1 "lengthOfArray")

@@ -147,9 +147,8 @@ failingEvaluationTests =
 -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
-  -- These currently fail because (a) the Agda code doesn't know about the
-  -- IntegerCostedLiterally size measure used by `replicateByte`, and (b)
-  -- GHC 8.0 can't deal with `dropList`.
+  -- These currently fail because the Agda code doesn't know about the
+  -- IntegerCostedLiterally size measure used by `replicateByte` and `dropList`.
   [ "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-07"
   , "test-cases/uplc/evaluation/builtin/semantics/replicateByte/case-09"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"

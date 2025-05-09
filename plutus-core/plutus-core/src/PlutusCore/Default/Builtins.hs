@@ -49,6 +49,7 @@ import Data.Vector.Strict qualified as Vector
 import Flat hiding (from, to)
 import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
@@ -2020,8 +2021,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Batch 6
 
     toBuiltinMeaning _semvar ExpModInteger =
-        let expModIntegerDenotation :: Integer -> Integer -> Natural -> BuiltinResult Natural
-            expModIntegerDenotation = ExpMod.expMod
+        let expModIntegerDenotation
+              :: Integer
+              -> Integer
+              -> Integer
+              -> BuiltinResult Natural
+            expModIntegerDenotation a b m =
+              if m < 0
+              then fail "expModInteger: negative modulus"
+              else ExpMod.expMod a b (naturalFromInteger m)
             {-# INLINE expModIntegerDenotation #-}
         in makeBuiltinMeaning
             expModIntegerDenotation

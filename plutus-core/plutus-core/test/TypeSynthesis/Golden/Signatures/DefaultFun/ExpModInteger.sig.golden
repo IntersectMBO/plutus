@@ -1,1 +1,1 @@
-Integer -> Integer -> Natural -> BuiltinResult Natural
+Integer -> Integer -> Integer -> BuiltinResult Natural
