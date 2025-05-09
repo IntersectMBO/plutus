@@ -60,9 +60,12 @@ tests =
     unitTest "max+min" ((maxBound :: SatInt) + (minBound :: SatInt) == -1),
     unitTest "max+*"   (saturatesPos ((2 :: SatInt) ^ (wordSize `div` 2) * 2 ^ (wordSize `div` 2 - 1))),
     unitTest "min-*"   (saturatesNeg (negate ((2 :: SatInt) ^ (wordSize `div` 2)) * 2 ^ (wordSize `div` 2 - 1))),
+    unitTest "max/2"   (saturatesPos ((maxBound :: SatInt) `dividedBy` 2)),
+    unitTest "min/2"   (saturatesNeg ((minBound :: SatInt) `dividedBy` 2)),
     testProperty "*"   (propBinOp (*)),
     testProperty "+"   (propBinOp (+)),
-    testProperty "-"   (propBinOp (-))
+    testProperty "-"   (propBinOp (-)),
+    testProperty "/0"  propDividedBy0
     -- lcm and gcd do *not* pass `behavesOk` since they *internally* use `abs` (which will give the wrong/saturated
     -- answer for minBound), and hence go astray after that. But we can't easily detect that this is the "correct"
     -- saturated thing to do as we do for other operations (where we can just see if the saturating version is
@@ -79,3 +82,7 @@ propBinOp (!) = withMaxSuccess 10000 $
                 forAll intWithSpecialCases $ \ x ->
                 forAll intWithSpecialCases $ \ y ->
                 ioProperty $ behavesOk (fromIntegral x ! fromIntegral y)
+
+propDividedBy0 :: Property
+propDividedBy0 = withMaxSuccess 1000 $
+                    forAll intWithSpecialCases $ \n -> saturatesPos ((fromIntegral n) `dividedBy` 0)

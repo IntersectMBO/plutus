@@ -158,8 +158,7 @@ testCheckDataScEquality = testGroup "checkScriptContextEquality"
 testSOPFwdStakeTrick :: TestTree
 testSOPFwdStakeTrick =
      runTestGhcSOP
-          [ Tx.goldenSize "sopFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
+          [ Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "sopFwdStakeTrick" testAbsCode
           , Tx.goldenBudget "sopFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
@@ -177,8 +176,7 @@ testSOPFwdStakeTrick =
 testDataFwdStakeTrick :: TestTree
 testDataFwdStakeTrick =
      runTestGhcSOP
-          [ Tx.goldenSize "dataFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
+          [ Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrick" testAbsCode
           , Tx.goldenBudget "dataFwdStakeTrick" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
@@ -196,8 +194,7 @@ testDataFwdStakeTrick =
 testDataFwdStakeTrickManual :: TestTree
 testDataFwdStakeTrickManual =
      runTestGhcSOP
-          [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
+          [ Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]

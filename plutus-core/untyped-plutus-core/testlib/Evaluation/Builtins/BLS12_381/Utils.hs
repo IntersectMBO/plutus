@@ -4,60 +4,9 @@
 module Evaluation.Builtins.BLS12_381.Utils
 where
 
-import Evaluation.Builtins.Common
-
-import PlutusCore qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting)
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
-import PlutusPrelude (def)
-import UntypedPlutusCore qualified as UPLC
-
 import Data.Bits (complement, xor, (.&.), (.|.))
 import Data.ByteString as BS (ByteString, cons, uncons)
 import Data.Word (Word8)
-
--- PLC utilities
-
--- Evaluating PLC terms
-
-type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-type PlcError = PLC.Error PLC.DefaultUni PLC.DefaultFun ()
-type UplcTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-
-data CekResult =
-    TypeCheckError PlcError
-  | CekError
-  | CekSuccess UplcTerm
-    deriving stock (Eq, Show)
-
-evalTerm :: PlcTerm -> CekResult
-evalTerm term =
-    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
-    of Left e -> TypeCheckError e
-       Right x  ->
-           case x of
-             PLC.EvaluationFailure   -> CekError
-             PLC.EvaluationSuccess s -> CekSuccess s
-
--- Constructing PLC constants and applications
-
-uplcTrue :: CekResult
-uplcTrue = CekSuccess $ mkConstant () True
-
-uplcFalse :: CekResult
-uplcFalse = CekSuccess $ mkConstant () False
-
-integer :: Integer -> PlcTerm
-integer = mkConstant ()
-
-bytestring :: ByteString -> PlcTerm
-bytestring = mkConstant ()
-
-mkApp1 :: PLC.DefaultFun -> PlcTerm -> PlcTerm
-mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
-
-mkApp2 :: PLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
 
 {- | ByteString utilities.  These are used in tests to check that the format of
    compressed points conforms to the specification at

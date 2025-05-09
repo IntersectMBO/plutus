@@ -146,7 +146,6 @@ library
     , template-haskell       >=2.13.0.0
     , text
     , th-abstraction
-    , th-compat
     , vector                 ^>=0.13.2
 
   default-extensions: Strict
@@ -178,7 +177,6 @@ library plutus-tx-testlib
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , plutus-tx                        ^>=1.45
-    , prettyprinter
     , tagged
     , tasty
     , tasty-hedgehog

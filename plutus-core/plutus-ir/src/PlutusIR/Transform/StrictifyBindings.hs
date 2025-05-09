@@ -1,6 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 {-|
-Pass to convert pointlessly non-strict bindings into strict bindings, which have less overhead.
+Pass to convert the following non-strict bindings into strict bindings, which have less overhead:
+
+  * non-strict bindings whose RHSs are pure
+  * non-strict bindings that are strict in the body
 -}
 module PlutusIR.Transform.StrictifyBindings (
   strictifyBindings,
@@ -10,8 +13,9 @@ module PlutusIR.Transform.StrictifyBindings (
 import PlutusCore.Builtin
 import PlutusIR
 import PlutusIR.Purity
+import PlutusIR.Strictness
 
-import Control.Lens (transformOf)
+import Control.Lens (transformOf, (^.))
 import PlutusCore qualified as PLC
 import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.Builtins
@@ -20,7 +24,7 @@ import PlutusIR.Pass
 import PlutusIR.TypeCheck qualified as TC
 
 strictifyBindingsStep
-    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique, Eq name)
     => BuiltinsInfo uni fun
     -> VarsInfo tyname name uni a
     -> Term tyname name uni fun a
@@ -30,12 +34,13 @@ strictifyBindingsStep binfo vinfo = \case
       where
         strictifyBinding (TermBind x NonStrict vd rhs)
           | isPure binfo vinfo rhs = TermBind x Strict vd rhs
+          | isStrictIn (vd ^. PLC.varDeclName) t = TermBind x Strict vd rhs
         strictifyBinding b = b
     t                                    -> t
 
 strictifyBindings
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique
-    , PLC.HasUnique tyname PLC.TypeUnique)
+    , PLC.HasUnique tyname PLC.TypeUnique, Eq name)
     => BuiltinsInfo uni fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a

@@ -13,36 +13,20 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
+import PlutusTx.Test (goldenBundle)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests =
   testNested ("AsData" </> "Budget") . pure $ testNestedGhc
-    [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
-    , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
-    , goldenEvalCekCatch "onlyUseFirstField" [onlyUseFirstField `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField" (onlyUseFirstField `unsafeApplyCode` inp)
-    , goldenPirReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
-    , goldenUPlcReadable "onlyUseFirstField-manual" onlyUseFirstFieldManual
-    , goldenEvalCekCatch "onlyUseFirstField-manual" [onlyUseFirstFieldManual `unsafeApplyCode` inp]
-    , goldenBudget "onlyUseFirstField-manual" (onlyUseFirstFieldManual `unsafeApplyCode` inp)
-    , goldenPirReadable "patternMatching" patternMatching
-    , goldenUPlcReadable "patternMatching" patternMatching
-    , goldenEvalCekCatch "patternMatching" [patternMatching `unsafeApplyCode` inp]
-    , goldenBudget "patternMatching" (patternMatching `unsafeApplyCode` inp)
-    , goldenPirReadable "recordFields" recordFields
-    , goldenUPlcReadable "recordFields" recordFields
-    , goldenEvalCekCatch "recordFields" [recordFields `unsafeApplyCode` inp]
-    , goldenBudget "recordFields" (recordFields `unsafeApplyCode` inp)
-    , goldenPirReadable "destructSum" destructSum
-    , goldenUPlcReadable "destructSum" destructSum
-    , goldenEvalCekCatch "destructSum" [destructSum `unsafeApplyCode` inpSum]
-    , goldenBudget "destructSum" (destructSum `unsafeApplyCode` inpSum)
-    , goldenPirReadable "destructSum-manual" destructSumManual
-    , goldenUPlcReadable "destructSum-manual" destructSumManual
-    , goldenEvalCekCatch "destructSum-manual" [destructSumManual `unsafeApplyCode` inpSumM]
-    , goldenBudget "destructSum-manual" (destructSumManual `unsafeApplyCode` inpSumM)
+    [ goldenBundle "onlyUseFirstField" onlyUseFirstField (onlyUseFirstField `unsafeApplyCode` inp)
+    , goldenBundle "onlyUseFirstField-manual" onlyUseFirstFieldManual
+        (onlyUseFirstFieldManual `unsafeApplyCode` inp)
+    , goldenBundle "patternMatching" patternMatching (patternMatching `unsafeApplyCode` inp)
+    , goldenBundle "recordFields" recordFields (recordFields `unsafeApplyCode` inp)
+    , goldenBundle "destructSum" destructSum (destructSum `unsafeApplyCode` inpSum)
+    , goldenBundle "destructSum-manual" destructSumManual
+        (destructSumManual `unsafeApplyCode` inpSumM)
     ]
 
 -- A function that only accesses the first field of `Ints`.

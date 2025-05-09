@@ -160,7 +160,7 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramWriteBits                       = Id $ ModelThreeArgumentsLinearInX identityFunction
   -- The empty bytestring has memory usage 1, so we add an extra memory unit here to make sure that
   -- the memory cost of `replicateByte` is always nonzero. That means that we're charging one unit
-  -- ore than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some
+  -- more than we perhaps should for nonempty bytestrings, but that's negligible (plus there's some
   -- overhead for bytesrings anyway).  Note also that `replicateByte`'s argument is costed as a
   -- literal size.
   , paramReplicateByte                   = Id $ ModelTwoArgumentsLinearInX $ OneVariableLinearFunction 1 1
@@ -169,12 +169,12 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramCountSetBits                    = Id $ ModelOneArgumentConstantCost 1
   , paramFindFirstSetBit                 = Id $ ModelOneArgumentConstantCost 1
   , paramRipemd_160                      = Id $ hashMemModel Hash.ripemd_160
-  , paramExpModInteger                   = Id $ ModelThreeArgumentsConstantCost 100000000000 -- FIXME: stub
+  , paramExpModInteger                   = Id $ ModelThreeArgumentsLinearInZ identityFunction
   -- paramCaseList
   -- paramCaseData
   , paramDropList                        = Id $ ModelTwoArgumentsConstantCost 4
-  , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost    99
-  , paramListToArray                     = Id $ ModelOneArgumentConstantCost    99
-  , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost   99
+  , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost 10
+  , paramListToArray                     = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 7 1
+  , paramIndexArray                      = Id $ ModelTwoArgumentsConstantCost 32
   }
   where identityFunction = OneVariableLinearFunction 0 1

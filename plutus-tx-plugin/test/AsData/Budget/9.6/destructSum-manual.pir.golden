@@ -2,7 +2,11 @@ let
   data Unit | Unit_match where
     Unit : Unit
   !fail : unit -> data
-    = \(ds : unit) -> Unit_match (error {Unit}) {data} (error {data})
+    = \(ds : unit) ->
+        let
+          !defaultBody : data = error {data}
+        in
+        Unit_match (error {Unit}) {data} defaultBody
   !`$mInts` :
      all r.
        data ->

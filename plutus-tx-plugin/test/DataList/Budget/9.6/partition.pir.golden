@@ -5,34 +5,39 @@ let
     True : Bool
     False : Bool
 in
-letrec
-  ~go : list data -> Tuple2 (list data) (list data)
-    = (let
-          r = Tuple2 (list data) (list data)
-        in
-        \(z : r) (f : data -> list data -> r) (xs : list data) ->
-          chooseList
-            {data}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {data} xs) (tailList {data} xs))
-            {r})
-        (Tuple2 {list data} {list data} [] [])
-        (\(h : data) (t : list data) ->
-           Tuple2_match
-             {list data}
-             {list data}
-             (go t)
-             {Tuple2 (list data) (list data)}
-             (\(ipv : list data) (ipv : list data) ->
-                Bool_match
-                  (ifThenElse {Bool} (lessThanInteger (unIData h) 8) False True)
-                  {all dead. Tuple2 (list data) (list data)}
-                  (/\dead ->
-                     Tuple2 {list data} {list data} (mkCons {data} h ipv) ipv)
-                  (/\dead ->
-                     Tuple2 {list data} {list data} ipv (mkCons {data} h ipv))
-                  {all dead. dead}))
-in
-\(l : (\a -> list data) integer) -> go l
+\(l : (\a -> list data) integer) ->
+  letrec
+    !go : list data -> Tuple2 (list data) (list data)
+      = (let
+            r = Tuple2 (list data) (list data)
+          in
+          \(z : r) (f : data -> list data -> r) (xs : list data) ->
+            chooseList
+              {data}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {data} xs) (tailList {data} xs))
+              {r})
+          (Tuple2 {list data} {list data} [] [])
+          (\(h : data) (t : list data) ->
+             Tuple2_match
+               {list data}
+               {list data}
+               (go t)
+               {Tuple2 (list data) (list data)}
+               (\(ipv : list data) (ipv : list data) ->
+                  Bool_match
+                    (ifThenElse
+                       {Bool}
+                       (lessThanInteger (unIData h) 8)
+                       False
+                       True)
+                    {all dead. Tuple2 (list data) (list data)}
+                    (/\dead ->
+                       Tuple2 {list data} {list data} (mkCons {data} h ipv) ipv)
+                    (/\dead ->
+                       Tuple2 {list data} {list data} ipv (mkCons {data} h ipv))
+                    {all dead. dead}))
+  in
+  go l

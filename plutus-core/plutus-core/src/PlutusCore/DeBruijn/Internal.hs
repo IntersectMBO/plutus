@@ -100,6 +100,7 @@ isomorphic.
 FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
 does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
 the Num and write `DeBruijn (Index -1)`. This can be revisited when we implement PLT-1053.
+Tracked by: https://github.com/IntersectMBO/plutus-private/issues/1552
 -}
 newtype Index = Index Word64
   deriving stock (Generic)

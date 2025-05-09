@@ -30,6 +30,7 @@ custom-setup
 common lang
   default-language:   Haskell2010
   default-extensions:
+    BangPatterns
     DeriveFoldable
     DeriveFunctor
     DeriveGeneric
@@ -37,12 +38,20 @@ common lang
     DeriveTraversable
     DerivingStrategies
     DerivingVia
+    ExistentialQuantification
     ExplicitForAll
     FlexibleContexts
+    GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    OverloadedStrings
     ScopedTypeVariables
     StandaloneDeriving
+    TypeApplications
+    TypeSynonymInstances
 
   ghc-options:
     -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
@@ -77,14 +86,14 @@ library
     , text
     , transformers
 
-  if impl(ghc <9.0)
-    build-depends: integer-gmp
-
   exposed-modules: Paths_plutus_metatheory
   exposed-modules:
-    Opts
+    Certifier
+    FFI.AgdaUnparse
+    FFI.Opts
+    FFI.SimplifierTrace
+    FFI.Untyped
     Raw
-    Untyped
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two
@@ -672,3 +681,24 @@ test-suite test-NEAT
     , Stream
     , tasty
     , tasty-hunit
+
+test-suite test-certifier
+  import:         lang, os-support, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test/certifier
+  other-modules:
+    Test.Certifier.AST
+    Test.Certifier.Optimizer
+
+  build-depends:
+    , base
+    , filepath
+    , plutus-core
+    , plutus-core:plutus-core-testlib
+    , plutus-core:untyped-plutus-core-testlib
+    , plutus-metatheory
+    , process
+    , tasty
+    , tasty-hunit
+    , text

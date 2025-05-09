@@ -1,15 +1,12 @@
-{ pkgs, lib, agda-tools, build-latex }:
+{ pkgs, lib, agda-tools }:
 
-{ name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
+{ name, description, src, output-pdf-name ? "*.pdf" }:
 
-build-latex {
+pkgs.stdenv.mkDerivation {
 
   inherit name;
   inherit description;
-  inherit texFiles;
 
-  # A typical good filter for latex sources.
-  # This also includes files for cases where agda sources are being compiled.
   src = lib.sourceFilesBySuffices src [
     ".tex"
     ".bib"
@@ -20,19 +17,21 @@ build-latex {
     ".agda"
     ".agda-lib"
     ".lagda"
+    ".latexmkrc"
+    "Makefile"
   ];
 
-  buildInputs = lib.optionals withAgda [ agda-tools.agda-with-stdlib ];
+  buildInputs = [
+    pkgs.texliveFull
+    pkgs.zip
+    agda-tools.agda-with-stdlib # Some papers need to compile Agda
+  ];
 
-  texInputs = {
-    inherit (pkgs.texlive)
-      acmart bibtex biblatex collection-bibtexextra collection-fontsextra
-      collection-fontsrecommended collection-latex collection-latexextra
-      collection-luatex collection-mathscience scheme-small;
-  };
-
-  preBuild = lib.optionalString withAgda ''
-    agda-with-stdlib --latex ${agdaFile} --latex-dir .
+  installPhase = ''
+    mkdir -p $out
+    make clean
+    make
+    cp ${output-pdf-name} $out/
   '';
 
   meta = with lib; {
