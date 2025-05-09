@@ -36,9 +36,6 @@ let
         {
           packages = {
 
-            plutus-metatheory.components.library.build-tools =
-              [ agda-tools.agda-with-stdlib ];
-
             plutus-executables.components.tests.test-certifier.build-tools =
               [ agda-tools.agda-with-stdlib-and-metatheory ];
 

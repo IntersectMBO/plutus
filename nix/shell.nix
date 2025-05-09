@@ -62,6 +62,7 @@ let
   common-pkgs = [
     agda-tools.agda
     agda-tools.agda-mode
+    agda-tools.generate-malonzo-code
 
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
