@@ -8,6 +8,7 @@ import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromJust)
 import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import System.Directory (createDirectory)
+import System.Exit (ExitCode (..), exitSuccess, exitWith)
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
@@ -29,19 +30,22 @@ runCertifier (Just certName) simplTrace = do
   certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
-    Just True ->
+    Just True -> do
       putStrLn "The compilation was successfully certified."
-    Just False ->
+      let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
+      writeCertificateProject cert
+      exitSuccess
+    Just False -> do
       putStrLn
         "The compilation was not successfully certified. \
         \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
         \and attach the faulty certificate."
-    Nothing ->
+      exitWith (ExitFailure 1)
+    Nothing -> do
       putStrLn
         "The certifier was unable to check the compilation. \
         \Please open a bug report at https://www.github.com/IntersectMBO/plutus."
-  let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
-  writeCertificateProject cert
+      exitWith (ExitFailure 2)
 runCertifier Nothing _ = pure ()
 
 validCertName :: String -> IO String
