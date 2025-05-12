@@ -30,20 +30,20 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, Countin
                                                  logEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
-data CodeResult = CodeResult
-  { codeResult
+data EvalResult = EvalResult
+  { evalResult
       :: Either
            (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
            (NTerm DefaultUni DefaultFun ())
-  , codeBudget :: ExBudget
-  , codeTraces :: [Text]
+  , evalResultBudget :: ExBudget
+  , evalResultTraces :: [Text]
   }
   deriving stock (Show)
 
-instance Pretty CodeResult where
+instance Pretty EvalResult where
   pretty
-    CodeResult
-      { codeBudget =
+    EvalResult
+      { evalResultBudget =
         ExBudget
           { exBudgetCPU = ExCPU cpu
           , exBudgetMemory = ExMemory mem
@@ -51,7 +51,7 @@ instance Pretty CodeResult where
       , ..
       } =
       vsep
-        [ case codeResult of
+        [ case evalResult of
             Left err ->
               vsep
                 [ "Evaluation FAILED:"
@@ -70,39 +70,39 @@ instance Pretty CodeResult where
               , "MEM" <+> pretty (format commas (unSatInt mem))
               ]
         , mempty
-        , if null codeTraces
+        , if null evalResultTraces
             then "No traces were emitted"
             else
               vsep
                 [ "Evaluation"
-                    <+> plural "trace" "traces" (length codeTraces)
+                    <+> plural "trace" "traces" (length evalResultTraces)
                     <> ":"
                 , indent 2 $
                     vsep $
                       zipWith
                         (\idx trace -> pretty idx <> dot <+> pretty trace)
                         [1 :: Int ..]
-                        codeTraces
+                        evalResultTraces
                 ]
         , mempty
         ]
 
-prettyCodeResult :: CodeResult -> Text
-prettyCodeResult = display
+prettyEvalResult :: EvalResult -> Text
+prettyEvalResult = display
 
-evaluateCompiledCode :: CompiledCode a -> CodeResult
-evaluateCompiledCode code = CodeResult{..}
+evaluateCompiledCode :: CompiledCode a -> EvalResult
+evaluateCompiledCode code = EvalResult{..}
  where
   term = getPlc code ^. progTerm
   params = defaultCekParametersForTesting
-  (codeResult, CountingSt codeBudget, codeTraces) =
+  (evalResult, CountingSt evalResultBudget, evalResultTraces) =
     runCekDeBruijn params counting logEmitter term
 
 evaluatesToError :: CompiledCode a -> Bool
 evaluatesToError = not . evaluatesWithoutError
 
 evaluatesWithoutError :: CompiledCode a -> Bool
-evaluatesWithoutError code = isRight (codeResult (evaluateCompiledCode code))
+evaluatesWithoutError code = isRight (evalResult (evaluateCompiledCode code))
 
 {-| Evaluate 'CompiledCode' and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled
@@ -126,28 +126,28 @@ evaluationResultMatchesHaskell actual =
 assertEvaluatesSuccessfully :: CompiledCode a -> Assertion
 assertEvaluatesSuccessfully code = do
   case evaluateCompiledCode code of
-    CodeResult{codeResult = Right _} -> pure ()
-    CodeResult{codeResult = Left err, codeTraces} ->
+    EvalResult{evalResult = Right _} -> pure ()
+    EvalResult{evalResult = Left err, evalResultTraces} ->
       assertFailure $
         Text.unpack $
           Text.unlines
             [ "Evaluation failed with an error:"
             , render (prettyPlcClassicSimple err)
             , "Evaluation traces:"
-            , Text.unlines codeTraces
+            , Text.unlines evalResultTraces
             ]
 
 assertEvaluatesWithError :: CompiledCode a -> Assertion
 assertEvaluatesWithError code = do
   case evaluateCompiledCode code of
-    CodeResult{codeResult = Left _} -> pure ()
-    CodeResult{codeResult = Right _, codeTraces} ->
+    EvalResult{evalResult = Left _} -> pure ()
+    EvalResult{evalResult = Right _, evalResultTraces} ->
       assertFailure $
         Text.unpack $
           Text.unlines
             [ "Evaluation succeeded, but expected an error."
             , "Evaluation traces:"
-            , Text.unlines codeTraces
+            , Text.unlines evalResultTraces
             ]
 
 --------------------------------------------------------------------------------
