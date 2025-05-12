@@ -33,38 +33,54 @@ open import Relation.Nullary using (yes;no)
 Builtins have a defined arity, and then reduce once this is satisfied.
 ```
 data Arity : Set where
-  no-builtin : Arity
   want : ℕ → ℕ → Arity
+  interleaving-error : Arity
+  over-saturation : Arity
 
+{-
+sat (builtin b) ≡ want 1 2
+
+sat (force (builtin b)) ≡ want 0 2
+
+sat ((force (builtin b)) · blah) ≡ want 0 1
+sat ((force (builtin b)) · blah · blah) ≡ want 0 0
+sat (((force (builtin b)) · blah · blah) · blah) ≡ oversaturated
+
+-}
 want-injective₀ : {a₀ a₁ b₀ b₁ : ℕ} → want a₀ a₁ ≡ want b₀ b₁ → a₀ ≡ b₀
 want-injective₀ refl = refl
 
 want-injective₁ : {a₀ a₁ b₀ b₁ : ℕ} → want a₀ a₁ ≡ want b₀ b₁ → a₁ ≡ b₁
 want-injective₁ refl = refl
 
-postulate
-  interleave-error : ∀ {A : Set} → A
+variable
+  X Y : Set
 
-sat : {X : Set} → X ⊢ → Arity
-sat (` x) = no-builtin
-sat (ƛ t) = no-builtin
-sat (t · t₁) with sat t
-... | no-builtin = no-builtin
-... | want (suc a₀) a₁ = interleave-error -- This reduces to error
-... | want zero (suc a₁) = want zero a₁
-... | want zero zero = want zero zero -- This should reduce lower down the tree...
-sat (force t) with sat t
-... | no-builtin = no-builtin
-... | want zero zero = interleave-error  -- This reduces to error
+data Value {X : Set} : X ⊢ → Set
+
+data ForceStack {X : Set} : X ⊢ → Set where
+  builtin : (b : Builtin) → ForceStack (builtin b)
+  force : {t : X ⊢} → ForceStack t → ForceStack (force t)
+
+data ApplyStack {X : Set} : X ⊢ → Set where
+  forcestack : {t : X ⊢} → ForceStack t → ApplyStack t
+  _·_ : {t v : X ⊢} → ApplyStack t → Value v → ApplyStack (t · v)
+
+sat : {X : Set}{t : X ⊢} → ApplyStack t → Arity
+sat (forcestack (builtin b)) = want (arity₀ b) (arity b)
+sat (forcestack (force x)) with sat (forcestack x)
+... | interleaving-error = interleaving-error
+... | want zero a₁ = over-saturation
 ... | want (suc a₀) a₁ = want a₀ a₁
-... | want zero (suc a₁) = interleave-error -- This reduces to error
-sat (delay t) = no-builtin
-sat (con x) = no-builtin
-sat (constr i xs) = no-builtin
-sat (case t ts) = no-builtin
-sat (builtin b) = want (arity₀ b) (arity b)
-sat error = no-builtin
+... | over-saturation = over-saturation
+sat (t · x) with sat t
+... | interleaving-error = interleaving-error
+... | want zero zero = over-saturation
+... | want zero (suc a₁) = want zero a₁
+... | want (suc a₀) a₁ = interleaving-error
+... | over-saturation = over-saturation
 
+{-
 sat-app-step : {X : Set} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
 sat-app-step {t = t} sat-t with sat t
 sat-app-step {t = t} sat-t | want zero (suc x₁) = cong (want zero) (suc-injective (want-injective₁ sat-t))
@@ -77,19 +93,17 @@ nat-threshold : {a b : ℕ} → a < b → b ≤ (suc a) → b ≡ (suc a)
 nat-threshold {zero} {suc zero} a<b b≤sa = refl
 nat-threshold {zero} {suc (suc b)} a<b (Data.Nat.s≤s ())
 nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = cong suc (nat-threshold a<b b≤sa)
-
+-}
 ```
 ## Values
 ```
-variable
-  X Y : Set
 
-data Value {X : Set} : X ⊢ → Set where
+data Value {X} where
   delay : {a : X ⊢} → Value (delay a)
-  ƛ : {a : (Maybe X) ⊢ } → Value (ƛ a)
+  ƛ : {a : (Maybe X) ⊢} → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
-  builtin : {b : Builtin} → Value (builtin b)
 
+{-
   -- To be a Value, a term needs to be still unsaturated
   -- after it has been force'd or had something applied
   -- hence, unsat-builtin₀ and unsat-builtin₁ have
@@ -112,7 +126,7 @@ data Value {X : Set} : X ⊢ → Set where
             → Value t
             → Value t₁
             → Value (t · t₁)
-
+-}
   constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
 
 value-constr-recurse : {i : ℕ} {vs : List (X ⊢)} → Value (constr i vs) → All Value vs
@@ -146,12 +160,19 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   force-error : force error ⟶ error
 
   -- Builtins that are saturated will reduce
+{-
+  sat-builtin : {t : X ⊢}
+               → sat t ≡ want zero zero
+               → t ⟶ reduceBuiltin t
+-}
+{-
   sat-app-builtin : {t₁ t₂ : X ⊢}
               → sat (t₁ · t₂) ≡ want zero zero
               → (t₁ · t₂) ⟶ reduceBuiltin (t₁ · t₂)
   sat-force-builtin : {t : X ⊢}
               → sat (force t) ≡ want zero zero
               → (force t) ⟶ reduceBuiltin (force t)
+-}
 
   case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
               → lookup? i ts ≡ just t
@@ -176,6 +197,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   force-con : {c : TmCon} → force (con c) ⟶ error
   force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
 
+{-
   -- Currently, this assumes type arguments have to come first
   force-interleave-error : {a₁ : ℕ} {t : X ⊢}
                → sat t ≡ want zero a₁
@@ -183,6 +205,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   app-interleave-error : {a₀ a₁ : ℕ} {t t₁ : X ⊢}
                → sat t ≡ want (suc a₀) a₁
                → (t · t₁) ⟶ error
+-}
 
   -- Many of the things that you can apply to that aren't ƛ
   app-con : {b : X ⊢} {c : TmCon} → (con c) · b ⟶ error
@@ -195,8 +218,10 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
   case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
   case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
+  {-
   case-unsat₀ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
   case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
+  -}
   case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
               → t ⟶ t'
               → case t ts ⟶ case t' ts
@@ -248,6 +273,8 @@ data Progress {X : Set} : (a : X ⊢) → Set where
 
 {-# TERMINATING #-}
 progress : ∀ (M : ⊥ ⊢) → Progress M
+progress t = {!!}
+{-
 progress (` ())
 progress (ƛ M) = done ƛ
 progress (L · R) with progress L
@@ -264,28 +291,31 @@ progress (L · R) with progress L
 progress ((force t) · R) | done VL | done VR | unsat₀ s v = step (app-interleave-error (sat-force-step {t = t} s))
 progress ((force t) · R) | done VL | done VR | unsat₀₋₁ s v with sat (force t) in sat-ft
 ... | no-builtin = contradiction (Eq.trans (Eq.sym sat-ft) (sat-force-step {t = t} s)) λ ()
-... | want zero zero = step (ξ₁ (sat-force-builtin sat-ft))
-... | want zero (suc zero)  = step (sat-app-builtin (sat-app-step {t = force t} {t₁ = R} sat-ft))
+... | interleave-error = {!!}
+... | want zero zero = step (ξ₁ (sat-builtin sat-ft)) -- step (ξ₁ (sat-force-builtin sat-ft))
+... | want zero (suc zero)  = step (sat-builtin {!!}) --step (sat-app-builtin (sat-app-step {t = force t} {t₁ = R} sat-ft))
 ... | want zero (suc (suc a₁)) = done (unsat₁ sat-ft VL VR)
 ... | want (suc a₀) a₁ = step (app-interleave-error sat-ft)
 progress ((t · t₁) · R) | done VL | done VR | unsat₁ sat-l≡want v v₁ with sat (t · t₁) in sat-L
 ...       | no-builtin = contradiction (Eq.trans (Eq.sym (sat-app-step {t = t} {t₁ = t₁} sat-l≡want)) sat-L ) λ ()
+...       | interleave-error = {!!}
 ...       | want (suc a₀) a₁ = step (app-interleave-error sat-L)
-...       | want zero zero = step (ξ₁ (sat-app-builtin sat-L))
-...       | want zero (suc zero) = step (sat-app-builtin (sat-app-step {t = t · t₁} {t₁ = R} sat-L))
+...       | want zero zero = {!!} -- step (ξ₁ (sat-app-builtin sat-L))
+...       | want zero (suc zero) = {!!} -- step (sat-app-builtin (sat-app-step {t = t · t₁} {t₁ = R} sat-L))
 ...       | want zero (suc (suc a₁)) = done (unsat₁ sat-L VL VR)
 progress ((builtin b) · R) | done VL | done VR | builtin with arity b in arity-b
 ... | a₁ with arity₀ b in arity₀-b
 ...   | suc a₀ = step (app-interleave-error (cong₂ want arity₀-b arity-b))
-progress (builtin b · R) | done VL | done VR | builtin | suc zero | zero  = step (sat-app-builtin (sat-app-step {t = (builtin b)} {t₁ = R} (cong₂ want arity₀-b arity-b)))
+progress (builtin b · R) | done VL | done VR | builtin | suc zero | zero  = {!!} -- step (sat-app-builtin (sat-app-step {t = (builtin b)} {t₁ = R} (cong₂ want arity₀-b arity-b)))
 progress (builtin b · R) | done VL | done VR | builtin | suc (suc a₁) | zero  = done (unsat₁ (cong₂ want arity₀-b arity-b) VL VR)
 progress (force m) with progress m
 ... | step x = step (ξ₃ x)
 ... | fail = step force-error
 ... | done x with sat m in sat-m
+...   | interleave-error = {!!}
 ...   | want zero a₁ = step (force-interleave-error sat-m)
 ...   | want (suc (suc a₀)) a₁ = done (unsat₀ sat-m x)
-...   | want (suc zero) zero = step (sat-force-builtin (sat-force-step {t = m} sat-m))
+...   | want (suc zero) zero = {!!} -- step (sat-force-builtin (sat-force-step {t = m} sat-m))
 ...   | want (suc zero) (suc a₁) = done (unsat₀₋₁ sat-m x)
 progress (force (ƛ m)) | done Vm | no-builtin = step force-ƛ
 progress (force (m · m₁)) | done (unsat₁ sat-m≡want Vm Vm₁) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-app-step {t = m} {t₁ = m₁} sat-m≡want)) λ ()
@@ -329,7 +359,7 @@ progress (case (builtin b) ts) = step case-builtin
 progress (case error ts) = step case-error
 progress (builtin b) = done builtin
 progress error = fail
-
+-}
 ```
 ## "Reduction" Equivalence
 ```
