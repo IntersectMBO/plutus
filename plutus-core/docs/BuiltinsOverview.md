@@ -2,7 +2,7 @@
 
 This document elaborates on the implementation of the builtins machinery.
 
-Before you proceed, make sure that you understand the high-level concepts at play, for that we have the a [separate](./BuiltinsIntro.md) doc.
+Before you proceed, make sure that you understand the high-level concepts at play, for that we have a [separate](./BuiltinsIntro.md) doc.
 
 ## Built-in functions: overview
 
@@ -11,26 +11,30 @@ Before you proceed, make sure that you understand the high-level concepts at pla
 The module alignment of the built-in functions machinery (sans most of costing, which we'll include in a separate section):
 
 <pre>
-<code>                             <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs">Evaluation.Machine.MachineParameters.Default</a>
+<code>                             <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs">Evaluation.Machine.MachineParameters.Default</a>
                                        /       |       \
                                       /        |        \
-<a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs">Evaluation.Machine.ExBudgetingDefaults</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs">Default.Builtins</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs">Evaluation.Machine.MachineParameters</a>
+<a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs">Evaluation.Machine.ExBudgetingDefaults</a>  <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs">Default.Builtins</a> <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs">Evaluation.Machine.MachineParameters</a>
                   |                            |        /
                   |                            |       /
-        [other_costing_stuff]           <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Meaning.hs">Builtin.Meaning</a> ## <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Elaborate.hs">Builtin.Elaborate</a>
-                                       *       |       #         #
-                                      *        |        #       #
-                    <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/TypeScheme.hs">Builtin.TypeScheme</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Runtime.hs">Builtin.Runtime</a>  <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Debug.hs">Builtin.Debug</a>
+        [other_costing_stuff]           <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Meaning.hs">Builtin.Meaning</a> ## <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Elaborate.hs">Builtin.Elaborate</a> ## <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Debug.hs">Builtin.Debug</a>
+                                       *       |
+                                      *        |
+                    <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/TypeScheme.hs">Builtin.TypeScheme</a>  <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Runtime.hs">Builtin.Runtime</a>
                    *       *          *        |
                   *        *           *       |
- <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownKind.hs">Builtin.KnownKind</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownTypeAst.hs">Builtin.KnownTypeAst</a> <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownType.hs">Builtin.KnownType</a> -- <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Emitter.hs">Builtin.Emitter</a>
+ <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownKind.hs">Builtin.KnownKind</a> <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownTypeAst.hs">Builtin.KnownTypeAst</a> <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/KnownType.hs">Builtin.KnownType</a>
                                       *        |
                                        *       |
-                                        <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/Polymorphism.hs">Builtin.Polymorphism</a>
+                                        <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Polymorphism.hs">Builtin.Polymorphism</a>
                                                |
                                                |
-                                        <a href="https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Builtin/HasConstant.hs">Builtin.HasConstant</a></code>
+                                        <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/HasConstant.hs">Builtin.HasConstant</a></code>
+                                               |
+                                               |
+                                        <a href="https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Builtin/Result.hs">Builtin.Result</a></code>
 </pre>
+                          
 
 Legend:
 
@@ -97,7 +101,7 @@ And that's it, you'll get everything else automatically, including general tests
 
 `Default.Builtins` contains extensive documentation on how to add a built-in function, what is allowed and what should be avoided, make sure to read everything if you want to add a built-in function.
 
-In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/IntersectMBO/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor (see [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/cost-model/CostModelGeneration.md) document for details).
+In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/IntersectMBO/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor (see [this](https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/cost-model/CostModelGeneration.md) document for details).
 
 ### Builtin meanings
 
@@ -132,7 +136,7 @@ makeBuiltinMeaning
     (runCostingFunThreeArguments . paramIfThenElse)
 ```
 
-The denotation can be arbitrary Haskell code as long as the type of that function is supported by the builtins machinery. There's plenty of restrictions, but as you can see polymorphism is not one of them, so do read the docs in `Default.Builtins` if you want to learn more, in particular [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L430) one.
+The denotation can be arbitrary Haskell code as long as the type of that function is supported by the builtins machinery. There's plenty of restrictions, but as you can see polymorphism is not one of them, so do read the docs in `Default.Builtins` if you want to learn more, in particular [this](https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L488) one.
 
 So what's that `BuiltinMeaning` returned by `toBuiltinMeaning`? It's this:
 
@@ -211,7 +215,7 @@ divideIntegerTypeScheme ::
     TypeScheme
         (CekValue DefaultUni fun ann)
         '[Integer, Integer]
-        (EvaluationResult Integer)
+        (BuiltinResult Integer)
 divideIntegerTypeScheme = TypeSchemeArrow $ TypeSchemeArrow TypeSchemeResult
 ```
 
@@ -257,7 +261,7 @@ class KnownTypeAst tyname uni x where
 
 However unlike `KnownKind` it also contains a bunch of associated type families, which guide the elaborator from `PlutusCore.Builtin.Elaborate`, whose purpose is to ensure that the Plutus type of a built-in function can be inferred from its denotation without it being necessary to manually write out complex Haskell types representing Plutus types.
 
-In particular, the elaborator monomorphizes types of polymorphic functions, e.g. here's what it does to the type of `fst` (which can't be a built-in function at the moment for reasons explained in [this](https://github.com/IntersectMBO/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L965) Note):
+In particular, the elaborator monomorphizes types of polymorphic functions, e.g. here's what it does to the type of `fst` (which can't be a built-in function at the moment for reasons explained in [this](https://github.com/IntersectMBO/plutus/blob/bc4c2d06f8f31641116f5118fd6e5d98462c1878/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L1019) Note):
 
 ```
 >>> :t elaborateDebug fst
@@ -296,22 +300,22 @@ Here's how the type of runtime denotations is defined:
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.
 --
--- 'BuiltinResult' contains the cost (an 'ExBudget') and the result (a @MakeKnownM val@) of the
--- builtin application. The cost is stored strictly, since the evaluator is going to look at it
--- and the result is stored lazily, since it's not supposed to be forced before accounting for the
--- cost of the application. If the cost exceeds the available budget, the evaluator discards the
--- the result of the builtin application without ever forcing it and terminates with evaluation
--- failure. Allowing the user to compute something that they don't have the budget for would be a
--- major bug.
+-- 'BuiltinCostedResult' contains the cost (an 'ExBudgetStream') and the result (a
+-- @BuiltinResult val@) of the builtin application. The cost is stored strictly, since
+-- the evaluator is going to look at it and the result is stored lazily, since it's not supposed to
+-- be forced before accounting for the cost of the application. If the cost exceeds the available
+-- budget, the evaluator discards the result of the builtin application without ever forcing it and
+-- terminates with evaluation failure. Allowing the user to compute something that they don't have
+-- the budget for would be a major bug.
 data BuiltinRuntime val
-    = BuiltinResult ExBudget ~(MakeKnownM val)
+    = BuiltinResult ExBudgetStream ~(BuiltinResult val)
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 ```
 
 When a partial builtin application represented as a `BuiltinRuntime` is being forced at runtime, this results in the `BuiltinExpectForce` being peeled off of that `BuiltinRuntime` (if the outermost constructor is not `BuiltinExpectForce`, then it's an evaluation failure).
 
-Similarly, when evaluation stumbles upon a built-in function applied to an argument, the `BuiltinExpectArgument` is peeled off of the `BuiltinRuntime` representing the possibly already partially applied builtin (giving an evaluation failure if the outermost constructor is not `BuiltinExpectArgument`) and the continuation stored in that constructor gets fed the argument. This way we collect all arguments first and only upon reaching `BuiltinResult` those arguments get unlifted and fed to the Haskell denotation of the builtin. The denotation then gets evaluated and its result gets lifted into a `val` in the `MakeKnownM` monad providing access to the error and logging effects (only these two), since built-in functions have the capacity to fail and to emit log messages.
+Similarly, when evaluation stumbles upon a built-in function applied to an argument, the `BuiltinExpectArgument` is peeled off of the `BuiltinRuntime` representing the possibly already partially applied builtin (giving an evaluation failure if the outermost constructor is not `BuiltinExpectArgument`) and the continuation stored in that constructor gets fed the argument. This way we collect all arguments first and only upon reaching `BuiltinResult` those arguments get unlifted and fed to the Haskell denotation of the builtin. The denotation then gets evaluated and its result gets lifted into a `val` in the `BuiltinResult` monad providing access to the error and logging effects (only these two), since built-in functions have the capacity to fail and to emit log messages.
 
 Each built-in function gets its own `BuiltinRuntime`, since the runtime behavior of different built-in functions is distinct. However for script evaluation we need a data type for "all built-in functions from the given set have a `BuiltinRuntime`" and for that we use this unimaginative definition:
 
@@ -362,10 +366,10 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 `ReadKnownIn` only contains one method, `readKnown`, whose non-`default` type signature specifies that the function converts a PLC value (each evaluator defines its own type of values, hence we have to be generic) to a Haskell value (it can be `Integer`, `Bool` etc, hence we have to be generic here too) in the `ReadKnownM` monad, which is just a fancy name for `Either`:
 
 ```haskell
-type ReadKnownM = Either KnownTypeError
+type ReadKnownM = Either BuiltinError
 ```
 
-where `KnownTypeError` can carry arbitrary `Text`, so that it's possible to throw unlifting errors like `"Can't unlift to 'Void'"` or `"Out of bounds of 'Word8'"`.
+where `BuiltinError` can carry arbitrary `Text`, so that it's possible to throw unlifting errors like `"Can't unlift to 'Void'"` or `"Out of bounds of 'Word8'"`.
 
 The `default` type signature of `readKnown` says that unlifting of a `val` to `a` is always possible if `KnownBuiltinType val a` holds, which is a product of a bunch of constraints:
 
@@ -383,7 +387,7 @@ but here we're only interested in one, `HasConstantIn`, defined in the `PlutusCo
 class HasConstant term where
     -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
     -- @term@ is not a wrapped Haskell value.
-    asConstant :: term -> Either KnownTypeError (Some (ValueOf (UniOf term)))
+    asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
 
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term
@@ -415,48 +419,38 @@ readKnownConstant val = asConstant val >>= <...>
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> MakeKnownM val
-    default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
+    makeKnown :: a -> BuiltinResult val
+    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
     makeKnown x = pure . fromValue $! x
 ```
 
-except it's for lifting rather than unlifting and `makeKnown` runs in its own `MakeKnownM` monad, which is a bit richer than `ReadKnownM`:
+except it's for lifting rather than unlifting and `makeKnown` runs in its own `BuiltinResult` monad, which is a bit richer than `ReadKnownM`:
 
 ```haskell
 -- | The monad that 'makeKnown' runs in.
--- Equivalent to @ExceptT KnownTypeError Emitter@, except optimized in two ways:
+-- Equivalent to @ExceptT BuiltinError Emitter@, except optimized in two ways:
 --
 -- 1. everything is strict
--- 2. has the 'MakeKnownSuccess' constructor that is used for returning a value with no logs
+-- 2. has the 'BuiltinSuccess' constructor that is used for returning a value with no logs
 --    attached, which is the most common case for us, so it helps a lot not to construct and
 --    deconstruct a redundant tuple
-data MakeKnownM a
-    = MakeKnownFailure (DList Text) KnownTypeError
-    | MakeKnownSuccess a
-    | MakeKnownSuccessWithLogs (DList Text) a
+data BuiltinResult a
+    = BuiltinSuccess a
+    | BuiltinSuccessWithLogs (DList Text) a
+    | BuiltinFailure (DList Text) BuiltinError
 ```
 
 The implementation of the default method uses `fromValue`, which is defined in terms of `fromConstant` from the `HasConstant` class.
 
-`MakeKnownIn` has more instances than `ReadKnownIn`, because for certain types only lifting makes sense and not unlifting. Two notable examples are the implicit error effect in Plutus represented by `EvaluationResult` on the Haskell side:
+`MakeKnownIn` has more instances than `ReadKnownIn`, because for certain types only lifting makes sense and not unlifting. A notable example is `BuiltinResult` itself:
 
 ```haskell
-instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
-```
+instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
+    makeKnown res = res >>= makeKnown
 
-and the logging effect:
-
-```haskell
-instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown a = <...>
-```
-
-where `Emitter` has the following API in `PlutusCore.Builtin.Emitter`
-
-```haskell
-type Emitter :: Type -> Type
-runEmitter :: Emitter a -> (a, DList Text)
-emit :: Text -> Emitter ()
+instance
+        ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
+        , uni ~ UniOf val
+        ) => ReadKnownIn uni val (BuiltinResult a) where
+    readKnown _ = throwUnderTypeError
 ```
