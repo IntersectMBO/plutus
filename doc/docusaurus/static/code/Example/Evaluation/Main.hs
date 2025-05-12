@@ -3,28 +3,34 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
 module Main where
 
-import Data.Proxy (Proxy (..))
-import Data.Text.IO qualified as Text
-import PlutusTx
-import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude
-import Prelude (IO)
 
-import PlutusTx.Test (EvalResult, applyLifted, evaluateCompiledCode, prettyEvalResult)
+import Data.Text.IO qualified as Text
+import PlutusTx (CompiledCode, applyCode, compile, liftCodeDef, unsafeApplyCode)
+import Prelude (IO, String)
+
+import PlutusTx.Test (EvalResult, evaluateCompiledCode, prettyEvalResult)
 
 -- BEGIN Plinth
+
 plinthCode :: Integer -> Integer
 plinthCode x = trace "Evaluating x" x + trace "Evaluating constant" 2
 
-compiledCode :: CompiledCode (Integer -> Integer)
-compiledCode = plc (Proxy @"plinth") plinthCode
 -- END Plinth
+
+-- BEGIN CompiledCode
+
+compiledCode :: CompiledCode (Integer -> Integer)
+compiledCode = $$(compile [||plinthCode||])
+
+-- END CompiledCode
 
 {-
 EvalResult
@@ -45,12 +51,43 @@ EvalResult
     }
 -}
 
--- BEGIN AppliedResult
+-- BEGIN CompiledArgument
+
+argumentCompiled :: CompiledCode Integer
+argumentCompiled = $$(compile [||2||])
+
+-- END CompiledArgument
+
+-- BEGIN LiftedArgument
+
+argumentLifted :: CompiledCode Integer
+argumentLifted = liftCodeDef 2
+
+-- END LiftedArgument
+
+-- BEGIN SafeApplicationResult
+
+errorOrResult :: Either String EvalResult
+errorOrResult = fmap evaluateCompiledCode appliedSafely
+ where
+  appliedSafely :: Either String (CompiledCode Integer)
+  appliedSafely = compiledCode `applyCode` argumentLifted
+
+-- END SafeApplicationResult
+
+-- BEGIN UnsafeApplicationResult
+
 result :: EvalResult
-result = evaluateCompiledCode $ compiledCode `applyLifted` 2
--- END AppliedResult
+result = evaluateCompiledCode appliedUnsafely
+ where
+  appliedUnsafely :: CompiledCode Integer
+  appliedUnsafely = compiledCode `unsafeApplyCode` argumentCompiled
+
+-- END UnsafeApplicationResult
 
 -- BEGIN main
+
 main :: IO ()
 main = Text.putStrLn $ prettyEvalResult result
+
 -- END main
