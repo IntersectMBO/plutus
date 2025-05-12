@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module PlutusTx.Test.Golden (
   -- * Compilation testing
@@ -35,31 +35,12 @@ import Data.Text (Text)
 import Flat (Flat)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
-import PlutusCore.Pretty (
-  Pretty (pretty),
-  PrettyBy (prettyBy),
-  PrettyConfigClassic,
-  PrettyConfigName,
-  PrettyUni,
-  Render (render),
-  prettyClassicSimple,
-  prettyPlcClassicSimple,
-  prettyReadable,
-  prettyReadableSimple,
- )
-import PlutusCore.Test (
-  TestNested,
-  ToUPlc (..),
-  goldenSize,
-  goldenTPlc,
-  goldenUPlc,
-  goldenUPlcReadable,
-  nestedGoldenVsDoc,
-  nestedGoldenVsDocM,
-  ppCatch,
-  rethrow,
-  runUPlcBudget,
- )
+import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
+                          PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
+                          prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
+import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenUPlc,
+                        goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
+                        runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn)
