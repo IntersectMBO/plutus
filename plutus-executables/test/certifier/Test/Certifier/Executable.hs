@@ -18,7 +18,8 @@ import Test.Tasty.HUnit
 {- | Run an external executable with some arguments.  This is for use inside
     HUnit Assertions -}
 
--- TODO: this is a mess, makeExampleM uses another function to run the certifier, need to
+-- TODO(https://github.com/IntersectMBO/plutus-private/issues/1582):
+-- this is a mess, makeExampleM uses another function to run the certifier, need to
 -- refactor things to introduce less duplication
 makeUplcCert :: String -> IO FilePath
 makeUplcCert name = do
