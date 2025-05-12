@@ -31,10 +31,10 @@ So that we can import the necessary functionality:
 
 ```haskell
 import PlutusTx.Test (
-  CodeResult,
+  EvalResult,
   applyLifted,
   evaluateCompiledCode,
-  prettyCodeResult
+  prettyEvalResult
  )
 ```
 
@@ -45,35 +45,35 @@ It is possible to evaluate this compiled code without applying it to any argumen
 and evaluation will succeed, returning the value of type `Integer -> Integer`:
 
 ```haskell
-result :: CodeResult
+result :: EvalResult
 result = evaluateCompiledCode compiledCode
 ```
 
-The `CodeResult` type is declared as follows:
+The `EvalResult` type is declared as follows:
 
 ```haskell
-data CodeResult = CodeResult
-  { codeResult
+data EvalResult = EvalResult
+  { evalResult
       :: Either
            (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
            (NTerm DefaultUni DefaultFun ())
-  , codeBudget :: ExBudget
-  , codeTraces :: [Text]
+  , evalResultBudget :: ExBudget
+  , evalResultTraces :: [Text]
   }
   deriving stock (Show)
 ```
 
-The `codeResult` field contains the result of the evaluation, which can either be a successful evaluation or an error.
+The `evalResult` field contains the result of the evaluation, which can either be a successful evaluation or an error.
 
-The `codeBudget` field contains the execution budget used during the evaluation,
+The `evalResultBudget` field contains the execution budget used during the evaluation,
 which includes the CPU and memory usage.
 
-The `codeTraces` field contains the traces emitted during the evaluation.
+The `evalResultTraces` field contains the traces emitted during the evaluation.
 
 One can use its `Show` instance to print the result of the evaluation:
 ```haskell
-CodeResult
-  { codeResult =
+EvalResult
+  { evalResult =
       Right
         ( LamAbs
             ()
@@ -110,17 +110,17 @@ CodeResult
                 )
             )
         )
-  , codeBudget =
+  , evalResultBudget =
       ExBudget
         { exBudgetCPU = ExCPU 16100
         , exBudgetMemory = ExMemory 200
         }
-  , codeTraces = []
+  , evalResultTraces = []
   }
 ```
 
 The output is quite verbose and not very readable.
-To make it more readable, we can use the `prettyCodeResult` function, 
+To make it more readable, we can use the `prettyEvalResult` function, 
 which formats the output in a prettier way:
 
 ```

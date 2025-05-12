@@ -30,7 +30,7 @@ import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Run.Code (codeResult, evaluateCompiledCode, evaluationResultMatchesHaskell)
+import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode, evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
 
 import PlutusTx.These (These (..))
@@ -222,9 +222,9 @@ builtinDataEncodingSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-      evalResult = codeResult . evaluateCompiledCode
-  evalResult (encodedDataAssocMap `unsafeApplyCode` liftCodeDef dataAssocMap)
-    === evalResult (encodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
+      eval = evalResult . evaluateCompiledCode
+  eval (encodedDataAssocMap `unsafeApplyCode` liftCodeDef dataAssocMap)
+    === eval (encodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
   evaluationResultMatchesHaskell
     (mDecodedAssocMap `unsafeApplyCode` liftCodeDef assocMap)
     (===)

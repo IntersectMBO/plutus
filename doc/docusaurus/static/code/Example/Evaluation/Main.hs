@@ -16,7 +16,7 @@ import PlutusTx.Plugin (plc)
 import PlutusTx.Prelude
 import Prelude (IO)
 
-import PlutusTx.Test (CodeResult, applyLifted, evaluateCompiledCode, prettyCodeResult)
+import PlutusTx.Test (EvalResult, applyLifted, evaluateCompiledCode, prettyEvalResult)
 
 -- BEGIN Plinth
 plinthCode :: Integer -> Integer
@@ -27,18 +27,18 @@ compiledCode = plc (Proxy @"plinth") plinthCode
 -- END Plinth
 
 {-
-CodeResult
-    { codeResult = Right
+EvalResult
+    { evalResult = Right
         ( Constant ()
             ( Some
                 ( ValueOf DefaultUniInteger 4 )
             )
         )
-    , codeBudget = ExBudget
+    , evalResultBudget = ExBudget
         { exBudgetCPU = ExCPU 508304
         , exBudgetMemory = ExMemory 1966
         }
-    , codeTraces =
+    , evalResultTraces =
         [ "Evaluating x"
         , "Evaluating constant"
         ]
@@ -46,11 +46,11 @@ CodeResult
 -}
 
 -- BEGIN AppliedResult
-result :: CodeResult
+result :: EvalResult
 result = evaluateCompiledCode $ compiledCode `applyLifted` 2
 -- END AppliedResult
 
 -- BEGIN main
 main :: IO ()
-main = Text.putStrLn $ prettyCodeResult result
+main = Text.putStrLn $ prettyEvalResult result
 -- END main
