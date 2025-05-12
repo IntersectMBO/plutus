@@ -80,6 +80,7 @@ library
     , ieee754
     , megaparsec
     , memory
+    , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.45
     , plutus-core:plutus-core-execlib

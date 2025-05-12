@@ -1,6 +1,13 @@
-module Certifier (runCertifier) where
+module Certifier (
+  runCertifier
+  , mkCertifier
+  , prettyCertifierError
+  , CertifierError (..)
+  ) where
 
 import Control.Monad ((>=>))
+import Control.Monad.Except (ExceptT (..), runExceptT, throwError)
+import Control.Monad.IO.Class (liftIO)
 import Data.Char (toUpper)
 import Data.List (find)
 import Data.List.NonEmpty (NonEmpty (..))
@@ -8,7 +15,6 @@ import Data.List.NonEmpty qualified as NE
 import Data.Maybe (fromJust)
 import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import System.Directory (createDirectory)
-import System.Exit (ExitCode (..), exitSuccess, exitWith)
 import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
@@ -20,41 +26,59 @@ import UntypedPlutusCore.Transform.Simplifier
 
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 
+type CertName = String
+type CertDir = String
+
+data CertifierError
+  = InvalidCertificate
+  | InvalidCompilerOutput
+  | ValidationError CertName
+
+prettyCertifierError :: CertifierError -> String
+prettyCertifierError InvalidCertificate =
+  "Invalid certificate: \
+  \The compilation was not successfully certified. \
+  \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
+  \and attach the faulty certificate."
+prettyCertifierError InvalidCompilerOutput =
+  "Invalid compiler output: \
+  \The certifier was not able to process the trace produced by the compiler. \
+  \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
+  \and attach the faulty certificate."
+prettyCertifierError (ValidationError name) =
+  "Invalid certificate name: \
+  \The certificate name " <> name <> " is invalid. \
+  \Please use only alphanumeric characters, underscores and dashes. \
+  \The first character must be a letter."
+
+type Certifier = ExceptT CertifierError IO
+
+runCertifier :: Certifier a -> IO (Either CertifierError a)
+runCertifier = runExceptT
+
 -- | Run the Agda certifier on the simplification trace, if requested
-runCertifier
-  :: Maybe String
-  -- ^ Should we run the Agda certifier? If so, what should the certificate file be called?
-  -> SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+mkCertifier
+  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
   -- ^ The trace produced by the simplification process
-  -> IO ()
-runCertifier (Just certName) simplTrace = do
+  -> CertName
+  -- ^ The name of the certificate to be produced
+  -> Certifier CertDir
+mkCertifier simplTrace certName = do
   certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True -> do
-      putStrLn "The compilation was successfully certified."
       let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
       writeCertificateProject cert
-      exitSuccess
-    Just False -> do
-      putStrLn
-        "The compilation was not successfully certified. \
-        \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-        \and attach the faulty certificate."
-      exitWith (ExitFailure 1)
-    Nothing -> do
-      putStrLn
-        "The certifier was unable to check the compilation. \
-        \Please open a bug report at https://www.github.com/IntersectMBO/plutus."
-      exitWith (ExitFailure 2)
-runCertifier Nothing _ = pure ()
+    Just False -> throwError InvalidCertificate
+    Nothing -> throwError InvalidCompilerOutput
 
-validCertName :: String -> IO String
-validCertName [] = error "Certificate name cannot be empty"
+validCertName :: String -> Certifier String
+validCertName [] = throwError $ ValidationError []
 validCertName name@(fstC : rest) =
   if all isValidChar name
     then pure (toUpper fstC : rest)
-    else error $ "Certificate name contains invalid characters: " <> name
+    else throwError $ ValidationError name
   where
     isValidChar c = c `elem` ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "_-"
 
@@ -262,17 +286,21 @@ mkAgdaCertificateProject cert =
 
 writeCertificateProject
   :: AgdaCertificateProject
-  -> IO ()
-writeCertificateProject AgdaCertificateProject { mainModule, astModules, projectDir, agdalib } = do
-  let (mainModulePath, mainModuleContents) = mainModule
-      (agdalibPath, agdalibContents) = agdalib
-      astModulePaths = fmap fst astModules
-      astModuleContents = fmap snd astModules
-  time <- systemNanoseconds <$> getSystemTime
-  let actualProjectDir = projectDir <> "-" <> show time
-  createDirectory actualProjectDir
-  createDirectory (actualProjectDir </> "src")
-  writeFile (actualProjectDir </> "src" </> mainModulePath) mainModuleContents
-  writeFile (actualProjectDir </> agdalibPath) agdalibContents
-  mapM_ (\(path, contents) -> writeFile (actualProjectDir </> "src" </> path) contents) astModules
-  putStrLn $ "Agda certificate project written to " <> actualProjectDir
+  -> Certifier CertDir
+writeCertificateProject
+  AgdaCertificateProject
+    { mainModule, astModules, projectDir, agdalib }
+  = liftIO $ do
+      let (mainModulePath, mainModuleContents) = mainModule
+          (agdalibPath, agdalibContents) = agdalib
+          astModulePaths = fmap fst astModules
+          astModuleContents = fmap snd astModules
+      time <- systemNanoseconds <$> getSystemTime
+      let actualProjectDir = projectDir <> "-" <> show time
+      createDirectory actualProjectDir
+      createDirectory (actualProjectDir </> "src")
+      writeFile (actualProjectDir </> "src" </> mainModulePath) mainModuleContents
+      writeFile (actualProjectDir </> agdalibPath) agdalibContents
+      mapM_ (\(path, contents) ->
+        writeFile (actualProjectDir </> "src" </> path) contents) astModules
+      pure actualProjectDir
