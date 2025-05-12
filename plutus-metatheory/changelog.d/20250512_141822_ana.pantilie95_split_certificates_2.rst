@@ -1,0 +1,4 @@
+Changed
+-------
+
+- Certificates now are generated as Agda projects, and common ASTs are shared to greatly reduce the size of the certificates.
