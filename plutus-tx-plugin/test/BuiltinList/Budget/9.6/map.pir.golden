@@ -12,7 +12,7 @@ letrec
             (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
             {r})
         []
-        (\(x : integer) (x : list integer) ->
-           mkCons {integer} (addInteger 1 x) (go x))
+        (\(x : integer) (xs : list integer) ->
+           mkCons {integer} (addInteger 1 x) (go xs))
 in
 go

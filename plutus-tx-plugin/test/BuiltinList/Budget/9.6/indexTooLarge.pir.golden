@@ -35,4 +35,4 @@ letrec
           Unit
           Unit
 in
-\(xs : list integer) -> go xs 5
+\(xs : list integer) -> go xs 10
