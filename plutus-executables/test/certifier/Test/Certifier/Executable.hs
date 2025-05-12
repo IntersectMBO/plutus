@@ -1,10 +1,8 @@
 module Test.Certifier.Executable where
 
-import Control.Monad (void)
 import Data.Char (toUpper)
-import Data.List (find, isPrefixOf, (\\))
-import System.Directory (getCurrentDirectory, listDirectory, removeDirectoryRecursive,
-                         setCurrentDirectory)
+import Data.List (find, isPrefixOf)
+import System.Directory (getCurrentDirectory, removeDirectoryRecursive, setCurrentDirectory)
 import System.Exit
 import System.FilePath
 import System.Process
@@ -21,7 +19,7 @@ import Test.Tasty.HUnit
     HUnit Assertions -}
 
 -- TODO: this is a mess, makeExampleM uses another function to run the certifier, need to
--- rewrite it to use this one
+-- refactor things to introduce less duplication
 makeUplcCert :: String -> IO FilePath
 makeUplcCert name = do
     let inputFile = fixedPath </> "UPLC" </> name ++ ".uplc"
@@ -84,10 +82,32 @@ exampleNames =
 makeExampleM :: String -> IO ExitCode
 makeExampleM testname = do
   (_, example, _) <- readProcessWithExitCode "uplc" ["example", "-s", testname] []
-  let args = ["optimise", "--certify", testname,
+  let testNameCert = testname <> "Cert"
+      args = ["optimise", "--certify", testNameCert,
                 "--print-mode", "Classic"]
-  (exitCode, _, _) <- readProcessWithExitCode "uplc" args example
-  pure exitCode
+  (exitCode, output, err) <- readProcessWithExitCode "uplc" args example
+  case exitCode of
+    ExitFailure code ->
+      assertFailure
+      $ "uplc failed with code: "
+      <> show code
+      <> " and output: "
+      <> output
+      <> " and error: "
+      <> err
+    ExitSuccess -> do
+      let certDir = find (fstToUpper testNameCert `isPrefixOf`) . concatMap words . lines $ output
+      case certDir of
+        Just certDir' -> do
+          removeDirectoryRecursive certDir'
+          pure exitCode
+        Nothing -> assertFailure
+          $ "uplc failed to produce a certificate for "
+          <> testNameCert
+          <> " with output: "
+          <> output
+          <> " and error: "
+          <> err
 
 makeExample :: String -> Assertion
 makeExample testname = do
@@ -107,7 +127,10 @@ runAgda file = do
 agdaTestCert :: String -> Assertion
 agdaTestCert name = do
     certDir <- makeUplcCert name
-    (resCode, resText) <- runAgda (fixedPath </> certDir </> "src" </> fstToUpper name <> ".agda")
+    oldDir <- getCurrentDirectory
+    setCurrentDirectory certDir
+    (resCode, resText) <- runAgda ("src" </> fstToUpper name <> ".agda")
+    setCurrentDirectory oldDir
     removeDirectoryRecursive certDir
     assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
 

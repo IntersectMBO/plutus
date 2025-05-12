@@ -9,6 +9,7 @@ import Data.Maybe (fromJust)
 import Data.Time.Clock.System (getSystemTime, systemNanoseconds)
 import System.Directory (createDirectory)
 import System.Exit (ExitCode (..), exitSuccess, exitWith)
+import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
@@ -270,8 +271,8 @@ writeCertificateProject AgdaCertificateProject { mainModule, astModules, project
   time <- systemNanoseconds <$> getSystemTime
   let actualProjectDir = projectDir <> "-" <> show time
   createDirectory actualProjectDir
-  createDirectory (actualProjectDir <> "/src")
-  writeFile (actualProjectDir <> "/src/" <> mainModulePath) mainModuleContents
-  writeFile (actualProjectDir <> "/" <> agdalibPath) agdalibContents
-  mapM_ (\(path, contents) -> writeFile (actualProjectDir <> "/src/" <> path) contents) astModules
+  createDirectory (actualProjectDir </> "src")
+  writeFile (actualProjectDir </> "src" </> mainModulePath) mainModuleContents
+  writeFile (actualProjectDir </> agdalibPath) agdalibContents
+  mapM_ (\(path, contents) -> writeFile (actualProjectDir </> "src" </> path) contents) astModules
   putStrLn $ "Agda certificate project written to " <> actualProjectDir
