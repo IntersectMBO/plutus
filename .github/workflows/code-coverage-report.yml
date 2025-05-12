@@ -8,9 +8,6 @@ on:
     branches: 
       - master 
   workflow_dispatch:
-  pull_request:
-    branches: 
-      - coverage-plutus-core # TODO remove me before merging
 
 jobs:
   deploy:
