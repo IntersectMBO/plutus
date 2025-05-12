@@ -14,7 +14,7 @@ import Control.Lens ((&))
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test.Run.Code (codeResult, evaluateCompiledCode)
+import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode)
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertEqual, assertFailure, testCase)
@@ -47,7 +47,7 @@ tests =
 
 assertResult :: NTerm DefaultUni DefaultFun () -> CompiledCode a -> Assertion
 assertResult expected code =
-  case codeResult (evaluateCompiledCode code) of
+  case evalResult (evaluateCompiledCode code) of
     Left ex      -> assertFailure $ show ex
     Right actual -> assertEqual "Evaluation has succeeded" expected actual
 
