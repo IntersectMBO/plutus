@@ -143,6 +143,19 @@ _ = (pushfd (translationfd reflexive) (translationfd reflexive))
       ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((pushfd (translationfd reflexive) (translationfd reflexive))
                        ⨾ translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd (Translation.match TransMatch.error)))))) (Translation.match TransMatch.error))))))) (Translation.match TransMatch.error))))
 
+import RawU
+
+postulate
+  One Two Three : RawU.TmCon
+
+forceDelaySimpleBefore : ⊥ ⊢
+forceDelaySimpleBefore = (force (force (force (delay (ƛ (delay (ƛ (delay (ƛ (` nothing)))))))) · (con One)) · (con Two)) · (con Three)
+
+forceDelaySimpleAfter : ⊥ ⊢
+forceDelaySimpleAfter = (((ƛ (ƛ (ƛ (` nothing)))) · (con One)) · (con Two)) · (con Three)
+
+forceDelaySimple : FD zero zero forceDelaySimpleBefore forceDelaySimpleAfter
+forceDelaySimple = multiappliedfd {!!} ?
 ```
 
 ## FD implies pureFD
