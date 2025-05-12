@@ -81,11 +81,11 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 
 #ifdef CERTIFY
-import Certifier (runCertifier)
+import Certifier
 import Data.Time.Clock.System (SystemTime (..), getSystemTime)
 #endif
 
@@ -569,7 +569,18 @@ runCompiler moduleName opts expr = do
         sysTime <- getSystemTime
         let ts = systemNanoseconds sysTime
             optCertifyWithTs = (<> show ts) <$> optCertify
-        runCertifier optCertifyWithTs simplTrace
+        case optCertifyWithTs of
+            Nothing -> pure ()
+            Just certName -> do
+                result <- runCertifier $ mkCertifier simplTrace certName
+                case result of
+                    Left err ->
+                        hPutStrLn stderr $ prettyCertifierError err
+                    Right certDir ->
+                        hPutStrLn
+                            stderr
+                            $ "The compilation was successfully certified."
+                            <> "\nAgda certificate project written to " <> certDir
 #else
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
 #endif
