@@ -20,7 +20,19 @@ Let's consider the following example Plinth program:
   start="-- BEGIN Plinth" 
   end="-- END Plinth" />
 
-In order to evaluate this code, we need to add the `plutus-tx:plutus-tx-testlib` 
+This code represents a function that expects an `Integer` argument
+and returns the `Integer` value. 
+
+To compile it, we can use the `compile` function as described earlier in the "[Compiling Plinth code](./compiling-plinth.md)" section:
+
+<LiteralInclude 
+  file="Example/Evaluation/Main.hs" 
+  language="haskell" 
+  title="Plinth code compiled" 
+  start="-- BEGIN CompiledCode" 
+  end="-- END CompiledCode" />
+
+In order to evaluate `compiledCode`, we need to add the `plutus-tx:plutus-tx-testlib` 
 dependency to our cabal file:
 ```cabal
   build-depends:
@@ -37,9 +49,6 @@ import PlutusTx.Test (
   prettyEvalResult
  )
 ```
-
-Our example code represents a function that expects an `Integer` argument
-and returns the `Integer` value. 
 
 It is possible to evaluate this compiled code without applying it to any arguments, 
 and evaluation will succeed, returning the value of type `Integer -> Integer`:
@@ -140,17 +149,42 @@ No traces were emitted
 This output reveals that the evaluation was successful, and the resultng UPLC 
 value is an (un-applied) lambda abstraction. 
 
-The [Lifting Values into CompiledCode](./lifting.md) section contains and example 
-of applying the `CompiledCode` to an argument.
+To apply the compiled lambda abstraction to an argument we need to have a compiled argument, 
+and there are several ways of obtaining it from a Haskell value known at compile time:
+1. "lift" it into `CompiledCode`. See the [Lifting Values into CompiledCode](./lifting.md) section for more details.
+    <LiteralInclude 
+      file="Example/Evaluation/Main.hs" 
+      language="haskell" 
+      title="Lift a constant value into CompiledCode" 
+      start="-- BEGIN LiftedArgument" 
+      end="-- END LiftedArgument" />
 
-Alternatively, we can use the imported `applyLifted` function like this:
+2. `$(compile [|| ... ||])` it the same way we compiled the function itself.
+    <LiteralInclude 
+      file="Example/Evaluation/Main.hs" 
+      language="haskell" 
+      title="Compile a constant value into CompiledCode" 
+      start="-- BEGIN CompiledArgument" 
+      end="-- END CompiledArgument" />
+
+Once we have an argument of type `CompiledCode a`, we can apply it to the compiled function
+using either the [`applyCode`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html#v:applyCode) function 
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
   language="haskell" 
-  title="How to apply compiled function to a lifted argument" 
-  start="-- BEGIN AppliedResult" 
-  end="-- END AppliedResult" />
+  title="Applying compiled function to an argument (type-safe way)" 
+  start="-- BEGIN SafeApplicationResult" 
+  end="-- END SafeApplicationResult" />
+
+or the [`unsafeApplyCode`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html#v:unsafeApplyCode) function.
+
+<LiteralInclude 
+  file="Example/Evaluation/Main.hs" 
+  language="haskell" 
+  title="Applying compiled function to an argument (unsafe way)" 
+  start="-- BEGIN UnsafeApplicationResult" 
+  end="-- END UnsafeApplicationResult" />
 
 Lets print the result of the evaluation:
 
