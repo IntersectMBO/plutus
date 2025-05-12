@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -82,6 +83,11 @@ import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
 import System.IO (openBinaryTempFile)
 import System.IO.Unsafe (unsafePerformIO)
+
+#ifdef CERTIFY
+import Certifier (runCertifier)
+import Data.Time.Clock.System (SystemTime (..), getSystemTime)
+#endif
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -556,7 +562,17 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
+#ifdef CERTIFY
+    let optCertify = opts ^. posCertify
+    (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+    liftIO $ do
+        sysTime <- getSystemTime
+        let ts = systemNanoseconds sysTime
+            optCertifyWithTs = (<> show ts) <$> optCertify
+        runCertifier optCertifyWithTs simplTrace
+#else
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+#endif
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
