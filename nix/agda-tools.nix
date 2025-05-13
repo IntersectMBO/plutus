@@ -151,6 +151,14 @@ let
   };
 
   NIX_AGDA_STDLIB = "${agda-stdlib}/stadard-library.agda-lib";
+
+  generate-malonzo-code = pkgs.writeShellScriptBin "generate-malonzo-code" ''
+    cd "$(git rev-parse --show-toplevel)/plutus-metatheory"
+    agda-with-stdlib --compile --ghc-dont-call-ghc src/Main.lagda.md
+    # Agda generates .hs files as read-only by default, but we need stylish-haskell
+    # to be able to format them, so we need to make them writable.
+    chmod -R +w src/MAlonzo
+  '';
 in
 
 {
@@ -161,5 +169,6 @@ in
     agda-with-stdlib
     agda-with-stdlib-and-metatheory
     metatheory-agda-package
+    generate-malonzo-code
     NIX_AGDA_STDLIB;
 }

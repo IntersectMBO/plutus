@@ -226,6 +226,33 @@ instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+{- | Calculate a 'CostingInteger' for the size of the given 'Integer', measured in
+64-bit words.  This is the default size measure for `Integer`s.
+-}
+memoryUsageInteger :: Integer -> CostingInteger
+-- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+-- keep this special case for the time being though.
+memoryUsageInteger 0 = 1
+-- Assume 64 Int
+memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
+-- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
+-- function anyway.
+{-# OPAQUE memoryUsageInteger #-}
+
+instance ExMemoryUsage Integer where
+    memoryUsage i = singletonRose $ memoryUsageInteger i
+    {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage Natural where
+    -- Same as Integer since we are going via Integer
+    memoryUsage n = memoryUsage $ toInteger n
+    {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage Word8 where
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
+
 {- | When invoking a built-in function, a value of type `NumBytesCostedAsNumWords`
    can be used transparently as a built-in Integer but with a different size
    measure: see Note [Integral types as Integer].  This is required by the
@@ -263,31 +290,6 @@ instance ExMemoryUsage IntegerCostedLiterally where
     -- maxBound::SatInt = 2^63-1.  This shouldn't be a problem for costing because no
     -- realistic input should be that large; however if you're going to use this then be
     -- sure to convince yourself that it's safe.
-
--- | Calculate a 'CostingInteger' for the given 'Integer'.
-memoryUsageInteger :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1)
--- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
--- keep this special case for the time being though.
-memoryUsageInteger 0 = 1
--- Assume 64 Int
-memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
--- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
--- function anyway.
-{-# OPAQUE memoryUsageInteger #-}
-
-instance ExMemoryUsage Integer where
-    memoryUsage i = singletonRose $ memoryUsageInteger i
-    {-# INLINE memoryUsage #-}
-
-instance ExMemoryUsage Natural where
-    -- Same as Integer since we are going via Integer
-    memoryUsage n = memoryUsage $ toInteger n
-    {-# INLINE memoryUsage #-}
-
-instance ExMemoryUsage Word8 where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want the empty bytestring and bytestrings of length 1-8 to have
    size 1, bytestrings of length 9-16 to have size 2, etc.  Note that (-1)

@@ -4,7 +4,7 @@
 # However, this workflow is implemented to catch edge cases, such as the one described in 
 # https://github.com/IntersectMBO/plutus/issues/6625.
 #
-# This workflow runs on all pull requests and on push to master, and it can also be triggered manually.
+# This workflow runs on push to master, and it can also be triggered manually.
 
 
 name: "👷 Cabal Build All"

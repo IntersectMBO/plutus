@@ -38,18 +38,9 @@ goldenTests :: TestNested
 goldenTests =
   testNested "Budget" . pure $
     testNestedGhc
-      [ goldenPirReadable "map1" map1
-      , goldenUPlcReadable "map1" map1
-      , goldenEvalCekCatch "map1" $ [map1 `unsafeApplyCode` (liftCodeDef 100)]
-      , goldenBudget "map1" $ map1 `unsafeApplyCode` (liftCodeDef 100)
-      , goldenPirReadable "map2" map2
-      , goldenUPlcReadable "map2" map2
-      , goldenEvalCekCatch "map2" $ [map2 `unsafeApplyCode` (liftCodeDef 100)]
-      , goldenBudget "map2" $ map2 `unsafeApplyCode` (liftCodeDef 100)
-      , goldenPirReadable "map3" map3
-      , goldenUPlcReadable "map3" map3
-      , goldenEvalCekCatch "map3" $ [map3 `unsafeApplyCode` (liftCodeDef 100)]
-      , goldenBudget "map3" $ map3 `unsafeApplyCode` (liftCodeDef 100)
+      [ goldenBundle "map1" map1 (map1 `unsafeApplyCode` liftCodeDef 100)
+      , goldenBundle "map2" map2 (map2 `unsafeApplyCode` liftCodeDef 100)
+      , goldenBundle "map3" map3 (map3 `unsafeApplyCode` liftCodeDef 100)
       ]
 
 propertyTests :: TestTree

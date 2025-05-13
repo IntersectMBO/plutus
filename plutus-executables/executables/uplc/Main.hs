@@ -38,7 +38,7 @@ import Data.Text qualified as T
 import Flat (unflat)
 import Options.Applicative
 import Prettyprinter ((<+>))
-import System.Exit (exitFailure)
+import System.Exit (ExitCode (..), exitFailure, exitSuccess, exitWith)
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
@@ -268,7 +268,7 @@ plutusOpts = hsubparser $
 
 -- | Run the UPLC optimisations
 runOptimisations :: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
   prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
   (simplified, simplificationTrace) <- PLC.runQuoteT $ do
     renamed <- PLC.rename prog
@@ -276,7 +276,25 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode cert) = do
         defaultBuiltinSemanticsVariant = def
     UPLC.simplifyProgramWithTrace UPLC.defaultSimplifyOpts defaultBuiltinSemanticsVariant renamed
   writeProgram outp ofmt mode simplified
-  runCertifier cert simplificationTrace
+  case mcert of
+    Nothing   -> pure ()
+    Just cert -> execCertifier simplificationTrace cert
+  where
+    execCertifier simplificationTrace cert = do
+      result <- runCertifier $ mkCertifier simplificationTrace cert
+      case result of
+        Left err -> do
+          putStrLn $ prettyCertifierError err
+          case err of
+            InvalidCertificate    -> exitWith $ ExitFailure 1
+            InvalidCompilerOutput -> exitWith $ ExitFailure 2
+            ValidationError _     -> exitWith $ ExitFailure 3
+        Right certDir -> do
+          putStrLn
+            $ "The compilation was successfully certified.\nAgda certificate project written to "
+            <> certDir
+          exitSuccess
+
 
 ---------------- Script application ----------------
 
