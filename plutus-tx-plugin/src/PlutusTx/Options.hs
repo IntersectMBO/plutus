@@ -300,7 +300,8 @@ pluginOptions =
             "Produce a certificate for the compiled program, with the given name. "
             <> "This certificate provides evidence that the compiler optimizations have "
             <> "preserved the functional behavior of the original program. "
-            <> "Currently, this is only supported for the UPLC compilation pipeline."
+            <> "Currently, this is only supported for the UPLC compilation pipeline. "
+            <> "Warning: this is an experimental feature and may not work as expected."
           p = optional $ do
             firstC <- upperChar
             rest <- many (alphaNumChar <|> char '_' <|> char '\\')
