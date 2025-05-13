@@ -58,9 +58,13 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
+
   extra-artifacts =
     { inherit metatheory-site; } //
     { inherit metatheory-agda-library; } //
+    { inherit project-coverage-report; } //
     (latex-documents);
 
   project-variants-hydra-jobs = {
@@ -77,9 +81,6 @@ let
     ghc910.roots = project-variants-hydra-jobs.ghc910.roots;
     ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
   };
-
-  project-coverage-report =
-    project.projectVariants.ghc96-coverage.projectCoverageReport;
 
   packages =
     exposed-haskell-packages //
@@ -102,7 +103,6 @@ let
       (project-variants-hydra-jobs) //
       (windows-packages) //
       (packages) //
-      { inherit project-coverage-report; } //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
