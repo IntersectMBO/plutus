@@ -46,7 +46,7 @@ import PlutusTx.Test (
   EvalResult,
   applyLifted,
   evaluateCompiledCode,
-  prettyEvalResult
+  displayEvalResult
  )
 ```
 
@@ -129,7 +129,7 @@ EvalResult
 ```
 
 The output is quite verbose and not very readable.
-To make it more readable, we can use the `prettyEvalResult` function, 
+To make it more readable, we can use the `displayEvalResult` function, 
 which formats the output in a prettier way:
 
 ```
