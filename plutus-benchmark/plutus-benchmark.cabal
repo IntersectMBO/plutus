@@ -443,6 +443,7 @@ library script-contexts-internal
     PlutusBenchmark.V1.ScriptContexts
     PlutusBenchmark.V2.Data.ScriptContexts
     PlutusBenchmark.V2.ScriptContexts
+    PlutusBenchmark.V3.Data.DemoSC
     PlutusBenchmark.V3.Data.ScriptContexts
     PlutusBenchmark.V3.ScriptContexts
 

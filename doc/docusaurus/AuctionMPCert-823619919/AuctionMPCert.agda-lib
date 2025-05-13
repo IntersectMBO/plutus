@@ -1,0 +1,5 @@
+name: AuctionMPCert
+depend:
+  standard-library-2.1.1
+  plutus-metatheory
+include: src

@@ -19,6 +19,7 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:certify=AuctionMPCert #-}
 
 module AuctionMintingPolicy where
 
@@ -28,6 +29,8 @@ import PlutusLedgerApi.V2 (PubKeyHash, ScriptContext (..), TxInfo (..))
 import PlutusLedgerApi.V2.Contexts (ownCurrencySymbol, txSignedBy)
 import PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
+
+-- recomp
 
 -- BLOCK1
 type AuctionMintingParams = PubKeyHash

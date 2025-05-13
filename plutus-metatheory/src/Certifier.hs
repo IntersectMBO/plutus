@@ -30,23 +30,23 @@ type CertName = String
 type CertDir = String
 
 data CertifierError
-  = InvalidCertificate
+  = InvalidCertificate CertDir
   | InvalidCompilerOutput
   | ValidationError CertName
 
 prettyCertifierError :: CertifierError -> String
-prettyCertifierError InvalidCertificate =
-  "Invalid certificate: \
-  \The compilation was not successfully certified. \
+prettyCertifierError (InvalidCertificate certDir) =
+  "\nInvalid certificate: " <> certDir <>
+  "\nThe compilation was not successfully certified. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
   \and attach the faulty certificate."
 prettyCertifierError InvalidCompilerOutput =
-  "Invalid compiler output: \
+  "\nInvalid compiler output: \
   \The certifier was not able to process the trace produced by the compiler. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
   \and attach the faulty certificate."
 prettyCertifierError (ValidationError name) =
-  "Invalid certificate name: \
+  "\nInvalid certificate name: \
   \The certificate name " <> name <> " is invalid. \
   \Please use only alphanumeric characters, underscores and dashes. \
   \The first character must be a letter."
@@ -70,7 +70,10 @@ mkCertifier simplTrace certName = do
     Just True -> do
       let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
       writeCertificateProject cert
-    Just False -> throwError InvalidCertificate
+    Just False -> do
+      let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
+      certDir <- writeCertificateProject cert
+      throwError (InvalidCertificate certDir)
     Nothing -> throwError InvalidCompilerOutput
 
 validCertName :: String -> Certifier String

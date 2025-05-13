@@ -566,10 +566,7 @@ runCompiler moduleName opts expr = do
     let optCertify = opts ^. posCertify
     (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
     liftIO $ do
-        sysTime <- getSystemTime
-        let ts = systemNanoseconds sysTime
-            optCertifyWithTs = (<> show ts) <$> optCertify
-        case optCertifyWithTs of
+        case optCertify of
             Nothing -> pure ()
             Just certName -> do
                 result <- runCertifier $ mkCertifier simplTrace certName
@@ -579,7 +576,7 @@ runCompiler moduleName opts expr = do
                     Right certDir ->
                         hPutStrLn
                             stderr
-                            $ "The compilation was successfully certified."
+                            $ "\nThe compilation was successfully certified."
                             <> "\nAgda certificate project written to " <> certDir
 #else
     uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
