@@ -77,7 +77,8 @@ which produces a `Trace` always produces a correct one, although it might be use
 
 data Transformation : SimplifierTag → Relation where
   isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation SimplifierTag.caseOfCaseT ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
+  -- isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
+  fdNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceDelayT ast ast'
   isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
   -- FIXME: Inline currently rejects some valid translations so is disabled.
@@ -99,9 +100,9 @@ isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
 ... | proof p = proof (isFlD p)
-isTransformation? tag ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
-... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
-... | proof p = proof (isFD p)
+isTransformation? tag ast ast' | SimplifierTag.forceDelayT = proof fdNotImplemented -- with UFD.isForceDelay? ast ast'
+-- ... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
+-- ... | proof p = proof (isFD p)
 isTransformation? tag ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
 ... | proof p = proof (isCoC p)
