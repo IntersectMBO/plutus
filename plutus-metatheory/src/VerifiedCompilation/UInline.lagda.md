@@ -199,6 +199,41 @@ ex3 : Inlined {X = Ex3Vars} [] □ beforeEx3 afterEx3
 ex3 = complete (ƛ+ (partial (ƛb (partial (sub refl) id)) id))
 
 ```
+The `callsiteInline` example from the test suite:
+
+`(\a -> f (a 0 1) (a 2)) (\x y -> g x y)`
+
+inlining `a` at the first position, becomes
+
+`(\a -> f ((\x y -> g x y) 0 1) (a 2)) (\x y -> g x y)`
+
+```
+
+callsiteInlineBefore : Vars ⊢
+callsiteInlineBefore = (ƛ (((weaken (` f)) · (((` nothing) · (con Zero)) · (con One))) · ((` nothing) · (con Two)))) · (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))
+
+callsiteInlineAfter : Vars ⊢
+callsiteInlineAfter = (ƛ (((weaken (` f)) · (((weaken (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))) · (con Zero)) · (con One))) · ((` nothing) · (con Two)))) · (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))
+
+callsiteInline : Inlined [] □ callsiteInlineBefore callsiteInlineAfter
+callsiteInline = partial (ƛb (partial (partial id (partial (partial (sub refl) id) id)) id)) id
+
+```
+Continuing to inline:
+`(\a -> f ((\x y -> g x y) 0 1) (a 2)) (\x y -> g x y)`
+
+`f ((\x y -> g x y) 0 1) ((\x y -> g x y) 2) `
+
+`f (g 0 1) ((\y -> g 2 y)) `
+
+```
+callsiteInlineFinal : Vars ⊢
+callsiteInlineFinal = ((` f) · (((` g) · (con Zero)) · (con One))) · (ƛ (((` (just g)) · (con Two)) · (` nothing)))
+
+--callsiteFinalProof : Inlined [] □ callsiteInlineBefore callsiteInlineFinal
+--callsiteFinalProof = complete (ƛ+ (partial {!!} {!!}))
+
+```
 ## Decision Procedure
 
 ```
@@ -232,14 +267,14 @@ isIl? (v ∷ e) b (ƛ t₁) ast' | no ast≠ast' | yes (islambda (isterm t₂)) 
 ... | proof p = proof (ƛb p)
 ... | ce ¬pb t bf af with isIl? (listWeaken e) (bind b v) t₁ (weaken ast')
 ...    | proof p = proof (ƛ+ p)
-...    | ce ¬p t b a = ce (λ { (ƛb x) → ¬pb x ; (ƛ+ x) → ¬p x ; id → ast≠ast' refl} ) t b a
+...    | ce ¬p t b a = ce (λ { (ƛb x) → ¬pb x ; (ƛ+ x) → ¬p x ; id → ast≠ast' refl} ) t bf af
 isIl? {X} ⦃ de ⦄ e b (t₁ · t₂) ast' | no ast≠ast' with (isApp? isTerm? isTerm?) ast'
 ... | yes (isapp (isterm t₁') (isterm t₂')) with isIl? e b t₂ t₂'
 ...    | proof pt₂' with isIl? (t₂' ∷ e) b t₁ t₁'
 ...       | proof p = proof (partial p pt₂')
 ...       | ce ¬pf t bf af with isIl? (t₂ ∷ e) b t₁ ast'
 ...          | proof p = proof (complete p)
-...          | ce ¬p t b a = ce (λ  { (complete x) → ¬p x ; (partial x x₁) → ¬pf x ; id → ast≠ast' refl } ) t b a
+...          | ce ¬p t b a = ce (λ  { (complete x) → ¬p x ; (partial x x₁) → ¬pf x ; id → ast≠ast' refl } ) t bf af
 isIl? e b (t₁ · t₂) ast' | no ast≠ast' | yes (isapp (isterm t₁') (isterm t₂')) | ce ¬pf t bf af with isIl? (t₂ ∷ e) b t₁ ast'
 ... | proof p = proof (complete p)
 ... | ce ¬p t b a = ce (λ { (complete x) → ¬p x ; (partial x x₁) → ¬pf x₁ ; id → ast≠ast' refl }) t b a
