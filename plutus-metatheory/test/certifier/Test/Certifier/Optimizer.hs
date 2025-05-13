@@ -57,8 +57,4 @@ optimizerTests =
     --   this removes two tests which are currently failing; we should
     --   fix the tests and add them back
     testSimplifyInputs' =
-      filter
-        (\(name, _) ->
-          name /= "forceDelaySimple" && name /= "forceDelayComplex"
-        )
-        testSimplifyInputs
+      testSimplifyInputs
