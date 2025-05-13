@@ -67,7 +67,6 @@ let
     ghc96 = (project.flake { }).hydraJobs.ghc96;
     ghc98 = (project.flake { }).hydraJobs.ghc98;
     ghc910 = (project.flake { }).hydraJobs.ghc910;
-    ghc96-certify = (project.flake { }).hydraJobs.ghc96-certify;
   };
 
   project-variants-roots-and-plan-nix = {
@@ -77,8 +76,6 @@ let
     ghc98.plan-nix = project-variants-hydra-jobs.ghc98.plan-nix;
     ghc910.roots = project-variants-hydra-jobs.ghc910.roots;
     ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
-    ghc96-certify.roots = project-variants-hydra-jobs.ghc96-certify.roots;
-    ghc96-certify.plan-nix = project-variants-hydra-jobs.ghc96-certify.plan-nix;
   };
 
   packages =
@@ -91,7 +88,6 @@ let
     ghc96 = mkShell project.projectVariants.ghc96;
     ghc98 = mkShell project.projectVariants.ghc98;
     ghc910 = mkShell project.projectVariants.ghc910;
-    ghc96-certify = mkShell project.projectVariants.ghc96-certify;
   };
 
   devShells =
