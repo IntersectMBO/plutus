@@ -16,7 +16,7 @@ import Data.Text.IO qualified as Text
 import PlutusTx (CompiledCode, applyCode, compile, liftCodeDef, unsafeApplyCode)
 import Prelude (IO, String)
 
-import PlutusTx.Test (EvalResult, evaluateCompiledCode, prettyEvalResult)
+import PlutusTx.Test (EvalResult, displayEvalResult, evaluateCompiledCode)
 
 -- BEGIN Plinth
 
@@ -88,6 +88,6 @@ result = evaluateCompiledCode appliedUnsafely
 -- BEGIN main
 
 main :: IO ()
-main = Text.putStrLn $ prettyEvalResult result
+main = Text.putStrLn $ displayEvalResult result
 
 -- END main

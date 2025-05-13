@@ -41,54 +41,55 @@ data EvalResult = EvalResult
   deriving stock (Show)
 
 instance Pretty EvalResult where
-  pretty
-    EvalResult
-      { evalResultBudget =
-        ExBudget
-          { exBudgetCPU = ExCPU cpu
-          , exBudgetMemory = ExMemory mem
-          }
-      , ..
-      } =
-      vsep
-        [ case evalResult of
-            Left err ->
-              vsep
-                [ "Evaluation FAILED:"
-                , indent 2 $ prettyPlcClassicSimple err
-                ]
-            Right term ->
-              vsep
-                [ "Evaluation was SUCCESSFUL, result is:"
-                , indent 2 $ prettyPlcReadableSimple term
-                ]
-        , mempty
-        , "Execution budget spent:"
-        , indent 2 $
+  pretty EvalResult{..} =
+    vsep
+      [ case evalResult of
+          Left err ->
             vsep
-              [ "CPU" <+> pretty (format commas (unSatInt cpu))
-              , "MEM" <+> pretty (format commas (unSatInt mem))
+              [ "Evaluation FAILED:"
+              , indent 2 $ prettyPlcClassicSimple err
               ]
-        , mempty
-        , if null evalResultTraces
-            then "No traces were emitted"
-            else
-              vsep
-                [ "Evaluation"
-                    <+> plural "trace" "traces" (length evalResultTraces)
-                    <> ":"
-                , indent 2 $
-                    vsep $
-                      zipWith
-                        (\idx trace -> pretty idx <> dot <+> pretty trace)
-                        [1 :: Int ..]
-                        evalResultTraces
-                ]
-        , mempty
-        ]
+          Right term ->
+            vsep
+              [ "Evaluation was SUCCESSFUL, result is:"
+              , indent 2 $ prettyPlcReadableSimple term
+              ]
+      , mempty
+      , vsep
+          [ "Execution budget spent:"
+          , indent 2 $ prettyExBudget evalResultBudget
+          ]
+      , mempty
+      , if null evalResultTraces
+          then "No traces were emitted"
+          else
+            vsep
+              [ "Evaluation"
+                  <+> plural "trace" "traces" (length evalResultTraces)
+                  <> ":"
+              , indent 2 $
+                  vsep $
+                    zipWith
+                      (\idx trace -> pretty idx <> dot <+> pretty trace)
+                      [1 :: Int ..]
+                      evalResultTraces
+              ]
+      , mempty
+      ]
 
-prettyEvalResult :: EvalResult -> Text
-prettyEvalResult = display
+displayEvalResult :: EvalResult -> Text
+displayEvalResult = display
+
+displayExBudget :: ExBudget -> Text
+displayExBudget = render . prettyExBudget
+
+prettyExBudget :: ExBudget -> Doc ann
+prettyExBudget
+  ExBudget{exBudgetCPU = ExCPU cpu, exBudgetMemory = ExMemory mem} =
+    vsep
+      [ "CPU" <+> pretty (format commas (unSatInt cpu))
+      , "MEM" <+> pretty (format commas (unSatInt mem))
+      ]
 
 evaluateCompiledCode :: CompiledCode a -> EvalResult
 evaluateCompiledCode code = EvalResult{..}
