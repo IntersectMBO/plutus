@@ -118,10 +118,7 @@ fixedPath = ["test", "certifier"]
 srcTests :: [ String ]
 srcTests =
   [ "inc"
-  -- TODO: This is currently failing to certify. This will be fixed
-  -- after the PR that covers counter example tracing.
-  -- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1555.
-  -- , "len"
+  , "len"
   , "MinBS"
   , "AA2-CSE"
   ]
