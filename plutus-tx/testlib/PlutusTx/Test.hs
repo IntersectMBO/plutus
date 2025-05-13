@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -26,6 +27,7 @@ module PlutusTx.Test (
   goldenEvalCek,
   goldenEvalCekCatch,
   goldenEvalCekLog,
+  goldenEvalCekCatchBudget,
 
   -- * Budget and size testing
   goldenBudget,
@@ -55,7 +57,7 @@ import PlutusCore.Pretty (PrettyConfigClassic, PrettyConfigName, PrettyConst, Pr
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test (TestNested, ToTPlc (..), ToUPlc (..), catchAll, goldenSize, goldenTPlc,
                         goldenUPlc, goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM,
-                        ppCatch, rethrow, runUPlcBudget)
+                        ppCatch, rethrow)
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
@@ -117,10 +119,13 @@ renderExcess :: (TestName, Integer) -> (TestName, Integer) -> Integer -> String
 renderExcess tData mData diff =
   renderEstimates tData mData <> "Remaining headroom: " <> show diff
 
+{- | Does not include evaluation result. To include evaluation result, use
+  `goldenEvalCekCatchBudget` instead of adding `goldenEvalCekCatch`
+-}
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
   nestedGoldenVsDocM name ".budget" $ ppCatch $ do
-    PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
+    (_, PLC.ExBudget cpu mem) <- runPlcCekBudget [compiledCode]
     size <- UPLC.programSize <$> toUPlc compiledCode
     let contents =
           "cpu: "
@@ -139,8 +144,7 @@ goldenBundle
 goldenBundle name x y = do
   goldenPirReadable name x
   goldenUPlcReadable name x
-  goldenEvalCekCatch name [y]
-  goldenBudget name y
+  goldenEvalCekCatchBudget name y
 
 goldenBundle'
   :: TestName
@@ -217,6 +221,25 @@ goldenEvalCekLog name values =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace values)
 
+goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
+goldenEvalCekCatchBudget name compiledCode = do
+  let
+    evalRes = runPlcCekBudget [compiledCode]
+  nestedGoldenVsDocM name ".eval" $ do
+    either (pretty . show) prettyPlcClassicSimple
+      <$> runExceptT (fst <$> evalRes)
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
+    (_, PLC.ExBudget cpu mem) <- evalRes
+    size <- UPLC.programSize <$> toUPlc compiledCode
+    let contents =
+          "cpu: "
+            <> pretty cpu
+            <> "\nmem: "
+            <> pretty mem
+            <> "\nsize: "
+            <> pretty size
+    pure (render @Text contents)
+
 -- Helpers
 
 instance
@@ -259,9 +282,29 @@ runPlcCek values = do
   ps <- traverse toUPlc values
   let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
   fromRightM (throwError . SomeException) $
-    UPLC.evaluateCekNoEmit
-      PLC.defaultCekParametersForTesting
-      (p ^. UPLC.progTerm)
+        UPLC.evaluateCekNoEmit
+        PLC.defaultCekParametersForTesting
+        (p ^. UPLC.progTerm)
+
+runPlcCekBudget
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => [a]
+  -> ExceptT
+       SomeException
+       IO
+       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
+runPlcCekBudget values = do
+  ps <- traverse toUPlc values
+  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  fromRightM (throwError . SomeException) $ do
+    let
+      (evalRes, UPLC.CountingSt budget) =
+        UPLC.runCekNoEmit
+        PLC.defaultCekParametersForTesting
+        UPLC.counting
+        (p ^. UPLC.progTerm)
+
+    (, budget) <$> evalRes
 
 runPlcCekTrace
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)

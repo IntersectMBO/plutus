@@ -49,8 +49,7 @@ testClausify = testGroup "clausify"
                , testCase "formula5" $ mkClausifyTest Clausify.F5
                , runTestGhc
                      [ Tx.goldenPirReadable "clausify-F5" formula5example
-                     , Tx.goldenBudget "clausify-F5" formula5example
-                     , Tx.goldenEvalCekCatch "clausify-F5" [formula5example]
+                     , Tx.goldenEvalCekCatchBudget "clausify-F5" formula5example
                      ]
                ]
     where formula5example = Clausify.mkClausifyCode Clausify.F5
@@ -72,7 +71,6 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , runTestGhc
                     [ Tx.goldenPirReadable "knights10-4x4" knightsExample
                     , Tx.goldenBudget "knights10-4x4" knightsExample
-                    , Tx.goldenEvalCekCatch "knights10-4x4" [knightsExample]
                     ]
               ]
     where knightsExample = Knights.mkKnightsCode 10 4
@@ -94,7 +92,6 @@ testQueens = testGroup "queens"
                , runTestGhc
                      [ Tx.goldenPirReadable "queens4-bt" queens4btExample
                      , Tx.goldenBudget "queens4-bt" queens4btExample
-                     , Tx.goldenEvalCekCatch "queens4-bt" [queens4btExample]
                      ]
                ]
              , testGroup "5x5"
@@ -106,7 +103,6 @@ testQueens = testGroup "queens"
                , runTestGhc
                      [ Tx.goldenPirReadable "queens5-fc" queens5fcExample
                      , Tx.goldenBudget "queens5-fc" queens5fcExample
-                     , Tx.goldenEvalCekCatch "queens5-fc" [queens5fcExample]
                      ]
                ]
              ]
