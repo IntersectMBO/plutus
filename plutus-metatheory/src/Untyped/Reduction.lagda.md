@@ -17,8 +17,8 @@ open import RawU using (TmCon)
 open import Builtin using (Builtin; equals; decBuiltin; arity; arity₀)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
-open import Data.Empty using (⊥)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+open import Data.Empty using (⊥; ⊥-elim)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂;_≢_)
 open import Relation.Nullary.Negation using (contradiction)
 open import Data.Nat using (ℕ; zero; suc; _<_; _≟_; _<?_; _≤_)
 open import Data.Nat.Properties using (suc-injective)
@@ -37,16 +37,6 @@ data Arity : Set where
   interleaving-error : Arity
   over-saturation : Arity
 
-{-
-sat (builtin b) ≡ want 1 2
-
-sat (force (builtin b)) ≡ want 0 2
-
-sat ((force (builtin b)) · blah) ≡ want 0 1
-sat ((force (builtin b)) · blah · blah) ≡ want 0 0
-sat (((force (builtin b)) · blah · blah) · blah) ≡ oversaturated
-
--}
 want-injective₀ : {a₀ a₁ b₀ b₁ : ℕ} → want a₀ a₁ ≡ want b₀ b₁ → a₀ ≡ b₀
 want-injective₀ refl = refl
 
@@ -58,80 +48,33 @@ variable
 
 data Value {X : Set} : X ⊢ → Set
 
-data ForceStack {X : Set} : X ⊢ → Set where
-  builtin : (b : Builtin) → ForceStack (builtin b)
-  force : {t : X ⊢} → ForceStack t → ForceStack (force t)
+data Sign : Set where
+  nil : Sign
+  force : Sign → Sign
+  arg : Sign → Sign
 
-data ApplyStack {X : Set} : X ⊢ → Set where
-  forcestack : {t : X ⊢} → ForceStack t → ApplyStack t
-  _·_ : {t v : X ⊢} → ApplyStack t → Value v → ApplyStack (t · v)
+_^_ : ∀ {A : Set} → (A → A) → ℕ → (A → A)
+(f ^ zero) x = x
+(f ^ (suc n)) x = f ((f ^ n) x)
 
-sat : {X : Set}{t : X ⊢} → ApplyStack t → Arity
-sat (forcestack (builtin b)) = want (arity₀ b) (arity b)
-sat (forcestack (force x)) with sat (forcestack x)
-... | interleaving-error = interleaving-error
-... | want zero a₁ = over-saturation
-... | want (suc a₀) a₁ = want a₀ a₁
-... | over-saturation = over-saturation
-sat (t · x) with sat t
-... | interleaving-error = interleaving-error
-... | want zero zero = over-saturation
-... | want zero (suc a₁) = want zero a₁
-... | want (suc a₀) a₁ = interleaving-error
-... | over-saturation = over-saturation
+makeSign : Builtin → Sign
+makeSign b = ((arg ^ (arity b)) ((force ^ (arity₀ b)) nil))
 
-{-
-sat-app-step : {X : Set} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
-sat-app-step {t = t} sat-t with sat t
-sat-app-step {t = t} sat-t | want zero (suc x₁) = cong (want zero) (suc-injective (want-injective₁ sat-t))
+data Stack {X : Set} : Sign → X ⊢ → Set where
+  builtin : {b : Builtin} → Stack (makeSign b) (builtin b)
+  force : {σ : Sign} {t : X ⊢} → Stack (force σ) t → Stack σ (force t)
+  app : {σ : Sign} {t v : X ⊢} → Stack (arg σ) t → Stack σ (t · v)
 
-sat-force-step : {X : Set} {a₀ a₁ : ℕ} {t : X ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
-sat-force-step {t = t} sat-t with sat t
-sat-force-step {t = t} refl | want (suc a₀) a₁ = refl
-
-nat-threshold : {a b : ℕ} → a < b → b ≤ (suc a) → b ≡ (suc a)
-nat-threshold {zero} {suc zero} a<b b≤sa = refl
-nat-threshold {zero} {suc (suc b)} a<b (Data.Nat.s≤s ())
-nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = cong suc (nat-threshold a<b b≤sa)
--}
 ```
 ## Values
 ```
 
 data Value {X} where
   delay : {a : X ⊢} → Value (delay a)
-  ƛ : {a : (Maybe X) ⊢} → Value (ƛ a)
+  ƛ : {t : (Maybe X) ⊢} → Value (ƛ t)
   con : {n : TmCon} → Value (con n)
-
-{-
-  -- To be a Value, a term needs to be still unsaturated
-  -- after it has been force'd or had something applied
-  -- hence, unsat-builtin₀ and unsat-builtin₁ have
-  -- (suc (suc _)) requirements.
-  unsat₀ : {t : X ⊢} {a₀ a₁ : ℕ}
-            → sat t ≡ want (suc (suc a₀)) a₁
-            → Value t
-            → Value (force t)
-
-  -- unsat-builtin₀₋₁ handles the case where
-  -- we consume the last type argument but
-  -- still have some unsaturated term args.
-  unsat₀₋₁ : {t : X ⊢} {a₁ : ℕ}
-            → sat t ≡ want (suc zero) (suc a₁)
-            → Value t
-            → Value (force t)
-
-  unsat₁ : {t t₁ : X ⊢} {a₁ : ℕ}
-            → sat t ≡ want zero (suc (suc a₁))
-            → Value t
-            → Value t₁
-            → Value (t · t₁)
--}
   constr : {vs : List (X ⊢)} {n : ℕ} → All Value vs → Value (constr n vs)
-
-value-constr-recurse : {i : ℕ} {vs : List (X ⊢)} → Value (constr i vs) → All Value vs
-value-constr-recurse (constr All.[]) = All.[]
-value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
+  stack : {t : X ⊢} → (σ : Sign) → σ ≢ nil → Stack σ t → Value t
 
 ```
 ## Reduction Steps
@@ -160,19 +103,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   force-error : force error ⟶ error
 
   -- Builtins that are saturated will reduce
-{-
-  sat-builtin : {t : X ⊢}
-               → sat t ≡ want zero zero
-               → t ⟶ reduceBuiltin t
--}
-{-
-  sat-app-builtin : {t₁ t₂ : X ⊢}
-              → sat (t₁ · t₂) ≡ want zero zero
-              → (t₁ · t₂) ⟶ reduceBuiltin (t₁ · t₂)
-  sat-force-builtin : {t : X ⊢}
-              → sat (force t) ≡ want zero zero
-              → (force t) ⟶ reduceBuiltin (force t)
--}
+  sat-builtin : {t : X ⊢} → Stack nil t → t ⟶ reduceBuiltin t
 
   case-constr : {i : ℕ} {t : X ⊢} {vs ts : List (X ⊢)}
               → lookup? i ts ≡ just t
@@ -180,32 +111,25 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   broken-const : {i : ℕ} {vs ts : List (X ⊢)}
               → lookup? i ts ≡ nothing
               → case (constr i vs) ts ⟶ error
-  constr-step : {i : ℕ} {v v' : X ⊢} {vs : List (X ⊢)}
+  constr-head-step : {i : ℕ} {v v' : X ⊢} {vs : List (X ⊢)}
               → v ⟶ v'
               → constr i (v ∷ vs) ⟶ constr i (v' ∷ vs)
-  constr-sub-step : {i : ℕ} {v : X ⊢} {vs vs' : List (X ⊢)}
+  constr-tail-step : {i : ℕ} {v : X ⊢} {vs vs' : List (X ⊢)}
               → constr i vs ⟶ constr i vs'
               → constr i (v ∷ vs) ⟶ constr i (v ∷ vs')
-  constr-error : {i : ℕ} {vs : List (X ⊢)}
+  constr-head-error : {i : ℕ} {vs : List (X ⊢)}
               → constr i (error ∷ vs) ⟶ error
-  constr-sub-error : {i : ℕ} {v : X ⊢} {vs : List (X ⊢)}
-    → constr i vs ⟶ error
-    → constr i (v ∷ vs) ⟶ error
+  constr-tail-error : {i : ℕ} {v : X ⊢} {vs : List (X ⊢)}
+              → constr i vs ⟶ error
+              → constr i (v ∷ vs) ⟶ error
 
   -- Many of the things that you can force that aren't delay
   force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
   force-con : {c : TmCon} → force (con c) ⟶ error
   force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
 
-{-
-  -- Currently, this assumes type arguments have to come first
-  force-interleave-error : {a₁ : ℕ} {t : X ⊢}
-               → sat t ≡ want zero a₁
-               → force t ⟶ error
-  app-interleave-error : {a₀ a₁ : ℕ} {t t₁ : X ⊢}
-               → sat t ≡ want (suc a₀) a₁
-               → (t · t₁) ⟶ error
--}
+  force-interleave-error : {t : X ⊢} {σ : Sign} → Stack (arg σ) t → (force t) ⟶ error
+  app-interleave-error : {t v : X ⊢} {σ : Sign} → Stack (force σ) t → (t · v) ⟶ error
 
   -- Many of the things that you can apply to that aren't ƛ
   app-con : {b : X ⊢} {c : TmCon} → (con c) · b ⟶ error
@@ -217,11 +141,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
   case-ƛ : {t : Maybe X ⊢} {ts : List (X ⊢)} → case (ƛ t) ts ⟶ error
   case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
   case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
-  case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
-  {-
-  case-unsat₀ : {t : X ⊢} {ts : List (X ⊢)} {a₀ a₁ : ℕ} → sat t ≡ want (suc a₀) a₁ → case t ts ⟶ error
-  case-unsat₁ : {t : X ⊢} {ts : List (X ⊢)} {a₁ : ℕ} → sat t ≡ want zero (suc a₁) → case t ts ⟶ error
-  -}
+  case-unsat : {t : X ⊢} {ts : List (X ⊢)} {σ : Sign} → σ ≢ nil → Stack σ t → case t ts ⟶ error
   case-reduce :  {t t' : X ⊢} {ts : List (X ⊢)}
               → t ⟶ t'
               → case t ts ⟶ case t' ts
@@ -273,7 +193,43 @@ data Progress {X : Set} : (a : X ⊢) → Set where
 
 {-# TERMINATING #-}
 progress : ∀ (M : ⊥ ⊢) → Progress M
-progress t = {!!}
+progress (ƛ t) = done ƛ
+progress (t · t₁) with progress t
+... | step t' = step (ξ₁ t')
+... | done con = step app-con
+... | done (constr x) = step app-constr
+... | fail = step error₁
+... | done delay = step app-delay
+... | done ƛ with progress t₁
+...    | step t₁' = step (ξ₂ ƛ t₁')
+...    | done v₁ = step (β v₁)
+...    | fail = step error₂
+progress (t · t₁) | done (stack nil σ≢nil s) = ⊥-elim (σ≢nil refl)
+progress (t · t₁) | done (stack (force σ) σ≢nil s) = step (app-interleave-error s)
+progress (t · t₁) | done (stack (arg nil) σ≢nil s) = step (sat-builtin (app s))
+progress (t · t₁) | done (stack (arg (force σ)) σ≢nil s) = done (stack (force σ) (λ ()) (app s))
+progress (t · t₁) | done (stack (arg (arg σ)) σ≢nil s) = done (stack (arg σ) (λ ()) (app s))
+progress (force t) with progress t
+... | step t' = step (ξ₃ t')
+... | done delay = step force-delay
+... | done ƛ = step force-ƛ
+... | done con = step force-con
+... | done (constr x) = step force-constr
+... | done (stack nil σ≢nil s) = step (ξ₃ (sat-builtin s))
+... | done (stack (force nil) σ≢nil s) = step (sat-builtin (force s))
+... | done (stack (force (force σ)) σ≢nil s) = done (stack (force σ) (λ ()) (force s))
+... | done (stack (force (arg σ)) σ≢nil s) = done (stack (arg σ) (λ ()) (force s))
+... | done (stack (arg σ) σ≢nil s) = step (force-interleave-error s)
+... | fail = step force-error
+progress (delay t) = done delay
+progress (con x) = done con
+progress (constr i xs) = {!!}
+progress (case t ts) = {!!}
+progress (builtin b) with makeSign b in sig-b
+... | force σ = done (stack (force σ) (λ ()) {!builtin!})
+... | arg σ = {!!}
+... | nil rewrite sig-b = step (sat-builtin {!!})
+progress error = fail
 {-
 progress (` ())
 progress (ƛ M) = done ƛ
