@@ -2,6 +2,7 @@ module Certifier (
   runCertifier
   , mkCertifier
   , prettyCertifierError
+  , prettyCertifierSuccess
   , CertifierError (..)
   ) where
 
@@ -30,26 +31,35 @@ type CertName = String
 type CertDir = String
 
 data CertifierError
-  = InvalidCertificate
+  = InvalidCertificate CertDir
   | InvalidCompilerOutput
   | ValidationError CertName
 
+newtype CertifierSuccess = CertifierSuccess
+  { certDir :: CertDir
+  }
+
 prettyCertifierError :: CertifierError -> String
-prettyCertifierError InvalidCertificate =
-  "Invalid certificate: \
-  \The compilation was not successfully certified. \
+prettyCertifierError (InvalidCertificate certDir) =
+  "\n\nInvalid certificate: " <> certDir <>
+  "\nThe compilation was not successfully certified. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
   \and attach the faulty certificate."
 prettyCertifierError InvalidCompilerOutput =
-  "Invalid compiler output: \
-  \The certifier was not able to process the trace produced by the compiler. \
+  "\n\nInvalid compiler output: \
+  \\nThe certifier was not able to process the trace produced by the compiler. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-  \and attach the faulty certificate."
+  \containing a minimal program that when compiled reproduces the issue."
 prettyCertifierError (ValidationError name) =
-  "Invalid certificate name: \
-  \The certificate name " <> name <> " is invalid. \
+  "\n\nInvalid certificate name: \
+  \\nThe certificate name " <> name <> " is invalid. \
   \Please use only alphanumeric characters, underscores and dashes. \
   \The first character must be a letter."
+
+prettyCertifierSuccess :: CertifierSuccess -> String
+prettyCertifierSuccess (CertifierSuccess certDir) =
+  "\n\nCertificate successfully created: " <> certDir <>
+  "\nThe compilation was successfully certified."
 
 type Certifier = ExceptT CertifierError IO
 
@@ -62,15 +72,18 @@ mkCertifier
   -- ^ The trace produced by the simplification process
   -> CertName
   -- ^ The name of the certificate to be produced
-  -> Certifier CertDir
+  -> Certifier CertifierSuccess
 mkCertifier simplTrace certName = do
   certName' <- validCertName certName
   let rawAgdaTrace = mkFfiSimplifierTrace simplTrace
   case runCertifierMain rawAgdaTrace of
     Just True -> do
       let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
-      writeCertificateProject cert
-    Just False -> throwError InvalidCertificate
+      CertifierSuccess <$> writeCertificateProject cert
+    Just False -> do
+      let cert = mkAgdaCertificateProject $ mkCertificate certName' rawAgdaTrace
+      certDir <- writeCertificateProject cert
+      throwError $ InvalidCertificate certDir
     Nothing -> throwError InvalidCompilerOutput
 
 validCertName :: String -> Certifier String

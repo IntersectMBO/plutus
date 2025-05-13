@@ -14,11 +14,6 @@ category:        Language
 build-type:      Simple
 extra-doc-files: README.md
 
-flag certify
-  default:     False
-  manual:      True
-  description: Build with the Agda-based compiler certification tool.
-
 source-repository head
   type:     git
   location: https://github.com/IntersectMBO/plutus
@@ -88,22 +83,16 @@ library
     , flat                   ^>=0.6
     , ghc
     , lens
+    , megaparsec
     , mtl
     , plutus-core            ^>=1.45
     , plutus-core:plutus-ir
+    , plutus-metatheory
     , plutus-tx              ^>=1.45
     , prettyprinter
     , template-haskell
     , text
     , uniplate
-
-  if flag(certify)
-    build-depends:
-      , megaparsec
-      , plutus-metatheory
-      , time
-
-    cpp-options:   -DCERTIFY
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
