@@ -80,7 +80,7 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 
 import Certifier
@@ -565,9 +565,9 @@ runCompiler moduleName opts expr = do
             result <- runCertifier $ mkCertifier simplTrace certName
             case result of
                 Right certSuccess ->
-                    putStrLn $ prettyCertifierSuccess certSuccess
+                    hPutStrLn stderr $ prettyCertifierSuccess certSuccess
                 Left err ->
-                   putStrLn $ prettyCertifierError err
+                   hPutStrLn stderr $ prettyCertifierError err
         Nothing -> pure ()
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $

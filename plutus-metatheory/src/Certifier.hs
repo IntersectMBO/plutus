@@ -44,22 +44,22 @@ prettyCertifierError (InvalidCertificate certDir) =
   "\n\nInvalid certificate: " <> certDir <>
   "\nThe compilation was not successfully certified. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-  \and attach the faulty certificate."
+  \and attach the faulty certificate.\n"
 prettyCertifierError InvalidCompilerOutput =
   "\n\nInvalid compiler output: \
   \\nThe certifier was not able to process the trace produced by the compiler. \
   \Please open a bug report at https://www.github.com/IntersectMBO/plutus \
-  \containing a minimal program that when compiled reproduces the issue."
+  \containing a minimal program that when compiled reproduces the issue.\n"
 prettyCertifierError (ValidationError name) =
   "\n\nInvalid certificate name: \
   \\nThe certificate name " <> name <> " is invalid. \
   \Please use only alphanumeric characters, underscores and dashes. \
-  \The first character must be a letter."
+  \The first character must be a letter.\n"
 
 prettyCertifierSuccess :: CertifierSuccess -> String
 prettyCertifierSuccess (CertifierSuccess certDir) =
   "\n\nCertificate successfully created: " <> certDir <>
-  "\nThe compilation was successfully certified."
+  "\nThe compilation was successfully certified.\n"
 
 type Certifier = ExceptT CertifierError IO
 
