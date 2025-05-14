@@ -116,20 +116,26 @@ data FD {X : Set} {{_ : DecEq X}} : Zipper X → X ⊢ → X ⊢ → Set₁ wher
   last-delay : Translation (FD □) x x' → FD (force □) (delay x) x'
   last-abs : Translation (FD □) x x' → FD (□ · y) (ƛ x) (ƛ x')
 
-_ : FD {⊥} □ (force (ƛ (delay error) · error)) (ƛ error · error)
-_ = force
-     (app (abs (last-delay (Translation.match TransMatch.error)))
-      (Translation.match TransMatch.error))
+ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+ForceDelay = Translation (FD □)
 
-_ : FD {⊥} □ (force (delay error)) error
-_ = force (last-delay (Translation.match TransMatch.error))
+```
+# Some tests
+```
 
-_ : FD {⊥} □ (force (force (delay (delay error)))) error
-_ = force
-     (force (delay (last-delay (Translation.match TransMatch.error))))
+import RawU
 
-_ : FD {Maybe ⊥} □ (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
-_ = force
+postulate
+  One Two Three : RawU.TmCon
+
+
+simpleSuccess : FD {⊥} □ (force (ƛ (delay (con One)) · (con Two))) (ƛ (con One) · (con Two))
+simpleSuccess = force
+                 (app (abs (last-delay (Translation.match TransMatch.con)))
+                  (Translation.match TransMatch.con))
+
+multiApplied : FD {Maybe ⊥} □ (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+multiApplied = force
      (force
       (app
        (abs
@@ -137,35 +143,16 @@ _ = force
          (Translation.match TransMatch.var)))
        (Translation.match TransMatch.var)))
 
-ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
-ForceDelay = Translation (FD □)
-
-t : ⊥ ⊢
-t = force (((ƛ (ƛ (delay error))) · error) · error)
-
-t' : ⊥ ⊢
-t' = ((ƛ (ƛ error)) · error) · error
-
-test-ffdd : FD {⊥} □ (force (force (delay (delay error)))) (error)
-test-ffdd = force
-             (force (delay (last-delay (Translation.match TransMatch.error))))
-
-_ : pureFD t t'
-_ = (translationfd (Translation.match (TransMatch.force (Translation.istranslation appfd))))
-                       ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive))
-                       ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((pushfd ((translationfd reflexive)) (translationfd reflexive))
-                                                         ⨾ translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd (Translation.match TransMatch.error)))))) (Translation.match TransMatch.error))))))) (Translation.match TransMatch.error)))
-                                        ⨾ appfd⁻¹))
-
-_ : pureFD {⊥} (force (ƛ (ƛ (delay error) · error) · error)) (ƛ (ƛ error · error) · error)
-_ = (pushfd (translationfd reflexive) (translationfd reflexive))
-      ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((pushfd (translationfd reflexive) (translationfd reflexive))
-                       ⨾ translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd (Translation.match TransMatch.error)))))) (Translation.match TransMatch.error))))))) (Translation.match TransMatch.error))))
-
-import RawU
-
-postulate
-  One Two Three : RawU.TmCon
+nested : FD {⊥} □ (force (delay ((ƛ (force (delay ((ƛ (con Two)) · (con Three))))) · (con One)))) ((ƛ ((ƛ (con Two)) · (con Three))) · (con One))
+nested = force
+          (delay
+           (app
+            (abs
+             (force
+              (delay
+               (app (last-abs (Translation.match TransMatch.con))
+                (Translation.match TransMatch.con)))))
+            (Translation.match TransMatch.con)))
 
 forceDelaySimpleBefore : ⊥ ⊢
 forceDelaySimpleBefore = (force ((force ((force (delay (ƛ (delay (ƛ (delay (ƛ (` nothing)))))))) · (con One))) · (con Two))) · (con Three)
