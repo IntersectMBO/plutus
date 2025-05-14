@@ -1,4 +1,11 @@
 
+<a id='changelog-1.46.0.0'></a>
+# 1.46.0.0 — 2025-05-09
+
+## Removed
+
+- GHC 8.10 is no longer supported.  The supported GHC versions are 9.6 (primary), 9.8, and 9.10.
+
 <a id='changelog-1.43.0.0'></a>
 # 1.43.0.0 — 2025-03-20
 
