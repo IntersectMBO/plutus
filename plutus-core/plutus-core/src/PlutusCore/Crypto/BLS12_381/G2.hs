@@ -130,5 +130,5 @@ compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve2)
 
 -- | Multi-scalar multiplication of G2 points.
-multiScalarMul :: [(Element,Integer)] -> Element
-multiScalarMul = coerce (BlstBindings.blsMSM @BlstBindings.Curve2)
+multiScalarMul :: [Integer] -> [Element] -> Element
+multiScalarMul = coerce (BlstBindings.blsMSM @BlstBindings.Curve2 10)

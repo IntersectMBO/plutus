@@ -75,8 +75,8 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/perturbing/cardano-base
-  tag: 06dfaecc1898c5f87baaeb428e9e07b7339a016d
-  --sha256: sha256-BZjS68UQwci0BKVJaISrmwucfqp3U8sWv/yYlpWvnxk=
+  tag: 03c0c4e7438af3c720da9c45a78483cc22104e47
+  --sha256: sha256-29wheArgCVCFBMi+Ot2iAcr9JD6YQN6K9GtGgzoaels=
   subdir:
     cardano-crypto-class
     cardano-crypto-praos
