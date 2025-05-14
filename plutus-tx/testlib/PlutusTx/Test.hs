@@ -25,12 +25,8 @@ module PlutusTx.Test (
 
   -- * Evaluation testing
   goldenEvalCek,
-  goldenEvalCekCatch,
   goldenEvalCekLog,
   goldenEvalCekCatchBudget,
-
-  -- * Budget and size testing
-  goldenBudget,
 
   -- * Combined testing
   goldenBundle,
@@ -119,23 +115,6 @@ renderExcess :: (TestName, Integer) -> (TestName, Integer) -> Integer -> String
 renderExcess tData mData diff =
   renderEstimates tData mData <> "Remaining headroom: " <> show diff
 
-{- | Does not include evaluation result. To include evaluation result, use
-  `goldenEvalCekCatchBudget` instead of adding `goldenEvalCekCatch`
--}
-goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = do
-  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
-    (_, PLC.ExBudget cpu mem) <- runPlcCekBudget [compiledCode]
-    size <- UPLC.programSize <$> toUPlc compiledCode
-    let contents =
-          "cpu: "
-            <> pretty cpu
-            <> "\nmem: "
-            <> pretty mem
-            <> "\nsize: "
-            <> pretty size
-    pure (render @Text contents)
-
 goldenBundle
   :: TestName
   -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
@@ -209,12 +188,6 @@ goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> 
 goldenEvalCek name values =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple <$> rethrow (runPlcCek values)
-
-goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCekCatch name values =
-  nestedGoldenVsDocM name ".eval" $
-    either (pretty . show) prettyPlcClassicSimple
-      <$> runExceptT (runPlcCek values)
 
 goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
 goldenEvalCekLog name values =
