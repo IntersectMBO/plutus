@@ -1238,7 +1238,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-        , test_TrackCostsRetaining
+        , ignoreTestWhenHpcEnabled test_TrackCostsRetaining
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere
