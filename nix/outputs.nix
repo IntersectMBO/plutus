@@ -58,9 +58,13 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
+
   extra-artifacts =
     { inherit metatheory-site; } //
     { inherit metatheory-agda-library; } //
+    { inherit project-coverage-report; } //
     (latex-documents);
 
   project-variants-hydra-jobs = {
@@ -129,11 +133,13 @@ let
     inherit r-with-packages;
     inherit build-latex-doc;
     inherit extra-artifacts;
+    inherit windows-packages;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
     inherit metatheory-agda-library;
+    inherit project-coverage-report;
   };
 
 in

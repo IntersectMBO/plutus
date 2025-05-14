@@ -286,13 +286,11 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode mcert) = do
         Left err -> do
           putStrLn $ prettyCertifierError err
           case err of
-            InvalidCertificate    -> exitWith $ ExitFailure 1
+            InvalidCertificate _  -> exitWith $ ExitFailure 1
             InvalidCompilerOutput -> exitWith $ ExitFailure 2
             ValidationError _     -> exitWith $ ExitFailure 3
-        Right certDir -> do
-          putStrLn
-            $ "The compilation was successfully certified.\nAgda certificate project written to "
-            <> certDir
+        Right certSucc -> do
+          putStrLn $ prettyCertifierSuccess certSucc
           exitSuccess
 
 

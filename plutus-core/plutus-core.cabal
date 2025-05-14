@@ -827,6 +827,7 @@ library plutus-core-testlib
     , Stream
     , tagged
     , tasty
+    , tasty-expected-failure
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit

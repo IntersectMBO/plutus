@@ -21,6 +21,7 @@ on:
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
       - "🏛️ Plinth Template"
+      - "📊 Code Coverage Report"
 
 jobs:
   Send:
@@ -157,7 +158,7 @@ jobs:
 
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.1.0
         if: ${{ steps.prepare-slack-message.outputs.shouldSendMessage == 'true' }}
         env:
             SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
