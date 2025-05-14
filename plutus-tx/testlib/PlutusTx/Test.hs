@@ -184,20 +184,20 @@ goldenPirBy config name value =
 -- Evaluation testing
 
 -- TODO: rationalize with the functions exported from PlcTestUtils
-goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCek name values =
+goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
+goldenEvalCek name term =
   nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple <$> rethrow (runPlcCek values)
+    prettyPlcClassicSimple <$> rethrow (runPlcCek term)
 
-goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCekLog name values =
+goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
+goldenEvalCekLog name term =
   nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace values)
+    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace term)
 
 goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode = do
   let
-    evalRes = runPlcCekBudget [compiledCode]
+    evalRes = runPlcCekBudget compiledCode
   nestedGoldenVsDocM name ".eval" $ do
     either (pretty . show) prettyPlcClassicSimple
       <$> runExceptT (fst <$> evalRes)
@@ -246,42 +246,40 @@ instance
 
 runPlcCek
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
+  => a
   -> ExceptT
        SomeException
        IO
        (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCek values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+runPlcCek val = do
+  term <- toUPlc val
   fromRightM (throwError . SomeException) $
         UPLC.evaluateCekNoEmit
         PLC.defaultCekParametersForTesting
-        (p ^. UPLC.progTerm)
+        (term ^. UPLC.progTerm)
 
 runPlcCekBudget
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
+  => a
   -> ExceptT
        SomeException
        IO
        (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
-runPlcCekBudget values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+runPlcCekBudget val = do
+  term <- toUPlc val
   fromRightM (throwError . SomeException) $ do
     let
       (evalRes, UPLC.CountingSt budget) =
         UPLC.runCekNoEmit
         PLC.defaultCekParametersForTesting
         UPLC.counting
-        (p ^. UPLC.progTerm)
+        (term ^. UPLC.progTerm)
 
     (, budget) <$> evalRes
 
 runPlcCekTrace
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
+  => a
   -> ExceptT
        SomeException
        IO
@@ -290,13 +288,12 @@ runPlcCekTrace
        , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
        )
 runPlcCekTrace values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  term <- toUPlc values
   let (result, UPLC.TallyingSt tally _, logOut) =
         UPLC.runCek
           PLC.defaultCekParametersForTesting
           UPLC.tallying
           UPLC.logEmitter
-          (p ^. UPLC.progTerm)
+          (term ^. UPLC.progTerm)
   res <- fromRightM (throwError . SomeException) result
   pure (logOut, tally, res)
