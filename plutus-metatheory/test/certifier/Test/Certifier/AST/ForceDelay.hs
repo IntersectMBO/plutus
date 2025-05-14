@@ -49,19 +49,6 @@ simpleSuccessAfter = runQuote $ do
                 (mkConstant () (2 :: Integer))
                 )
 
--- Extra delay removed.
--- Constructors [0,1,4]
--- Constructors violated [1]
-simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-simpleFailBefore = (Force ()
-                     (Delay ()
-                        (Delay () (mkConstant () (1 :: Integer)))
-                     )
-                    )
-
-simpleFailAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-simpleFailAfter = (mkConstant () (1 :: Integer))
-
 -- Nested application that reverts to Translation,
 -- and then more Force-Delay cleanup
 -- also tests the traversal of the applied term
@@ -160,6 +147,19 @@ simpleForceBreakBefore = (Force () (mkConstant () (1 :: Integer)))
 
 simpleForceBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleForceBreakAfter = (mkConstant () (1 :: Integer))
+
+-- Extra delay removed.
+-- Constructors [0,1,4]
+-- Constructors violated [1]
+simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleFailBefore = (Force ()
+                     (Delay ()
+                        (Delay () (mkConstant () (1 :: Integer)))
+                     )
+                    )
+
+simpleFailAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleFailAfter = (mkConstant () (1 :: Integer))
 
 -- Traverse an application when you shouldn't -- no matching lambda
 -- Constructors violated: [2]
