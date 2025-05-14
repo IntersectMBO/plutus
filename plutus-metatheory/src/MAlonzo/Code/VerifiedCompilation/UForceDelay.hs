@@ -322,21 +322,9 @@ d_ForceDelay_142 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
 d_ForceDelay_142 = erased
--- VerifiedCompilation.UForceDelay.One
-d_One_144
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: VerifiedCompilation.UForceDelay.One"
--- VerifiedCompilation.UForceDelay.Two
-d_Two_146
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: VerifiedCompilation.UForceDelay.Two"
--- VerifiedCompilation.UForceDelay.Three
-d_Three_148
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: VerifiedCompilation.UForceDelay.Three"
 -- VerifiedCompilation.UForceDelay.simpleSuccess
-d_simpleSuccess_150 :: T_FD_116
-d_simpleSuccess_150
+d_simpleSuccess_144 :: T_FD_116
+d_simpleSuccess_144
   = coe
       C_force_122
       (coe
@@ -354,8 +342,8 @@ d_simpleSuccess_150
             (coe
                MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66)))
 -- VerifiedCompilation.UForceDelay.multiApplied
-d_multiApplied_152 :: T_FD_116
-d_multiApplied_152
+d_multiApplied_146 :: T_FD_116
+d_multiApplied_146
   = coe
       C_force_122
       (coe
@@ -385,8 +373,8 @@ d_multiApplied_152
                (coe
                   MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_var_34))))
 -- VerifiedCompilation.UForceDelay.nested
-d_nested_154 :: T_FD_116
-d_nested_154
+d_nested_148 :: T_FD_116
+d_nested_148
   = coe
       C_force_122
       (coe
@@ -416,8 +404,8 @@ d_nested_154
                (coe
                   MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66))))
 -- VerifiedCompilation.UForceDelay.forceDelaySimpleBefore
-d_forceDelaySimpleBefore_156 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_forceDelaySimpleBefore_156
+d_forceDelaySimpleBefore_150 :: MAlonzo.Code.Untyped.T__'8866'_14
+d_forceDelaySimpleBefore_150
   = coe
       MAlonzo.Code.Untyped.C__'183'__22
       (coe
@@ -445,12 +433,15 @@ d_forceDelaySimpleBefore_156
                                        (coe
                                           MAlonzo.Code.Untyped.C_'96'_18
                                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))))))
-                  (coe MAlonzo.Code.Untyped.C_con_28 (coe d_One_144))))
-            (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Two_146))))
-      (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Three_148))
+                  (coe
+                     MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (1 :: Integer)))))
+            (coe
+               MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (2 :: Integer)))))
+      (coe
+         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimpleAfter
-d_forceDelaySimpleAfter_158 :: MAlonzo.Code.Untyped.T__'8866'_14
-d_forceDelaySimpleAfter_158
+d_forceDelaySimpleAfter_152 :: MAlonzo.Code.Untyped.T__'8866'_14
+d_forceDelaySimpleAfter_152
   = coe
       MAlonzo.Code.Untyped.C__'183'__22
       (coe
@@ -466,12 +457,15 @@ d_forceDelaySimpleAfter_158
                      (coe
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
-            (coe MAlonzo.Code.Untyped.C_con_28 (coe d_One_144)))
-         (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Two_146)))
-      (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Three_148))
+            (coe
+               MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (1 :: Integer))))
+         (coe
+            MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (2 :: Integer))))
+      (coe
+         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimple
-d_forceDelaySimple_160 :: T_FD_116
-d_forceDelaySimple_160
+d_forceDelaySimple_154 :: T_FD_116
+d_forceDelaySimple_154
   = coe
       C_app_126
       (coe
@@ -502,51 +496,62 @@ d_forceDelaySimple_160
                                              MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_var_34)))))))))
                   (coe
                      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
-                     (coe MAlonzo.Code.Untyped.C_con_28 (coe d_One_144))
+                     (coe
+                        MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (1 :: Integer)))
                      (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
             (coe
                MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
-               (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Two_146))
+               (coe
+                  MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (2 :: Integer)))
                (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
       (coe
          MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
-         (coe MAlonzo.Code.Untyped.C_con_28 (coe d_Three_148))
+         (coe
+            MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (3 :: Integer)))
          (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))
+-- VerifiedCompilation.UForceDelay.lastDelayBreak
+d_lastDelayBreak_156 ::
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_lastDelayBreak_156 = erased
+-- VerifiedCompilation.UForceDelay.lastAbsBreak
+d_lastAbsBreak_160 ::
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_lastAbsBreak_160 = erased
 -- VerifiedCompilation.UForceDelay.isForceDelay?
-d_isForceDelay'63'_166 ::
+d_isForceDelay'63'_180 ::
   () ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
-d_isForceDelay'63'_166 ~v0 v1 = du_isForceDelay'63'_166 v1
-du_isForceDelay'63'_166 ::
+d_isForceDelay'63'_180 ~v0 v1 = du_isForceDelay'63'_180 v1
+du_isForceDelay'63'_180 ::
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
-du_isForceDelay'63'_166 v0
+du_isForceDelay'63'_180 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_178
       erased (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_forceDelayT_8)
-      (coe (\ v1 v2 -> coe du_isFD'63'_174 (coe v2) (coe C_'9633'_88)))
+      (coe (\ v1 v2 -> coe du_isFD'63'_188 (coe v2) (coe C_'9633'_88)))
 -- VerifiedCompilation.UForceDelay.isFD?
-d_isFD'63'_174 ::
+d_isFD'63'_188 ::
   () ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
-d_isFD'63'_174 ~v0 v1 v2 v3 v4 = du_isFD'63'_174 v1 v2 v3 v4
-du_isFD'63'_174 ::
+d_isFD'63'_188 ~v0 v1 v2 v3 v4 = du_isFD'63'_188 v1 v2 v3 v4
+du_isFD'63'_188 ::
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
-du_isFD'63'_174 v0 v1 v2 v3
+du_isFD'63'_188 v0 v1 v2 v3
   = case coe v1 of
       C_'9633'_88
         -> let v4
@@ -571,7 +576,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                    seq (coe v9)
                                                    (let v11
                                                           = coe
-                                                              du_isFD'63'_174 (coe v0)
+                                                              du_isFD'63'_188 (coe v0)
                                                               (coe C_force_90 (coe v1)) (coe v10)
                                                               (coe v3) in
                                                     coe
@@ -644,7 +649,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                         v22)
                                                                                                      (let v25
                                                                                                             = coe
-                                                                                                                du_isForceDelay'63'_166
+                                                                                                                du_isForceDelay'63'_180
                                                                                                                 v0
                                                                                                                 v18
                                                                                                                 v24 in
@@ -654,7 +659,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_32 v26
                                                                                                              -> let v27
                                                                                                                       = coe
-                                                                                                                          du_isFD'63'_174
+                                                                                                                          du_isFD'63'_188
                                                                                                                           (coe
                                                                                                                              v0)
                                                                                                                           (coe
@@ -729,7 +734,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                    seq (coe v10)
                                                    (let v12
                                                           = coe
-                                                              du_isFD'63'_174 (coe v0) (coe v4)
+                                                              du_isFD'63'_188 (coe v0) (coe v4)
                                                               (coe v11) (coe v3) in
                                                     coe
                                                       (case coe v12 of
@@ -742,7 +747,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                 C_'9633'_88
                                                                   -> let v19
                                                                            = coe
-                                                                               du_isForceDelay'63'_166
+                                                                               du_isForceDelay'63'_180
                                                                                v0 v11 v3 in
                                                                      coe
                                                                        (case coe v19 of
@@ -796,7 +801,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                        seq (coe v13)
                                                                        (let v15
                                                                               = coe
-                                                                                  du_isFD'63'_174
+                                                                                  du_isFD'63'_188
                                                                                   (coe v0)
                                                                                   (coe
                                                                                      C_force_90
@@ -881,7 +886,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                             v26)
                                                                                                                          (let v29
                                                                                                                                 = coe
-                                                                                                                                    du_isForceDelay'63'_166
+                                                                                                                                    du_isForceDelay'63'_180
                                                                                                                                     v0
                                                                                                                                     v22
                                                                                                                                     v28 in
@@ -891,7 +896,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_32 v30
                                                                                                                                  -> let v31
                                                                                                                                           = coe
-                                                                                                                                              du_isFD'63'_174
+                                                                                                                                              du_isFD'63'_188
                                                                                                                                               (coe
                                                                                                                                                  v0)
                                                                                                                                               (coe
@@ -982,7 +987,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                            seq (coe v16)
                                                                            (let v18
                                                                                   = coe
-                                                                                      du_isFD'63'_174
+                                                                                      du_isFD'63'_188
                                                                                       (coe
                                                                                          MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
                                                                                          (coe v0))
@@ -1004,7 +1009,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                         C_'9633'_88
                                                                                           -> let v25
                                                                                                    = coe
-                                                                                                       du_isForceDelay'63'_166
+                                                                                                       du_isForceDelay'63'_180
                                                                                                        (coe
                                                                                                           MAlonzo.Code.VerifiedCompilation.Equality.du_DecEq'45'Maybe_122
                                                                                                           (coe
@@ -1096,7 +1101,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                            v21)
                                                                                                                         (let v23
                                                                                                                                = coe
-                                                                                                                                   du_isFD'63'_174
+                                                                                                                                   du_isFD'63'_188
                                                                                                                                    (coe
                                                                                                                                       v0)
                                                                                                                                    (coe
@@ -1175,7 +1180,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                                                 v24)
                                                                                                                                              (let v26
                                                                                                                                                     = coe
-                                                                                                                                                        du_isFD'63'_174
+                                                                                                                                                        du_isFD'63'_188
                                                                                                                                                         (coe
                                                                                                                                                            v0)
                                                                                                                                                         (coe
@@ -1282,7 +1287,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                                                                                                   v37)
                                                                                                                                                                                                (let v40
                                                                                                                                                                                                       = coe
-                                                                                                                                                                                                          du_isForceDelay'63'_166
+                                                                                                                                                                                                          du_isForceDelay'63'_180
                                                                                                                                                                                                           v0
                                                                                                                                                                                                           v33
                                                                                                                                                                                                           v39 in
@@ -1292,7 +1297,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_32 v41
                                                                                                                                                                                                        -> let v42
                                                                                                                                                                                                                 = coe
-                                                                                                                                                                                                                    du_isFD'63'_174
+                                                                                                                                                                                                                    du_isFD'63'_188
                                                                                                                                                                                                                     (coe
                                                                                                                                                                                                                        v0)
                                                                                                                                                                                                                     (coe
@@ -1431,7 +1436,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                             v27)
                                                                                                                          (let v30
                                                                                                                                 = coe
-                                                                                                                                    du_isForceDelay'63'_166
+                                                                                                                                    du_isForceDelay'63'_180
                                                                                                                                     v0
                                                                                                                                     v23
                                                                                                                                     v29 in
@@ -1441,7 +1446,7 @@ du_isFD'63'_174 v0 v1 v2 v3
                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_32 v31
                                                                                                                                  -> let v32
                                                                                                                                           = coe
-                                                                                                                                              du_isFD'63'_174
+                                                                                                                                              du_isFD'63'_188
                                                                                                                                               (coe
                                                                                                                                                  v0)
                                                                                                                                               (coe
@@ -1495,75 +1500,37 @@ du_isFD'63'_174 v0 v1 v2 v3
                                     _ -> MAlonzo.RTE.mazUnreachableError))
                 _ -> MAlonzo.RTE.mazUnreachableError)
       _ -> MAlonzo.RTE.mazUnreachableError
--- VerifiedCompilation.UForceDelay..extendedlambda0
-d_'46'extendedlambda0_216 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda0_216 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda1
-d_'46'extendedlambda1_238 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda1_238 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda2
-d_'46'extendedlambda2_286 ::
+d_'46'extendedlambda2_230 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
-  AgdaAny ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda2_286 = erased
+  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda2_230 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda3
-d_'46'extendedlambda3_354 ::
+d_'46'extendedlambda3_252 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda3_354 = erased
+d_'46'extendedlambda3_252 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda4
-d_'46'extendedlambda4_428 ::
+d_'46'extendedlambda4_300 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
@@ -1571,29 +1538,67 @@ d_'46'extendedlambda4_428 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda4_428 = erased
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda4_300 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda5
-d_'46'extendedlambda5_460 ::
+d_'46'extendedlambda5_368 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  T_Zipper_84 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
-  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda5_460 = erased
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda5_368 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda6
-d_'46'extendedlambda6_478 ::
+d_'46'extendedlambda6_442 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda6_442 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda7
+d_'46'extendedlambda7_474 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  T_Zipper_84 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda7_474 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda8
+d_'46'extendedlambda8_492 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
@@ -1606,63 +1611,63 @@ d_'46'extendedlambda6_478 ::
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny -> T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda6_478 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda7
-d_'46'extendedlambda7_538 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  T_Zipper_84 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda7_538 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda8
-d_'46'extendedlambda8_568 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  T_Zipper_84 ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda8_568 = erased
+d_'46'extendedlambda8_492 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda9
-d_'46'extendedlambda9_628 ::
+d_'46'extendedlambda9_552 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_Zipper_84 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  T_Zipper_84 ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda9_628 = erased
+d_'46'extendedlambda9_552 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda10
-d_'46'extendedlambda10_708 ::
+d_'46'extendedlambda10_582 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  T_Zipper_84 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda10_582 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda11
+d_'46'extendedlambda11_642 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isForce_268 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  T_Zipper_84 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda11_642 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda12
+d_'46'extendedlambda12_722 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
@@ -1682,47 +1687,47 @@ d_'46'extendedlambda10_708 ::
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isDelay_354 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda10_708 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda11
-d_'46'extendedlambda11_800 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
-   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda11_800 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda12
-d_'46'extendedlambda12_816 ::
-  () ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
-  T_Zipper_84 ->
-  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  () ->
-  () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
-  AgdaAny ->
-  AgdaAny ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda12_816 = erased
+d_'46'extendedlambda12_722 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda13
-d_'46'extendedlambda13_832 ::
+d_'46'extendedlambda13_814 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda13_814 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda14
+d_'46'extendedlambda14_830 ::
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  T_Zipper_84 ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda14_830 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda15
+d_'46'extendedlambda15_846 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1737,9 +1742,9 @@ d_'46'extendedlambda13_832 ::
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda13_832 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda14
-d_'46'extendedlambda14_900 ::
+d_'46'extendedlambda15_846 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda16
+d_'46'extendedlambda16_914 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1755,9 +1760,9 @@ d_'46'extendedlambda14_900 ::
   (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda14_900 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda15
-d_'46'extendedlambda15_934 ::
+d_'46'extendedlambda16_914 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda17
+d_'46'extendedlambda17_948 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1771,9 +1776,9 @@ d_'46'extendedlambda15_934 ::
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda15_934 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda16
-d_'46'extendedlambda16_996 ::
+d_'46'extendedlambda17_948 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda18
+d_'46'extendedlambda18_1010 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -1794,9 +1799,9 @@ d_'46'extendedlambda16_996 ::
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda16_996 = erased
--- VerifiedCompilation.UForceDelay..extendedlambda17
-d_'46'extendedlambda17_1082 ::
+d_'46'extendedlambda18_1010 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda19
+d_'46'extendedlambda19_1096 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
@@ -1817,4 +1822,4 @@ d_'46'extendedlambda17_1082 ::
   (MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda17_1082 = erased
+d_'46'extendedlambda19_1096 = erased
