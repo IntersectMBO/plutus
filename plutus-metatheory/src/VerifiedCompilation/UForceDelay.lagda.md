@@ -122,14 +122,9 @@ ForceDelay = Translation (FD □)
 ```
 # Some tests
 ```
+open import Untyped using (con-integer)
 
-import RawU
-
-postulate
-  One Two Three : RawU.TmCon
-
-
-simpleSuccess : FD {⊥} □ (force (ƛ (delay (con One)) · (con Two))) (ƛ (con One) · (con Two))
+simpleSuccess : FD {⊥} □ (force (ƛ (delay (con-integer 1)) · (con-integer 2))) (ƛ (con-integer 1) · (con-integer 2))
 simpleSuccess = force
                  (app (abs (last-delay (Translation.match TransMatch.con)))
                   (Translation.match TransMatch.con))
@@ -143,7 +138,7 @@ multiApplied = force
          (Translation.match TransMatch.var)))
        (Translation.match TransMatch.var)))
 
-nested : FD {⊥} □ (force (delay ((ƛ (force (delay ((ƛ (con Two)) · (con Three))))) · (con One)))) ((ƛ ((ƛ (con Two)) · (con Three))) · (con One))
+nested : FD {⊥} □ (force (delay ((ƛ (force (delay ((ƛ (con-integer 2)) · (con-integer 3))))) · (con-integer 1)))) ((ƛ ((ƛ (con-integer 2)) · (con-integer 3))) · (con-integer 1))
 nested = force
           (delay
            (app
@@ -155,13 +150,20 @@ nested = force
             (Translation.match TransMatch.con)))
 
 forceDelaySimpleBefore : ⊥ ⊢
-forceDelaySimpleBefore = (force ((force ((force (delay (ƛ (delay (ƛ (delay (ƛ (` nothing)))))))) · (con One))) · (con Two))) · (con Three)
+forceDelaySimpleBefore = (force ((force ((force (delay (ƛ (delay (ƛ (delay (ƛ (` nothing)))))))) · (con-integer 1))) · (con-integer 2))) · (con-integer 3)
 
 forceDelaySimpleAfter : ⊥ ⊢
-forceDelaySimpleAfter = (((ƛ (ƛ (ƛ (` nothing)))) · (con One)) · (con Two)) · (con Three)
+forceDelaySimpleAfter = (((ƛ (ƛ (ƛ (` nothing)))) · (con-integer 1)) · (con-integer 2)) · (con-integer 3)
 
 forceDelaySimple : FD □ forceDelaySimpleBefore forceDelaySimpleAfter
 forceDelaySimple = app (force (app (force (app (force (delay (abs (delay (abs (delay (last-abs (Translation.match TransMatch.var)))))))) reflexive)) reflexive)) reflexive
+
+lastDelayBreak : ¬ (FD {⊥} □ (force (delay (con-integer 1))) (con-integer 2))
+lastDelayBreak = λ { (force (last-delay (Translation.match ()))) }
+
+lastAbsBreak : ¬ (FD {⊥} □ (force (delay ((ƛ (con-integer 1)) · (con-integer 3)))) ((ƛ (con-integer 2)) · (con-integer 3)))
+lastAbsBreak = λ { (force (delay (app (last-abs (Translation.istranslation ())) x₁))) ; (force (delay (app (last-abs (Translation.match ())) x₁))) ; (force (last-delay (Translation.istranslation (app (last-abs (Translation.istranslation ())) x₁)))) ; (force (last-delay (Translation.istranslation (app (last-abs (Translation.match ())) x₁)))) ; (force (last-delay (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ()))) x₁)))) ; (force (last-delay (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match ()))) x₁)))) }
+
 ```
 
 ## FD implies pureFD

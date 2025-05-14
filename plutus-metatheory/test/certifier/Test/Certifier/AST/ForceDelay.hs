@@ -151,6 +151,97 @@ ifThenElseSuccessAfter =
         (mkConstant () (2 :: Integer))
     )
 
+-- Deliberately fail Each constructor.
+
+-- Just lose a force for no reason
+-- Constructors violated: [0]
+simpleForceBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleForceBreakBefore = (Force () (mkConstant () (1 :: Integer)))
+
+simpleForceBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleForceBreakAfter = (mkConstant () (1 :: Integer))
+
+-- Traverse an application when you shouldn't -- no matching lambda
+-- Constructors violated: [2]
+simpleAppBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleAppBreakBefore = (Force ()
+                    (Apply ()
+                        (Delay () (mkConstant () (1 :: Integer)))
+                        (mkConstant () (2 :: Integer))
+                    )
+                )
+
+simpleAppBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+simpleAppBreakAfter = (Apply ()
+                        (mkConstant () (1 :: Integer))
+                        (mkConstant () (2 :: Integer))
+                        )
+
+-- Traverse an application when you shouldn't -- broken applied term
+-- Constructors violated: [2,0]
+appTermBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+appTermBreakBefore = runQuote $ do
+        x <- freshName "x"
+        return  (Apply ()
+                    (LamAbs () x (mkConstant () (1 :: Integer)))
+                    (Force () (mkConstant () (2 :: Integer)))
+                )
+
+appTermBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+appTermBreakAfter = runQuote $ do
+        x <- freshName "x"
+        return  (Apply ()
+                    (LamAbs () x (mkConstant () (1 :: Integer)))
+                    (mkConstant () (2 :: Integer))
+                )
+
+-- Traverse a lambda when you shouldn't -- no applied term
+-- Constructors violated: [3]
+lambdaBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lambdaBreakBefore = runQuote $ do
+        x <- freshName "x"
+        return  (Force ()
+                    (LamAbs () x (Delay () (mkConstant () (1 :: Integer))))
+                )
+
+lambdaBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lambdaBreakAfter = runQuote $ do
+        x <- freshName "x"
+        return (LamAbs () x (mkConstant () (1 :: Integer)))
+
+-- Valid force-delay, but invalid sub-tree change.
+-- Constructors violated: [4]
+lastDelayBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lastDelayBreakBefore = (Force () (Delay () (mkConstant () (1 :: Integer))))
+
+lastDelayBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lastDelayBreakAfter = (mkConstant () (2 :: Integer))
+
+-- Valid force-delay, but invalid sub-tree change after an abstraction.
+-- (force (delay ((ƛ (con-integer 1)) · (con-integer 3))))
+-- =|=>
+-- ((ƛ (con-integer 2)) · (con-integer 3)))
+-- Constructors violated: [5]
+lastAbsBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lastAbsBreakBefore = runQuote $ do
+        x <- freshName "x"
+        return (Force ()
+                    (Delay ()
+                        (Apply ()
+                            (LamAbs () x (mkConstant () (1 :: Integer)))
+                            (mkConstant () (3 :: Integer))
+                        )
+                    )
+                )
+lastAbsBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+lastAbsBreakAfter = runQuote $ do
+        x <- freshName "x"
+        return (Apply ()
+                    (LamAbs () x (mkConstant () (2 :: Integer)))
+                    (mkConstant () (3 :: Integer))
+                )
+
+
 successItems
     :: [
             (String
@@ -180,6 +271,18 @@ failItems =
     [
         ("Simple extra delay", ForceDelay
             , simpleFailBefore, simpleFailAfter)
+        , ("Simple force break", ForceDelay
+            , simpleForceBreakBefore, simpleForceBreakAfter)
+        , ("Simple app break", ForceDelay
+            , simpleAppBreakBefore, simpleAppBreakAfter)
+        , ("App term break", ForceDelay
+            , appTermBreakBefore, appTermBreakAfter)
+        , ("Lambda break", ForceDelay
+            , lambdaBreakBefore, lambdaBreakAfter)
+        , ("Last delay break", ForceDelay
+            , lastDelayBreakBefore, lastDelayBreakAfter)
+        , ("Last abs break", ForceDelay
+            , lastAbsBreakBefore, lastAbsBreakAfter)
     ]
 
 forceDelayASTTests :: TestTree
