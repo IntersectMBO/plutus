@@ -28,7 +28,7 @@ import Test.Certifier.AST (testFailureItem, testSuccessItem)
 -- a useful test that the decision procedure is agnostic about that.
 -- (force (ƛ (delay (con integer 1)) · (con integer 2)))
 -- ==> (ƛ (con integer 1) · (con integer 2))
--- Constructors [0,2,3,4]
+-- Constructors positive: [0,2,3,4]
 simpleSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleSuccessBefore = runQuote $ do
         x <- freshName "x"
@@ -96,6 +96,7 @@ nestedAfter = runQuote $ do
                 )
 
 
+-- Force traverses ifThenElse
 --  (force [
 --          (force (builtin ifThenElse))
 --          (con bool True)
@@ -138,6 +139,7 @@ ifThenElseSuccessAfter =
         (mkConstant () (2 :: Integer))
     )
 
+-- "Negative" tests
 -- Deliberately fail each constructor.
 
 -- Just lose a force for no reason
@@ -150,7 +152,7 @@ simpleForceBreakAfter = (mkConstant () (1 :: Integer))
 
 -- Extra delay removed.
 -- Constructors [0,1,4]
--- Constructors violated [1]
+-- Constructors violated: [1]
 simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleFailBefore = (Force ()
                      (Delay ()
