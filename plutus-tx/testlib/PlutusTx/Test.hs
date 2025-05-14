@@ -287,8 +287,8 @@ runPlcCekTrace
        , UPLC.CekExTally PLC.DefaultFun
        , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
        )
-runPlcCekTrace values = do
-  term <- toUPlc values
+runPlcCekTrace value = do
+  term <- toUPlc value
   let (result, UPLC.TallyingSt tally _, logOut) =
         UPLC.runCek
           PLC.defaultCekParametersForTesting
