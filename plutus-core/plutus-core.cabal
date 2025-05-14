@@ -1,22 +1,27 @@
-cabal-version:   3.0
-name:            plutus-core
-version:         1.45.0.0
-license:         Apache-2.0
+cabal-version:      3.0
+name:               plutus-core
+version:            1.45.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:      michael.peyton-jones@iohk.io
-author:          Plutus Core Team
-synopsis:        Language library for Plutus Core
-description:     Pretty-printer, parser, and typechecker for Plutus Core.
-category:        Language, Plutus
-build-type:      Simple
+maintainer:         michael.peyton-jones@iohk.io
+author:             Plutus Core Team
+synopsis:           Language library for Plutus Core
+description:        Pretty-printer, parser, and typechecker for Plutus Core.
+category:           Language, Plutus
+build-type:         Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
 
-data-files:
+-- Using `extra-source-files` here means that Cabal can deduce that some of the
+-- Haskell source files depend on the JSON and R files, and it'll rebuild things
+-- as required if the files below are changed.  This doesn't happen if you use
+-- `data-files`.  See https://github.com/haskell/cabal/pull/6889 and the issue
+-- #4746 that it mentions.
+extra-source-files:
   cost-model/data/*.R
   cost-model/data/builtinCostModelA.json
   cost-model/data/builtinCostModelB.json
