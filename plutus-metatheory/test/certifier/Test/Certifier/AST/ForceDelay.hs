@@ -138,7 +138,7 @@ ifThenElseSuccessAfter =
         (mkConstant () (2 :: Integer))
     )
 
--- Deliberately fail Each constructor.
+-- Deliberately fail each constructor.
 
 -- Just lose a force for no reason
 -- Constructors violated: [0]
