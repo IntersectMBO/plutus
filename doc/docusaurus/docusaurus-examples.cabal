@@ -32,6 +32,7 @@ library docusaurus-code
   import:         lang, ghc-version-support, os-support
   hs-source-dirs: static/code
   other-modules:
+    AuctionMintingPolicy
     AuctionValidator
     BasicPlutusTx
     BasicPolicies
