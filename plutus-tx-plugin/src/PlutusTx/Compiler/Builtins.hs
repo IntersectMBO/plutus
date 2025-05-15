@@ -18,6 +18,7 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
+import PlutusTx.Builtins qualified as PTxBuiltins
 import PlutusTx.Builtins.HasOpaque qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as Builtins
 
@@ -200,6 +201,7 @@ builtinNames = [
     , 'Builtins.lessThanInteger
     , 'Builtins.lessThanEqualsInteger
     , 'Builtins.equalsInteger
+    , 'PTxBuiltins.equalsInteger
 
     , 'Builtins.error
 

@@ -848,6 +848,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorOr <- lookupGhcName '(PlutusTx.Bool.||)
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
+  builtinEqualsInteger <- lookupGhcName 'Builtins.equalsInteger
 
   case e of
     {- Note [Lazy boolean operators]
@@ -1006,7 +1007,13 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
     GHC.Var n
       | isProbablyIntegerEq n ->
-          throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+          compileExpr
+            (GHC.Var $
+               GHC.mkGlobalVar
+                 GHC.VanillaId
+                 builtinEqualsInteger
+                 (GHC.mkVisFunTysMany [GHC.integerTy, GHC.integerTy] GHC.boolTy)
+                 GHC.vanillaIdInfo)
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
