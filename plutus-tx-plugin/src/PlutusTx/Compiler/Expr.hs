@@ -1028,9 +1028,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       | GHC.getName n == GHC.eqName ->
           throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
     GHC.Var n
-      | isProbablyIntegerEq n ->
-          throwPlain $
-            UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+      | isProbablyIntegerEq n -> do
+          lookupGhcId 'Builtins.equalsInteger >>= compileExpr . GHC.Var
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $
