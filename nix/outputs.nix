@@ -102,7 +102,6 @@ let
       (project-variants-hydra-jobs) //
       (windows-packages) //
       (packages) //
-      { inherit (metatheory) check-generated-malonzo-code; } //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
