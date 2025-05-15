@@ -28,7 +28,8 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.List using (List; _∷_; [])
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; forceDelayT)
-
+open import Untyped.Purity using (Pure; isPure?)
+open import Builtin using (ifThenElse)
 ```
 ## Translation Relation
 
@@ -95,7 +96,7 @@ zipwk (z · x) = zipwk z · (weaken x)
 
 variable
   z : Zipper X
-  x x' y y' : X
+  x x' y y' b b' : X
 
 ```
 # FD Relation
@@ -115,6 +116,13 @@ data FD {X : Set} {{_ : DecEq X}} : Zipper X → X ⊢ → X ⊢ → Set₁ wher
   abs : FD (zipwk z) x x' → FD (z · y) (ƛ x) (ƛ x')
   last-delay : Translation (FD □) x x' → FD (force □) (delay x) x'
   last-abs : Translation (FD □) x x' → FD (□ · y) (ƛ x) (ƛ x')
+  ifThenElse :
+    Pure x
+    → Pure y
+    → FD z b b'
+    → FD z x x'
+    → FD z y y'
+    → FD z (force ((((force (builtin ifThenElse)) · b )· (delay x)) · (delay y))) ((((force (builtin ifThenElse)) · b') · x') · y')
 
 ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
 ForceDelay = Translation (FD □)
@@ -183,52 +191,106 @@ isForceDelay? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation (FD □) {X
 
 {-# TERMINATING #-}
 isFD? : {X : Set} {{_ : DecEq X}} → (z : Zipper X) → MatchOrCE (FD {X} z)
-isFD? □ ast ast' with isForce? isTerm? ast
+isFD? z ast ast' with  (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? isTerm?)) (isDelay? isTerm?)) ast) ×-dec ((isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) isTerm?) isTerm?) ast')
+... | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin bi)) (isterm b)) (isdelay (isterm x))) (isdelay (isterm y))) , isapp (isapp (isapp (isforce (isbuiltin bi')) (isterm b')) (isterm x')) (isterm y')) with (bi ≟ bi') ×-dec (bi ≟ ifThenElse)
+...    | no ¬bi-match with isFD? (force z) ((((force (builtin bi)) · b )· (delay x)) · (delay y)) ast'
+...       | proof p = proof (force p)
+...       | ce ¬p tag bf af = ce (λ { (force xx) → ¬p xx ; (ifThenElse x x₁ xx xx₁ xx₂) → ¬bi-match (refl , refl)} ) tag bf af
+isFD? z ast ast' | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin bi)) (isterm b)) (isdelay (isterm x))) (isdelay (isterm y))) , isapp (isapp (isapp (isforce (isbuiltin bi')) (isterm b')) (isterm x')) (isterm y')) | yes (refl , refl) with (isPure? x) ×-dec (isPure? y)
+... | yes (pure-x , pure-y) with (isFD? z b b')
+...    | proof pb with isFD? z x x'
+...       | proof px with isFD? z y y'
+...          | proof py = proof (ifThenElse pure-x pure-y pb px py)
+...          | ce ¬p tag bf af with isFD? (force z) ((((force (builtin bi)) · b )· (delay x)) · (delay y)) ast'
+...            | proof p = proof (force p)
+...            | ce ¬p₁ tag bf af = ce (λ { (force xx) → ¬p₁ xx ; (ifThenElse x x₁ xx xx₁ xx₂) → ¬p xx₂} ) tag bf af
+isFD? z ast ast' | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin bi)) (isterm b)) (isdelay (isterm x))) (isdelay (isterm y))) , isapp (isapp (isapp (isforce (isbuiltin bi')) (isterm b')) (isterm x')) (isterm y')) | yes (refl , refl) | yes (pure-x , pure-y) | proof pb | ce ¬p tag bf af with isFD? (force z) ((((force (builtin bi)) · b )· (delay x)) · (delay y)) ast'
+...            | proof p = proof (force p)
+...            | ce ¬p₁ tag bf af = ce (λ { (force xx) → ¬p₁ xx ; (ifThenElse x x₁ xx xx₁ xx₂) → ¬p xx₁} ) tag bf af
+isFD? z ast ast' | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin bi)) (isterm b)) (isdelay (isterm x))) (isdelay (isterm y))) , isapp (isapp (isapp (isforce (isbuiltin bi')) (isterm b')) (isterm x')) (isterm y')) | yes (refl , refl) | yes (pure-x , pure-y) | ce ¬p tag bf af with isFD? (force z) ((((force (builtin bi)) · b )· (delay x)) · (delay y)) ast'
+...            | proof p = proof (force p)
+...            | ce ¬p₁ tag bf af = ce (λ { (force xx) → ¬p₁ xx ; (ifThenElse x x₁ xx xx₁ xx₂) → ¬p xx} ) tag bf af
+isFD? z ast ast' | yes (isforce (isapp (isapp (isapp (isforce (isbuiltin bi)) (isterm b)) (isdelay (isterm x))) (isdelay (isterm y))) , isapp (isapp (isapp (isforce (isbuiltin bi')) (isterm b')) (isterm x')) (isterm y')) | yes (refl , refl) | no ¬pure with isFD? (force z) ((((force (builtin bi)) · b )· (delay x)) · (delay y)) ast'
+...            | proof p = proof (force p)
+...            | ce ¬p₁ tag bf af = ce (λ { (force xx) → ¬p₁ xx ; (ifThenElse x x₁ xx xx₁ xx₂) → ¬pure (x , x₁)} ) tag bf af
+isFD? □ ast ast' | no ¬ifThenElse with isForce? isTerm? ast
 ... | yes (isforce (isterm t)) with isFD? (force □) t ast'
 ...    | proof p = proof (force p)
-...    | ce ¬p tag b a = ce (λ { (force x) → ¬p x} ) tag b a
-isFD? □ ast ast' | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
-...    | no ¬app = ce (λ { (force x) → ¬force (isforce (isterm _)) ; (app x x₁) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _))} ) forceDelayT ast ast'
+...    | ce ¬p tag b a = ce (λ { (ifThenElse px py fdb fdx fdy) → ¬ifThenElse (isforce
+                                                                                (isapp
+                                                                                 (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                                  (isdelay (isterm _)))
+                                                                                 (isdelay (isterm _)))
+                                                                                ,
+                                                                                isapp
+                                                                                (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                                 (isterm _))
+                                                                                (isterm _)) ; (force x) → ¬p x} ) tag b a
+isFD? □ ast ast' | no ¬ifThenElse | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
+...    | no ¬app = ce (λ { (ifThenElse x x₁ x₂ x₃ x₄) → ¬force
+                                                         (isforce
+                                                          (isterm (((force (builtin ifThenElse) · _) · delay _) · delay _))); (force x) → ¬force (isforce (isterm _)) ; (app x x₁) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _))} ) forceDelayT ast ast'
 ...    | yes (isapp (isterm t) (isterm y) , isapp (isterm t') (isterm y')) with isForceDelay? y y'
 ...       | ce ¬yt tag b a = ce (λ { (app x x₁) → ¬yt x₁ }) tag b a
 ...       | proof yt with isFD? (□ · y') t t'
 ...          | proof p = proof (app p yt)
 ...          | ce ¬p tag b a = ce (λ { (app x x₁) → ¬p x} ) tag b a
-
-isFD? (force z) ast ast' with isDelay? isTerm? ast
+isFD? (force z) ast ast' | no ¬ifThenElse with isDelay? isTerm? ast
 ... | yes (isdelay (isterm t)) with isFD? z t ast'
 ...    | proof p = proof (delay p)
-isFD? (force □) (delay t) ast' | yes (isdelay (isterm _)) | ce ¬p tag b a with isForceDelay? t ast'
+isFD? (force □) (delay t) ast' | no ¬ifThenElse | yes (isdelay (isterm _)) | ce ¬p tag b a with isForceDelay? t ast'
 ... | ce ¬pt tag b a = ce (λ { (delay x) → ¬p x ; (last-delay x) → ¬pt x }) forceDelayT (delay t) ast'
 ... | proof pt = proof (last-delay pt)
-isFD? (force (force z)) .(delay _) ast' | yes (isdelay (isterm _)) | ce ¬p tag b a = ce (λ { (delay x) → ¬p x }) tag b a
-isFD? (force (z · x)) .(delay _) ast' | yes (isdelay (isterm _)) | ce ¬p tag b a = ce (λ { (delay x) → ¬p x }) tag b a
-isFD? (force z) ast ast' | no ¬delay with isForce? isTerm? ast
+isFD? (force (force z)) .(delay _) ast' | no ¬ifThenElse | yes (isdelay (isterm _)) | ce ¬p tag b a = ce (λ { (delay x) → ¬p x }) tag b a
+isFD? (force (z · x)) .(delay _) ast' | no ¬ifThenElse | yes (isdelay (isterm _)) | ce ¬p tag b a = ce (λ { (delay x) → ¬p x }) tag b a
+isFD? (force z) ast ast' | no ¬ifThenElse | no ¬delay with isForce? isTerm? ast
 ... | yes (isforce (isterm t)) with isFD? (force (force z)) t ast'
 ...    | proof p = proof (force p)
-...    | ce ¬p tag b a = ce (λ { (force x) → ¬p x} ) tag b a
-isFD? (force z) ast ast' | no ¬delay | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
-... | no ¬app = ce ( λ { (force x) → ¬force (isforce (isterm _)) ; (delay x) → ¬delay (isdelay (isterm _)) ; (app x x₁) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _)) ; (last-delay x) → ¬delay (isdelay (isterm _)) }) forceDelayT ast ast'
+...    | ce ¬p tag b a = ce (λ { (ifThenElse x x₁ x₂ x₃ x₄) → ¬ifThenElse (isforce
+                                                                            (isapp
+                                                                             (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                              (isdelay (isterm _)))
+                                                                             (isdelay (isterm _)))
+                                                                            ,
+                                                                            isapp
+                                                                            (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                             (isterm _))
+                                                                            (isterm _)); (force x) → ¬p x} ) tag b a
+isFD? (force z) ast ast' | no ¬ifThenElse | no ¬delay | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
+... | no ¬app = ce ( λ { (ifThenElse x x₁ x₂ x₃ x₄) → ¬force
+                                                       (isforce
+                                                        (isterm (((force (builtin ifThenElse) · _) · delay _) · delay _))); (force x) → ¬force (isforce (isterm _)) ; (delay x) → ¬delay (isdelay (isterm _)) ; (app x x₁) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _)) ; (last-delay x) → ¬delay (isdelay (isterm _)) }) forceDelayT ast ast'
 ... | yes (isapp (isterm t) (isterm y), isapp (isterm t') (isterm y')) with isForceDelay? y y'
 ...    | ce ¬y tag b a = ce (λ { (app x x₁) → ¬y x₁ }) tag b a
 ...    | proof py with isFD? ((force z) · y') t t'
 ...       | proof p = proof (app p py)
 ...       | ce ¬p tag b a = ce (λ { (app x x₁) → ¬p x} ) tag b a
 
-isFD? (z · _) ast ast' with (isLambda? isTerm? ast) ×-dec (isLambda? isTerm? ast')
+isFD? (z · _) ast ast' | no ¬ifThenElse with (isLambda? isTerm? ast) ×-dec (isLambda? isTerm? ast')
 ... | yes (islambda (isterm t) , islambda (isterm t')) with isFD? (zipwk z) t t'
 ...    | proof p = proof (abs p)
-isFD? (□ · _) (ƛ t) (ƛ t') | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a with isForceDelay? t t'
+isFD? (□ · _) (ƛ t) (ƛ t') | no ¬ifThenElse | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a with isForceDelay? t t'
 ... | proof p = proof (last-abs p)
 ... | ce ¬pt tag bf af = ce (λ { (abs x) → ¬p x ; (last-abs x) → ¬pt x} ) tag bf af
-isFD? (force z · _) .(ƛ _) .(ƛ _) | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a = ce (λ { (abs x₁) → ¬p x₁} ) tag b a
-isFD? ((z · x) · _) .(ƛ _) .(ƛ _) | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a = ce (λ { (abs x₂) → ¬p x₂} ) tag b a
-isFD? (z · x) ast ast' | no ¬lambda with isForce? isTerm? ast
+isFD? (force z · _) .(ƛ _) .(ƛ _) | no ¬ifThenElse | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a = ce (λ { (abs x₁) → ¬p x₁} ) tag b a
+isFD? ((z · x) · _) .(ƛ _) .(ƛ _) | no ¬ifThenElse | yes (islambda (isterm _) , islambda (isterm _)) | ce ¬p tag b a = ce (λ { (abs x₂) → ¬p x₂} ) tag b a
+isFD? (z · x) ast ast' | no ¬ifThenElse | no ¬lambda with isForce? isTerm? ast
 ... | yes (isforce (isterm t)) with isFD? (force (z · x)) t ast'
 ...    | proof p = proof (force p)
-...    | ce ¬p tag b a = ce (λ { (force x₁) → ¬p x₁} ) tag b a
-isFD? (z · x) ast ast' | no ¬lambda | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
-... | no ¬app = ce (λ { (force x₁) → ¬force (isforce (isterm _)) ; (app x₁ x) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _)); (abs _) → ¬lambda (islambda (isterm _) , islambda (isterm _)) ; (last-abs x) → ¬lambda (islambda (isterm _) , islambda (isterm _))} ) forceDelayT ast ast'
+...    | ce ¬p tag b a = ce (λ { (ifThenElse x x₁ x₂ x₃ x₄) → ¬ifThenElse (isforce
+                                                                            (isapp
+                                                                             (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                              (isdelay (isterm _)))
+                                                                             (isdelay (isterm _)))
+                                                                            ,
+                                                                            isapp
+                                                                            (isapp (isapp (isforce (isbuiltin ifThenElse)) (isterm _))
+                                                                             (isterm _))
+                                                                            (isterm _)); (force x₁) → ¬p x₁} ) tag b a
+isFD? (z · x) ast ast' | no ¬ifThenElse | no ¬lambda | no ¬force with (isApp? isTerm? isTerm? ast) ×-dec (isApp? isTerm? isTerm? ast')
+... | no ¬app = ce (λ { (ifThenElse x x₁ x₂ x₃ x₄) → ¬force
+                                                      (isforce
+                                                       (isterm (((force (builtin ifThenElse) · _) · delay _) · delay _))); (force x₁) → ¬force (isforce (isterm _)) ; (app x₁ x) → ¬app (isapp (isterm _) (isterm _) , isapp (isterm _) (isterm _)); (abs _) → ¬lambda (islambda (isterm _) , islambda (isterm _)) ; (last-abs x) → ¬lambda (islambda (isterm _) , islambda (isterm _))} ) forceDelayT ast ast'
 ... | yes (isapp (isterm t) (isterm y) , isapp (isterm t') (isterm y')) with isForceDelay? y y'
 ...   | ce ¬y tag b a = ce (λ { (app x₁ x) → ¬y x}) tag b a
 ...   | proof py with isFD? ((z · x) · y') t t'
