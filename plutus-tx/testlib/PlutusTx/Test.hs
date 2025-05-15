@@ -37,7 +37,7 @@ import Prelude
 
 import Control.Exception (SomeException (..))
 import Control.Lens (Field1 (_1))
-import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
+import Control.Monad.Except (ExceptT, MonadError (throwError))
 import Data.Either.Extras (fromRightM)
 import Data.Kind (Type)
 import Data.Tagged (Tagged (Tagged))
@@ -195,14 +195,9 @@ goldenEvalCekLog name term =
     prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace term)
 
 goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
-goldenEvalCekCatchBudget name compiledCode = do
-  let
-    evalRes = runPlcCekBudget compiledCode
-  nestedGoldenVsDocM name ".eval" $ do
-    either (pretty . show) prettyPlcClassicSimple
-      <$> runExceptT (fst <$> evalRes)
-  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
-    (_, PLC.ExBudget cpu mem) <- evalRes
+goldenEvalCekCatchBudget name compiledCode =
+  nestedGoldenVsDocM name ".eval" $ ppCatch $ do
+    (termRes, PLC.ExBudget cpu mem) <- runPlcCekBudget compiledCode
     size <- UPLC.programSize <$> toUPlc compiledCode
     let contents =
           "cpu: "
@@ -211,6 +206,8 @@ goldenEvalCekCatchBudget name compiledCode = do
             <> pretty mem
             <> "\nsize: "
             <> pretty size
+            <> "\n\n"
+            <> prettyPlcClassicSimple termRes
     pure (render @Text contents)
 
 -- Helpers
