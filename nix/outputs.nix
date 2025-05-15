@@ -49,7 +49,7 @@ let
     musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
   };
 
-  windows-packages = {
+  windows-hydra-jobs = {
     ghc96-mingsW64 = removeAttrs
       (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
       [ "devShells" ]; # Won't build on Windows
@@ -100,7 +100,7 @@ let
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
-      (windows-packages) //
+      (windows-hydra-jobs) //
       (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
@@ -132,7 +132,7 @@ let
     inherit r-with-packages;
     inherit build-latex-doc;
     inherit extra-artifacts;
-    inherit windows-packages;
+    inherit windows-hydra-jobs;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
