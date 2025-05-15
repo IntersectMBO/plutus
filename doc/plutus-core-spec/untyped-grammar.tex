@@ -72,8 +72,8 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \appU{M}{N}                     & \textrm{function application}\\
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
-                        &        &     & \constr{k}{M_0 \ldots M_{m-1}}   & \textrm{constructor with tag $k$ and $m$ arguments}\\
-                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}     & \textrm{case analysis with $m$ alternatives}\\
+                        &        &     & \constr{k}{M_1 \ldots M_m}      & \textrm{constructor with tag $k$ and $m$ arguments ($m \geq 0$)}\\
+                        &        &     & \kase{M}{N_1 \ldots N_m}        & \textrm{case analysis with $m$ alternatives ($m \geq 0$)}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
 
@@ -123,15 +123,19 @@ $\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to a
 and tools may also use this as concrete syntax.
 
 \paragraph{Constructors and case analysis}
-Plutus Core supports creating structured data using $\keyword{constr}$ and deconstructing
-it using $\keyword{case}$. Both of these terms are unusual in that they have (possibly
-empty) lists of children: $\keyword{constr}$ has the (0-based) \emph{tag} and then a list of arguments;
-$\keyword{case}$ has a scrutinee and then a list of case branches. Their behaviour is mostly
-straightforward: $\keyword{constr}$ evaluates its arguments and forms a value; $\keyword{case}$
-evaluates the scrutinee into a $\keyword{constr}$ value, selects the branch corresponding to
-the tag on the value, and then applies that to the arguments in the value. The only thing
-to note is that $\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
-applying (and hence evaluating) the one that is eventually selected.
+Plutus Core supports creating structured data using $\keyword{constr}$ and
+deconstructing it using $\keyword{case}$. Both of these terms are unusual in
+that they have (possibly empty) lists of children: $\keyword{constr}$ has the
+(0-based) \emph{tag} and then a list of arguments; $\keyword{case}$ has a
+scrutinee and then a list of case branches. The behaviour of $\keyword{constr}$
+and $\keyword{case}$ is mostly straightforward: $\keyword{constr}$ evaluates its
+arguments and forms a value; $\keyword{case}$ evaluates the scrutinee into a
+$\keyword{constr}$ value, selects the branch corresponding to the tag on the
+value, and then applies that to the arguments in the value. Note that
+$\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
+applying (and hence evaluating) the one that is eventually selected.  The list
+of branches in $\keyword{case}$ is allowed to be empty, but in that case there
+will be an error if it is ever applied to a scrutinee.
 
 \paragraph{Constructor tags}
 Constructor tags can in principle be any natural number. In practice, since they cannot
