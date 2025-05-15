@@ -53,6 +53,12 @@ let
         args = [ "-config" ".editorconfig" ];
         package = pkgs.editorconfig-checker;
       };
+      generate-malonzo-code = {
+        enable = true;
+        entry = "${metatheory.generate-malonzo-code}/bin/generate-malonzo-code";
+        stages = [ "push" ];
+        pass_filenames = false;
+      };
     };
   };
 

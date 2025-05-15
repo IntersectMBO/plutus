@@ -60,11 +60,7 @@ let
 
   extra-artifacts =
     {
-      inherit (metatheory)
-        metatheory-site
-        metatheory-agda-library
-        check-generated-malonzo-code;
-
+      inherit (metatheory) metatheory-site metatheory-agda-library;
       inherit project-coverage-report;
     }
     //

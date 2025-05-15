@@ -31,17 +31,6 @@ let
     agda-with-stdlib --compile --ghc-dont-call-ghc src/Main.lagda.md
   '';
 
-  check-generated-malonzo-code = pkgs.runCommand "check-generated-malonzo-code" { } ''
-    cd plutus-metatheory
-    ORIGINAL=$(mktemp -d)
-    cp -R src/MAlonzo $ORIGINAL
-    ${agda-tools.agda-with-stdlib}/bin/agda-with-stdlib \
-      --compile \
-      --ghc-dont-call-ghc \
-      src/Main.lagda.md
-    diff $ORIGINAL/MAlonzo src/MAlonzo
-  '';
-
   agda-with-stdlib-and-metatheory = pkgs.stdenv.mkDerivation {
     name = "agda-with-stdlib-and-metatheory";
     phases = "installPhase";
@@ -120,7 +109,6 @@ in
     metatheory-agda-library
     metatheory-site
     generate-malonzo-code
-    check-generated-malonzo-code
     agda-with-stdlib-and-metatheory;
 }
 
