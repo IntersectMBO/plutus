@@ -56,7 +56,7 @@ let
       generate-malonzo-code = {
         enable = true;
         entry = "${metatheory.generate-malonzo-code}/bin/generate-malonzo-code";
-        stages = [ "push" ];
+        stages = [ "pre-push" ];
         pass_filenames = false;
       };
     };

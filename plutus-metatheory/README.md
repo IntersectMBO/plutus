@@ -84,7 +84,7 @@ $ agda --html --html-highlight=auto --html-dir=html src/index.lagda.md
 $ jekyll build -s html -d html/_site
 ```
 
-Whenever the `*.lagda` files are modified, maintainers have to remember to re-generate the haskell modules manually using the `generate-malonzo-code` command, which is provided by the nix shell.
+Whenever the `*.lagda` files are modified, maintainers have to remember to re-generate the haskell modules manually using the `generate-malonzo-code` command, which is provided by the nix shell. The command is also run automatically as a pre-commit hook before pushing.
 
 ## Features:
 
