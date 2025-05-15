@@ -18,11 +18,12 @@ let
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
-        ghc96-coverage.modules = [{
-          doCoverage = true;
-        }];
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
+        ghc96-coverage.modules = [{
+          packages.plutus-core.doCoverage = true;
+          packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
+        }];
       };
 
       inputMap = { "https://chap.intersectmbo.org/" = inputs.CHaP; };
@@ -35,9 +36,6 @@ let
       modules = [
         {
           packages = {
-
-            plutus-metatheory.components.library.build-tools =
-              [ agda-tools.agda-with-stdlib ];
 
             plutus-executables.components.tests.test-certifier.build-tools =
               [ agda-tools.agda-with-stdlib-and-metatheory ];

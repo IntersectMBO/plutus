@@ -18,42 +18,15 @@ tests :: TestNested
 tests =
   testNested ("DataList" </> "Budget") . pure $
     testNestedGhc
-      [ goldenPirReadable "length" length
-      , goldenUPlcReadable "length" length
-      , goldenEvalCekCatch "length" [length `unsafeApplyCode` l]
-      , goldenBudget "length" (length `unsafeApplyCode` l)
-      , goldenPirReadable "filter" filter
-      , goldenUPlcReadable "filter" filter
-      , goldenEvalCekCatch "filter" [filter `unsafeApplyCode` l]
-      , goldenBudget "filter" (filter `unsafeApplyCode` l)
-      , goldenPirReadable "any" any
-      , goldenUPlcReadable "any" any
-      , goldenEvalCekCatch "any" [any `unsafeApplyCode` l]
-      , goldenBudget "any" (any `unsafeApplyCode` l)
-      , goldenPirReadable "elem" elem
-      , goldenUPlcReadable "elem" elem
-      , goldenEvalCekCatch "elem" [elem `unsafeApplyCode` l]
-      , goldenBudget "elem" (elem `unsafeApplyCode` l)
-      , goldenPirReadable "partition" partition
-      , goldenUPlcReadable "partition" partition
-      , goldenEvalCekCatch "partition" [partition `unsafeApplyCode` l]
-      , goldenBudget "partition" (partition `unsafeApplyCode` l)
-      , goldenPirReadable "makeList" makeList
-      , goldenUPlcReadable "makeList" makeList
-      , goldenEvalCekCatch
-          "makeList"
-          [ makeList
-              `unsafeApplyCode` liftCodeDef 1
-              `unsafeApplyCode` liftCodeDef 2
-              `unsafeApplyCode` liftCodeDef 3
-          ]
-      , goldenBudget
-          "makeList"
-          ( makeList
-              `unsafeApplyCode` liftCodeDef 1
-              `unsafeApplyCode` liftCodeDef 2
-              `unsafeApplyCode` liftCodeDef 3
-          )
+      [ goldenBundle "length" length (length `unsafeApplyCode` l)
+      , goldenBundle "filter" filter (filter `unsafeApplyCode` l)
+      , goldenBundle "any" any (any `unsafeApplyCode` l)
+      , goldenBundle "elem" elem (elem `unsafeApplyCode` l)
+      , goldenBundle "partition" partition (partition `unsafeApplyCode` l)
+      , goldenBundle "makeList" makeList
+          (makeList `unsafeApplyCode` liftCodeDef 1
+                    `unsafeApplyCode` liftCodeDef 2
+                    `unsafeApplyCode` liftCodeDef 3)
       ]
 
 length :: CompiledCode (L.List Integer -> Integer)

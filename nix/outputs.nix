@@ -11,9 +11,6 @@ let
   utils = import ./utils.nix
     { inherit lib; };
 
-  build-latex = import ./build-latex.nix
-    { inherit pkgs; };
-
   r-with-packages = import ./r-with-packages.nix
     { inherit pkgs; };
 
@@ -24,10 +21,7 @@ let
     { inherit self pkgs lib metatheory-agda-library; };
 
   build-latex-doc = import ./build-latex-doc.nix
-    { inherit pkgs lib agda-tools build-latex; };
-
-  unraveling-recursion-paper = import ./unraveling-recursion-paper.nix
-    { inherit self pkgs lib build-latex agda-tools; };
+    { inherit pkgs lib agda-tools; };
 
   latex-documents = import ./latex-documents.nix
     { inherit self build-latex-doc; };
@@ -64,10 +58,13 @@ let
       [ "devShells" ]; # Won't build on Windows
   };
 
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
+
   extra-artifacts =
-    { inherit unraveling-recursion-paper; } //
     { inherit metatheory-site; } //
     { inherit metatheory-agda-library; } //
+    { inherit project-coverage-report; } //
     (latex-documents);
 
   project-variants-hydra-jobs = {
@@ -135,13 +132,14 @@ let
     inherit agda-tools;
     inherit r-with-packages;
     inherit build-latex-doc;
-    inherit build-latex;
     inherit extra-artifacts;
+    inherit windows-packages;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
     inherit metatheory-agda-library;
+    inherit project-coverage-report;
   };
 
 in

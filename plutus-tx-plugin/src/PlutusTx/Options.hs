@@ -18,6 +18,7 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusTx.Compiler.Types
 import UntypedPlutusCore qualified as UPLC
 
+import Control.Applicative (many, optional, (<|>))
 import Control.Exception
 import Control.Lens
 import Data.Bifunctor (first)
@@ -33,9 +34,11 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
+import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 
 import Text.Read (readMaybe)
 import Type.Reflection
+
 
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion               :: PLC.Version
@@ -73,6 +76,7 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
+  , _posCertify                        :: Maybe String
   }
 
 makeLenses ''PluginOptions
@@ -151,16 +155,16 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc [])
     , let k = "defer-errors"
           desc =
-            "If a compilation error happens and this option is turned on, \
-            \the compilation error is suppressed and the original Haskell \
-            \expression is replaced with a runtime-error expression."
+            "If a compilation error happens and this option is turned on, "
+            <> "the compilation error is suppressed and the original Haskell "
+            <> "expression is replaced with a runtime-error expression."
        in (k, PluginOption typeRep (setTrue k) posDeferErrors desc [])
     , let k = "conservative-optimisation"
           desc =
-            "When conservative optimisation is used, only the optimisations that \
-            \never make the program worse (in terms of cost or size) are employed. \
-            \Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, \
-            \`no-simplifier-evaluate-builtins`, and `preserve-logging`."
+            "When conservative optimisation is used, only the optimisations that "
+            <> "never make the program worse (in terms of cost or size) are employed. "
+            <> "Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, "
+            <> "`no-simplifier-evaluate-builtins`, and `preserve-logging`."
        in ( k
           , PluginOption
               typeRep
@@ -197,21 +201,21 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
     , let k = "inline-callsite-growth"
           desc =
-            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a \
-            \callsite if it increases the AST size; `n` allows inlining if the AST size grows by \
-            \no more than `n`. Keep in mind that doing so does not mean the final program \
-            \will be bigger, since inlining can often unlock further optimizations."
+            "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
+            <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
+            <> "no more than `n`. Keep in mind that doing so does not mean the final program "
+            <> "will be bigger, since inlining can often unlock further optimizations."
        in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "inline-constants"
           desc =
-            "Always inline constants. Inlining constants always reduces script \
-            \costs slightly, but may increase script sizes if a large constant \
-            \is used more than once. Implied by `no-conservative-optimisation`."
+            "Always inline constants. Inlining constants always reduces script "
+            <> "costs slightly, but may increase script sizes if a large constant "
+            <> "is used more than once. Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
     , let k = "inline-fix"
           desc =
-            "Always inline fixed point combinators. This is generally preferable as \
-            \it often enables further optimization, though it may increase script size."
+            "Always inline fixed point combinators. This is generally preferable as "
+            <> "it often enables further optimization, though it may increase script size."
        in (k, PluginOption typeRep (setTrue k) posInlineFix desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
@@ -250,8 +254,8 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta desc [])
     , let k = "simplifier-evaluate-builtins"
           desc =
-            "Run a simplification pass that evaluates fully saturated builtin applications. \
-            \Implied by `no-conservative-optimisation`."
+            "Run a simplification pass that evaluates fully saturated builtin applications. "
+            <> "Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierEvaluateBuiltins desc [])
     , let k = "simplifier-inline"
           desc = "Run a simplification pass that performs inlining"
@@ -276,14 +280,14 @@ pluginOptions =
        in (k, PluginOption typeRep (setTrue k) posCoverageBoolean desc [])
     , let k = "relaxed-float-in"
           desc =
-            "Use a more aggressive float-in pass, which often leads to reduced costs \
-            \but may occasionally lead to slightly increased costs. Implied by \
-            \`no-conservative-optimisation`."
+            "Use a more aggressive float-in pass, which often leads to reduced costs "
+            <> "but may occasionally lead to slightly increased costs. Implied by "
+            <> "`no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posRelaxedFloatin desc [])
     , let k = "preserve-logging"
           desc =
-            "Turn off optimisations that may alter (i.e., add, remove or change the \
-            \order of) trace messages. Implied by `conservative-optimisation`."
+            "Turn off optimisations that may alter (i.e., add, remove or change the "
+            <> "order of) trace messages. Implied by `conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posPreserveLogging desc [])
     , let k = "remove-trace"
           desc = "Eliminate calls to `trace` from Plutus Core"
@@ -291,6 +295,18 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
+    , let k = "certify"
+          desc =
+            "Produce a certificate for the compiled program, with the given name. "
+            <> "This certificate provides evidence that the compiler optimizations have "
+            <> "preserved the functional behavior of the original program. "
+            <> "Currently, this is only supported for the UPLC compilation pipeline. "
+            <> "Warning: this is an experimental feature and may not work as expected."
+          p = optional $ do
+            firstC <- upperChar
+            rest <- many (alphaNumChar <|> char '_' <|> char '\\')
+            pure (firstC : rest)
+       in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -362,6 +378,7 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
+    , _posCertify = Nothing
     }
 
 processOne ::
