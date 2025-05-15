@@ -259,6 +259,7 @@ successItems =
         ,("Nested", ForceDelay
             , nestedBefore, nestedAfter)
         -- FIXME: This isn't yet implemented in the certifier
+        -- https://github.com/IntersectMBO/plutus-private/issues/1545
         --, ("ifThenElse", ForceDelay
         --      , ifThenElseSuccessBefore, ifThenElseSuccessAfter)
     ]
