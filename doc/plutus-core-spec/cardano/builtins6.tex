@@ -97,19 +97,14 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
       & $[\forall a_\#, \arrayOf{a_\#}] \to \ty{integer}$ 
       & $[] \mapsto 0$
         \newline 
-        $[x_1] \mapsto 1$
-        \newline 
-        $[x_1,\ldots,x_n] \mapsto n$ 
+        $[x_1,\ldots,x_n] \mapsto n\ (n \geq 1)$ 
       &  
       & \\
     \TT{listToArray} 
       & $[\forall a_\#, \listOf{a_\#}] \to \arrayOf{a_\#}$ 
       & $[] \mapsto []$
         \newline 
-        $[x_1] \mapsto [x_1]$
-        \newline 
-        $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]$ 
-      &  
+        $[x_1,\ldots,x_n] \mapsto [x_1,\ldots,x_n]\ (n \geq 1)$
       & \\
     \TT{indexArray} 
       & $[\forall a_\#, \arrayOf{a_\#}, \ty{integer}]$ \text{$\;\;\; \to \ty{a_\#}$}
