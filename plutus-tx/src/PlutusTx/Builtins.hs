@@ -589,7 +589,7 @@ bls12_381_G1_scalarMul :: Integer -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12
 bls12_381_G1_scalarMul = BI.bls12_381_G1_scalarMul
 {-# INLINABLE bls12_381_G1_scalarMul #-}
 
-bls12_381_G1_multiScalarMul :: BI.BuiltinList (BI.BuiltinPair BuiltinBLS12_381_G1_Element Integer) -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_multiScalarMul :: BI.BuiltinList Integer -> BI.BuiltinList BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_multiScalarMul = BI.bls12_381_G1_multiScalarMul
 {-# INLINABLE bls12_381_G1_multiScalarMul #-}
 
@@ -630,7 +630,7 @@ bls12_381_G2_scalarMul :: Integer -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12
 bls12_381_G2_scalarMul = BI.bls12_381_G2_scalarMul
 {-# INLINABLE bls12_381_G2_scalarMul #-}
 
-bls12_381_G2_multiScalarMul :: BI.BuiltinList (BI.BuiltinPair BuiltinBLS12_381_G2_Element Integer) -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_multiScalarMul :: BI.BuiltinList Integer -> BI.BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_multiScalarMul = BI.bls12_381_G2_multiScalarMul
 {-# INLINABLE bls12_381_G2_multiScalarMul #-}
 
