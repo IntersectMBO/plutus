@@ -56,8 +56,8 @@ let
       generate-malonzo-code = {
         enable = true;
         entry = "${metatheory.generate-malonzo-code}/bin/generate-malonzo-code";
+        files = "^plutus-metatheory/src";
         stages = [ "pre-push" ];
-
         pass_filenames = false;
       };
     };
