@@ -2,14 +2,18 @@
 
 module MAlonzo.RTE where
 
-import Prelude (Bool, Char, Double, Enum (..), Eq (..), Integer, Integral (..), Num (..), Ord (..),
-                String, error, fromIntegral, otherwise, ($), (++))
+import Prelude
+  ( Bool, Char, Double, Integer, String
+  , Enum(..), Eq(..), Ord(..), Integral(..), Num(..)
+  , ($), error, otherwise
+  , (++), fromIntegral
+  )
 
-import Data.Char (GeneralCategory (Surrogate), generalCategory)
-import Data.Kind (Type)
-import Data.Word qualified
-import GHC.Exts qualified as GHC (Any)
-import Unsafe.Coerce (unsafeCoerce)
+import Data.Char ( GeneralCategory(Surrogate), generalCategory )
+import Data.Kind ( Type)
+import qualified Data.Word
+import qualified GHC.Exts as GHC ( Any )
+import Unsafe.Coerce ( unsafeCoerce )
 
 type AgdaAny = GHC.Any
 

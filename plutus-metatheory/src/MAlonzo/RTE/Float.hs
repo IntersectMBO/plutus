@@ -2,23 +2,27 @@
 
 module MAlonzo.RTE.Float where
 
-import Prelude (Bool, Double, Eq (..), Floating (..), Fractional (..), Functor (..), Int, Integer,
-                Integral (..), Maybe (..), Num (..), Ord (..), Ordering (..), Real (..),
-                RealFloat (..), RealFrac (..), even, fromIntegral, fst, otherwise, snd, uncurry,
-                undefined, ($), (&&), (.), (^))
+import Prelude
+  ( Bool, Double, Int, Integer, Maybe(..), Ordering(..)
+  , Eq(..), Ord(..), Functor(..)
+  , Floating(..), Fractional(..), Integral(..), Num(..), Real(..), RealFloat(..), RealFrac(..)
+  , ($), (.), otherwise, uncurry, undefined
+  , (&&), fst, snd
+  , (^), even, fromIntegral
+  )
 
-import Data.Bifunctor (bimap, second)
-import Data.Function (on)
-import Data.Maybe (fromMaybe)
-import Data.Ratio (denominator, numerator, (%))
-import Data.Word (Word64)
+import Data.Bifunctor   ( bimap, second )
+import Data.Function    ( on )
+import Data.Maybe       ( fromMaybe )
+import Data.Ratio       ( (%), numerator, denominator )
+import Data.Word        ( Word64 )
 
 #if __GLASGOW_HASKELL__ >= 804
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 #else
-import Foreign qualified as F
-import Foreign.Storable qualified as F
 import System.IO.Unsafe (unsafePerformIO)
+import qualified Foreign          as F
+import qualified Foreign.Storable as F
 #endif
 
 #if __GLASGOW_HASKELL__ < 804

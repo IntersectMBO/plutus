@@ -1,5 +1,5 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, agda-tools, r-with-packages, utils }:
+{ inputs, pkgs, lib, metatheory, r-with-packages, utils }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
@@ -21,6 +21,7 @@ let
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
         ghc96-coverage.modules = [{
+          packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;
           packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
         }];
@@ -38,7 +39,7 @@ let
           packages = {
 
             plutus-executables.components.tests.test-certifier.build-tools =
-              [ agda-tools.agda-with-stdlib-and-metatheory ];
+              [ metatheory.agda-with-stdlib-and-metatheory ];
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];
