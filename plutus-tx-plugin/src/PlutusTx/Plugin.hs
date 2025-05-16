@@ -446,7 +446,7 @@ runCompiler ::
     , fun ~ PLC.DefaultFun
     , MonadReader (CompileContext uni fun) m
     , MonadState CompileState m
-    , MonadWriter CoverageIndex m
+    , MonadWriter (CoverageIndex, Maybe CertPath) m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
     , MonadIO m
@@ -643,8 +643,8 @@ stripTicks = \case
     e            -> e
 
 -- | Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a
-mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci)
+mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> BS.ByteString -> Maybe CertPath -> CompiledCode a
+mkCompiledCode plcBS pirBS ci mcp = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci) mcp
 
 -- | Make a 'NameInfo' mapping the given set of TH names to their
 -- 'GHC.TyThing's for later reference.
