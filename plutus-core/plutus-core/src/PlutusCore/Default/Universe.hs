@@ -6,6 +6,7 @@
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
 
+{-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ConstraintKinds          #-}
@@ -520,28 +521,26 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
                  ]
     {-# INLINE readKnown #-}
 
+outOfBoundsErr :: Pretty a => a -> Vector.Vector term -> Text
+outOfBoundsErr x branches = fold
+    [ "'case "
+    , display x
+    , "' is out of bounds for the given number of branches: "
+    , display $ Vector.length branches
+    ]
+
 instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
     caseBuiltin (Some (ValueOf uni x)) branches = case uni of
-        -- TODO: It feels like we should support having only one branch to verify that a condition
-        -- is true and fail otherwise, but that requires changing the order of branches, which on
-        -- the one hand is weird and on the other hand matches the order for if-then-else, which is
-        -- nice.
-        DefaultUniBool
-            | Vector.length branches == 2 -> Right $ branches Vector.! fromEnum x
-            | otherwise -> Left $ fold
-                [ "'case' on a 'Bool' must have exactly two branches, but were given "
-                , showText $ Vector.length branches
-                ]
+        DefaultUniBool -> case x of
+            False | len == 1 || len == 2 -> Right $ branches Vector.! 0
+            True  |             len == 2 -> Right $ branches Vector.! 1
+            _                            -> Left  $ outOfBoundsErr x branches
         DefaultUniInteger
-            | 0 <= x && x < fromIntegral (Vector.length branches) ->
-                Right $ branches Vector.! fromIntegral x
-            | otherwise -> Left $ fold
-                [ "'case "
-                , showText x
-                , "' is out of bounds for the given number of branches: "
-                , showText $ Vector.length branches
-                ]
+            | 0 <= x && x < fromIntegral len -> Right $ branches Vector.! fromIntegral x
+            | otherwise                      -> Left  $ outOfBoundsErr x branches
         _ -> Left $ display uni <> " isn't supported in 'case'"
+      where
+        !len = Vector.length branches
 
 instance AnnotateCaseBuiltin DefaultUni where
     annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
