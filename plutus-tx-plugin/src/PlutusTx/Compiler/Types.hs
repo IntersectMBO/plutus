@@ -198,7 +198,8 @@ type Compiling uni fun m ann =
     , MonadReader (CompileContext uni fun) m
     , MonadState CompileState m
     , MonadDefs LexName uni fun Ann m
-    , MonadWriter CoverageIndex m
+    -- TODO: fix
+    , MonadWriter (CoverageIndex, Maybe FilePath) m
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way

@@ -28,7 +28,8 @@ loadFromFile fp = TH.liftCode $ do
     -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
     -- so we lift the bytestring and construct the value in the quote.
     bs <- liftIO $ BS.readFile fp
-    TH.examineCode [|| SerializedCode bs Nothing mempty ||]
+    -- TODO: maybe fix?
+    TH.examineCode [|| SerializedCode bs Nothing mempty mempty ||]
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we
