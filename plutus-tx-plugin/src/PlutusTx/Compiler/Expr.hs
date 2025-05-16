@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiWayIf            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -40,6 +41,7 @@ import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Laziness
 import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Precompiled
 import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
@@ -1007,13 +1009,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
     GHC.Var n
       | isProbablyIntegerEq n ->
-          compileExpr
-            (GHC.Var $
-               GHC.mkGlobalVar
-                 GHC.VanillaId
-                 builtinEqualsInteger
-                 (GHC.mkVisFunTysMany [GHC.integerTy, GHC.integerTy] GHC.boolTy)
-                 GHC.vanillaIdInfo)
+          foo
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
@@ -1476,6 +1472,13 @@ defineIntegerNegate = do
     def = PIR.Def var (body, PIR.Strict)
   PIR.defineTerm (LexName GHC.integerNegateName) def mempty
 
+-- defineIntegerEq :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
+-- defineIntegerEq = do
+--   ghcId <- lookupGhcId 'GHC.Num.Integer.integerEq
+--   var <- compileVarFresh annAlwaysInline ghcId
+--   let def = PIR.Def var (, PIR.Strict)
+--   PIR.defineTerm (LexName (GHC.getName ghcId)) def mempty
+
 defineFix :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineFix = do
   inlineFix <- asks (coInlineFix . ccOpts)
@@ -1493,6 +1496,14 @@ lookupIntegerNegate = do
     Nothing -> throwPlain $
       CompilationError "Cannot find the definition of integerNegate. Please file a bug report."
 
+foo :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
+foo = do
+  ghcName <- lookupGhcName 'Builtins.equalsInteger
+  PIR.lookupTerm (LexName ghcName) >>= \case
+    Just t -> pure t
+    Nothing -> throwPlain $
+      CompilationError "Cannot find the definition of integerNegate. Please file a bug report."
+
 compileExprWithDefs ::
   (CompilingDefault uni fun m ann) =>
   GHC.CoreExpr ->
@@ -1502,6 +1513,7 @@ compileExprWithDefs e = do
   defineBuiltinTerms
   defineIntegerNegate
   defineFix
+  $(definePrecompiledTerms)
   compileExpr e
 
 {- Note [We always need DEFAULT]
