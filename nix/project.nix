@@ -1,5 +1,5 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, agda-tools, r-with-packages, utils }:
+{ inputs, pkgs, lib, metatheory, r-with-packages, utils }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
@@ -38,7 +38,7 @@ let
           packages = {
 
             plutus-executables.components.tests.test-certifier.build-tools =
-              [ agda-tools.agda-with-stdlib-and-metatheory ];
+              [ metatheory.agda-with-stdlib-and-metatheory ];
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];
