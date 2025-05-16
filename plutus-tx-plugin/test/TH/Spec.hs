@@ -15,8 +15,6 @@ module TH.Spec (tests) where
 
 import Test.Tasty.Extras
 
-import Lib
-
 import PlutusCore.Pretty
 
 import PlutusTx
@@ -24,6 +22,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude
 import PlutusTx.Show (show)
+import PlutusTx.Test
 
 import Prelude qualified as Haskell
 
@@ -41,11 +40,11 @@ tests = testNested "TH" . pure $ testNestedGhc
   [ goldenPir "simple" simple
   , goldenPir "power" powerPlc
   , goldenPir "and" andPlc
-  , goldenEvalCek "all" [allPlc]
-  , goldenEvalCek "convertString" [convertString]
-  , goldenEvalCekLog "traceDirect" [traceDirect]
-  , goldenEvalCekLog "tracePrelude" [tracePrelude]
-  , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
+  , goldenEvalCek "all" allPlc
+  , goldenEvalCek "convertString" convertString
+  , goldenEvalCekLog "traceDirect" traceDirect
+  , goldenEvalCekLog "tracePrelude" tracePrelude
+  , goldenEvalCekLog "traceRepeatedly" traceRepeatedly
   -- want to see the raw structure, so using Show
   , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
   ]
