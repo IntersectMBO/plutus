@@ -1,0 +1,319 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>{-# LANGUAGE CPP                   #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances     #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings     #-}
+<span class="lineno">    7 </span>{-# LANGUAGE RankNTypes            #-}
+<span class="lineno">    8 </span>{-# LANGUAGE UndecidableInstances  #-}
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>module PlutusPrelude
+<span class="lineno">   11 </span>    ( -- * Reexports from base
+<span class="lineno">   12 </span>      (&amp;)
+<span class="lineno">   13 </span>    , (&amp;&amp;&amp;)
+<span class="lineno">   14 </span>    , (&gt;&gt;&gt;)
+<span class="lineno">   15 </span>    , (&lt;&amp;&gt;)
+<span class="lineno">   16 </span>    , toList
+<span class="lineno">   17 </span>    , first
+<span class="lineno">   18 </span>    , second
+<span class="lineno">   19 </span>    , on
+<span class="lineno">   20 </span>    , isNothing
+<span class="lineno">   21 </span>    , isJust
+<span class="lineno">   22 </span>    , fromMaybe
+<span class="lineno">   23 </span>    , guard
+<span class="lineno">   24 </span>    , foldl'
+<span class="lineno">   25 </span>    , for_
+<span class="lineno">   26 </span>    , traverse_
+<span class="lineno">   27 </span>    , fold
+<span class="lineno">   28 </span>    , for
+<span class="lineno">   29 </span>    , throw
+<span class="lineno">   30 </span>    , join
+<span class="lineno">   31 </span>    , (&lt;=&lt;)
+<span class="lineno">   32 </span>    , (&gt;=&gt;)
+<span class="lineno">   33 </span>    , ($&gt;)
+<span class="lineno">   34 </span>    , fromRight
+<span class="lineno">   35 </span>    , isRight
+<span class="lineno">   36 </span>    , isLeft
+<span class="lineno">   37 </span>    , void
+<span class="lineno">   38 </span>    , through
+<span class="lineno">   39 </span>    , coerce
+<span class="lineno">   40 </span>    , coerceVia
+<span class="lineno">   41 </span>    , coerceArg
+<span class="lineno">   42 </span>    , coerceRes
+<span class="lineno">   43 </span>    , Generic
+<span class="lineno">   44 </span>    , NFData
+<span class="lineno">   45 </span>    , Natural
+<span class="lineno">   46 </span>    , NonEmpty (..)
+<span class="lineno">   47 </span>    , Word8
+<span class="lineno">   48 </span>    , Alternative (..)
+<span class="lineno">   49 </span>    , Exception
+<span class="lineno">   50 </span>    , PairT (..)
+<span class="lineno">   51 </span>    , Coercible
+<span class="lineno">   52 </span>    , Typeable
+<span class="lineno">   53 </span>    -- * Lens
+<span class="lineno">   54 </span>    , Lens'
+<span class="lineno">   55 </span>    , lens
+<span class="lineno">   56 </span>    , (^.)
+<span class="lineno">   57 </span>    , view
+<span class="lineno">   58 </span>    , (.~)
+<span class="lineno">   59 </span>    , set
+<span class="lineno">   60 </span>    , (%~)
+<span class="lineno">   61 </span>    , over
+<span class="lineno">   62 </span>    , (&lt;^&gt;)
+<span class="lineno">   63 </span>    -- * Debugging
+<span class="lineno">   64 </span>    , traceShowId
+<span class="lineno">   65 </span>    , trace
+<span class="lineno">   66 </span>    -- * Reexports from &quot;Control.Composition&quot;
+<span class="lineno">   67 </span>    , (.*)
+<span class="lineno">   68 </span>    -- * Custom functions
+<span class="lineno">   69 </span>    , (&lt;&lt;$&gt;&gt;)
+<span class="lineno">   70 </span>    , (&lt;&lt;*&gt;&gt;)
+<span class="lineno">   71 </span>    , mtraverse
+<span class="lineno">   72 </span>    , foldMapM
+<span class="lineno">   73 </span>    , reoption
+<span class="lineno">   74 </span>    , enumerate
+<span class="lineno">   75 </span>    , tabulateArray
+<span class="lineno">   76 </span>    , (?)
+<span class="lineno">   77 </span>    , ensure
+<span class="lineno">   78 </span>    , asksM
+<span class="lineno">   79 </span>    , timesA
+<span class="lineno">   80 </span>    -- * Pretty-printing
+<span class="lineno">   81 </span>    , Doc
+<span class="lineno">   82 </span>    , ShowPretty (..)
+<span class="lineno">   83 </span>    , Pretty (..)
+<span class="lineno">   84 </span>    , PrettyBy (..)
+<span class="lineno">   85 </span>    , HasPrettyDefaults
+<span class="lineno">   86 </span>    , PrettyDefaultBy
+<span class="lineno">   87 </span>    , PrettyAny (..)
+<span class="lineno">   88 </span>    , Render (..)
+<span class="lineno">   89 </span>    , display
+<span class="lineno">   90 </span>    -- * GHCi
+<span class="lineno">   91 </span>    , printPretty
+<span class="lineno">   92 </span>    -- * Text
+<span class="lineno">   93 </span>    , showText
+<span class="lineno">   94 </span>    , Default (def)
+<span class="lineno">   95 </span>    -- * Lists
+<span class="lineno">   96 </span>    , zipExact
+<span class="lineno">   97 </span>    , allSame
+<span class="lineno">   98 </span>    , distinct
+<span class="lineno">   99 </span>    , unsafeFromRight
+<span class="lineno">  100 </span>    , tryError
+<span class="lineno">  101 </span>    , addTheRest
+<span class="lineno">  102 </span>    , modifyError
+<span class="lineno">  103 </span>    , lowerInitialChar
+<span class="lineno">  104 </span>    ) where
+<span class="lineno">  105 </span>
+<span class="lineno">  106 </span>import Control.Applicative
+<span class="lineno">  107 </span>import Control.Arrow ((&amp;&amp;&amp;), (&gt;&gt;&gt;))
+<span class="lineno">  108 </span>import Control.Composition ((.*))
+<span class="lineno">  109 </span>import Control.DeepSeq (NFData)
+<span class="lineno">  110 </span>import Control.Exception (Exception, throw)
+<span class="lineno">  111 </span>import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&amp;), (.~), (&lt;&amp;&gt;), (^.))
+<span class="lineno">  112 </span>import Control.Monad
+<span class="lineno">  113 </span>import Control.Monad.Except (ExceptT, MonadError, catchError, runExceptT, throwError)
+<span class="lineno">  114 </span>import Control.Monad.Reader (MonadReader, ask)
+<span class="lineno">  115 </span>import Data.Array (Array, Ix, listArray)
+<span class="lineno">  116 </span>import Data.Bifunctor (first, second)
+<span class="lineno">  117 </span>import Data.Char (toLower)
+<span class="lineno">  118 </span>import Data.Coerce (Coercible, coerce)
+<span class="lineno">  119 </span>import Data.Default.Class
+<span class="lineno">  120 </span>import Data.Either (fromRight, isLeft, isRight)
+<span class="lineno">  121 </span>import Data.Foldable (fold, for_, toList, traverse_)
+<span class="lineno">  122 </span>import Data.Function (on)
+<span class="lineno">  123 </span>import Data.Functor (($&gt;))
+<span class="lineno">  124 </span>#if ! MIN_VERSION_base(4,20,0)
+<span class="lineno">  125 </span>import Data.List (foldl')
+<span class="lineno">  126 </span>#endif
+<span class="lineno">  127 </span>import Data.List.Extra (enumerate)
+<span class="lineno">  128 </span>import Data.List.NonEmpty (NonEmpty (..))
+<span class="lineno">  129 </span>import Data.Maybe (fromMaybe, isJust, isNothing)
+<span class="lineno">  130 </span>import Data.Semigroup (Endo (..), stimes)
+<span class="lineno">  131 </span>import Data.Text qualified as T
+<span class="lineno">  132 </span>import Data.Traversable (for)
+<span class="lineno">  133 </span>import Data.Typeable (Typeable)
+<span class="lineno">  134 </span>import Data.Word (Word8)
+<span class="lineno">  135 </span>import Debug.Trace (trace, traceShowId)
+<span class="lineno">  136 </span>import GHC.Generics (Generic)
+<span class="lineno">  137 </span>import GHC.Natural (Natural)
+<span class="lineno">  138 </span>import Prettyprinter
+<span class="lineno">  139 </span>import Text.PrettyBy.Default
+<span class="lineno">  140 </span>import Text.PrettyBy.Internal
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>infixr 2 ?
+<span class="lineno">  143 </span>infixl 4 &lt;&lt;$&gt;&gt;, &lt;&lt;*&gt;&gt;
+<span class="lineno">  144 </span>infixr 6 &lt;^&gt;
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>-- | A newtype wrapper around @a@ whose point is to provide a 'Show' instance
+<span class="lineno">  147 </span>-- for anything that has a 'Pretty' instance.
+<span class="lineno">  148 </span>newtype ShowPretty a = ShowPretty
+<span class="lineno">  149 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unShowPretty</span></span></span> :: a
+<span class="lineno">  150 </span>    } deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Pretty a =&gt; Show (ShowPretty a)</span></span></span></span> where
+<span class="lineno">  153 </span>    <span class="decl"><span class="nottickedoff">show = display . unShowPretty</span></span>
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>instance <span class="decl"><span class="nottickedoff">(Pretty a, Pretty b) =&gt; Pretty (Either a b)</span></span> where
+<span class="lineno">  156 </span>    <span class="decl"><span class="nottickedoff">pretty (Left  x) = parens (&quot;Left&quot;  &lt;+&gt; pretty x)</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="nottickedoff">pretty (Right y) = parens (&quot;Right&quot; &lt;+&gt; pretty y)</span></span>
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>-- | Default pretty-printing for the __spine__ of 'Either' (elements are pretty-printed the way
+<span class="lineno">  160 </span>-- @PrettyBy config@ constraints specify it).
+<span class="lineno">  161 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(PrettyBy config a, PrettyBy config b) =&gt; DefaultPrettyBy config (Either a b)</span></span></span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>-- | An instance extending the set of types supporting default pretty-printing with 'Either'.
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via PrettyCommon (Either a b)</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="nottickedoff">instance PrettyDefaultBy config (Either a b) =&gt; PrettyBy config (Either a b)</span></span></span></span>
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>-- | Coerce the second argument to the result type of the first one. The motivation for this
+<span class="lineno">  168 </span>-- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
+<span class="lineno">  169 </span>-- to construct an explicit coercion function, so this combinator can be used in cases like that.
+<span class="lineno">  170 </span>-- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
+<span class="lineno">  171 </span>coerceVia :: Coercible a b =&gt; (a -&gt; b) -&gt; a -&gt; b
+<span class="lineno">  172 </span><span class="decl"><span class="nottickedoff">coerceVia _ = coerce</span></span>
+<span class="lineno">  173 </span>{-# INLINE coerceVia #-}
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>-- | Same as @\f -&gt; f . coerce@, but does not create any closures and so is completely free.
+<span class="lineno">  176 </span>coerceArg :: Coercible a b =&gt; (a -&gt; s) -&gt; b -&gt; s
+<span class="lineno">  177 </span><span class="decl"><span class="istickedoff">coerceArg = coerce</span></span>
+<span class="lineno">  178 </span>{-# INLINE coerceArg #-}
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>-- | Same as @\f -&gt; coerce . f@, but does not create any closures and so is completely free.
+<span class="lineno">  181 </span>coerceRes :: Coercible s t =&gt; (a -&gt; s) -&gt; a -&gt; t
+<span class="lineno">  182 </span><span class="decl"><span class="nottickedoff">coerceRes = coerce</span></span>
+<span class="lineno">  183 </span>{-# INLINE coerceRes #-}
+<span class="lineno">  184 </span>
+<span class="lineno">  185 </span>(&lt;&lt;$&gt;&gt;) :: (Functor f1, Functor f2) =&gt; (a -&gt; b) -&gt; f1 (f2 a) -&gt; f1 (f2 b)
+<span class="lineno">  186 </span><span class="decl"><span class="istickedoff">(&lt;&lt;$&gt;&gt;) = fmap . fmap</span></span>
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>(&lt;&lt;*&gt;&gt;) :: (Applicative f1, Applicative f2) =&gt; f1 (f2 (a -&gt; b)) -&gt; f1 (f2 a) -&gt; f1 (f2 b)
+<span class="lineno">  189 </span><span class="decl"><span class="istickedoff">(&lt;&lt;*&gt;&gt;) = liftA2 (&lt;*&gt;)</span></span>
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>-- | Makes an effectful function ignore its result value and return its input value.
+<span class="lineno">  192 </span>through :: Functor f =&gt; (a -&gt; f b) -&gt; (a -&gt; f a)
+<span class="lineno">  193 </span><span class="decl"><span class="istickedoff">through f x = f x $&gt; x</span></span>
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>mtraverse :: (Monad m, Traversable m, Applicative f) =&gt; (a -&gt; f (m b)) -&gt; m a -&gt; f (m b)
+<span class="lineno">  196 </span><span class="decl"><span class="nottickedoff">mtraverse f a = join &lt;$&gt; traverse f a</span></span>
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>-- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
+<span class="lineno">  199 </span>foldMapM :: (Foldable f, Monad m, Monoid b) =&gt; (a -&gt; m b) -&gt; f a -&gt; m b
+<span class="lineno">  200 </span><span class="decl"><span class="nottickedoff">foldMapM f xs = foldr step return xs mempty where</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="nottickedoff">step x r z = f x &gt;&gt;= \y -&gt; r $! z `mappend` y</span></span>
+<span class="lineno">  202 </span>
+<span class="lineno">  203 </span>-- | This function generalizes 'eitherToMaybe', 'eitherToList',
+<span class="lineno">  204 </span>-- 'listToMaybe' and other such functions.
+<span class="lineno">  205 </span>reoption :: (Foldable f, Alternative g) =&gt; f a -&gt; g a
+<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">reoption = foldr (const . pure) empty</span></span>
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>-- | Basically a @Data.Functor.Representable@ instance for 'Array'.
+<span class="lineno">  209 </span>-- We can't provide an actual instance because of the @Distributive@ superclass: @Array i@ is not
+<span class="lineno">  210 </span>-- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
+<span class="lineno">  211 </span>tabulateArray :: (Bounded i, Enum i, Ix i) =&gt; (i -&gt; a) -&gt; Array i a
+<span class="lineno">  212 </span><span class="decl"><span class="istickedoff">tabulateArray f = listArray (minBound, maxBound) $ map f enumerate</span></span>
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>newtype PairT b f a = PairT
+<span class="lineno">  215 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unPairT</span></span></span> :: f (b, a)
+<span class="lineno">  216 </span>    }
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span>instance <span class="decl"><span class="nottickedoff">Functor f =&gt; Functor (PairT b f)</span></span> where
+<span class="lineno">  219 </span>    <span class="decl"><span class="nottickedoff">fmap f (PairT p) = PairT $ fmap (fmap f) p</span></span>
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>-- | @b ? x@ is equal to @pure x@ whenever @b@ holds and is 'empty' otherwise.
+<span class="lineno">  222 </span>(?) :: Alternative f =&gt; Bool -&gt; a -&gt; f a
+<span class="lineno">  223 </span><span class="decl"><span class="nottickedoff">(?) b x = x &lt;$ guard b</span></span>
+<span class="lineno">  224 </span>
+<span class="lineno">  225 </span>-- | @ensure p x@ is equal to @pure x@ whenever @p x@ holds and is 'empty' otherwise.
+<span class="lineno">  226 </span>ensure :: Alternative f =&gt; (a -&gt; Bool) -&gt; a -&gt; f a
+<span class="lineno">  227 </span><span class="decl"><span class="nottickedoff">ensure p x = p x ? x</span></span>
+<span class="lineno">  228 </span>
+<span class="lineno">  229 </span>-- | A monadic version of 'asks'.
+<span class="lineno">  230 </span>asksM :: MonadReader r m =&gt; (r -&gt; m a) -&gt; m a
+<span class="lineno">  231 </span><span class="decl"><span class="nottickedoff">asksM k = ask &gt;&gt;= k</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>-- For GHCi to use this properly it needs to be in a registered package, hence
+<span class="lineno">  234 </span>-- why we're naming such a trivial thing.
+<span class="lineno">  235 </span>-- | A command suitable for use in GHCi as an interactive printer.
+<span class="lineno">  236 </span>printPretty :: Pretty a =&gt; a -&gt; IO ()
+<span class="lineno">  237 </span><span class="decl"><span class="nottickedoff">printPretty = print . pretty</span></span>
+<span class="lineno">  238 </span>
+<span class="lineno">  239 </span>showText :: Show a =&gt; a -&gt; T.Text
+<span class="lineno">  240 </span><span class="decl"><span class="nottickedoff">showText = T.pack . show</span></span>
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>-- | Compose two folds to make them run in parallel. The results are concatenated.
+<span class="lineno">  243 </span>(&lt;^&gt;) :: Fold s a -&gt; Fold s a -&gt; Fold s a
+<span class="lineno">  244 </span><span class="decl"><span class="istickedoff">(f1 &lt;^&gt; f2) g s = f1 g s *&gt; f2 g s</span></span>
+<span class="lineno">  245 </span>
+<span class="lineno">  246 </span>-- | Zips two lists of the same length together, returning 'Nothing' if they are not
+<span class="lineno">  247 </span>-- the same length.
+<span class="lineno">  248 </span>zipExact :: [a] -&gt; [b] -&gt; Maybe [(a,b)]
+<span class="lineno">  249 </span><span class="decl"><span class="istickedoff">zipExact [] []         = Just []</span>
+<span class="lineno">  250 </span><span class="spaces"></span><span class="istickedoff">zipExact (a:as) (b:bs) = (:) (a, b) &lt;$&gt; zipExact as bs</span>
+<span class="lineno">  251 </span><span class="spaces"></span><span class="istickedoff">zipExact _ _           = Nothing</span></span>
+<span class="lineno">  252 </span>
+<span class="lineno">  253 </span>-- | Similar to Maybe's `fromJust`. Returns the `Right` and errors out with the show instance
+<span class="lineno">  254 </span>-- of the `Left`.
+<span class="lineno">  255 </span>unsafeFromRight :: (Show e) =&gt; Either e a -&gt; a
+<span class="lineno">  256 </span><span class="decl"><span class="istickedoff">unsafeFromRight (Right a) = a</span>
+<span class="lineno">  257 </span><span class="spaces"></span><span class="istickedoff">unsafeFromRight (Left e)  = <span class="nottickedoff">error $ show e</span></span></span>
+<span class="lineno">  258 </span>
+<span class="lineno">  259 </span>-- | function recursively applied N times
+<span class="lineno">  260 </span>timesA :: Natural -&gt; (a -&gt; a) -&gt; a -&gt; a
+<span class="lineno">  261 </span><span class="decl"><span class="nottickedoff">timesA = ala Endo . stimes</span></span>
+<span class="lineno">  262 </span>
+<span class="lineno">  263 </span>-- | A 'MonadError' version of 'try'.
+<span class="lineno">  264 </span>--
+<span class="lineno">  265 </span>-- TODO: remove when we switch to mtl&gt;=2.3
+<span class="lineno">  266 </span>tryError :: MonadError e m =&gt; m a -&gt; m (Either e a)
+<span class="lineno">  267 </span><span class="decl"><span class="istickedoff">tryError a = (Right &lt;$&gt; a) `catchError` <span class="nottickedoff">(pure . Left)</span></span></span>
+<span class="lineno">  268 </span>{-# INLINE tryError #-}
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>-- | Pair each element of the given list with all the other elements.
+<span class="lineno">  271 </span>--
+<span class="lineno">  272 </span>-- &gt;&gt;&gt; addTheRest &quot;abcd&quot;
+<span class="lineno">  273 </span>-- [('a',&quot;bcd&quot;),('b',&quot;acd&quot;),('c',&quot;abd&quot;),('d',&quot;abc&quot;)]
+<span class="lineno">  274 </span>addTheRest :: [a] -&gt; [(a, [a])]
+<span class="lineno">  275 </span><span class="decl"><span class="nottickedoff">addTheRest []     = []</span>
+<span class="lineno">  276 </span><span class="spaces"></span><span class="nottickedoff">addTheRest (x:xs) = (x, xs) : map (fmap (x :)) (addTheRest xs)</span></span>
+<span class="lineno">  277 </span>
+<span class="lineno">  278 </span>{- A different 'MonadError' analogue to the 'withExceptT' function.
+<span class="lineno">  279 </span>Modify the value (and possibly the type) of an error in an @ExceptT@-transformed
+<span class="lineno">  280 </span>monad, while stripping the @ExceptT@ layer.
+<span class="lineno">  281 </span>
+<span class="lineno">  282 </span>TODO: remove when we switch to mtl&gt;=2.3.1
+<span class="lineno">  283 </span>-}
+<span class="lineno">  284 </span>modifyError :: MonadError e' m =&gt; (e -&gt; e') -&gt; ExceptT e m a -&gt; m a
+<span class="lineno">  285 </span><span class="decl"><span class="nottickedoff">modifyError f m = runExceptT m &gt;&gt;= either (throwError . f) pure</span></span>
+<span class="lineno">  286 </span>
+<span class="lineno">  287 </span>allSame :: Eq a =&gt; [a] -&gt; Bool
+<span class="lineno">  288 </span><span class="decl"><span class="nottickedoff">allSame []     = True</span>
+<span class="lineno">  289 </span><span class="spaces"></span><span class="nottickedoff">allSame (x:xs) = all (x ==) xs</span></span>
+<span class="lineno">  290 </span>
+<span class="lineno">  291 </span>distinct :: Eq a =&gt; [a] -&gt; Bool
+<span class="lineno">  292 </span><span class="decl"><span class="nottickedoff">distinct = not . allSame</span></span>
+<span class="lineno">  293 </span>
+<span class="lineno">  294 </span>lowerInitialChar :: String -&gt; String
+<span class="lineno">  295 </span><span class="decl"><span class="istickedoff">lowerInitialChar []     = <span class="nottickedoff">[]</span></span>
+<span class="lineno">  296 </span><span class="spaces"></span><span class="istickedoff">lowerInitialChar (c:cs) = toLower c : cs</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BlockArguments    #-}
+<span class="lineno">    2 </span>{-# LANGUAGE LambdaCase        #-}
+<span class="lineno">    3 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeApplications  #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeFamilies      #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>module UntypedPlutusCore.Transform.Cse (cse) where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
+<span class="lineno">   10 </span>import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+<span class="lineno">   11 </span>import UntypedPlutusCore.Core
+<span class="lineno">   12 </span>import UntypedPlutusCore.Purity (isWorkFree)
+<span class="lineno">   13 </span>import UntypedPlutusCore.Size (termSize)
+<span class="lineno">   14 </span>import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
+<span class="lineno">   15 </span>                                               recordSimplification)
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.Arrow ((&gt;&gt;&gt;))
+<span class="lineno">   18 </span>import Control.Lens (foldrOf, transformOf)
+<span class="lineno">   19 </span>import Control.Monad (join, void)
+<span class="lineno">   20 </span>import Control.Monad.Trans.Class (MonadTrans (lift))
+<span class="lineno">   21 </span>import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
+<span class="lineno">   22 </span>import Control.Monad.Trans.State.Strict (State, evalState, get, put)
+<span class="lineno">   23 </span>import Data.Foldable as Foldable (foldl')
+<span class="lineno">   24 </span>import Data.Hashable (Hashable)
+<span class="lineno">   25 </span>import Data.HashMap.Strict (HashMap)
+<span class="lineno">   26 </span>import Data.HashMap.Strict qualified as Map
+<span class="lineno">   27 </span>import Data.List.Extra (isSuffixOf, sortOn)
+<span class="lineno">   28 </span>import Data.Ord (Down (..))
+<span class="lineno">   29 </span>import Data.Proxy (Proxy (..))
+<span class="lineno">   30 </span>import Data.Traversable (for)
+<span class="lineno">   31 </span>import Data.Tuple.Extra (snd3, thd3)
+<span class="lineno">   32 </span>import PlutusCore.Arity (builtinArity)
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>{- Note [CSE]
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>-------------------------------------------------------------------------------
+<span class="lineno">   37 </span>1. Simplifications
+<span class="lineno">   38 </span>-------------------------------------------------------------------------------
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>This is a simplified (i.e., not fully optimal) implementation of CSE. The two simplifications
+<span class="lineno">   41 </span>we made are:
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>- No alpha equivalence check, i.e., `\x -&gt; x` and `\y -&gt; y` are considered different expressions.
+<span class="lineno">   44 </span>- The builtin function arity information is approximate: rather than using the accurate arities,
+<span class="lineno">   45 </span>  we simply use the maximum number of arguments applied to a builtin function in the program
+<span class="lineno">   46 </span>  as the builtin function's arity. The arity information is used to determine whether a builtin
+<span class="lineno">   47 </span>  application is possibly saturated.
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>-------------------------------------------------------------------------------
+<span class="lineno">   50 </span>2. How does it work?
+<span class="lineno">   51 </span>-------------------------------------------------------------------------------
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>We use the following example to explain how the implementation works:
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>\x y -&gt; (1+(2+x))
+<span class="lineno">   56 </span>        +
+<span class="lineno">   57 </span>        (case y [ (1+(2+x)) + (3+x)
+<span class="lineno">   58 </span>                , (2+x) + (3+x)
+<span class="lineno">   59 </span>                , 4+x
+<span class="lineno">   60 </span>                ]
+<span class="lineno">   61 </span>        )
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>The implementation makes several passes on the given term. The first pass collects builtin
+<span class="lineno">   64 </span>arity information as described above.
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>In the second pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
+<span class="lineno">   67 </span>Then, we annotate each subterm with a path, consisting of IDs encountered from the root
+<span class="lineno">   68 </span>to that subterm (not including itself). The reason to do this is because `LamAbs`, `Delay`,
+<span class="lineno">   69 </span>and `Case` branches represent places where computation stops, i.e., subexpressions are not
+<span class="lineno">   70 </span>immediately evaluated, and may not be evaluated at all.
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>In the above example, the ID of `\x` is 0, the ID of `\y` is 1, and the IDs of the
+<span class="lineno">   73 </span>three case branches are 2, 3, 4 (the actual numbers don't matter, as long as they are unique).
+<span class="lineno">   74 </span>The path for the first `1+(2+x)` and the first `2+x` is &quot;0.1&quot;; the path for the second
+<span class="lineno">   75 </span>`1+(2+x)` and the second `2+x` is &quot;0.1.2&quot;; the path for `4+x` is &quot;0.1.4&quot;.
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>In the third pass, we calculate a count for each `(term, path)` pair, where `term` is a
+<span class="lineno">   78 </span>non-workfree term, and `path` is its path. If the same term has two paths, and one is an
+<span class="lineno">   79 </span>ancestor (i.e., prefix) of the other, we increment the count for the ancestor path in both
+<span class="lineno">   80 </span>instances.
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>In the above example, there are three occurrences of `2+x`, whose paths are &quot;0.1&quot;, &quot;0.1.2&quot;
+<span class="lineno">   83 </span>and &quot;0.1.3&quot;, respectively. The first path is an ancestor of the latter two. Therefore,
+<span class="lineno">   84 </span>the count for `(2+x, &quot;0.1&quot;)` is 3, while the count for `(2+x, &quot;0.1.2&quot;)` and `(2+x, &quot;0.1.3&quot;)`
+<span class="lineno">   85 </span>is 0. The following all have a count of 1: `(3+x, &quot;0.1.2&quot;)`, `(3+x, &quot;0.1.3&quot;)` and
+<span class="lineno">   86 </span>`(4+x, &quot;0.1.4&quot;)`.
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>Now, each `(term, path)` pair whose count is greater than 1 is a CSE candidate.
+<span class="lineno">   89 </span>In the above example, the CSE candidates are `(2+x, &quot;0.1&quot;)` and `(1+(2+x), &quot;0.1&quot;)`.
+<span class="lineno">   90 </span>Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
+<span class="lineno">   91 </span>greater than 1. `2+` is also not a CSE candidate, because it is workfree.
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>The CSE candidates are then processed in descending order of their `termSize`s. For each CSE
+<span class="lineno">   94 </span>candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
+<span class="lineno">   95 </span>it for all occurrences in the original term whose paths are descendents (or self) of
+<span class="lineno">   96 </span>the candidate's path. The order is because a bigger expression may contain a small subexpression.
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>In the above example, we first process CSE candidate `(1+(2+x), &quot;0.1&quot;)`. We create a fresh
+<span class="lineno">   99 </span>variable `cse1` for it, perform substitution, and create a `LamAbs` under path &quot;0.1&quot; (i.e., around
+<span class="lineno">  100 </span>the body of `y`). After processing this CSE candidate, the original term becomes
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>\x y -&gt; (\cse1 -&gt; cse1
+<span class="lineno">  103 </span>                  +
+<span class="lineno">  104 </span>                  (case y [ cse1 + (3+x)
+<span class="lineno">  105 </span>                          , (2+x) + (3+x)
+<span class="lineno">  106 </span>                          , 4+x
+<span class="lineno">  107 </span>                          ]
+<span class="lineno">  108 </span>        ) (1+(2+x))
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>The second CSE candidate is processed similarly, and the final result is
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>\x y -&gt; (\cse2 -&gt; (\cse1 -&gt; cse1
+<span class="lineno">  113 </span>                            +
+<span class="lineno">  114 </span>                            (case y [ cse1 + (3+x)
+<span class="lineno">  115 </span>                                    , cse2 + (3+x)
+<span class="lineno">  116 </span>                                    , 4+x
+<span class="lineno">  117 </span>                                    ]
+<span class="lineno">  118 </span>                  ) (1+cse2)
+<span class="lineno">  119 </span>        ) (2+x)
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>Here's another example:
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>force (force ifThenElse
+<span class="lineno">  124 </span>         (lessThanEqualsInteger 0 0)
+<span class="lineno">  125 </span>         (delay ((1+2) + (1+2)))
+<span class="lineno">  126 </span>         (delay (1+2))
+<span class="lineno">  127 </span>      )
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>In this case, the first two occurrences of `1+2` can be CSE'd, but the third occurrence
+<span class="lineno">  130 </span>can not. This is ensured by checking the path when substituting `cse1` for `1+2`. The result is
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>force (force ifThenElse
+<span class="lineno">  133 </span>         (lessThanEqualsInteger 0 0)
+<span class="lineno">  134 </span>         (delay ((\cse1 -&gt; cse1 + cse1) (1+2))
+<span class="lineno">  135 </span>         (delay (1+2))
+<span class="lineno">  136 </span>      )
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>-------------------------------------------------------------------------------
+<span class="lineno">  139 </span>3. When should CSE run?
+<span class="lineno">  140 </span>-------------------------------------------------------------------------------
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span>CSE should run for multiple iterations, and should interleave with inlining. The following
+<span class="lineno">  143 </span>example illustrates why:
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>\x -&gt;
+<span class="lineno">  146 </span>  f
+<span class="lineno">  147 </span>    ((\y -&gt; 1+(y+y)) (0+x))
+<span class="lineno">  148 </span>    ((\z -&gt; 2+(z+z)) (0+x))
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>There is no inlining opportunity in this term. After the first iteration of CSE, where
+<span class="lineno">  151 </span>the common subepxression is `0+x`, we get:
+<span class="lineno">  152 </span>
+<span class="lineno">  153 </span>\x -&gt;
+<span class="lineno">  154 </span>  (\cse1 -&gt;
+<span class="lineno">  155 </span>    f
+<span class="lineno">  156 </span>      ((\y -&gt; 1+(y+y)) cse1)
+<span class="lineno">  157 </span>      ((\z -&gt; 2+(z+z)) cse1)
+<span class="lineno">  158 </span>  ) (0+x)
+<span class="lineno">  159 </span>
+<span class="lineno">  160 </span>Now `y` and `z` can be inlined, after which we get
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>\x -&gt;
+<span class="lineno">  163 </span>  (\cse1 -&gt;
+<span class="lineno">  164 </span>    f
+<span class="lineno">  165 </span>      (1+(cse1+cse1))
+<span class="lineno">  166 </span>      (2+(cse1+cse1))
+<span class="lineno">  167 </span>  ) (0+x)
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>Now there's a new common subexpression: `cse1+cse1`. So another iteration of CSE is
+<span class="lineno">  170 </span>needed, yielding:
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>\x -&gt;
+<span class="lineno">  173 </span>  (\cse1 -&gt;
+<span class="lineno">  174 </span>    (\cse2 -&gt;
+<span class="lineno">  175 </span>      f
+<span class="lineno">  176 </span>        (1+cse2)
+<span class="lineno">  177 </span>        (2+cse2)
+<span class="lineno">  178 </span>    ) (cse1+cse1)
+<span class="lineno">  179 </span>  ) (0+x)
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>With this example in mind, one may be tempted to make CSE part of the simplifier, and simply
+<span class="lineno">  182 </span>run it along with the rest of the simplifier. That is, however, a bad idea. CSE does the reverse
+<span class="lineno">  183 </span>of inlining; inlining tends to expose more optimization opportunities, and conversely, CSE
+<span class="lineno">  184 </span>tends to destroy optimization opportunities. Running CSE on a not-fully-optimized program
+<span class="lineno">  185 </span>may cause many optimization opportunities to be permanently lost. Give it a try if you want
+<span class="lineno">  186 </span>to see how bad it is!
+<span class="lineno">  187 </span>
+<span class="lineno">  188 </span>Therefore, this is what we do: first run the simplifier iterations. Then, run the CSE iterations,
+<span class="lineno">  189 </span>interleaving with the simplifier. For example, suppose max-simplifier-iterations-uplc=12, and
+<span class="lineno">  190 </span>max-cse-iterations=4. We first run 12 iterations of the simplifier, then run 4 iterations
+<span class="lineno">  191 </span>of CSE, with a simplifier pass after each iteration of CSE (i.e., the simplifier is run for a
+<span class="lineno">  192 </span>total of 16 times).
+<span class="lineno">  193 </span>
+<span class="lineno">  194 </span>Finally, since CSE can change the order or the number of occurrences of effects, it is only run
+<span class="lineno">  195 </span>when conservative optimization is off.
+<span class="lineno">  196 </span>-}
+<span class="lineno">  197 </span>
+<span class="lineno">  198 </span>-- | In reverse order, e.g., &quot;1.2.3&quot; is `[3, 2, 1]`.
+<span class="lineno">  199 </span>type Path = [Int]
+<span class="lineno">  200 </span>
+<span class="lineno">  201 </span>isAncestorOrSelf :: Path -&gt; Path -&gt; Bool
+<span class="lineno">  202 </span><span class="decl"><span class="nottickedoff">isAncestorOrSelf = isSuffixOf</span></span>
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span>data CseCandidate uni fun ann = CseCandidate
+<span class="lineno">  205 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ccFreshName</span></span></span>     :: Name
+<span class="lineno">  206 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ccTerm</span></span></span>          :: Term Name uni fun ()
+<span class="lineno">  207 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">ccAnnotatedTerm</span></span></span> :: Term Name uni fun (Path, ann)
+<span class="lineno">  208 </span>  -- ^ `ccTerm` is needed for equality comparison, while `ccAnnotatedTerm` is needed
+<span class="lineno">  209 </span>  -- for the actual substitution. They are always the same term barring the annotations.
+<span class="lineno">  210 </span>  }
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>cse ::
+<span class="lineno">  213 </span>  ( MonadQuote m
+<span class="lineno">  214 </span>  , Hashable (Term Name uni fun ())
+<span class="lineno">  215 </span>  , Rename (Term Name uni fun ann)
+<span class="lineno">  216 </span>  , ToBuiltinMeaning uni fun
+<span class="lineno">  217 </span>  ) =&gt;
+<span class="lineno">  218 </span>  BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">  219 </span>  Term Name uni fun ann -&gt;
+<span class="lineno">  220 </span>  SimplifierT Name uni fun ann m (Term Name uni fun ann)
+<span class="lineno">  221 </span><span class="decl"><span class="nottickedoff">cse builtinSemanticsVariant t0 = do</span>
+<span class="lineno">  222 </span><span class="spaces">  </span><span class="nottickedoff">t &lt;- rename t0</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">let annotated = annotate t</span>
+<span class="lineno">  224 </span><span class="spaces">      </span><span class="nottickedoff">commonSubexprs =</span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="nottickedoff">-- Processed the common subexpressions in descending order of `termSize`.</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="nottickedoff">-- See Note [CSE].</span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="nottickedoff">sortOn (Down . termSize)</span>
+<span class="lineno">  228 </span><span class="spaces">          </span><span class="nottickedoff">. fmap snd3</span>
+<span class="lineno">  229 </span><span class="spaces">          </span><span class="nottickedoff">-- A subexpression is common if the count is greater than 1.</span>
+<span class="lineno">  230 </span><span class="spaces">          </span><span class="nottickedoff">. filter ((&gt; 1) . thd3)</span>
+<span class="lineno">  231 </span><span class="spaces">          </span><span class="nottickedoff">. join</span>
+<span class="lineno">  232 </span><span class="spaces">          </span><span class="nottickedoff">. Map.elems</span>
+<span class="lineno">  233 </span><span class="spaces">          </span><span class="nottickedoff">$ countOccs builtinSemanticsVariant annotated</span>
+<span class="lineno">  234 </span><span class="spaces">  </span><span class="nottickedoff">result &lt;- mkCseTerm commonSubexprs annotated</span>
+<span class="lineno">  235 </span><span class="spaces">  </span><span class="nottickedoff">recordSimplification t0 CSE result</span>
+<span class="lineno">  236 </span><span class="spaces">  </span><span class="nottickedoff">return result</span></span>
+<span class="lineno">  237 </span>
+<span class="lineno">  238 </span>-- | The second pass. See Note [CSE].
+<span class="lineno">  239 </span>annotate :: Term name uni fun ann -&gt; Term name uni fun (Path, ann)
+<span class="lineno">  240 </span><span class="decl"><span class="nottickedoff">annotate = flip evalState 0 . flip runReaderT [] . go</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  242 </span><span class="spaces">    </span><span class="nottickedoff">-- The integer state is the highest ID assigned so far.</span>
+<span class="lineno">  243 </span><span class="spaces">    </span><span class="nottickedoff">-- The reader context is the current path.</span>
+<span class="lineno">  244 </span><span class="spaces">    </span><span class="nottickedoff">go :: Term name uni fun ann -&gt; ReaderT Path (State Int) (Term name uni fun (Path, ann))</span>
+<span class="lineno">  245 </span><span class="spaces">    </span><span class="nottickedoff">go t = do</span>
+<span class="lineno">  246 </span><span class="spaces">      </span><span class="nottickedoff">path &lt;- ask</span>
+<span class="lineno">  247 </span><span class="spaces">      </span><span class="nottickedoff">case t of</span>
+<span class="lineno">  248 </span><span class="spaces">        </span><span class="nottickedoff">Apply ann fun arg -&gt; Apply (path, ann) &lt;$&gt; go fun &lt;*&gt; go arg</span>
+<span class="lineno">  249 </span><span class="spaces">        </span><span class="nottickedoff">Force ann body -&gt; Force (path, ann) &lt;$&gt; go body</span>
+<span class="lineno">  250 </span><span class="spaces">        </span><span class="nottickedoff">Constr ann i args -&gt; Constr (path, ann) i &lt;$&gt; traverse go args</span>
+<span class="lineno">  251 </span><span class="spaces">        </span><span class="nottickedoff">Constant ann val -&gt; pure $ Constant (path, ann) val</span>
+<span class="lineno">  252 </span><span class="spaces">        </span><span class="nottickedoff">Error ann -&gt; pure $ Error (path, ann)</span>
+<span class="lineno">  253 </span><span class="spaces">        </span><span class="nottickedoff">Builtin ann fun -&gt; pure $ Builtin (path, ann) fun</span>
+<span class="lineno">  254 </span><span class="spaces">        </span><span class="nottickedoff">Var ann name -&gt; pure $ Var (path, ann) name</span>
+<span class="lineno">  255 </span><span class="spaces">        </span><span class="nottickedoff">LamAbs ann n body -&gt; do</span>
+<span class="lineno">  256 </span><span class="spaces">          </span><span class="nottickedoff">freshId &lt;- (+ 1) &lt;$&gt; lift get</span>
+<span class="lineno">  257 </span><span class="spaces">          </span><span class="nottickedoff">lift $ put freshId</span>
+<span class="lineno">  258 </span><span class="spaces">          </span><span class="nottickedoff">LamAbs (path, ann) n &lt;$&gt; local (freshId :) (go body)</span>
+<span class="lineno">  259 </span><span class="spaces">        </span><span class="nottickedoff">Delay ann body -&gt; do</span>
+<span class="lineno">  260 </span><span class="spaces">          </span><span class="nottickedoff">freshId &lt;- (+ 1) &lt;$&gt; lift get</span>
+<span class="lineno">  261 </span><span class="spaces">          </span><span class="nottickedoff">lift $ put freshId</span>
+<span class="lineno">  262 </span><span class="spaces">          </span><span class="nottickedoff">Delay (path, ann) &lt;$&gt; local (freshId :) (go body)</span>
+<span class="lineno">  263 </span><span class="spaces">        </span><span class="nottickedoff">Case ann scrut branches -&gt;</span>
+<span class="lineno">  264 </span><span class="spaces">          </span><span class="nottickedoff">Case (path, ann)</span>
+<span class="lineno">  265 </span><span class="spaces">            </span><span class="nottickedoff">&lt;$&gt; go scrut</span>
+<span class="lineno">  266 </span><span class="spaces">            </span><span class="nottickedoff">&lt;*&gt; ( for branches $ \br -&gt; do</span>
+<span class="lineno">  267 </span><span class="spaces">                    </span><span class="nottickedoff">freshId &lt;- (+ 1) &lt;$&gt; lift get</span>
+<span class="lineno">  268 </span><span class="spaces">                    </span><span class="nottickedoff">lift $ put freshId</span>
+<span class="lineno">  269 </span><span class="spaces">                    </span><span class="nottickedoff">local (freshId :) (go br)</span>
+<span class="lineno">  270 </span><span class="spaces">                </span><span class="nottickedoff">)</span></span>
+<span class="lineno">  271 </span>
+<span class="lineno">  272 </span>-- | The third pass. See Note [CSE].
+<span class="lineno">  273 </span>countOccs ::
+<span class="lineno">  274 </span>  forall name uni fun ann.
+<span class="lineno">  275 </span>  (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =&gt;
+<span class="lineno">  276 </span>  BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">  277 </span>  Term name uni fun (Path, ann) -&gt;
+<span class="lineno">  278 </span>  -- | Here, the value of the inner map not only contains the count, but also contains
+<span class="lineno">  279 </span>  -- the annotated term, corresponding to the term that is the key of the outer map.
+<span class="lineno">  280 </span>  -- The annotated terms need to be recorded since they will be used for substitution.
+<span class="lineno">  281 </span>  HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+<span class="lineno">  282 </span><span class="decl"><span class="nottickedoff">countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty</span>
+<span class="lineno">  283 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="nottickedoff">addToMap ::</span>
+<span class="lineno">  285 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun (Path, ann) -&gt;</span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="nottickedoff">HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)] -&gt;</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="nottickedoff">HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]</span>
+<span class="lineno">  288 </span><span class="spaces">    </span><span class="nottickedoff">addToMap t0</span>
+<span class="lineno">  289 </span><span class="spaces">      </span><span class="nottickedoff">-- We don't consider work-free terms for CSE, because doing so may or may not</span>
+<span class="lineno">  290 </span><span class="spaces">      </span><span class="nottickedoff">-- have a size benefit, but certainly doesn't have any cost benefit (the cost</span>
+<span class="lineno">  291 </span><span class="spaces">      </span><span class="nottickedoff">-- will in fact be slightly higher due to the additional application).</span>
+<span class="lineno">  292 </span><span class="spaces">      </span><span class="nottickedoff">| isWorkFree builtinSemanticsVariant t0</span>
+<span class="lineno">  293 </span><span class="spaces">        </span><span class="nottickedoff">|| not (isBuiltinSaturated t0)</span>
+<span class="lineno">  294 </span><span class="spaces">        </span><span class="nottickedoff">|| isForcingBuiltin t0 =</span>
+<span class="lineno">  295 </span><span class="spaces">          </span><span class="nottickedoff">id</span>
+<span class="lineno">  296 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise =</span>
+<span class="lineno">  297 </span><span class="spaces">          </span><span class="nottickedoff">Map.alter</span>
+<span class="lineno">  298 </span><span class="spaces">            </span><span class="nottickedoff">( \case</span>
+<span class="lineno">  299 </span><span class="spaces">                </span><span class="nottickedoff">Nothing -&gt; Just [(path, t0, 1)]</span>
+<span class="lineno">  300 </span><span class="spaces">                </span><span class="nottickedoff">Just paths -&gt; Just $ combinePaths t0 path paths</span>
+<span class="lineno">  301 </span><span class="spaces">            </span><span class="nottickedoff">)</span>
+<span class="lineno">  302 </span><span class="spaces">            </span><span class="nottickedoff">t</span>
+<span class="lineno">  303 </span><span class="spaces">      </span><span class="nottickedoff">where</span>
+<span class="lineno">  304 </span><span class="spaces">        </span><span class="nottickedoff">t = void t0</span>
+<span class="lineno">  305 </span><span class="spaces">        </span><span class="nottickedoff">path = fst (termAnn t0)</span>
+<span class="lineno">  306 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  307 </span><span class="spaces">    </span><span class="nottickedoff">isBuiltinSaturated =</span>
+<span class="lineno">  308 </span><span class="spaces">      </span><span class="nottickedoff">splitApplication &gt;&gt;&gt; \case</span>
+<span class="lineno">  309 </span><span class="spaces">        </span><span class="nottickedoff">(Builtin _ fun, args) -&gt;</span>
+<span class="lineno">  310 </span><span class="spaces">          </span><span class="nottickedoff">length args &gt;= length (builtinArity (Proxy @uni) builtinSemanticsVariant fun)</span>
+<span class="lineno">  311 </span><span class="spaces">        </span><span class="nottickedoff">_term -&gt; True</span>
+<span class="lineno">  312 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  313 </span><span class="spaces">    </span><span class="nottickedoff">isForcingBuiltin = \case</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="nottickedoff">Builtin{} -&gt; True</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="nottickedoff">Force _ t -&gt; isForcingBuiltin t</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; False</span></span>
+<span class="lineno">  317 </span>
+<span class="lineno">  318 </span>-- | Combine a new path with a number of existing (path, count) pairs.
+<span class="lineno">  319 </span>combinePaths ::
+<span class="lineno">  320 </span>  forall name uni fun ann.
+<span class="lineno">  321 </span>  Term name uni fun (Path, ann) -&gt;
+<span class="lineno">  322 </span>  Path -&gt;
+<span class="lineno">  323 </span>  [(Path, Term name uni fun (Path, ann), Int)] -&gt;
+<span class="lineno">  324 </span>  [(Path, Term name uni fun (Path, ann), Int)]
+<span class="lineno">  325 </span><span class="decl"><span class="nottickedoff">combinePaths t path = go 1</span>
+<span class="lineno">  326 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="nottickedoff">go ::</span>
+<span class="lineno">  328 </span><span class="spaces">      </span><span class="nottickedoff">Int -&gt;</span>
+<span class="lineno">  329 </span><span class="spaces">      </span><span class="nottickedoff">[(Path, Term name uni fun (Path, ann), Int)] -&gt;</span>
+<span class="lineno">  330 </span><span class="spaces">      </span><span class="nottickedoff">[(Path, Term name uni fun (Path, ann), Int)]</span>
+<span class="lineno">  331 </span><span class="spaces">    </span><span class="nottickedoff">-- The new path is not a descendent-or-self of any existing path.</span>
+<span class="lineno">  332 </span><span class="spaces">    </span><span class="nottickedoff">go acc [] = [(path, t, acc)]</span>
+<span class="lineno">  333 </span><span class="spaces">    </span><span class="nottickedoff">go acc ((path', t', cnt) : paths)</span>
+<span class="lineno">  334 </span><span class="spaces">      </span><span class="nottickedoff">-- The new path is an ancestor-or-self of an existing path.</span>
+<span class="lineno">  335 </span><span class="spaces">      </span><span class="nottickedoff">-- Take over all counts of the existing path, remove the existing path,</span>
+<span class="lineno">  336 </span><span class="spaces">      </span><span class="nottickedoff">-- and continue.</span>
+<span class="lineno">  337 </span><span class="spaces">      </span><span class="nottickedoff">| path `isAncestorOrSelf` path' = go (acc + cnt) paths</span>
+<span class="lineno">  338 </span><span class="spaces">      </span><span class="nottickedoff">-- The new path is a descendent-or-self of an existing path.</span>
+<span class="lineno">  339 </span><span class="spaces">      </span><span class="nottickedoff">-- Increment the count for the existing path. There can only be one such</span>
+<span class="lineno">  340 </span><span class="spaces">      </span><span class="nottickedoff">-- existing path, so we don't need to recurse here.</span>
+<span class="lineno">  341 </span><span class="spaces">      </span><span class="nottickedoff">| path' `isAncestorOrSelf` path = (path', t', cnt + 1) : paths</span>
+<span class="lineno">  342 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise = (path', t', cnt) : go acc paths</span></span>
+<span class="lineno">  343 </span>
+<span class="lineno">  344 </span>mkCseTerm ::
+<span class="lineno">  345 </span>  forall uni fun ann m.
+<span class="lineno">  346 </span>  (MonadQuote m, Eq (Term Name uni fun ())) =&gt;
+<span class="lineno">  347 </span>  [Term Name uni fun (Path, ann)] -&gt;
+<span class="lineno">  348 </span>  -- | The original annotated term
+<span class="lineno">  349 </span>  Term Name uni fun (Path, ann) -&gt;
+<span class="lineno">  350 </span>  m (Term Name uni fun ann)
+<span class="lineno">  351 </span><span class="decl"><span class="nottickedoff">mkCseTerm ts t = do</span>
+<span class="lineno">  352 </span><span class="spaces">  </span><span class="nottickedoff">cs &lt;- traverse mkCseCandidate ts</span>
+<span class="lineno">  353 </span><span class="spaces">  </span><span class="nottickedoff">pure . fmap snd $ Foldable.foldl' (flip applyCse) t cs</span></span>
+<span class="lineno">  354 </span>
+<span class="lineno">  355 </span>applyCse ::
+<span class="lineno">  356 </span>  forall uni fun ann.
+<span class="lineno">  357 </span>  (Eq (Term Name uni fun ())) =&gt;
+<span class="lineno">  358 </span>  CseCandidate uni fun ann -&gt;
+<span class="lineno">  359 </span>  Term Name uni fun (Path, ann) -&gt;
+<span class="lineno">  360 </span>  Term Name uni fun (Path, ann)
+<span class="lineno">  361 </span><span class="decl"><span class="nottickedoff">applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm</span>
+<span class="lineno">  362 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  363 </span><span class="spaces">    </span><span class="nottickedoff">candidatePath = fst (termAnn (ccAnnotatedTerm c))</span>
+<span class="lineno">  364 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  365 </span><span class="spaces">    </span><span class="nottickedoff">substCseVarForTerm :: Term Name uni fun (Path, ann) -&gt; Term Name uni fun (Path, ann)</span>
+<span class="lineno">  366 </span><span class="spaces">    </span><span class="nottickedoff">substCseVarForTerm t =</span>
+<span class="lineno">  367 </span><span class="spaces">      </span><span class="nottickedoff">if currTerm == ccTerm c &amp;&amp; candidatePath `isAncestorOrSelf` currPath</span>
+<span class="lineno">  368 </span><span class="spaces">        </span><span class="nottickedoff">then Var (termAnn t) (ccFreshName c)</span>
+<span class="lineno">  369 </span><span class="spaces">        </span><span class="nottickedoff">else t</span>
+<span class="lineno">  370 </span><span class="spaces">      </span><span class="nottickedoff">where</span>
+<span class="lineno">  371 </span><span class="spaces">        </span><span class="nottickedoff">currTerm = void t</span>
+<span class="lineno">  372 </span><span class="spaces">        </span><span class="nottickedoff">currPath = fst (termAnn t)</span>
+<span class="lineno">  373 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  374 </span><span class="spaces">    </span><span class="nottickedoff">mkLamApp :: Term Name uni fun (Path, ann) -&gt; Term Name uni fun (Path, ann)</span>
+<span class="lineno">  375 </span><span class="spaces">    </span><span class="nottickedoff">mkLamApp t</span>
+<span class="lineno">  376 </span><span class="spaces">      </span><span class="nottickedoff">| currPath == candidatePath =</span>
+<span class="lineno">  377 </span><span class="spaces">          </span><span class="nottickedoff">Apply</span>
+<span class="lineno">  378 </span><span class="spaces">            </span><span class="nottickedoff">(termAnn t)</span>
+<span class="lineno">  379 </span><span class="spaces">            </span><span class="nottickedoff">(LamAbs (termAnn t) (ccFreshName c) t)</span>
+<span class="lineno">  380 </span><span class="spaces">            </span><span class="nottickedoff">(ccAnnotatedTerm c)</span>
+<span class="lineno">  381 </span><span class="spaces">      </span><span class="nottickedoff">| currPath `isAncestorOrSelf` candidatePath = case t of</span>
+<span class="lineno">  382 </span><span class="spaces">          </span><span class="nottickedoff">Var ann name            -&gt; Var ann name</span>
+<span class="lineno">  383 </span><span class="spaces">          </span><span class="nottickedoff">LamAbs ann name body    -&gt; LamAbs ann name (mkLamApp body)</span>
+<span class="lineno">  384 </span><span class="spaces">          </span><span class="nottickedoff">Apply ann fun arg       -&gt; Apply ann (mkLamApp fun) (mkLamApp arg)</span>
+<span class="lineno">  385 </span><span class="spaces">          </span><span class="nottickedoff">Force ann body          -&gt; Force ann (mkLamApp body)</span>
+<span class="lineno">  386 </span><span class="spaces">          </span><span class="nottickedoff">Delay ann body          -&gt; Delay ann (mkLamApp body)</span>
+<span class="lineno">  387 </span><span class="spaces">          </span><span class="nottickedoff">Constant ann val        -&gt; Constant ann val</span>
+<span class="lineno">  388 </span><span class="spaces">          </span><span class="nottickedoff">Builtin ann fun         -&gt; Builtin ann fun</span>
+<span class="lineno">  389 </span><span class="spaces">          </span><span class="nottickedoff">Error ann               -&gt; Error ann</span>
+<span class="lineno">  390 </span><span class="spaces">          </span><span class="nottickedoff">Constr ann i ts         -&gt; Constr ann i (mkLamApp &lt;$&gt; ts)</span>
+<span class="lineno">  391 </span><span class="spaces">          </span><span class="nottickedoff">Case ann scrut branches -&gt; Case ann (mkLamApp scrut) (mkLamApp &lt;$&gt; branches)</span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise = t</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="nottickedoff">where</span>
+<span class="lineno">  394 </span><span class="spaces">        </span><span class="nottickedoff">currPath = fst (termAnn t)</span></span>
+<span class="lineno">  395 </span>
+<span class="lineno">  396 </span>-- | Generate a fresh variable for the common subexpression.
+<span class="lineno">  397 </span>mkCseCandidate ::
+<span class="lineno">  398 </span>  forall uni fun ann m.
+<span class="lineno">  399 </span>  (MonadQuote m) =&gt;
+<span class="lineno">  400 </span>  Term Name uni fun (Path, ann) -&gt;
+<span class="lineno">  401 </span>  m (CseCandidate uni fun ann)
+<span class="lineno">  402 </span><span class="decl"><span class="nottickedoff">mkCseCandidate t = CseCandidate &lt;$&gt; freshName &quot;cse&quot; &lt;*&gt; pure (void t) &lt;*&gt; pure t</span></span>
+
+</pre>
+</body>
+</html>

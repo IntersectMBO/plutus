@@ -1,0 +1,202 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RecursiveDo       #-}
+<span class="lineno">    3 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>-- | Common functions for parsers of UPLC, PLC, and PIR.
+<span class="lineno">    6 </span>module PlutusCore.Parser.ParserCommon where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Control.Monad (when)
+<span class="lineno">    9 </span>import Control.Monad.Except (MonadError)
+<span class="lineno">   10 </span>import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
+<span class="lineno">   11 </span>import Control.Monad.State (StateT, evalStateT)
+<span class="lineno">   12 </span>import Data.Map qualified as M
+<span class="lineno">   13 </span>import Data.Text (Text)
+<span class="lineno">   14 </span>import Text.Megaparsec hiding (ParseError, State, parse, some)
+<span class="lineno">   15 </span>import Text.Megaparsec.Char (char, space1)
+<span class="lineno">   16 </span>import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import Control.Monad.State.Class (MonadState, get, put)
+<span class="lineno">   19 </span>import PlutusCore.Annotation
+<span class="lineno">   20 </span>import PlutusCore.Core.Type
+<span class="lineno">   21 </span>import PlutusCore.Error
+<span class="lineno">   22 </span>import PlutusCore.Name.Unique (Name (..), Unique (..), isIdentifierChar, isIdentifierStartingChar,
+<span class="lineno">   23 </span>                               isQuotedIdentifierChar)
+<span class="lineno">   24 </span>import PlutusCore.Quote
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>{- Note [Whitespace invariant]
+<span class="lineno">   27 </span>Every top-level 'Parser' must consume all whitespace after the thing that it parses, hence make
+<span class="lineno">   28 </span>sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'takeWhileP',
+<span class="lineno">   29 </span>'manyTill', 'Lex.decimal' etc) in a call to 'lexeme'.
+<span class="lineno">   30 </span>-}
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>newtype ParserState = ParserState {<span class="istickedoff"><span class="decl"><span class="istickedoff">identifiers</span></span></span> :: M.Map Text Unique}
+<span class="lineno">   33 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>type Parser =
+<span class="lineno">   36 </span>  ParsecT ParserError Text (StateT ParserState (ReaderT (Maybe Version) Quote))
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>instance <span class="decl"><span class="istickedoff">(Stream s, MonadQuote m) =&gt; MonadQuote (ParsecT e s m)</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>initial :: ParserState
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">initial = ParserState M.empty</span></span>
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>-- | Get the version of the program being parsed, if we know it.
+<span class="lineno">   44 </span>getVersion :: Parser (Maybe Version)
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">getVersion = ask</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>-- | Set the version of the program being parsed.
+<span class="lineno">   48 </span>withVersion :: Version -&gt; Parser a -&gt; Parser a
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">withVersion v = local (const $ Just v)</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>{- | Run an action conditionally based on a predicate on the version.
+<span class="lineno">   52 </span>If we don't know the version then the predicate is assumed to be
+<span class="lineno">   53 </span>false, i.e. we act if we _know_ the predicate is satisfied.
+<span class="lineno">   54 </span>-}
+<span class="lineno">   55 </span>whenVersion :: (Version -&gt; Bool) -&gt; Parser () -&gt; Parser ()
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">whenVersion p act = do</span>
+<span class="lineno">   57 </span><span class="spaces">  </span><span class="istickedoff">mv &lt;- getVersion</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">case mv of</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">Nothing -&gt; pure <span class="nottickedoff">()</span></span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">Just v  -&gt; when (p v) <span class="nottickedoff">act</span></span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>parse
+<span class="lineno">   63 </span>  :: (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+<span class="lineno">   64 </span>  =&gt; Parser a
+<span class="lineno">   65 </span>  -&gt; String
+<span class="lineno">   66 </span>  -&gt; Text
+<span class="lineno">   67 </span>  -&gt; m a
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">parse p file str = do</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">throwingEither <span class="nottickedoff">_ParserErrorBundle</span> =&lt;&lt; liftQuote res</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>toErrorB :: Either (ParseErrorBundle Text ParserError) a -&gt; Either ParserErrorBundle a
+<span class="lineno">   73 </span><span class="decl"><span class="istickedoff">toErrorB (Left err) = <span class="nottickedoff">Left $ ParseErrorB err</span></span>
+<span class="lineno">   74 </span><span class="spaces"></span><span class="istickedoff">toErrorB (Right a)  = Right a</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>-- | Generic parser function in which the file path is just &quot;test&quot;.
+<span class="lineno">   77 </span>parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =&gt; Parser a -&gt; Text -&gt; m a
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">parseGen stuff = parse stuff <span class="nottickedoff">&quot;test&quot;</span></span></span>
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>-- | Space consumer.
+<span class="lineno">   81 </span>whitespace :: Parser ()
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">whitespace = Lex.space space1 (Lex.skipLineComment &quot;--&quot;) (Lex.skipBlockCommentNested &quot;{-&quot; &quot;-}&quot;)</span></span>
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>leadingWhitespace :: Parser a -&gt; Parser a
+<span class="lineno">   85 </span><span class="decl"><span class="istickedoff">leadingWhitespace = (whitespace *&gt;)</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>trailingWhitespace :: Parser a -&gt; Parser a
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">trailingWhitespace = (&lt;* whitespace)</span></span>
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>{- | Returns a parser for @a@ by calling the supplied function on the starting
+<span class="lineno">   91 </span>and ending positions of @a@.
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>The supplied function should usually return a parser that does /not/ consume trailing
+<span class="lineno">   94 </span>whitespaces. Otherwise, the end position will be the first character after the
+<span class="lineno">   95 </span>trailing whitespaces.
+<span class="lineno">   96 </span>-}
+<span class="lineno">   97 </span>withSpan' :: (SrcSpan -&gt; Parser a) -&gt; Parser a
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">withSpan' f = mdo</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">start &lt;- getSourcePos</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">res &lt;- f sp</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">end &lt;- getSourcePos</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">let sp = toSrcSpan start end</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">pure res</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>{- | Like `withSpan'`, but the result parser consumes whitespaces.
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>@withSpan = (&lt;* whitespace) . withSpan'
+<span class="lineno">  108 </span>-}
+<span class="lineno">  109 </span>withSpan :: (SrcSpan -&gt; Parser a) -&gt; Parser a
+<span class="lineno">  110 </span><span class="decl"><span class="istickedoff">withSpan = (&lt;* whitespace) . withSpan'</span></span>
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>lexeme :: Parser a -&gt; Parser a
+<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">lexeme = Lex.lexeme whitespace</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>symbol :: Text -&gt; Parser Text
+<span class="lineno">  116 </span><span class="decl"><span class="istickedoff">symbol = Lex.symbol whitespace</span></span>
+<span class="lineno">  117 </span>
+<span class="lineno">  118 </span>inParens :: Parser a -&gt; Parser a
+<span class="lineno">  119 </span><span class="decl"><span class="istickedoff">inParens = between (symbol &quot;(&quot;) (char ')')</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>inBrackets :: Parser a -&gt; Parser a
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff">inBrackets = between (symbol &quot;[&quot;) (char ']')</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>inBraces :: Parser a -&gt; Parser a
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">inBraces = between (symbol &quot;{&quot;) (char '}')</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>toSrcSpan :: SourcePos -&gt; SourcePos -&gt; SrcSpan
+<span class="lineno">  128 </span><span class="decl"><span class="istickedoff">toSrcSpan start end =</span>
+<span class="lineno">  129 </span><span class="spaces">  </span><span class="istickedoff">SrcSpan</span>
+<span class="lineno">  130 </span><span class="spaces">    </span><span class="istickedoff">{ srcSpanFile = sourceName start</span>
+<span class="lineno">  131 </span><span class="spaces">    </span><span class="istickedoff">, srcSpanSLine = unPos (sourceLine start)</span>
+<span class="lineno">  132 </span><span class="spaces">    </span><span class="istickedoff">, srcSpanSCol = unPos (sourceColumn start)</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">, srcSpanELine = unPos (sourceLine end)</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">, srcSpanECol = unPos (sourceColumn end)</span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>version :: Parser Version
+<span class="lineno">  138 </span><span class="decl"><span class="istickedoff">version = trailingWhitespace $ do</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">x &lt;- Lex.decimal</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="istickedoff">_ &lt;- char '.'</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="istickedoff">y &lt;- Lex.decimal</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">_ &lt;- char '.'</span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">Version x y &lt;$&gt; Lex.decimal</span></span>
+<span class="lineno">  144 </span>
+<span class="lineno">  145 </span>-- | Parses a `Name`. Does not consume leading or trailing whitespaces.
+<span class="lineno">  146 </span>name :: Parser Name
+<span class="lineno">  147 </span><span class="decl"><span class="istickedoff">name = try $ parseUnquoted &lt;|&gt; parseQuoted</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  149 </span><span class="spaces">    </span><span class="istickedoff">parseUnquoted :: Parser Name</span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">parseUnquoted = do</span>
+<span class="lineno">  151 </span><span class="spaces">      </span><span class="istickedoff">_ &lt;- lookAhead (satisfy isIdentifierStartingChar)</span>
+<span class="lineno">  152 </span><span class="spaces">      </span><span class="istickedoff">str &lt;- takeWhileP <span class="nottickedoff">(Just &quot;identifier-unquoted&quot;)</span> isIdentifierChar</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="istickedoff">Name str &lt;$&gt; uniqueSuffix str</span>
+<span class="lineno">  154 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  155 </span><span class="spaces">    </span><span class="istickedoff">parseQuoted :: Parser Name</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff">parseQuoted = do</span>
+<span class="lineno">  157 </span><span class="spaces">      </span><span class="istickedoff">_ &lt;- char '`'</span>
+<span class="lineno">  158 </span><span class="spaces">      </span><span class="istickedoff">_ &lt;- lookAhead (satisfy isQuotedIdentifierChar)</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="istickedoff">str &lt;- takeWhileP <span class="nottickedoff">(Just &quot;identifier-quoted&quot;)</span> isQuotedIdentifierChar</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="istickedoff">_ &lt;- char '`'</span>
+<span class="lineno">  161 </span><span class="spaces">      </span><span class="istickedoff">Name str &lt;$&gt; uniqueSuffix <span class="nottickedoff">str</span></span>
+<span class="lineno">  162 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="istickedoff">-- Tries to parse a `Unique` value.</span>
+<span class="lineno">  164 </span><span class="spaces">    </span><span class="istickedoff">-- If it fails then looks up the `Unique` value for the given name.</span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="istickedoff">-- If lookup fails too then generates a fresh `Unique` value.</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="istickedoff">uniqueSuffix :: Text -&gt; Parser Unique</span>
+<span class="lineno">  167 </span><span class="spaces">    </span><span class="istickedoff">uniqueSuffix nameStr = try (Unique &lt;$&gt; (char '-' *&gt; Lex.decimal)) &lt;|&gt; uniqueForName nameStr</span>
+<span class="lineno">  168 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  169 </span><span class="spaces">    </span><span class="istickedoff">-- Return the unique identifier of a name.</span>
+<span class="lineno">  170 </span><span class="spaces">    </span><span class="istickedoff">-- If it's not in the current parser state, map the name to a fresh id and add it to the state.</span>
+<span class="lineno">  171 </span><span class="spaces">    </span><span class="istickedoff">uniqueForName :: (MonadState ParserState m, MonadQuote m) =&gt; Text -&gt; m Unique</span>
+<span class="lineno">  172 </span><span class="spaces">    </span><span class="istickedoff">uniqueForName nameStr = do</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="istickedoff">parserState &lt;- get</span>
+<span class="lineno">  174 </span><span class="spaces">      </span><span class="istickedoff">case M.lookup nameStr (identifiers parserState) of</span>
+<span class="lineno">  175 </span><span class="spaces">        </span><span class="istickedoff">Just u -&gt; pure u</span>
+<span class="lineno">  176 </span><span class="spaces">        </span><span class="istickedoff">Nothing -&gt; do</span>
+<span class="lineno">  177 </span><span class="spaces">          </span><span class="istickedoff">fresh &lt;- freshUnique</span>
+<span class="lineno">  178 </span><span class="spaces">          </span><span class="istickedoff">put $ ParserState $ M.insert nameStr fresh $ identifiers parserState</span>
+<span class="lineno">  179 </span><span class="spaces">          </span><span class="istickedoff">pure fresh</span></span>
+
+</pre>
+</body>
+</html>

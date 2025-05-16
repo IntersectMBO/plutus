@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass        #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances     #-}
+<span class="lineno">    3 </span>{-# LANGUAGE LambdaCase            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    5 </span>{-# LANGUAGE OverloadedStrings     #-}
+<span class="lineno">    6 </span>{-# LANGUAGE TypeFamilies          #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeOperators         #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>module PlutusCore.Evaluation.ErrorWithCause
+<span class="lineno">   10 </span>    ( ErrorWithCause (..)
+<span class="lineno">   11 </span>    , throwingWithCause
+<span class="lineno">   12 </span>    , throwingWithCause_
+<span class="lineno">   13 </span>    , throwBuiltinErrorWithCause
+<span class="lineno">   14 </span>    ) where
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>import PlutusPrelude
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   19 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   20 </span>import PlutusCore.Pretty
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Control.Lens
+<span class="lineno">   23 </span>import Control.Monad.Except
+<span class="lineno">   24 </span>import Prettyprinter
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>-- | An error and (optionally) what caused it.
+<span class="lineno">   27 </span>data ErrorWithCause err cause = ErrorWithCause
+<span class="lineno">   28 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_ewcError</span></span></span> :: !err
+<span class="lineno">   29 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_ewcCause</span></span></span> :: !(Maybe cause)
+<span class="lineno">   30 </span>    } deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Traversable</span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">   31 </span>      deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bifunctor ErrorWithCause</span></span></span></span> where
+<span class="lineno">   34 </span>    <span class="decl"><span class="nottickedoff">bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g &lt;$&gt; cause)</span></span>
+<span class="lineno">   35 </span>    {-# INLINE bimap #-}
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>instance AsEvaluationFailure err =&gt; AsEvaluationFailure (ErrorWithCause err cause) where
+<span class="lineno">   38 </span>    <span class="decl"><span class="nottickedoff">_EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure</span></span>
+<span class="lineno">   39 </span>    {-# INLINE _EvaluationFailure #-}
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>instance <span class="decl"><span class="nottickedoff">(Pretty err, Pretty cause) =&gt; Pretty (ErrorWithCause err cause)</span></span> where
+<span class="lineno">   42 </span>    <span class="decl"><span class="nottickedoff">pretty (ErrorWithCause e c) = pretty e &lt;+&gt; &quot;caused by:&quot; &lt;+&gt; pretty c</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>instance <span class="decl"><span class="nottickedoff">(PrettyBy config cause, PrettyBy config err) =&gt;</span>
+<span class="lineno">   45 </span><span class="spaces">            </span><span class="nottickedoff">PrettyBy config (ErrorWithCause err cause)</span></span> where
+<span class="lineno">   46 </span>    <span class="decl"><span class="nottickedoff">prettyBy config (ErrorWithCause err mayCause) = fold</span>
+<span class="lineno">   47 </span><span class="spaces">        </span><span class="nottickedoff">[ &quot;An error has occurred:&quot;</span>
+<span class="lineno">   48 </span><span class="spaces">        </span><span class="nottickedoff">, hardline</span>
+<span class="lineno">   49 </span><span class="spaces">        </span><span class="nottickedoff">, prettyBy config err</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">, case mayCause of</span>
+<span class="lineno">   51 </span><span class="spaces">            </span><span class="nottickedoff">Nothing    -&gt; mempty</span>
+<span class="lineno">   52 </span><span class="spaces">            </span><span class="nottickedoff">Just cause -&gt; hardline &lt;&gt; &quot;Caused by:&quot; &lt;+&gt; prettyBy config cause</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">]</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(PrettyPlc cause, PrettyPlc err) =&gt;</span>
+<span class="lineno">   56 </span><span class="spaces">            </span><span class="nottickedoff">Show (ErrorWithCause err cause)</span></span></span></span> where
+<span class="lineno">   57 </span>    <span class="decl"><span class="nottickedoff">show = render . prettyPlcReadable</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">deriving anyclass instance (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) =&gt;</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="nottickedoff">Exception (ErrorWithCause err cause)</span></span></span></span></span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>-- | &quot;Prismatically&quot; throw an error and its (optional) cause.
+<span class="lineno">   63 </span>throwingWithCause
+<span class="lineno">   64 </span>    -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
+<span class="lineno">   65 </span>    :: forall exc e t term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
+<span class="lineno">   66 </span>    =&gt; AReview e t -&gt; t -&gt; Maybe term -&gt; m x
+<span class="lineno">   67 </span><span class="decl"><span class="istickedoff">throwingWithCause l t cause = reviews <span class="nottickedoff">l</span> (\e -&gt; throwError $ <span class="nottickedoff">ErrorWithCause e cause</span>) <span class="nottickedoff">t</span></span></span>
+<span class="lineno">   68 </span>{-# INLINE throwingWithCause #-}
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>-- | &quot;Prismatically&quot; throw a contentless error and its (optional) cause. 'throwingWithCause_' is to
+<span class="lineno">   71 </span>-- 'throwingWithCause' as 'throwing_' is to 'throwing'.
+<span class="lineno">   72 </span>throwingWithCause_
+<span class="lineno">   73 </span>    -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
+<span class="lineno">   74 </span>    :: forall exc e term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
+<span class="lineno">   75 </span>    =&gt; AReview e () -&gt; Maybe term -&gt; m x
+<span class="lineno">   76 </span><span class="decl"><span class="istickedoff">throwingWithCause_ l = throwingWithCause <span class="nottickedoff">l</span> <span class="nottickedoff">()</span></span></span>
+<span class="lineno">   77 </span>{-# INLINE throwingWithCause_ #-}
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>-- | Attach a @cause@ to a 'BuiltinError' and throw that.
+<span class="lineno">   80 </span>-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+<span class="lineno">   81 </span>-- happy path, hence this function must not force its first argument.
+<span class="lineno">   82 </span>-- TODO: wrap @cause@ in 'Lazy' once we have it.
+<span class="lineno">   83 </span>throwBuiltinErrorWithCause
+<span class="lineno">   84 </span>    :: ( MonadError (ErrorWithCause err cause) m
+<span class="lineno">   85 </span>       , AsUnliftingEvaluationError err, AsEvaluationFailure err
+<span class="lineno">   86 </span>       )
+<span class="lineno">   87 </span>    =&gt; cause -&gt; BuiltinError -&gt; m void
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">throwBuiltinErrorWithCause cause = \case</span>
+<span class="lineno">   89 </span><span class="spaces">    </span><span class="istickedoff">BuiltinUnliftingEvaluationError unlErr -&gt;</span>
+<span class="lineno">   90 </span><span class="spaces">        </span><span class="istickedoff">throwingWithCause <span class="nottickedoff">_UnliftingEvaluationError</span> <span class="nottickedoff">unlErr</span> $ <span class="nottickedoff">Just cause</span></span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">BuiltinEvaluationFailure -&gt;</span>
+<span class="lineno">   92 </span><span class="spaces">        </span><span class="istickedoff">throwingWithCause_ <span class="nottickedoff">_EvaluationFailure</span> $ <span class="nottickedoff">Just cause</span></span></span>
+<span class="lineno">   93 </span>{-# INLINE throwBuiltinErrorWithCause #-}
+
+</pre>
+</body>
+</html>

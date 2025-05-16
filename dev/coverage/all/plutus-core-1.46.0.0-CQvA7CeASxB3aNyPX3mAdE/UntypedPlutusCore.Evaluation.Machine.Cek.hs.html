@@ -1,0 +1,137 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- | The API to the CEK machine.
+<span class="lineno">    2 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module UntypedPlutusCore.Evaluation.Machine.Cek
+<span class="lineno">    5 </span>    (
+<span class="lineno">    6 </span>    -- * Running the machine
+<span class="lineno">    7 </span>    runCek
+<span class="lineno">    8 </span>    , runCekDeBruijn
+<span class="lineno">    9 </span>    , runCekNoEmit
+<span class="lineno">   10 </span>    , evaluateCek
+<span class="lineno">   11 </span>    , evaluateCekNoEmit
+<span class="lineno">   12 </span>    , EvaluationResult(..)
+<span class="lineno">   13 </span>    , splitStructuralOperational
+<span class="lineno">   14 </span>    , unsafeSplitStructuralOperational
+<span class="lineno">   15 </span>    -- * Errors
+<span class="lineno">   16 </span>    , CekUserError(..)
+<span class="lineno">   17 </span>    , ErrorWithCause(..)
+<span class="lineno">   18 </span>    , CekEvaluationException
+<span class="lineno">   19 </span>    , EvaluationError(..)
+<span class="lineno">   20 </span>    -- * Costing
+<span class="lineno">   21 </span>    , ExBudgetCategory(..)
+<span class="lineno">   22 </span>    , CekBudgetSpender(..)
+<span class="lineno">   23 </span>    , ExBudgetMode(..)
+<span class="lineno">   24 </span>    , StepKind(..)
+<span class="lineno">   25 </span>    , CekExTally(..)
+<span class="lineno">   26 </span>    , CountingSt (..)
+<span class="lineno">   27 </span>    , TallyingSt (..)
+<span class="lineno">   28 </span>    , RestrictingSt (..)
+<span class="lineno">   29 </span>    , CekMachineCosts
+<span class="lineno">   30 </span>    -- ** Costing modes
+<span class="lineno">   31 </span>    , monoidalBudgeting
+<span class="lineno">   32 </span>    , counting
+<span class="lineno">   33 </span>    , tallying
+<span class="lineno">   34 </span>    , restricting
+<span class="lineno">   35 </span>    , restrictingLarge
+<span class="lineno">   36 </span>    , restrictingEnormous
+<span class="lineno">   37 </span>    , enormousBudget
+<span class="lineno">   38 </span>    -- * Emitter modes
+<span class="lineno">   39 </span>    , noEmitter
+<span class="lineno">   40 </span>    , logEmitter
+<span class="lineno">   41 </span>    , logWithTimeEmitter
+<span class="lineno">   42 </span>    , logWithBudgetEmitter
+<span class="lineno">   43 </span>    -- * Misc
+<span class="lineno">   44 </span>    , BuiltinsRuntime (..)
+<span class="lineno">   45 </span>    , CekValue (..)
+<span class="lineno">   46 </span>    , readKnownCek
+<span class="lineno">   47 </span>    , Hashable
+<span class="lineno">   48 </span>    , ThrowableBuiltins
+<span class="lineno">   49 </span>    )
+<span class="lineno">   50 </span>where
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>import UntypedPlutusCore.Core
+<span class="lineno">   53 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+<span class="lineno">   54 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+<span class="lineno">   55 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+<span class="lineno">   56 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   57 </span>import UntypedPlutusCore.Evaluation.Machine.CommonAPI qualified as Common
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>import PlutusCore.Builtin
+<span class="lineno">   60 </span>import PlutusCore.Evaluation.Machine.MachineParameters
+<span class="lineno">   61 </span>import PlutusCore.Name.Unique
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>import Data.Text (Text)
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>{-| Evaluate a term using the CEK machine with logging enabled and keep track of costing.
+<span class="lineno">   66 </span>A wrapper around the internal runCek to debruijn input and undebruijn output.
+<span class="lineno">   67 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables*
+<span class="lineno">   68 </span>-}
+<span class="lineno">   69 </span>runCek
+<span class="lineno">   70 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">   71 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">   72 </span>    -&gt; ExBudgetMode cost uni fun
+<span class="lineno">   73 </span>    -&gt; EmitterMode uni fun
+<span class="lineno">   74 </span>    -&gt; Term Name uni fun ann
+<span class="lineno">   75 </span>    -&gt; (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
+<span class="lineno">   76 </span><span class="decl"><span class="istickedoff">runCek = Common.runCek runCekDeBruijn</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>-- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
+<span class="lineno">   79 </span>-- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
+<span class="lineno">   80 </span>runCekNoEmit
+<span class="lineno">   81 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">   82 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">   83 </span>    -&gt; ExBudgetMode cost uni fun
+<span class="lineno">   84 </span>    -&gt; Term Name uni fun ann
+<span class="lineno">   85 </span>    -&gt; (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">runCekNoEmit = Common.runCekNoEmit runCekDeBruijn</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>-- | Evaluate a term using the CEK machine with logging enabled.
+<span class="lineno">   89 </span>-- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
+<span class="lineno">   90 </span>evaluateCek
+<span class="lineno">   91 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">   92 </span>    =&gt; EmitterMode uni fun
+<span class="lineno">   93 </span>    -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">   94 </span>    -&gt; Term Name uni fun ann
+<span class="lineno">   95 </span>    -&gt; (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">evaluateCek = Common.evaluateCek runCekDeBruijn</span></span>
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>-- | Evaluate a term using the CEK machine with logging disabled.
+<span class="lineno">   99 </span>-- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
+<span class="lineno">  100 </span>evaluateCekNoEmit
+<span class="lineno">  101 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">  102 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  103 </span>    -&gt; Term Name uni fun ann
+<span class="lineno">  104 </span>    -&gt; Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
+<span class="lineno">  105 </span><span class="decl"><span class="istickedoff">evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | Unlift a value using the CEK machine.
+<span class="lineno">  108 </span>-- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
+<span class="lineno">  109 </span>readKnownCek
+<span class="lineno">  110 </span>    :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
+<span class="lineno">  111 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  112 </span>    -&gt; Term Name uni fun ann
+<span class="lineno">  113 </span>    -&gt; Either (CekEvaluationException Name uni fun) a
+<span class="lineno">  114 </span><span class="decl"><span class="istickedoff">readKnownCek = Common.readKnownCek runCekDeBruijn</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,1439 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE AllowAmbiguousTypes   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DuplicateRecordFields #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Class</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#maximum"
+	><span class="hs-identifier"
+	  >maximum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Foldable.html#minimum"
+	><span class="hs-identifier"
+	  >minimum</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#PairSchema"
+	><span class="hs-identifier"
+	  >PairSchema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >                                  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#emptyIntegerSchema"
+	><span class="hs-identifier"
+	  >emptyIntegerSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	><span class="hs-identifier"
+	  >BuiltinByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	><span class="hs-identifier"
+	  >BuiltinString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- |
+  A class of types that have a Blueprint schema definition
+  and can reference other schema definitions of other types.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="HasSchema"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-var"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679940059"
+      ><span class="annot"
+	><a href="#local-6989586621679940059"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679940058"
+      ><span class="annot"
+	><a href="#local-6989586621679940058"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span id="schema"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-type"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#Schema"
+	><span class="hs-identifier hs-type"
+	  >Schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679940058"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940060"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940060"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940098"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInUnit"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940064"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Integer</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940064"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940102"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; IntegerSchema -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; IntegerSchema -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaInteger"
+	><span class="hs-identifier hs-var"
+	  >SchemaInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntegerSchema
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#emptyIntegerSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyIntegerSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940068"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinByteString</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940068"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940106"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; BytesSchema -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; BytesSchema -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBytes"
+	><span class="hs-identifier hs-var"
+	  >SchemaBytes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BytesSchema
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#emptyBytesSchema"
+	><span class="hs-identifier hs-var"
+	  >emptyBytesSchema</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940071"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940071"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940110"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInBoolean"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInBoolean</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940074"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinString</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940074"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940114"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInString"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940077"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	  ><span class="hs-identifier hs-type"
+	    >HasSchema</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679940077"
+	  ><span class="hs-identifier hs-type"
+	    >ts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940118"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInData"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940081"
+      ><span id="local-6989586621679940082"
+	><span id="local-6989586621679940083"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	      ><span class="hs-identifier hs-type"
+		>HasSchema</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940081"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940082"
+	      ><span class="hs-identifier hs-type"
+		>ts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	      ><span class="hs-identifier hs-type"
+		>HasSchema</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940083"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940082"
+	      ><span class="hs-identifier hs-type"
+		>ts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	      ><span class="hs-identifier hs-type"
+		>HasSchema</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940081"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940083"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679940082"
+	      ><span class="hs-identifier hs-type"
+		>ts</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940126"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; PairSchema ts -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; PairSchema referencedTypes -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInPair"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInPair</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Schema.html#MkPairSchema"
+	><span class="hs-identifier hs-type"
+	  >MkPairSchema</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>$sel:left:MkPairSchema :: Schema ts
+</span
+	><a href="#local-6989586621679940129"
+	><span class="hs-identifier hs-var"
+	  >left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940081"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940082"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>$sel:right:MkPairSchema :: Schema ts
+</span
+	><a href="#local-6989586621679940130"
+	><span class="hs-identifier hs-var"
+	  >right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940083"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940082"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679940087"
+      ><span id="local-6989586621679940088"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	    ><span class="hs-identifier hs-type"
+	      >HasSchema</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679940087"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679940088"
+	    ><span class="hs-identifier hs-type"
+	      >ts</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Blueprint.Class.html#HasSchema"
+	    ><span class="hs-identifier hs-type"
+	      >HasSchema</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679940087"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679940088"
+	    ><span class="hs-identifier hs-type"
+	      >ts</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679940135"
+      ><span class="annot"
+	><span class="annottext"
+	  >schema :: Schema ts
+</span
+	  ><a href="PlutusTx.Blueprint.Class.html#schema"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >schema</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo -&gt; Schema ts -&gt; Schema ts
+forall (referencedTypes :: [*]).
+SchemaInfo -&gt; Schema referencedTypes -&gt; Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Schema.html#SchemaBuiltInList"
+	><span class="hs-identifier hs-var"
+	  >SchemaBuiltInList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SchemaInfo
+</span
+	><a href="PlutusTx.Blueprint.Schema.Annotation.html#emptySchemaInfo"
+	><span class="hs-identifier hs-var"
+	  >emptySchemaInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall t (referencedTypes :: [*]).
+HasSchema t referencedTypes =&gt;
+Schema referencedTypes
+</span
+	><a href="PlutusTx.Blueprint.Class.html#schema"
+	><span class="hs-identifier hs-var"
+	  >schema</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940087"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621679940088"
+	><span class="hs-identifier hs-type"
+	  >ts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,174 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Agda.Builtin.Float where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   17 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   18 </span>                    word64ToNat)
+<span class="lineno">   19 </span>import MAlonzo.RTE qualified
+<span class="lineno">   20 </span>import MAlonzo.RTE.Float qualified
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- Agda.Builtin.Float.Float
+<span class="lineno">   23 </span>type T_Float_6 = Double
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">d_Float_6</span>
+<span class="lineno">   25 </span><span class="spaces">  </span><span class="nottickedoff">= error</span>
+<span class="lineno">   26 </span><span class="spaces">      </span><span class="nottickedoff">&quot;MAlonzo Runtime Error: postulate evaluated: Agda.Builtin.Float.Float&quot;</span></span>
+<span class="lineno">   27 </span>-- Agda.Builtin.Float.primFloatInequality
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">d_primFloatInequality_8 = MAlonzo.RTE.Float.doubleLe</span></span>
+<span class="lineno">   29 </span>-- Agda.Builtin.Float.primFloatEquality
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">d_primFloatEquality_10 = MAlonzo.RTE.Float.doubleEq</span></span>
+<span class="lineno">   31 </span>-- Agda.Builtin.Float.primFloatLess
+<span class="lineno">   32 </span><span class="decl"><span class="nottickedoff">d_primFloatLess_12 = MAlonzo.RTE.Float.doubleLt</span></span>
+<span class="lineno">   33 </span>-- Agda.Builtin.Float.primFloatIsInfinite
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d_primFloatIsInfinite_14 = (isInfinite :: Double -&gt; Bool)</span></span>
+<span class="lineno">   35 </span>-- Agda.Builtin.Float.primFloatIsNaN
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_primFloatIsNaN_16 = (isNaN :: Double -&gt; Bool)</span></span>
+<span class="lineno">   37 </span>-- Agda.Builtin.Float.primFloatIsNegativeZero
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">d_primFloatIsNegativeZero_18 = (isNegativeZero :: Double -&gt; Bool)</span></span>
+<span class="lineno">   39 </span>-- Agda.Builtin.Float.primFloatIsSafeInteger
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">d_primFloatIsSafeInteger_20 = MAlonzo.RTE.Float.isSafeInteger</span></span>
+<span class="lineno">   41 </span>-- Agda.Builtin.Float.primFloatToWord64
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">d_primFloatToWord64_22 = MAlonzo.RTE.Float.doubleToWord64</span></span>
+<span class="lineno">   43 </span>-- Agda.Builtin.Float.primNatToFloat
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">d_primNatToFloat_24</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">= (MAlonzo.RTE.Float.intToDouble :: Integer -&gt; Double)</span></span>
+<span class="lineno">   46 </span>-- Agda.Builtin.Float.primIntToFloat
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_primIntToFloat_26</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">= (MAlonzo.RTE.Float.intToDouble :: Integer -&gt; Double)</span></span>
+<span class="lineno">   49 </span>-- Agda.Builtin.Float.primFloatRound
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_primFloatRound_28 = MAlonzo.RTE.Float.doubleRound</span></span>
+<span class="lineno">   51 </span>-- Agda.Builtin.Float.primFloatFloor
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">d_primFloatFloor_30 = MAlonzo.RTE.Float.doubleFloor</span></span>
+<span class="lineno">   53 </span>-- Agda.Builtin.Float.primFloatCeiling
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">d_primFloatCeiling_32 = MAlonzo.RTE.Float.doubleCeiling</span></span>
+<span class="lineno">   55 </span>-- Agda.Builtin.Float.primFloatToRatio
+<span class="lineno">   56 </span><span class="decl"><span class="nottickedoff">d_primFloatToRatio_36 = MAlonzo.RTE.Float.doubleToRatio</span></span>
+<span class="lineno">   57 </span>-- Agda.Builtin.Float.primRatioToFloat
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">d_primRatioToFloat_38 = MAlonzo.RTE.Float.ratioToDouble</span></span>
+<span class="lineno">   59 </span>-- Agda.Builtin.Float.primFloatDecode
+<span class="lineno">   60 </span><span class="decl"><span class="nottickedoff">d_primFloatDecode_42 = MAlonzo.RTE.Float.doubleDecode</span></span>
+<span class="lineno">   61 </span>-- Agda.Builtin.Float.primFloatEncode
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">d_primFloatEncode_44 = MAlonzo.RTE.Float.doubleEncode</span></span>
+<span class="lineno">   63 </span>-- Agda.Builtin.Float.primShowFloat
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">d_primShowFloat_46</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">= (Data.Text.pack . show :: Double -&gt; Data.Text.Text)</span></span>
+<span class="lineno">   66 </span>-- Agda.Builtin.Float.primFloatPlus
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">d_primFloatPlus_48 = MAlonzo.RTE.Float.doublePlus</span></span>
+<span class="lineno">   68 </span>-- Agda.Builtin.Float.primFloatMinus
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">d_primFloatMinus_50 = MAlonzo.RTE.Float.doubleMinus</span></span>
+<span class="lineno">   70 </span>-- Agda.Builtin.Float.primFloatTimes
+<span class="lineno">   71 </span><span class="decl"><span class="nottickedoff">d_primFloatTimes_52 = MAlonzo.RTE.Float.doubleTimes</span></span>
+<span class="lineno">   72 </span>-- Agda.Builtin.Float.primFloatDiv
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">d_primFloatDiv_54 = MAlonzo.RTE.Float.doubleDiv</span></span>
+<span class="lineno">   74 </span>-- Agda.Builtin.Float.primFloatPow
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">d_primFloatPow_56 = MAlonzo.RTE.Float.doublePow</span></span>
+<span class="lineno">   76 </span>-- Agda.Builtin.Float.primFloatNegate
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_primFloatNegate_58 = MAlonzo.RTE.Float.doubleNegate</span></span>
+<span class="lineno">   78 </span>-- Agda.Builtin.Float.primFloatSqrt
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">d_primFloatSqrt_60 = MAlonzo.RTE.Float.doubleSqrt</span></span>
+<span class="lineno">   80 </span>-- Agda.Builtin.Float.primFloatExp
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">d_primFloatExp_62 = MAlonzo.RTE.Float.doubleExp</span></span>
+<span class="lineno">   82 </span>-- Agda.Builtin.Float.primFloatLog
+<span class="lineno">   83 </span><span class="decl"><span class="nottickedoff">d_primFloatLog_64 = MAlonzo.RTE.Float.doubleLog</span></span>
+<span class="lineno">   84 </span>-- Agda.Builtin.Float.primFloatSin
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">d_primFloatSin_66 = MAlonzo.RTE.Float.doubleSin</span></span>
+<span class="lineno">   86 </span>-- Agda.Builtin.Float.primFloatCos
+<span class="lineno">   87 </span><span class="decl"><span class="nottickedoff">d_primFloatCos_68 = MAlonzo.RTE.Float.doubleCos</span></span>
+<span class="lineno">   88 </span>-- Agda.Builtin.Float.primFloatTan
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_primFloatTan_70 = MAlonzo.RTE.Float.doubleTan</span></span>
+<span class="lineno">   90 </span>-- Agda.Builtin.Float.primFloatASin
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">d_primFloatASin_72 = MAlonzo.RTE.Float.doubleASin</span></span>
+<span class="lineno">   92 </span>-- Agda.Builtin.Float.primFloatACos
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">d_primFloatACos_74 = MAlonzo.RTE.Float.doubleACos</span></span>
+<span class="lineno">   94 </span>-- Agda.Builtin.Float.primFloatATan
+<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">d_primFloatATan_76 = MAlonzo.RTE.Float.doubleATan</span></span>
+<span class="lineno">   96 </span>-- Agda.Builtin.Float.primFloatATan2
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">d_primFloatATan2_78 = MAlonzo.RTE.Float.doubleATan2</span></span>
+<span class="lineno">   98 </span>-- Agda.Builtin.Float.primFloatSinh
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">d_primFloatSinh_80 = MAlonzo.RTE.Float.doubleSinh</span></span>
+<span class="lineno">  100 </span>-- Agda.Builtin.Float.primFloatCosh
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">d_primFloatCosh_82 = MAlonzo.RTE.Float.doubleCosh</span></span>
+<span class="lineno">  102 </span>-- Agda.Builtin.Float.primFloatTanh
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d_primFloatTanh_84 = MAlonzo.RTE.Float.doubleTanh</span></span>
+<span class="lineno">  104 </span>-- Agda.Builtin.Float.primFloatASinh
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">d_primFloatASinh_86 = MAlonzo.RTE.Float.doubleASinh</span></span>
+<span class="lineno">  106 </span>-- Agda.Builtin.Float.primFloatACosh
+<span class="lineno">  107 </span><span class="decl"><span class="nottickedoff">d_primFloatACosh_88 = MAlonzo.RTE.Float.doubleACosh</span></span>
+<span class="lineno">  108 </span>-- Agda.Builtin.Float.primFloatATanh
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">d_primFloatATanh_90 = MAlonzo.RTE.Float.doubleATanh</span></span>
+<span class="lineno">  110 </span>-- Agda.Builtin.Float.primFloatNumericalEquality
+<span class="lineno">  111 </span>d_primFloatNumericalEquality_92 :: T_Float_6 -&gt; T_Float_6 -&gt; Bool
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">d_primFloatNumericalEquality_92 = coe d_primFloatEquality_10</span></span>
+<span class="lineno">  113 </span>-- Agda.Builtin.Float.primFloatNumericalLess
+<span class="lineno">  114 </span>d_primFloatNumericalLess_94 :: T_Float_6 -&gt; T_Float_6 -&gt; Bool
+<span class="lineno">  115 </span><span class="decl"><span class="nottickedoff">d_primFloatNumericalLess_94 = coe d_primFloatLess_12</span></span>
+<span class="lineno">  116 </span>-- Agda.Builtin.Float.primRound
+<span class="lineno">  117 </span>d_primRound_96 :: T_Float_6 -&gt; Maybe Integer
+<span class="lineno">  118 </span><span class="decl"><span class="nottickedoff">d_primRound_96 = coe d_primFloatRound_28</span></span>
+<span class="lineno">  119 </span>-- Agda.Builtin.Float.primFloor
+<span class="lineno">  120 </span>d_primFloor_98 :: T_Float_6 -&gt; Maybe Integer
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">d_primFloor_98 = coe d_primFloatFloor_30</span></span>
+<span class="lineno">  122 </span>-- Agda.Builtin.Float.primCeiling
+<span class="lineno">  123 </span>d_primCeiling_100 :: T_Float_6 -&gt; Maybe Integer
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">d_primCeiling_100 = coe d_primFloatCeiling_32</span></span>
+<span class="lineno">  125 </span>-- Agda.Builtin.Float.primExp
+<span class="lineno">  126 </span>d_primExp_102 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d_primExp_102 = coe d_primFloatExp_62</span></span>
+<span class="lineno">  128 </span>-- Agda.Builtin.Float.primLog
+<span class="lineno">  129 </span>d_primLog_104 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">d_primLog_104 = coe d_primFloatLog_64</span></span>
+<span class="lineno">  131 </span>-- Agda.Builtin.Float.primSin
+<span class="lineno">  132 </span>d_primSin_106 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">d_primSin_106 = coe d_primFloatSin_66</span></span>
+<span class="lineno">  134 </span>-- Agda.Builtin.Float.primCos
+<span class="lineno">  135 </span>d_primCos_108 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">d_primCos_108 = coe d_primFloatCos_68</span></span>
+<span class="lineno">  137 </span>-- Agda.Builtin.Float.primTan
+<span class="lineno">  138 </span>d_primTan_110 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  139 </span><span class="decl"><span class="nottickedoff">d_primTan_110 = coe d_primFloatTan_70</span></span>
+<span class="lineno">  140 </span>-- Agda.Builtin.Float.primASin
+<span class="lineno">  141 </span>d_primASin_112 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  142 </span><span class="decl"><span class="nottickedoff">d_primASin_112 = coe d_primFloatASin_72</span></span>
+<span class="lineno">  143 </span>-- Agda.Builtin.Float.primACos
+<span class="lineno">  144 </span>d_primACos_114 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_primACos_114 = coe d_primFloatACos_74</span></span>
+<span class="lineno">  146 </span>-- Agda.Builtin.Float.primATan
+<span class="lineno">  147 </span>d_primATan_116 :: T_Float_6 -&gt; T_Float_6
+<span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">d_primATan_116 = coe d_primFloatATan_76</span></span>
+<span class="lineno">  149 </span>-- Agda.Builtin.Float.primATan2
+<span class="lineno">  150 </span>d_primATan2_118 :: T_Float_6 -&gt; T_Float_6 -&gt; T_Float_6
+<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">d_primATan2_118 = coe d_primFloatATan2_78</span></span>
+
+</pre>
+</body>
+</html>
