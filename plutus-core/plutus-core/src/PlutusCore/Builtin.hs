@@ -4,6 +4,7 @@ module PlutusCore.Builtin
     ( module Export
     ) where
 
+import PlutusCore.Builtin.Case as Export
 import PlutusCore.Builtin.HasConstant as Export
 import PlutusCore.Builtin.KnownKind as Export
 import PlutusCore.Builtin.KnownType as Export

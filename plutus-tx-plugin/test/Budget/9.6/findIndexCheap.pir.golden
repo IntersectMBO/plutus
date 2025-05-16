@@ -22,7 +22,7 @@ letrec
           (\(x : integer) (xs : List integer) ->
              /\dead ->
                Bool_match
-                 (ifThenElse {Bool} (lessThanEqualsInteger 10 x) False True)
+                 (case Bool (lessThanEqualsInteger 10 x) [True, False])
                  {all dead. Maybe integer}
                  (/\dead -> Just {integer} i)
                  (/\dead -> go (addInteger 1 i) xs)

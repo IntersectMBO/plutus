@@ -10,10 +10,8 @@
                  , (\x xs ->
                       delay
                         (force
-                           (force ifThenElse
+                           (case
                               (equalsInteger 0 ds)
-                              (delay x)
-                              (delay
-                                 ((\x -> s s x)
-                                    (subtractInteger ds 1)
-                                    xs))))) ])))))
+                              [ (delay
+                                   ((\x -> s s x) (subtractInteger ds 1) xs))
+                              , (delay x) ]))) ])))))

@@ -9,6 +9,7 @@ import PlutusIR.Error
 import PlutusIR.TypeCheck qualified as TC
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin (AnnotateCaseBuiltin)
 import PlutusCore.Name.Unique
 
 import Control.Monad (void, when)
@@ -41,7 +42,7 @@ data BiCondition tyname name uni fun a where
     -> BiCondition tyname name uni fun a
 
 checkCondition
-  :: MonadError (Error uni fun a) m
+  :: (MonadError (Error uni fun a) m, AnnotateCaseBuiltin uni)
   => Condition tyname name uni fun a
   -> Term tyname name uni fun a
   -> m ()
@@ -56,7 +57,7 @@ checkCondition c t = case c of
     Nothing     -> pure ()
 
 checkBiCondition
-  :: MonadError (Error uni fun a) m
+  :: (MonadError (Error uni fun a) m, AnnotateCaseBuiltin uni)
   => BiCondition tyname name uni fun a
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
@@ -94,7 +95,7 @@ hoistPass f p = case p of
   NoOpPass               -> NoOpPass
 
 runPass
-  :: Monad m
+  :: (Monad m, AnnotateCaseBuiltin uni)
   => (String -> m ())
   -> Bool
   -> Pass m tyname name uni fun a
