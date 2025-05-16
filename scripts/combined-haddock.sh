@@ -52,7 +52,6 @@ HADDOCK_PACKAGES=(
   plutus-metatheory
   plutus-tx
   plutus-tx-plugin
-  plutus-tx-test-util
 )
 
 cabal update

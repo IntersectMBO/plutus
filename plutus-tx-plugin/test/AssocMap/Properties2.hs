@@ -29,7 +29,7 @@ import PlutusTx.IsData ()
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
 
 import AssocMap.Semantics
@@ -211,17 +211,15 @@ keysSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = semanticsToAssocMap assocMapS
       expected = keysS assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        keysProgram
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( keysProgram
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataKeysProgram
-          `unsafeApplyCode` (liftCodeDef (semanticsToDataAssocMap assocMapS))
+  evaluationResultMatchesHaskell
+    ( dataKeysProgram
+        `unsafeApplyCode` liftCodeDef (semanticsToDataAssocMap assocMapS)
     )
     (===)
     expected
@@ -231,17 +229,15 @@ elemsSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = semanticsToAssocMap assocMapS
       expected = elemsS assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        elemsProgram
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( elemsProgram
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataElemsProgram
-          `unsafeApplyCode` (liftCodeDef (semanticsToDataAssocMap assocMapS))
+  evaluationResultMatchesHaskell
+    ( dataElemsProgram
+        `unsafeApplyCode` liftCodeDef (semanticsToDataAssocMap assocMapS)
     )
     (===)
     expected
@@ -253,19 +249,17 @@ filterSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = sortS $ filterS (< num) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        filterProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( filterProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataFilterProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataFilterProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -276,18 +270,12 @@ mapWithKeySpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = sortS $ mapWithKeyS (+) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mapWithKeyProgram
-          `unsafeApplyCode` (liftCodeDef assocMap)
-    )
+  evaluationResultMatchesHaskell
+    (mapWithKeyProgram `unsafeApplyCode` liftCodeDef assocMap)
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMapWithKeyProgram
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
+  evaluationResultMatchesHaskell
+    (dataMapWithKeyProgram `unsafeApplyCode` liftCodeDef dataAssocMap)
     (===)
     expected
 
@@ -297,20 +285,20 @@ mapMaybeSpec = property $ do
   num <- forAll $ Gen.integral rangeElem
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-      expected = sortS $ mapMaybeS (\x -> if x < num then Just x else Nothing) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mapMaybeProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+      expected =
+        sortS $
+          mapMaybeS (\x -> if x < num then Just x else Nothing) assocMapS
+  evaluationResultMatchesHaskell
+    ( mapMaybeProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMapMaybeProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataMapMaybeProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -320,19 +308,15 @@ mapMaybeWithKeySpec = property $ do
   assocMapS <- forAll genAssocMapS
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
-      expected = sortS $ mapMaybeWithKeyS (\k v -> if v < k then Just v else Nothing) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        mapMaybeWithKeyProgram
-          `unsafeApplyCode` (liftCodeDef assocMap)
-    )
+      expected =
+        sortS $
+          mapMaybeWithKeyS (\k v -> if v < k then Just v else Nothing) assocMapS
+  evaluationResultMatchesHaskell
+    (mapMaybeWithKeyProgram `unsafeApplyCode` liftCodeDef assocMap)
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMapMaybeWithKeyProgram
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
+  evaluationResultMatchesHaskell
+    (dataMapMaybeWithKeyProgram `unsafeApplyCode` liftCodeDef dataAssocMap)
     (===)
     expected
 
@@ -341,10 +325,7 @@ noDuplicateKeysSpec = property $ do
   assocMapS <- forAll genAssocMapS
   let dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = noDuplicateKeysS assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataNoDuplicateKeysProgram
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
-    )
+  evaluationResultMatchesHaskell
+    (dataNoDuplicateKeysProgram `unsafeApplyCode` liftCodeDef dataAssocMap)
     (===)
     expected
