@@ -15,6 +15,8 @@
 
 module Plugin.Errors.Spec where
 
+import Prelude as Haskell
+
 import Test.Tasty.Extras
 
 import PlutusCore.Test (goldenUPlc)
@@ -83,8 +85,8 @@ oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal
 mutualRecursionUnfoldingsLocal :: CompiledCode Bool
 mutualRecursionUnfoldingsLocal = plc (Proxy @"mutualRecursionUnfoldingsLocal") (evenDirectLocal 4)
 
-literalCaseInt :: CompiledCode (Integer -> Integer)
-literalCaseInt = plc (Proxy @"literalCaseInt") (\case { 1 -> 2; x -> x})
+literalCaseInt :: CompiledCode (Integer -> Bool)
+literalCaseInt = plc (Proxy @"literalCaseInt") (\x -> x == 1)
 
 literalCaseBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
 literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of { "abc" -> ""; x -> x})

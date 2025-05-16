@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -10,6 +11,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
+{-# OPTIONS_GHC -fforce-recomp #-}
 
 module TH.Spec (tests) where
 
@@ -48,6 +51,8 @@ tests = testNested "TH" . pure $ testNestedGhc
   , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
   -- want to see the raw structure, so using Show
   , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
+
+  , goldenPir "baseIntegerEq" baseIntegerEq
   ]
 
 simple :: CompiledCode (Bool -> Integer)
@@ -80,3 +85,9 @@ traceRepeatedly = $$(compile
               i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
           in i3
     ||])
+
+baseIntegerEq :: CompiledCode (Bool)
+baseIntegerEq = $$(compile
+     [||
+      (1 Haskell.== (2 :: Integer))
+     ||])
