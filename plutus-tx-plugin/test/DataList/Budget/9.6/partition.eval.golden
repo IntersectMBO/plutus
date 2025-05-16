@@ -1,3 +1,7 @@
+cpu: 12735124
+mem: 53242
+size: 72
+
 (constr
   0
   (con (list data) [I 8, I 9, I 10])

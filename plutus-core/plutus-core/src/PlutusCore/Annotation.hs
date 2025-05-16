@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TypeFamilies   #-}
--- GHC 8.10 wans about the derived MonoFoldable instance, GHC>=9.2 works fine
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+
 module PlutusCore.Annotation
     ( Ann (..)
     , SrcSpan (..)

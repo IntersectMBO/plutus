@@ -21,8 +21,10 @@ import PlutusPrelude
 import Evaluation.Builtins.Bitwise.CIP0122 qualified as CIP0122
 import Evaluation.Builtins.Bitwise.CIP0123 qualified as CIP0123
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
-import Evaluation.Builtins.Common
+import Evaluation.Builtins.Common (typecheckAnd, typecheckEvaluateCek, typecheckEvaluateCekNoEmit,
+                                   typecheckReadKnownCek)
 import Evaluation.Builtins.Conversion qualified as Conversion
+import Evaluation.Builtins.Integer.ExpModInteger (test_expModInteger_properties)
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
                                                   ed25519_VariantBProp, ed25519_VariantCProp,
                                                   schnorrSecp256k1Prop)
@@ -499,7 +501,6 @@ test_TrackCostsRestricting =
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
-#if MIN_VERSION_base(4,15,0)
     test_TrackCostsWith "retaining" 10000 $ \term -> do
         let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
             -- 'DList'.
@@ -523,19 +524,6 @@ test_TrackCostsRetaining =
                         , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
-#else
-    -- FIXME: @effectfully
-    -- broken only for darwin :x86_64-darwin.ghc810 <https://ci.iog.io/build/5076829/nixlog/1>
-    -- TrackCosts: retaining:                                                             FAIL (0.51s)
-    -- untyped-plutus-core/test/Evaluation/Builtins/Definition.hs:482:
-    -- Too many elements picked up by GC
-    -- Expected at most: 5
-    -- But got: 6
-    -- The result was: [6829,0,0,0,0,3173]
-    -- Use -p '/TrackCosts: retaining/' to rerun this test only.
-    testCase "TrackCosts: retaining" $ do
-        assertBool "dummy" $ not . null $ DList.singleton 'x' -- Avoid 'redundant-imports' warning
-#endif
 
 typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assertion
 typecheckAndEvalToOutOfEx term =
@@ -666,6 +654,8 @@ test_ExpModInteger = testNestedM "ExpMod" $ do
     evals @Integer 0 b [] [int 500, int (-1777), one] -- base:*, exp: neg, mod:1
     fails "mod-zero" b [] [one, one, zero] -- base:*, exp:*, mod: 0
     fails "mod-neg" b [] [one, one, int (-3)] -- base:*, exp:*, mod: neg
+    -- base is zero, negative exponent
+    fails "exp-neg-non-inverse0" b [] [int 0, int (-1), int 7]
     -- base and mod are not co-prime, negative exponent
     fails "exp-neg-non-inverse1" b [] [int 2, int (-3), int 4]
     -- mod is prime, but base&mod are not co-prime, negative exponent
@@ -1248,7 +1238,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-        , test_TrackCostsRetaining
+        , ignoreTestWhenHpcEnabled test_TrackCostsRetaining
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere
@@ -1261,6 +1251,7 @@ test_definition =
         , test_HashSizes
         , test_SignatureVerification
         , test_BLS12_381
+        , test_expModInteger_properties
         , test_Other
         , test_Version
         , test_ConsByteString

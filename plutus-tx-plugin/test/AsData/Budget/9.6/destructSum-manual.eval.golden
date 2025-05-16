@@ -1,1 +1,5 @@
+cpu: 6917121
+mem: 25322
+size: 221
+
 (con data (Constr 0 [I 20, I 40, I 60, I 80]))

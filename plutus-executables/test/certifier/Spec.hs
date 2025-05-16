@@ -8,9 +8,7 @@ module Main (main) where
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import Test.Tasty
 
-import Test.Certifier.AST (astTests)
 import Test.Certifier.Executable (executableTests)
-import Test.Certifier.Optimizer (optimizerTests)
 
 main :: IO ()
 main = do
@@ -18,6 +16,4 @@ main = do
   defaultMain $
     testGroup "Certification"
     [ executableTests
-    , optimizerTests
-    , astTests
     ]

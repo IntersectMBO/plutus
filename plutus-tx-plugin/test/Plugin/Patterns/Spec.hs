@@ -14,7 +14,6 @@
 
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
-{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Plugin.Patterns.Spec where
 
@@ -33,7 +32,7 @@ data Example a = EInt Integer | ETwo a a
 pattern EInt' i = EInt i
 
 pattern ETwoBoth a b = ETwo a b
-pattern ETwo2 b <- ETwo a b
+pattern ETwo2 b <- ETwo _ b
 
 pattern ERec {hello, world} <- ETwo hello world
   where ERec hello world = ETwo hello world
@@ -43,7 +42,7 @@ psym1 = plc (Proxy @"psym1") (
   \(e :: Example BuiltinString) ->
     case e of
       EInt' i -> i
-      ETwo2 s -> 1
+      ETwo2 _ -> 1
       _       -> 0
   )
 

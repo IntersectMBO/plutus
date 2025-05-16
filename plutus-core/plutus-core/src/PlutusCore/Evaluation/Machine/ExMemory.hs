@@ -8,6 +8,7 @@ module PlutusCore.Evaluation.Machine.ExMemory
     ( CostingInteger
     , ExMemory(..)
     , ExCPU(..)
+    , dividedBy
     ) where
 
 import Codec.Serialise (Serialise)

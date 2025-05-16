@@ -11,38 +11,29 @@ let
   utils = import ./utils.nix
     { inherit lib; };
 
-  build-latex = import ./build-latex.nix
-    { inherit pkgs; };
-
   r-with-packages = import ./r-with-packages.nix
     { inherit pkgs; };
 
-  metatheory-agda-library = import ./metatheory-agda-library.nix
+  agda-tools = import ./agda-tools.nix
     { inherit self pkgs lib; };
 
-  agda-tools = import ./agda-tools.nix
-    { inherit self pkgs lib metatheory-agda-library; };
-
   build-latex-doc = import ./build-latex-doc.nix
-    { inherit pkgs lib agda-tools build-latex; };
-
-  unraveling-recursion-paper = import ./unraveling-recursion-paper.nix
-    { inherit self pkgs lib build-latex agda-tools; };
+    { inherit pkgs lib agda-tools; };
 
   latex-documents = import ./latex-documents.nix
     { inherit self build-latex-doc; };
 
-  metatheory-site = import ./metatheory-site.nix
+  metatheory = import ./metatheory.nix
     { inherit inputs self pkgs lib agda-tools; };
 
   hydra-required-job = utils.makeHydraRequiredJob
     { inherit self pkgs; };
 
   project = import ./project.nix
-    { inherit inputs pkgs lib agda-tools r-with-packages utils; };
+    { inherit inputs pkgs lib metatheory r-with-packages utils; };
 
   mkShell = project: import ./shell.nix
-    { inherit inputs pkgs lib project agda-tools r-with-packages; };
+    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";
@@ -58,28 +49,30 @@ let
     musl64-plutus = project.projectCross.musl64.hsPkgs.plutus-core.components.exes.plutus;
   };
 
-  windows-packages = {
+  windows-hydra-jobs = {
     ghc96-mingsW64 = removeAttrs
       (project.projectCross.mingwW64.flake { }).hydraJobs.ghc96
       [ "devShells" ]; # Won't build on Windows
   };
 
+  project-coverage-report =
+    project.projectVariants.ghc96-coverage.projectCoverageReport;
+
   extra-artifacts =
-    { inherit unraveling-recursion-paper; } //
-    { inherit metatheory-site; } //
-    { inherit metatheory-agda-library; } //
-    (latex-documents);
+    {
+      inherit (metatheory) metatheory-site metatheory-agda-library;
+      inherit project-coverage-report;
+    }
+    //
+    latex-documents;
 
   project-variants-hydra-jobs = {
-    ghc810 = (project.flake { }).hydraJobs.ghc810;
     ghc96 = (project.flake { }).hydraJobs.ghc96;
     ghc98 = (project.flake { }).hydraJobs.ghc98;
     ghc910 = (project.flake { }).hydraJobs.ghc910;
   };
 
   project-variants-roots-and-plan-nix = {
-    ghc810.roots = project-variants-hydra-jobs.ghc810.roots;
-    ghc810.plan-nix = project-variants-hydra-jobs.ghc810.plan-nix;
     ghc96.roots = project-variants-hydra-jobs.ghc96.roots;
     ghc96.plan-nix = project-variants-hydra-jobs.ghc96.plan-nix;
     ghc98.roots = project-variants-hydra-jobs.ghc98.roots;
@@ -95,7 +88,6 @@ let
 
   non-profiled-shells = rec {
     default = ghc96;
-    ghc810 = mkShell project.projectVariants.ghc810;
     ghc96 = mkShell project.projectVariants.ghc96;
     ghc98 = mkShell project.projectVariants.ghc98;
     ghc910 = mkShell project.projectVariants.ghc910;
@@ -108,7 +100,7 @@ let
   nested-ci-jobs = {
     "x86_64-linux" =
       (project-variants-hydra-jobs) //
-      (windows-packages) //
+      (windows-hydra-jobs) //
       (packages) //
       { devShells = non-profiled-shells; } //
       { required = hydra-required-job; };
@@ -139,13 +131,14 @@ let
     inherit agda-tools;
     inherit r-with-packages;
     inherit build-latex-doc;
-    inherit build-latex;
     inherit extra-artifacts;
+    inherit windows-hydra-jobs;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
     inherit flattened-ci-jobs;
     inherit nested-ci-jobs;
-    inherit metatheory-agda-library;
+    inherit metatheory;
+    inherit project-coverage-report;
   };
 
 in

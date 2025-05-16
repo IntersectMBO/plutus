@@ -1,15 +1,12 @@
-(program
-  1.1.0
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
 
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
+      Bool_match
+      (vardecl True Bool) (vardecl False Bool)
     )
-    False
   )
+  False
 )

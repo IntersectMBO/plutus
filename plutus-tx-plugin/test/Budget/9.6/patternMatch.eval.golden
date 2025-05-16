@@ -1,1 +1,5 @@
+cpu: 32100
+mem: 300
+size: 2
+
 (constr 0 (con integer 3))

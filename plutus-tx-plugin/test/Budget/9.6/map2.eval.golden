@@ -1,3 +1,7 @@
+cpu: 117670947
+mem: 355550
+size: 464
+
 (constr
   1
   (constr 0 (con integer 105) (con integer 5))

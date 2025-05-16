@@ -112,8 +112,7 @@ And so forth until we reach the final UPLC.
 
 ### Note by Michael
 
-When copying the `SrcSpan`s we should use our own `SrcSpan'` datatype, isomoprhic to GHC's https://hackage.haskell.org/package/ghc-8.2.2/docs/SrcLoc.html#t:SrcSpan
-, to constrain the dependency on the `ghc` library only for the `plutus-tx-plugin` package.
+When copying the `SrcSpan`s we should use our own `SrcSpan'` datatype, isomoprhic to GHC's `https://hackage.haskell.org/package/ghc-9.6.6/docs/GHC-Types-SrcLoc.html#t:SrcSpan`, to constrain the dependency on the `ghc` library only for the `plutus-tx-plugin` package.
 
 ### Note about missing SrcSpans
 

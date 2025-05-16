@@ -80,8 +80,10 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
+
+import Certifier
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -213,8 +215,8 @@ mkSimplPass dflags =
         }
 
 {- Note [Marker resolution]
-We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
-explained in: <http://hackage.haskell.org/package/ghc-8.10.1/docs/GhcPlugins.html#v:thNameToGhcName>
+We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as explained in:
+<https://hackage.haskell.org/package/ghc-9.6.6/docs/GHC-Plugins.html#v:thNameToGhcName>
 
 The GHC haddock suggests that the "exact syntax" will always succeed because it is statically
 resolved here (inside this Plugin module);
@@ -559,7 +561,17 @@ runCompiler moduleName opts expr = do
     when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    let optCertify = opts ^. posCertify
+    (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+    liftIO $ case optCertify of
+        Just certName -> do
+            result <- runCertifier $ mkCertifier simplTrace certName
+            case result of
+                Right certSuccess ->
+                    hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+                Left err ->
+                   hPutStrLn stderr $ prettyCertifierError err
+        Nothing -> pure ()
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat

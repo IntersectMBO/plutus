@@ -1,0 +1,33 @@
+# On push to master, this workflow builds and publishes the project's coverage 
+# report to: https://plutus.cardano.intersectmbo.org/dev/coverage
+
+name: "📊 Code Coverage Report"
+
+on:
+  push: 
+    branches: 
+      - master 
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-ci]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Build Report
+        run: | 
+          nix build --no-warn-dirty --accept-flake-config .#project-coverage-report
+
+      - name: Deploy Report
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        with:
+          folder: result/share/hpc/vanilla/html
+          target-folder: dev/coverage
+          single-commit: true
