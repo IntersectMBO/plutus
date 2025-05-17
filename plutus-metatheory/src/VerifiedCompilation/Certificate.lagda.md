@@ -53,7 +53,7 @@ matchOrCE tag P a b with P a b
 ... | yes p = proof p
 ... | no ¬p = ce ¬p tag a b
 
-pcePointwise : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
+pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
 pcePointwise tag isP? [] [] = proof Pointwise.[]
 pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce (λ ()) {X = List X} tag [] ys
 pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag xs []
@@ -62,4 +62,5 @@ pcePointwise tag isP? (x ∷ xs) (y ∷ ys) with isP? x y
 ... | proof p with pcePointwise tag isP? xs ys
 ...   | ce ¬p tag b a = ce (λ { (x∼y Pointwise.∷ pp) → ¬p pp}) tag b a
 ...   | proof ps = proof (p Pointwise.∷ ps)
+
 ```
