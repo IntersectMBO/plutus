@@ -148,5 +148,7 @@ isCommutative = \case
   RotateByteString                -> False
   CountSetBits                    -> False
   FindFirstSetBit                 -> False
-  ExpModInteger           -> False
-  DropList -> False
+  ExpModInteger                   -> False
+  DropList                        -> False
+  Bls12_381_G1_multiScalarMul     -> False
+  Bls12_381_G2_multiScalarMul     -> False
