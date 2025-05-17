@@ -204,3 +204,12 @@ toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
 toWellScoped = scopeCheckU buildDebruijnEncoding
 
 ```
+Some useful functions for making integer literals.
+```
+open import Agda.Builtin.Int using (Int)
+
+make-integer : RawU.TyTag
+make-integer = RawU.tag2TyTag RawU.integer
+
+con-integer : {X : Set} → ℕ → X ⊢
+con-integer n = (con (tmCon make-integer (Int.pos n)))

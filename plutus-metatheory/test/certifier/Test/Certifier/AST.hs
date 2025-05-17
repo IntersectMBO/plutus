@@ -65,6 +65,27 @@ testFailure testName st bf af =
       "The certifier was expected to fail."
       (not result)
 
+-- Helper functions for making lists of tests.
+testSuccessItem
+  ::
+  (String,
+    SimplifierStage,
+    Term Name PLC.DefaultUni PLC.DefaultFun (),
+    Term Name PLC.DefaultUni PLC.DefaultFun ()
+  )
+  -> TestTree
+testSuccessItem (name, stage, before, after) = testSuccess name stage before after
+
+testFailureItem
+  ::
+  (String,
+    SimplifierStage,
+    Term Name PLC.DefaultUni PLC.DefaultFun (),
+    Term Name PLC.DefaultUni PLC.DefaultFun ()
+  )
+  -> TestTree
+testFailureItem (name, stage, before, after) = testFailure name stage before after
+
 testTrivialSuccess1 :: TestTree
 testTrivialSuccess1 =
   testSuccess
@@ -99,7 +120,7 @@ testByteStringEqFailure =
 
 astTests :: TestTree
 astTests =
-  testGroup "certifier ast tests"
+    testGroup "certifier ast tests"
     [ testTrivialSuccess1
     , testTrivialFailure1
     , testByteStringEqSuccess

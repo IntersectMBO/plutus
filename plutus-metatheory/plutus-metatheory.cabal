@@ -407,6 +407,7 @@ test-suite test-certifier
   hs-source-dirs: test/certifier
   other-modules:
     Test.Certifier.AST
+    Test.Certifier.AST.ForceDelay
     Test.Certifier.Optimizer
 
   build-depends:
