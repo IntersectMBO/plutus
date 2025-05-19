@@ -60,7 +60,7 @@ compilePirProgramOrFail
   -> m (TPLC.Program PIR.TyName Name DefaultUni DefaultFun ())
 compilePirProgramOrFail pirProgram = do
   ctx <- defaultCompilationCtx & handlePirErrorByFailing
-  PIR.compileReadableToPlc (noProvenance <$ pirProgram)
+  PIR.compileReadableToPlc (const (return ())) (noProvenance <$ pirProgram)
     & flip runReaderT (set (ccOpts . coPreserveLogging) True ctx)
     & runQuoteT
     & runExceptT

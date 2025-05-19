@@ -206,6 +206,7 @@ floatTermPass ::
 floatTermPass tcconfig binfo relaxed =
   NamedPass "let float-in" $
     Pass
+      PassFloatIn
       (pure . floatTerm binfo relaxed)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

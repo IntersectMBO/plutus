@@ -175,4 +175,4 @@ thunkRecursionsPass
   => TC.PirTCConfig uni fun
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun a
-thunkRecursionsPass tcconfig binfo = simplePass "thunk recursions" tcconfig (thunkRecursions binfo)
+thunkRecursionsPass tcconfig binfo = simplePass "thunk recursions" PassThunkRec tcconfig (thunkRecursions binfo)

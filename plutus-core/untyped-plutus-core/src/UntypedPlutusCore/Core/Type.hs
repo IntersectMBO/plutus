@@ -19,6 +19,7 @@ module UntypedPlutusCore.Core.Type
     , bindFunM
     , bindFun
     , mapFun
+    , mapUni
     , termAnn
     , UVarDecl(..)
     , uvarDeclName
@@ -180,3 +181,21 @@ bindFun f = runIdentity . bindFunM (coerce f)
 
 mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
 mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
+
+mapUni
+    :: forall uni uni' name fun ann.
+       (Some (ValueOf uni) -> Some (ValueOf uni'))
+    -> Term name uni fun ann
+    -> Term name uni' fun ann
+mapUni f = go where
+    go :: Term name uni fun ann -> Term name uni' fun ann
+    go (Constant ann val)     = Constant ann $ f val
+    go (Builtin ann fun)      = Builtin ann fun
+    go (Var ann name)         = Var ann name
+    go (LamAbs ann name body) = LamAbs ann name $ go body
+    go (Apply ann fun arg)    = Apply ann (go fun) (go arg)
+    go (Delay ann term)       = Delay ann $ go term
+    go (Force ann term)       = Force ann $ go term
+    go (Error ann)            = Error ann
+    go (Constr ann i args)    = Constr ann i $ fmap go args
+    go (Case ann arg cs)      = Case ann (go arg) $ fmap go cs

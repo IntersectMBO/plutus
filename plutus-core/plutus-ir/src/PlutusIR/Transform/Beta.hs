@@ -150,6 +150,7 @@ betaPass
 betaPass tcconfig =
   NamedPass "beta" $
     Pass
+      PassBeta
       (pure . beta)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

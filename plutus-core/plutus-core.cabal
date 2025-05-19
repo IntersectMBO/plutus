@@ -1,7 +1,7 @@
-cabal-version:   3.0
-name:            plutus-core
-version:         1.46.0.0
-license:         Apache-2.0
+cabal-version:      3.0
+name:               plutus-core
+version:            1.46.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
@@ -521,6 +521,7 @@ library plutus-ir
     PlutusIR.Core.Instance.Pretty
     PlutusIR.Core.Instance.Pretty.Readable
     PlutusIR.Core.Instance.Scoping
+    PlutusIR.Core.Instance.ShowRocq
     PlutusIR.Core.Plated
     PlutusIR.Core.Type
     PlutusIR.Error
@@ -570,6 +571,7 @@ library plutus-ir
   build-depends:
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
+    , bytestring
     , containers
     , data-default-class
     , dlist
@@ -591,6 +593,7 @@ library plutus-ir
     , semigroups           >=0.19.1
     , text
     , transformers
+    , vector
     , witherable
 
 test-suite plutus-ir-test

@@ -73,7 +73,7 @@ recSplitPass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-recSplitPass tcconfig = simplePass "recursive let split" tcconfig recSplit
+recSplitPass tcconfig = simplePass "recursive let split" PassRecSplit tcconfig recSplit
 
 {-|
 Apply letrec splitting, recursively in bottom-up fashion.
