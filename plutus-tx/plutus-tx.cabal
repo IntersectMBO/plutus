@@ -86,6 +86,7 @@ library
     PlutusTx.Enum
     PlutusTx.Eq
     PlutusTx.ErrorCodes
+    PlutusTx.Eval
     PlutusTx.Foldable
     PlutusTx.Function
     PlutusTx.Functor
@@ -135,6 +136,7 @@ library
     , deriving-compat
     , extra
     , flat                   ^>=0.6
+    , formatting
     , hashable
     , lens
     , memory
@@ -175,7 +177,6 @@ library plutus-tx-testlib
   build-depends:
     , base                             >=4.9   && <5
     , flat                             ^>=0.6
-    , formatting
     , hedgehog
     , lens
     , mtl
