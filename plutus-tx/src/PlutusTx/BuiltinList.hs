@@ -54,16 +54,15 @@ module PlutusTx.BuiltinList (
   nubBy
 ) where
 
-import Prelude (Bool (..), Integer, Maybe (..), curry, id, not, otherwise, undefined, (.))
+import Prelude (undefined)
 
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.HasOpaque
-import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Eq
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord
-import PlutusTx.Trace (traceError)
+import PlutusTx.Prelude hiding (mapMaybe)
 
 -- | Plutus Tx version of 'Data.List.:' for 'BuiltinList'.
 cons :: forall a. a -> BuiltinList a -> BuiltinList a
@@ -182,12 +181,12 @@ length = foldr ( \_ -> B.addInteger 1 ) 0
 {-# INLINABLE length #-}
 
 -- | Returns the conjunction of a list of Bools.
-and :: BuiltinList Bool -> Bool
-and = all id
+and :: BuiltinList BuiltinBool -> Bool
+and = all (\x -> BI.ifThenElse x True False)
 
 -- | Returns the disjunction of a list of Bools.
-or :: BuiltinList Bool -> Bool
-or = any id
+or :: BuiltinList BuiltinBool -> Bool
+or = any (\x -> BI.ifThenElse x True False)
 {-# INLINABLE or #-}
 
 -- | The negation of `elem`.
@@ -434,9 +433,7 @@ partition
 partition p = BI.BuiltinPair . foldr select (empty, empty)
   where
     select :: a -> (BuiltinList a, BuiltinList a) -> (BuiltinList a, BuiltinList a)
-    select x ~(ts, fs)
-      | p x = (x <| ts, fs)
-      | otherwise = (ts, x <| fs)
+    select x ~(ts, fs) = if p x then (x <| ts, fs) else (ts, x <| fs)
 {-# INLINABLE partition #-}
 
 -- | Plutus Tx version of 'Data.List.sort' for 'BuiltinList'.

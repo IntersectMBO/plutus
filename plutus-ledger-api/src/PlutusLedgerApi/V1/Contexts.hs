@@ -42,7 +42,7 @@ module PlutusLedgerApi.V1.Contexts
 
 import PlutusTx
 import PlutusTx.Foldable qualified as F
-import PlutusTx.List
+import PlutusTx.List hiding (mapMaybe)
 import PlutusTx.Prelude
 
 import GHC.Generics (Generic)
