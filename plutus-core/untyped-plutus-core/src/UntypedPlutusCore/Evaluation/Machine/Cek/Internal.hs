@@ -458,7 +458,7 @@ throwingDischarged
     -> t
     -> CekValue uni fun ann
     -> CekM uni fun s x
-throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
+throwingDischarged l t = throwingWithCause l t . dischargeCekValue
 
 instance ThrowableBuiltins uni fun =>
         MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
@@ -735,7 +735,7 @@ enterComputeCek = computeCek
         computeCek (FrameCases env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
-        throwing_ _EvaluationFailure
+        throwingWithCause _OperationalEvaluationError CekEvaluationFailure $ Error ()
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -819,7 +819,7 @@ enterComputeCek = computeCek
                 -- application.
                 evalBuiltinApp ctx fun term' runtime'
             _ ->
-                throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
+                throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError term'
     forceEvaluate !_ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
@@ -850,7 +850,7 @@ enterComputeCek = computeCek
             BuiltinExpectArgument f ->
                 evalBuiltinApp ctx fun term' $ f arg
             _ ->
-                throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
+                throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError term'
     applyEvaluate !_ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
@@ -928,7 +928,7 @@ enterComputeCek = computeCek
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
         Env.contIndexOne
-            (throwingWithCause _MachineError OpenTermEvaluatedMachineError . Just $ Var () varName)
+            (throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Var () varName)
             pure
             varEnv
             (coerce varIx)
