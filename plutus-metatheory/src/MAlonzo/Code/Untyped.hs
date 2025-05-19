@@ -597,3 +597,19 @@ du_toWellScoped_358 ::
     MAlonzo.Code.Scoped.T_ScopeError_576 T__'8866'_14
 du_toWellScoped_358
   = coe du_scopeCheckU_238 (coe du_buildDebruijnEncoding_350)
+-- Untyped.make-integer
+d_make'45'integer_360 ::
+  MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
+d_make'45'integer_360
+  = coe
+      MAlonzo.Code.RawU.du_tag2TyTag_206
+      (coe MAlonzo.Code.RawU.C_integer_30)
+-- Untyped.con-integer
+d_con'45'integer_364 :: () -> Integer -> T__'8866'_14
+d_con'45'integer_364 ~v0 v1 = du_con'45'integer_364 v1
+du_con'45'integer_364 :: Integer -> T__'8866'_14
+du_con'45'integer_364 v0
+  = coe
+      C_con_28
+      (coe
+         MAlonzo.Code.RawU.C_tmCon_202 (coe d_make'45'integer_360) (coe v0))
