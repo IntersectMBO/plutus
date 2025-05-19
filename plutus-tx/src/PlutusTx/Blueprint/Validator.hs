@@ -23,7 +23,7 @@ import PlutusTx.Blueprint.Argument (ArgumentBlueprint)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 
-{- | A blueprint of a validator, as defined by the CIP-0057
+{-| A blueprint of a validator, as defined by the CIP-0057
 
 The 'referencedTypes' phantom type parameter is used to track the types used in the contract
 making sure their schemas are included in the blueprint and that they are referenced
@@ -58,11 +58,11 @@ compiledValidator version code =
     , compiledValidatorHash =
         blake2b_224 (BS.singleton (versionTag version) <> code)
     }
-  where
-    versionTag = \case
-      PlutusV1 -> 0x1
-      PlutusV2 -> 0x2
-      PlutusV3 -> 0x3
+ where
+  versionTag = \case
+    PlutusV1 -> 0x1
+    PlutusV2 -> 0x2
+    PlutusV3 -> 0x3
 
 instance ToJSON (ValidatorBlueprint referencedTypes) where
   toJSON MkValidatorBlueprint{..} =
@@ -74,6 +74,6 @@ instance ToJSON (ValidatorBlueprint referencedTypes) where
         . optionalField "parameters" (NE.nonEmpty validatorParameters)
         . optionalField "compiledCode" (toHex . compiledValidatorCode <$> validatorCompiled)
         . optionalField "hash" (toHex . compiledValidatorHash <$> validatorCompiled)
-    where
-      toHex :: ByteString -> Text
-      toHex = Text.decodeUtf8 . Base16.encode
+   where
+    toHex :: ByteString -> Text
+    toHex = Text.decodeUtf8 . Base16.encode

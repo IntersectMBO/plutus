@@ -10,10 +10,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 multiplicativeLaws :: [TestTree]
-multiplicativeLaws = [
-  testPropertyNamed "* associates" "propTimesAssoc" propTimesAssoc,
-  testPropertyNamed "one is a left identity" "propOneLeftId" propOneLeftId,
-  testPropertyNamed "one is a right identity" "propOneRightId" propOneRightId
+multiplicativeLaws =
+  [ testPropertyNamed "* associates" "propTimesAssoc" propTimesAssoc
+  , testPropertyNamed "one is a left identity" "propOneLeftId" propOneLeftId
+  , testPropertyNamed "one is a right identity" "propOneRightId" propOneRightId
   ]
 
 -- Helpers

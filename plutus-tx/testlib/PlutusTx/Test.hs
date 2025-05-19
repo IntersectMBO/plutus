@@ -30,7 +30,7 @@ module PlutusTx.Test (
 
   -- * Combined testing
   goldenBundle,
-  goldenBundle'
+  goldenBundle',
 ) where
 
 import Prelude
@@ -68,13 +68,13 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- `PlutusCore.Size` comparison tests
 
-fitsUnder ::
-  forall (a :: Type).
-  (Typeable a) =>
-  TestName ->
-  (String, CompiledCode a) ->
-  (String, CompiledCode a) ->
-  TestTree
+fitsUnder
+  :: forall (a :: Type)
+   . (Typeable a)
+  => TestName
+  -> (String, CompiledCode a)
+  -> (String, CompiledCode a)
+  -> TestTree
 fitsUnder name test target = singleTest name $ SizeComparisonTest test target
 
 data SizeComparisonTest (a :: Type)
@@ -134,11 +134,11 @@ goldenBundle' name x = goldenBundle name x x
 -- Compilation testing
 
 -- | Does not print uniques.
-goldenPir ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPir
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPir name value =
   nestedGoldenVsDoc name ".pir"
     . maybe
@@ -147,11 +147,11 @@ goldenPir name value =
     $ getPirNoAnn value
 
 -- | Does not print uniques.
-goldenPirReadable ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPirReadable
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
     . maybe
@@ -159,25 +159,26 @@ goldenPirReadable name value =
       (prettyReadableSimple . view progTerm)
     $ getPirNoAnn value
 
--- | Prints uniques. This should be used sparingly: a simple change to a script or a
--- compiler pass may change all uniques, making it difficult to see the actual
--- change if all uniques are printed. It is nonetheless useful sometimes.
-goldenPirReadableU ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+{-| Prints uniques. This should be used sparingly: a simple change to a script or a
+compiler pass may change all uniques, making it difficult to see the actual
+change if all uniques are printed. It is nonetheless useful sometimes.
+-}
+goldenPirReadableU
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirReadableU name value =
   nestedGoldenVsDoc name ".pir"
     . maybe "PIR not found in CompiledCode" (prettyReadable . view progTerm)
     $ getPirNoAnn value
 
-goldenPirBy ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  PrettyConfigClassic PrettyConfigName ->
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPirBy
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => PrettyConfigClassic PrettyConfigName
+  -> TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
@@ -251,9 +252,9 @@ runPlcCek
 runPlcCek val = do
   term <- toUPlc val
   fromRightM (throwError . SomeException) $
-        UPLC.evaluateCekNoEmit
-        PLC.defaultCekParametersForTesting
-        (term ^. UPLC.progTerm)
+    UPLC.evaluateCekNoEmit
+      PLC.defaultCekParametersForTesting
+      (term ^. UPLC.progTerm)
 
 runPlcCekBudget
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
@@ -268,11 +269,11 @@ runPlcCekBudget val = do
     let
       (evalRes, UPLC.CountingSt budget) =
         UPLC.runCekNoEmit
-        PLC.defaultCekParametersForTesting
-        UPLC.counting
-        (term ^. UPLC.progTerm)
+          PLC.defaultCekParametersForTesting
+          UPLC.counting
+          (term ^. UPLC.progTerm)
 
-    (, budget) <$> evalRes
+    (,budget) <$> evalRes
 
 runPlcCekTrace
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)

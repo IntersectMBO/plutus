@@ -34,7 +34,7 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, Sche
                                              schemaDescriptionToString, schemaTitleToString)
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
-{- |
+{-|
   Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasBlueprintSchema' instances for a type,
   using an explicit mapping of constructor names to indices.
   Use this for types where you need to keep the representation stable.
@@ -48,7 +48,7 @@ makeIsDataSchemaIndexed dataTypeName indices = do
 unstableMakeIsDataSchema :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsDataSchema name = do
   info <- TH.reifyDatatype name
-  let defaultIndex = zip (TH.constructorName <$> TH.datatypeCons info) [0..]
+  let defaultIndex = zip (TH.constructorName <$> TH.datatypeCons info) [0 ..]
   makeIsDataSchemaIndexed name defaultIndex
 
 makeHasSchemaInstance :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
@@ -75,9 +75,10 @@ makeHasSchemaInstance dataTypeName indices = do
         nub . join $
           -- Every type in the constructor fields must have a schema definition.
           [ ( case fieldType of
-                TH.VarT {} -> (TH.classPred ''HasBlueprintDefinition [fieldType] :)
-                _          -> id
-            ) [ TH.classPred ''HasSchemaDefinition [fieldType, referencedTypes] ]
+                TH.VarT{} -> (TH.classPred ''HasBlueprintDefinition [fieldType] :)
+                _         -> id
+            )
+              [TH.classPred ''HasSchemaDefinition [fieldType, referencedTypes]]
           | (TH.ConstructorInfo{constructorFields}, _info, _index) <- indexedCons
           , fieldType <- constructorFields
           ]
@@ -92,9 +93,9 @@ makeHasSchemaInstance dataTypeName indices = do
     --   {-# INLINE schema #-}
     --   schema = ...
     [ nonOverlapInstance
-      constraints
-      (TH.classPred ''HasBlueprintSchema [appliedType, referencedTypes])
-      [schemaPrag, schemaDecl]
+        constraints
+        (TH.classPred ''HasBlueprintSchema [appliedType, referencedTypes])
+        [schemaPrag, schemaDecl]
     ]
  where
   -- Lookup all annotations (SchemaTitle, SchemdDescription, SchemaComment) attached to a name.
@@ -105,18 +106,18 @@ makeHasSchemaInstance dataTypeName indices = do
     comment <- MkSchemaAnnComment <<$>> lookupAnn @SchemaComment name
     pure $ title ++ description ++ comment
 
-  -- | Make SchemaInfo from a list of schema annotations, failing in case of ambiguity.
+  -- \| Make SchemaInfo from a list of schema annotations, failing in case of ambiguity.
   schemaInfoFromAnns :: [SchemaAnn] -> TH.Q SchemaInfo
   schemaInfoFromAnns = either fail pure . annotationsToSchemaInfo
 
 -- | Make a clause for the 'schema' function.
-mkSchemaClause ::
-  -- | The type for the 'HasBlueprintSchema' instance.
-  TH.Type ->
-  -- | The constructors of the type with their schema infos and indices.
-  [(TH.ConstructorInfo, SchemaInfo, Natural)] ->
-  -- | The clause for the 'schema' function.
-  TH.ClauseQ
+mkSchemaClause
+  :: TH.Type
+  -- ^ The type for the 'HasBlueprintSchema' instance.
+  -> [(TH.ConstructorInfo, SchemaInfo, Natural)]
+  -- ^ The constructors of the type with their schema infos and indices.
+  -> TH.ClauseQ
+  -- ^ The clause for the 'schema' function.
 mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
@@ -138,7 +139,8 @@ deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
 deriveParameterBlueprint tyName purpose = do
   title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
   description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
-  [| MkParameterBlueprint
+  [|
+    MkParameterBlueprint
       { parameterTitle = title
       , parameterDescription = description
       , parameterPurpose = purpose
@@ -150,7 +152,8 @@ deriveArgumentBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
 deriveArgumentBlueprint tyName purpose = do
   title <- Text.pack . schemaTitleToString <<$>> lookupSchemaTitle tyName
   description <- Text.pack . schemaDescriptionToString <<$>> lookupSchemaDescription tyName
-  [| MkArgumentBlueprint
+  [|
+    MkArgumentBlueprint
       { argumentTitle = title
       , argumentDescription = description
       , argumentPurpose = purpose
@@ -165,13 +168,15 @@ lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
 lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
 
 lookupSchemaTitle :: TH.Name -> TH.Q (Maybe SchemaTitle)
-lookupSchemaTitle tyName = lookupAnn @SchemaTitle tyName <&> \case
+lookupSchemaTitle tyName =
+  lookupAnn @SchemaTitle tyName <&> \case
     [x] -> Just x
     [] -> Nothing
     _ -> fail $ "Multiple SchemTitle annotations found for " <> show tyName
 
 lookupSchemaDescription :: TH.Name -> TH.Q (Maybe SchemaDescription)
-lookupSchemaDescription tyName = lookupAnn @SchemaDescription tyName <&> \case
+lookupSchemaDescription tyName =
+  lookupAnn @SchemaDescription tyName <&> \case
     [x] -> Just x
     [] -> Nothing
     _ -> fail $ "Multiple SchemaDescription annotations found for " <> show tyName
