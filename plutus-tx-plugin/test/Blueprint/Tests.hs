@@ -102,14 +102,14 @@ contractBlueprint =
 
 testAllRequredDefinitions
   :: UnrollAll
-      [ Params
-      , Param2a
-      , Param2b
-      , Redeemer
-      , Redeemer2
-      , Datum
-      , Datum2
-      ]
+       [ Params
+       , Param2a
+       , Param2b
+       , Redeemer
+       , Redeemer2
+       , Datum
+       , Datum2
+       ]
     :~: [ Params
         , Bool
         , ()

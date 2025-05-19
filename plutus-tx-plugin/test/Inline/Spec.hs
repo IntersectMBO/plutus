@@ -26,17 +26,19 @@ tests =
       , goldenBundle "inline-twice" inlineTwice (applyOneTwoThree inlineTwice)
       , goldenPirReadable "recursive" recursive
       , goldenUPlcReadable "recursive" recursive
-      , goldenBundle "inlineLocalOnce" compiledInlineLocalOnce
-            (compiledInlineLocalOnce `unsafeApplyCode` liftCodeDef 2)
+      , goldenBundle
+          "inlineLocalOnce"
+          compiledInlineLocalOnce
+          (compiledInlineLocalOnce `unsafeApplyCode` liftCodeDef 2)
       , goldenPirReadable "always-inline-local" compiledAlwaysInlineLocal
       , goldenUPlcReadable "always-inline-local" compiledAlwaysInlineLocal
       ]
-  where
-    applyOneTwoThree f =
-      f `unsafeApplyCode` liftCodeDef 1
-        `unsafeApplyCode` liftCodeDef 2
-        `unsafeApplyCode` liftCodeDef 3
-
+ where
+  applyOneTwoThree f =
+    f
+      `unsafeApplyCode` liftCodeDef 1
+      `unsafeApplyCode` liftCodeDef 2
+      `unsafeApplyCode` liftCodeDef 3
 
 double :: Integer -> Integer
 double x = x `PlutusTx.addInteger` x
@@ -114,8 +116,8 @@ in UPLC the inlining is reversed by CSE.
 -}
 inlineLocalOnce :: Integer -> Integer
 inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` inline square
-  where
-    !square = x `PlutusTx.multiplyInteger` x
+ where
+  !square = x `PlutusTx.multiplyInteger` x
 {-# INLINEABLE inlineLocalOnce #-}
 
 -- Use INLINE pragma on local variable `square` to make it always inlined.
@@ -123,13 +125,13 @@ inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` in
 -- reversed by CSE in UPLC.
 alwaysInlineLocal :: Integer -> Integer
 alwaysInlineLocal x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` square
-  where
-    !square = x `PlutusTx.multiplyInteger` x
-    {-# INLINE square #-}
-{-# INLINABLE alwaysInlineLocal #-}
+ where
+  !square = x `PlutusTx.multiplyInteger` x
+  {-# INLINE square #-}
+{-# INLINEABLE alwaysInlineLocal #-}
 
 compiledInlineLocalOnce :: CompiledCode (Integer -> Integer)
-compiledInlineLocalOnce = $$(compile [|| inlineLocalOnce ||])
+compiledInlineLocalOnce = $$(compile [||inlineLocalOnce||])
 
 compiledAlwaysInlineLocal :: CompiledCode (Integer -> Integer)
-compiledAlwaysInlineLocal = $$(compile [|| alwaysInlineLocal ||])
+compiledAlwaysInlineLocal = $$(compile [||alwaysInlineLocal||])

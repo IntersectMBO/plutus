@@ -18,16 +18,21 @@ import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests =
-  testNested ("AsData" </> "Budget") . pure $ testNestedGhc
-    [ goldenBundle "onlyUseFirstField" onlyUseFirstField (onlyUseFirstField `unsafeApplyCode` inp)
-    , goldenBundle "onlyUseFirstField-manual" onlyUseFirstFieldManual
-        (onlyUseFirstFieldManual `unsafeApplyCode` inp)
-    , goldenBundle "patternMatching" patternMatching (patternMatching `unsafeApplyCode` inp)
-    , goldenBundle "recordFields" recordFields (recordFields `unsafeApplyCode` inp)
-    , goldenBundle "destructSum" destructSum (destructSum `unsafeApplyCode` inpSum)
-    , goldenBundle "destructSum-manual" destructSumManual
-        (destructSumManual `unsafeApplyCode` inpSumM)
-    ]
+  testNested ("AsData" </> "Budget") . pure $
+    testNestedGhc
+      [ goldenBundle "onlyUseFirstField" onlyUseFirstField (onlyUseFirstField `unsafeApplyCode` inp)
+      , goldenBundle
+          "onlyUseFirstField-manual"
+          onlyUseFirstFieldManual
+          (onlyUseFirstFieldManual `unsafeApplyCode` inp)
+      , goldenBundle "patternMatching" patternMatching (patternMatching `unsafeApplyCode` inp)
+      , goldenBundle "recordFields" recordFields (recordFields `unsafeApplyCode` inp)
+      , goldenBundle "destructSum" destructSum (destructSum `unsafeApplyCode` inpSum)
+      , goldenBundle
+          "destructSum-manual"
+          destructSumManual
+          (destructSumManual `unsafeApplyCode` inpSumM)
+      ]
 
 -- A function that only accesses the first field of `Ints`.
 onlyUseFirstField :: CompiledCode (PlutusTx.BuiltinData -> Integer)
@@ -35,7 +40,7 @@ onlyUseFirstField =
   $$( compile
         [||
         \d -> case PlutusTx.unsafeFromBuiltinData d of
-                Ints {int1 = x} -> x
+          Ints{int1 = x} -> x
         ||]
     )
 
@@ -44,7 +49,7 @@ onlyUseFirstFieldManual =
   $$( compile
         [||
         \d -> case PlutusTx.unsafeFromBuiltinData d of
-                IntsManual {int1Manual = x} -> x
+          IntsManual{int1Manual = x} -> x
         ||]
     )
 
@@ -108,8 +113,9 @@ recordFields =
 
 destructSum :: CompiledCode (PlutusTx.BuiltinData -> Ints)
 destructSum =
-  $$(compile
-      [|| \d ->
+  $$( compile
+        [||
+        \d ->
           case PlutusTx.unsafeFromBuiltinData d of
             ThisD is -> is
             ThatD is -> is
@@ -119,13 +125,14 @@ destructSum =
                 (y1 `PlutusTx.addInteger` y2)
                 (z1 `PlutusTx.addInteger` z2)
                 (w1 `PlutusTx.addInteger` w2)
-      ||]
+        ||]
     )
 
 destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> Ints)
 destructSumManual =
-  $$(compile
-      [|| \d ->
+  $$( compile
+        [||
+        \d ->
           case PlutusTx.unsafeFromBuiltinData d of
             ThisDManual is -> is
             ThatDManual is -> is
@@ -135,7 +142,7 @@ destructSumManual =
                 (y1 `PlutusTx.addInteger` y2)
                 (z1 `PlutusTx.addInteger` z2)
                 (w1 `PlutusTx.addInteger` w2)
-      ||]
+        ||]
     )
 
 inp :: CompiledCode PlutusTx.BuiltinData

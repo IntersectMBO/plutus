@@ -20,8 +20,9 @@ import Hedgehog (Gen, Property, Range, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
--- | Semantics of lists. Used to model the expected behavior of the various
--- PlutusTx list types.
+{-| Semantics of lists. Used to model the expected behavior of the various
+PlutusTx list types.
+-}
 newtype ListS a = ListS {getListS :: [a]}
   deriving stock (Show, Eq)
   deriving newtype (Semigroup, Monoid)
@@ -49,7 +50,7 @@ genListSList = ListS <$> Gen.list rangeLength genListS
 genListSPair :: Gen (ListS (Integer, Integer))
 genListSPair =
   ListS
-  <$> Gen.list
+    <$> Gen.list
       rangeLength
       ((,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem)
 
@@ -69,8 +70,8 @@ semanticsToDataListIntPair =
 
 dataListToSemantics :: (UnsafeFromData a) => Data.List a -> ListS a
 dataListToSemantics (Data.toBuiltinList -> l) = ListS . go $ l
-  where
-    go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
+ where
+  go = B.caseList' [] (\h t -> unsafeFromBuiltinData h : go t)
 
 areInversesSpec :: Property
 areInversesSpec = property $ do
@@ -105,7 +106,7 @@ anyS f (ListS l) = Haskell.any f l
 allS :: (a -> Bool) -> ListS a -> Bool
 allS f (ListS l) = Haskell.all f l
 
-foldMapS :: Monoid m => (a -> m) -> ListS a -> m
+foldMapS :: (Monoid m) => (a -> m) -> ListS a -> m
 foldMapS f (ListS l) = foldMap f l
 
 mapS :: (a -> b) -> ListS a -> ListS b
@@ -115,8 +116,8 @@ lengthS :: ListS a -> Integer
 lengthS = fromIntegral . Haskell.length . getListS
 
 unconsS :: ListS a -> Maybe (a, ListS a)
-unconsS (ListS [])    = Nothing
-unconsS (ListS (h:t)) = Just (h, ListS t)
+unconsS (ListS [])      = Nothing
+unconsS (ListS (h : t)) = Just (h, ListS t)
 
 andS :: ListS Bool -> Bool
 andS = Haskell.and . getListS
@@ -124,10 +125,10 @@ andS = Haskell.and . getListS
 orS :: ListS Bool -> Bool
 orS = Haskell.or . getListS
 
-elemS :: Eq a => a -> ListS a -> Bool
+elemS :: (Eq a) => a -> ListS a -> Bool
 elemS x (ListS l) = Haskell.elem x l
 
-notElemS :: Eq a => a -> ListS a -> Bool
+notElemS :: (Eq a) => a -> ListS a -> Bool
 notElemS x (ListS l) = Haskell.notElem x l
 
 foldrS :: (a -> b -> b) -> b -> ListS a -> b
@@ -143,8 +144,8 @@ concatMapS :: (a -> ListS b) -> ListS a -> ListS b
 concatMapS f (ListS l) = ListS $ concatMap (getListS . f) l
 
 listToMaybeS :: ListS a -> Maybe a
-listToMaybeS (ListS [])    = Nothing
-listToMaybeS (ListS (h:_)) = Just h
+listToMaybeS (ListS [])      = Nothing
+listToMaybeS (ListS (h : _)) = Just h
 
 uniqueElementS :: ListS a -> Maybe a
 uniqueElementS (ListS [x]) = Just x
@@ -158,9 +159,9 @@ indexS (ListS l) i = l Haskell.!! fromIntegral i
 
 revAppendS :: ListS a -> ListS a -> ListS a
 revAppendS (ListS l) (ListS l') = ListS $ rev l l'
-  where
-    rev []     a = a
-    rev (x:xs) a = rev xs (x:a)
+ where
+  rev [] a       = a
+  rev (x : xs) a = rev xs (x : a)
 
 reverseS :: ListS a -> ListS a
 reverseS (ListS l) = ListS $ Haskell.reverse l
@@ -202,17 +203,17 @@ splitAtS n (ListS l) =
   let (l1, l2) = Haskell.splitAt (fromIntegral n) l
    in (ListS l1, ListS l2)
 
-elemByS :: forall a . (a -> a -> Bool) -> a -> ListS a -> Bool
+elemByS :: forall a. (a -> a -> Bool) -> a -> ListS a -> Bool
 elemByS eq y (ListS l) = go l
-  where
-    go :: [a] -> Bool
-    go []     = False
-    go (x:xs) =  x `eq` y || go xs
+ where
+  go :: [a] -> Bool
+  go []       = False
+  go (x : xs) = x `eq` y || go xs
 
 nubByS :: (a -> a -> Bool) -> ListS a -> ListS a
 nubByS f (ListS l) = ListS $ Haskell.nubBy f l
 
-nubS :: Eq a => ListS a -> ListS a
+nubS :: (Eq a) => ListS a -> ListS a
 nubS (ListS l) = ListS $ Haskell.nub l
 
 replicateS :: Integer -> a -> ListS a
@@ -226,5 +227,5 @@ partitionS f (ListS l) =
 sortBy :: (a -> a -> Ordering) -> ListS a -> ListS a
 sortBy f (ListS l) = ListS $ Haskell.sortBy f l
 
-sort :: Ord a => ListS a -> ListS a
+sort :: (Ord a) => ListS a -> ListS a
 sort (ListS l) = ListS $ Haskell.sort l

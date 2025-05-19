@@ -19,8 +19,10 @@ import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
 noTrace = embed do
-  testGroup "remove-trace"
-    [ testGroup "Trace calls are preserved (no-remove-trace)"
+  testGroup
+    "remove-trace"
+    [ testGroup
+        "Trace calls are preserved (no-remove-trace)"
         [ testCase "trace-argument" $
             1 @=? countTraces WithTraces.traceArgument
         , testCase "trace-show" $
@@ -38,7 +40,8 @@ noTrace = embed do
         , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
             assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
         ]
-    , testGroup "Trace calls are preserved (preserve-logging)"
+    , testGroup
+        "Trace calls are preserved (preserve-logging)"
         [ testCase "trace-argument" $
             1 @=? countTraces WithPreservedLogging.traceArgument
         , testCase "trace-show" $
