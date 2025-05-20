@@ -1,0 +1,33 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+in
+\(ds : list integer) ->
+  (let
+      r = list integer
+    in
+    \(nilCase : Unit -> r)
+     (consCase : integer -> list integer -> r)
+     (l : list integer) ->
+      (let
+          r = Unit -> r
+        in
+        \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+          chooseList
+            {integer}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+            {r})
+        nilCase
+        (\(x : integer) (xs : list integer) (ds : Unit) -> consCase x xs)
+        l
+        Unit)
+    (\(ds : Unit) ->
+       let
+         !x : Unit = trace {Unit} "PT25" Unit
+       in
+       error {list integer})
+    (\(ds : integer) (xs : list integer) -> xs)
+    []

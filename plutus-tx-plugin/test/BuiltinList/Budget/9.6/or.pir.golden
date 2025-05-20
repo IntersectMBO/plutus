@@ -1,0 +1,27 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : list bool -> Bool
+    = \(xs : list bool) ->
+        chooseList
+          {bool}
+          {all dead. Bool}
+          xs
+          (/\dead -> False)
+          (/\dead ->
+             let
+               !x : bool = headList {bool} xs
+               !xs : list bool = tailList {bool} xs
+             in
+             Bool_match
+               (ifThenElse {Bool} x True False)
+               {all dead. Bool}
+               (/\dead -> True)
+               (/\dead -> go xs)
+               {all dead. dead})
+          {Bool}
+in
+\(xs : list bool) -> go xs

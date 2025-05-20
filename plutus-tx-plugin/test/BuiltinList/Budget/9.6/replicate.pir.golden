@@ -1,0 +1,16 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : integer -> list integer
+    = \(n : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          {all dead. list integer}
+          (/\dead -> [])
+          (/\dead -> mkCons {integer} 0 (go (subtractInteger n 1)))
+          {all dead. dead}
+in
+\(ds : list integer) -> go 10

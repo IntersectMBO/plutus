@@ -1004,16 +1004,21 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- <error func> <overall type> <message>
     GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
-    (strip -> GHC.Var n) `GHC.App` GHC.Type ty
-      | GHC.getName n == mkNilOpaqueName -> case ty of
+
+    (strip -> GHC.Var n) `GHC.App` GHC.Type ty | GHC.getName n == mkNilOpaqueName ->
+        case ty of
           GHC.TyConApp tyCon []
             | tyCon == GHC.integerTyCon || tyCon == builtinIntegerTyCon ->
                 pure $ PLC.mkConstant annMayInline ([] @Integer)
-            | tyCon == builtinBoolTyCon -> pure $ PLC.mkConstant annMayInline ([] @Bool)
-            | tyCon == builtinDataTyCon -> pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+            | tyCon == builtinBoolTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @Bool)
+            | tyCon == builtinDataTyCon ->
+                pure $ PLC.mkConstant annMayInline ([] @PLC.Data)
+
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 [], GHC.TyConApp tyArg2 []]
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
+
           GHC.TyConApp tyCon [GHC.TyConApp tyArg1 []]
             | (tyCon, tyArg1) == (builtinListTyCon, builtinIntegerTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @[Integer])
@@ -1021,7 +1026,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                 pure $ PLC.mkConstant annMayInline ([] @[Bool])
             | (tyCon, tyArg1) == (builtinListTyCon, builtinDataTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @[PLC.Data])
-          _ -> throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+          _ ->
+            throwPlain $ CompilationError "'mkNil' applied to an unknown type"
+
     GHC.Var n
       | GHC.getName n == useToOpaqueName ->
           throwPlain $

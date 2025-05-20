@@ -1,0 +1,19 @@
+(program
+   1.1.0
+   ((\revAppend xs -> force revAppend xs [])
+      ((\s -> s s)
+         (\s arg ->
+            delay
+              (\l r ->
+                 force
+                   (force (force chooseList)
+                      l
+                      (delay r)
+                      (delay
+                         ((\x xs ->
+                             force (s s (delay (\x -> x)))
+                               xs
+                               (force mkCons x r))
+                            (force headList l)
+                            (force tailList l))))))
+         (delay (\x -> x)))))

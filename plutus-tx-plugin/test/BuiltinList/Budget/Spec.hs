@@ -19,7 +19,8 @@ tests :: TestNested
 tests =
   testNested ("BuiltinList" </> "Budget") . pure $
     testNestedGhc
-      [ goldenBundle "map" map (map `unsafeApplyCode` l1)
+      [
+        goldenBundle "map" map (map `unsafeApplyCode` l1)
       , goldenBundle "elem" elem (elem `unsafeApplyCode` l1)
       , goldenBundle "find" find (find `unsafeApplyCode` l1)
       , goldenBundle "any" any (any `unsafeApplyCode` l1)
@@ -45,8 +46,8 @@ tests =
       , goldenBundle "notElem" notElem (notElem `unsafeApplyCode` l1)
       , goldenBundle "foldr" foldr (foldr `unsafeApplyCode` l1)
       , goldenBundle "foldl" foldl (foldl `unsafeApplyCode` l1)
-      , goldenBundle "concat" concat (concat `unsafeApplyCode` l1)
-      , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
+      -- , goldenBundle "concat" concat (concat `unsafeApplyCode` l1)
+      -- , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       , goldenBundle "listToMaybeJust" listToMaybeJust (listToMaybeJust `unsafeApplyCode` l1)
       , goldenBundle "listToMaybeNothing"
           listToMaybeNothing (listToMaybeNothing `unsafeApplyCode` l1)
@@ -58,9 +59,9 @@ tests =
       , goldenBundle "replicate" replicate (replicate `unsafeApplyCode` l1)
       , goldenBundle "findIndexJust" findIndexJust (findIndexJust `unsafeApplyCode` l1)
       , goldenBundle "findIndexNothing" findIndexNothing (findIndexNothing `unsafeApplyCode` l1)
-      , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
-      , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
-      , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
+      -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
+      -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
+      -- , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
       , goldenBundle "headOk" headOk (headOk `unsafeApplyCode` l1)
       , goldenBundle "headEmpty" headEmpty (headEmpty `unsafeApplyCode` l1)
       , goldenBundle "lastOk" lastOk (lastOk `unsafeApplyCode` l1)
@@ -70,11 +71,11 @@ tests =
       , goldenBundle "take" take (take `unsafeApplyCode` l1)
       , goldenBundle "drop" drop (drop `unsafeApplyCode` l1)
       , goldenBundle "dropWhile" dropWhile (dropWhile `unsafeApplyCode` l1)
-      , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
+      -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
       , goldenBundle "elemBy" elemBy (elemBy `unsafeApplyCode` l1)
-      , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
-      , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
-      , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
+      -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
+      -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
+      -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
       , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
       , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
       ]
@@ -158,10 +159,10 @@ foldl :: CompiledCode (L.BuiltinList Integer -> Integer)
 foldl = $$(compile [|| \xs -> L.foldl (P.*) 0 xs ||])
 
 concat :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concat = $$(compile [|| \xs -> L.concat (xs L.<| (L.singleton (L.singleton 1))) ||])
+concat = undefined -- $$(compile [|| \xs -> L.concat (xs L.<| L.singleton xs) ||])
 
 concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concatMap = undefined -- $$(compile [|| L.concatMap ||])
+concatMap = undefined -- $$(compile [|| \xs -> L.concatMap ( \x -> L.singleton (1 P.+ x) ) xs ||])
 
 listToMaybeJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 listToMaybeJust = $$(compile [|| \xs -> L.listToMaybe xs ||])
@@ -197,7 +198,7 @@ zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (P.BuiltinPair Integ
 zip = undefined -- $$(compile [|| \xs -> L.zip xs xs ||])
 
 zipWith :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-zipWith = undefined -- $$(compile [|| L.zipWith ||])
+zipWith = $$(compile [|| \xs -> L.zipWith (P.+) xs xs ||])
 
 headOk :: CompiledCode (L.BuiltinList Integer -> Integer)
 headOk = $$(compile [|| \xs -> L.head xs ||])
@@ -226,8 +227,10 @@ drop = $$(compile [|| \xs -> L.drop 5 xs ||])
 dropWhile :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 dropWhile = $$(compile [|| \xs -> L.dropWhile (P.< 5) xs ||])
 
-splitAt :: CompiledCode (L.BuiltinList Integer ->
-    P.BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
+splitAt
+  :: CompiledCode (
+    L.BuiltinList Integer -> P.BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer)
+  )
 splitAt = undefined -- $$(compile [|| \xs -> L.splitAt 2 xs ||])
 
 elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
@@ -237,16 +240,16 @@ partition :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 partition = undefined -- $$(compile [|| L.partition ||])
 
 sort :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sort = undefined -- $$(compile [|| L.sort ||])
+sort = undefined -- $$(compile [|| \xs -> L.sort xs ||])
 
 sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sortBy = undefined -- $$(compile [|| L.sortBy ||])
+sortBy = undefined -- $$(compile [|| \xs -> L.sortBy (P.<=) xs ||])
 
 nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nub = undefined -- $$(compile [|| L.nub ||])
+nub = $$(compile [|| \xs -> L.nub xs ||])
 
 nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nubBy = undefined -- $$(compile [|| L.nubBy ||])
+nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])

@@ -1,0 +1,21 @@
+(program
+   1.1.0
+   ((\caseList' ->
+       (\last ds -> force last [])
+         ((\s -> s s)
+            (\s arg ->
+               delay
+                 (\l ->
+                    caseList'
+                      (\ds -> (\x -> error) (force trace "PT25" (constr 0 [])))
+                      (\x xs ds ->
+                         caseList' x (\ds -> force (s s (delay (\x -> x)))) xs)
+                      l
+                      (constr 0 [])))
+            (delay (\x -> x))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

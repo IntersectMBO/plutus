@@ -1,0 +1,6 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+\(xs : list integer) -> ifThenElse {Bool} (nullList {integer} xs) True False

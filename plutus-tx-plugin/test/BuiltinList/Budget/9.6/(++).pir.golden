@@ -1,0 +1,25 @@
+\(xs : list integer) ->
+  (let
+      b = list integer
+    in
+    \(f : integer -> b -> b) (acc : b) ->
+      letrec
+        !go : list integer -> b
+          = \(xs : list integer) ->
+              chooseList
+                {integer}
+                {all dead. b}
+                xs
+                (/\dead -> acc)
+                (/\dead ->
+                   let
+                     !x : integer = headList {integer} xs
+                     !xs : list integer = tailList {integer} xs
+                   in
+                   f x (go xs))
+                {b}
+      in
+      go)
+    (mkCons {integer})
+    xs
+    xs

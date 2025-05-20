@@ -1,0 +1,13 @@
+letrec
+  !go : list integer -> integer
+    = \(xs : list integer) ->
+        chooseList
+          {integer}
+          {all dead. integer}
+          xs
+          (/\dead -> 0)
+          (/\dead ->
+             addInteger (headList {integer} xs) (go (tailList {integer} xs)))
+          {integer}
+in
+\(xs : list integer) -> go xs

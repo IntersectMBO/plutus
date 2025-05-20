@@ -1,0 +1,17 @@
+letrec
+  !go : integer -> list integer -> integer
+    = \(acc : integer) (xs : list integer) ->
+        chooseList
+          {integer}
+          {all dead. integer}
+          xs
+          (/\dead -> acc)
+          (/\dead ->
+             let
+               !x : integer = headList {integer} xs
+               !xs : list integer = tailList {integer} xs
+             in
+             go (multiplyInteger acc x) xs)
+          {integer}
+in
+\(xs : list integer) -> go 0 xs

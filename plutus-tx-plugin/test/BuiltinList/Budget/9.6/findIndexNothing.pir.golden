@@ -1,0 +1,32 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+in
+letrec
+  !go : integer -> list integer -> Maybe integer
+    = \(i : integer) ->
+        (let
+            r = Maybe integer
+          in
+          \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+            chooseList
+              {integer}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+              {r})
+          (Nothing {integer})
+          (\(x : integer) (xs : list integer) ->
+             Bool_match
+               (ifThenElse {Bool} (equalsInteger 99 x) True False)
+               {all dead. Maybe integer}
+               (/\dead -> Just {integer} i)
+               (/\dead -> go (addInteger 1 i) xs)
+               {all dead. dead})
+in
+\(xs : list integer) -> go 0 xs
