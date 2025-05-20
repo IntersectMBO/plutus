@@ -1,0 +1,32 @@
+let
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  data Unit | Unit_match where
+    Unit : Unit
+in
+letrec
+  !last : all a. list a -> a
+    = /\a ->
+        \(l : list a) ->
+          caseList'
+            {a}
+            {Unit -> a}
+            (\(ds : Unit) ->
+               let
+                 !x : Unit = trace {Unit} "PT25" Unit
+               in
+               error {a})
+            (\(x : a) (xs : list a) (ds : Unit) ->
+               caseList' {a} {a} x (\(ds : a) -> last {a}) xs)
+            l
+            Unit
+in
+\(xs : list integer) -> last {integer} xs

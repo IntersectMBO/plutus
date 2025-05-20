@@ -1,0 +1,33 @@
+(program
+   1.1.0
+   ((\caseList' ->
+       (\go xs -> go [] xs)
+         ((\s -> s s)
+            (\s xs ->
+               caseList'
+                 []
+                 (\y ys ->
+                    force
+                      (case
+                         ((\s -> s s)
+                            (\s ->
+                               caseList'
+                                 (constr 1 [])
+                                 (\x xs ->
+                                    force
+                                      (force ifThenElse
+                                         (equalsInteger x y)
+                                         (delay (constr 0 []))
+                                         (delay (s s xs)))))
+                            xs)
+                         [ (delay (s s ys xs))
+                         , (delay
+                              (force mkCons
+                                 y
+                                 (s s ys (force mkCons y xs)))) ])))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

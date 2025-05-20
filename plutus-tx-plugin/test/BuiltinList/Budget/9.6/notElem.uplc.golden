@@ -1,0 +1,20 @@
+(program
+   1.1.0
+   ((\go xs ->
+       force (case (go xs) [(delay (constr 1 [])), (delay (constr 0 []))]))
+      ((\s -> s s)
+         (\s xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay (constr 1 []))
+                 (delay
+                    ((\x ->
+                        (\xs ->
+                           force
+                             (force ifThenElse
+                                (equalsInteger 42 x)
+                                (delay (constr 0 []))
+                                (delay (s s xs))))
+                          (force tailList xs))
+                       (force headList xs))))))))

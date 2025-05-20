@@ -1,0 +1,17 @@
+(program
+   1.1.0
+   ((\go xs -> go 0 xs)
+      ((\s -> s s)
+         (\s i xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay (constr 1 []))
+                 (delay
+                    ((\xs ->
+                        force
+                          (force ifThenElse
+                             (equalsInteger 99 (force headList xs))
+                             (delay (constr 0 [i]))
+                             (delay ((\x -> s s x) (addInteger 1 i) xs))))
+                       (force tailList xs))))))))

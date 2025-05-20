@@ -54,8 +54,6 @@ module PlutusTx.BuiltinList (
   nubBy
 ) where
 
-import Prelude (undefined)
-
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Builtins.HasOpaque
 import PlutusTx.Builtins.Internal qualified as BI
@@ -382,7 +380,7 @@ nubBy eq = go empty
     go xs = caseList' empty
       ( \y ys ->
           if elemBy eq y xs
-          then go xs ys
+          then go ys xs
           else y <| go ys (y <| xs)
       )
 {-# INLINABLE nubBy #-}
@@ -437,11 +435,59 @@ partition p = BI.BuiltinPair . foldr select (empty, empty)
 {-# INLINABLE partition #-}
 
 -- | Plutus Tx version of 'Data.List.sort' for 'BuiltinList'.
-sort :: Ord a => BuiltinList a -> BuiltinList a
+sort :: (MkNil a, Ord a) => BuiltinList a -> BuiltinList a
 sort = sortBy compare
 {-# INLINABLE sort #-}
 
 -- | Plutus Tx version of 'Data.List.sortBy' for 'BuiltinList'.
-sortBy :: (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
-sortBy cmp l = undefined
+sortBy :: MkNil a => (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
+sortBy cmp = mergeAll . sequences
+  where
+    sequences = caseList'' empty (singleton . singleton) f
+      where
+        f a b xs
+          | a `cmp` b == GT = descending b (singleton a) xs
+          | otherwise = ascending b (cons a) xs
+
+    descending a as l = caseList' d f l
+      where
+        d = (a <| as) <| sequences l
+        f b bs
+          | a `cmp` b == GT = descending b (a <| as) bs
+          | otherwise = d
+
+    ascending a as l = caseList' d f l
+      where
+        d = as (singleton a) <| sequences l
+        f b bs
+          | a `cmp` b /= GT = ascending b (as . cons a) bs
+          | otherwise = d
+
+    mergeAll l =
+      case uniqueElement l of
+        Nothing ->
+          mergeAll (mergePairs l)
+        Just x ->
+          x
+
+    mergePairs = caseList'' empty singleton f
+      where
+        f a b xs = merge a b <| mergePairs xs
+
+    merge as bs
+      | null as = bs
+      | null bs = as
+      | otherwise = do
+          let a = head as
+          let b = head bs
+          let as' = tail as
+          let bs' = tail bs
+          if a `cmp` b == GT then
+            b <| merge as bs'
+          else
+            a <| merge as' bs
+
+    caseList'' :: forall a r. r -> (a -> r) -> (a -> a -> BuiltinList a -> r) -> BuiltinList a -> r
+    caseList'' f0 f1 f2 = caseList' f0 ( \x xs -> caseList' (f1 x) ( \y ys -> f2 x y ys ) xs )
+
 {-# INLINABLE sortBy #-}
