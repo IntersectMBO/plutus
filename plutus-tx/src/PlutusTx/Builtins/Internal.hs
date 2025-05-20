@@ -21,6 +21,12 @@
   Please note that the documentation for each function will only include operational invariants
   if there are any. This documentation assumes type system correctly enforces and prevents any structural
   errors on the generated UPLC. See Note [Structural vs operational errors within builtins].
+
+  Also note that all builtin functions will fail if the CEK machine exceeds its evaluation budget.
+  Builtin functions with dynamic costing are particularly prone to budget overruns: for example,
+  addInteger and appendByteString differ cost based on input size, so supplying very large integers or
+  byte strings will cause these functions to abort when the budget limit is reached and fail.
+  See Note [Budgeting].
 -}
 module PlutusTx.Builtins.Internal where
 
@@ -875,7 +881,9 @@ CONVERSION
 
 -- | Converts the given integer to a bytestring. The first argument specifies
 -- endianness (True for big-endian), followed by the target length of the resulting bytestring
--- and the integer itself. See 'PlutusCore.Bitwise.integerToByteString' for its invariances.
+-- and the integer itself. Fails if the target length is greater than 8192 or if the length
+-- argument is 0 and the result won't fit into 8192 bytes.
+-- See 'PlutusCore.Bitwise.integerToByteString' for its invariances in detail.
 integerToByteString
     :: BuiltinBool
     -> BuiltinInteger
@@ -1014,7 +1022,8 @@ writeBits (BuiltinByteString bs) (BuiltinList ixes) (BuiltinBool bit) =
 {-# OPAQUE writeBits #-}
 
 -- | Creates a bytestring of a given length by repeating the given byte.
--- Fails if the byte, second argument, is not in range @[0,255]@ or the length is negative.
+-- Fails if the byte, second argument, is not in range @[0,255]@, the length is negative,
+-- or when the length is greater than 8192.
 replicateByte ::
   BuiltinInteger ->
   BuiltinInteger ->
