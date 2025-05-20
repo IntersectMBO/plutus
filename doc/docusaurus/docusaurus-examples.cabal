@@ -66,6 +66,7 @@ executable example-evaluation
   other-modules:    Paths_docusaurus_examples
   build-depends:
     , base                         ^>=4.18
+    , plutus-ledger-api            ^>=1.46
     , plutus-tx                    ^>=1.46
     , plutus-tx-plugin             ^>=1.46
     , plutus-tx:plutus-tx-testlib

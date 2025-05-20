@@ -13,20 +13,16 @@ import Data.SatInt (unSatInt)
 import Data.Text (Text)
 import Formatting (commas, format)
 import PlutusCore.DeBruijn.Internal (NamedDeBruijn)
-import PlutusCore.Default.Builtins (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant,
-                                                          defaultCekParametersForTesting)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters, mkMachineParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.Pretty
-import PlutusTx (CompiledCode)
-import PlutusTx.Blueprint (PlutusVersion (..))
-import PlutusTx.Code (getPlcNoAnn)
-import Prettyprinter
-import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..), Version (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CekMachineCosts, CekValue,
-                                                 CountingSt (..), counting, logEmitter)
+import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import Prettyprinter (dot, indent, plural, vsep, (<+>))
+import UntypedPlutusCore (DefaultFun, DefaultUni, Program (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek (CekEvaluationException, CountingSt (..), counting,
+                                                 logEmitter)
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
 data EvalResult = EvalResult
@@ -100,40 +96,12 @@ evaluateCompiledCode = evaluateCompiledCode' defaultCekParametersForTesting
 with the given machine parameters.
 -}
 evaluateCompiledCode'
-  :: MachineParameters
-       CekMachineCosts
-       DefaultFun
-       (CekValue DefaultUni DefaultFun ())
-  -> CompiledCode a
-  -> EvalResult
+  :: DefaultMachineParameters -> CompiledCode a -> EvalResult
 evaluateCompiledCode' params code = EvalResult{..}
  where
   Program _ann _version term = getPlcNoAnn code
   (evalResult, CountingSt evalResultBudget, evalResultTraces) =
     runCekDeBruijn params counting logEmitter term
-
-machineParametersFor
-  :: PlutusVersion
-  -> CompiledCode a
-  -> MachineParameters
-       CekMachineCosts
-       DefaultFun
-       (CekValue DefaultUni DefaultFun ())
-machineParametersFor ledgerLang code =
-  mkMachineParameters builtinSemVar (cekCostModelForVariant builtinSemVar)
- where
-  Program _ann Version{_versionMajor = majorPV} _term = getPlcNoAnn code
-  builtinSemVar =
-    if preConway
-      then case ledgerLang of
-        PlutusV1 -> DefaultFunSemanticsVariantA
-        PlutusV2 -> DefaultFunSemanticsVariantA
-        PlutusV3 -> DefaultFunSemanticsVariantC
-      else case ledgerLang of
-        PlutusV1 -> DefaultFunSemanticsVariantB
-        PlutusV2 -> DefaultFunSemanticsVariantB
-        PlutusV3 -> DefaultFunSemanticsVariantC
-  preConway = majorPV < 9 -- Chang HF introduces MPV 9
 
 evaluatesToError :: CompiledCode a -> Bool
 evaluatesToError = not . evaluatesWithoutError
