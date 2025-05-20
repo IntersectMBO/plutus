@@ -12,11 +12,18 @@ module Main where
 
 import PlutusTx.Prelude
 
+import Data.String (String)
 import Data.Text.IO qualified as Text
-import PlutusTx (CompiledCode, applyCode, compile, liftCodeDef, unsafeApplyCode)
-import Prelude (IO, String)
+import System.IO (IO)
 
-import PlutusTx.Test (EvalResult, displayEvalResult, evaluateCompiledCode)
+-- BEGIN Imports
+
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (..), alonzoPV)
+import PlutusLedgerApi.MachineParameters (machineParametersFor)
+import PlutusTx (CompiledCode, applyCode, compile, liftCodeDef, unsafeApplyCode)
+import PlutusTx.Test (EvalResult, displayEvalResult, evaluateCompiledCode, evaluateCompiledCode')
+
+-- END Imports
 
 -- BEGIN Plinth
 
@@ -85,9 +92,29 @@ result = evaluateCompiledCode appliedUnsafely
 
 -- END UnsafeApplicationResult
 
--- BEGIN main
+-- BEGIN MachineParameters
 
+resultV2 :: EvalResult
+resultV2 =
+  evaluateCompiledCode'
+    -- requires import PlutusLedgerApi.MachineParameters:
+    (machineParametersFor PlutusV2 alonzoPV)
+    (compiledCode `unsafeApplyCode` argumentCompiled)
+
+-- END MachineParameters
+
+-- BEGIN PrintResult
 main :: IO ()
-main = Text.putStrLn $ displayEvalResult result
+main = do
+  Text.putStrLn "Simulating latest Plutus Ledger Language and"
+  Text.putStrLn "the latest Protocol Version evaluation:"
+  Text.putStrLn "--------------------------------------------"
+  Text.putStrLn $ displayEvalResult result
+-- END PrintResult
 
--- END main
+  Text.putStrLn ""
+  Text.putStrLn "Simulating PlutusV2 / Alonzo Protocol Version evaluation:"
+  Text.putStrLn "--------------------------------------------------------"
+  Text.putStrLn $ displayEvalResult resultV2
+  Text.putStrLn ""
+

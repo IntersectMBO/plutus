@@ -2,15 +2,12 @@
 sidebar_position: 12
 ---
 
-# Evaluating CompiledCode for testing
+# Evaluating CompiledCode
 
 The `CompiledCode` is intended to be evaluated by Cardano nodes when 
 transaction validation occurs. For this purpose, it is serialized and included in a transaction.
 
-However, it is also possible to evaluate `CompiledCode` in a test environment. 
-This is useful for testing and troubleshooting. By doing so, Plinth developers can
-not only get the immediate result of the code but also obtain the traces emitted 
-during the evaluation, as well as the consumed execution budget.
+However, it is also possible to evaluate `CompiledCode` without having to run a node. Plutus evaluator called CEK Machine can be used independently of the Cardano node for the purpose of testing and troubleshooting. By evaluating Plinth programs locally developers can not only get the immediate result of the code but also obtain the traces emitted during the evaluation, as well as the consumed execution budget.
 
 Let's consider the following example Plinth program:
 <LiteralInclude 
@@ -41,17 +38,14 @@ dependency to our cabal file:
 
 So that we can import the necessary functionality:
 
-```haskell
-import PlutusTx.Test (
-  EvalResult,
-  applyLifted,
-  evaluateCompiledCode,
-  displayEvalResult
- )
-```
+<LiteralInclude 
+  file="Example/Evaluation/Main.hs" 
+  language="haskell" 
+  title="Required imports" 
+  start="-- BEGIN Imports" 
+  end="-- END Imports" />
 
-It is possible to evaluate this compiled code without applying it to any arguments, 
-and evaluation will succeed, returning the value of type `Integer -> Integer`:
+It is possible to evaluate this compiled code without applying it to any arguments, and evaluation will succeed, returning the value of type `Integer -> Integer`:
 
 ```haskell
 result :: EvalResult
@@ -79,7 +73,27 @@ which includes the CPU and memory usage.
 
 The `evalResultTraces` field contains the traces emitted during the evaluation.
 
-One can use its `Show` instance to print the result of the evaluation:
+The `evaluateCompiledCode` function is the main workhorse of the evaluation process. Under the hood, it uses the Plutus Core evaluator (CEK machine) configured with the latest cost model stored statically in the Plutus repository.
+
+:::caution Caveat
+The execution budget reported by `evaluateCompiledCode` is not guaranteed to exactly match the execution budget spent by Cardano mainnet nodes. This discrepancy arises because the cost model utilized by `evaluateCompiledCode` is not necessarily the same cost model active on the Cardano chain at a specific moment. The definitive values for on-chain cost calculations are protocol parameters, which form part of the chain's state. In practice, these parameters are typically derived from the cost model stored in the Plutus repository at some earlier point, though this is not guaranteed. During on-chain evaluation, the ledger provides a cost model to the Plutus Core evaluator.
+:::
+
+The companion function `evaluateCompiledCode'` is a more general version of `evaluateCompiledCode`, which allows you to specify the cost model (via the `MachineParameters` type). This function is useful for testing purposes, but in most cases, you can use `evaluateCompiledCode` without needing to worry about these details.
+
+To use it you'll need to supply the `MachineParameters` value like this: 
+
+<LiteralInclude 
+  file="Example/Evaluation/Main.hs" 
+  language="haskell" 
+  title="Evaluating with custom MachineParameters" 
+  start="-- BEGIN MachineParameters" 
+  end="-- END MachineParameters" />
+
+One can always use `EvalResult`'s `Show` instance to print the result of the evaluation,
+<details>
+<summary>Show raw <code>EvalResult</code> output</summary>
+
 ```haskell
 EvalResult
   { evalResult =
@@ -127,10 +141,9 @@ EvalResult
   , evalResultTraces = []
   }
 ```
+</details>
 
-The output is quite verbose and not very readable.
-To make it more readable, we can use the `displayEvalResult` function, 
-which formats the output in a prettier way:
+But there is a dedicated function `displayEvalResult` that can be used to print it in a more concise and  human-readable format:
 
 ```
 Evaluation was SUCCESSFUL, result is:
@@ -192,20 +205,19 @@ Lets print the result of the evaluation:
   file="Example/Evaluation/Main.hs" 
   language="haskell" 
   title="Pretty-printng the result" 
-  start="-- BEGIN main" 
-  end="-- END main" />
+  start="-- BEGIN PrintResult" 
+  end="-- END PrintResult" />
 
 ```
+Simulating latest Plutus Ledger Language and
+the latest Protocol Version evaluation:
+--------------------------------------------
 Evaluation was SUCCESSFUL, result is:
   4
 
 Execution budget spent:
   CPU 508,304
   MEM 1,966
-
-Evaluation traces:
-  1. Evaluating x
-  2. Evaluating constant
 ```
 
 Nice! Now we can see that calculating `2 + 2 = 4` using the CEK Machine (UPLC interpreter)
@@ -233,3 +245,5 @@ These can come in handy when debugging your Plinth code.
 
 Caveat: traces add up to the script size, so make sure to remove them 
 when you are done debugging. 
+
+The complete example code can be found in the `doc/docusaurus/static/code/Example/Evaluation/Main.hs` in the Plutus repository.
