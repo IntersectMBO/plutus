@@ -447,10 +447,11 @@ library script-contexts-internal
     PlutusBenchmark.V3.ScriptContexts
 
   build-depends:
-    , base               >=4.9   && <5
-    , plutus-ledger-api  ^>=1.46
-    , plutus-tx          ^>=1.46
-    , plutus-tx-plugin   ^>=1.46
+    , base                 >=4.9   && <5
+    , plutus-ledger-api    ^>=1.46
+    , plutus-tx            ^>=1.46
+    , plutus-tx-plugin     ^>=1.46
+    , plutus-tx-test-util
 
 test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support, os-support

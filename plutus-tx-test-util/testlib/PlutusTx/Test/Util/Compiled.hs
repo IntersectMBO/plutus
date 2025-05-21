@@ -10,6 +10,7 @@ module PlutusTx.Test.Util.Compiled
     , toAnonDeBruijnProg
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
+    , compiledCodeToCertPath
     , haskellValueToTerm
     , unsafeRunTermCek
     , runTermCek
@@ -55,6 +56,11 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
 compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
+
+{- | Extract the path to the generated certificate, if one exists. -}
+compiledCodeToCertPath
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Maybe FilePath
+compiledCodeToCertPath (Tx.getCertPath -> mpath) = mpath
 
 {- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
    if we try to do this over an arbitrary universe.-}

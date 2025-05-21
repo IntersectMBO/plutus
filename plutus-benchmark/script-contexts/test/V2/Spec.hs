@@ -193,12 +193,14 @@ testDataFwdStakeTrick =
 
 testDataFwdStakeTrickManual :: TestTree
 testDataFwdStakeTrickManual =
+     -- testGroup "testing" $
      runTestGhcSOP
           [ Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
           , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
           ]
+     -- : [testCase "testCert" $ ]
   where
      testCredential =
           Data.SC.mkStakingCredential "someCredential"
@@ -206,7 +208,7 @@ testDataFwdStakeTrickManual =
           Data.SC.mkScriptContextWithStake 20 20 (Just (testCredential, 1))
      testAbsCode =
           $$(PlutusTx.compile [|| Data.SC.forwardWithStakeTrickManual ||])
-     testCode =
+     (mcert, testCode) =
           Data.SC.mkForwardWithStakeTrickManualCode testCredential testScriptContext
 
 allTests :: TestTree
