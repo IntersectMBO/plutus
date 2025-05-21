@@ -38,7 +38,7 @@ let
         {
           packages = {
             plutus-executables.components.tests.test-certifier.postInstall = '' 
-              wrapProgram $out/bin/test-certifier 
+              wrapProgram $out/bin/test-certifier \
                 --prefix "PATH" ":" "${metatheory.agda-with-stdlib-and-metatheory}/bin"
             '';
 
