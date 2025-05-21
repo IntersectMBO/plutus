@@ -1,7 +1,7 @@
 let
-  data (Maybe :: * -> *) a | Maybe_match where
-    Just : a -> Maybe a
-    Nothing : Maybe a
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r ->
         \(z : r) (f : a -> list a -> r) (xs : list a) ->
@@ -12,6 +12,29 @@ let
             (/\dead -> z)
             (/\dead -> f (headList {a} xs) (tailList {a} xs))
             {r}
+in
+letrec
+  !take : all a. (\arep -> list arep) a -> integer -> list a -> list a
+    = /\a ->
+        \(`$dMkNil` : (\arep -> list arep) a) (n : integer) (l : list a) ->
+          Bool_match
+            (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+            {all dead. list a}
+            (/\dead -> `$dMkNil`)
+            (/\dead ->
+               caseList'
+                 {a}
+                 {list a}
+                 `$dMkNil`
+                 (\(x : a) (xs : list a) ->
+                    mkCons {a} x (take {a} `$dMkNil` (subtractInteger n 1) xs))
+                 l)
+            {all dead. dead}
+in
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
 in
 \(xs : list integer) ->
   caseList'
@@ -24,4 +47,4 @@ in
          {Maybe integer}
          (Just {integer} x)
          (\(ds : integer) (ds : list integer) -> Nothing {integer}))
-    xs
+    (take {integer} [] 1 xs)

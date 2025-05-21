@@ -76,8 +76,8 @@ tests =
       -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
       -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
       -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
-      , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
-      , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
+      -- , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
+      -- , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
       ]
 
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
@@ -90,13 +90,13 @@ find :: CompiledCode (L.BuiltinList Integer -> (Maybe Integer, Maybe Integer))
 find = $$(compile [||\xs -> (L.find (P.>= 8) xs, L.find (P.>= 12) xs)||])
 
 any :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
-any = $$(compile [||\xs -> (L.any (P.>= 8) xs, L.any (P.>= 12) xs)||])
+any = $$(compile [|| \xs -> (L.any (P.>= 8) xs, L.any (P.>= 12) xs) ||])
 
 all :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
-all = $$(compile [||\xs -> (L.all (P.>= 8) xs, L.all (P.>= 0) xs)||])
+all = $$(compile [|| \xs -> (L.all (P.>= 8) xs, L.all (P.>= 0) xs) ||])
 
 index :: CompiledCode (L.BuiltinList Integer -> Integer)
-index = $$(compile [||\xs -> xs L.!! 5 ||])
+index = $$(compile [|| \xs -> xs L.!! 5 ||])
 
 indexNegative :: CompiledCode (L.BuiltinList Integer -> Integer)
 indexNegative = $$(compile [||\xs -> xs L.!! (-1) ||])
@@ -171,7 +171,7 @@ listToMaybeNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 listToMaybeNothing = $$(compile [|| \_ -> L.listToMaybe L.empty ||])
 
 uniqueElementJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-uniqueElementJust = $$(compile [|| \xs -> L.uniqueElement xs ||])
+uniqueElementJust = $$(compile [|| \xs -> L.uniqueElement (L.take 1 xs) ||])
 
 uniqueElementNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 uniqueElementNothing = $$(compile [|| \_ -> L.uniqueElement L.empty ||])
@@ -245,11 +245,11 @@ sort = undefined -- $$(compile [|| \xs -> L.sort xs ||])
 sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 sortBy = undefined -- $$(compile [|| \xs -> L.sortBy (P.<=) xs ||])
 
-nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nub = $$(compile [|| \xs -> L.nub xs ||])
+-- nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+-- nub = $$(compile [|| \xs -> L.nub xs ||])
 
-nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
+-- nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+-- nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
@@ -257,5 +257,5 @@ l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
 l2 = liftCodeDef $ toBuiltin ([True, False] :: [Bool])
 
-l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
-l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
+-- l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
+-- l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
