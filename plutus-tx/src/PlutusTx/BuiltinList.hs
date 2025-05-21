@@ -338,7 +338,7 @@ take n l
 -- | Plutus Tx version of 'Data.List.drop' for 'BuiltinList'.
 drop :: forall a. (MkNil a) => Integer -> BuiltinList a -> BuiltinList a
 drop n l
-  | n `B.lessThanEqualsInteger` 0 = empty
+  | n `B.lessThanEqualsInteger` 0 = l
   | otherwise = caseList' empty
       ( \_ xs -> drop (B.subtractInteger n 1) xs
       ) l

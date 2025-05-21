@@ -1,1 +1,5 @@
-(con (list integer) [])
+cpu: 7834491
+mem: 32602
+size: 83
+
+(con (list integer) [6,7,8,9,10])
