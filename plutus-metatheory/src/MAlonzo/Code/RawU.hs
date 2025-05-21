@@ -1,46 +1,46 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE GADTs #-}
 
 module MAlonzo.Code.RawU where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Data.Bool.Base qualified
-import MAlonzo.Code.Data.Bool.Properties qualified
-import MAlonzo.Code.Data.Integer.Properties qualified
-import MAlonzo.Code.Data.String.Properties qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.BetaNormal qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.Code.Utils.Decidable qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Bool.Base
+import qualified MAlonzo.Code.Data.Bool.Properties
+import qualified MAlonzo.Code.Data.Integer.Properties
+import qualified MAlonzo.Code.Data.String.Properties
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.BetaNormal
+import qualified MAlonzo.Code.Utils
+import qualified MAlonzo.Code.Utils.Decidable
 
-import FFI.Untyped
 import PlutusCore
 import Raw
+import FFI.Untyped
 type Tag = DefaultUni
 pattern TagInt                  = DefaultUniInteger
 pattern TagBS                   = DefaultUniByteString
@@ -196,17 +196,17 @@ check_bls12'45'381'45'mlresult_56 = TagBLS12_381_MlResult
 cover_Tag_28 :: Tag a1 -> ()
 cover_Tag_28 x
   = case x of
-      TagInt                  -> ()
-      TagBS                   -> ()
-      TagStr                  -> ()
-      TagBool                 -> ()
-      TagUnit                 -> ()
-      TagData                 -> ()
-      TagPair _ _             -> ()
-      TagList _               -> ()
+      TagInt -> ()
+      TagBS -> ()
+      TagStr -> ()
+      TagBool -> ()
+      TagUnit -> ()
+      TagData -> ()
+      TagPair _ _ -> ()
+      TagList _ -> ()
       TagBLS12_381_G1_Element -> ()
       TagBLS12_381_G2_Element -> ()
-      TagBLS12_381_MlResult   -> ()
+      TagBLS12_381_MlResult -> ()
 -- RawU.TagCon
 d_TagCon_58 = ()
 type T_TagCon_58 = TagCon
@@ -245,7 +245,7 @@ du_decTagCon''_76 v0 v1 v2 v3
          C_bytestring_32
            -> case coe v2 of
                 C_bytestring_32 -> coe MAlonzo.Code.Builtin.d_equals_328 v1 v3
-                _               -> coe v4
+                _ -> coe v4
          C_string_34
            -> case coe v2 of
                 C_string_34
@@ -267,11 +267,11 @@ du_decTagCon''_76 v0 v1 v2 v3
          C_unit_38
            -> case coe v2 of
                 C_unit_38 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
-                _         -> coe v4
+                _ -> coe v4
          C_pdata_40
            -> case coe v2 of
                 C_pdata_40 -> coe MAlonzo.Code.Utils.d_eqDATA_490 (coe v1) (coe v3)
-                _          -> coe v4
+                _ -> coe v4
          C_pair_46 v7 v8
            -> case coe v1 of
                 MAlonzo.Code.Utils.C__'44'__380 v9 v10
@@ -362,16 +362,16 @@ check_UCase_166 = UCase
 cover_Untyped_146 :: UTerm -> ()
 cover_Untyped_146 x
   = case x of
-      UVar _      -> ()
-      ULambda _   -> ()
-      UApp _ _    -> ()
-      UCon _      -> ()
-      UError      -> ()
-      UBuiltin _  -> ()
-      UDelay _    -> ()
-      UForce _    -> ()
+      UVar _ -> ()
+      ULambda _ -> ()
+      UApp _ _ -> ()
+      UCon _ -> ()
+      UError -> ()
+      UBuiltin _ -> ()
+      UDelay _ -> ()
+      UForce _ -> ()
       UConstr _ _ -> ()
-      UCase _ _   -> ()
+      UCase _ _ -> ()
 -- RawU.TyTag
 d_TyTag_168 :: ()
 d_TyTag_168 = erased

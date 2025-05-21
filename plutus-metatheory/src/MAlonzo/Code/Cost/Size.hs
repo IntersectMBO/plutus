@@ -1,36 +1,36 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Cost.Size where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Int qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Cost.Base qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Untyped.CEK qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Int
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Cost.Base
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Untyped.CEK
+import qualified MAlonzo.Code.Utils
 
-import Data.SatInt
-import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
+import PlutusCore.Evaluation.Machine.CostStream
+import Data.SatInt
 size = fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 -- Cost.Size.integerSize
 d_integerSize_4 :: Integer -> Integer
@@ -98,7 +98,7 @@ d_defaultConstantMeasure_22 v0
                   coe
                     (case coe v2 of
                        MAlonzo.Code.Utils.C_'91''93'_388 -> coe (1 :: Integer)
-                       _                                 -> coe v5)
+                       _ -> coe v5)
              MAlonzo.Code.Builtin.Signature.C_pair_20 v4 v5
                -> coe seq (coe v2) (coe (1 :: Integer))
              _ -> MAlonzo.RTE.mazUnreachableError

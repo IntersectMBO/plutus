@@ -1,29 +1,29 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Utils.List where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Data.Empty qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.List.Properties qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Data.Empty
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.List.Properties
 
 -- Utils.List.Bwd
 d_Bwd_6 a0 = ()
@@ -665,7 +665,7 @@ du_proj'45'IIList_1028 v0 v1 v2
          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
            -> case coe v5 of
                 C__'8759'__820 v10 v11 -> coe v10
-                _                      -> MAlonzo.RTE.mazUnreachableError
+                _ -> MAlonzo.RTE.mazUnreachableError
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Utils.List.proj-IIBwd
 d_proj'45'IIBwd_1074 ::
@@ -687,7 +687,7 @@ du_proj'45'IIBwd_1074 v0 v1 v2
          MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
            -> case coe v4 of
                 C__'58''60'__850 v10 v11 -> coe v11
-                _                        -> MAlonzo.RTE.mazUnreachableError
+                _ -> MAlonzo.RTE.mazUnreachableError
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Utils.List._≣I_<>>_
 d__'8803'I_'60''62''62'__1110 a0 a1 a2 a3 a4 a5 a6 a7 a8 = ()

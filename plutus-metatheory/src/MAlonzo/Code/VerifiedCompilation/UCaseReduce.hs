@@ -1,37 +1,37 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.VerifiedCompilation.UCaseReduce where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.Untyped.CEK qualified
-import MAlonzo.Code.Untyped.Reduction qualified
-import MAlonzo.Code.VerifiedCompilation.Certificate qualified
-import MAlonzo.Code.VerifiedCompilation.Equality qualified
-import MAlonzo.Code.VerifiedCompilation.UntypedTranslation qualified
-import MAlonzo.Code.VerifiedCompilation.UntypedViews qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.CEK
+import qualified MAlonzo.Code.Untyped.Reduction
+import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+import qualified MAlonzo.Code.VerifiedCompilation.Equality
+import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
+import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
 -- VerifiedCompilation.UCaseReduce.CaseReduce
 d_CaseReduce_4 a0 a1 a2 a3 = ()

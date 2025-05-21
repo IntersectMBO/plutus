@@ -1,33 +1,33 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.VerifiedCompilation.UntypedTranslation where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base qualified
-import MAlonzo.Code.Data.Nat.Properties qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.VerifiedCompilation.Certificate qualified
-import MAlonzo.Code.VerifiedCompilation.Equality qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
+import qualified MAlonzo.Code.Data.Nat.Properties
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+import qualified MAlonzo.Code.VerifiedCompilation.Equality
 
 -- VerifiedCompilation.UntypedTranslation.Relation
 d_Relation_4 :: ()
@@ -54,17 +54,17 @@ d_untypedIx_110 ~v0 v1 = du_untypedIx_110 v1
 du_untypedIx_110 :: MAlonzo.Code.Untyped.T__'8866'_14 -> Integer
 du_untypedIx_110 v0
   = case coe v0 of
-      MAlonzo.Code.Untyped.C_'96'_18 v1       -> coe (1 :: Integer)
-      MAlonzo.Code.Untyped.C_ƛ_20 v1          -> coe (2 :: Integer)
+      MAlonzo.Code.Untyped.C_'96'_18 v1 -> coe (1 :: Integer)
+      MAlonzo.Code.Untyped.C_ƛ_20 v1 -> coe (2 :: Integer)
       MAlonzo.Code.Untyped.C__'183'__22 v1 v2 -> coe (3 :: Integer)
-      MAlonzo.Code.Untyped.C_force_24 v1      -> coe (4 :: Integer)
-      MAlonzo.Code.Untyped.C_delay_26 v1      -> coe (5 :: Integer)
-      MAlonzo.Code.Untyped.C_con_28 v1        -> coe (6 :: Integer)
-      MAlonzo.Code.Untyped.C_constr_34 v1 v2  -> coe (7 :: Integer)
-      MAlonzo.Code.Untyped.C_case_40 v1 v2    -> coe (8 :: Integer)
-      MAlonzo.Code.Untyped.C_builtin_44 v1    -> coe (9 :: Integer)
-      MAlonzo.Code.Untyped.C_error_46         -> coe (10 :: Integer)
-      _                                       -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Untyped.C_force_24 v1 -> coe (4 :: Integer)
+      MAlonzo.Code.Untyped.C_delay_26 v1 -> coe (5 :: Integer)
+      MAlonzo.Code.Untyped.C_con_28 v1 -> coe (6 :: Integer)
+      MAlonzo.Code.Untyped.C_constr_34 v1 v2 -> coe (7 :: Integer)
+      MAlonzo.Code.Untyped.C_case_40 v1 v2 -> coe (8 :: Integer)
+      MAlonzo.Code.Untyped.C_builtin_44 v1 -> coe (9 :: Integer)
+      MAlonzo.Code.Untyped.C_error_46 -> coe (10 :: Integer)
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.UntypedTranslation.matchIx
 d_matchIx_146 ::
   (() ->

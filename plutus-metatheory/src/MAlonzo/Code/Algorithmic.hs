@@ -1,34 +1,34 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Algorithmic where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Constant.Type qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Data.Fin.Base qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.BetaNormal qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.Code.Utils.List qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Constant.Type
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.BetaNormal
+import qualified MAlonzo.Code.Utils
+import qualified MAlonzo.Code.Utils.List
 
 -- Algorithmic.Ctx
 d_Ctx_2 a0 = ()
@@ -213,7 +213,7 @@ du_lookupCase_318 v0 v1 v2
       MAlonzo.Code.Data.Fin.Base.C_zero_12
         -> case coe v2 of
              C__'8759'__280 v7 v8 -> coe v7
-             _                    -> MAlonzo.RTE.mazUnreachableError
+             _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Data.Fin.Base.C_suc_16 v4
         -> case coe v2 of
              C__'8759'__280 v8 v9

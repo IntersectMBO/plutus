@@ -1,65 +1,65 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Evaluator.Program where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Algorithmic qualified
-import MAlonzo.Code.Algorithmic.CEK qualified
-import MAlonzo.Code.Algorithmic.CK qualified
-import MAlonzo.Code.Algorithmic.Erasure qualified
-import MAlonzo.Code.Algorithmic.Evaluation qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Check qualified
-import MAlonzo.Code.Cost qualified
-import MAlonzo.Code.Cost.Base qualified
-import MAlonzo.Code.Cost.Model qualified
-import MAlonzo.Code.Cost.Raw qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Maybe.Base qualified
-import MAlonzo.Code.Data.String.Base qualified
-import MAlonzo.Code.Evaluator.Base qualified
-import MAlonzo.Code.Raw qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Scoped qualified
-import MAlonzo.Code.Scoped.Extrication qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.BetaNormal qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.Untyped.CEK qualified
-import MAlonzo.Code.Untyped.CEKWithCost qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Algorithmic
+import qualified MAlonzo.Code.Algorithmic.CEK
+import qualified MAlonzo.Code.Algorithmic.CK
+import qualified MAlonzo.Code.Algorithmic.Erasure
+import qualified MAlonzo.Code.Algorithmic.Evaluation
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Check
+import qualified MAlonzo.Code.Cost
+import qualified MAlonzo.Code.Cost.Base
+import qualified MAlonzo.Code.Cost.Model
+import qualified MAlonzo.Code.Cost.Raw
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Maybe.Base
+import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.Evaluator.Base
+import qualified MAlonzo.Code.Raw
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Scoped
+import qualified MAlonzo.Code.Scoped.Extrication
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.BetaNormal
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.CEK
+import qualified MAlonzo.Code.Untyped.CEKWithCost
+import qualified MAlonzo.Code.Utils
 
-import Control.Monad.Trans.Except
-import Data.Bifunctor
-import Data.Either
-import Data.Functor
-import FFI.Opts
-import FFI.Untyped qualified as U
-import PlutusCore
-import PlutusCore.DeBruijn
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
+import PlutusCore.DeBruijn
+import qualified UntypedPlutusCore as U
+import qualified UntypedPlutusCore.Parser as U
+import qualified FFI.Untyped as U
 import Raw
-import UntypedPlutusCore qualified as U
-import UntypedPlutusCore.Parser qualified as U
+import PlutusCore
+import Data.Bifunctor
+import Data.Functor
+import Data.Either
+import Control.Monad.Trans.Except
+import FFI.Opts
 -- Evaluator.Program.Format
 type T_Format_14 = Format
 d_Format_14
@@ -129,7 +129,7 @@ check_Tallying_44 = Tallying
 cover_BudgetMode_36 :: BudgetMode a1 -> ()
 cover_BudgetMode_36 x
   = case x of
-      Silent     -> ()
+      Silent -> ()
       Counting _ -> ()
       Tallying _ -> ()
 -- Evaluator.Program.EvalMode
@@ -150,9 +150,9 @@ check_TCEK_54 = TCEK
 cover_EvalMode_46 :: EvalMode -> ()
 cover_EvalMode_46 x
   = case x of
-      U    -> ()
-      TL   -> ()
-      TCK  -> ()
+      U -> ()
+      TL -> ()
+      TCK -> ()
       TCEK -> ()
 -- Evaluator.Program.parsePLC
 d_parsePLC_56 ::
