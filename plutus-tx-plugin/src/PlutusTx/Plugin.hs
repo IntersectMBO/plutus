@@ -22,7 +22,6 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
-import PlutusTx.Coverage
 import PlutusTx.Function qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
@@ -446,7 +445,7 @@ runCompiler ::
     , fun ~ PLC.DefaultFun
     , MonadReader (CompileContext uni fun) m
     , MonadState CompileState m
-    , MonadWriter (CoverageIndex, Maybe CertPath) m
+    , MonadWriter CompileOutput m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
     , MonadIO m

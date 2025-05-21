@@ -35,6 +35,8 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 
+import Flat (Flat (..))
+
 import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -191,6 +193,60 @@ stableModuleCmp m1 m2 =
     -- See Note [Stable name comparisons]
     (GHC.moduleUnit m1 `GHC.stableUnitCmp` GHC.moduleUnit m2)
 
+newtype CertificatePath = CertificatePath
+    { getCertPath :: Maybe FilePath
+    }
+
+instance Flat CertificatePath where
+    encode (CertificatePath mp) = encode mp
+    decode = CertificatePath <$> decode
+    size (CertificatePath mp) = size mp
+
+instance Semigroup CertificatePath where
+    CertificatePath p1 <> CertificatePath p2 =
+        case (p1, p2) of
+            (Nothing, Nothing) -> CertificatePath Nothing
+            (Nothing, Just p)  -> CertificatePath (Just p)
+            (Just p, Nothing)  -> CertificatePath (Just p)
+            -- Overwrite the old path with the new path
+            (Just _, Just p)   -> CertificatePath (Just p)
+
+instance Monoid CertificatePath where
+    mempty = CertificatePath Nothing
+
+data CompileOutput = CompileOutput
+    { coCoverageIndex :: CoverageIndex
+    , coCertPath      :: CertificatePath
+    }
+
+instance Semigroup CompileOutput where
+    CompileOutput i1 c1 <> CompileOutput i2 c2 =
+        CompileOutput (i1 <> i2) (c1 <> c2)
+
+instance Monoid CompileOutput where
+    mempty = CompileOutput mempty mempty
+
+instance Flat CompileOutput where
+    encode (CompileOutput i c) = encode i <> encode c
+    decode = CompileOutput <$> decode <*> decode
+    size (CompileOutput i c) x = size i x + size c x
+
+-- | Include a location coverage annotation in the index
+addLocationToCoverageIndex :: MonadWriter CompileOutput m => CovLoc -> m CoverageAnnotation
+addLocationToCoverageIndex src = do
+  let ann = CoverLocation src
+  tell $ CompileOutput (CoverageIndex $ Map.singleton ann mempty) mempty
+  pure ann
+
+-- | Include a boolean coverage annotation in the index
+addBoolCaseToCoverageIndex :: MonadWriter CompileOutput m
+                           => CovLoc -> Bool -> CoverageMetadata -> m CoverageAnnotation
+addBoolCaseToCoverageIndex src b meta = do
+  let ann = CoverBool src b
+  tell $ CompileOutput (CoverageIndex (Map.singleton ann meta)) mempty
+  pure ann
+
+
 -- See Note [Scopes]
 type Compiling uni fun m ann =
     ( MonadError (CompileError uni fun ann) m
@@ -199,7 +255,7 @@ type Compiling uni fun m ann =
     , MonadState CompileState m
     , MonadDefs LexName uni fun Ann m
     -- TODO: fix
-    , MonadWriter (CoverageIndex, Maybe FilePath) m
+    , MonadWriter CompileOutput m
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way
