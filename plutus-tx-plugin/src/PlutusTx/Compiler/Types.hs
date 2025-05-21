@@ -246,6 +246,10 @@ addBoolCaseToCoverageIndex src b meta = do
   tell $ CompileOutput (CoverageIndex (Map.singleton ann meta)) mempty
   pure ann
 
+addCertificatePath :: MonadWriter CompileOutput m => FilePath -> m ()
+addCertificatePath path = do
+    let certPath = CertificatePath (Just path)
+    tell $ CompileOutput mempty certPath
 
 -- See Note [Scopes]
 type Compiling uni fun m ann =

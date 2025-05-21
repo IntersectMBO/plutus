@@ -418,14 +418,15 @@ compileMarkedExpr locStr codeTy origE = do
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
+    ((pirP,uplcP), compOut) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
         traceCompilation 1 ("Compiling expr at" GHC.<+> GHC.text locStr) $
             runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
     bsPlc <- makeByteStringLiteral $ flat (UPLC.UnrestrictedProgram uplcP)
-    covIdxFlat <- makeByteStringLiteral $ flat covIdx
+    compOutFlat <- makeByteStringLiteral $ flat compOut
+
 
     builder <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
@@ -435,7 +436,7 @@ compileMarkedExpr locStr codeTy origE = do
         `GHC.App` GHC.Type codeTy
         `GHC.App` bsPlc
         `GHC.App` bsPir
-        `GHC.App` covIdxFlat
+        `GHC.App` compOutFlat
 
 -- | The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
@@ -559,15 +560,19 @@ runCompiler moduleName opts expr = do
 
     let optCertify = opts ^. posCertify
     (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-    liftIO $ case optCertify of
-        Just certName -> do
-            result <- runCertifier $ mkCertifier simplTrace certName
-            case result of
-                Right certSuccess ->
-                    hPutStrLn stderr $ prettyCertifierSuccess certSuccess
-                Left err ->
-                   hPutStrLn stderr $ prettyCertifierError err
-        Nothing -> pure ()
+    certP <-
+        liftIO $ case optCertify of
+            Just certName -> do
+                result <- runCertifier $ mkCertifier simplTrace certName
+                case result of
+                    Right certSuccess -> do
+                        hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+                        pure $ Just (certDir certSuccess)
+                    Left err -> do
+                       hPutStrLn stderr $ prettyCertifierError err
+                       pure Nothing
+            Nothing -> pure Nothing
+    maybe (pure ()) addCertificatePath certP
     dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
     when (opts ^. posDumpUPlc) . liftIO $
         dumpFlat
