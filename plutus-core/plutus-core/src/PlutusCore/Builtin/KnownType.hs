@@ -247,7 +247,7 @@ typeMismatchError
     -> uni (Esc b)
     -> UnliftingEvaluationError
 typeMismatchError uniExp uniAct =
-    MkUnliftingEvaluationError . StructuralEvaluationError . fromString $ concat
+    MkUnliftingEvaluationError . StructuralError . fromString $ concat
         [ "Type mismatch: "
         , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
         , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)

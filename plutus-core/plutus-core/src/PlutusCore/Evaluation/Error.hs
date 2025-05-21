@@ -47,8 +47,8 @@ structural error, only an operational one. This creates a sort of \"runtime type
 and it would be great to stick to it and enforce in tests etc, but we currently don't.
 -}
 data EvaluationError structural operational
-    = StructuralEvaluationError !structural
-    | OperationalEvaluationError !operational
+    = StructuralError !structural
+    | OperationalError !operational
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -57,34 +57,34 @@ mtraverse makeClassyPrisms
     ]
 
 instance Bifunctor EvaluationError where
-    bimap f _ (StructuralEvaluationError err)  = StructuralEvaluationError $ f err
-    bimap _ g (OperationalEvaluationError err) = OperationalEvaluationError $ g err
+    bimap f _ (StructuralError err)  = StructuralError $ f err
+    bimap _ g (OperationalError err) = OperationalError $ g err
     {-# INLINE bimap #-}
 
 instance Bifoldable EvaluationError where
-    bifoldMap f _ (StructuralEvaluationError err)  = f err
-    bifoldMap _ g (OperationalEvaluationError err) = g err
+    bifoldMap f _ (StructuralError err)  = f err
+    bifoldMap _ g (OperationalError err) = g err
     {-# INLINE bifoldMap #-}
 
 instance Bitraversable EvaluationError where
-    bitraverse f _ (StructuralEvaluationError err)  = StructuralEvaluationError <$> f err
-    bitraverse _ g (OperationalEvaluationError err) = OperationalEvaluationError <$> g err
+    bitraverse f _ (StructuralError err)  = StructuralError <$> f err
+    bitraverse _ g (OperationalError err) = OperationalError <$> g err
     {-# INLINE bitraverse #-}
 
 -- | A raw evaluation failure is always an operational error.
 instance AsEvaluationFailure operational =>
         AsEvaluationFailure (EvaluationError structural operational) where
-    _EvaluationFailure = _OperationalEvaluationError . _EvaluationFailure
+    _EvaluationFailure = _OperationalError . _EvaluationFailure
     {-# INLINE _EvaluationFailure #-}
 
 instance
         ( HasPrettyDefaults config ~ 'True
         , PrettyBy config structural, Pretty operational
         ) => PrettyBy config (EvaluationError structural operational) where
-    prettyBy config (StructuralEvaluationError structural)   = prettyBy config structural
-    prettyBy _      (OperationalEvaluationError operational) = pretty operational
+    prettyBy config (StructuralError structural)   = prettyBy config structural
+    prettyBy _      (OperationalError operational) = pretty operational
 
 instance (Pretty structural, Pretty operational) =>
         Pretty (EvaluationError structural operational) where
-    pretty (StructuralEvaluationError structural)   = pretty structural
-    pretty (OperationalEvaluationError operational) = pretty operational
+    pretty (StructuralError structural)   = pretty structural
+    pretty (OperationalError operational) = pretty operational

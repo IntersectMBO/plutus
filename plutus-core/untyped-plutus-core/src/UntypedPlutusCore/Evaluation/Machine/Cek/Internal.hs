@@ -501,7 +501,7 @@ instance ThrowableBuiltins uni fun =>
         panicHandler =
             Handler $ \(err :: e) -> hIO $
                 ErrorWithCause
-                    (StructuralEvaluationError . PanicMachineError $ displayException err)
+                    (StructuralError . PanicMachineError $ displayException err)
                     Nothing
 
 instance AsEvaluationFailure CekUserError where
@@ -735,7 +735,7 @@ enterComputeCek = computeCek
         computeCek (FrameCases env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
-        throwingWithCause _OperationalEvaluationError CekEvaluationFailure $ Error ()
+        throwingWithCause _OperationalError CekEvaluationFailure $ Error ()
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -780,12 +780,12 @@ enterComputeCek = computeCek
         -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
         -- "apparently good" value.
         (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                        throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
+                        throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
         -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwingDischarged _MachineError (MissingCaseBranchMachineError i) e
-        _ -> throwingDischarged _MachineError NonConstrScrutinizedMachineError e
+            Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
+        _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.
@@ -819,9 +819,9 @@ enterComputeCek = computeCek
                 -- application.
                 evalBuiltinApp ctx fun term' runtime'
             _ ->
-                throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError term'
+                throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'
     forceEvaluate !_ val =
-        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
+        throwingDischarged _StructuralError NonPolymorphicInstantiationMachineError val
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -850,9 +850,9 @@ enterComputeCek = computeCek
             BuiltinExpectArgument f ->
                 evalBuiltinApp ctx fun term' $ f arg
             _ ->
-                throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError term'
+                throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'
     applyEvaluate !_ val _ =
-        throwingDischarged _MachineError NonFunctionalApplicationMachineError val
+        throwingDischarged _StructuralError NonFunctionalApplicationMachineError val
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
@@ -928,7 +928,7 @@ enterComputeCek = computeCek
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
         Env.contIndexOne
-            (throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Var () varName)
+            (throwingWithCause _StructuralError OpenTermEvaluatedMachineError $ Var () varName)
             pure
             varEnv
             (coerce varIx)
