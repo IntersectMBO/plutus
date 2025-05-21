@@ -10,7 +10,7 @@ letrec
           Bool_match
             (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
             {all dead. list a}
-            (/\dead -> `$dMkNil`)
+            (/\dead -> l)
             (/\dead ->
                (let
                    r = list a

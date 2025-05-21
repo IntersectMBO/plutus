@@ -8,7 +8,7 @@
                  force
                    (force ifThenElse
                       (lessThanEqualsInteger n 0)
-                      (delay `$dMkNil`)
+                      (delay l)
                       (delay
                          (force
                             (force (force chooseList)
