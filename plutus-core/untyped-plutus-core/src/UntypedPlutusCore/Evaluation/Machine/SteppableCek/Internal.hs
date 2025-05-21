@@ -166,7 +166,7 @@ computeCek !ctx !env (Case ann scrut cs) = do
     pure $ Computing (FrameCases ann env cs ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
-    throwing_ _EvaluationFailure
+    throwingWithCause _OperationalEvaluationError CekEvaluationFailure $ Error ()
 
 returnCek
     :: forall uni fun ann s
@@ -240,7 +240,7 @@ forceEvaluate ann !ctx (VBuiltin fun term runtime) = do
             -- application.
             evalBuiltinApp ann ctx fun term' runtime'
         _ ->
-            throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
+            throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError term'
 forceEvaluate _ !_ val =
     throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
@@ -273,7 +273,7 @@ applyEvaluate ann !ctx (VBuiltin fun term runtime) arg = do
         -- argument next.
         BuiltinExpectArgument f -> evalBuiltinApp ann ctx fun term' $ f arg
         _ ->
-            throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
+            throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError term'
 applyEvaluate _ !_ val _ =
     throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
@@ -423,7 +423,7 @@ throwingDischarged
     -> t
     -> CekValue uni fun ann
     -> CekM uni fun s x
-throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
+throwingDischarged l t = throwingWithCause l t . dischargeCekValue
 
 -- | Look up a variable name in the environment.
 lookupVarName
@@ -432,8 +432,7 @@ lookupVarName
     => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
-        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
-            var = Var () varName
+        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Var () varName
         Just val -> pure val
 
 -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
