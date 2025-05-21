@@ -1,14 +1,34 @@
 (program
    1.1.0
-   (\xs ->
-      (\caseList' ->
-         caseList'
-           (constr 1 [])
-           (\x -> caseList' (constr 0 [x]) (\ds ds -> constr 1 [])))
-        (\z f xs ->
-           force
-             (force (force chooseList)
-                xs
-                (delay z)
-                (delay (f (force headList xs) (force tailList xs)))))
-        xs))
+   ((\caseList' ->
+       (\take xs ->
+          caseList'
+            (constr 1 [])
+            (\x -> caseList' (constr 0 [x]) (\ds ds -> constr 1 []))
+            (force take [] 1 xs))
+         ((\s -> s s)
+            (\s arg ->
+               delay
+                 (\`$dMkNil` n l ->
+                    force
+                      (force ifThenElse
+                         (lessThanEqualsInteger n 0)
+                         (delay `$dMkNil`)
+                         (delay
+                            (caseList'
+                               `$dMkNil`
+                               (\x xs ->
+                                  force mkCons
+                                    x
+                                    (force (s s (delay (\x -> x)))
+                                       `$dMkNil`
+                                       (subtractInteger n 1)
+                                       xs))
+                               l)))))
+            (delay (\x -> x))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))
