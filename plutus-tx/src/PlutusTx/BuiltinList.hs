@@ -374,15 +374,15 @@ elemBy eq y = go
 
 -- | Plutus Tx version of 'Data.List.nubBy' for 'BuiltinList'.
 nubBy :: forall a. (MkNil a) => (a -> a -> Bool) -> BuiltinList a -> BuiltinList a
-nubBy eq = go empty
+nubBy eq = flip go empty
   where
     go :: BuiltinList a -> BuiltinList a -> BuiltinList a
-    go xs = caseList' empty
+    go l xs = caseList' empty
       ( \y ys ->
           if elemBy eq y xs
           then go ys xs
           else y <| go ys (y <| xs)
-      )
+      ) l
 {-# INLINABLE nubBy #-}
 
 -- | Plutus Tx version of 'Data.List.zipWith' for 'BuiltinList'.

@@ -274,6 +274,8 @@ class MkNil arep where
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData
+-- TODO: the following two instances are not implemented in the plugin.
+-- They require changes to PlutusTx.Compiler.Expr.compileExpr
 instance (MkNil a) => MkNil (BuiltinList a)
 instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 

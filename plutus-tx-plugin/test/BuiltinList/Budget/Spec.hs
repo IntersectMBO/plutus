@@ -46,8 +46,6 @@ tests =
       , goldenBundle "notElem" notElem (notElem `unsafeApplyCode` l1)
       , goldenBundle "foldr" foldr (foldr `unsafeApplyCode` l1)
       , goldenBundle "foldl" foldl (foldl `unsafeApplyCode` l1)
-      -- , goldenBundle "concat" concat (concat `unsafeApplyCode` l1)
-      -- , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       , goldenBundle "listToMaybeJust" listToMaybeJust (listToMaybeJust `unsafeApplyCode` l1)
       , goldenBundle "listToMaybeNothing"
           listToMaybeNothing (listToMaybeNothing `unsafeApplyCode` l1)
@@ -59,9 +57,6 @@ tests =
       , goldenBundle "replicate" replicate (replicate `unsafeApplyCode` l1)
       , goldenBundle "findIndexJust" findIndexJust (findIndexJust `unsafeApplyCode` l1)
       , goldenBundle "findIndexNothing" findIndexNothing (findIndexNothing `unsafeApplyCode` l1)
-      -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
-      -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
-      -- , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
       , goldenBundle "headOk" headOk (headOk `unsafeApplyCode` l1)
       , goldenBundle "headEmpty" headEmpty (headEmpty `unsafeApplyCode` l1)
       , goldenBundle "lastOk" lastOk (lastOk `unsafeApplyCode` l1)
@@ -71,13 +66,21 @@ tests =
       , goldenBundle "take" take (take `unsafeApplyCode` l1)
       , goldenBundle "drop" drop (drop `unsafeApplyCode` l1)
       , goldenBundle "dropWhile" dropWhile (dropWhile `unsafeApplyCode` l1)
-      -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
       , goldenBundle "elemBy" elemBy (elemBy `unsafeApplyCode` l1)
+      , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
+      , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
+      -- TODO The following tests are ignored because they require implementation of
+      -- arbitrarily nested BuiltinList types.
+      -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
+      -- , goldenBundle "concat" concat (concat `unsafeApplyCode` l1)
+      -- , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
+      -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
+      -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
+      -- , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
+      -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
       -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
       -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
       -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
-      -- , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
-      -- , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
       ]
 
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
@@ -158,12 +161,6 @@ foldr = $$(compile [|| \xs -> L.foldr (P.+) 0 xs ||])
 foldl :: CompiledCode (L.BuiltinList Integer -> Integer)
 foldl = $$(compile [|| \xs -> L.foldl (P.*) 0 xs ||])
 
-concat :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concat = undefined -- $$(compile [|| \xs -> L.concat (xs L.<| L.singleton xs) ||])
-
-concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concatMap = undefined -- $$(compile [|| \xs -> L.concatMap ( \x -> L.singleton (1 P.+ x) ) xs ||])
-
 listToMaybeJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 listToMaybeJust = $$(compile [|| \xs -> L.listToMaybe xs ||])
 
@@ -190,12 +187,6 @@ findIndexJust = $$(compile [|| \xs -> L.findIndex (P.== 4) xs ||])
 
 findIndexNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 findIndexNothing = $$(compile [|| \xs -> L.findIndex (P.== 99) xs ||])
-
-unzip :: CompiledCode (L.BuiltinList (P.BuiltinPair a b) -> L.BuiltinList Integer)
-unzip = undefined -- $$(compile [|| \xs -> L.unzip xs ||])
-
-zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (P.BuiltinPair Integer Integer))
-zip = undefined -- $$(compile [|| \xs -> L.zip xs xs ||])
 
 zipWith :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 zipWith = $$(compile [|| \xs -> L.zipWith (P.+) xs xs ||])
@@ -227,14 +218,36 @@ drop = $$(compile [|| \xs -> L.drop 5 xs ||])
 dropWhile :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 dropWhile = $$(compile [|| \xs -> L.dropWhile (P.< 5) xs ||])
 
+elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
+elemBy = $$(compile [|| \xs -> L.elemBy (P.<=) 0 xs ||])
+
+nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+nub = $$(compile [|| \xs -> L.nub xs ||])
+
+nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
+
+l1 :: CompiledCode (L.BuiltinList Integer)
+l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
+
+l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
+l2 = liftCodeDef $ toBuiltin ([True, False] :: [Bool])
+
+-- TODO The following functions cannot compile because they require implementation of
+-- arbitrarily nested BuiltinList types.
+-- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
+
+concat :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+concat = undefined -- $$(compile [|| \xs -> L.concat (xs L.<| L.singleton xs) ||])
+
+concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
+concatMap = undefined -- $$(compile [|| \xs -> L.concatMap ( \x -> L.singleton (1 P.+ x) ) xs ||])
+
 splitAt
   :: CompiledCode (
     L.BuiltinList Integer -> P.BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer)
   )
 splitAt = undefined -- $$(compile [|| \xs -> L.splitAt 2 xs ||])
-
-elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
-elemBy = $$(compile [|| \xs -> L.elemBy (P.<=) 0 xs ||])
 
 partition :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 partition = undefined -- $$(compile [|| L.partition ||])
@@ -245,17 +258,11 @@ sort = undefined -- $$(compile [|| \xs -> L.sort xs ||])
 sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 sortBy = undefined -- $$(compile [|| \xs -> L.sortBy (P.<=) xs ||])
 
--- nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
--- nub = $$(compile [|| \xs -> L.nub xs ||])
+unzip :: CompiledCode (L.BuiltinList (P.BuiltinPair a b) -> L.BuiltinList Integer)
+unzip = undefined -- $$(compile [|| \xs -> L.unzip xs ||])
 
--- nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
--- nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
-
-l1 :: CompiledCode (L.BuiltinList Integer)
-l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
-
-l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
-l2 = liftCodeDef $ toBuiltin ([True, False] :: [Bool])
+zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (P.BuiltinPair Integer Integer))
+zip = undefined -- $$(compile [|| \xs -> L.zip xs xs ||])
 
 -- l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
 -- l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])

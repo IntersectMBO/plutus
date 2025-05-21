@@ -843,7 +843,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   builtinBoolTyCon <- lookupGhcTyCon ''BI.BuiltinBool
   builtinDataTyCon <- lookupGhcTyCon ''Builtins.BuiltinData
   builtinPairTyCon <- lookupGhcTyCon ''BI.BuiltinPair
-  builtinListTyCon <- lookupGhcTyCon ''BI.BuiltinList
   stringTyName <- lookupGhcName ''Builtins.BuiltinString
   stringToBuiltinStringName <- lookupGhcName 'Builtins.stringToBuiltinString
   builtinByteStringTyName <- lookupGhcName ''Builtins.BuiltinByteString
@@ -1019,13 +1018,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
             | (tyCon, tyArg1, tyArg2) == (builtinPairTyCon, builtinDataTyCon, builtinDataTyCon) ->
                 pure $ PLC.mkConstant annMayInline ([] @(PLC.Data, PLC.Data))
 
-          GHC.TyConApp tyCon [GHC.TyConApp tyArg1 []]
-            | (tyCon, tyArg1) == (builtinListTyCon, builtinIntegerTyCon) ->
-                pure $ PLC.mkConstant annMayInline ([] @[Integer])
-            | (tyCon, tyArg1) == (builtinListTyCon, builtinBoolTyCon) ->
-                pure $ PLC.mkConstant annMayInline ([] @[Bool])
-            | (tyCon, tyArg1) == (builtinListTyCon, builtinDataTyCon) ->
-                pure $ PLC.mkConstant annMayInline ([] @[PLC.Data])
           _ ->
             throwPlain $ CompilationError "'mkNil' applied to an unknown type"
 

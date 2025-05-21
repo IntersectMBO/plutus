@@ -15,7 +15,7 @@ let
 in
 letrec
   !go : list integer -> list integer -> list integer
-    = \(xs : list integer) ->
+    = \(l : list integer) (xs : list integer) ->
         caseList'
           {integer}
           {list integer}
@@ -46,5 +46,6 @@ letrec
                (/\dead -> go ys xs)
                (/\dead -> mkCons {integer} y (go ys (mkCons {integer} y xs)))
                {all dead. dead})
+          l
 in
-\(xs : list integer) -> go [] xs
+\(xs : list integer) -> go xs []
