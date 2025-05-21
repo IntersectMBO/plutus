@@ -88,7 +88,7 @@ import Control.Exception qualified as Exception
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
-import Control.Monad.Except (MonadError, catchError, throwError)
+import Control.Monad.Except (MonadError, catchError, throwError, tryError)
 import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe

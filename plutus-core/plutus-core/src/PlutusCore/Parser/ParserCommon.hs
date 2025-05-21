@@ -6,7 +6,7 @@
 module PlutusCore.Parser.ParserCommon where
 
 import Control.Monad (when)
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (StateT, evalStateT)
 import Data.Map qualified as M
@@ -60,21 +60,21 @@ whenVersion p act = do
     Just v  -> when (p v) act
 
 parse
-  :: (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+  :: (MonadError ParserErrorBundle m, MonadQuote m)
   => Parser a
   -> String
   -> Text
   -> m a
 parse p file str = do
   let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)
-  throwingEither _ParserErrorBundle =<< liftQuote res
+  liftEither =<< liftQuote res
 
 toErrorB :: Either (ParseErrorBundle Text ParserError) a -> Either ParserErrorBundle a
 toErrorB (Left err) = Left $ ParseErrorB err
 toErrorB (Right a)  = Right a
 
 -- | Generic parser function in which the file path is just "test".
-parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> Text -> m a
+parseGen :: (MonadError ParserErrorBundle m, MonadQuote m) => Parser a -> Text -> m a
 parseGen stuff = parse stuff "test"
 
 -- | Space consumer.

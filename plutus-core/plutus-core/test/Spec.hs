@@ -256,21 +256,19 @@ their scope.
 don't require there to be no free variables at this point, we might be parsing an open term
 -}
 parseScoped ::
-  ( AsParserErrorBundle e
-  , AsUniqueError e SrcSpan
-  , MonadError e m
+  ( MonadError (Error DefaultUni DefaultFun SrcSpan) m
   , MonadQuote m
   ) =>
   T.Text ->
   m (Program TyName Name DefaultUni DefaultFun SrcSpan)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
+parseScoped =
+  through (modifyError UniqueCoherencyErrorE . Uniques.checkProgram (const True))
+  <=< rename
+  <=< modifyError ParseErrorE . parseProgram
 
 printType ::
-  ( AsParserErrorBundle e
-  , AsUniqueError e SrcSpan
-  , AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SrcSpan
-  , MonadError e m
+  ( MonadError (Error DefaultUni DefaultFun SrcSpan) m
   ) =>
   T.Text ->
   m T.Text
@@ -278,14 +276,14 @@ printType txt =
   runQuoteT $
     render . prettyBy (prettyConfigPlcClassicSimple prettyConfigPlcOptions) <$> do
       scoped <- parseScoped txt
-      config <- getDefTypeCheckConfig topSrcSpan
-      inferTypeOfProgram config scoped
+      config <- modifyError TypeErrorE $ getDefTypeCheckConfig topSrcSpan
+      modifyError TypeErrorE $ inferTypeOfProgram config scoped
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
 format ::
-  (AsParserErrorBundle e, MonadError e m) =>
+  (MonadError ParserErrorBundle m) =>
   PrettyConfigPlc ->
   T.Text ->
   m T.Text
@@ -294,12 +292,12 @@ format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 testsGolden :: [FilePath] -> TestTree
 testsGolden =
   testGroup "golden tests"
-    . fmap (asGolden (format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
+    . fmap (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassicSimple prettyConfigPlcOptions)))
 
 testsRewrite :: [FilePath] -> TestTree
 testsRewrite =
   testGroup "golden rewrite tests"
-    . fmap (asGolden (format (prettyConfigPlcClassic prettyConfigPlcOptions)))
+    . fmap (asGolden (modifyError ParseErrorE . format (prettyConfigPlcClassic prettyConfigPlcOptions)))
 
 tests :: TestTree
 tests =

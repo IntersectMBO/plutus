@@ -26,7 +26,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Codec.Serialise (DeserialiseFailure, deserialiseOrFail)
 import Control.DeepSeq (force)
-import Control.Monad.Except (runExcept)
+import Control.Monad.Except
 import Control.Monad.IO.Class (liftIO)
 import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
