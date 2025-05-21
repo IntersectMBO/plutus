@@ -1,3 +1,7 @@
+cpu: 194866927
+mem: 589080
+size: 772
+
 (constr
   1
   (constr 0 (con integer 103) (con integer 33))

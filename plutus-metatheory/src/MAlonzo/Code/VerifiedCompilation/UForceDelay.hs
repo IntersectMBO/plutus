@@ -453,11 +453,92 @@ d_forceDelaySimpleAfter_158
       (coe
          MAlonzo.Code.Untyped.C__'183'__22
          (coe
+            C_abs_128
+            (coe
+               C_last'45'delay_130
+               (coe
+                  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+                  (coe
+                     MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66))))
+         (coe
+            MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+            (coe
+               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66)))
+-- VerifiedCompilation.UForceDelay.multiApplied
+d_multiApplied_146 :: T_FD_116
+d_multiApplied_146
+  = coe
+      C_force_122
+      (coe
+         C_force_122
+         (coe
+            C_app_126
+            (coe
+               C_abs_128
+               (coe
+                  C_app_126
+                  (coe
+                     C_abs_128
+                     (coe
+                        C_delay_124
+                        (coe
+                           C_last'45'delay_130
+                           (coe
+                              MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+                              (coe
+                                 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_var_34)))))
+                  (coe
+                     MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+                     (coe
+                        MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_var_34))))
+            (coe
+               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+               (coe
+                  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_var_34))))
+-- VerifiedCompilation.UForceDelay.nested
+d_nested_148 :: T_FD_116
+d_nested_148
+  = coe
+      C_force_122
+      (coe
+         C_delay_124
+         (coe
+            C_app_126
+            (coe
+               C_abs_128
+               (coe
+                  C_force_122
+                  (coe
+                     C_delay_124
+                     (coe
+                        C_app_126
+                        (coe
+                           C_last'45'abs_132
+                           (coe
+                              MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+                              (coe
+                                 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66)))
+                        (coe
+                           MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+                           (coe
+                              MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66))))))
+            (coe
+               MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_match_106
+               (coe
+                  MAlonzo.Code.VerifiedCompilation.UntypedTranslation.C_con_66))))
+-- VerifiedCompilation.UForceDelay.forceDelaySimpleBefore
+d_forceDelaySimpleBefore_150 :: MAlonzo.Code.Untyped.T__'8866'_14
+d_forceDelaySimpleBefore_150
+  = coe
+      MAlonzo.Code.Untyped.C__'183'__22
+      (coe
+         MAlonzo.Code.Untyped.C_force_24
+         (coe
             MAlonzo.Code.Untyped.C__'183'__22
             (coe
-               MAlonzo.Code.Untyped.C_ƛ_20
+               MAlonzo.Code.Untyped.C_force_24
                (coe
-                  MAlonzo.Code.Untyped.C_ƛ_20
+                  MAlonzo.Code.Untyped.C__'183'__22
                   (coe
                      MAlonzo.Code.Untyped.C_ƛ_20
                      (coe
@@ -2316,6 +2397,10 @@ d_'46'extendedlambda3_338 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda4
 d_'46'extendedlambda4_366 ::
   () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2616,6 +2701,11 @@ d_'46'extendedlambda15_1208 = erased
 d_'46'extendedlambda16_1232 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda13_814 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda14
+d_'46'extendedlambda14_830 ::
+  () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
   T_Zipper_84 ->
@@ -2664,6 +2754,16 @@ d_'46'extendedlambda18_1286 ::
 d_'46'extendedlambda18_1286 = erased
 -- VerifiedCompilation.UForceDelay..extendedlambda19
 d_'46'extendedlambda19_1358 ::
+  () ->
+  () ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  AgdaAny ->
+  AgdaAny ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+d_'46'extendedlambda15_846 = erased
+-- VerifiedCompilation.UForceDelay..extendedlambda16
+d_'46'extendedlambda16_914 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -2728,6 +2828,14 @@ d_'46'extendedlambda22_1524 ::
   T_Zipper_84 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (T_FD_120 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
+  () ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  T_Zipper_84 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  (T_FD_116 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->

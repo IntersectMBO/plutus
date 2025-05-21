@@ -55,14 +55,10 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext1-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-4" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
-                        [SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext1-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-20" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
-                        [SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)]
           ]
     ]
 
@@ -76,14 +72,10 @@ testCheckDataSc1 = testGroup "checkScriptContext1"
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext1-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-4" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
-                        [Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext1-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-20" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
-                        [Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 20)]
           ]
     ]
 
@@ -97,14 +89,10 @@ testCheckSOPSc2 = testGroup "checkScriptContext2"
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext2-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-4" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext2-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-20" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)]
                    ]
     ]
 
@@ -118,40 +106,28 @@ testCheckDataSc2 = testGroup "checkScriptContext2"
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext2-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-4" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
-                        [Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext2-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-20" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
-                        [Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 20)]
                    ]
     ]
 
 testCheckSOPScEquality :: TestTree
 testCheckSOPScEquality = testGroup "checkScriptContextEquality"
-    [ runTestGhcSOP [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
+    [ runTestGhcSOP [ Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityData-20" $
                         SOP.SC.mkScriptContextEqualityDataCode (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
-                        [SOP.SC.mkScriptContextEqualityDataCode (SOP.SC.mkScriptContext 20)]
-                   , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityOverhead-20" $
                         SOP.SC.mkScriptContextEqualityOverheadCode (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
-                        [SOP.SC.mkScriptContextEqualityOverheadCode (SOP.SC.mkScriptContext 20)]
                    ]
     ]
 
 testCheckDataScEquality :: TestTree
 testCheckDataScEquality = testGroup "checkScriptContextEquality"
-    [ runTestGhcData [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
+    [ runTestGhcData [ Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityData-20" $
                         Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
-                        [Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)]
-                   , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityOverhead-20" $
                         Data.SC.mkScriptContextEqualityOverheadCode (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
-                        [Data.SC.mkScriptContextEqualityOverheadCode (Data.SC.mkScriptContext 20)]
                    ]
     ]
 
@@ -160,8 +136,7 @@ testSOPFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "sopFwdStakeTrick" testAbsCode
-          , Tx.goldenBudget "sopFwdStakeTrick" testCode
-          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          , Tx.goldenEvalCekCatchBudget "sopFwdStakeTrick" testCode
           ]
   where
      testCredential =
@@ -178,8 +153,7 @@ testDataFwdStakeTrick =
      runTestGhcSOP
           [ Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrick" testAbsCode
-          , Tx.goldenBudget "dataFwdStakeTrick" testCode
-          , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
+          , Tx.goldenEvalCekCatchBudget "dataFwdStakeTrick" testCode
           ]
   where
      testCredential =
@@ -196,8 +170,7 @@ testDataFwdStakeTrickManual =
      runTestGhcSOP
           [ Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
-          , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
-          , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
+          , Tx.goldenEvalCekCatchBudget "dataFwdStakeTrickManual" testCode
           ]
   where
      testCredential =

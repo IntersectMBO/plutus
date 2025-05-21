@@ -1,1 +1,5 @@
+cpu: 12570977
+mem: 50224
+size: 73
+
 (con (list data) [I 8, I 9, I 10])

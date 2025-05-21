@@ -38,7 +38,7 @@ strict = testNested "Strict" . pure $ testNestedGhc
   -- in this instance (see
   -- https://github.com/IntersectMBO/plutus/pull/5371#discussion_r1285087508),
   -- however we have now fixed the bug on our side so it's just GHC being annoying.
-  , goldenEvalCekLog "issue4645" [ issue4645 ]
+  , goldenEvalCekLog "issue4645" issue4645
   ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
