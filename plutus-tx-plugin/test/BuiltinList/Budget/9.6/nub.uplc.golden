@@ -1,9 +1,9 @@
 (program
    1.1.0
    ((\caseList' ->
-       (\go xs -> go [] xs)
+       (\go xs -> go xs [])
          ((\s -> s s)
-            (\s xs ->
+            (\s l xs ->
                caseList'
                  []
                  (\y ys ->
@@ -22,9 +22,8 @@
                             xs)
                          [ (delay (s s ys xs))
                          , (delay
-                              (force mkCons
-                                 y
-                                 (s s ys (force mkCons y xs)))) ])))))
+                              (force mkCons y (s s ys (force mkCons y xs)))) ]))
+                 l)))
       (\z f xs ->
          force
            (force (force chooseList)

@@ -260,7 +260,7 @@ findIndex f = go 0
 --
 infixl 9 !!
 (!!) :: forall a. [a] -> Integer -> a
-_   !! n0 | n0 < 0 = traceError negativeIndexError -- Builtin . lessThan
+_   !! n0 | n0 < 0 = traceError negativeIndexError
 xs0 !! n0 = go n0 xs0
   where
     go :: Integer -> [a] -> a
@@ -387,7 +387,6 @@ nubBy eq l = nubBy' l []
 {-# INLINABLE nubBy #-}
 
 -- | Plutus Tx version of 'Data.List.zipWith'.
--- TODO loses elements if the lists are of different lengths
 zipWith :: forall a b c. (a -> b -> c) -> [a] -> [b] -> [c]
 zipWith f = go
   where
