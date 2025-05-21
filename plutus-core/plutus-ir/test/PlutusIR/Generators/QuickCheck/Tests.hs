@@ -28,6 +28,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek (restrictingLarge, runCekNoEmit,
                                                  unsafeSplitStructuralOperational)
 
 import Control.Exception
+import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Char
 import Data.Either

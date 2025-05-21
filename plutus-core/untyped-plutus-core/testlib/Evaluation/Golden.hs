@@ -27,6 +27,7 @@ import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
+import Control.Monad.Except
 import Data.Bifunctor
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
@@ -419,7 +420,7 @@ runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()
     -> Either (Error DefaultUni DefaultFun ()) (Normalized (Type TyName DefaultUni ()))
 runTypecheck term =
-  runQuoteT $ do
+  runQuoteT $ modifyError TypeErrorE $ do
     tcConfig <- getDefTypeCheckConfig ()
     inferType tcConfig term
 

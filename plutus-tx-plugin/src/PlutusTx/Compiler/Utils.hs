@@ -14,7 +14,7 @@ import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
 
 import Control.Monad ((<=<))
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except
 import Control.Monad.Reader (MonadReader, ask)
 
 import Language.Haskell.TH.Syntax qualified as TH

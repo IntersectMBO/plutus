@@ -32,7 +32,6 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Normalize
 import PlutusCore.Pretty
 
-import Control.Lens.TH
 import Control.Monad.Except
 import Data.Proxy
 import Data.String
@@ -55,13 +54,6 @@ data TypeEvalCheckError uni fun
           !(EvaluationResult (HeadSpine (Term TyName Name uni fun ())))
           !(EvaluationResult (Term TyName Name uni fun ()))
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
-makeClassyPrisms ''TypeEvalCheckError
-
-instance ann ~ () => AsError (TypeEvalCheckError uni fun) uni fun ann where
-    _Error = _TypeEvalCheckErrorIllFormed . _Error
-
-instance ann ~ () => AsTypeError (TypeEvalCheckError uni fun) (Term TyName Name uni fun ann) uni fun ann where
-    _TypeError = _TypeEvalCheckErrorIllFormed . _TypeError
 
 -- | Type-eval checking of a term results in a value of this type.
 data TypeEvalCheckResult uni fun = TypeEvalCheckResult
@@ -107,7 +99,7 @@ typeEvalCheckBy
 typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
         valExpected = makeKnownOrFail x
-    tyActual <- runQuoteT $ do
+    tyActual <- runQuoteT $ modifyError (TypeEvalCheckErrorIllFormed . TypeErrorE) $ do
         config <- getDefTypeCheckConfig ()
         inferType config term
     if tyExpected == tyActual

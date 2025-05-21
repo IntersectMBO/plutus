@@ -8,6 +8,8 @@
 
 module PlutusCore.Generators.QuickCheck.Common where
 
+import PlutusPrelude
+
 import PlutusCore.Default
 import PlutusCore.Name.Unique
 import PlutusCore.TypeCheck (defKindCheckConfig)
@@ -15,7 +17,7 @@ import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
 import PlutusIR.Error
 
-import Data.Bifunctor
+import Control.Monad.Except
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import GHC.Stack
@@ -23,8 +25,6 @@ import Test.QuickCheck.Gen (Gen)
 import Test.QuickCheck.Gen qualified as Gen
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
-import Text.Pretty
-import Text.PrettyBy
 import Text.PrettyBy.Internal
 
 instance Testable (Either String ()) where
@@ -42,10 +42,10 @@ type TypeCtx = Map TyName (Kind ())
 -- | Infer the kind of a type in a given kind context
 inferKind :: TypeCtx -> Type TyName DefaultUni () -> Either String (Kind ())
 inferKind ctx ty =
-    first display . runTypeCheckM defKindCheckConfig $
+    first display . modifyError (PLCTypeError) . runTypeCheckM defKindCheckConfig $
         foldr
             (uncurry withTyVar)
-            (inferKindM @(Error DefaultUni DefaultFun ()) ty)
+            (inferKindM @_ @DefaultUni @DefaultFun ty)
             (Map.toList ctx)
 
 -- | Partial unsafeInferKind, useful for context where invariants are set up to guarantee

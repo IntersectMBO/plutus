@@ -22,15 +22,15 @@ import Universe.Core (HasUniApply (matchUniApply), SomeTypeIn (..))
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram
-    :: (AsNormCheckError e tyname name uni fun ann, HasUniApply uni, MonadError e m)
+    :: (HasUniApply uni, MonadError (NormCheckError tyname name uni fun ann) m)
     => Program tyname name uni fun ann -> m ()
 checkProgram (Program _ _ t) = checkTerm t
 
 -- | Ensure that all types in the 'Term' are normalized.
 checkTerm
-    :: (AsNormCheckError e tyname name uni fun ann, HasUniApply uni, MonadError e m)
+    :: (HasUniApply uni, MonadError (NormCheckError tyname name uni fun ann) m)
     => Term tyname name uni fun ann -> m ()
-checkTerm p = throwingEither _NormCheckError $ check p
+checkTerm p = liftEither $ check p
 
 check
     :: HasUniApply uni

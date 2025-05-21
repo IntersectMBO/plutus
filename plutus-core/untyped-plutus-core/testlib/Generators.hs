@@ -18,7 +18,7 @@ import PlutusCore.Generators.Hedgehog.AST (AstGen, runAstGen)
 import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlc)
-import PlutusCore.Quote (QuoteT, runQuoteT)
+import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test (isSerialisable)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, termAnn)
@@ -107,7 +107,7 @@ propTermSrcSpan = testPropertyNamed
         annotateShow code
         let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
         trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
-        case runQuoteT . parseTerm @ParserErrorBundle $ code <> trailingSpaces of
+        case runQuoteT . parseTerm $ code <> trailingSpaces of
             Right parsed ->
                 let sp = termAnn parsed
                  in (srcSpanELine sp, srcSpanECol sp) === (endingLine, endingCol + 1)
@@ -131,7 +131,7 @@ propUnit = testCase "Unit" $ fold
         pTerm
             = either (error . display) display
             . runQuoteT
-            . parseTerm @_ @(QuoteT (Either ParserErrorBundle))
+            . parseTerm
             . T.pack
 
 propDefaultUni :: TestTree
@@ -149,7 +149,7 @@ propDefaultUni = testCase "DefaultUni" $ fold
         pDefaultUni
             = either (error . display) display
             . runQuoteT
-            . parseGen @_ @(QuoteT (Either ParserErrorBundle)) defaultUni
+            . parseGen defaultUni
             . T.pack
 
 test_parsing :: TestTree

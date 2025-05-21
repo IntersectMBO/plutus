@@ -10,21 +10,16 @@
 {-# LANGUAGE UndecidableInstances   #-}
 module PlutusIR.Error
     ( Error (..)
-    , PLC.AsTypeError (..)
     , PLC.TypeError
-    , AsTypeErrorExt (..)
-    , AsError (..)
     , TypeErrorExt (..)
     , PLC.Normalized (..)
     ) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Error qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR qualified as PIR
 import PlutusPrelude
 
-import Control.Lens
 import Data.Text qualified as T
 import Prettyprinter as PP
 
@@ -35,7 +30,6 @@ data TypeErrorExt uni ann =
          !(PLC.Type PLC.TyName uni ann)
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
-makeClassyPrisms ''TypeErrorExt
 
 data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation error.
                      | UnsupportedError !a !T.Text -- ^ An error relating specifically to an unsupported feature.
@@ -44,22 +38,6 @@ data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation er
                      | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
                      | PIRTypeError !(TypeErrorExt uni a)
                      deriving stock (Functor)
-makeClassyPrisms ''Error
-
-instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a where
-    _TypeError = _PLCTypeError
-
-instance AsTypeErrorExt (Error uni fun a) uni a where
-    _TypeErrorExt = _PIRTypeError
-
-instance PLC.AsFreeVariableError (Error uni fun a) where
-    _FreeVariableError = _PLCError . PLC._FreeVariableError
-
-instance PLC.AsUniqueError (Error uni fun a) a where
-    _UniqueError = _PLCError . PLC._UniqueError
-
-instance PLC.AsParserErrorBundle (Error uni fun a) where
-    _ParserErrorBundle = _PLCError . PLC._ParseErrorE
 
 -- Pretty-printing
 ------------------
