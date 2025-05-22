@@ -43,6 +43,8 @@ import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
+import PlutusIR.Core.Instance.ShowRocq
+
 import Data.Hashable
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -62,6 +64,9 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
+  , Show fun
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -80,6 +85,9 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
+  , Show fun
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -118,6 +126,9 @@ compileWithOpts ::
   , Default (BuiltinsInfo uni fun)
   , Default (PLC.CostingPart uni fun)
   , Default (RewriteRules uni fun)
+  , Show fun
+  , PLC.Everywhere uni (ComposeC Show AsRocq)
+  , PLC.GShow (AsRocqUni uni)
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->
@@ -128,7 +139,7 @@ compileWithOpts optsMod pir = do
   tcConfig <- PLC.getDefTypeCheckConfig noProvenance
   let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
   flip runReaderT pirCtx $ runQuoteT $ do
-    compiled <- compileProgram pir
+    compiled <- compileProgram (\_ -> return ()) pir
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms
     -- and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR

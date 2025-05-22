@@ -45,6 +45,7 @@ rewritePass ::
 rewritePass tcconfig rules =
   NamedPass "rewrite rules" $
     Pass
+      PassRewriteRules
       (rewriteWith rules)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

@@ -414,6 +414,7 @@ floatTermPass ::
 floatTermPass tcconfig binfo =
   NamedPass "let float-out" $
     Pass
+      PassFloatOut
       (pure . floatTerm binfo)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

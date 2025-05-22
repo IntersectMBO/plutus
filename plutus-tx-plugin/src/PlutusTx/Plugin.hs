@@ -49,6 +49,7 @@ import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
 import PlutusCore.Version qualified as PLC
 
+import PlutusIR.Core.Instance.ShowRocq qualified as PIR
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusIR qualified as PIR
@@ -73,6 +74,9 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Monoid.Extra (mwhen)
 import Data.Set qualified as Set
+import Data.Text (Text)
+import Data.Text qualified as Text
+import Data.Text.IO qualified as T
 import GHC.Num.Integer qualified
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusIR.Compiler.Provenance (noProvenance, original)
@@ -80,7 +84,7 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (hPutStrLn, openBinaryTempFile, stderr)
+import System.IO (hClose, hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 
 import Certifier
@@ -541,18 +545,26 @@ runCompiler moduleName opts expr = do
     -- GHC.Core -> Pir translation.
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
     let pirP = PIR.Program noProvenance plcVersion pirT
-    when (opts ^. posDumpPir) . liftIO $
+    when (opts ^. posDumpPir) . liftIO $ do
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
+    (dumpCert, closeCertHandle) <- liftIO getDumpCert
+    liftIO $ dumpCert (Text.pack (show . PIR.AsRocq $ void pirT))
+
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
-    when (opts ^. posDumpPir) . liftIO $
+    spirP <- flip runReaderT pirCtx $ PIR.compileToReadable (liftIO . dumpCert) pirP
+    when (opts ^. posDumpPir) . liftIO $ do
         dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
+
     -- (Simplified) Pir -> Plc translation.
-    plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
+    plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc (liftIO . dumpCert) spirP
     when (opts ^. posDumpPlc) . liftIO $
         dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
+
+    -- For now, we only dump the PIR -> PLC ASTs for the certifier,
+    -- so the handle can be closed.
+    liftIO closeCertHandle
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (opts ^. posDoTypecheck) . void $
@@ -593,6 +605,18 @@ runCompiler moduleName opts expr = do
         (tPath, tHandle) <- openBinaryTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
+
+      -- Open a handle for dumping ASTs for the certifier
+      getDumpCert :: IO (Text -> IO (), IO ())
+      getDumpCert =
+        if (opts ^. posDumpCertTrace)
+          then do
+            let fileName = moduleName ++ ".cert_trace"
+            (tPath, tHandle) <- openBinaryTempFile "." fileName
+            putStrLn $ "!!! Dumping ASTs for certifier in: " ++ show tPath
+            return (T.hPutStrLn tHandle, hClose tHandle)
+          else
+            return (\_ -> return (), return ())
 
       getSrcSpans :: PIR.Provenance Ann -> SrcSpans
       getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList

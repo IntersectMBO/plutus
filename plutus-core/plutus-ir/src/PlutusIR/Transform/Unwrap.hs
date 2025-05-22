@@ -41,4 +41,4 @@ unwrapCancelPass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-unwrapCancelPass tcconfig = simplePass "wrap-unwrap cancel" tcconfig unwrapCancel
+unwrapCancelPass tcconfig = simplePass "wrap-unwrap cancel" PassUnwrapWrap tcconfig unwrapCancel

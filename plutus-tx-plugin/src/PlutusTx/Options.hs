@@ -77,6 +77,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
   , _posCertify                        :: Maybe String
+  , _posDumpCertTrace                  :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -307,6 +308,9 @@ pluginOptions =
             rest <- many (alphaNumChar <|> char '_' <|> char '\\')
             pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+    , let k = "dump-cert-trace"
+          desc = "Dump trace of ASTs for certifier (currently only PIR)"
+       in (k, PluginOption typeRep (setTrue k) posDumpCertTrace desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -379,6 +383,7 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posDumpCertTrace = False
     }
 
 processOne ::

@@ -47,6 +47,7 @@ caseOfCasePass ::
 caseOfCasePass tcconfig binfo conservative newAnn =
   NamedPass "case-of-case" $
     Pass
+      PassCaseOfCase
       (caseOfCase binfo conservative newAnn)
       [Typechecks tcconfig, GloballyUniqueNames]
       [ConstCondition (Typechecks tcconfig)]

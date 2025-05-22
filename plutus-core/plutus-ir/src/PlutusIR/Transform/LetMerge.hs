@@ -36,4 +36,4 @@ letMergePass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-letMergePass tcconfig = simplePass "let merge" tcconfig letMerge
+letMergePass tcconfig = simplePass "let merge" PassLetMerge tcconfig letMerge

@@ -10,6 +10,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Generators.QuickCheck (forAllDoc)
 import PlutusCore.Pretty qualified as PLC
+import PlutusIR.Core.Instance.ShowRocq
 import PlutusIR.Core.Type
 import PlutusIR.Error qualified as PIR
 import PlutusIR.Generators.QuickCheck
@@ -41,6 +42,7 @@ runTestPass
   :: (PLC.ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.Pretty a
+     , ShowRocq tyname name uni fun a
      , Typeable a
      , Monoid a
      , Monad m
@@ -51,7 +53,7 @@ runTestPass
 runTestPass pass t = do
   res <- runExceptT $ do
     tcconfig <- TC.getDefTypeCheckConfig mempty
-    runPass (\_ -> pure ()) True (pass tcconfig) t
+    runPass (\_ -> pure ()) (\_ -> pure ()) True (pass tcconfig) t
   case res of
     Left e  -> throw e
     Right v -> pure v
@@ -77,7 +79,11 @@ testPassProp exitMonad pass =
 -- of the term, and a more specific "exit" function.
 testPassProp' ::
   forall m tyname name a prop
-  . (Monad m, Testable prop)
+  . ( Monad m
+    , Testable prop
+    , Show (AsRocq tyname)
+    , Show (AsRocq name)
+    )
   => a
   -> (Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
       -> Term tyname name PLC.DefaultUni PLC.DefaultFun a)
@@ -92,6 +98,6 @@ testPassProp' ann before after pass =
       res = do
         tcconfig <- getDefTypeCheckConfig ann
         let tm' = before tm
-        _ <- runPass (\_ -> pure ()) True (pass tcconfig) tm'
+        _ <- runPass (\_ -> pure ()) (\_ -> pure ()) True (pass tcconfig) tm'
         pure ()
     in after res

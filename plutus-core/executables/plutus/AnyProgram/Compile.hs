@@ -79,9 +79,9 @@ compileProgram = curry $ \case
     -- pir to plc
     ----------------------------------------
     (SPir n1@SName a1, SPlc n2 SUnit) ->
-      withA @Ord a1 $ withA @Pretty a1 $ withA @AnnInline a1 $
+      withA @Ord a1 $ withA @Pretty a1 $ withA @Show a1 $ withA @AnnInline a1 $
         -- Note: PIR.compileProgram subsumes pir typechecking
-        (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
+        (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram (const (return ())))
         >=> plcToOutName n1 n2
         -- completely drop annotations for now
         >=> pure . void
