@@ -739,6 +739,11 @@ bls12_381_G1_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G1_Element -> Built
 bls12_381_G1_scalarMul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.scalarMul n a)
 {-# OPAQUE bls12_381_G1_scalarMul #-}
 
+bls12_381_G1_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_multiScalarMul (BuiltinList i) (BuiltinList e) =
+    BuiltinBLS12_381_G1_Element $ BLS12_381.G1.multiScalarMul i (fmap (\(BuiltinBLS12_381_G1_Element x) -> x) e)
+{-# OPAQUE bls12_381_G1_multiScalarMul #-}
+
 -- | Compresses a G1 element to a bytestring and never fails.
 bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
 bls12_381_G1_compress (BuiltinBLS12_381_G1_Element a) = BuiltinByteString (BLS12_381.G1.compress a)
@@ -803,6 +808,11 @@ bls12_381_G2_neg (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (
 bls12_381_G2_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.scalarMul n a)
 {-# OPAQUE bls12_381_G2_scalarMul #-}
+
+bls12_381_G2_multiScalarMul :: BuiltinList BuiltinInteger -> BuiltinList BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_multiScalarMul (BuiltinList i) (BuiltinList e) =
+    BuiltinBLS12_381_G2_Element $ BLS12_381.G2.multiScalarMul i (fmap (\(BuiltinBLS12_381_G2_Element x) -> x) e)
+{-# OPAQUE bls12_381_G2_multiScalarMul #-}
 
 -- | Compresses a G2 element to a bytestring and never fails.
 bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
