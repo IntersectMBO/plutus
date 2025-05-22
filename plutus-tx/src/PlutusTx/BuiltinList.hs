@@ -317,7 +317,7 @@ head = caseList
 last :: forall a. BuiltinList a -> a
 last = caseList
   ( \_ -> traceError lastEmptyBuiltinListError )
-  ( \x -> caseList' x ( \_ -> last )
+  ( \x xs -> caseList' x ( \_ _ -> last xs ) xs
   )
 {-# INLINABLE last #-}
 

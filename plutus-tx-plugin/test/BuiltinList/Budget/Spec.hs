@@ -120,7 +120,7 @@ empty :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 empty = $$(compile [|| \_ -> L.empty ||])
 
 singleton :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-singleton = $$(compile [|| \_ -> L.singleton 1 ||])
+singleton = $$(compile [|| \_ -> L.singleton 42 ||])
 
 null :: CompiledCode (L.BuiltinList Integer -> Bool)
 null = $$(compile [|| \xs -> L.null xs ||])
@@ -159,7 +159,7 @@ foldr :: CompiledCode (L.BuiltinList Integer -> Integer)
 foldr = $$(compile [|| \xs -> L.foldr (P.+) 0 xs ||])
 
 foldl :: CompiledCode (L.BuiltinList Integer -> Integer)
-foldl = $$(compile [|| \xs -> L.foldl (P.*) 0 xs ||])
+foldl = $$(compile [|| \xs -> L.foldl (P.*) 1 xs ||])
 
 listToMaybeJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
 listToMaybeJust = $$(compile [|| \xs -> L.listToMaybe xs ||])
@@ -222,16 +222,16 @@ elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
 elemBy = $$(compile [|| \xs -> L.elemBy (P.<=) 0 xs ||])
 
 nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nub = $$(compile [|| \xs -> L.nub xs ||])
+nub = $$(compile [|| \xs -> L.nub (L.concat xs xs xs) ||])
 
 nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nubBy = $$(compile [|| \xs -> L.nubBy (P.>=) xs ||])
+nubBy = $$(compile [|| \xs -> L.nubBy (P.<=) xs ||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 
 l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
-l2 = liftCodeDef $ toBuiltin ([True, False] :: [Bool])
+l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
 
 -- TODO The following functions cannot compile because they require implementation of
 -- arbitrarily nested BuiltinList types.
