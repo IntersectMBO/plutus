@@ -408,7 +408,8 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekStepCounter s, GivenCekCosts)
 
 data CekUserError
-    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+    = CaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
+    | CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
@@ -511,6 +512,10 @@ instance AsUnliftingError CekUserError where
     _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
 
 instance Pretty CekUserError where
+    pretty (CaseBuiltinError err) = vcat
+        [ "'case' over a value of a built-in type failed with"
+        , pretty err
+        ]
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
         cat
           [ "The machine terminated part way through evaluation due to overspending the budget."
@@ -786,7 +791,7 @@ enterComputeCek = computeCek
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
         VCon val -> case caseBuiltin val cs of
-            Left err  -> throwingDischarged _StructuralError (CaseBuiltinError err) e
+            Left err  -> throwingDischarged _OperationalError (CaseBuiltinError err) e
             Right res -> computeCek ctx env res
         _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
 

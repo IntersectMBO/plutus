@@ -41,7 +41,6 @@ import PlutusCore.Pretty
 
 import Control.Lens
 import Data.Either.Extras
-import Data.Text (Text)
 import Data.Word (Word64)
 import Prettyprinter
 
@@ -67,8 +66,6 @@ data MachineError fun
       -- ^ An attempt to go into a non-existent case branch.
     | PanicMachineError String
       -- ^ A GHC exception was thrown.
-    | CaseBuiltinError Text
-      -- ^ 'Case' over a value of a built-in type failed.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -138,8 +135,4 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
     prettyBy _      (PanicMachineError err) = vcat
         [ "Panic: a GHC exception was thrown, please report this as a bug."
         , "The error: " <+> pretty err
-        ]
-    prettyBy _      (CaseBuiltinError err) = vcat
-        [ "'case' over a value of a built-in type failed with"
-        , pretty err
         ]

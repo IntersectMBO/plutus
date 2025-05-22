@@ -1215,6 +1215,56 @@ test_Bitwise_CIP0123 =
             ]
         ]
 
+test_Case :: TestTree
+test_Case =
+    testGroup "Case on constants"
+        [ QC.testProperty "Bool success" . QC.withMaxSuccess 99 $
+            \(scrut :: Bool) (i :: Integer) (j :: Integer) ->
+                let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
+                    term =
+                        kase ()
+                            (mkTyBuiltin @_ @Integer ())
+                            (mkConstant () scrut)
+                            [mkConstant () i, mkConstant () j]
+                in Right (EvaluationSuccess . mkConstant () $ if not scrut then i else j) QC.===
+                    typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+        , QC.testProperty "Bool any" . QC.withMaxSuccess 99 $
+            \(scrut :: Bool) (is :: [Integer]) ->
+                let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
+                    term =
+                        kase ()
+                            (mkTyBuiltin @_ @Integer ())
+                            (mkConstant () scrut)
+                            (map (mkConstant ()) is)
+                in case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term of
+                    Left _                        -> False
+                    Right EvaluationFailure       -> length is /= 2 && (scrut || length is /= 1)
+                    Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromEnum scrut)
+        , QC.testProperty "Integer success" . QC.withMaxSuccess 99 $
+            \(QC.NonEmpty is :: QC.NonEmptyList Integer) ->
+                QC.forAll (QC.chooseInt (0, length is - 1)) $ \scrut ->
+                    let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
+                        term =
+                            kase ()
+                                (mkTyBuiltin @_ @Integer ())
+                                (mkConstant () $ toInteger scrut)
+                                (map (mkConstant ()) is)
+                    in Right (EvaluationSuccess . mkConstant () $ is !! scrut) QC.===
+                        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+        , QC.testProperty "Integer any" . QC.withMaxSuccess 99 $
+            \(scrut :: Integer) (is :: [Integer]) ->
+                let term :: TermLike term tyname name DefaultUni DefaultFun => term ()
+                    term =
+                        kase ()
+                            (mkTyBuiltin @_ @Integer ())
+                            (mkConstant () scrut)
+                            (map (mkConstant ()) is)
+                in case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term of
+                    Left _                        -> False
+                    Right EvaluationFailure       -> 0 > scrut || scrut >= fromIntegral (length is)
+                    Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromIntegral scrut)
+        ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -1258,4 +1308,5 @@ test_definition =
         , test_Conversion
         , test_Bitwise_CIP0122
         , test_Bitwise_CIP0123
+        , test_Case
         ]

@@ -212,7 +212,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               in computeCek ctx' env t
         Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
     VCon val -> case caseBuiltin val cs of
-        Left err  -> throwingDischarged _StructuralError (CaseBuiltinError err) e
+        Left err  -> throwingDischarged _OperationalError (CaseBuiltinError err) e
         Right res -> pure $ Computing ctx env res
     _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
 
