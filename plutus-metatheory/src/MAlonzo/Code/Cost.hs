@@ -1,48 +1,48 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Cost where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Float qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Algebra.Structures qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Cost.Base qualified
-import MAlonzo.Code.Cost.Model qualified
-import MAlonzo.Code.Cost.Raw qualified
-import MAlonzo.Code.Data.Bool.Base qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.Nat.Show qualified
-import MAlonzo.Code.Data.String.Base qualified
-import MAlonzo.Code.Data.String.Properties qualified
-import MAlonzo.Code.Data.Tree.AVL qualified
-import MAlonzo.Code.Data.Tree.AVL.Map qualified
-import MAlonzo.Code.Data.Tree.AVL.Value qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
-import MAlonzo.Code.Text.Printf qualified
-import MAlonzo.Code.Untyped.CEK qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Float
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Algebra.Structures
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Cost.Base
+import qualified MAlonzo.Code.Cost.Model
+import qualified MAlonzo.Code.Cost.Raw
+import qualified MAlonzo.Code.Data.Bool.Base
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.Nat.Show
+import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.Data.String.Properties
+import qualified MAlonzo.Code.Data.Tree.AVL
+import qualified MAlonzo.Code.Data.Tree.AVL.Map
+import qualified MAlonzo.Code.Data.Tree.AVL.Value
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
+import qualified MAlonzo.Code.Text.Printf
+import qualified MAlonzo.Code.Untyped.CEK
+import qualified MAlonzo.Code.Utils
 
 -- Cost.AVL.Map
 d_Map_6 :: MAlonzo.Code.Agda.Primitive.T_Level_18 -> () -> ()
@@ -55,13 +55,13 @@ d_ExCPU_58 :: T_ExBudget_52 -> Integer
 d_ExCPU_58 v0
   = case coe v0 of
       C_mkExBudget_62 v1 v2 -> coe v1
-      _                     -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.ExBudget.ExMem
 d_ExMem_60 :: T_ExBudget_52 -> Integer
 d_ExMem_60 v0
   = case coe v0 of
       C_mkExBudget_62 v1 v2 -> coe v2
-      _                     -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.fromHExBudget
 d_fromHExBudget_64 ::
   MAlonzo.Code.Cost.Raw.T_HExBudget_6 -> T_ExBudget_52
@@ -250,7 +250,7 @@ d_lookup_158 v0 v1
       (case coe v2 of
          MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3 -> coe v3
          MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe d_ε'8364'_68
-         _                                            -> MAlonzo.RTE.mazUnreachableError)
+         _ -> MAlonzo.RTE.mazUnreachableError)
 -- Cost.εT
 d_εT_178 ::
   MAlonzo.Code.Utils.T__'215'__366

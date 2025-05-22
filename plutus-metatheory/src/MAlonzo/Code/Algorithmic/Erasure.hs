@@ -1,37 +1,37 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Algorithmic.Erasure where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Algorithmic qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Data.Fin.Base qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Declarative qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.BetaNBE qualified
-import MAlonzo.Code.Type.BetaNormal qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.Code.Utils.List qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Algorithmic
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Declarative
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.BetaNBE
+import qualified MAlonzo.Code.Type.BetaNormal
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Utils
+import qualified MAlonzo.Code.Utils.List
 
 -- Algorithmic.Erasure.len⋆
 d_len'8902'_4 :: MAlonzo.Code.Type.T_Ctx'8902'_2 -> ()

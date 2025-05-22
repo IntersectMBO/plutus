@@ -1,57 +1,57 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeApplications #-}
 
 module MAlonzo.Code.Builtin where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Int qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Data.Fin.Base qualified
-import MAlonzo.Code.Data.List.NonEmpty.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Int
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Fin.Base
+import qualified MAlonzo.Code.Data.List.NonEmpty.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
+import qualified MAlonzo.Code.Utils
 
+import PlutusCore.Default
 import Control.Composition ((.*))
-import Data.Bits (toIntegralSized)
-import Data.ByteString qualified as BS
-import Data.Either.Extra (eitherToMaybe)
-import Data.Text qualified as Text
-import Data.Text.Encoding
-import Data.Word (Word8)
+import qualified Data.ByteString as BS
 import Debug.Trace (trace)
-import PlutusCore.Bitwise qualified as Bitwise
+import PlutusCore.Crypto.Hash as Hash
+import Data.Text.Encoding
+import qualified Data.Text as Text
+import Data.Either.Extra (eitherToMaybe)
+import Data.Word (Word8)
+import Data.Bits (toIntegralSized)
+import PlutusCore.Crypto.Ed25519
+import PlutusCore.Crypto.Secp256k1
+import PlutusPrelude (reoption)
 import PlutusCore.Builtin (BuiltinResult)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
-import PlutusCore.Crypto.Ed25519
+import PlutusCore.Bitwise qualified as Bitwise
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
-import PlutusCore.Crypto.Hash as Hash
-import PlutusCore.Crypto.Secp256k1
-import PlutusCore.Default
-import PlutusPrelude (reoption)
 builtinResultToMaybe :: BuiltinResult a -> Maybe a
 builtinResultToMaybe = reoption
 -- Builtin.Builtin
@@ -333,95 +333,95 @@ check_dropList_180 = DropList
 cover_Builtin_2 :: DefaultFun -> ()
 cover_Builtin_2 x
   = case x of
-      AddInteger                      -> ()
-      SubtractInteger                 -> ()
-      MultiplyInteger                 -> ()
-      DivideInteger                   -> ()
-      QuotientInteger                 -> ()
-      RemainderInteger                -> ()
-      ModInteger                      -> ()
-      EqualsInteger                   -> ()
-      LessThanInteger                 -> ()
-      LessThanEqualsInteger           -> ()
-      AppendByteString                -> ()
-      ConsByteString                  -> ()
-      SliceByteString                 -> ()
-      LengthOfByteString              -> ()
-      IndexByteString                 -> ()
-      EqualsByteString                -> ()
-      LessThanByteString              -> ()
-      LessThanEqualsByteString        -> ()
-      Sha2_256                        -> ()
-      Sha3_256                        -> ()
-      Blake2b_256                     -> ()
-      VerifyEd25519Signature          -> ()
-      VerifyEcdsaSecp256k1Signature   -> ()
+      AddInteger -> ()
+      SubtractInteger -> ()
+      MultiplyInteger -> ()
+      DivideInteger -> ()
+      QuotientInteger -> ()
+      RemainderInteger -> ()
+      ModInteger -> ()
+      EqualsInteger -> ()
+      LessThanInteger -> ()
+      LessThanEqualsInteger -> ()
+      AppendByteString -> ()
+      ConsByteString -> ()
+      SliceByteString -> ()
+      LengthOfByteString -> ()
+      IndexByteString -> ()
+      EqualsByteString -> ()
+      LessThanByteString -> ()
+      LessThanEqualsByteString -> ()
+      Sha2_256 -> ()
+      Sha3_256 -> ()
+      Blake2b_256 -> ()
+      VerifyEd25519Signature -> ()
+      VerifyEcdsaSecp256k1Signature -> ()
       VerifySchnorrSecp256k1Signature -> ()
-      AppendString                    -> ()
-      EqualsString                    -> ()
-      EncodeUtf8                      -> ()
-      DecodeUtf8                      -> ()
-      IfThenElse                      -> ()
-      ChooseUnit                      -> ()
-      Trace                           -> ()
-      FstPair                         -> ()
-      SndPair                         -> ()
-      ChooseList                      -> ()
-      MkCons                          -> ()
-      HeadList                        -> ()
-      TailList                        -> ()
-      NullList                        -> ()
-      ChooseData                      -> ()
-      ConstrData                      -> ()
-      MapData                         -> ()
-      ListData                        -> ()
-      IData                           -> ()
-      BData                           -> ()
-      UnConstrData                    -> ()
-      UnMapData                       -> ()
-      UnListData                      -> ()
-      UnIData                         -> ()
-      UnBData                         -> ()
-      EqualsData                      -> ()
-      SerialiseData                   -> ()
-      MkPairData                      -> ()
-      MkNilData                       -> ()
-      MkNilPairData                   -> ()
-      Bls12_381_G1_add                -> ()
-      Bls12_381_G1_neg                -> ()
-      Bls12_381_G1_scalarMul          -> ()
-      Bls12_381_G1_equal              -> ()
-      Bls12_381_G1_hashToGroup        -> ()
-      Bls12_381_G1_compress           -> ()
-      Bls12_381_G1_uncompress         -> ()
-      Bls12_381_G2_add                -> ()
-      Bls12_381_G2_neg                -> ()
-      Bls12_381_G2_scalarMul          -> ()
-      Bls12_381_G2_equal              -> ()
-      Bls12_381_G2_hashToGroup        -> ()
-      Bls12_381_G2_compress           -> ()
-      Bls12_381_G2_uncompress         -> ()
-      Bls12_381_millerLoop            -> ()
-      Bls12_381_mulMlResult           -> ()
-      Bls12_381_finalVerify           -> ()
-      Keccak_256                      -> ()
-      Blake2b_224                     -> ()
-      ByteStringToInteger             -> ()
-      IntegerToByteString             -> ()
-      AndByteString                   -> ()
-      OrByteString                    -> ()
-      XorByteString                   -> ()
-      ComplementByteString            -> ()
-      ReadBit                         -> ()
-      WriteBits                       -> ()
-      ReplicateByte                   -> ()
-      ShiftByteString                 -> ()
-      RotateByteString                -> ()
-      CountSetBits                    -> ()
-      FindFirstSetBit                 -> ()
-      Ripemd_160                      -> ()
-      ExpModInteger                   -> ()
-      DropList                        -> ()
+      AppendString -> ()
+      EqualsString -> ()
+      EncodeUtf8 -> ()
+      DecodeUtf8 -> ()
+      IfThenElse -> ()
+      ChooseUnit -> ()
+      Trace -> ()
+      FstPair -> ()
+      SndPair -> ()
+      ChooseList -> ()
+      MkCons -> ()
+      HeadList -> ()
+      TailList -> ()
+      NullList -> ()
+      ChooseData -> ()
+      ConstrData -> ()
+      MapData -> ()
+      ListData -> ()
+      IData -> ()
+      BData -> ()
+      UnConstrData -> ()
+      UnMapData -> ()
+      UnListData -> ()
+      UnIData -> ()
+      UnBData -> ()
+      EqualsData -> ()
+      SerialiseData -> ()
+      MkPairData -> ()
+      MkNilData -> ()
+      MkNilPairData -> ()
+      Bls12_381_G1_add -> ()
+      Bls12_381_G1_neg -> ()
+      Bls12_381_G1_scalarMul -> ()
+      Bls12_381_G1_equal -> ()
+      Bls12_381_G1_hashToGroup -> ()
+      Bls12_381_G1_compress -> ()
+      Bls12_381_G1_uncompress -> ()
+      Bls12_381_G2_add -> ()
+      Bls12_381_G2_neg -> ()
+      Bls12_381_G2_scalarMul -> ()
+      Bls12_381_G2_equal -> ()
+      Bls12_381_G2_hashToGroup -> ()
+      Bls12_381_G2_compress -> ()
+      Bls12_381_G2_uncompress -> ()
+      Bls12_381_millerLoop -> ()
+      Bls12_381_mulMlResult -> ()
+      Bls12_381_finalVerify -> ()
+      Keccak_256 -> ()
+      Blake2b_224 -> ()
+      ByteStringToInteger -> ()
+      IntegerToByteString -> ()
+      AndByteString -> ()
+      OrByteString -> ()
+      XorByteString -> ()
+      ComplementByteString -> ()
+      ReadBit -> ()
+      WriteBits -> ()
+      ReplicateByte -> ()
+      ShiftByteString -> ()
+      RotateByteString -> ()
+      CountSetBits -> ()
+      FindFirstSetBit -> ()
+      Ripemd_160 -> ()
+      ExpModInteger -> ()
+      DropList -> ()
 -- Builtin.SugaredSignature.∙
 d_'8729'_184 :: MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
 d_'8729'_184

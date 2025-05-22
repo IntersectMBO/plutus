@@ -1,43 +1,43 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.VerifiedCompilation.Equality where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Data.Bool.Properties qualified
-import MAlonzo.Code.Data.Integer.Properties qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.List.Properties qualified
-import MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base qualified
-import MAlonzo.Code.Data.Maybe.Properties qualified
-import MAlonzo.Code.Data.Nat.Properties qualified
-import MAlonzo.Code.Data.String.Properties qualified
-import MAlonzo.Code.Data.Unit.Properties qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Bool.Properties
+import qualified MAlonzo.Code.Data.Integer.Properties
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.List.Properties
+import qualified MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
+import qualified MAlonzo.Code.Data.Maybe.Properties
+import qualified MAlonzo.Code.Data.Nat.Properties
+import qualified MAlonzo.Code.Data.String.Properties
+import qualified MAlonzo.Code.Data.Unit.Properties
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Utils
 
 -- VerifiedCompilation.Equality.DecEq
 d_DecEq_6 a0 = ()
@@ -52,7 +52,7 @@ d__'8799'__12 ::
 d__'8799'__12 v0
   = case coe v0 of
       C_DecEq'46'constructor_11 v1 -> coe v1
-      _                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Equality._._≟_
 d__'8799'__16 ::
   T_DecEq_6 ->
@@ -1340,7 +1340,7 @@ d_hsEq_266 :: T_HsEq_260 -> AgdaAny -> AgdaAny -> Bool
 d_hsEq_266 v0
   = case coe v0 of
       C_HsEq'46'constructor_30775 v1 -> coe v1
-      _                              -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Equality._.hsEq
 d_hsEq_270 :: T_HsEq_260 -> AgdaAny -> AgdaAny -> Bool
 d_hsEq_270 v0 = coe d_hsEq_266 (coe v0)

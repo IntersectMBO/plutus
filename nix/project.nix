@@ -37,9 +37,10 @@ let
       modules = [
         {
           packages = {
-
-            plutus-executables.components.tests.test-certifier.build-tools =
-              [ metatheory.agda-with-stdlib-and-metatheory ];
+            plutus-executables.components.tests.test-certifier.postInstall = '' 
+              wrapProgram $out/bin/test-certifier \
+                --prefix "PATH" ":" "${metatheory.agda-with-stdlib-and-metatheory}/bin"
+            '';
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];

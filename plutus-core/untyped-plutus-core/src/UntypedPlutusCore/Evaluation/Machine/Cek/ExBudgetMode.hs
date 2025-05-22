@@ -149,9 +149,8 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
                     -- @spend@ without this bang. Bangs on @cpuLeft'@ and @memLeft'@ don't help
                     -- either as those are forced by 'writeCpu' and 'writeMem' anyway. Go figure.
                     !budgetLeft = ExBudget cpuLeft' memLeft'
-                throwingWithCause _EvaluationError
-                    (OperationalEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
-                    Nothing
+                throwing _OperationalError
+                    (CekOutOfExError $ ExRestrictingBudget budgetLeft)
         spender = CekBudgetSpender spend
         remaining = ExBudget <$> readCpu <*> readMem
         cumulative = do
