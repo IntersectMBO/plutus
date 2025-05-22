@@ -532,12 +532,15 @@ outOfBoundsErr x branches = fold
 instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
     caseBuiltin (Some (ValueOf uni x)) branches = case uni of
         DefaultUniBool -> case x of
+            -- We allow there to be only one branch as long as the scrutinee is 'False'.
+            -- This is strictly to save size by not having the 'True' branch if it was gonna be
+            -- 'Error' anyway.
             False | len == 1 || len == 2 -> Right $ branches Vector.! 0
             True  |             len == 2 -> Right $ branches Vector.! 1
             _                            -> Left  $ outOfBoundsErr x branches
         DefaultUniInteger
-            | 0 <= x && x < fromIntegral len -> Right $ branches Vector.! fromIntegral x
-            | otherwise                      -> Left  $ outOfBoundsErr x branches
+            | 0 <= x && x < toInteger len -> Right $ branches Vector.! fromInteger x
+            | otherwise                   -> Left  $ outOfBoundsErr x branches
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches

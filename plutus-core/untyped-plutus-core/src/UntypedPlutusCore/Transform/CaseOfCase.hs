@@ -33,7 +33,6 @@ into
 @
 
 This is always an improvement.
-
 -}
 module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
 

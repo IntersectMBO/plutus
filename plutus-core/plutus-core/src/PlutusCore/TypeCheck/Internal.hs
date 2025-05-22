@@ -574,9 +574,10 @@ inferTypeM (Case ann resTy scrut branches) = do
             -- for the number of branches
             Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
         TyBuiltin _ someUni -> case annotateCaseBuiltin someUni branches of
-            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
+            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
+                vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
                 -- made of sub-parts of a normalized type, so normalized
-                checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
+                checkTypeM ann c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))
             Left err -> throwing _TypeError $ UnsupportedCaseBuiltin ann err
         -- scrutinee does not have a SOP type at all
         _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
