@@ -187,9 +187,9 @@ stack |> Constr _ ty i es               = case es of
     t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
 _     |> err@Error{}             =
-    throwingWithCause _OperationalEvaluationError CkEvaluationFailure $ void err
+    throwingWithCause _OperationalError CkEvaluationFailure $ void err
 _     |> var@Var{}               =
-    throwingWithCause _MachineError OpenTermEvaluatedMachineError var
+    throwingWithCause _StructuralError OpenTermEvaluatedMachineError var
 
 -- FIXME: make sure that the specification is up to date and that this matches.
 -- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
@@ -217,7 +217,7 @@ FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _               ->
-        throwingWithCause _MachineError NonWrapUnwrappedMachineError $ ckValueToTerm wrapped
+        throwingWithCause _StructuralError NonWrapUnwrappedMachineError $ ckValueToTerm wrapped
 FrameConstr ty i todo done : stack <| e =
     let done' = e:done
     in case todo of
@@ -230,8 +230,8 @@ FrameCase cs : stack <| e = case e of
             go [] s         = s
             go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
         Nothing ->
-            throwingWithCause _MachineError (MissingCaseBranchMachineError i) $ ckValueToTerm e
-    _ -> throwingWithCause _MachineError NonConstrScrutinizedMachineError $ ckValueToTerm e
+            throwingWithCause _StructuralError (MissingCaseBranchMachineError i) $ ckValueToTerm e
+    _ -> throwingWithCause _StructuralError NonConstrScrutinizedMachineError $ ckValueToTerm e
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
 --
@@ -290,9 +290,9 @@ instantiateEvaluate stack ty (VBuiltin term runtime) = do
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
         BuiltinExpectForce runtime' -> evalBuiltinApp stack term' runtime'
-        _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError term'
+        _ -> throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'
 instantiateEvaluate _ _ val =
-    throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ ckValueToTerm val
+    throwingWithCause _StructuralError NonPolymorphicInstantiationMachineError $ ckValueToTerm val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a lambda, then perform substitution and proceed.
@@ -315,9 +315,9 @@ applyEvaluate stack (VBuiltin term runtime) arg = do
         BuiltinExpectArgument f -> do
             evalBuiltinApp stack term' $ f arg
         _ ->
-            throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError term'
+            throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'
 applyEvaluate _ val _ =
-    throwingWithCause _MachineError NonFunctionalApplicationMachineError $ ckValueToTerm val
+    throwingWithCause _StructuralError NonFunctionalApplicationMachineError $ ckValueToTerm val
 
 runCk
     :: BuiltinsRuntime fun (CkValue uni fun)
