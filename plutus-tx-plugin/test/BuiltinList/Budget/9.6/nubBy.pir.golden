@@ -32,9 +32,9 @@ letrec
                              Bool_match
                                (ifThenElse
                                   {Bool}
-                                  (lessThanInteger x y)
-                                  False
-                                  True)
+                                  (lessThanEqualsInteger x y)
+                                  True
+                                  False)
                                {all dead. Bool}
                                (/\dead -> True)
                                (/\dead -> go xs)

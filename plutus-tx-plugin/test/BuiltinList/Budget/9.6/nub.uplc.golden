@@ -1,7 +1,12 @@
 (program
    1.1.0
    ((\caseList' ->
-       (\go xs -> go xs [])
+       (\go xs ->
+          go
+            ((\s -> s s)
+               (\s -> caseList' xs (\x xs -> force mkCons x (s s xs)))
+               xs)
+            [])
          ((\s -> s s)
             (\s l xs ->
                caseList'

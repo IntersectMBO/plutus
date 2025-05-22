@@ -16,9 +16,9 @@
                                  (\x xs ->
                                     force
                                       (force ifThenElse
-                                         (lessThanInteger x y)
-                                         (delay (s s xs))
-                                         (delay (constr 0 [])))))
+                                         (lessThanEqualsInteger x y)
+                                         (delay (constr 0 []))
+                                         (delay (s s xs)))))
                             xs)
                          [ (delay (s s ys xs))
                          , (delay

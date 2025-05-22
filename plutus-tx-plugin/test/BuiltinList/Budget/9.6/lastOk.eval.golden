@@ -1,2 +1,5 @@
-An error has occurred:
-The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+cpu: 17967427
+mem: 78056
+size: 87
+
+(con integer 10)
