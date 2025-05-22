@@ -1,36 +1,36 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Main where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.IO qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Cost.Raw qualified
-import MAlonzo.Code.Evaluator.Base qualified
-import MAlonzo.Code.Evaluator.Program qualified
-import MAlonzo.Code.IO.Primitive.Core qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.IO
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Cost.Raw
+import qualified MAlonzo.Code.Evaluator.Base
+import qualified MAlonzo.Code.Evaluator.Program
+import qualified MAlonzo.Code.IO.Primitive.Core
+import qualified MAlonzo.Code.Utils
 
-import Data.Text.IO qualified as TextIO
+import qualified Data.Text.IO as TextIO
+import System.Exit
 import FFI.Opts
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
-import System.Exit
 -- Main.putStrLn
 d_putStrLn_12 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
@@ -102,7 +102,7 @@ check_Typecheck_42 = Typecheck
 cover_Command_36 :: Command a1 -> ()
 cover_Command_36 x
   = case x of
-      Eval _      -> ()
+      Eval _ -> ()
       Typecheck _ -> ()
 -- Main.execP
 d_execP_44 ::

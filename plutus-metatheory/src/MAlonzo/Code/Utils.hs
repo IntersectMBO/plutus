@@ -1,40 +1,40 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Utils where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Agda.Builtin.Unit qualified
-import MAlonzo.Code.Agda.Primitive qualified
-import MAlonzo.Code.Data.Irrelevant qualified
-import MAlonzo.Code.Data.Maybe.Base qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Agda.Builtin.Unit
+import qualified MAlonzo.Code.Agda.Primitive
+import qualified MAlonzo.Code.Data.Irrelevant
+import qualified MAlonzo.Code.Data.Maybe.Base
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
-import Data.ByteString qualified as BS
-import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
-import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
-import PlutusCore.Data as D
 import Raw
+import qualified Data.ByteString as BS
+import PlutusCore.Data as D
+import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
+import qualified PlutusCore.Crypto.BLS12_381.G2 as G2
+import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing
 type Pair a b = (a , b)
 -- Utils.Either
 d_Either_6 a0 a1 = ()
@@ -48,7 +48,7 @@ check_inj'8322'_14 = Right
 cover_Either_6 :: Either a1 a2 -> ()
 cover_Either_6 x
   = case x of
-      Left _  -> ()
+      Left _ -> ()
       Right _ -> ()
 -- Utils.either
 d_either_22 ::
@@ -65,7 +65,7 @@ du_either_22 v0 v1 v2
   = case coe v0 of
       C_inj'8321'_12 v3 -> coe v1 v3
       C_inj'8322'_14 v3 -> coe v2 v3
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.eitherBind
 d_eitherBind_42 ::
   () ->
@@ -83,7 +83,7 @@ du_eitherBind_42 v0 v1
   = case coe v0 of
       C_inj'8321'_12 v2 -> coe v0
       C_inj'8322'_14 v2 -> coe v1 v2
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.decIf
 d_decIf_56 ::
   () ->
@@ -179,7 +179,7 @@ d_return_202 :: T_Monad_186 -> () -> AgdaAny -> AgdaAny
 d_return_202 v0
   = case coe v0 of
       C_Monad'46'constructor_12257 v1 v2 -> coe v1
-      _                                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.Monad._>>=_
 d__'62''62''61'__208 ::
   T_Monad_186 ->
@@ -187,7 +187,7 @@ d__'62''62''61'__208 ::
 d__'62''62''61'__208 v0
   = case coe v0 of
       C_Monad'46'constructor_12257 v1 v2 -> coe v2
-      _                                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.Monad._>>_
 d__'62''62'__214 ::
   (() -> ()) ->
@@ -261,7 +261,7 @@ du_sumBind_248 v0 v1
   = case coe v0 of
       MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v2 -> coe v1 v2
       MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v2 -> coe v0
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.SumMonad
 d_SumMonad_262 :: () -> T_Monad_186
 d_SumMonad_262 ~v0 = du_SumMonad_262
@@ -302,7 +302,7 @@ du_withE_282 v0 v1
   = case coe v1 of
       C_inj'8321'_12 v2 -> coe C_inj'8321'_12 (coe v0 v2)
       C_inj'8322'_14 v2 -> coe v1
-      _                 -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.dec2Either
 d_dec2Either_294 ::
   () ->
@@ -332,13 +332,13 @@ d_wrvalue_314 :: T_Writer_304 -> AgdaAny
 d_wrvalue_314 v0
   = case coe v0 of
       C__'44'__318 v1 v2 -> coe v1
-      _                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.Writer.accum
 d_accum_316 :: T_Writer_304 -> AgdaAny
 d_accum_316 v0
   = case coe v0 of
       C__'44'__318 v1 v2 -> coe v2
-      _                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.WriterMonad.WriterMonad
 d_WriterMonad_328 ::
   () -> AgdaAny -> (AgdaAny -> AgdaAny -> AgdaAny) -> T_Monad_186
@@ -384,8 +384,8 @@ check_runtimeTypeError_354 = RuntimeTypeError
 cover_RuntimeError_348 :: RuntimeError -> ()
 cover_RuntimeError_348 x
   = case x of
-      GasError         -> ()
-      UserError        -> ()
+      GasError -> ()
+      UserError -> ()
       RuntimeTypeError -> ()
 -- Utils.ByteString
 type T_ByteString_356 = BS.ByteString
@@ -415,13 +415,13 @@ d_proj'8321'_376 :: T__'215'__366 AgdaAny AgdaAny -> AgdaAny
 d_proj'8321'_376 v0
   = case coe v0 of
       C__'44'__380 v1 v2 -> coe v1
-      _                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils._×_.proj₂
 d_proj'8322'_378 :: T__'215'__366 AgdaAny AgdaAny -> AgdaAny
 d_proj'8322'_378 v0
   = case coe v0 of
       C__'44'__380 v1 v2 -> coe v2
-      _                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Utils.List
 d_List_384 a0 = ()
 type T_List_384 a0 = [] a0
@@ -435,7 +435,7 @@ check__'8759'__390 = (:)
 cover_List_384 :: [] a1 -> ()
 cover_List_384 x
   = case x of
-      []      -> ()
+      [] -> ()
       (:) _ _ -> ()
 -- Utils.length
 d_length_394 :: () -> T_List_384 AgdaAny -> Integer
@@ -509,9 +509,9 @@ du_drop_444 v0 v1
       _ -> let v2 = subInt (coe v0) (coe (1 :: Integer)) in
            coe
              (case coe v1 of
-                C_'91''93'_388       -> coe v1
+                C_'91''93'_388 -> coe v1
                 C__'8759'__390 v3 v4 -> coe du_drop_444 (coe v2) (coe v4)
-                _                    -> MAlonzo.RTE.mazUnreachableError)
+                _ -> MAlonzo.RTE.mazUnreachableError)
 -- Utils.map-cong
 d_map'45'cong_468 ::
   () ->
@@ -546,10 +546,10 @@ cover_DATA_478 :: Data -> ()
 cover_DATA_478 x
   = case x of
       D.Constr _ _ -> ()
-      D.Map _      -> ()
-      D.List _     -> ()
-      D.I _        -> ()
-      D.B _        -> ()
+      D.Map _ -> ()
+      D.List _ -> ()
+      D.I _ -> ()
+      D.B _ -> ()
 -- Utils.eqDATA
 d_eqDATA_490 :: T_DATA_478 -> T_DATA_478 -> Bool
 d_eqDATA_490 = (==)
@@ -598,6 +598,6 @@ check__'8658'__642 = Arrow
 cover_Kind_636 :: KIND -> ()
 cover_Kind_636 x
   = case x of
-      Star      -> ()
-      Sharp     -> ()
+      Star -> ()
+      Sharp -> ()
       Arrow _ _ -> ()

@@ -1,33 +1,33 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Raw where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Constant.AtomicType qualified
-import MAlonzo.Code.Data.Bool.Base qualified
-import MAlonzo.Code.Data.Integer.Show qualified
-import MAlonzo.Code.Data.Nat.Properties qualified
-import MAlonzo.Code.Data.String.Base qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Constant.AtomicType
+import qualified MAlonzo.Code.Data.Bool.Base
+import qualified MAlonzo.Code.Data.Integer.Show
+import qualified MAlonzo.Code.Data.Nat.Properties
+import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Utils
 
 import Raw
 -- Raw.RawTy
@@ -65,14 +65,14 @@ check_SOP_22 = RTySOP
 cover_RawTy_2 :: RType -> ()
 cover_RawTy_2 x
   = case x of
-      RTyVar _      -> ()
-      RTyFun _ _    -> ()
-      RTyPi _ _     -> ()
+      RTyVar _ -> ()
+      RTyFun _ _ -> ()
+      RTyPi _ _ -> ()
       RTyLambda _ _ -> ()
-      RTyApp _ _    -> ()
-      RTyCon _      -> ()
-      RTyMu _ _     -> ()
-      RTySOP _      -> ()
+      RTyApp _ _ -> ()
+      RTyCon _ -> ()
+      RTyMu _ _ -> ()
+      RTySOP _ -> ()
 -- Raw.RawTyCon
 d_RawTyCon_4 = ()
 type T_RawTyCon_4 = RTyCon
@@ -91,8 +91,8 @@ cover_RawTyCon_4 :: RTyCon -> ()
 cover_RawTyCon_4 x
   = case x of
       RTyConAtom _ -> ()
-      RTyConList   -> ()
-      RTyConPair   -> ()
+      RTyConList -> ()
+      RTyConPair -> ()
 -- Raw.RawTm
 d_RawTm_30 = ()
 type T_RawTm_30 = RTerm
@@ -141,18 +141,18 @@ check_case_66 = RCase
 cover_RawTm_30 :: RTerm -> ()
 cover_RawTm_30 x
   = case x of
-      RVar _        -> ()
-      RTLambda _ _  -> ()
-      RTApp _ _     -> ()
-      RLambda _ _   -> ()
-      RApp _ _      -> ()
-      RCon _        -> ()
-      RError _      -> ()
-      RBuiltin _    -> ()
-      RWrap _ _ _   -> ()
-      RUnWrap _     -> ()
+      RVar _ -> ()
+      RTLambda _ _ -> ()
+      RTApp _ _ -> ()
+      RLambda _ _ -> ()
+      RApp _ _ -> ()
+      RCon _ -> ()
+      RError _ -> ()
+      RBuiltin _ -> ()
+      RWrap _ _ _ -> ()
+      RUnWrap _ -> ()
       RConstr _ _ _ -> ()
-      RCase _ _ _   -> ()
+      RCase _ _ _ -> ()
 -- Raw.decRTyCon
 d_decRTyCon_72 :: T_RawTyCon_4 -> T_RawTyCon_4 -> Bool
 d_decRTyCon_72 v0 v1
@@ -171,11 +171,11 @@ d_decRTyCon_72 v0 v1
          C_list_26
            -> case coe v1 of
                 C_list_26 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
-                _         -> coe v2
+                _ -> coe v2
          C_pair_28
            -> case coe v1 of
                 C_pair_28 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
-                _         -> coe v2
+                _ -> coe v2
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Raw.decRKi
 d_decRKi_82 ::
@@ -257,7 +257,7 @@ d_decRTy_100 v0 v1
          C_con_16 v3
            -> case coe v1 of
                 C_con_16 v4 -> coe d_decRTyCon_72 (coe v3) (coe v4)
-                _           -> coe v2
+                _ -> coe v2
          C_μ_18 v3 v4
            -> case coe v1 of
                 C_μ_18 v5 v6
@@ -269,7 +269,7 @@ d_decRTy_100 v0 v1
          C_SOP_22 v3
            -> case coe v1 of
                 C_SOP_22 v4 -> coe d_decRTyListList_112 (coe v3) (coe v4)
-                _           -> coe v2
+                _ -> coe v2
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Raw.decRTyList
 d_decRTyList_106 ::
@@ -372,7 +372,7 @@ d_decRTm_186 v0 v1
          C_error_44 v3
            -> case coe v1 of
                 C_error_44 v4 -> coe d_decRTy_100 (coe v3) (coe v4)
-                _             -> coe v2
+                _ -> coe v2
          C_builtin_46 v3
            -> case coe v1 of
                 C_builtin_46 v4
@@ -394,7 +394,7 @@ d_decRTm_186 v0 v1
          C_unwrap_50 v3
            -> case coe v1 of
                 C_unwrap_50 v4 -> coe d_decRTm_186 (coe v3) (coe v4)
-                _              -> coe v2
+                _ -> coe v2
          C_constr_58 v3 v4 v5
            -> case coe v1 of
                 C_constr_58 v6 v7 v8

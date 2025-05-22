@@ -1,25 +1,25 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Builtin.Constant.AtomicType where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Bool qualified
-import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
-import MAlonzo.Code.Relation.Nullary.Reflects qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
+import qualified MAlonzo.Code.Relation.Nullary.Reflects
 
 import Raw
 -- Builtin.Constant.AtomicType.AtomicTyCon
@@ -57,15 +57,15 @@ check_aBls12'45'381'45'mlresult_24 = ATyConBLS12_381_MlResult
 cover_AtomicTyCon_6 :: AtomicTyCon -> ()
 cover_AtomicTyCon_6 x
   = case x of
-      ATyConInt                  -> ()
-      ATyConBS                   -> ()
-      ATyConStr                  -> ()
-      ATyConUnit                 -> ()
-      ATyConBool                 -> ()
-      ATyConData                 -> ()
+      ATyConInt -> ()
+      ATyConBS -> ()
+      ATyConStr -> ()
+      ATyConUnit -> ()
+      ATyConBool -> ()
+      ATyConData -> ()
       ATyConBLS12_381_G1_Element -> ()
       ATyConBLS12_381_G2_Element -> ()
-      ATyConBLS12_381_MlResult   -> ()
+      ATyConBLS12_381_MlResult -> ()
 -- Builtin.Constant.AtomicType.decAtomicTyCon
 d_decAtomicTyCon_26 ::
   T_AtomicTyCon_6 ->
