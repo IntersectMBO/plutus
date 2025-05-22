@@ -529,6 +529,12 @@ outOfBoundsErr x branches = fold
     , display $ Vector.length branches
     ]
 
+instance AnnotateCaseBuiltin DefaultUni where
+    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
+        DefaultUniBool    -> Right $ map (, []) branches
+        DefaultUniInteger -> Right $ map (, []) branches
+        _                 -> Left $ display uni <> " isn't supported in 'case'"
+
 instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
     caseBuiltin (Some (ValueOf uni x)) branches = case uni of
         DefaultUniBool -> case x of
@@ -544,12 +550,6 @@ instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
-
-instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
-        DefaultUniBool    -> Right $ map (, []) branches
-        DefaultUniInteger -> Right $ map (, []) branches
-        _                 -> Left $ display uni <> " isn't supported in 'case'"
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
