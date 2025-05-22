@@ -2,4 +2,4 @@ cpu: 64100
 mem: 500
 size: 4
 
-(con (list integer) [1])
+(con (list integer) [42])

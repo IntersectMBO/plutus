@@ -222,7 +222,7 @@ elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
 elemBy = $$(compile [|| \xs -> L.elemBy (P.<=) 0 xs ||])
 
 nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nub = $$(compile [|| \xs -> L.nub (L.concat xs xs xs) ||])
+nub = $$(compile [|| \xs -> L.nub (L.append xs xs) ||])
 
 nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 nubBy = $$(compile [|| \xs -> L.nubBy (P.<=) xs ||])

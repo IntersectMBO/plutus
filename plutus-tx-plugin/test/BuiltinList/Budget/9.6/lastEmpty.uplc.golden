@@ -9,7 +9,10 @@
                     caseList'
                       (\ds -> (\x -> error) (force trace "PT25" (constr 0 [])))
                       (\x xs ds ->
-                         caseList' x (\ds -> force (s s (delay (\x -> x)))) xs)
+                         caseList'
+                           x
+                           (\ds ds -> force (s s (delay (\x -> x))) xs)
+                           xs)
                       l
                       (constr 0 [])))
             (delay (\x -> x))))

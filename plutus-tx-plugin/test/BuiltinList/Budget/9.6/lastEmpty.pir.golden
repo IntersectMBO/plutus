@@ -25,7 +25,7 @@ letrec
                in
                error {a})
             (\(x : a) (xs : list a) (ds : Unit) ->
-               caseList' {a} {a} x (\(ds : a) -> last {a}) xs)
+               caseList' {a} {a} x (\(ds : a) (ds : list a) -> last {a} xs) xs)
             l
             Unit
 in

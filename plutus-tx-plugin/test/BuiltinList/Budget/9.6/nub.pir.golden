@@ -48,4 +48,24 @@ letrec
                {all dead. dead})
           l
 in
-\(xs : list integer) -> go xs []
+\(xs : list integer) ->
+  let
+    !eta : list integer
+      = (let
+            b = list integer
+          in
+          \(f : integer -> b -> b) (acc : b) ->
+            letrec
+              !go : list integer -> b
+                = caseList'
+                    {integer}
+                    {b}
+                    acc
+                    (\(x : integer) (xs : list integer) -> f x (go xs))
+            in
+            go)
+          (mkCons {integer})
+          xs
+          xs
+  in
+  go eta []

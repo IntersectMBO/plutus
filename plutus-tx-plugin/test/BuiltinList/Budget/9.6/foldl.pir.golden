@@ -14,4 +14,4 @@ letrec
              go (multiplyInteger acc x) xs)
           {integer}
 in
-\(xs : list integer) -> go 0 xs
+\(xs : list integer) -> go 1 xs
