@@ -24,7 +24,7 @@ letrec
                !x : Unit = trace {Unit} "PT22" Unit
              in
              error {Unit -> integer})
-          (\(x : integer) (xs : list integer) (ds : Unit) (eta : Unit) ->
+          (\(x : integer) (xs : list integer) (ds : Unit) (ds : Unit) ->
              Bool_match
                (ifThenElse {Bool} (equalsInteger 0 i) True False)
                {all dead. integer}
@@ -35,4 +35,4 @@ letrec
           Unit
           Unit
 in
-\(v : list integer) -> go v 5
+\(xs : list integer) -> go xs 5

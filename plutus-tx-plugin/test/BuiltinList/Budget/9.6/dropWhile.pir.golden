@@ -1,0 +1,30 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : list integer -> list integer
+    = \(xs : list integer) ->
+        (let
+            r = list integer
+          in
+          \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+            chooseList
+              {integer}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+              {r})
+          []
+          (\(x : integer) (xs' : list integer) ->
+             Bool_match
+               (ifThenElse {Bool} (lessThanInteger x 5) True False)
+               {all dead. list integer}
+               (/\dead -> go xs')
+               (/\dead -> xs)
+               {all dead. dead})
+          xs
+in
+\(xs : list integer) -> go xs

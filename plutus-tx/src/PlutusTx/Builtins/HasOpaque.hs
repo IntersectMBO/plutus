@@ -275,7 +275,10 @@ class MkNil arep where
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData
-instance MkNil (BuiltinPair BuiltinData BuiltinData)
+-- TODO: the following two instances are not implemented in the plugin.
+-- They require changes to PlutusTx.Compiler.Expr.compileExpr
+instance (MkNil a) => MkNil (BuiltinList a)
+instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
   toOpaque = goList

@@ -1,0 +1,9 @@
+(program
+   1.1.0
+   (\ds ->
+      force
+        (force (force chooseList)
+           []
+           (delay (\ds -> (\x -> error) (force trace "PT23" (constr 0 []))))
+           (delay ((\x xs ds -> x) (force headList []) (force tailList []))))
+        (constr 0 [])))

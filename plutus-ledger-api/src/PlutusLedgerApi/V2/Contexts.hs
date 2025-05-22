@@ -60,7 +60,7 @@ import PlutusTx.Blueprint.Definition.Derive (definitionRef)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Foldable qualified as F
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List
+import PlutusTx.List hiding (mapMaybe)
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 -- | An input of a pending transaction.

@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\go v -> go v 5)
+   ((\go xs -> go xs 5)
       ((\s -> s s)
          (\s xs i ->
             force
@@ -9,7 +9,7 @@
                  (delay
                     (\ds -> (\x -> error) (force trace "PT22" (constr 0 []))))
                  (delay
-                    ((\x xs ds eta ->
+                    ((\x xs ds ds ->
                         force
                           (force ifThenElse
                              (equalsInteger 0 i)
