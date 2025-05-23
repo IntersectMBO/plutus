@@ -16,21 +16,35 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 otherLaws :: [TestTree]
-otherLaws = [
-  testPropertyNamed "numerator r = numerator . scale (denominator r) $ r" "propNumeratorScale" propNumeratorScale,
-  testPropertyNamed "denominator r >= 1" "propPosDen" propPosDen,
-  testPropertyNamed "recip r * r = 1 for r /= 0" "propRecipSelf" propRecipSelf,
-  testPropertyNamed "abs r >= 0" "propAbs" propAbs,
-  testPropertyNamed "abs r * abs r' = abs (r * r')" "probAbsTimes" propAbsTimes,
-  testPropertyNamed "r = n + f, where (n, f) = properFraction r" "propProperFrac" propProperFrac,
-  testCoverProperty "signs of properFraction components match sign of input" propProperFracSigns,
-  testPropertyNamed "abs f < 1, where (_, f) = properFraction r" "propProperFracAbs" propProperFracAbs,
-  testPropertyNamed "abs (round r) >= abs n, where (n, _) = properFraction r" "propAbsRound" propAbsRound,
-  testPropertyNamed "halves round as expected" "propRoundHalf" propRoundHalf,
-  testPropertyNamed ("if abs f < half, then round r = truncate r, " <>
-                "where (_, f) = properFraction r") "propRoundLow" propRoundLow,
-  testPropertyNamed ("if abs f > half, then abs (round r) = abs (truncate r) + 1, " <>
-                "where (_, f) = properFraction r") "propRoundHigh" propRoundHigh
+otherLaws =
+  [ testPropertyNamed
+      "numerator r = numerator . scale (denominator r) $ r"
+      "propNumeratorScale"
+      propNumeratorScale
+  , testPropertyNamed "denominator r >= 1" "propPosDen" propPosDen
+  , testPropertyNamed "recip r * r = 1 for r /= 0" "propRecipSelf" propRecipSelf
+  , testPropertyNamed "abs r >= 0" "propAbs" propAbs
+  , testPropertyNamed "abs r * abs r' = abs (r * r')" "probAbsTimes" propAbsTimes
+  , testPropertyNamed "r = n + f, where (n, f) = properFraction r" "propProperFrac" propProperFrac
+  , testCoverProperty "signs of properFraction components match sign of input" propProperFracSigns
+  , testPropertyNamed "abs f < 1, where (_, f) = properFraction r" "propProperFracAbs" propProperFracAbs
+  , testPropertyNamed
+      "abs (round r) >= abs n, where (n, _) = properFraction r"
+      "propAbsRound"
+      propAbsRound
+  , testPropertyNamed "halves round as expected" "propRoundHalf" propRoundHalf
+  , testPropertyNamed
+      ( "if abs f < half, then round r = truncate r, "
+          <> "where (_, f) = properFraction r"
+      )
+      "propRoundLow"
+      propRoundLow
+  , testPropertyNamed
+      ( "if abs f > half, then abs (round r) = abs (truncate r) + 1, "
+          <> "where (_, f) = properFraction r"
+      )
+      "propRoundHigh"
+      propRoundHigh
   ]
 
 -- Helpers
@@ -84,20 +98,23 @@ propProperFracSigns = property $ do
     Plutus.LT -> do
       Plutus.compare n Plutus.zero /== Plutus.GT
       Plutus.compare n Plutus.zero /== Plutus.GT
-  where
-    go :: Gen Plutus.Rational
-    go = Gen.choice [zeroNum, sameSign, diffSign]
-    zeroNum :: Gen Plutus.Rational
-    zeroNum = Ratio.unsafeRatio Plutus.zero <$> Gen.filter (/= Plutus.zero) genInteger
-    sameSign :: Gen Plutus.Rational
-    sameSign = do
-      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
-      Ratio.unsafeRatio <$> gen <*> gen
-    diffSign :: Gen Plutus.Rational
-    diffSign = do
-      (genN, genD) <- Gen.element [(genIntegerPos, negate <$> genIntegerPos),
-                                   (negate <$> genIntegerPos, genIntegerPos)]
-      Ratio.unsafeRatio <$> genN <*> genD
+ where
+  go :: Gen Plutus.Rational
+  go = Gen.choice [zeroNum, sameSign, diffSign]
+  zeroNum :: Gen Plutus.Rational
+  zeroNum = Ratio.unsafeRatio Plutus.zero <$> Gen.filter (/= Plutus.zero) genInteger
+  sameSign :: Gen Plutus.Rational
+  sameSign = do
+    gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+    Ratio.unsafeRatio <$> gen <*> gen
+  diffSign :: Gen Plutus.Rational
+  diffSign = do
+    (genN, genD) <-
+      Gen.element
+        [ (genIntegerPos, negate <$> genIntegerPos)
+        , (negate <$> genIntegerPos, genIntegerPos)
+        ]
+    Ratio.unsafeRatio <$> genN <*> genD
 
 propProperFracAbs :: Property
 propProperFracAbs = property $ do
@@ -123,15 +140,15 @@ propRoundHalf = property $ do
     (0, _)      -> rounded === Plutus.zero
     (1, False)  -> rounded === n Plutus.+ Plutus.one
     _           -> rounded === n
-  where
-    go :: Gen (Integer, Plutus.Rational)
-    go = do
-      n <- genInteger
-      f <- case signum n of
-            (-1) -> pure . Ratio.negate $ Ratio.half
-            0    -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
-            _    -> pure Ratio.half
-      pure (n, f)
+ where
+  go :: Gen (Integer, Plutus.Rational)
+  go = do
+    n <- genInteger
+    f <- case signum n of
+      (-1) -> pure . Ratio.negate $ Ratio.half
+      0    -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
+      _    -> pure Ratio.half
+    pure (n, f)
 
 propRoundLow :: Property
 propRoundLow = property $ do
@@ -140,16 +157,16 @@ propRoundLow = property $ do
   let rounded = Ratio.round r
   let truncated = Ratio.truncate r
   rounded === truncated
-  where
-    go :: Gen (Integer, Plutus.Rational)
-    go = do
-      num <- Gen.integral . Range.constant 1 $ 135
-      let f = Ratio.unsafeRatio num 271
-      n <- genInteger
-      case signum n of
-        (-1) -> pure (n, Ratio.negate f)
-        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
-        _    -> pure (n, f)
+ where
+  go :: Gen (Integer, Plutus.Rational)
+  go = do
+    num <- Gen.integral . Range.constant 1 $ 135
+    let f = Ratio.unsafeRatio num 271
+    n <- genInteger
+    case signum n of
+      (-1) -> pure (n, Ratio.negate f)
+      0    -> (n,) <$> Gen.element [f, Ratio.negate f]
+      _    -> pure (n, f)
 
 propRoundHigh :: Property
 propRoundHigh = property $ do
@@ -158,14 +175,13 @@ propRoundHigh = property $ do
   let rounded = Ratio.round r
   let truncated = Ratio.truncate r
   Plutus.abs rounded === Plutus.abs truncated Plutus.+ Plutus.one
-  where
-    go :: Gen (Integer, Plutus.Rational)
-    go = do
-      num <- Gen.integral . Range.constant 136 $ 270
-      let f = Ratio.unsafeRatio num 271
-      n <- genInteger
-      case signum n of
-        (-1) -> pure (n, Ratio.negate f)
-        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
-        _    -> pure (n, f)
-
+ where
+  go :: Gen (Integer, Plutus.Rational)
+  go = do
+    num <- Gen.integral . Range.constant 136 $ 270
+    let f = Ratio.unsafeRatio num 271
+    n <- genInteger
+    case signum n of
+      (-1) -> pure (n, Ratio.negate f)
+      0    -> (n,) <$> Gen.element [f, Ratio.negate f]
+      _    -> pure (n, f)

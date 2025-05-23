@@ -74,7 +74,7 @@ type family will take care of discovering all the nested types:
 
 -}
 
-{- | Designates a class of types that could be used as a Blueprint Definition.
+{-| Designates a class of types that could be used as a Blueprint Definition.
      Each such type:
      - could be unrolled to a list of all nested types (including the type itself).
      - has a unique 'DefinitionId'.
@@ -150,14 +150,14 @@ instance
   type Unroll (a, b, c) = Insert (a, b, c) (Unrolled a ++ Unrolled b ++ Unrolled c)
   definitionId = definitionIdTuple3 <> definitionId @a <> definitionId @b <> definitionId @c
 
-{- | Compile-time error that happens when a type couldn't be unrolled
+{-| Compile-time error that happens when a type couldn't be unrolled
 ('Unroll' TF is "stuck")
 -}
 type family UnrollIsStuckError x where
   UnrollIsStuckError x =
     GHC.TypeError (GHC.Text "No instance: " GHC.:<>: GHC.ShowType (HasBlueprintDefinition x))
 
-{- | Compile-time error that happens when type's generic representation is not defined
+{-| Compile-time error that happens when type's generic representation is not defined
 ('Rep' TF is "stuck")
 -}
 type family RepIsStuckError x where

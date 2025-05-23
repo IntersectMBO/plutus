@@ -14,7 +14,7 @@ import Data.Aeson qualified as Aeson
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Char qualified as Char
 
-{- | Build a JSON object omitting optional keys if a corresponding value is 'Nothing'.
+{-| Build a JSON object omitting optional keys if a corresponding value is 'Nothing'.
 
 Example:
 @
@@ -43,16 +43,16 @@ optionalField = maybe id . requiredField
 requiredField :: (ToJSON a) => Aeson.Key -> a -> Aeson.Object -> Aeson.Object
 requiredField key value = KeyMap.insert key (toJSON value)
 
-{- | A field label modifier that strips a prefix from the camelCased field name;
+{-| A field label modifier that strips a prefix from the camelCased field name;
 >>> stripPrefix "preamble" "preambleTitle"
 "title"
 -}
-stripPrefix ::
-  -- | Field prefix to strip
-  String ->
-  -- | Field name
-  String ->
-  String
+stripPrefix
+  :: String
+  -- ^ Field prefix to strip
+  -> String
+  -- ^ Field name
+  -> String
 stripPrefix prefix field = go (prefix, field)
  where
   go = \case
