@@ -3,13 +3,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
-
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module TH.Spec (tests) where
 
@@ -36,46 +35,51 @@ someData :: (BuiltinData, BuiltinData, BuiltinData)
 someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 tests :: TestNested
-tests = testNested "TH" . pure $ testNestedGhc
-  [ goldenPir "simple" simple
-  , goldenPir "power" powerPlc
-  , goldenPir "and" andPlc
-  , goldenEvalCek "all" allPlc
-  , goldenEvalCek "convertString" convertString
-  , goldenEvalCekLog "traceDirect" traceDirect
-  , goldenEvalCekLog "tracePrelude" tracePrelude
-  , goldenEvalCekLog "traceRepeatedly" traceRepeatedly
-  -- want to see the raw structure, so using Show
-  , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
-  ]
+tests =
+  testNested "TH"
+    . pure
+    $ testNestedGhc
+      [ goldenPir "simple" simple
+      , goldenPir "power" powerPlc
+      , goldenPir "and" andPlc
+      , goldenEvalCek "all" allPlc
+      , goldenEvalCek "convertString" convertString
+      , goldenEvalCekLog "traceDirect" traceDirect
+      , goldenEvalCekLog "tracePrelude" tracePrelude
+      , goldenEvalCekLog "traceRepeatedly" traceRepeatedly
+      , -- want to see the raw structure, so using Show
+        nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
+      ]
 
 simple :: CompiledCode (Bool -> Integer)
-simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])
+simple = $$(compile [||\(x :: Bool) -> if x then (1 :: Integer) else (2 :: Integer)||])
 
 -- similar to the power example for Feldspar - should be completely unrolled at compile time
 powerPlc :: CompiledCode (Integer -> Integer)
-powerPlc = $$(compile [|| $$(power (4::Integer)) ||])
+powerPlc = $$(compile [||$$(power (4 :: Integer))||])
 
 andPlc :: CompiledCode Bool
-andPlc = $$(compile [|| $$(andTH) True False ||])
+andPlc = $$(compile [||$$(andTH) True False||])
 
 allPlc :: CompiledCode Bool
-allPlc = $$(compile [|| List.all (\(x::Integer) -> x > 5) [7, 6] ||])
+allPlc = $$(compile [||List.all (\(x :: Integer) -> x > 5) [7, 6]||])
 
 convertString :: CompiledCode Builtins.BuiltinString
-convertString = $$(compile [|| "test" ||])
+convertString = $$(compile [||"test"||])
 
 traceDirect :: CompiledCode ()
-traceDirect = $$(compile [|| Builtins.trace "test" () ||])
+traceDirect = $$(compile [||Builtins.trace "test" ()||])
 
 tracePrelude :: CompiledCode Integer
-tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])
+tracePrelude = $$(compile [||trace "test" (1 :: Integer)||])
 
 traceRepeatedly :: CompiledCode Integer
-traceRepeatedly = $$(compile
-     [||
-          let i1 = trace "Making my first int" (1::Integer)
-              i2 = trace "Making my second int" (2::Integer)
-              i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
-          in i3
-    ||])
+traceRepeatedly =
+  $$( compile
+        [||
+        let i1 = trace "Making my first int" (1 :: Integer)
+            i2 = trace "Making my second int" (2 :: Integer)
+            i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
+         in i3
+        ||]
+    )

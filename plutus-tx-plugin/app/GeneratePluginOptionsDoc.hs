@@ -17,31 +17,32 @@ import Options.Applicative qualified as OA
 import Prettyprinter
 import PyF (fmt)
 
-
 newtype Params = Params
-    {paramOutputFile :: Text}
+  {paramOutputFile :: Text}
 
 parseParams :: OA.Parser Params
 parseParams = do
-    paramOutputFile <-
-        OA.argument OA.str $
-            mconcat
-                [ OA.metavar "OUTPUT_FILE"
-                , OA.help "Output file path"
-                ]
-    pure Params{..}
+  paramOutputFile <-
+    OA.argument OA.str $
+      mconcat
+        [ OA.metavar "OUTPUT_FILE"
+        , OA.help "Output file path"
+        ]
+  pure Params{..}
 
 main :: IO ()
 main = do
-    params <-
-        OA.execParser $
-            OA.info
-                (parseParams OA.<**> OA.helper)
-                (OA.fullDesc <> OA.header "Generate plugin option documentation")
-    Text.writeFile (Text.unpack $ paramOutputFile params) optionsTable
+  params <-
+    OA.execParser $
+      OA.info
+        (parseParams OA.<**> OA.helper)
+        (OA.fullDesc <> OA.header "Generate plugin option documentation")
+  Text.writeFile (Text.unpack $ paramOutputFile params) optionsTable
 
 optionsTable :: Text
-optionsTable = Text.stripStart $ [fmt|
+optionsTable =
+  Text.stripStart $
+    [fmt|
 ---
 sidebar_position: 5
 ---
@@ -70,5 +71,5 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 genRow :: O.OptionKey -> O.PluginOption -> Text
 genRow k (O.PluginOption tr _ field desc _) =
   [fmt||`{k}`|{show tr}|{show (pretty defaultValue)}|{desc}||]
-    where
-        defaultValue = O.defaultPluginOptions ^. field
+ where
+  defaultValue = O.defaultPluginOptions ^. field

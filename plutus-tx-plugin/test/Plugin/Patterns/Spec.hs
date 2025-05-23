@@ -4,16 +4,15 @@
 {-# LANGUAGE PatternSynonyms   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
+{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
-{-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 
 module Plugin.Patterns.Spec where
 
@@ -34,28 +33,35 @@ pattern EInt' i = EInt i
 pattern ETwoBoth a b = ETwo a b
 pattern ETwo2 b <- ETwo _ b
 
-pattern ERec {hello, world} <- ETwo hello world
-  where ERec hello world = ETwo hello world
+pattern ERec{hello, world} <- ETwo hello world
+  where
+    ERec hello world = ETwo hello world
 
 psym1 :: CompiledCode (Example BuiltinString -> Integer)
-psym1 = plc (Proxy @"psym1") (
-  \(e :: Example BuiltinString) ->
-    case e of
-      EInt' i -> i
-      ETwo2 _ -> 1
-      _       -> 0
-  )
+psym1 =
+  plc
+    (Proxy @"psym1")
+    ( \(e :: Example BuiltinString) ->
+        case e of
+          EInt' i -> i
+          ETwo2 _ -> 1
+          _       -> 0
+    )
 
 psymRec :: CompiledCode BuiltinString
-psymRec = plc (Proxy @"psymRec") (
-  let r = ERec { hello = "wot", world = "yo" }
-  in case r of
-      ERec{world} -> world
-      _           -> "no"
-  )
+psymRec =
+  plc
+    (Proxy @"psymRec")
+    ( let r = ERec{hello = "wot", world = "yo"}
+       in case r of
+            ERec{world} -> world
+            _           -> "no"
+    )
 
 patterns :: TestNested
-patterns = testNested "Patterns" Prelude.. Prelude.pure Prelude.$ testNestedGhc
-  [ goldenPirReadable "psym1" psym1
-  , goldenPirReadable "psymRec" psymRec
-  ]
+patterns =
+  testNested "Patterns" Prelude.. Prelude.pure Prelude.$
+    testNestedGhc
+      [ goldenPirReadable "psym1" psym1
+      , goldenPirReadable "psymRec" psymRec
+      ]

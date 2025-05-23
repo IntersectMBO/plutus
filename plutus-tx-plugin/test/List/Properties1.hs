@@ -1,7 +1,9 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -9,13 +11,12 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
 -- @unordered-containers@ or @hashable@.
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MonoLocalBinds        #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# HLINT ignore "Use elemIndex" #-}
 
 module List.Properties1 where
@@ -39,10 +40,10 @@ import Hedgehog.Gen qualified as Gen
 import List.Semantics
 
 toSOPProgram :: CompiledCode (Data.List Integer -> [Integer])
-toSOPProgram = $$(compile [|| Data.List.toSOP ||])
+toSOPProgram = $$(compile [||Data.List.toSOP||])
 
 fromSOPProgram :: CompiledCode ([Integer] -> Data.List Integer)
-fromSOPProgram = $$(compile [|| Data.List.fromSOP ||])
+fromSOPProgram = $$(compile [||Data.List.fromSOP||])
 
 toSOPSpec :: Property
 toSOPSpec = property $ do
@@ -50,9 +51,9 @@ toSOPSpec = property $ do
   let list = semanticsToDataList listS
       expected = semanticsToList listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ toSOPProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        toSOPProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
@@ -63,18 +64,18 @@ fromSOPSpec = property $ do
   let list = semanticsToList listS
       expected = semanticsToDataList listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ fromSOPProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        fromSOPProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
 
 appendProgram :: CompiledCode ([Integer] -> [Integer] -> [Integer])
-appendProgram = $$(compile [|| (List.++) ||])
+appendProgram = $$(compile [||(List.++)||])
 
 dataAppendProgram :: CompiledCode (Data.List Integer -> Data.List Integer -> Data.List Integer)
-dataAppendProgram = $$(compile [|| Data.List.append ||])
+dataAppendProgram = $$(compile [||Data.List.append||])
 
 appendSpec :: Property
 appendSpec = property $ do
@@ -86,27 +87,27 @@ appendSpec = property $ do
       dataList2 = semanticsToDataList listS2
       expected = appendS listS1 listS2
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ appendProgram
-        `unsafeApplyCode` liftCodeDef list1
-        `unsafeApplyCode` liftCodeDef list2
+    ( compiledCodeToTerm $
+        appendProgram
+          `unsafeApplyCode` liftCodeDef list1
+          `unsafeApplyCode` liftCodeDef list2
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataAppendProgram
-        `unsafeApplyCode` liftCodeDef dataList1
-        `unsafeApplyCode` liftCodeDef dataList2
+    ( compiledCodeToTerm $
+        dataAppendProgram
+          `unsafeApplyCode` liftCodeDef dataList1
+          `unsafeApplyCode` liftCodeDef dataList2
     )
     (===)
     (semanticsToDataList expected)
 
 findProgram :: CompiledCode (Integer -> [Integer] -> Maybe Integer)
-findProgram = $$(compile [|| \n -> List.find (\x -> x PlutusTx.> n) ||])
+findProgram = $$(compile [||\n -> List.find (\x -> x PlutusTx.> n)||])
 
 dataFindProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe Integer)
-dataFindProgram = $$(compile [|| \n -> Data.List.find (\x -> x PlutusTx.> n) ||])
+dataFindProgram = $$(compile [||\n -> Data.List.find (\x -> x PlutusTx.> n)||])
 
 findSpec :: Property
 findSpec = property $ do
@@ -116,27 +117,27 @@ findSpec = property $ do
       dataList = semanticsToDataList listS
       expected = findS (> num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ findProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        findProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFindProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFindProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 findIndicesProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
-findIndicesProgram = $$(compile [|| \n -> List.findIndices (\x -> x PlutusTx.> n) ||])
+findIndicesProgram = $$(compile [||\n -> List.findIndices (\x -> x PlutusTx.> n)||])
 
 dataFindIndicesProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
-dataFindIndicesProgram = $$(compile [|| \n -> Data.List.findIndices (\x -> x PlutusTx.> n) ||])
+dataFindIndicesProgram = $$(compile [||\n -> Data.List.findIndices (\x -> x PlutusTx.> n)||])
 
 findIndicesSpec :: Property
 findIndicesSpec = property $ do
@@ -146,27 +147,27 @@ findIndicesSpec = property $ do
       dataList = semanticsToDataList listS
       expected = findIndicesS (> num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ findIndicesProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        findIndicesProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFindIndicesProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFindIndicesProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
 
 filterProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
-filterProgram = $$(compile [|| \n -> List.filter (\x -> x PlutusTx.> n) ||])
+filterProgram = $$(compile [||\n -> List.filter (\x -> x PlutusTx.> n)||])
 
 dataFilterProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
-dataFilterProgram = $$(compile [|| \n -> Data.List.filter (\x -> x PlutusTx.> n) ||])
+dataFilterProgram = $$(compile [||\n -> Data.List.filter (\x -> x PlutusTx.> n)||])
 
 filterSpec :: Property
 filterSpec = property $ do
@@ -176,35 +177,37 @@ filterSpec = property $ do
       dataList = semanticsToDataList listS
       expected = filterS (> num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ filterProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        filterProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFilterProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFilterProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
 
 mapMaybeProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
 mapMaybeProgram =
-  $$(compile
-  [||
-    \n -> PlutusTx.mapMaybe (\x -> if x PlutusTx.> n then Just 1 else Nothing)
-  ||])
+  $$( compile
+        [||
+        \n -> PlutusTx.mapMaybe (\x -> if x PlutusTx.> n then Just 1 else Nothing)
+        ||]
+    )
 
 dataMapMaybeProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
 dataMapMaybeProgram =
-  $$(compile
-  [||
-    \n -> Data.List.mapMaybe (\x -> if x PlutusTx.> n then Just 1 else Nothing)
-  ||])
+  $$( compile
+        [||
+        \n -> Data.List.mapMaybe (\x -> if x PlutusTx.> n then Just 1 else Nothing)
+        ||]
+    )
 
 mapMaybeSpec :: Property
 mapMaybeSpec = property $ do
@@ -215,27 +218,27 @@ mapMaybeSpec = property $ do
       expected :: ListS Integer
       expected = mapMaybeS (\x -> if x > num then Just 1 else Nothing) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ mapMaybeProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        mapMaybeProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataMapMaybeProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataMapMaybeProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
 
 anyProgram :: CompiledCode (Integer -> [Integer] -> Bool)
-anyProgram = $$(compile [|| \n -> List.any (\x -> x PlutusTx.> n) ||])
+anyProgram = $$(compile [||\n -> List.any (\x -> x PlutusTx.> n)||])
 
-dataAnyProgram  :: CompiledCode (Integer -> Data.List Integer -> Bool)
-dataAnyProgram = $$(compile [|| \n -> Data.List.any (\x -> x PlutusTx.> n) ||])
+dataAnyProgram :: CompiledCode (Integer -> Data.List Integer -> Bool)
+dataAnyProgram = $$(compile [||\n -> Data.List.any (\x -> x PlutusTx.> n)||])
 
 anySpec :: Property
 anySpec = property $ do
@@ -245,27 +248,27 @@ anySpec = property $ do
       dataList = semanticsToDataList listS
       expected = anyS (> num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ anyProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        anyProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataAnyProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataAnyProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 allProgram :: CompiledCode (Integer -> [Integer] -> Bool)
-allProgram = $$(compile [|| \n -> List.all (\x -> x PlutusTx.> n) ||])
+allProgram = $$(compile [||\n -> List.all (\x -> x PlutusTx.> n)||])
 
-dataAllProgram  :: CompiledCode (Integer -> Data.List Integer -> Bool)
-dataAllProgram = $$(compile [|| \n -> Data.List.all (\x -> x PlutusTx.> n) ||])
+dataAllProgram :: CompiledCode (Integer -> Data.List Integer -> Bool)
+dataAllProgram = $$(compile [||\n -> Data.List.all (\x -> x PlutusTx.> n)||])
 
 allSpec :: Property
 allSpec = property $ do
@@ -275,35 +278,37 @@ allSpec = property $ do
       dataList = semanticsToDataList listS
       expected = allS (> num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ allProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        allProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataAllProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataAllProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 foldMapProgram :: CompiledCode (Integer -> [Integer] -> Maybe [Integer])
 foldMapProgram =
-  $$(compile
-  [||
-    \n -> F.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
-  ||])
+  $$( compile
+        [||
+        \n -> F.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
+        ||]
+    )
 
 dataFoldMapProgram :: CompiledCode (Integer -> Data.List Integer -> Maybe [Integer])
 dataFoldMapProgram =
-  $$(compile
-  [||
-    \n ->  Data.List.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
-  ||])
+  $$( compile
+        [||
+        \n -> Data.List.foldMap (\x -> if x PlutusTx.> n then Just [x] else Nothing)
+        ||]
+    )
 
 foldMapSpec :: Property
 foldMapSpec = property $ do
@@ -313,27 +318,27 @@ foldMapSpec = property $ do
       dataList = semanticsToDataList listS
       expected = foldMapS (\x -> if x > num then Just [x] else Nothing) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ foldMapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        foldMapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFoldMapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFoldMapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 mapProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
-mapProgram = $$(compile [|| \n -> List.map (\x -> x PlutusTx.+ n) ||])
+mapProgram = $$(compile [||\n -> List.map (\x -> x PlutusTx.+ n)||])
 
 dataMapProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
-dataMapProgram = $$(compile [|| \n -> Data.List.map (\x -> x PlutusTx.+ n) ||])
+dataMapProgram = $$(compile [||\n -> Data.List.map (\x -> x PlutusTx.+ n)||])
 
 mapSpec :: Property
 mapSpec = property $ do
@@ -343,27 +348,27 @@ mapSpec = property $ do
       dataList = semanticsToDataList listS
       expected = mapS (+ num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ mapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        mapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataMapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataMapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
 
 lengthProgram :: CompiledCode ([Integer] -> Integer)
-lengthProgram = $$(compile [|| List.length ||])
+lengthProgram = $$(compile [||List.length||])
 
 dataLengthProgram :: CompiledCode (Data.List Integer -> Integer)
-dataLengthProgram = $$(compile [|| Data.List.length ||])
+dataLengthProgram = $$(compile [||Data.List.length||])
 
 lengthSpec :: Property
 lengthSpec = property $ do
@@ -372,25 +377,25 @@ lengthSpec = property $ do
       dataList = semanticsToDataList listS
       expected = lengthS listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ lengthProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        lengthProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataLengthProgram
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataLengthProgram
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 unconsProgram :: CompiledCode ([Integer] -> Maybe (Integer, [Integer]))
-unconsProgram = $$(compile [|| List.uncons ||])
+unconsProgram = $$(compile [||List.uncons||])
 
 dataUnconsProgram :: CompiledCode (Data.List Integer -> Maybe (Integer, Data.List Integer))
-dataUnconsProgram = $$(compile [|| Data.List.uncons ||])
+dataUnconsProgram = $$(compile [||Data.List.uncons||])
 
 unconsSpec :: Property
 unconsSpec = property $ do
@@ -399,25 +404,25 @@ unconsSpec = property $ do
       dataList = semanticsToDataList listS
       expected = unconsS listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ unconsProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        unconsProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     ((fmap . fmap) semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataUnconsProgram
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataUnconsProgram
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     ((fmap . fmap) semanticsToDataList expected)
 
 andProgram :: CompiledCode ([Bool] -> Bool)
-andProgram = $$(compile [|| List.and ||])
+andProgram = $$(compile [||List.and||])
 
 dataAndProgram :: CompiledCode (Data.List Bool -> Bool)
-dataAndProgram = $$(compile [|| Data.List.and ||])
+dataAndProgram = $$(compile [||Data.List.and||])
 
 andSpec :: Property
 andSpec = property $ do
@@ -426,25 +431,25 @@ andSpec = property $ do
       dataList = semanticsToDataList listS
       expected = andS listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ andProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        andProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataAndProgram
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataAndProgram
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 orProgram :: CompiledCode ([Bool] -> Bool)
-orProgram = $$(compile [|| List.or ||])
+orProgram = $$(compile [||List.or||])
 
 dataOrProgram :: CompiledCode (Data.List Bool -> Bool)
-dataOrProgram = $$(compile [|| Data.List.or ||])
+dataOrProgram = $$(compile [||Data.List.or||])
 
 orSpec :: Property
 orSpec = property $ do
@@ -453,25 +458,25 @@ orSpec = property $ do
       dataList = semanticsToDataList listS
       expected = Haskell.or list
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ orProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        orProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataOrProgram
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataOrProgram
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 elemProgram :: CompiledCode (Integer -> [Integer] -> Bool)
-elemProgram = $$(compile [|| List.elem ||])
+elemProgram = $$(compile [||List.elem||])
 
 dataElemProgram :: CompiledCode (Integer -> Data.List Integer -> Bool)
-dataElemProgram = $$(compile [|| Data.List.elem ||])
+dataElemProgram = $$(compile [||Data.List.elem||])
 
 elemSpec :: Property
 elemSpec = property $ do
@@ -481,27 +486,27 @@ elemSpec = property $ do
       dataList = semanticsToDataList listS
       expected = elemS num listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ elemProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        elemProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataElemProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataElemProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 notElemProgram :: CompiledCode (Integer -> [Integer] -> Bool)
-notElemProgram = $$(compile [|| List.notElem ||])
+notElemProgram = $$(compile [||List.notElem||])
 
 dataNotElemProgram :: CompiledCode (Integer -> Data.List Integer -> Bool)
-dataNotElemProgram = $$(compile [|| Data.List.notElem ||])
+dataNotElemProgram = $$(compile [||Data.List.notElem||])
 
 notElemSpec :: Property
 notElemSpec = property $ do
@@ -511,27 +516,27 @@ notElemSpec = property $ do
       dataList = semanticsToDataList listS
       expected = notElemS num listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ notElemProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        notElemProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataNotElemProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataNotElemProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 foldrProgram :: CompiledCode (Integer -> [Integer] -> Integer)
-foldrProgram = $$(compile [|| List.foldr B.subtractInteger ||])
+foldrProgram = $$(compile [||List.foldr B.subtractInteger||])
 
 dataFoldrProgram :: CompiledCode (Integer -> Data.List Integer -> Integer)
-dataFoldrProgram = $$(compile [|| Data.List.foldr B.subtractInteger ||])
+dataFoldrProgram = $$(compile [||Data.List.foldr B.subtractInteger||])
 
 foldrSpec :: Property
 foldrSpec = property $ do
@@ -541,27 +546,27 @@ foldrSpec = property $ do
       dataList = semanticsToDataList listS
       expected = foldrS (-) num listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ foldrProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        foldrProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFoldrProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFoldrProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 foldlProgram :: CompiledCode (Integer -> [Integer] -> Integer)
-foldlProgram = $$(compile [|| List.foldl B.subtractInteger ||])
+foldlProgram = $$(compile [||List.foldl B.subtractInteger||])
 
 dataFoldlProgram :: CompiledCode (Integer -> Data.List Integer -> Integer)
-dataFoldlProgram = $$(compile [|| Data.List.foldl B.subtractInteger ||])
+dataFoldlProgram = $$(compile [||Data.List.foldl B.subtractInteger||])
 
 foldlSpec :: Property
 foldlSpec = property $ do
@@ -571,27 +576,27 @@ foldlSpec = property $ do
       dataList = semanticsToDataList listS
       expected = foldlS (-) num listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ foldlProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        foldlProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     expected
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataFoldlProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataFoldlProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     expected
 
 concatProgram :: CompiledCode ([[Integer]] -> [Integer])
-concatProgram = $$(compile [|| List.concat ||])
+concatProgram = $$(compile [||List.concat||])
 
 dataConcatProgram :: CompiledCode (Data.List (Data.List Integer) -> Data.List Integer)
-dataConcatProgram = $$(compile [|| Data.List.concat ||])
+dataConcatProgram = $$(compile [||Data.List.concat||])
 
 concatSpec :: Property
 concatSpec = property $ do
@@ -600,25 +605,25 @@ concatSpec = property $ do
       dataList = semanticsToDataList $ mapS semanticsToDataList listS
       expected = concatS listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ concatProgram
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        concatProgram
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataConcatProgram
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataConcatProgram
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)
 
 concatMapProgram :: CompiledCode (Integer -> [Integer] -> [Integer])
-concatMapProgram = $$(compile [|| \n -> List.concatMap (List.replicate n) ||])
+concatMapProgram = $$(compile [||\n -> List.concatMap (List.replicate n)||])
 
 dataConcatMapProgram :: CompiledCode (Integer -> Data.List Integer -> Data.List Integer)
-dataConcatMapProgram = $$(compile [|| \n -> Data.List.concatMap (Data.List.replicate n) ||])
+dataConcatMapProgram = $$(compile [||\n -> Data.List.concatMap (Data.List.replicate n)||])
 
 concatMapSpec :: Property
 concatMapSpec = property $ do
@@ -628,18 +633,18 @@ concatMapSpec = property $ do
       dataList = semanticsToDataList listS
       expected = concatMapS (replicateS num) listS
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ concatMapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef list
+    ( compiledCodeToTerm $
+        concatMapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef list
     )
     (===)
     (semanticsToList expected)
   cekResultMatchesHaskellValue
-    ( compiledCodeToTerm
-        $ dataConcatMapProgram
-        `unsafeApplyCode` liftCodeDef num
-        `unsafeApplyCode` liftCodeDef dataList
+    ( compiledCodeToTerm $
+        dataConcatMapProgram
+          `unsafeApplyCode` liftCodeDef num
+          `unsafeApplyCode` liftCodeDef dataList
     )
     (===)
     (semanticsToDataList expected)

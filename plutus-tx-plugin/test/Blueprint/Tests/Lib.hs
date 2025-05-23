@@ -16,10 +16,10 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 
-module Blueprint.Tests.Lib
-  ( module Blueprint.Tests.Lib
-  , module AsData
-  ) where
+module Blueprint.Tests.Lib (
+  module Blueprint.Tests.Lib,
+  module AsData,
+) where
 
 import Blueprint.Tests.Lib.AsData.Decls as AsData (datum2)
 import Codec.Serialise (serialise)
