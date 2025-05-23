@@ -23,7 +23,7 @@ deriveDefinitions = definitionsFor @(UnrollAll ts)
 definitionRef :: forall t ts. (HasBlueprintDefinition t) => Schema ts
 definitionRef = SchemaDefinitionRef (definitionId @t)
 
-{- | This class and its two instances are used internally to derive 'Definitions'
+{-| This class and its two instances are used internally to derive 'Definitions'
 for a given list of types.
 -}
 type DefinitionsFor ts = DefinitionsFor' ts ts
