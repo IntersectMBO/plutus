@@ -40,10 +40,14 @@ evaluatesToError = not . evaluatesWithoutError
 
 evaluatesWithoutError :: CompiledCode a -> Bool
 evaluatesWithoutError code =
-  runCekDeBruijn defaultCekParametersForTesting counting noEmitter
-  (getPlc code ^. UPLC.progTerm) & \case
-    (Left _exception, _counter, _logs) -> False
-    (Right _result, _counter, _logs) -> True
+  runCekDeBruijn
+    defaultCekParametersForTesting
+    counting
+    noEmitter
+    (getPlc code ^. UPLC.progTerm)
+    & \case
+      (Left _exception, _counter, _logs) -> False
+      (Right _result, _counter, _logs) -> True
 
 ----------------------------------------------------------------------------------------------------
 -- Functions that contain traces -------------------------------------------------------------------

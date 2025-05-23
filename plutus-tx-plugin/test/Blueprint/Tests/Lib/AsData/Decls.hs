@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-{- | This module contains TH data type declarations from which 'AsData' declarations are derived.
+{-| This module contains TH data type declarations from which 'AsData' declarations are derived.
 
 These declarations are used for two purposes:
 1. To generate an 'AsData' type declaration to be used in real validators.

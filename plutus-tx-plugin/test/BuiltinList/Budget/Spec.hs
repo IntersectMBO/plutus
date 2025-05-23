@@ -43,7 +43,7 @@ all :: CompiledCode (P.BuiltinList Integer -> (Bool, Bool))
 all = $$(compile [||\xs -> (L.all (P.>= 8) xs, L.all (P.>= 0) xs)||])
 
 index :: CompiledCode (P.BuiltinList Integer -> Integer)
-index = $$(compile [|| (L.!! 5) ||])
+index = $$(compile [||(L.!! 5)||])
 
 l :: CompiledCode (P.BuiltinList Integer)
 l = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])

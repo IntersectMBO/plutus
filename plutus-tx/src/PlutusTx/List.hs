@@ -118,8 +118,6 @@ any f = go
     x : xs -> if f x then True else go xs
 {-# INLINEABLE any #-}
 
--- The pragma improves some of the budget tests.
-
 -- | Determines whether all elements of the list satisfy the predicate.
 all :: forall a. (a -> Bool) -> [a] -> Bool
 all f = go

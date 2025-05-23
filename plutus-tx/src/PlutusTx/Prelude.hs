@@ -1,9 +1,21 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
+-- this module does lots of weird stuff deliberately
+{- HLINT ignore -}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
+{-| The PlutusTx Prelude is a replacement for the Haskell Prelude that works
+better with Plutus Tx. You should use it if you're writing code that
+will be compiled with the Plutus Tx compiler.
+
+@
+    :set -XNoImplicitPrelude
+    import PlutusTx.Prelude
+@
+-}
 module PlutusTx.Prelude (
   -- * Classes
   module Eq,
@@ -198,11 +210,6 @@ import PlutusTx.Trace as Trace
 import PlutusTx.Traversable as Traversable
 
 import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
-
--- this module does lots of weird stuff deliberately
-{- HLINT ignore -}
-
-{-# LANGUAGE NoImplicitPrelude #-}
 
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> BI.BuiltinUnit
