@@ -15,7 +15,7 @@ import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
-import PlutusTx.Builtins (mkNilOpaque, useFromOpaque, useToOpaque)
+import PlutusTx.Builtins (equalsInteger, mkNilOpaque, useFromOpaque, useToOpaque)
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -412,6 +412,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useToOpaque
            , 'useFromOpaque
            , 'mkNilOpaque
+           , 'PlutusTx.Builtins.equalsInteger           
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
