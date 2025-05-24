@@ -32,12 +32,12 @@
               !args : list data = sndPair {integer} {list data} tup
             in
             Bool_match
-              (ifThenElse {Bool} (equalsInteger 1 index) True False)
+              (case Bool (equalsInteger 1 index) [False, True])
               {all dead. Maybe a}
               (/\dead -> Nothing {a})
               (/\dead ->
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                   (case Bool (equalsInteger 0 index) [False, True])
                    {all dead. Maybe a}
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -78,8 +78,8 @@
       {Unit}
       (\(ipv : data) ->
          Bool_match
-           (ifThenElse
-              {Bool}
+           (case
+              Bool
               (equalsInteger
                  0
                  (modInteger
@@ -194,8 +194,7 @@
                     in
                     go ds)
                     2))
-              True
-              False)
+              [False, True])
            {all dead. Unit}
            (/\dead -> Unit)
            (/\dead ->

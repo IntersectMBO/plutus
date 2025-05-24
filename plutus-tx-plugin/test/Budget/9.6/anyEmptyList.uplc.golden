@@ -9,8 +9,7 @@
               , (\x xs ->
                    delay
                      (force
-                        (force ifThenElse
+                        (case
                            (lessThanEqualsInteger 1 x)
-                           (delay (s s xs))
-                           (delay (constr 0 []))))) ]))
+                           [(delay (constr 0 [])), (delay (s s xs))]))) ]))
       (constr 0 [])))

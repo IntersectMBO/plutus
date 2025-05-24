@@ -2,15 +2,12 @@
     data Bool | Bool_match where
       True : Bool
       False : Bool
-    !lessThanInteger : integer -> integer -> Bool
-      = \(x : integer) (y : integer) ->
-          ifThenElse {Bool} (lessThanInteger x y) True False
   in
   \(x : integer) (y : integer) ->
     Bool_match
-      (lessThanInteger x 3)
+      (case Bool (lessThanInteger x 3) [False, True])
       {all dead. Bool}
-      (/\dead -> lessThanInteger y 3)
+      (/\dead -> case Bool (lessThanInteger y 3) [False, True])
       (/\dead -> False)
       {all dead. dead})
   4

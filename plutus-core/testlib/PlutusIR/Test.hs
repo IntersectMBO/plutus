@@ -42,6 +42,7 @@ import PlutusIR.Parser (Parser, pTerm, parse)
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
+import UntypedPlutusCore qualified as UPLC
 
 import Data.Hashable
 import Data.Text qualified as T
@@ -53,6 +54,7 @@ import Prettyprinter.Render.Text
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (Term PIR.TyName PIR.Name uni fun (Provenance a)) uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Pretty a
@@ -70,6 +72,8 @@ instance
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (Term PIR.TyName PIR.Name uni fun (Provenance a)) uni
+  , PLC.CaseBuiltin (UPLC.Term PIR.Name uni fun ()) uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Hashable fun
@@ -110,6 +114,7 @@ asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 compileWithOpts ::
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (Term PIR.TyName PIR.Name uni fun (Provenance a)) uni
   , Ord a
   , PLC.AnnInline a
   , PLC.PrettyUni uni

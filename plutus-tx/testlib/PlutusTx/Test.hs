@@ -54,7 +54,9 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test (TestNested, ToTPlc (..), ToUPlc (..), catchAll, goldenSize, goldenTPlc,
                         goldenUPlc, goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM,
                         ppCatch, rethrow)
+import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins qualified as PIR
+import PlutusIR.Compiler.Provenance qualified as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules as PIR
@@ -225,6 +227,7 @@ instance
   ( PLC.PrettyParens (PLC.SomeTypeIn uni)
   , PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (PIR.Term UPLC.TyName UPLC.Name uni fun (PIR.Provenance PLC.SrcSpans)) uni
   , PLC.Closed uni
   , uni `PLC.Everywhere` PrettyConst
   , Pretty fun
