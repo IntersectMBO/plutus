@@ -9,13 +9,13 @@ import PlutusIR.Error
 
 import PlutusCore qualified as PLC
 
-import Control.Monad.Error.Lens
+import Control.Monad.Except
 
 -- | Turns a PIR 'Term' with no remaining PIR-specific features into a PLC 'PLC.Term' by simply
 -- translating the constructors across.
-lowerTerm :: Compiling m e uni fun a => PIRTerm uni fun a -> m (PLCTerm uni fun a)
+lowerTerm :: Compiling m uni fun a => PIRTerm uni fun a -> m (PLCTerm uni fun a)
 lowerTerm = \case
-    Let x _ _ _      -> throwing _Error $
+    Let x _ _ _      -> throwError $
         CompilationError x "Let bindings should have been eliminated before lowering"
     Var x n          -> pure $ PLC.Var x n
     TyAbs x n k t    -> PLC.TyAbs x n k <$> lowerTerm t

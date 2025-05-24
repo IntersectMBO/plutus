@@ -6,7 +6,7 @@ module PlutusIR.Transform.StrictLetRec.Tests.Lib where
 
 import PlutusPrelude
 
-import Control.Monad.Except (runExceptT)
+import Control.Monad.Except
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (runReaderT)
 import Data.Text (Text)
@@ -15,6 +15,7 @@ import PlutusCore (Name, SrcSpan, latestVersion)
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
                                                           defaultCekMachineCostsForTesting)
@@ -41,7 +42,7 @@ pirTermFromFile file = do
   contents <- liftIO $ Text.readFile file
   PC.parseGen pTerm contents
     & runQuoteT
-    & handlePirErrorByFailing @SrcSpan
+    & handlePirErrorByFailing @SrcSpan . modifyError (PIR.PLCError . PLC.ParseErrorE)
 
 pirTermAsProgram :: PIR.Term tyname name uni fun () -> PIR.Program tyname name uni fun ()
 pirTermAsProgram = PIR.Program () latestVersion
@@ -97,7 +98,7 @@ defaultCompilationCtx
       (PIR.Error DefaultUni DefaultFun (Provenance ()))
       (PIR.CompilationCtx DefaultUni DefaultFun a)
 defaultCompilationCtx = do
-  pirTcConfig <- PLC.getDefTypeCheckConfig noProvenance
+  pirTcConfig <- modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig noProvenance
   pure $ toDefaultCompilationCtx pirTcConfig
 
 handlePirErrorByFailing

@@ -12,11 +12,11 @@ module Evaluation.Debug
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty
-import PlutusPrelude
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
+import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
 import Control.Monad.Writer

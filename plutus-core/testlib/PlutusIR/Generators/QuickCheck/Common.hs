@@ -3,11 +3,14 @@
 
 module PlutusIR.Generators.QuickCheck.Common where
 
+import PlutusPrelude
+
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Unification
 
 import PlutusCore.Default
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Name.Unique
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Rename
@@ -17,12 +20,10 @@ import PlutusIR.Error
 import PlutusIR.Subst
 import PlutusIR.TypeCheck
 
-import Control.Monad (void)
-import Data.Bifunctor
+import Control.Monad.Except
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Set.Lens (setOf)
-import Text.PrettyBy
 
 -- | Compute the datatype declarations that escape from a term.
 datatypes :: Term TyName Name DefaultUni DefaultFun ()
@@ -57,7 +58,7 @@ inferTypeInContext tyctx ctx tm0 = first display
   -- want to do type inference in non-top-level contexts. Ideally I think type inference
   -- probably shouldn't do renaming of datatypes... Or alternatively we need to ensure that
   -- the renaming behaviour of type inference is documented and maintained.
-  cfg <- getDefTypeCheckConfig ()
+  cfg <- modifyError (PLCError . PLC.TypeErrorE) $ getDefTypeCheckConfig ()
   -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
   Normalized _ty' <- inferType cfg tm'
   -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.

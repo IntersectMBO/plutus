@@ -93,17 +93,12 @@ module PlutusCore
     , module TypeCheck
     , normalizeTypesIn
     , normalizeTypesInProgram
-    , AsTypeError (..)
     , TypeError
     -- * Errors
     , Error (..)
-    , AsError (..)
     , NormCheckError (..)
-    , AsNormCheckError (..)
     , UniqueError (..)
-    , AsUniqueError (..)
     , FreeVariableError (..)
-    , AsFreeVariableError (..)
     -- * Quotation and term construction
     , Quote
     , runQuote

@@ -7,13 +7,12 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
-module PlutusIR.Compiler.Error (Error (..), AsError (..)) where
+module PlutusIR.Compiler.Error (Error (..)) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 
 import Control.Exception
-import Control.Lens
 
 import Data.Text qualified as T
 import Data.Typeable
@@ -25,10 +24,6 @@ data Error uni fun a
     | UnsupportedError !a !T.Text     -- ^ An error relating specifically to an unsupported feature.
     | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into
                                       -- this error type for convenience.
-makeClassyPrisms ''Error
-
-instance PLC.AsTypeError (Error uni fun ann) (PLC.Term PLC.TyName PLC.Name uni fun ()) uni fun ann where
-    _TypeError = _PLCError . PLC._TypeError
 
 instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty ann) => Show (Error uni fun ann) where
     show = show . PLC.prettyPlcClassicSimple
