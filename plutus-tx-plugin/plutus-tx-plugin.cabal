@@ -195,7 +195,6 @@ test-suite plutus-tx-plugin-tests
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.46
     , plutus-tx-plugin                 ^>=1.46
-    , plutus-tx-test-util
     , plutus-tx:plutus-tx-testlib
     , serialise
     , tasty

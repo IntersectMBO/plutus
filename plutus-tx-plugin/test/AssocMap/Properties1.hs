@@ -22,13 +22,13 @@ module AssocMap.Properties1 where
 import Hedgehog (Property, forAll, property, (===))
 import Hedgehog.Gen qualified as Gen
 import PlutusTx.AssocMap qualified as AssocMap
-import PlutusTx.Code
+import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as Data.AssocMap
 import PlutusTx.IsData ()
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
 
 import AssocMap.Semantics
@@ -137,19 +137,17 @@ lookupSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = lookupS key assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        lookupProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( lookupProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataLookupProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataLookupProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -161,19 +159,18 @@ memberSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = memberS key assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        memberProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+
+  evaluationResultMatchesHaskell
+    ( memberProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataMemberProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataMemberProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -186,21 +183,19 @@ insertSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = sortS $ insertS key value assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        insertProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef value)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( insertProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef value
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataInsertProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef value)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataInsertProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef value
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -212,19 +207,17 @@ deleteSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = sortS $ deleteS key assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        deleteProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( deleteProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataDeleteProgram
-          `unsafeApplyCode` (liftCodeDef key)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataDeleteProgram
+        `unsafeApplyCode` liftCodeDef key
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -236,19 +229,17 @@ allSpec = property $ do
   let assocMap = semanticsToAssocMap assocMapS
       dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = allS (< num) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        allProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef assocMap)
+  evaluationResultMatchesHaskell
+    ( allProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef assocMap
     )
     (===)
     expected
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAllProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataAllProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected
@@ -259,11 +250,10 @@ anySpec = property $ do
   num <- forAll $ Gen.integral rangeElem
   let dataAssocMap = semanticsToDataAssocMap assocMapS
       expected = anyS (< num) assocMapS
-  cekResultMatchesHaskellValue
-    ( compiledCodeToTerm $
-        dataAnyProgram
-          `unsafeApplyCode` (liftCodeDef num)
-          `unsafeApplyCode` (liftCodeDef dataAssocMap)
+  evaluationResultMatchesHaskell
+    ( dataAnyProgram
+        `unsafeApplyCode` liftCodeDef num
+        `unsafeApplyCode` liftCodeDef dataAssocMap
     )
     (===)
     expected

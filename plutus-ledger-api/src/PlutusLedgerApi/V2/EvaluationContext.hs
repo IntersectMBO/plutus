@@ -10,7 +10,6 @@ module PlutusLedgerApi.V2.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.Versions (changPV)
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))

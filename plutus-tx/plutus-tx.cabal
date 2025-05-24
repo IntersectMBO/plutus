@@ -86,6 +86,7 @@ library
     PlutusTx.Enum
     PlutusTx.Eq
     PlutusTx.ErrorCodes
+    PlutusTx.Eval
     PlutusTx.Foldable
     PlutusTx.Function
     PlutusTx.Functor
@@ -135,6 +136,7 @@ library
     , deriving-compat
     , extra
     , flat                   ^>=0.6
+    , formatting
     , hashable
     , lens
     , memory
@@ -166,6 +168,11 @@ library plutus-tx-testlib
     Hedgehog.Laws.Lattice
     Hedgehog.Laws.Ord
     PlutusTx.Test
+    PlutusTx.Test.Golden
+    PlutusTx.Test.Orphans
+    PlutusTx.Test.Run.Code
+    PlutusTx.Test.Run.Uplc
+    PlutusTx.Test.Util.Compiled
 
   build-depends:
     , base                             >=4.9   && <5
@@ -177,9 +184,9 @@ library plutus-tx-testlib
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , plutus-tx                        ^>=1.46
-    , tagged
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , text
 
 test-suite plutus-tx-test
