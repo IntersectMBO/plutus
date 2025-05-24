@@ -1,0 +1,45 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module FFI.SimplifierTrace (
+<span class="lineno">    2 </span>    mkFfiSimplifierTrace,
+<span class="lineno">    3 </span>) where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import FFI.Untyped qualified as FFI
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusPrelude
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import UntypedPlutusCore qualified as UPLC
+<span class="lineno">   10 </span>import UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>mkFfiSimplifierTrace
+<span class="lineno">   13 </span>  :: SimplifierTrace UPLC.Name UPLC.DefaultUni UPLC.DefaultFun a
+<span class="lineno">   14 </span>  -&gt; [(SimplifierStage, (FFI.UTerm, FFI.UTerm))]
+<span class="lineno">   15 </span><span class="decl"><span class="nottickedoff">mkFfiSimplifierTrace (SimplifierTrace simplTrace) = reverse $ toFfiAst &lt;$&gt; simplTrace</span>
+<span class="lineno">   16 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   17 </span><span class="spaces">    </span><span class="nottickedoff">toFfiAst Simplification {beforeAST, stage, afterAST} =</span>
+<span class="lineno">   18 </span><span class="spaces">      </span><span class="nottickedoff">case (UPLC.deBruijnTerm beforeAST, UPLC.deBruijnTerm afterAST) of</span>
+<span class="lineno">   19 </span><span class="spaces">        </span><span class="nottickedoff">(Right before', Right after')             -&gt;</span>
+<span class="lineno">   20 </span><span class="spaces">          </span><span class="nottickedoff">(stage, (FFI.conv (void before'), FFI.conv (void after')))</span>
+<span class="lineno">   21 </span><span class="spaces">        </span><span class="nottickedoff">(Left (err :: UPLC.FreeVariableError), _) -&gt; error $ show err</span>
+<span class="lineno">   22 </span><span class="spaces">        </span><span class="nottickedoff">(_, Left (err :: UPLC.FreeVariableError)) -&gt; error $ show err</span></span>
+
+</pre>
+</body>
+</html>

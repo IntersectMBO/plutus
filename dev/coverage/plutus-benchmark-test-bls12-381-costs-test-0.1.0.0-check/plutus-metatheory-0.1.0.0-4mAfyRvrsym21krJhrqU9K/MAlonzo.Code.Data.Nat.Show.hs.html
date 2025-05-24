@@ -1,0 +1,249 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Nat.Show where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Char qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Maybe qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Nat qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Agda.Builtin.String qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Data.Bool.Base qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Digit qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Data.List.Base qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Data.List.Effectful qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Data.Maybe.Base qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Data.Maybe.Effectful qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Data.Nat.Base qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Function.Base qualified
+<span class="lineno">   29 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   30 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   31 </span>                    word64ToNat)
+<span class="lineno">   32 </span>import MAlonzo.RTE qualified
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- Data.Nat.Show.readMaybe
+<span class="lineno">   35 </span>d_readMaybe_10 ::
+<span class="lineno">   36 </span>  Integer -&gt;
+<span class="lineno">   37 </span>  AgdaAny -&gt;
+<span class="lineno">   38 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; Maybe Integer
+<span class="lineno">   39 </span><span class="decl"><span class="nottickedoff">d_readMaybe_10 v0 ~v1 v2 = du_readMaybe_10 v0 v2</span></span>
+<span class="lineno">   40 </span>du_readMaybe_10 ::
+<span class="lineno">   41 </span>  Integer -&gt;
+<span class="lineno">   42 </span>  MAlonzo.Code.Agda.Builtin.String.T_String_6 -&gt; Maybe Integer
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">du_readMaybe_10 v0 v1</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">= let v2</span>
+<span class="lineno">   45 </span><span class="spaces">          </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   46 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">   47 </span><span class="spaces">              </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   48 </span><span class="spaces">                 </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_map_64</span>
+<span class="lineno">   49 </span><span class="spaces">                 </span><span class="nottickedoff">(coe du_convert_18 (coe v0)))</span>
+<span class="lineno">   50 </span><span class="spaces">              </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   51 </span><span class="spaces">                 </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">   52 </span><span class="spaces">                 </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   53 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Data.List.Effectful.du_mapA_94</span>
+<span class="lineno">   54 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Maybe.Effectful.du_applicative_24)</span>
+<span class="lineno">   55 </span><span class="spaces">                    </span><span class="nottickedoff">(coe du_readDigit_32 (coe v0)))</span>
+<span class="lineno">   56 </span><span class="spaces">                 </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12))</span>
+<span class="lineno">   57 </span><span class="spaces">              </span><span class="nottickedoff">(coe v1) in</span>
+<span class="lineno">   58 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">   59 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v1 of</span>
+<span class="lineno">   60 </span><span class="spaces">         </span><span class="nottickedoff">l | (==) l (&quot;&quot; :: Data.Text.Text) -&gt;</span>
+<span class="lineno">   61 </span><span class="spaces">             </span><span class="nottickedoff">coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">   62 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; coe v2)</span></span>
+<span class="lineno">   63 </span>-- Data.Nat.Show._.convert
+<span class="lineno">   64 </span>d_convert_18 :: Integer -&gt; AgdaAny -&gt; [Integer] -&gt; Integer
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">d_convert_18 v0 ~v1 = du_convert_18 v0</span></span>
+<span class="lineno">   66 </span>du_convert_18 :: Integer -&gt; [Integer] -&gt; Integer
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">du_convert_18 v0</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_foldl_230</span>
+<span class="lineno">   70 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v1 -&gt; addInt (coe mulInt (coe v0) (coe v1))))</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">(coe (0 :: Integer))</span></span>
+<span class="lineno">   72 </span>-- Data.Nat.Show._.char0
+<span class="lineno">   73 </span>d_char0_24 :: Integer -&gt; AgdaAny -&gt; Integer
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">d_char0_24 ~v0 ~v1 = du_char0_24</span></span>
+<span class="lineno">   75 </span>du_char0_24 :: Integer
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">du_char0_24</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 '0'</span></span>
+<span class="lineno">   78 </span>-- Data.Nat.Show._.char9
+<span class="lineno">   79 </span>d_char9_26 :: Integer -&gt; AgdaAny -&gt; Integer
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">d_char9_26 ~v0 ~v1 = du_char9_26</span></span>
+<span class="lineno">   81 </span>du_char9_26 :: Integer
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">du_char9_26</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 '9'</span></span>
+<span class="lineno">   84 </span>-- Data.Nat.Show._.chara
+<span class="lineno">   85 </span>d_chara_28 :: Integer -&gt; AgdaAny -&gt; Integer
+<span class="lineno">   86 </span><span class="decl"><span class="nottickedoff">d_chara_28 ~v0 ~v1 = du_chara_28</span></span>
+<span class="lineno">   87 </span>du_chara_28 :: Integer
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">du_chara_28</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 'a'</span></span>
+<span class="lineno">   90 </span>-- Data.Nat.Show._.charf
+<span class="lineno">   91 </span>d_charf_30 :: Integer -&gt; AgdaAny -&gt; Integer
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">d_charf_30 ~v0 ~v1 = du_charf_30</span></span>
+<span class="lineno">   93 </span>du_charf_30 :: Integer
+<span class="lineno">   94 </span><span class="decl"><span class="nottickedoff">du_charf_30</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 'f'</span></span>
+<span class="lineno">   96 </span>-- Data.Nat.Show._.readDigit
+<span class="lineno">   97 </span>d_readDigit_32 ::
+<span class="lineno">   98 </span>  Integer -&gt;
+<span class="lineno">   99 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">d_readDigit_32 v0 ~v1 v2 = du_readDigit_32 v0 v2</span></span>
+<span class="lineno">  101 </span>du_readDigit_32 ::
+<span class="lineno">  102 </span>  Integer -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">du_readDigit_32 v0 v1</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  105 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du__'62''62''61'__72</span>
+<span class="lineno">  106 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_digit_46 (coe v1))</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  108 </span><span class="spaces">         </span><span class="nottickedoff">(\ v2 -&gt;</span>
+<span class="lineno">  109 </span><span class="spaces">            </span><span class="nottickedoff">coe</span>
+<span class="lineno">  110 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_when_88</span>
+<span class="lineno">  111 </span><span class="spaces">              </span><span class="nottickedoff">(coe ltInt (coe v2) (coe v0)) (coe v2)))</span></span>
+<span class="lineno">  112 </span>-- Data.Nat.Show._._.charc
+<span class="lineno">  113 </span>d_charc_40 ::
+<span class="lineno">  114 </span>  Integer -&gt;
+<span class="lineno">  115 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Integer
+<span class="lineno">  116 </span><span class="decl"><span class="nottickedoff">d_charc_40 ~v0 ~v1 v2 = du_charc_40 v2</span></span>
+<span class="lineno">  117 </span>du_charc_40 :: MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Integer
+<span class="lineno">  118 </span><span class="decl"><span class="nottickedoff">du_charc_40 v0</span>
+<span class="lineno">  119 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 v0</span></span>
+<span class="lineno">  120 </span>-- Data.Nat.Show._._.dec
+<span class="lineno">  121 </span>d_dec_42 ::
+<span class="lineno">  122 </span>  Integer -&gt;
+<span class="lineno">  123 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  124 </span><span class="decl"><span class="nottickedoff">d_dec_42 ~v0 ~v1 v2 = du_dec_42 v2</span></span>
+<span class="lineno">  125 </span>du_dec_42 ::
+<span class="lineno">  126 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">du_dec_42 v0</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  129 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_when_88</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  131 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Bool.Base.d__'8743'__24</span>
+<span class="lineno">  132 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  133 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14 (coe du_char0_24)</span>
+<span class="lineno">  134 </span><span class="spaces">            </span><span class="nottickedoff">(coe du_charc_40 (coe v0)))</span>
+<span class="lineno">  135 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  136 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14</span>
+<span class="lineno">  137 </span><span class="spaces">            </span><span class="nottickedoff">(coe du_charc_40 (coe v0)) (coe du_char9_26)))</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  139 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22</span>
+<span class="lineno">  140 </span><span class="spaces">         </span><span class="nottickedoff">(coe du_charc_40 (coe v0)) (coe du_char0_24))</span></span>
+<span class="lineno">  141 </span>-- Data.Nat.Show._._.hex
+<span class="lineno">  142 </span>d_hex_44 ::
+<span class="lineno">  143 </span>  Integer -&gt;
+<span class="lineno">  144 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_hex_44 ~v0 ~v1 v2 = du_hex_44 v2</span></span>
+<span class="lineno">  146 </span>du_hex_44 ::
+<span class="lineno">  147 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  148 </span><span class="decl"><span class="nottickedoff">du_hex_44 v0</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  150 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du_when_88</span>
+<span class="lineno">  151 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  152 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Bool.Base.d__'8743'__24</span>
+<span class="lineno">  153 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  154 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14 (coe du_chara_28)</span>
+<span class="lineno">  155 </span><span class="spaces">            </span><span class="nottickedoff">(coe du_charc_40 (coe v0)))</span>
+<span class="lineno">  156 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  157 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Data.Nat.Base.d__'8804''7495'__14</span>
+<span class="lineno">  158 </span><span class="spaces">            </span><span class="nottickedoff">(coe du_charc_40 (coe v0)) (coe du_charf_30)))</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  160 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Nat.d__'45'__22</span>
+<span class="lineno">  161 </span><span class="spaces">         </span><span class="nottickedoff">(addInt (coe (10 :: Integer)) (coe du_charc_40 (coe v0)))</span>
+<span class="lineno">  162 </span><span class="spaces">         </span><span class="nottickedoff">(coe du_chara_28))</span></span>
+<span class="lineno">  163 </span>-- Data.Nat.Show._._.digit
+<span class="lineno">  164 </span>d_digit_46 ::
+<span class="lineno">  165 </span>  Integer -&gt;
+<span class="lineno">  166 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">d_digit_46 ~v0 ~v1 v2 = du_digit_46 v2</span></span>
+<span class="lineno">  168 </span>du_digit_46 ::
+<span class="lineno">  169 </span>  MAlonzo.Code.Agda.Builtin.Char.T_Char_6 -&gt; Maybe Integer
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">du_digit_46 v0</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  172 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Maybe.Base.du__'60''8739''62'__80</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_dec_42 (coe v0)) (coe du_hex_44 (coe v0))</span></span>
+<span class="lineno">  174 </span>-- Data.Nat.Show.toDigitChar
+<span class="lineno">  175 </span>d_toDigitChar_50 ::
+<span class="lineno">  176 </span>  Integer -&gt; MAlonzo.Code.Agda.Builtin.Char.T_Char_6
+<span class="lineno">  177 </span><span class="decl"><span class="nottickedoff">d_toDigitChar_50 v0</span>
+<span class="lineno">  178 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Char.d_primNatToChar_30</span>
+<span class="lineno">  180 </span><span class="spaces">      </span><span class="nottickedoff">(addInt</span>
+<span class="lineno">  181 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Char.d_primCharToNat_28 '0')</span>
+<span class="lineno">  182 </span><span class="spaces">         </span><span class="nottickedoff">(coe v0))</span></span>
+<span class="lineno">  183 </span>-- Data.Nat.Show.toDecimalChars
+<span class="lineno">  184 </span>d_toDecimalChars_54 ::
+<span class="lineno">  185 </span>  Integer -&gt; [MAlonzo.Code.Agda.Builtin.Char.T_Char_6]
+<span class="lineno">  186 </span><span class="decl"><span class="nottickedoff">d_toDecimalChars_54</span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  188 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.List.Base.du_map_22 (coe d_toDigitChar_50))</span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  191 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Digit.du_toNatDigits_20 (coe (10 :: Integer)))</span></span>
+<span class="lineno">  192 </span>-- Data.Nat.Show.show
+<span class="lineno">  193 </span>d_show_56 :: Integer -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  194 </span><span class="decl"><span class="nottickedoff">d_show_56</span>
+<span class="lineno">  195 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216</span>
+<span class="lineno">  197 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.String.d_primStringFromList_14)</span>
+<span class="lineno">  198 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_toDecimalChars_54)</span></span>
+<span class="lineno">  199 </span>-- Data.Nat.Show.charsInBase
+<span class="lineno">  200 </span>d_charsInBase_64 ::
+<span class="lineno">  201 </span>  Integer -&gt;
+<span class="lineno">  202 </span>  AgdaAny -&gt;
+<span class="lineno">  203 </span>  AgdaAny -&gt; Integer -&gt; [MAlonzo.Code.Agda.Builtin.Char.T_Char_6]
+<span class="lineno">  204 </span><span class="decl"><span class="nottickedoff">d_charsInBase_64 v0 ~v1 ~v2 v3 = du_charsInBase_64 v0 v3</span></span>
+<span class="lineno">  205 </span>du_charsInBase_64 ::
+<span class="lineno">  206 </span>  Integer -&gt; Integer -&gt; [MAlonzo.Code.Agda.Builtin.Char.T_Char_6]
+<span class="lineno">  207 </span><span class="decl"><span class="nottickedoff">du_charsInBase_64 v0 v1</span>
+<span class="lineno">  208 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  209 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_map_22</span>
+<span class="lineno">  210 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Digit.du_showDigit_198)</span>
+<span class="lineno">  211 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  212 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_reverse_460</span>
+<span class="lineno">  213 </span><span class="spaces">         </span><span class="nottickedoff">(MAlonzo.Code.Agda.Builtin.Sigma.d_fst_28</span>
+<span class="lineno">  214 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Data.Digit.du_toDigits_84 (coe v0) (coe v1))))</span></span>
+<span class="lineno">  215 </span>-- Data.Nat.Show.showInBase
+<span class="lineno">  216 </span>d_showInBase_78 ::
+<span class="lineno">  217 </span>  Integer -&gt;
+<span class="lineno">  218 </span>  AgdaAny -&gt;
+<span class="lineno">  219 </span>  AgdaAny -&gt; Integer -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  220 </span><span class="decl"><span class="nottickedoff">d_showInBase_78 v0 ~v1 ~v2 v3 = du_showInBase_78 v0 v3</span></span>
+<span class="lineno">  221 </span>du_showInBase_78 ::
+<span class="lineno">  222 </span>  Integer -&gt; Integer -&gt; MAlonzo.Code.Agda.Builtin.String.T_String_6
+<span class="lineno">  223 </span><span class="decl"><span class="nottickedoff">du_showInBase_78 v0 v1</span>
+<span class="lineno">  224 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  225 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.String.d_primStringFromList_14</span>
+<span class="lineno">  226 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_charsInBase_64 (coe v0) (coe v1))</span></span>
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,1000 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>-- | The CEK machine.
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>{-# LANGUAGE AllowAmbiguousTypes      #-}
+<span class="lineno">    5 </span>{-# LANGUAGE BangPatterns             #-}
+<span class="lineno">    6 </span>{-# LANGUAGE ConstraintKinds          #-}
+<span class="lineno">    7 </span>{-# LANGUAGE DataKinds                #-}
+<span class="lineno">    8 </span>{-# LANGUAGE DeriveAnyClass           #-}
+<span class="lineno">    9 </span>{-# LANGUAGE FlexibleInstances        #-}
+<span class="lineno">   10 </span>{-# LANGUAGE ImplicitParams           #-}
+<span class="lineno">   11 </span>{-# LANGUAGE InstanceSigs             #-}
+<span class="lineno">   12 </span>{-# LANGUAGE LambdaCase               #-}
+<span class="lineno">   13 </span>{-# LANGUAGE MultiParamTypeClasses    #-}
+<span class="lineno">   14 </span>{-# LANGUAGE NPlusKPatterns           #-}
+<span class="lineno">   15 </span>{-# LANGUAGE NamedFieldPuns           #-}
+<span class="lineno">   16 </span>{-# LANGUAGE OverloadedStrings        #-}
+<span class="lineno">   17 </span>{-# LANGUAGE RankNTypes               #-}
+<span class="lineno">   18 </span>{-# LANGUAGE ScopedTypeVariables      #-}
+<span class="lineno">   19 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">   20 </span>{-# LANGUAGE TypeApplications         #-}
+<span class="lineno">   21 </span>{-# LANGUAGE TypeFamilies             #-}
+<span class="lineno">   22 </span>{-# LANGUAGE TypeOperators            #-}
+<span class="lineno">   23 </span>{-# LANGUAGE UnboxedTuples            #-}
+<span class="lineno">   24 </span>{-# LANGUAGE UndecidableInstances     #-}
+<span class="lineno">   25 </span>
+<span class="lineno">   26 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   29 </span>    -- See Note [Compilation peculiarities].
+<span class="lineno">   30 </span>    ( EvaluationResult(..)
+<span class="lineno">   31 </span>    , CekValue(..)
+<span class="lineno">   32 </span>    , ArgStack(..)
+<span class="lineno">   33 </span>    , transferArgStack
+<span class="lineno">   34 </span>    , CekUserError(..)
+<span class="lineno">   35 </span>    , CekEvaluationException
+<span class="lineno">   36 </span>    , CekBudgetSpender(..)
+<span class="lineno">   37 </span>    , ExBudgetInfo(..)
+<span class="lineno">   38 </span>    , ExBudgetMode(..)
+<span class="lineno">   39 </span>    , CekEmitter
+<span class="lineno">   40 </span>    , CekEmitterInfo(..)
+<span class="lineno">   41 </span>    , EmitterMode(..)
+<span class="lineno">   42 </span>    , CekM (..)
+<span class="lineno">   43 </span>    , ErrorWithCause(..)
+<span class="lineno">   44 </span>    , EvaluationError(..)
+<span class="lineno">   45 </span>    , ExBudgetCategory(..)
+<span class="lineno">   46 </span>    , StepKind(..)
+<span class="lineno">   47 </span>    , ThrowableBuiltins
+<span class="lineno">   48 </span>    , splitStructuralOperational
+<span class="lineno">   49 </span>    , unsafeSplitStructuralOperational
+<span class="lineno">   50 </span>    , runCekDeBruijn
+<span class="lineno">   51 </span>    , dischargeCekValue
+<span class="lineno">   52 </span>    , Context (..)
+<span class="lineno">   53 </span>    , CekValEnv
+<span class="lineno">   54 </span>    , GivenCekReqs
+<span class="lineno">   55 </span>    , GivenCekSpender
+<span class="lineno">   56 </span>    , StepCounter
+<span class="lineno">   57 </span>    , NumberOfStepCounters
+<span class="lineno">   58 </span>    , CounterSize
+<span class="lineno">   59 </span>    , TotalCountIndex
+<span class="lineno">   60 </span>    , Slippage
+<span class="lineno">   61 </span>    , defaultSlippage
+<span class="lineno">   62 </span>    , NTerm
+<span class="lineno">   63 </span>    , runCekM
+<span class="lineno">   64 </span>    )
+<span class="lineno">   65 </span>where
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>import PlutusPrelude
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>import UntypedPlutusCore.Core
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>import Data.RandomAccessList.Class qualified as Env
+<span class="lineno">   72 </span>import Data.RandomAccessList.SkewBinary qualified as Env
+<span class="lineno">   73 </span>import PlutusCore.Builtin
+<span class="lineno">   74 </span>import PlutusCore.DeBruijn
+<span class="lineno">   75 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   76 </span>import PlutusCore.Evaluation.Machine.ExBudgetStream
+<span class="lineno">   77 </span>import PlutusCore.Evaluation.Machine.Exception
+<span class="lineno">   78 </span>import PlutusCore.Evaluation.Machine.ExMemoryUsage
+<span class="lineno">   79 </span>import PlutusCore.Evaluation.Machine.MachineParameters
+<span class="lineno">   80 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   81 </span>import PlutusCore.Pretty
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
+<span class="lineno">   84 </span>                                                                 CekMachineCostsBase (..))
+<span class="lineno">   85 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>import Control.Exception qualified as Exception
+<span class="lineno">   88 </span>import Control.Lens.Review
+<span class="lineno">   89 </span>import Control.Monad (unless, when)
+<span class="lineno">   90 </span>import Control.Monad.Catch
+<span class="lineno">   91 </span>import Control.Monad.Except (MonadError, catchError, throwError)
+<span class="lineno">   92 </span>import Control.Monad.Primitive (PrimMonad (..))
+<span class="lineno">   93 </span>import Control.Monad.ST
+<span class="lineno">   94 </span>import Control.Monad.ST.Unsafe
+<span class="lineno">   95 </span>import Data.DList qualified as DList
+<span class="lineno">   96 </span>import Data.Functor.Identity
+<span class="lineno">   97 </span>import Data.Hashable (Hashable)
+<span class="lineno">   98 </span>import Data.Kind qualified as GHC
+<span class="lineno">   99 </span>import Data.Proxy
+<span class="lineno">  100 </span>import Data.Semigroup (stimes)
+<span class="lineno">  101 </span>import Data.Text (Text)
+<span class="lineno">  102 </span>import Data.Vector qualified as V
+<span class="lineno">  103 </span>import Data.Word
+<span class="lineno">  104 </span>import GHC.Generics
+<span class="lineno">  105 </span>import GHC.TypeLits
+<span class="lineno">  106 </span>import Prettyprinter
+<span class="lineno">  107 </span>import Universe
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>{- Note [Compilation peculiarities]
+<span class="lineno">  110 </span>READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>Don't use @StrictData@, it makes the machine slower by several percent.
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>Exporting the 'computeCek' function from this module causes the CEK machine to become slower by
+<span class="lineno">  115 </span>up to 25%. I repeat: just adding 'computeCek' to the export list makes the evaluator substantially
+<span class="lineno">  116 </span>slower. The reason for this is that with 'computeCek' exported the generated GHC Core is much worse:
+<span class="lineno">  117 </span>it contains more lambdas, allocates more stuff etc. While perhaps surprising, this is not an
+<span class="lineno">  118 </span>unusual behavior of the compiler as https://wiki.haskell.org/Performance/GHC explains:
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>&gt; Indeed, generally speaking GHC will inline across modules just as much as it does within modules,
+<span class="lineno">  121 </span>&gt; with a single large exception. If GHC sees that a function 'f' is called just once, it inlines it
+<span class="lineno">  122 </span>&gt; regardless of how big 'f' is. But once 'f' is exported, GHC can never see that it's called exactly
+<span class="lineno">  123 </span>&gt; once, even if that later turns out to be the case. This inline-once optimisation is pretty
+<span class="lineno">  124 </span>&gt; important in practice.
+<span class="lineno">  125 </span>&gt;
+<span class="lineno">  126 </span>&gt; So: if you care about performance, do not export functions that are not used outside the module
+<span class="lineno">  127 </span>&gt; (i.e. use an explicit export list, and keep it as small as possible).
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>Now clearly 'computeCek' cannot be inlined in 'runCek' whether it's exported or not, since
+<span class="lineno">  130 </span>'computeCek' is recursive. However:
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>1. GHC is _usually_ smart enough to perform the worker/wrapper transformation and inline the wrapper
+<span class="lineno">  133 </span>   (however experiments have shown that sticking the internals of the CEK machine, budgeting modes
+<span class="lineno">  134 </span>   and the API into the same file prevents GHC from performing the worker/wrapper transformation for
+<span class="lineno">  135 </span>   some reason likely related to &quot;we've been compiling this for too long, let's leave it at that&quot;
+<span class="lineno">  136 </span>2. GHC seems to be able to massage the definition of 'computeCek' into something more performant
+<span class="lineno">  137 </span>   making use of knowing exactly how 'computeCek' is used, essentially tailoring the definition of
+<span class="lineno">  138 </span>   'computeCek' for a particular invocation in 'runCek'
+<span class="lineno">  139 </span>
+<span class="lineno">  140 </span>Hence we don't export 'computeCek' and instead define 'runCek' in this file and export it, even
+<span class="lineno">  141 </span>though the rest of the user-facing API (which 'runCek' is a part of) is defined downstream.
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>Another problem is handling mutual recursion in the 'computeCek'/'returnCek'/'forceEvaluate'/etc
+<span class="lineno">  144 </span>family. If we keep these functions at the top level, GHC won't be able to pull the constraints out
+<span class="lineno">  145 </span>of the family (confirmed by inspecting Core: GHC thinks that since the superclass constraints
+<span class="lineno">  146 </span>populating the dictionary representing the @Ix fun@ constraint are redundant, they can be replaced
+<span class="lineno">  147 </span>with calls to 'error' in a recursive call, but that changes the dictionary and so it can no longer
+<span class="lineno">  148 </span>be pulled out of recursion). But that entails passing a redundant argument around, which slows down
+<span class="lineno">  149 </span>the machine a tiny little bit.
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>Hence we define a all happy-path functions having CEK-machine-specific constraints as local
+<span class="lineno">  152 </span>functions making use of a shared context from their parent function. This also allows GHC to inline
+<span class="lineno">  153 </span>almost all of the machine into a single definition (with a bunch of recursive join points in it).
+<span class="lineno">  154 </span>
+<span class="lineno">  155 </span>In general, it's advised to run benchmarks (and look at Core output if the results are suspicious)
+<span class="lineno">  156 </span>on any changes in this file.
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>Finally, it's important to put bang patterns on any 'Int' arguments to ensure that GHC unboxes them:
+<span class="lineno">  159 </span>this can make a surprisingly large difference.
+<span class="lineno">  160 </span>-}
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>-- | The 'Term's that CEK can execute must have DeBruijn binders
+<span class="lineno">  163 </span>-- 'Name' is not necessary but we leave it here for simplicity and debuggability.
+<span class="lineno">  164 </span>type NTerm uni fun = Term NamedDeBruijn uni fun
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>data StepKind
+<span class="lineno">  167 </span>    = BConst
+<span class="lineno">  168 </span>    | BVar
+<span class="lineno">  169 </span>    | BLamAbs
+<span class="lineno">  170 </span>    | BApply
+<span class="lineno">  171 </span>    | BDelay
+<span class="lineno">  172 </span>    | BForce
+<span class="lineno">  173 </span>    | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
+<span class="lineno">  174 </span>    | BConstr
+<span class="lineno">  175 </span>    | BCase
+<span class="lineno">  176 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Enum</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Bounded</span></span></span></span>)
+<span class="lineno">  177 </span>    deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  178 </span>
+<span class="lineno">  179 </span>cekStepCost :: CekMachineCosts -&gt; StepKind -&gt; ExBudget
+<span class="lineno">  180 </span><span class="decl"><span class="istickedoff">cekStepCost costs = runIdentity . \case</span>
+<span class="lineno">  181 </span><span class="spaces">    </span><span class="istickedoff">BConst   -&gt; cekConstCost costs</span>
+<span class="lineno">  182 </span><span class="spaces">    </span><span class="istickedoff">BVar     -&gt; cekVarCost costs</span>
+<span class="lineno">  183 </span><span class="spaces">    </span><span class="istickedoff">BLamAbs  -&gt; cekLamCost costs</span>
+<span class="lineno">  184 </span><span class="spaces">    </span><span class="istickedoff">BApply   -&gt; cekApplyCost costs</span>
+<span class="lineno">  185 </span><span class="spaces">    </span><span class="istickedoff">BDelay   -&gt; cekDelayCost costs</span>
+<span class="lineno">  186 </span><span class="spaces">    </span><span class="istickedoff">BForce   -&gt; cekForceCost costs</span>
+<span class="lineno">  187 </span><span class="spaces">    </span><span class="istickedoff">BBuiltin -&gt; cekBuiltinCost costs</span>
+<span class="lineno">  188 </span><span class="spaces">    </span><span class="istickedoff">BConstr  -&gt; cekConstrCost costs</span>
+<span class="lineno">  189 </span><span class="spaces">    </span><span class="istickedoff">BCase    -&gt; cekCaseCost costs</span></span>
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>data ExBudgetCategory fun
+<span class="lineno">  192 </span>    = BStep StepKind
+<span class="lineno">  193 </span>    | BBuiltinApp fun  -- Cost of evaluating a fully applied builtin function
+<span class="lineno">  194 </span>    | BStartup
+<span class="lineno">  195 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  196 </span>    deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">  197 </span>instance <span class="decl"><span class="nottickedoff">Show fun =&gt; Pretty (ExBudgetCategory fun)</span></span> where
+<span class="lineno">  198 </span>    <span class="decl"><span class="nottickedoff">pretty = viaShow</span></span>
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>instance ExBudgetBuiltin fun (ExBudgetCategory fun) where
+<span class="lineno">  201 </span>    <span class="decl"><span class="nottickedoff">exBudgetBuiltin = BBuiltinApp</span></span>
+<span class="lineno">  202 </span>
+<span class="lineno">  203 </span>{- Note [Show instance for BuiltinRuntime]
+<span class="lineno">  204 </span>We need to be able to print 'CekValue's and for that we need a 'Show' instance for 'BuiltinRuntime',
+<span class="lineno">  205 </span>but functions are not printable and hence we provide a dummy instance.
+<span class="lineno">  206 </span>-}
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>-- See Note [Show instance for BuiltinRuntime].
+<span class="lineno">  209 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show (BuiltinRuntime (CekValue uni fun ann))</span></span></span></span> where
+<span class="lineno">  210 </span>    <span class="decl"><span class="nottickedoff">show _ = &quot;&lt;builtin_runtime&gt;&quot;</span></span>
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>-- | A LIFO stack of 'CekValue's, useful for recording multiple arguments which will need to
+<span class="lineno">  213 </span>-- be pushed onto the context in reverse order.
+<span class="lineno">  214 </span>data ArgStack uni fun ann =
+<span class="lineno">  215 </span>  EmptyStack
+<span class="lineno">  216 </span>  | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)</span>
+<span class="lineno">  219 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; Show (ArgStack uni fun ann)</span></span></span></span></span></span>
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>-- 'Values' for the modified CEK machine.
+<span class="lineno">  222 </span>data CekValue uni fun ann =
+<span class="lineno">  223 </span>    -- This bang gave us a 1-2% speed-up at the time of writing.
+<span class="lineno">  224 </span>    VCon !(Some (ValueOf uni))
+<span class="lineno">  225 </span>  | VDelay !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+<span class="lineno">  226 </span>  | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
+<span class="lineno">  227 </span>    -- | A partial builtin application, accumulating arguments for eventual full application.
+<span class="lineno">  228 </span>    -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
+<span class="lineno">  229 </span>    -- values always store their corresponding 'Term's fully discharged, see the comments at
+<span class="lineno">  230 </span>    -- the call sites (search for 'VBuiltin').
+<span class="lineno">  231 </span>  | VBuiltin
+<span class="lineno">  232 </span>      !fun
+<span class="lineno">  233 </span>      -- ^ So that we know, for what builtin we're calculating the cost. We can sneak this into
+<span class="lineno">  234 </span>      -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
+<span class="lineno">  235 </span>      -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
+<span class="lineno">  236 </span>      -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
+<span class="lineno">  237 </span>      -- the change: https://github.com/IntersectMBO/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
+<span class="lineno">  238 </span>      (NTerm uni fun ())
+<span class="lineno">  239 </span>      -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
+<span class="lineno">  240 </span>      -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
+<span class="lineno">  241 </span>      -- to return it in case full saturation is never achieved and a partial application needs to
+<span class="lineno">  242 </span>      -- be returned in the result. The laziness is important, because the arguments are discharged
+<span class="lineno">  243 </span>      -- values and discharging is expensive, so we don't want to do it unless we really have
+<span class="lineno">  244 </span>      -- to. Making this field strict resulted in a 3-4.5% slowdown at the time of writing.
+<span class="lineno">  245 </span>      !(BuiltinRuntime (CekValue uni fun ann))
+<span class="lineno">  246 </span>      -- ^ The partial application and its costing function.
+<span class="lineno">  247 </span>      -- Check the docs of 'BuiltinRuntime' for details.
+<span class="lineno">  248 </span>    -- | A constructor value, including fully computed arguments and the tag.
+<span class="lineno">  249 </span>  | VConstr {-# UNPACK #-} !Word64 !(ArgStack uni fun ann)
+<span class="lineno">  250 </span>
+<span class="lineno">  251 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)</span>
+<span class="lineno">  252 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; Show (CekValue uni fun ann)</span></span></span></span></span></span>
+<span class="lineno">  253 </span>
+<span class="lineno">  254 </span>type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>-- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
+<span class="lineno">  257 </span>-- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
+<span class="lineno">  258 </span>-- of all possible budgeting state types during evaluation.
+<span class="lineno">  259 </span>newtype CekBudgetSpender uni fun s = CekBudgetSpender
+<span class="lineno">  260 </span>    { <span class="istickedoff"><span class="decl"><span class="istickedoff">unCekBudgetSpender</span></span></span> :: ExBudgetCategory fun -&gt; ExBudget -&gt; CekM uni fun s ()
+<span class="lineno">  261 </span>    }
+<span class="lineno">  262 </span>
+<span class="lineno">  263 </span>-- General enough to be able to handle a spender having one, two or any number of 'STRef's
+<span class="lineno">  264 </span>-- under the hood.
+<span class="lineno">  265 </span>-- | Runtime budgeting info.
+<span class="lineno">  266 </span>data ExBudgetInfo cost uni fun s = ExBudgetInfo
+<span class="lineno">  267 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_exBudgetModeSpender</span></span></span>       :: !(CekBudgetSpender uni fun s)  -- ^ A spending function.
+<span class="lineno">  268 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_exBudgetModeGetFinal</span></span></span>      :: !(ST s cost) -- ^ For accessing the final state.
+<span class="lineno">  269 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_exBudgetModeGetCumulative</span></span></span> :: !(ST s ExBudget) -- ^ For accessing the cumulative budget.
+<span class="lineno">  270 </span>    }
+<span class="lineno">  271 </span>
+<span class="lineno">  272 </span>-- We make a separate data type here just to save the caller of the CEK machine from those pesky
+<span class="lineno">  273 </span>-- 'ST'-related details.
+<span class="lineno">  274 </span>-- | A budgeting mode to execute the CEK machine in.
+<span class="lineno">  275 </span>newtype ExBudgetMode cost uni fun = ExBudgetMode
+<span class="lineno">  276 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unExBudgetMode</span></span></span> :: forall s. ST s (ExBudgetInfo cost uni fun s)
+<span class="lineno">  277 </span>    }
+<span class="lineno">  278 </span>
+<span class="lineno">  279 </span>{- Note [Cost slippage]
+<span class="lineno">  280 </span>Tracking the budget usage for every step in the machine adds a lot of overhead. To reduce this,
+<span class="lineno">  281 </span>we adopt a technique which allows some overshoot of the budget (&quot;slippage&quot;), but only a bounded
+<span class="lineno">  282 </span>amount.
+<span class="lineno">  283 </span>
+<span class="lineno">  284 </span>To do this we:
+<span class="lineno">  285 </span>- Track all the machine steps of all kinds in an set of counters in a 'StepCounter'
+<span class="lineno">  286 </span>- Actually &quot;spend&quot; the budget when we've done more than some fixed number of steps, or at the end.
+<span class="lineno">  287 </span>
+<span class="lineno">  288 </span>This saves a *lot* of time, at the cost of potentially overshooting the budget by slippage*step_cost,
+<span class="lineno">  289 </span>which is okay so long as we bound the slippage appropriately.
+<span class="lineno">  290 </span>
+<span class="lineno">  291 </span>Note that we're only proposing to do this for machine steps, since it's plausible that we can track
+<span class="lineno">  292 </span>them in an optimized way. Builtins are more complicated (and infrequent), so we can just budget them
+<span class="lineno">  293 </span>properly when we hit them.
+<span class="lineno">  294 </span>
+<span class="lineno">  295 </span>There are two options for how to bound the slippage:
+<span class="lineno">  296 </span>1. As a fixed number of steps
+<span class="lineno">  297 </span>2. As a proportion of the overall budget
+<span class="lineno">  298 </span>
+<span class="lineno">  299 </span>Option 2 initially seems much better as a bound: if we run N scripts with an overall budget of B, then
+<span class="lineno">  300 </span>the potential overrun from 1 is N*slippage, whereas the overrun from 2 is B*slippage. That is, 2
+<span class="lineno">  301 </span>says we always overrun by a fraction of the total amount of time you were expecting, whereas 1 says
+<span class="lineno">  302 </span>it depends how many scripts you run... so if I send you a lot of small scripts, I could cause a lot
+<span class="lineno">  303 </span>of overrun.
+<span class="lineno">  304 </span>
+<span class="lineno">  305 </span>However, it turns out (empirically) that we can pick a number for 1 that gives us most of the speedup, but such
+<span class="lineno">  306 </span>that the maximum overrun is negligible (e.g. much smaller than the &quot;startup cost&quot;). So in the end
+<span class="lineno">  307 </span>we opted for option 1, which also happens to be simpler to implement.
+<span class="lineno">  308 </span>-}
+<span class="lineno">  309 </span>
+<span class="lineno">  310 </span>{- Note [Structure of the step counter]
+<span class="lineno">  311 </span>The step counter is kept in a 'MutablePrimArray', which is a fast way of storing a bunch of
+<span class="lineno">  312 </span>mutable 'Word8's.
+<span class="lineno">  313 </span>This suits our purposes, as we need one counter for every step type, and one for the total number.
+<span class="lineno">  314 </span>
+<span class="lineno">  315 </span>We keep the counters for each step in the first indices, so we can index them simply by using
+<span class="lineno">  316 </span>the 'Enum' instance of 'StepKind', and the total counter in the last index.
+<span class="lineno">  317 </span>-}
+<span class="lineno">  318 </span>
+<span class="lineno">  319 </span>-- So that we don't need to update 'NumberOfStepCounters' manually, which would be extremely
+<span class="lineno">  320 </span>-- error-prone and has caused a bug in the past.
+<span class="lineno">  321 </span>type CountConstructorsEnum :: (GHC.Type -&gt; GHC.Type) -&gt; Nat
+<span class="lineno">  322 </span>type family CountConstructorsEnum rep where
+<span class="lineno">  323 </span>    CountConstructorsEnum U1         = 1
+<span class="lineno">  324 </span>    CountConstructorsEnum (M1 _ _ f) = CountConstructorsEnum f
+<span class="lineno">  325 </span>    CountConstructorsEnum (f :+: g)  = CountConstructorsEnum f + CountConstructorsEnum g
+<span class="lineno">  326 </span>    CountConstructorsEnum V1         = TypeError ('Text &quot;Cannot be empty&quot;)
+<span class="lineno">  327 </span>    CountConstructorsEnum (f :*: g)  = TypeError ('Text &quot;Cannot be a non-enumeration type&quot;)
+<span class="lineno">  328 </span>    CountConstructorsEnum (K1 _ _)   = TypeError ('Text &quot;Cannot be a non-enumeration type&quot;)
+<span class="lineno">  329 </span>    CountConstructorsEnum (Rec1 _)   = TypeError ('Text &quot;Cannot be a non-enumeration type&quot;)
+<span class="lineno">  330 </span>    CountConstructorsEnum Par1       =
+<span class="lineno">  331 </span>        TypeError ('Text &quot;If you really want a parameterized type, handle this clause&quot;)
+<span class="lineno">  332 </span>
+<span class="lineno">  333 </span>-- | The number of step counters that we need, should be the same as the number of constructors
+<span class="lineno">  334 </span>-- of 'StepKind'.
+<span class="lineno">  335 </span>type NumberOfStepCounters = CountConstructorsEnum (Rep StepKind)
+<span class="lineno">  336 </span>-- | The total number of counters that we need, one extra for the total counter.
+<span class="lineno">  337 </span>-- See Note [Structure of the step counter]
+<span class="lineno">  338 </span>type CounterSize = NumberOfStepCounters + 1
+<span class="lineno">  339 </span>-- | The index at which the total step counter is kept.
+<span class="lineno">  340 </span>-- See Note [Structure of the step counter]
+<span class="lineno">  341 </span>type TotalCountIndex = NumberOfStepCounters
+<span class="lineno">  342 </span>
+<span class="lineno">  343 </span>type Slippage = Word8
+<span class="lineno">  344 </span>-- See Note [Cost slippage]
+<span class="lineno">  345 </span>-- | The default number of slippage (in machine steps) to allow.
+<span class="lineno">  346 </span>defaultSlippage :: Slippage
+<span class="lineno">  347 </span><span class="decl"><span class="istickedoff">defaultSlippage = 200</span></span>
+<span class="lineno">  348 </span>
+<span class="lineno">  349 </span>{- Note [DList-based emitting]
+<span class="lineno">  350 </span>Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
+<span class="lineno">  351 </span>(see 'CekEmitter'). That 'DList' comes from 'Emitter' and allows the latter to be an efficient
+<span class="lineno">  352 </span>monad for logging. We leak this implementation detail in the type of emitters, because it's the
+<span class="lineno">  353 </span>most efficient way of doing emitting, see
+<span class="lineno">  354 </span>https://github.com/IntersectMBO/plutus/pull/4421#issuecomment-1059186586
+<span class="lineno">  355 </span>-}
+<span class="lineno">  356 </span>
+<span class="lineno">  357 </span>-- See Note [DList-based emitting].
+<span class="lineno">  358 </span>-- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
+<span class="lineno">  359 </span>type CekEmitter uni fun s = DList.DList Text -&gt; CekM uni fun s ()
+<span class="lineno">  360 </span>
+<span class="lineno">  361 </span>-- | Runtime emitter info, similar to 'ExBudgetInfo'.
+<span class="lineno">  362 </span>data CekEmitterInfo uni fun s = CekEmitterInfo {
+<span class="lineno">  363 </span>    <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_cekEmitterInfoEmit</span></span></span>       :: !(CekEmitter uni fun s)
+<span class="lineno">  364 </span>    , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_cekEmitterInfoGetFinal</span></span></span> :: !(ST s [Text])
+<span class="lineno">  365 </span>    }
+<span class="lineno">  366 </span>
+<span class="lineno">  367 </span>-- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
+<span class="lineno">  368 </span>newtype EmitterMode uni fun = EmitterMode
+<span class="lineno">  369 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unEmitterMode</span></span></span> :: forall s. ST s ExBudget -&gt; ST s (CekEmitterInfo uni fun s)
+<span class="lineno">  370 </span>    }
+<span class="lineno">  371 </span>
+<span class="lineno">  372 </span>{- Note [Implicit parameters in the machine]
+<span class="lineno">  373 </span>The traditional way to pass context into a function is to use 'ReaderT'. However, 'ReaderT' has some
+<span class="lineno">  374 </span>disadvantages.
+<span class="lineno">  375 </span>- It requires threading through the context even where you don't need it (every monadic bind)
+<span class="lineno">  376 </span>- It *can* often be optimized away, but this requires GHC to be somewhat clever and do a lot of
+<span class="lineno">  377 </span>  case-of-case to lift all the arguments out.
+<span class="lineno">  378 </span>
+<span class="lineno">  379 </span>Moreover, if your context is global (i.e. constant across the lifetime of the monad, i.e. you don't
+<span class="lineno">  380 </span>need 'local'), then you're buying some extra power (the ability to pass in a different context somewhere
+<span class="lineno">  381 </span>deep inside the computation) which you don't need.
+<span class="lineno">  382 </span>
+<span class="lineno">  383 </span>There are three main alternatives:
+<span class="lineno">  384 </span>- Explicit function parameters. Simple, doesn't get tied up in the Monad operations, *does* still
+<span class="lineno">  385 </span>present the appearance of letting you do 'local'. But a bit cluttered.
+<span class="lineno">  386 </span>- Implicit parameters. A bit esoteric, can be bundled up into a constraint synonym and just piped to
+<span class="lineno">  387 </span>where they're needed, essentially the same as explicit parameters in terms of runtime.
+<span class="lineno">  388 </span>- Constraints via 'reflection'. Quite esoteric, *does* get you global parameters (within their scope),
+<span class="lineno">  389 </span>bit of a hassle threading around all the extra type parameters.
+<span class="lineno">  390 </span>
+<span class="lineno">  391 </span>We're using implicit parameters for now, which seems to strike a good balance of speed and convenience.
+<span class="lineno">  392 </span>I haven't tried 'reflection' in detail, but I believe the main thing it would do is to make the parameters
+<span class="lineno">  393 </span>global - but we already have this for most of the hot functions by making them all local definitions, so
+<span class="lineno">  394 </span>they don't actually take the context as an argument even at the source level.
+<span class="lineno">  395 </span>-}
+<span class="lineno">  396 </span>
+<span class="lineno">  397 </span>-- | Implicit parameter for the builtin runtime.
+<span class="lineno">  398 </span>type GivenCekRuntime uni fun ann = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun ann)))
+<span class="lineno">  399 </span>-- | Implicit parameter for the log emitter reference.
+<span class="lineno">  400 </span>type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
+<span class="lineno">  401 </span>-- | Implicit parameter for budget spender.
+<span class="lineno">  402 </span>type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
+<span class="lineno">  403 </span>type GivenCekSlippage = (?cekSlippage :: Slippage)
+<span class="lineno">  404 </span>type GivenCekStepCounter s = (?cekStepCounter :: StepCounter CounterSize s)
+<span class="lineno">  405 </span>type GivenCekCosts = (?cekCosts :: CekMachineCosts)
+<span class="lineno">  406 </span>
+<span class="lineno">  407 </span>-- | Constraint requiring all of the machine's implicit parameters.
+<span class="lineno">  408 </span>type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekStepCounter s, GivenCekCosts)
+<span class="lineno">  409 </span>
+<span class="lineno">  410 </span>data CekUserError
+<span class="lineno">  411 </span>    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+<span class="lineno">  412 </span>    | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
+<span class="lineno">  413 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>)
+<span class="lineno">  414 </span>    deriving anyclass (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  415 </span>
+<span class="lineno">  416 </span>type CekM :: (GHC.Type -&gt; GHC.Type) -&gt; GHC.Type -&gt; GHC.Type -&gt; GHC.Type -&gt; GHC.Type
+<span class="lineno">  417 </span>-- | The monad the CEK machine runs in.
+<span class="lineno">  418 </span>newtype CekM uni fun s a = CekM
+<span class="lineno">  419 </span>    { <span class="istickedoff"><span class="decl"><span class="istickedoff">unCekM</span></span></span> :: ST s a
+<span class="lineno">  420 </span>    } deriving newtype (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Applicative</span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Monad</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff">PrimMonad</span></span>)
+<span class="lineno">  421 </span>
+<span class="lineno">  422 </span>-- | The CEK machine-specific 'EvaluationException'.
+<span class="lineno">  423 </span>type CekEvaluationException name uni fun =
+<span class="lineno">  424 </span>    EvaluationException (MachineError fun) CekUserError (Term name uni fun ())
+<span class="lineno">  425 </span>
+<span class="lineno">  426 </span>{- Note [Throwing exceptions in ST]
+<span class="lineno">  427 </span>This note represents MPJ's best understanding right now, might be wrong.
+<span class="lineno">  428 </span>
+<span class="lineno">  429 </span>We use a moderately evil trick to throw exceptions in ST, but unlike the evil trick for catching them, it's hidden.
+<span class="lineno">  430 </span>
+<span class="lineno">  431 </span>The evil is that the 'MonadThrow' instance for 'ST' uses 'unsafeIOToST . throwIO'! Sneaky! The author has marked it
+<span class="lineno">  432 </span>&quot;Trustworthy&quot;, no less. However, I believe this to be safe for basically the same reasons as our trick to catch
+<span class="lineno">  433 </span>exceptions is safe, see Note [Catching exceptions in ST]
+<span class="lineno">  434 </span>-}
+<span class="lineno">  435 </span>
+<span class="lineno">  436 </span>{- Note [Catching exceptions in ST]
+<span class="lineno">  437 </span>This note represents MPJ's best understanding right now, might be wrong.
+<span class="lineno">  438 </span>
+<span class="lineno">  439 </span>We use a moderately evil trick to catch exceptions in ST. This uses the unsafe ST &lt;-&gt; IO conversion functions to go into IO,
+<span class="lineno">  440 </span>catch the exception, and then go back into ST.
+<span class="lineno">  441 </span>
+<span class="lineno">  442 </span>Why is this okay? Recall that IO ~= ST RealWorld, i.e. it is just ST with a special thread token. The unsafe conversion functions
+<span class="lineno">  443 </span>just coerce from one to the other. So the thread token remains the same, it's just that we'll potentially leak it from ST, and we don't
+<span class="lineno">  444 </span>get ordering guarantees with other IO actions.
+<span class="lineno">  445 </span>
+<span class="lineno">  446 </span>But in our case this is okay, because:
+<span class="lineno">  447 </span>
+<span class="lineno">  448 </span>1. We do not leak the original ST thread token, since we only pass it into IO and then immediately back again.
+<span class="lineno">  449 </span>2. We don't have ordering guarantees with other IO actions, but we don't care because we don't do any side effects, we only catch a single kind of exception.
+<span class="lineno">  450 </span>3. We *do* have ordering guarantees between the throws inside the ST action and the catch, since they are ultimately using the same thread token.
+<span class="lineno">  451 </span>-}
+<span class="lineno">  452 </span>
+<span class="lineno">  453 </span>-- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
+<span class="lineno">  454 </span>-- 'throwingWithCause' as the cause of the failure.
+<span class="lineno">  455 </span>throwingDischarged
+<span class="lineno">  456 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">  457 </span>    =&gt; AReview (EvaluationError (MachineError fun) CekUserError) t
+<span class="lineno">  458 </span>    -&gt; t
+<span class="lineno">  459 </span>    -&gt; CekValue uni fun ann
+<span class="lineno">  460 </span>    -&gt; CekM uni fun s x
+<span class="lineno">  461 </span><span class="decl"><span class="nottickedoff">throwingDischarged l t = throwingWithCause l t . dischargeCekValue</span></span>
+<span class="lineno">  462 </span>
+<span class="lineno">  463 </span>instance ThrowableBuiltins uni fun =&gt;
+<span class="lineno">  464 </span>        MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
+<span class="lineno">  465 </span>    -- See Note [Throwing exceptions in ST].
+<span class="lineno">  466 </span>    <span class="decl"><span class="nottickedoff">throwError = CekM . throwM</span></span>
+<span class="lineno">  467 </span>
+<span class="lineno">  468 </span>    -- See Note [Catching exceptions in ST].
+<span class="lineno">  469 </span>    catchError
+<span class="lineno">  470 </span>        :: forall a.
+<span class="lineno">  471 </span>           CekM uni fun s a
+<span class="lineno">  472 </span>        -&gt; (CekEvaluationException NamedDeBruijn uni fun -&gt; CekM uni fun s a)
+<span class="lineno">  473 </span>        -&gt; CekM uni fun s a
+<span class="lineno">  474 </span>    <span class="decl"><span class="istickedoff">a `catchError` h =</span>
+<span class="lineno">  475 </span><span class="spaces">        </span><span class="istickedoff">-- Here in addition to catching 'CekEvaluationException' we also catch common GHC exceptions</span>
+<span class="lineno">  476 </span><span class="spaces">        </span><span class="istickedoff">-- in case one of them somehow gets triggered during script execution (which would be a bug</span>
+<span class="lineno">  477 </span><span class="spaces">        </span><span class="istickedoff">-- on our side). We could probably use @enclosed-exceptions@, but spawning a thread per</span>
+<span class="lineno">  478 </span><span class="spaces">        </span><span class="istickedoff">-- script is expensive. We could also use type-based disambiguation like @unliftio@ does,</span>
+<span class="lineno">  479 </span><span class="spaces">        </span><span class="istickedoff">-- but it fails if an exception whose type indicates that it's a sync one gets thrown in an</span>
+<span class="lineno">  480 </span><span class="spaces">        </span><span class="istickedoff">-- async way.</span>
+<span class="lineno">  481 </span><span class="spaces">        </span><span class="istickedoff">-- Alexey Kuleshevich told us that the node catches exceptions anyway, so what we're doing</span>
+<span class="lineno">  482 </span><span class="spaces">        </span><span class="istickedoff">-- here is for easing debugging and error reporting, it's not a proper safety measure. Hence</span>
+<span class="lineno">  483 </span><span class="spaces">        </span><span class="istickedoff">-- catching several common exception types is enough.</span>
+<span class="lineno">  484 </span><span class="spaces">        </span><span class="istickedoff">CekM . unsafeIOToST $ aIO `catches`</span>
+<span class="lineno">  485 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">[ Handler hIO</span></span>
+<span class="lineno">  486 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, panicHandler @IOError</span></span>
+<span class="lineno">  487 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, panicHandler @Exception.ErrorCall</span></span>
+<span class="lineno">  488 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, panicHandler @Exception.ArithException</span></span>
+<span class="lineno">  489 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">, panicHandler @Exception.ArrayException</span></span>
+<span class="lineno">  490 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">]</span></span>
+<span class="lineno">  491 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  492 </span><span class="spaces">        </span><span class="istickedoff">aIO = unsafeRunCekM a</span>
+<span class="lineno">  493 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">hIO = unsafeRunCekM . h</span></span>
+<span class="lineno">  494 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  495 </span><span class="spaces">        </span><span class="istickedoff">-- Unsafely run a 'CekM' computation in the 'IO' monad by converting the underlying 'ST' to</span>
+<span class="lineno">  496 </span><span class="spaces">        </span><span class="istickedoff">-- it.</span>
+<span class="lineno">  497 </span><span class="spaces">        </span><span class="istickedoff">unsafeRunCekM :: CekM uni fun s a -&gt; IO a</span>
+<span class="lineno">  498 </span><span class="spaces">        </span><span class="istickedoff">unsafeRunCekM = unsafeSTToIO . unCekM</span>
+<span class="lineno">  499 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  500 </span><span class="spaces">        </span><span class="istickedoff">panicHandler :: forall e. Exception e =&gt; Handler IO a</span>
+<span class="lineno">  501 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">panicHandler =</span></span>
+<span class="lineno">  502 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Handler $ \(err :: e) -&gt; hIO $</span></span>
+<span class="lineno">  503 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">ErrorWithCause</span></span>
+<span class="lineno">  504 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">(StructuralError . PanicMachineError $ displayException err)</span></span>
+<span class="lineno">  505 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">Nothing</span></span></span>
+<span class="lineno">  506 </span>
+<span class="lineno">  507 </span>instance AsEvaluationFailure CekUserError where
+<span class="lineno">  508 </span>    <span class="decl"><span class="nottickedoff">_EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure</span></span>
+<span class="lineno">  509 </span>
+<span class="lineno">  510 </span>instance <span class="decl"><span class="nottickedoff">AsUnliftingError CekUserError</span></span> where
+<span class="lineno">  511 </span>    <span class="decl"><span class="nottickedoff">_UnliftingError = _UnliftingErrorVia CekEvaluationFailure</span></span>
+<span class="lineno">  512 </span>
+<span class="lineno">  513 </span>instance <span class="decl"><span class="nottickedoff">Pretty CekUserError</span></span> where
+<span class="lineno">  514 </span>    <span class="decl"><span class="nottickedoff">pretty (CekOutOfExError (ExRestrictingBudget res)) =</span>
+<span class="lineno">  515 </span><span class="spaces">        </span><span class="nottickedoff">cat</span>
+<span class="lineno">  516 </span><span class="spaces">          </span><span class="nottickedoff">[ &quot;The machine terminated part way through evaluation due to overspending the budget.&quot;</span>
+<span class="lineno">  517 </span><span class="spaces">          </span><span class="nottickedoff">, &quot;The budget when the machine terminated was:&quot;</span>
+<span class="lineno">  518 </span><span class="spaces">          </span><span class="nottickedoff">, pretty res</span>
+<span class="lineno">  519 </span><span class="spaces">          </span><span class="nottickedoff">, &quot;Negative numbers indicate the overspent budget; note that this only indicates the budget that was needed for the next step, not to run the program to completion.&quot;</span>
+<span class="lineno">  520 </span><span class="spaces">          </span><span class="nottickedoff">]</span>
+<span class="lineno">  521 </span><span class="spaces">    </span><span class="nottickedoff">pretty CekEvaluationFailure = &quot;The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.&quot;</span></span>
+<span class="lineno">  522 </span>
+<span class="lineno">  523 </span>-- | Instantiate all the free variables of a term by looking them up in an environment.
+<span class="lineno">  524 </span>-- Mutually recursive with dischargeCekVal.
+<span class="lineno">  525 </span>dischargeCekValEnv :: forall uni fun ann. CekValEnv uni fun ann -&gt; NTerm uni fun () -&gt; NTerm uni fun ()
+<span class="lineno">  526 </span><span class="decl"><span class="istickedoff">dischargeCekValEnv valEnv = go 0</span>
+<span class="lineno">  527 </span><span class="spaces"> </span><span class="istickedoff">where</span>
+<span class="lineno">  528 </span><span class="spaces">  </span><span class="istickedoff">-- The lamCnt is just a counter that measures how many lambda-abstractions</span>
+<span class="lineno">  529 </span><span class="spaces">  </span><span class="istickedoff">-- we have descended in the `go` loop.</span>
+<span class="lineno">  530 </span><span class="spaces">  </span><span class="istickedoff">go :: Word64 -&gt; NTerm uni fun () -&gt; NTerm uni fun ()</span>
+<span class="lineno">  531 </span><span class="spaces">  </span><span class="istickedoff">go !lamCnt =  \case</span>
+<span class="lineno">  532 </span><span class="spaces">    </span><span class="istickedoff">LamAbs ann name body -&gt; LamAbs ann name $ go (lamCnt+1) body</span>
+<span class="lineno">  533 </span><span class="spaces">    </span><span class="istickedoff">var@(Var _ (NamedDeBruijn _ ndbnIx)) -&gt; let idx = coerce ndbnIx :: Word64  in</span>
+<span class="lineno">  534 </span><span class="spaces">        </span><span class="istickedoff">if <span class="tickonlyfalse">lamCnt &gt;= idx</span></span>
+<span class="lineno">  535 </span><span class="spaces">        </span><span class="istickedoff">-- the index n is less-than-or-equal than the number of lambdas we have descended</span>
+<span class="lineno">  536 </span><span class="spaces">        </span><span class="istickedoff">-- this means that n points to a bound variable, so we don't discharge it.</span>
+<span class="lineno">  537 </span><span class="spaces">        </span><span class="istickedoff">then <span class="nottickedoff">var</span></span>
+<span class="lineno">  538 </span><span class="spaces">        </span><span class="istickedoff">else maybe</span>
+<span class="lineno">  539 </span><span class="spaces">               </span><span class="istickedoff">-- var is free, leave it alone</span>
+<span class="lineno">  540 </span><span class="spaces">               </span><span class="istickedoff"><span class="nottickedoff">var</span></span>
+<span class="lineno">  541 </span><span class="spaces">               </span><span class="istickedoff">-- var is in the env, discharge its value</span>
+<span class="lineno">  542 </span><span class="spaces">               </span><span class="istickedoff">dischargeCekValue</span>
+<span class="lineno">  543 </span><span class="spaces">               </span><span class="istickedoff">-- index relative to (as seen from the point of view of) the environment</span>
+<span class="lineno">  544 </span><span class="spaces">               </span><span class="istickedoff">(Env.indexOne valEnv $ idx - lamCnt)</span>
+<span class="lineno">  545 </span><span class="spaces">    </span><span class="istickedoff">Apply ann fun arg    -&gt; Apply ann (go lamCnt fun) $ go lamCnt arg</span>
+<span class="lineno">  546 </span><span class="spaces">    </span><span class="istickedoff">Delay ann term       -&gt; Delay ann $ go lamCnt term</span>
+<span class="lineno">  547 </span><span class="spaces">    </span><span class="istickedoff">Force ann term       -&gt; Force ann $ go lamCnt term</span>
+<span class="lineno">  548 </span><span class="spaces">    </span><span class="istickedoff">t -&gt; t</span></span>
+<span class="lineno">  549 </span>
+<span class="lineno">  550 </span>-- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
+<span class="lineno">  551 </span>-- they're bound to (which themselves have to be obtain by recursively discharging values).
+<span class="lineno">  552 </span>dischargeCekValue :: CekValue uni fun ann -&gt; NTerm uni fun ()
+<span class="lineno">  553 </span><span class="decl"><span class="istickedoff">dischargeCekValue = \case</span>
+<span class="lineno">  554 </span><span class="spaces">    </span><span class="istickedoff">VCon     val                         -&gt; Constant () val</span>
+<span class="lineno">  555 </span><span class="spaces">    </span><span class="istickedoff">VDelay   body env                    -&gt; <span class="nottickedoff">dischargeCekValEnv env $ Delay () (void body)</span></span>
+<span class="lineno">  556 </span><span class="spaces">    </span><span class="istickedoff">-- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an</span>
+<span class="lineno">  557 </span><span class="spaces">    </span><span class="istickedoff">-- argument of 'computeCek' and hence we need to start discharging outside of the reassembled</span>
+<span class="lineno">  558 </span><span class="spaces">    </span><span class="istickedoff">-- lambda, otherwise @name@ could clash with the names that we have in @env@.</span>
+<span class="lineno">  559 </span><span class="spaces">    </span><span class="istickedoff">VLamAbs (NamedDeBruijn n _ix) body env -&gt;</span>
+<span class="lineno">  560 </span><span class="spaces">        </span><span class="istickedoff">-- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.</span>
+<span class="lineno">  561 </span><span class="spaces">        </span><span class="istickedoff">dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) (void body)</span>
+<span class="lineno">  562 </span><span class="spaces">    </span><span class="istickedoff">-- We only return a discharged builtin application when (a) it's being returned by the machine,</span>
+<span class="lineno">  563 </span><span class="spaces">    </span><span class="istickedoff">-- or (b) it's needed for an error message.</span>
+<span class="lineno">  564 </span><span class="spaces">    </span><span class="istickedoff">-- @term@ is fully discharged, so we can return it directly without any further discharging.</span>
+<span class="lineno">  565 </span><span class="spaces">    </span><span class="istickedoff">VBuiltin _ term _                    -&gt; <span class="nottickedoff">term</span></span>
+<span class="lineno">  566 </span><span class="spaces">    </span><span class="istickedoff">VConstr i es                         -&gt; Constr () i (fmap <span class="nottickedoff">dischargeCekValue</span> $ stack2list es)</span>
+<span class="lineno">  567 </span><span class="spaces">      </span><span class="istickedoff">where</span>
+<span class="lineno">  568 </span><span class="spaces">        </span><span class="istickedoff">stack2list = go []</span>
+<span class="lineno">  569 </span><span class="spaces">        </span><span class="istickedoff">go acc EmptyStack           = acc</span>
+<span class="lineno">  570 </span><span class="spaces">        </span><span class="istickedoff">go acc (ConsStack arg rest) = <span class="nottickedoff">go (arg : acc) rest</span></span></span>
+<span class="lineno">  571 </span>
+<span class="lineno">  572 </span>instance <span class="decl"><span class="nottickedoff">(PrettyUni uni, Pretty fun) =&gt; PrettyBy PrettyConfigPlc (CekValue uni fun ann)</span></span> where
+<span class="lineno">  573 </span>    <span class="decl"><span class="nottickedoff">prettyBy cfg = prettyBy cfg . dischargeCekValue</span></span>
+<span class="lineno">  574 </span>
+<span class="lineno">  575 </span>type instance UniOf (CekValue uni fun ann) = uni
+<span class="lineno">  576 </span>
+<span class="lineno">  577 </span>instance HasConstant (CekValue uni fun ann) where
+<span class="lineno">  578 </span>    <span class="decl"><span class="istickedoff">asConstant (VCon val) = pure val</span>
+<span class="lineno">  579 </span><span class="spaces">    </span><span class="istickedoff">asConstant _          = <span class="nottickedoff">throwNotAConstant</span></span></span>
+<span class="lineno">  580 </span>    {-# INLINE asConstant #-}
+<span class="lineno">  581 </span>
+<span class="lineno">  582 </span>    <span class="decl"><span class="istickedoff">fromConstant = VCon</span></span>
+<span class="lineno">  583 </span>    {-# INLINE fromConstant #-}
+<span class="lineno">  584 </span>
+<span class="lineno">  585 </span>{-|
+<span class="lineno">  586 </span>The context in which the machine operates.
+<span class="lineno">  587 </span>
+<span class="lineno">  588 </span>Morally, this is a stack of frames, but we use the &quot;intrusive list&quot; representation so that
+<span class="lineno">  589 </span>we can match on context and the top frame in a single, strict pattern match.
+<span class="lineno">  590 </span>-}
+<span class="lineno">  591 </span>data Context uni fun ann
+<span class="lineno">  592 </span>    = FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
+<span class="lineno">  593 </span>    -- ^ @[V _]@
+<span class="lineno">  594 </span>    | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+<span class="lineno">  595 </span>    -- ^ @[_ N]@
+<span class="lineno">  596 </span>    | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
+<span class="lineno">  597 </span>    -- ^ @[_ V]@
+<span class="lineno">  598 </span>    | FrameForce !(Context uni fun ann)
+<span class="lineno">  599 </span>    -- ^ @(force _)@
+<span class="lineno">  600 </span>    -- See Note [Accumulators for terms]
+<span class="lineno">  601 </span>    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+<span class="lineno">  602 </span>    -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
+<span class="lineno">  603 </span>    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+<span class="lineno">  604 </span>    -- ^ @(case _ C0 .. Cn)@
+<span class="lineno">  605 </span>    | NoFrame
+<span class="lineno">  606 </span>
+<span class="lineno">  607 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)</span>
+<span class="lineno">  608 </span><span class="spaces">    </span><span class="nottickedoff">=&gt; Show (Context uni fun ann)</span></span></span></span></span></span>
+<span class="lineno">  609 </span>
+<span class="lineno">  610 </span>-- See Note [ExMemoryUsage instances for non-constants].
+<span class="lineno">  611 </span>instance (Closed uni, uni `Everywhere` ExMemoryUsage) =&gt; ExMemoryUsage (CekValue uni fun ann) where
+<span class="lineno">  612 </span>    <span class="decl"><span class="nottickedoff">memoryUsage = \case</span>
+<span class="lineno">  613 </span><span class="spaces">        </span><span class="nottickedoff">VCon c      -&gt; memoryUsage c</span>
+<span class="lineno">  614 </span><span class="spaces">        </span><span class="nottickedoff">VDelay {}   -&gt; singletonRose 1</span>
+<span class="lineno">  615 </span><span class="spaces">        </span><span class="nottickedoff">VLamAbs {}  -&gt; singletonRose 1</span>
+<span class="lineno">  616 </span><span class="spaces">        </span><span class="nottickedoff">VBuiltin {} -&gt; singletonRose 1</span>
+<span class="lineno">  617 </span><span class="spaces">        </span><span class="nottickedoff">VConstr {}  -&gt; singletonRose 1</span></span>
+<span class="lineno">  618 </span>    {-# INLINE memoryUsage #-}
+<span class="lineno">  619 </span>
+<span class="lineno">  620 </span>{- Note [ArgStack vs Spine]
+<span class="lineno">  621 </span>We use 'ArgStack' for collecting the arguments of a constructor to later pass it to the function in
+<span class="lineno">  622 </span>the appropriate branch. Originally, all arguments of a constructor are terms and hence before we can
+<span class="lineno">  623 </span>pass them to a function they need to be evaluated to values, which means that in case of the CEK
+<span class="lineno">  624 </span>machine the evaluated arguments are going to be reversed: you evaluate the first argument and put
+<span class="lineno">  625 </span>the result into a 'FrameConstr', then the second one and put it in a 'FrameConstr' again, this time
+<span class="lineno">  626 </span>prepending it to the one that is already there etc -- in the end you get the arguments in reversed
+<span class="lineno">  627 </span>order. Which is why 'transferArgStack' is a left fold (just like 'reverse').
+<span class="lineno">  628 </span>
+<span class="lineno">  629 </span>But in case of 'Spine' the builtins machinery directly produces values, not terms. Meaning, a
+<span class="lineno">  630 </span>'Spine' that we get from the builtins machinery isn't reversed, hence we can pass its contents
+<span class="lineno">  631 </span>directly to the head of the application. Which is why 'transferSpine' is a right fold.
+<span class="lineno">  632 </span>-}
+<span class="lineno">  633 </span>
+<span class="lineno">  634 </span>-- See Note [ArgStack vs Spine].
+<span class="lineno">  635 </span>-- | Transfers an 'ArgStack' to a series of 'Context' frames.
+<span class="lineno">  636 </span>transferArgStack :: ArgStack uni fun ann -&gt; Context uni fun ann -&gt; Context uni fun ann
+<span class="lineno">  637 </span><span class="decl"><span class="istickedoff">transferArgStack EmptyStack c           = c</span>
+<span class="lineno">  638 </span><span class="spaces"></span><span class="istickedoff">transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)</span></span>
+<span class="lineno">  639 </span>
+<span class="lineno">  640 </span>-- See Note [ArgStack vs Spine].
+<span class="lineno">  641 </span>-- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
+<span class="lineno">  642 </span>transferSpine
+<span class="lineno">  643 </span>    :: Spine (CekValue uni fun ann)
+<span class="lineno">  644 </span>    -&gt; Context uni fun ann
+<span class="lineno">  645 </span>    -&gt; Context uni fun ann
+<span class="lineno">  646 </span><span class="decl"><span class="nottickedoff">transferSpine args ctx = foldr FrameAwaitFunValue ctx args</span></span>
+<span class="lineno">  647 </span>{-# INLINE transferSpine #-}
+<span class="lineno">  648 </span>
+<span class="lineno">  649 </span>runCekM
+<span class="lineno">  650 </span>    :: forall a cost uni fun ann
+<span class="lineno">  651 </span>    . ThrowableBuiltins uni fun
+<span class="lineno">  652 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  653 </span>    -&gt; ExBudgetMode cost uni fun
+<span class="lineno">  654 </span>    -&gt; EmitterMode uni fun
+<span class="lineno">  655 </span>    -&gt; (forall s. GivenCekReqs uni fun ann s =&gt; CekM uni fun s a)
+<span class="lineno">  656 </span>    -&gt; (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
+<span class="lineno">  657 </span><span class="decl"><span class="istickedoff">runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do</span>
+<span class="lineno">  658 </span><span class="spaces">    </span><span class="istickedoff">ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} &lt;- getExBudgetInfo</span>
+<span class="lineno">  659 </span><span class="spaces">    </span><span class="istickedoff">CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} &lt;- getEmitterMode <span class="nottickedoff">_exBudgetModeGetCumulative</span></span>
+<span class="lineno">  660 </span><span class="spaces">    </span><span class="istickedoff">ctr &lt;- newCounter <span class="nottickedoff">(Proxy @CounterSize)</span></span>
+<span class="lineno">  661 </span><span class="spaces">    </span><span class="istickedoff">let ?cekRuntime = runtime</span>
+<span class="lineno">  662 </span><span class="spaces">        </span><span class="istickedoff">?cekEmitter = <span class="nottickedoff">_cekEmitterInfoEmit</span></span>
+<span class="lineno">  663 </span><span class="spaces">        </span><span class="istickedoff">?cekBudgetSpender = _exBudgetModeSpender</span>
+<span class="lineno">  664 </span><span class="spaces">        </span><span class="istickedoff">?cekCosts = costs</span>
+<span class="lineno">  665 </span><span class="spaces">        </span><span class="istickedoff">?cekSlippage = defaultSlippage</span>
+<span class="lineno">  666 </span><span class="spaces">        </span><span class="istickedoff">?cekStepCounter = ctr</span>
+<span class="lineno">  667 </span><span class="spaces">    </span><span class="istickedoff">errOrRes &lt;- unCekM $ tryError a</span>
+<span class="lineno">  668 </span><span class="spaces">    </span><span class="istickedoff">st &lt;- _exBudgetModeGetFinal</span>
+<span class="lineno">  669 </span><span class="spaces">    </span><span class="istickedoff">logs &lt;- _cekEmitterInfoGetFinal</span>
+<span class="lineno">  670 </span><span class="spaces">    </span><span class="istickedoff">pure (errOrRes, st, <span class="nottickedoff">logs</span>)</span></span>
+<span class="lineno">  671 </span>{-# INLINE runCekM #-}
+<span class="lineno">  672 </span>
+<span class="lineno">  673 </span>-- See Note [Compilation peculiarities].
+<span class="lineno">  674 </span>-- | The entering point to the CEK machine's engine.
+<span class="lineno">  675 </span>enterComputeCek
+<span class="lineno">  676 </span>    :: forall uni fun ann s
+<span class="lineno">  677 </span>    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+<span class="lineno">  678 </span>    =&gt; Context uni fun ann
+<span class="lineno">  679 </span>    -&gt; CekValEnv uni fun ann
+<span class="lineno">  680 </span>    -&gt; NTerm uni fun ann
+<span class="lineno">  681 </span>    -&gt; CekM uni fun s (NTerm uni fun ())
+<span class="lineno">  682 </span><span class="decl"><span class="istickedoff">enterComputeCek = computeCek</span>
+<span class="lineno">  683 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  684 </span><span class="spaces">    </span><span class="istickedoff">-- | The computing part of the CEK machine.</span>
+<span class="lineno">  685 </span><span class="spaces">    </span><span class="istickedoff">-- Either</span>
+<span class="lineno">  686 </span><span class="spaces">    </span><span class="istickedoff">-- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')</span>
+<span class="lineno">  687 </span><span class="spaces">    </span><span class="istickedoff">-- 2. calls 'returnCek' on values ('Delay', 'LamAbs', 'Constant', 'Builtin')</span>
+<span class="lineno">  688 </span><span class="spaces">    </span><span class="istickedoff">-- 3. throws 'EvaluationFailure' ('Error')</span>
+<span class="lineno">  689 </span><span class="spaces">    </span><span class="istickedoff">-- 4. looks up a variable in the environment and calls 'returnCek' ('Var')</span>
+<span class="lineno">  690 </span><span class="spaces">    </span><span class="istickedoff">computeCek</span>
+<span class="lineno">  691 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  692 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekValEnv uni fun ann</span>
+<span class="lineno">  693 </span><span class="spaces">        </span><span class="istickedoff">-&gt; NTerm uni fun ann</span>
+<span class="lineno">  694 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (NTerm uni fun ())</span>
+<span class="lineno">  695 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L</span>
+<span class="lineno">  696 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Var _ varName) = do</span>
+<span class="lineno">  697 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BVar</span>
+<span class="lineno">  698 </span><span class="spaces">        </span><span class="istickedoff">val &lt;- lookupVarName varName env</span>
+<span class="lineno">  699 </span><span class="spaces">        </span><span class="istickedoff">returnCek ctx val</span>
+<span class="lineno">  700 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ con c  ↦  s ◅ con c</span>
+<span class="lineno">  701 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !_ (Constant _ val) = do</span>
+<span class="lineno">  702 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BConst</span>
+<span class="lineno">  703 </span><span class="spaces">        </span><span class="istickedoff">returnCek ctx (VCon val)</span>
+<span class="lineno">  704 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)</span>
+<span class="lineno">  705 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (LamAbs _ name body) = do</span>
+<span class="lineno">  706 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BLamAbs</span>
+<span class="lineno">  707 </span><span class="spaces">        </span><span class="istickedoff">returnCek ctx (VLamAbs name body env)</span>
+<span class="lineno">  708 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)</span>
+<span class="lineno">  709 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Delay _ body) = do</span>
+<span class="lineno">  710 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BDelay</span>
+<span class="lineno">  711 </span><span class="spaces">        </span><span class="istickedoff">returnCek ctx (VDelay body env)</span>
+<span class="lineno">  712 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L</span>
+<span class="lineno">  713 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Force _ body) = do</span>
+<span class="lineno">  714 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BForce</span>
+<span class="lineno">  715 </span><span class="spaces">        </span><span class="istickedoff">computeCek (FrameForce ctx) env body</span>
+<span class="lineno">  716 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L</span>
+<span class="lineno">  717 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Apply _ fun arg) = do</span>
+<span class="lineno">  718 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BApply</span>
+<span class="lineno">  719 </span><span class="spaces">        </span><span class="istickedoff">computeCek (FrameAwaitFunTerm env arg ctx) env fun</span>
+<span class="lineno">  720 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ</span>
+<span class="lineno">  721 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !_ (Builtin _ bn) = do</span>
+<span class="lineno">  722 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BBuiltin</span>
+<span class="lineno">  723 </span><span class="spaces">        </span><span class="istickedoff">let meaning = lookupBuiltin bn ?cekRuntime</span>
+<span class="lineno">  724 </span><span class="spaces">        </span><span class="istickedoff">-- 'Builtin' is fully discharged.</span>
+<span class="lineno">  725 </span><span class="spaces">        </span><span class="istickedoff">returnCek ctx (VBuiltin bn <span class="nottickedoff">(Builtin () bn)</span> meaning)</span>
+<span class="lineno">  726 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0</span>
+<span class="lineno">  727 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Constr _ i es) = do</span>
+<span class="lineno">  728 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BConstr</span>
+<span class="lineno">  729 </span><span class="spaces">        </span><span class="istickedoff">case es of</span>
+<span class="lineno">  730 </span><span class="spaces">          </span><span class="istickedoff">(t : rest) -&gt; computeCek (FrameConstr env i rest EmptyStack ctx) env t</span>
+<span class="lineno">  731 </span><span class="spaces">          </span><span class="istickedoff">[]         -&gt; returnCek ctx $ VConstr i EmptyStack</span>
+<span class="lineno">  732 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S</span>
+<span class="lineno">  733 </span><span class="spaces">    </span><span class="istickedoff">computeCek !ctx !env (Case _ scrut cs) = do</span>
+<span class="lineno">  734 </span><span class="spaces">        </span><span class="istickedoff">stepAndMaybeSpend BCase</span>
+<span class="lineno">  735 </span><span class="spaces">        </span><span class="istickedoff">computeCek (FrameCases env cs ctx) env scrut</span>
+<span class="lineno">  736 </span><span class="spaces">    </span><span class="istickedoff">-- s ; ρ ▻ error  ↦  &lt;&gt; A</span>
+<span class="lineno">  737 </span><span class="spaces">    </span><span class="istickedoff">computeCek !_ !_ (Error _) =</span>
+<span class="lineno">  738 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">throwingWithCause _OperationalError CekEvaluationFailure $ Error ()</span></span>
+<span class="lineno">  739 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  740 </span><span class="spaces">    </span><span class="istickedoff">{- | The returning phase of the CEK machine.</span>
+<span class="lineno">  741 </span><span class="spaces">    </span><span class="istickedoff">Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame</span>
+<span class="lineno">  742 </span><span class="spaces">    </span><span class="istickedoff">from the context and uses it to decide how to proceed with the current value v.</span>
+<span class="lineno">  743 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  744 </span><span class="spaces">      </span><span class="istickedoff">* 'FrameForce': call forceEvaluate</span>
+<span class="lineno">  745 </span><span class="spaces">      </span><span class="istickedoff">* 'FrameApplyArg': call 'computeCek' over the context extended with 'FrameApplyFun'</span>
+<span class="lineno">  746 </span><span class="spaces">      </span><span class="istickedoff">* 'FrameApplyFun': call 'applyEvaluate' to attempt to apply the function</span>
+<span class="lineno">  747 </span><span class="spaces">          </span><span class="istickedoff">stored in the frame to an argument.</span>
+<span class="lineno">  748 </span><span class="spaces">    </span><span class="istickedoff">-}</span>
+<span class="lineno">  749 </span><span class="spaces">    </span><span class="istickedoff">returnCek</span>
+<span class="lineno">  750 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  751 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekValue uni fun ann</span>
+<span class="lineno">  752 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (NTerm uni fun ())</span>
+<span class="lineno">  753 </span><span class="spaces">    </span><span class="istickedoff">--- Instantiate all the free variable of the resulting term in case there are any.</span>
+<span class="lineno">  754 </span><span class="spaces">    </span><span class="istickedoff">-- . ◅ V           ↦  [] V</span>
+<span class="lineno">  755 </span><span class="spaces">    </span><span class="istickedoff">returnCek NoFrame val = do</span>
+<span class="lineno">  756 </span><span class="spaces">        </span><span class="istickedoff">spendAccumulatedBudget</span>
+<span class="lineno">  757 </span><span class="spaces">        </span><span class="istickedoff">pure $ dischargeCekValue val</span>
+<span class="lineno">  758 </span><span class="spaces">    </span><span class="istickedoff">-- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*</span>
+<span class="lineno">  759 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameForce ctx) fun = forceEvaluate ctx fun</span>
+<span class="lineno">  760 </span><span class="spaces">    </span><span class="istickedoff">-- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M</span>
+<span class="lineno">  761 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =</span>
+<span class="lineno">  762 </span><span class="spaces">        </span><span class="istickedoff">computeCek (FrameAwaitArg fun ctx) argVarEnv arg</span>
+<span class="lineno">  763 </span><span class="spaces">    </span><span class="istickedoff">-- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M</span>
+<span class="lineno">  764 </span><span class="spaces">    </span><span class="istickedoff">-- FIXME: add rule for VBuiltin once it's in the specification.</span>
+<span class="lineno">  765 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameAwaitArg fun ctx) arg =</span>
+<span class="lineno">  766 </span><span class="spaces">        </span><span class="istickedoff">applyEvaluate ctx fun arg</span>
+<span class="lineno">  767 </span><span class="spaces">    </span><span class="istickedoff">-- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M</span>
+<span class="lineno">  768 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameAwaitFunValue arg ctx) fun =</span>
+<span class="lineno">  769 </span><span class="spaces">        </span><span class="istickedoff">applyEvaluate ctx fun arg</span>
+<span class="lineno">  770 </span><span class="spaces">    </span><span class="istickedoff">-- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1</span>
+<span class="lineno">  771 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameConstr env i todo done ctx) e = do</span>
+<span class="lineno">  772 </span><span class="spaces">        </span><span class="istickedoff">let done' = ConsStack e done</span>
+<span class="lineno">  773 </span><span class="spaces">        </span><span class="istickedoff">case todo of</span>
+<span class="lineno">  774 </span><span class="spaces">          </span><span class="istickedoff">(next : todo') -&gt; computeCek (FrameConstr env i todo' done' ctx) env next</span>
+<span class="lineno">  775 </span><span class="spaces">          </span><span class="istickedoff">[]             -&gt; returnCek ctx $ VConstr i done'</span>
+<span class="lineno">  776 </span><span class="spaces">    </span><span class="istickedoff">-- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci</span>
+<span class="lineno">  777 </span><span class="spaces">    </span><span class="istickedoff">returnCek (FrameCases env cs ctx) e = case e of</span>
+<span class="lineno">  778 </span><span class="spaces">        </span><span class="istickedoff">-- If the index is larger than the max bound of an Int, or negative, then it's a bad index</span>
+<span class="lineno">  779 </span><span class="spaces">        </span><span class="istickedoff">-- As it happens, this will currently never trigger, since i is a Word64, and the largest</span>
+<span class="lineno">  780 </span><span class="spaces">        </span><span class="istickedoff">-- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an</span>
+<span class="lineno">  781 </span><span class="spaces">        </span><span class="istickedoff">-- &quot;apparently good&quot; value.</span>
+<span class="lineno">  782 </span><span class="spaces">        </span><span class="istickedoff">(VConstr i _) | <span class="tickonlyfalse">fromIntegral @_ @Integer i &gt; fromIntegral @Int @Integer maxBound</span> -&gt;</span>
+<span class="lineno">  783 </span><span class="spaces">                        </span><span class="istickedoff"><span class="nottickedoff">throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e</span></span>
+<span class="lineno">  784 </span><span class="spaces">        </span><span class="istickedoff">-- Otherwise, we can safely convert the index to an Int and use it</span>
+<span class="lineno">  785 </span><span class="spaces">        </span><span class="istickedoff">(VConstr i args) -&gt; case (V.!?) cs (fromIntegral i) of</span>
+<span class="lineno">  786 </span><span class="spaces">            </span><span class="istickedoff">Just t  -&gt; computeCek (transferArgStack args ctx) env t</span>
+<span class="lineno">  787 </span><span class="spaces">            </span><span class="istickedoff">Nothing -&gt; <span class="nottickedoff">throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e</span></span>
+<span class="lineno">  788 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">throwingDischarged _StructuralError NonConstrScrutinizedMachineError e</span></span>
+<span class="lineno">  789 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  790 </span><span class="spaces">    </span><span class="istickedoff">-- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with</span>
+<span class="lineno">  791 </span><span class="spaces">    </span><span class="istickedoff">-- the returning phase of the CEK machine.</span>
+<span class="lineno">  792 </span><span class="spaces">    </span><span class="istickedoff">returnCekHeadSpine</span>
+<span class="lineno">  793 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  794 </span><span class="spaces">        </span><span class="istickedoff">-&gt; HeadSpine (CekValue uni fun ann)</span>
+<span class="lineno">  795 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (Term NamedDeBruijn uni fun ())</span>
+<span class="lineno">  796 </span><span class="spaces">    </span><span class="istickedoff">returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x</span>
+<span class="lineno">  797 </span><span class="spaces">    </span><span class="istickedoff">returnCekHeadSpine ctx (HeadSpine f xs) = <span class="nottickedoff">returnCek (transferSpine xs ctx) f</span></span>
+<span class="lineno">  798 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  799 </span><span class="spaces">    </span><span class="istickedoff">-- | @force@ a term and proceed.</span>
+<span class="lineno">  800 </span><span class="spaces">    </span><span class="istickedoff">-- If v is a delay then compute the body of v;</span>
+<span class="lineno">  801 </span><span class="spaces">    </span><span class="istickedoff">-- if v is a builtin application then check that it's expecting a type argument,</span>
+<span class="lineno">  802 </span><span class="spaces">    </span><span class="istickedoff">-- and either calculate the builtin application or stick a 'Force' on top of its 'Term'</span>
+<span class="lineno">  803 </span><span class="spaces">    </span><span class="istickedoff">-- representation depending on whether the application is saturated or not,</span>
+<span class="lineno">  804 </span><span class="spaces">    </span><span class="istickedoff">-- if v is anything else, fail.</span>
+<span class="lineno">  805 </span><span class="spaces">    </span><span class="istickedoff">forceEvaluate</span>
+<span class="lineno">  806 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  807 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekValue uni fun ann</span>
+<span class="lineno">  808 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (NTerm uni fun ())</span>
+<span class="lineno">  809 </span><span class="spaces">    </span><span class="istickedoff">forceEvaluate !ctx (VDelay body env) = computeCek ctx env body</span>
+<span class="lineno">  810 </span><span class="spaces">    </span><span class="istickedoff">forceEvaluate !ctx (VBuiltin fun term runtime) = do</span>
+<span class="lineno">  811 </span><span class="spaces">        </span><span class="istickedoff">-- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.</span>
+<span class="lineno">  812 </span><span class="spaces">        </span><span class="istickedoff">let <span class="nottickedoff">term' = Force () term</span></span>
+<span class="lineno">  813 </span><span class="spaces">        </span><span class="istickedoff">case runtime of</span>
+<span class="lineno">  814 </span><span class="spaces">            </span><span class="istickedoff">-- It's only possible to force a builtin application if the builtin expects a type</span>
+<span class="lineno">  815 </span><span class="spaces">            </span><span class="istickedoff">-- argument next.</span>
+<span class="lineno">  816 </span><span class="spaces">            </span><span class="istickedoff">BuiltinExpectForce runtime' -&gt;</span>
+<span class="lineno">  817 </span><span class="spaces">                </span><span class="istickedoff">-- We allow a type argument to appear last in the type of a built-in function,</span>
+<span class="lineno">  818 </span><span class="spaces">                </span><span class="istickedoff">-- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the</span>
+<span class="lineno">  819 </span><span class="spaces">                </span><span class="istickedoff">-- application.</span>
+<span class="lineno">  820 </span><span class="spaces">                </span><span class="istickedoff">evalBuiltinApp ctx fun <span class="nottickedoff">term'</span> runtime'</span>
+<span class="lineno">  821 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt;</span>
+<span class="lineno">  822 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'</span></span>
+<span class="lineno">  823 </span><span class="spaces">    </span><span class="istickedoff">forceEvaluate !_ val =</span>
+<span class="lineno">  824 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">throwingDischarged _StructuralError NonPolymorphicInstantiationMachineError val</span></span>
+<span class="lineno">  825 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  826 </span><span class="spaces">    </span><span class="istickedoff">-- | Apply a function to an argument and proceed.</span>
+<span class="lineno">  827 </span><span class="spaces">    </span><span class="istickedoff">-- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@</span>
+<span class="lineno">  828 </span><span class="spaces">    </span><span class="istickedoff">-- to x@ and call 'computeCek' on the body.</span>
+<span class="lineno">  829 </span><span class="spaces">    </span><span class="istickedoff">-- If the function is a builtin application then check that it's expecting a term argument,</span>
+<span class="lineno">  830 </span><span class="spaces">    </span><span class="istickedoff">-- and either calculate the builtin application or stick a 'Apply' on top of its 'Term'</span>
+<span class="lineno">  831 </span><span class="spaces">    </span><span class="istickedoff">-- representation depending on whether the application is saturated or not.</span>
+<span class="lineno">  832 </span><span class="spaces">    </span><span class="istickedoff">-- If v is anything else, fail.</span>
+<span class="lineno">  833 </span><span class="spaces">    </span><span class="istickedoff">applyEvaluate</span>
+<span class="lineno">  834 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  835 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekValue uni fun ann   -- lhs of application</span>
+<span class="lineno">  836 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekValue uni fun ann   -- rhs of application</span>
+<span class="lineno">  837 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (NTerm uni fun ())</span>
+<span class="lineno">  838 </span><span class="spaces">    </span><span class="istickedoff">applyEvaluate !ctx (VLamAbs _ body env) arg =</span>
+<span class="lineno">  839 </span><span class="spaces">        </span><span class="istickedoff">computeCek ctx (Env.cons arg env) body</span>
+<span class="lineno">  840 </span><span class="spaces">    </span><span class="istickedoff">-- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to</span>
+<span class="lineno">  841 </span><span class="spaces">    </span><span class="istickedoff">-- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.</span>
+<span class="lineno">  842 </span><span class="spaces">    </span><span class="istickedoff">applyEvaluate !ctx (VBuiltin fun term runtime) arg = do</span>
+<span class="lineno">  843 </span><span class="spaces">        </span><span class="istickedoff">let <span class="nottickedoff">argTerm = dischargeCekValue arg</span></span>
+<span class="lineno">  844 </span><span class="spaces">            </span><span class="istickedoff">-- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it</span>
+<span class="lineno">  845 </span><span class="spaces">            </span><span class="istickedoff">-- in a 'VBuiltin'.</span>
+<span class="lineno">  846 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">term' = Apply () term argTerm</span></span>
+<span class="lineno">  847 </span><span class="spaces">        </span><span class="istickedoff">case runtime of</span>
+<span class="lineno">  848 </span><span class="spaces">            </span><span class="istickedoff">-- It's only possible to apply a builtin application if the builtin expects a term</span>
+<span class="lineno">  849 </span><span class="spaces">            </span><span class="istickedoff">-- argument next.</span>
+<span class="lineno">  850 </span><span class="spaces">            </span><span class="istickedoff">BuiltinExpectArgument f -&gt;</span>
+<span class="lineno">  851 </span><span class="spaces">                </span><span class="istickedoff">evalBuiltinApp ctx fun <span class="nottickedoff">term'</span> $ f arg</span>
+<span class="lineno">  852 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt;</span>
+<span class="lineno">  853 </span><span class="spaces">                </span><span class="istickedoff"><span class="nottickedoff">throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'</span></span>
+<span class="lineno">  854 </span><span class="spaces">    </span><span class="istickedoff">applyEvaluate !_ val _ =</span>
+<span class="lineno">  855 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">throwingDischarged _StructuralError NonFunctionalApplicationMachineError val</span></span>
+<span class="lineno">  856 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  857 </span><span class="spaces">    </span><span class="istickedoff">-- | Spend the budget that has been accumulated for a number of machine steps.</span>
+<span class="lineno">  858 </span><span class="spaces">    </span><span class="istickedoff">spendAccumulatedBudget :: CekM uni fun s ()</span>
+<span class="lineno">  859 </span><span class="spaces">    </span><span class="istickedoff">spendAccumulatedBudget = do</span>
+<span class="lineno">  860 </span><span class="spaces">        </span><span class="istickedoff">let ctr = ?cekStepCounter</span>
+<span class="lineno">  861 </span><span class="spaces">        </span><span class="istickedoff">iforCounter_ ctr spend</span>
+<span class="lineno">  862 </span><span class="spaces">        </span><span class="istickedoff">resetCounter ctr</span>
+<span class="lineno">  863 </span><span class="spaces">    </span><span class="istickedoff">-- It's very important for this definition not to get inlined. Inlining it caused performance to</span>
+<span class="lineno">  864 </span><span class="spaces">    </span><span class="istickedoff">-- degrade by 16+%: https://github.com/IntersectMBO/plutus/pull/5931</span>
+<span class="lineno">  865 </span><span class="spaces">    </span><span class="istickedoff">{-# OPAQUE spendAccumulatedBudget #-}</span>
+<span class="lineno">  866 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  867 </span><span class="spaces">    </span><span class="istickedoff">-- Making this a definition of its own causes it to inline better than actually writing it inline, for</span>
+<span class="lineno">  868 </span><span class="spaces">    </span><span class="istickedoff">-- some reason.</span>
+<span class="lineno">  869 </span><span class="spaces">    </span><span class="istickedoff">-- Skip index 7, that's the total counter!</span>
+<span class="lineno">  870 </span><span class="spaces">    </span><span class="istickedoff">-- See Note [Structure of the step counter]</span>
+<span class="lineno">  871 </span><span class="spaces">    </span><span class="istickedoff">spend !i !w = unless (i == (fromIntegral $ natVal $ <span class="nottickedoff">Proxy @TotalCountIndex</span>)) $</span>
+<span class="lineno">  872 </span><span class="spaces">      </span><span class="istickedoff">let kind = toEnum i in spendBudget <span class="nottickedoff">(BStep kind)</span> (stimes w (cekStepCost ?cekCosts kind))</span>
+<span class="lineno">  873 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINE spend #-}</span>
+<span class="lineno">  874 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  875 </span><span class="spaces">    </span><span class="istickedoff">-- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.</span>
+<span class="lineno">  876 </span><span class="spaces">    </span><span class="istickedoff">stepAndMaybeSpend :: StepKind -&gt; CekM uni fun s ()</span>
+<span class="lineno">  877 </span><span class="spaces">    </span><span class="istickedoff">stepAndMaybeSpend !kind = do</span>
+<span class="lineno">  878 </span><span class="spaces">        </span><span class="istickedoff">-- See Note [Structure of the step counter]</span>
+<span class="lineno">  879 </span><span class="spaces">        </span><span class="istickedoff">-- This generates let-expressions in GHC Core, however all of them bind unboxed things and</span>
+<span class="lineno">  880 </span><span class="spaces">        </span><span class="istickedoff">-- so they don't survive further compilation, see https://stackoverflow.com/a/14090277</span>
+<span class="lineno">  881 </span><span class="spaces">        </span><span class="istickedoff">let !counterIndex = fromEnum kind</span>
+<span class="lineno">  882 </span><span class="spaces">            </span><span class="istickedoff">ctr = ?cekStepCounter</span>
+<span class="lineno">  883 </span><span class="spaces">            </span><span class="istickedoff">!totalStepIndex = fromIntegral $ natVal <span class="nottickedoff">(Proxy @TotalCountIndex)</span></span>
+<span class="lineno">  884 </span><span class="spaces">        </span><span class="istickedoff">!unbudgetedStepsTotal &lt;-  modifyCounter totalStepIndex (+1) ctr</span>
+<span class="lineno">  885 </span><span class="spaces">        </span><span class="istickedoff">_ &lt;- modifyCounter counterIndex (+1) ctr</span>
+<span class="lineno">  886 </span><span class="spaces">        </span><span class="istickedoff">-- There's no risk of overflow here, since we only ever increment the total</span>
+<span class="lineno">  887 </span><span class="spaces">        </span><span class="istickedoff">-- steps by 1 and then check this condition.</span>
+<span class="lineno">  888 </span><span class="spaces">        </span><span class="istickedoff">when (unbudgetedStepsTotal &gt;= ?cekSlippage) spendAccumulatedBudget</span>
+<span class="lineno">  889 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINE stepAndMaybeSpend #-}</span>
+<span class="lineno">  890 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  891 </span><span class="spaces">    </span><span class="istickedoff">-- | Take a possibly partial builtin application and</span>
+<span class="lineno">  892 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  893 </span><span class="spaces">    </span><span class="istickedoff">-- - either create a 'CekValue' by evaluating the application if it's saturated (emitting logs,</span>
+<span class="lineno">  894 </span><span class="spaces">    </span><span class="istickedoff">--    if any, along the way), potentially failing evaluation</span>
+<span class="lineno">  895 </span><span class="spaces">    </span><span class="istickedoff">-- - or create a partial builtin application otherwise</span>
+<span class="lineno">  896 </span><span class="spaces">    </span><span class="istickedoff">--</span>
+<span class="lineno">  897 </span><span class="spaces">    </span><span class="istickedoff">-- and proceed with the returning phase of the CEK machine.</span>
+<span class="lineno">  898 </span><span class="spaces">    </span><span class="istickedoff">evalBuiltinApp</span>
+<span class="lineno">  899 </span><span class="spaces">        </span><span class="istickedoff">:: Context uni fun ann</span>
+<span class="lineno">  900 </span><span class="spaces">        </span><span class="istickedoff">-&gt; fun</span>
+<span class="lineno">  901 </span><span class="spaces">        </span><span class="istickedoff">-&gt; NTerm uni fun ()</span>
+<span class="lineno">  902 </span><span class="spaces">        </span><span class="istickedoff">-&gt; BuiltinRuntime (CekValue uni fun ann)</span>
+<span class="lineno">  903 </span><span class="spaces">        </span><span class="istickedoff">-&gt; CekM uni fun s (Term NamedDeBruijn uni fun ())</span>
+<span class="lineno">  904 </span><span class="spaces">    </span><span class="istickedoff">evalBuiltinApp ctx fun term runtime = case runtime of</span>
+<span class="lineno">  905 </span><span class="spaces">        </span><span class="istickedoff">BuiltinCostedResult budgets0 getFXs -&gt; do</span>
+<span class="lineno">  906 </span><span class="spaces">            </span><span class="istickedoff">let <span class="nottickedoff">exCat = BBuiltinApp fun</span></span>
+<span class="lineno">  907 </span><span class="spaces">                </span><span class="istickedoff">spendBudgets (ExBudgetLast budget) = spendBudget <span class="nottickedoff">exCat</span> budget</span>
+<span class="lineno">  908 </span><span class="spaces">                </span><span class="istickedoff">spendBudgets (ExBudgetCons budget budgets) =</span>
+<span class="lineno">  909 </span><span class="spaces">                    </span><span class="istickedoff">spendBudget <span class="nottickedoff">exCat</span> budget *&gt; spendBudgets budgets</span>
+<span class="lineno">  910 </span><span class="spaces">            </span><span class="istickedoff">spendBudgets budgets0</span>
+<span class="lineno">  911 </span><span class="spaces">            </span><span class="istickedoff">case getFXs of</span>
+<span class="lineno">  912 </span><span class="spaces">                </span><span class="istickedoff">BuiltinSuccess fXs -&gt;</span>
+<span class="lineno">  913 </span><span class="spaces">                    </span><span class="istickedoff">returnCekHeadSpine ctx fXs</span>
+<span class="lineno">  914 </span><span class="spaces">                </span><span class="istickedoff">BuiltinSuccessWithLogs logs fXs -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">  915 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">?cekEmitter logs</span></span>
+<span class="lineno">  916 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">returnCekHeadSpine ctx fXs</span></span>
+<span class="lineno">  917 </span><span class="spaces">                </span><span class="istickedoff">BuiltinFailure logs err -&gt; <span class="nottickedoff">do</span></span>
+<span class="lineno">  918 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">?cekEmitter logs</span></span>
+<span class="lineno">  919 </span><span class="spaces">                    </span><span class="istickedoff"><span class="nottickedoff">throwBuiltinErrorWithCause term err</span></span>
+<span class="lineno">  920 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; returnCek ctx $ VBuiltin fun <span class="nottickedoff">term</span> runtime</span>
+<span class="lineno">  921 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINE evalBuiltinApp #-}</span>
+<span class="lineno">  922 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  923 </span><span class="spaces">    </span><span class="istickedoff">spendBudget :: ExBudgetCategory fun -&gt; ExBudget -&gt; CekM uni fun s ()</span>
+<span class="lineno">  924 </span><span class="spaces">    </span><span class="istickedoff">spendBudget = unCekBudgetSpender ?cekBudgetSpender</span>
+<span class="lineno">  925 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINE spendBudget #-}</span>
+<span class="lineno">  926 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  927 </span><span class="spaces">    </span><span class="istickedoff">-- | Look up a variable name in the environment.</span>
+<span class="lineno">  928 </span><span class="spaces">    </span><span class="istickedoff">lookupVarName :: NamedDeBruijn -&gt; CekValEnv uni fun ann -&gt; CekM uni fun s (CekValue uni fun ann)</span>
+<span class="lineno">  929 </span><span class="spaces">    </span><span class="istickedoff">lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =</span>
+<span class="lineno">  930 </span><span class="spaces">        </span><span class="istickedoff">Env.contIndexOne</span>
+<span class="lineno">  931 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">(throwingWithCause _StructuralError OpenTermEvaluatedMachineError $ Var () varName)</span></span>
+<span class="lineno">  932 </span><span class="spaces">            </span><span class="istickedoff">pure</span>
+<span class="lineno">  933 </span><span class="spaces">            </span><span class="istickedoff">varEnv</span>
+<span class="lineno">  934 </span><span class="spaces">            </span><span class="istickedoff">(coerce varIx)</span>
+<span class="lineno">  935 </span><span class="spaces">    </span><span class="istickedoff">{-# INLINE lookupVarName #-}</span></span>
+<span class="lineno">  936 </span>
+<span class="lineno">  937 </span>-- See Note [Compilation peculiarities].
+<span class="lineno">  938 </span>-- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
+<span class="lineno">  939 </span>runCekDeBruijn
+<span class="lineno">  940 </span>    :: ThrowableBuiltins uni fun
+<span class="lineno">  941 </span>    =&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  942 </span>    -&gt; ExBudgetMode cost uni fun
+<span class="lineno">  943 </span>    -&gt; EmitterMode uni fun
+<span class="lineno">  944 </span>    -&gt; NTerm uni fun ann
+<span class="lineno">  945 </span>    -&gt; (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
+<span class="lineno">  946 </span><span class="decl"><span class="istickedoff">runCekDeBruijn params mode emitMode term =</span>
+<span class="lineno">  947 </span><span class="spaces">    </span><span class="istickedoff">runCekM params mode emitMode $ do</span>
+<span class="lineno">  948 </span><span class="spaces">        </span><span class="istickedoff">unCekBudgetSpender ?cekBudgetSpender <span class="nottickedoff">BStartup</span> $ runIdentity $ cekStartupCost ?cekCosts</span>
+<span class="lineno">  949 </span><span class="spaces">        </span><span class="istickedoff">enterComputeCek NoFrame Env.empty term</span></span>
+<span class="lineno">  950 </span>
+<span class="lineno">  951 </span>{- Note [Accumulators for terms]
+<span class="lineno">  952 </span>At a couple of points in the CEK machine (notably building the arguments to a constructor value)
+<span class="lineno">  953 </span>we need to compute a list of terms into values.
+<span class="lineno">  954 </span>
+<span class="lineno">  955 </span>Our usual strategy is to make a frame which has an (implicit) &quot;hole&quot; for the value we are computing,
+<span class="lineno">  956 </span>and which stores the other sub-parts of the term as terms or values depending on whether we've computed
+<span class="lineno">  957 </span>them yet or not (see e.g. how applications work).
+<span class="lineno">  958 </span>
+<span class="lineno">  959 </span>We want to do the same sort of strategy here, but it's a bit more complicated. We need a hole
+<span class="lineno">  960 </span>&quot;in the middle&quot; of the list, with computed values on one side and yet-to-be-computed terms on the other.
+<span class="lineno">  961 </span>We also very much want to avoid allocating as much as possible.
+<span class="lineno">  962 </span>
+<span class="lineno">  963 </span>The basic structure that we end up with has three parts:
+<span class="lineno">  964 </span>1. Use the list of sub-terms from the original term as our &quot;todo&quot; queue, a list is a good structure for this.
+<span class="lineno">  965 </span>2. Use an accumulator type with fast snoc to accumulate the values as we compute them.
+<span class="lineno">  966 </span>3. Convert the accumulator quickly into a final type that is fast to process/lookup in later.
+<span class="lineno">  967 </span>
+<span class="lineno">  968 </span>(this process was at one point made explicit with an interface, but in the end we just inlined it all away)
+<span class="lineno">  969 </span>
+<span class="lineno">  970 </span>We tried at least three variants of this:
+<span class="lineno">  971 </span>1. List/MutableVector/Vector
+<span class="lineno">  972 </span>2. List/Seq/Seq
+<span class="lineno">  973 </span>3. List/DList/List
+<span class="lineno">  974 </span>
+<span class="lineno">  975 </span>Suprisingly, option 3 was just as performant as the others, so we opted to go with it for simplicity.
+<span class="lineno">  976 </span>But there may well be a faster version.
+<span class="lineno">  977 </span>-}
+
+</pre>
+</body>
+</html>

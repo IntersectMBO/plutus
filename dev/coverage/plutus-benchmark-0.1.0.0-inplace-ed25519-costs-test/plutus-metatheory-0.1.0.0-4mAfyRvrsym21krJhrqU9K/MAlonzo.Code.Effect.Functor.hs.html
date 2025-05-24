@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Effect.Functor where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Unit qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Level qualified
+<span class="lineno">   20 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   21 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   22 </span>                    word64ToNat)
+<span class="lineno">   23 </span>import MAlonzo.RTE qualified
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- Effect.Functor.RawFunctor
+<span class="lineno">   26 </span><span class="decl"><span class="nottickedoff">d_RawFunctor_24 a0 a1 a2 = ()</span></span>
+<span class="lineno">   27 </span>newtype T_RawFunctor_24
+<span class="lineno">   28 </span>  = C_RawFunctor'46'constructor_241 (() -&gt;
+<span class="lineno">   29 </span>                                     () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   30 </span>-- Effect.Functor.RawFunctor._&lt;$&gt;_
+<span class="lineno">   31 </span>d__'60''36''62'__30 ::
+<span class="lineno">   32 </span>  T_RawFunctor_24 -&gt;
+<span class="lineno">   33 </span>  () -&gt; () -&gt; (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d__'60''36''62'__30 v0</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   36 </span><span class="spaces">      </span><span class="nottickedoff">C_RawFunctor'46'constructor_241 v1 -&gt; coe v1</span>
+<span class="lineno">   37 </span><span class="spaces">      </span><span class="nottickedoff">_                                  -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   38 </span>-- Effect.Functor.RawFunctor._&lt;$_
+<span class="lineno">   39 </span>d__'60''36'__32 ::
+<span class="lineno">   40 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   41 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   42 </span>  (() -&gt; ()) -&gt;
+<span class="lineno">   43 </span>  T_RawFunctor_24 -&gt; () -&gt; () -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">d__'60''36'__32 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 v7</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">= du__'60''36'__32 v3 v6 v7</span></span>
+<span class="lineno">   46 </span>du__'60''36'__32 ::
+<span class="lineno">   47 </span>  T_RawFunctor_24 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   48 </span><span class="decl"><span class="nottickedoff">du__'60''36'__32 v0 v1 v2</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">= coe d__'60''36''62'__30 v0 erased erased (\ v3 -&gt; v1) v2</span></span>
+<span class="lineno">   50 </span>-- Effect.Functor.RawFunctor._&lt;&amp;&gt;_
+<span class="lineno">   51 </span>d__'60''38''62'__38 ::
+<span class="lineno">   52 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   53 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   54 </span>  (() -&gt; ()) -&gt;
+<span class="lineno">   55 </span>  T_RawFunctor_24 -&gt;
+<span class="lineno">   56 </span>  () -&gt; () -&gt; AgdaAny -&gt; (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d__'60''38''62'__38 ~v0 ~v1 ~v2 v3 ~v4 ~v5 v6 v7</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">= du__'60''38''62'__38 v3 v6 v7</span></span>
+<span class="lineno">   59 </span>du__'60''38''62'__38 ::
+<span class="lineno">   60 </span>  T_RawFunctor_24 -&gt; AgdaAny -&gt; (AgdaAny -&gt; AgdaAny) -&gt; AgdaAny
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">du__'60''38''62'__38 v0 v1 v2</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="nottickedoff">= coe d__'60''36''62'__30 v0 erased erased v2 v1</span></span>
+<span class="lineno">   63 </span>-- Effect.Functor.RawFunctor.ignore
+<span class="lineno">   64 </span>d_ignore_40 ::
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   67 </span>  (() -&gt; ()) -&gt; T_RawFunctor_24 -&gt; () -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   68 </span><span class="decl"><span class="nottickedoff">d_ignore_40 ~v0 ~v1 ~v2 v3 ~v4 = du_ignore_40 v3</span></span>
+<span class="lineno">   69 </span>du_ignore_40 :: T_RawFunctor_24 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">du_ignore_40 v0</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">du__'60''36'__32 (coe v0)</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   74 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Level.C_lift_20</span>
+<span class="lineno">   75 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8))</span></span>
+<span class="lineno">   76 </span>-- Effect.Functor.Morphism
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_Morphism_58 a0 a1 a2 a3 a4 a5 a6 = ()</span></span>
+<span class="lineno">   78 </span>newtype T_Morphism_58
+<span class="lineno">   79 </span>  = C_Morphism'46'constructor_3741 (() -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   80 </span>-- Effect.Functor.Morphism.op
+<span class="lineno">   81 </span>d_op_76 :: T_Morphism_58 -&gt; () -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">d_op_76 v0</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">C_Morphism'46'constructor_3741 v1 -&gt; coe v1</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">_                                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   86 </span>-- Effect.Functor.Morphism.op-&lt;$&gt;
+<span class="lineno">   87 </span>d_op'45''60''36''62'_82 ::
+<span class="lineno">   88 </span>  T_Morphism_58 -&gt;
+<span class="lineno">   89 </span>  () -&gt;
+<span class="lineno">   90 </span>  () -&gt;
+<span class="lineno">   91 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   92 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">d_op'45''60''36''62'_82 = erased</span></span>
+
+</pre>
+</body>
+</html>

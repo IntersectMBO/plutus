@@ -1,0 +1,309 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances      #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    4 </span>{-# LANGUAGE LambdaCase             #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses  #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings      #-}
+<span class="lineno">    7 </span>{-# LANGUAGE RankNTypes             #-}
+<span class="lineno">    8 </span>{-# LANGUAGE StrictData             #-}
+<span class="lineno">    9 </span>{-# LANGUAGE TemplateHaskell        #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>module PlutusCore.Builtin.Result
+<span class="lineno">   12 </span>    ( EvaluationError (..)
+<span class="lineno">   13 </span>    , AsEvaluationError (..)
+<span class="lineno">   14 </span>    , UnliftingError (..)
+<span class="lineno">   15 </span>    , UnliftingEvaluationError (..)
+<span class="lineno">   16 </span>    , BuiltinError (..)
+<span class="lineno">   17 </span>    , BuiltinResult (..)
+<span class="lineno">   18 </span>    , AsUnliftingEvaluationError (..)
+<span class="lineno">   19 </span>    , AsUnliftingError (..)
+<span class="lineno">   20 </span>    , AsBuiltinError (..)
+<span class="lineno">   21 </span>    , AsBuiltinResult (..)
+<span class="lineno">   22 </span>    , _UnliftingErrorVia
+<span class="lineno">   23 </span>    , _StructuralUnliftingError
+<span class="lineno">   24 </span>    , _OperationalUnliftingError
+<span class="lineno">   25 </span>    , throwNotAConstant
+<span class="lineno">   26 </span>    , throwUnderTypeError
+<span class="lineno">   27 </span>    , emit
+<span class="lineno">   28 </span>    , withLogs
+<span class="lineno">   29 </span>    , throwing
+<span class="lineno">   30 </span>    , throwing_
+<span class="lineno">   31 </span>    ) where
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>import PlutusPrelude
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>import PlutusCore.Evaluation.Error
+<span class="lineno">   36 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import Control.Lens
+<span class="lineno">   39 </span>import Control.Monad.Error.Lens (throwing, throwing_)
+<span class="lineno">   40 </span>import Control.Monad.Except
+<span class="lineno">   41 </span>import Data.Bitraversable
+<span class="lineno">   42 </span>import Data.DList (DList)
+<span class="lineno">   43 </span>import Data.String (IsString)
+<span class="lineno">   44 </span>import Data.Text (Text)
+<span class="lineno">   45 </span>import Data.Text qualified as Text
+<span class="lineno">   46 </span>import Prettyprinter
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- | The error message part of an 'UnliftingEvaluationError'.
+<span class="lineno">   49 </span>newtype UnliftingError = MkUnliftingError
+<span class="lineno">   50 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unUnliftingError</span></span></span> :: Text
+<span class="lineno">   51 </span>    } deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   52 </span>      deriving newtype (<span class="decl"><span class="nottickedoff">IsString</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
+<span class="lineno">   55 </span>newtype UnliftingEvaluationError = MkUnliftingEvaluationError
+<span class="lineno">   56 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unUnliftingEvaluationError</span></span></span> :: EvaluationError UnliftingError UnliftingError
+<span class="lineno">   57 </span>    } deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   58 </span>      deriving newtype (<span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span>-- | The type of errors that 'readKnown' and 'makeKnown' can return.
+<span class="lineno">   61 </span>data BuiltinError
+<span class="lineno">   62 </span>    = BuiltinUnliftingEvaluationError UnliftingEvaluationError
+<span class="lineno">   63 </span>    | BuiltinEvaluationFailure
+<span class="lineno">   64 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>-- | The monad that 'makeKnown' runs in.
+<span class="lineno">   67 </span>-- Equivalent to @ExceptT BuiltinError (Writer (DList Text))@, except optimized in two ways:
+<span class="lineno">   68 </span>--
+<span class="lineno">   69 </span>-- 1. everything is strict
+<span class="lineno">   70 </span>-- 2. has the 'BuiltinSuccess' constructor that is used for returning a value with no logs
+<span class="lineno">   71 </span>--    attached, which is the most common case for us, so it helps a lot not to construct and
+<span class="lineno">   72 </span>--    deconstruct a redundant tuple
+<span class="lineno">   73 </span>--
+<span class="lineno">   74 </span>-- Moving from @ExceptT BuiltinError (Writer (DList Text))@ to this data type gave us a speedup of
+<span class="lineno">   75 </span>-- 8% of total evaluation time.
+<span class="lineno">   76 </span>--
+<span class="lineno">   77 </span>-- Logs are represented as a 'DList', because we don't particularly care about the efficiency of
+<span class="lineno">   78 </span>-- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
+<span class="lineno">   79 </span>-- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
+<span class="lineno">   80 </span>data BuiltinResult a
+<span class="lineno">   81 </span>    = -- 'BuiltinSuccess' is the first constructor to make it a bit more likely for GHC to
+<span class="lineno">   82 </span>      -- branch-predict it (which is something that we want, because most builtins return this
+<span class="lineno">   83 </span>      -- constructor). It is however not guaranteed that GHC will predict it, because even though
+<span class="lineno">   84 </span>      -- it's likely going to be a recursive case (it certainly is in the CEK machine) and thus the
+<span class="lineno">   85 </span>      -- constructor has precedence over 'BuiltinFailure', it doesn't have precedence over
+<span class="lineno">   86 </span>      -- 'BuiltinSuccessWithLogs', since that case is equally likely to be recursive.
+<span class="lineno">   87 </span>      --
+<span class="lineno">   88 </span>      -- Unfortunately, GHC doesn't offer any explicit control over branch-prediction (see this
+<span class="lineno">   89 </span>      -- ticket: https://gitlab.haskell.org/ghc/ghc/-/issues/849), so relying on hope is the best we
+<span class="lineno">   90 </span>      -- can do here.
+<span class="lineno">   91 </span>      BuiltinSuccess a
+<span class="lineno">   92 </span>    | BuiltinSuccessWithLogs (DList Text) a
+<span class="lineno">   93 </span>    | BuiltinFailure (DList Text) BuiltinError
+<span class="lineno">   94 </span>    deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>)
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">mtraverse makeClassyPrisms</span></span></span></span></span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">[ ''UnliftingError</span></span></span></span></span>
+<span class="lineno">   98 </span><span class="spaces">    </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">, ''UnliftingEvaluationError</span></span></span></span></span>
+<span class="lineno">   99 </span><span class="spaces">    </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">, ''BuiltinError</span></span></span></span></span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">, ''BuiltinResult</span></span></span></span></span>
+<span class="lineno">  101 </span><span class="spaces">    </span><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff"><span class="istickedoff"><span class="nottickedoff">]</span></span></span></span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError</span></span></span></span> where
+<span class="lineno">  104 </span>    <span class="decl"><span class="nottickedoff">_EvaluationError = coerced</span></span>
+<span class="lineno">  105 </span>    {-# INLINE _EvaluationError #-}
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- | An 'UnliftingEvaluationError' /is/ an 'EvaluationError', hence for this instance we only
+<span class="lineno">  108 </span>-- require both @structural@ and @operational@ to have '_UnliftingError' prisms, so that we can
+<span class="lineno">  109 </span>-- handle both the cases pointwisely.
+<span class="lineno">  110 </span>instance <span class="decl"><span class="nottickedoff">(AsUnliftingError structural, AsUnliftingError operational) =&gt;</span>
+<span class="lineno">  111 </span><span class="spaces">        </span><span class="nottickedoff">AsUnliftingEvaluationError (EvaluationError structural operational)</span></span> where
+<span class="lineno">  112 </span>    <span class="decl"><span class="nottickedoff">_UnliftingEvaluationError = go . coerced where</span>
+<span class="lineno">  113 </span><span class="spaces">        </span><span class="nottickedoff">go =</span>
+<span class="lineno">  114 </span><span class="spaces">            </span><span class="nottickedoff">prism'</span>
+<span class="lineno">  115 </span><span class="spaces">                </span><span class="nottickedoff">(bimap</span>
+<span class="lineno">  116 </span><span class="spaces">                    </span><span class="nottickedoff">(review _UnliftingError)</span>
+<span class="lineno">  117 </span><span class="spaces">                    </span><span class="nottickedoff">(review _UnliftingError))</span>
+<span class="lineno">  118 </span><span class="spaces">                </span><span class="nottickedoff">(bitraverse</span>
+<span class="lineno">  119 </span><span class="spaces">                    </span><span class="nottickedoff">(reoption . matching _UnliftingError)</span>
+<span class="lineno">  120 </span><span class="spaces">                    </span><span class="nottickedoff">(reoption . matching _UnliftingError))</span></span>
+<span class="lineno">  121 </span>    {-# INLINE _UnliftingEvaluationError #-}
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>instance <span class="decl"><span class="nottickedoff">AsUnliftingEvaluationError BuiltinError</span></span> where
+<span class="lineno">  124 </span>    <span class="decl"><span class="nottickedoff">_UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . _UnliftingEvaluationError</span></span>
+<span class="lineno">  125 </span>    {-# INLINE _UnliftingEvaluationError #-}
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>instance AsEvaluationFailure BuiltinError where
+<span class="lineno">  128 </span>    <span class="decl"><span class="istickedoff">_EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure</span></span>
+<span class="lineno">  129 </span>    {-# INLINE _EvaluationFailure #-}
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>-- &gt;&gt;&gt; import PlutusCore.Evaluation.Result
+<span class="lineno">  132 </span>-- &gt;&gt;&gt; evaluationFailure :: BuiltinResult Bool
+<span class="lineno">  133 </span>-- BuiltinFailure (fromList []) BuiltinEvaluationFailure
+<span class="lineno">  134 </span>--
+<span class="lineno">  135 </span>-- &gt;&gt;&gt; import Control.Lens
+<span class="lineno">  136 </span>-- &gt;&gt;&gt; let res = BuiltinFailure (pure mempty) evaluationFailure :: BuiltinResult Bool
+<span class="lineno">  137 </span>-- &gt;&gt;&gt; matching _EvaluationFailure res
+<span class="lineno">  138 </span>-- Right ()
+<span class="lineno">  139 </span>--
+<span class="lineno">  140 </span>-- &gt;&gt;&gt; matching _BuiltinFailure $ BuiltinSuccess True
+<span class="lineno">  141 </span>-- Left (BuiltinSuccess True)
+<span class="lineno">  142 </span>instance AsEvaluationFailure (BuiltinResult a) where
+<span class="lineno">  143 </span>    <span class="decl"><span class="istickedoff">_EvaluationFailure = _BuiltinFailure . iso <span class="nottickedoff">(\_ -&gt; ())</span> (\_ -&gt; pure evaluationFailure)</span></span>
+<span class="lineno">  144 </span>    {-# INLINE _EvaluationFailure #-}
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>instance MonadFail BuiltinResult where
+<span class="lineno">  147 </span>    <span class="decl"><span class="istickedoff">fail err = BuiltinFailure (pure $ <span class="nottickedoff">Text.pack err</span>) BuiltinEvaluationFailure</span></span>
+<span class="lineno">  148 </span>    {-# INLINE fail #-}
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>instance <span class="decl"><span class="nottickedoff">Pretty UnliftingError</span></span> where
+<span class="lineno">  151 </span>    <span class="decl"><span class="nottickedoff">pretty (MkUnliftingError err) = fold</span>
+<span class="lineno">  152 </span><span class="spaces">        </span><span class="nottickedoff">[ &quot;Could not unlift a value:&quot;, hardline</span>
+<span class="lineno">  153 </span><span class="spaces">        </span><span class="nottickedoff">, pretty err</span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving newtype instance Pretty UnliftingEvaluationError</span></span></span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span>instance <span class="decl"><span class="nottickedoff">Pretty BuiltinError</span></span> where
+<span class="lineno">  159 </span>    <span class="decl"><span class="nottickedoff">pretty (BuiltinUnliftingEvaluationError err) = &quot;Builtin evaluation failure:&quot; &lt;+&gt; pretty err</span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="nottickedoff">pretty BuiltinEvaluationFailure              = &quot;Builtin evaluation failure&quot;</span></span>
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>{- Note [INLINE and OPAQUE on error-related definitions]
+<span class="lineno">  163 </span>We mark error-related definitions such as prisms like '_StructuralUnliftingError' and regular
+<span class="lineno">  164 </span>functions like 'throwNotAConstant' with @INLINE@, because this produces significantly less cluttered
+<span class="lineno">  165 </span>GHC Core. Not doing so results in 20+% larger Core for builtins.
+<span class="lineno">  166 </span>
+<span class="lineno">  167 </span>However in a few specific cases we use @OPAQUE@ instead to get tighter Core. @OPAQUE@ is the
+<span class="lineno">  168 </span>same as @NOINLINE@ except the former _actually_ prevents GHC from inlining the definition unlike the
+<span class="lineno">  169 </span>former. See this for details: https://github.com/ghc-proposals/ghc-proposals/blob/5577fd008924de8d89cfa9855fa454512e7dcc75/proposals/0415-opaque-pragma.rst
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>It's hard to predict where @OPAQUE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
+<span class="lineno">  172 </span>mostly just looking into the Core and seeing where there's obvious duplication that can be removed.
+<span class="lineno">  173 </span>Such cases tend to be functions returning a value of a concrete error type (as opposed to a type
+<span class="lineno">  174 </span>variable).
+<span class="lineno">  175 </span>-}
+<span class="lineno">  176 </span>
+<span class="lineno">  177 </span>-- See Note [Ignoring context in OperationalError].
+<span class="lineno">  178 </span>-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
+<span class="lineno">  179 </span>-- that @*EvaluationFailure@ and
+<span class="lineno">  180 </span>--
+<span class="lineno">  181 </span>-- 1. pretty-printing and embedding it into an 'UnliftingError' for the setter part of the prism
+<span class="lineno">  182 </span>-- 2. returning it directly for the opposite direction (there's no other way to convert an
+<span class="lineno">  183 </span>--    'UnliftingError' to an evaluation failure, since the latter doesn't carry any content)
+<span class="lineno">  184 </span>--
+<span class="lineno">  185 </span>-- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and
+<span class="lineno">  186 </span>-- 'CekUserError'.
+<span class="lineno">  187 </span>_UnliftingErrorVia :: Pretty err =&gt; err -&gt; Prism' err UnliftingError
+<span class="lineno">  188 </span><span class="decl"><span class="nottickedoff">_UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)</span></span>
+<span class="lineno">  189 </span>{-# INLINE _UnliftingErrorVia #-}
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>-- | See Note [Structural vs operational errors within builtins]
+<span class="lineno">  192 </span>_StructuralUnliftingError :: AsBuiltinError err =&gt; Prism' err UnliftingError
+<span class="lineno">  193 </span><span class="decl"><span class="nottickedoff">_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralError</span></span>
+<span class="lineno">  194 </span>{-# INLINE _StructuralUnliftingError #-}
+<span class="lineno">  195 </span>
+<span class="lineno">  196 </span>-- | See Note [Structural vs operational errors within builtins]
+<span class="lineno">  197 </span>_OperationalUnliftingError :: AsBuiltinError err =&gt; Prism' err UnliftingError
+<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalError</span></span>
+<span class="lineno">  199 </span>{-# INLINE _OperationalUnliftingError #-}
+<span class="lineno">  200 </span>
+<span class="lineno">  201 </span>throwNotAConstant :: MonadError BuiltinError m =&gt; m void
+<span class="lineno">  202 </span><span class="decl"><span class="nottickedoff">throwNotAConstant = throwing _StructuralUnliftingError &quot;Not a constant&quot;</span></span>
+<span class="lineno">  203 </span>{-# INLINE throwNotAConstant #-}
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>throwUnderTypeError :: MonadError BuiltinError m =&gt; m void
+<span class="lineno">  206 </span><span class="decl"><span class="nottickedoff">throwUnderTypeError = throwing _StructuralUnliftingError &quot;Panic: 'TypeError' was bypassed&quot;</span></span>
+<span class="lineno">  207 </span>{-# INLINE throwUnderTypeError #-}
+<span class="lineno">  208 </span>
+<span class="lineno">  209 </span>-- | Add a log line to the logs.
+<span class="lineno">  210 </span>emit :: Text -&gt; BuiltinResult ()
+<span class="lineno">  211 </span><span class="decl"><span class="istickedoff">emit txt = BuiltinSuccessWithLogs (pure <span class="nottickedoff">txt</span>) ()</span></span>
+<span class="lineno">  212 </span>{-# INLINE emit #-}
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>-- | Prepend logs to a 'BuiltinResult' computation.
+<span class="lineno">  215 </span>withLogs :: DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+<span class="lineno">  216 </span><span class="decl"><span class="istickedoff">withLogs logs1 = \case</span>
+<span class="lineno">  217 </span><span class="spaces">    </span><span class="istickedoff">BuiltinSuccess x               -&gt; <span class="nottickedoff">BuiltinSuccessWithLogs logs1 x</span></span>
+<span class="lineno">  218 </span><span class="spaces">    </span><span class="istickedoff">BuiltinSuccessWithLogs logs2 x -&gt; <span class="nottickedoff">BuiltinSuccessWithLogs (logs1 &lt;&gt; logs2) x</span></span>
+<span class="lineno">  219 </span><span class="spaces">    </span><span class="istickedoff">BuiltinFailure logs2 err       -&gt; BuiltinFailure (<span class="nottickedoff">logs1</span> &lt;&gt; <span class="nottickedoff">logs2</span>) err</span></span>
+<span class="lineno">  220 </span>{-# INLINE withLogs #-}
+<span class="lineno">  221 </span>
+<span class="lineno">  222 </span>instance Functor BuiltinResult where
+<span class="lineno">  223 </span>    <span class="decl"><span class="nottickedoff">fmap f (BuiltinSuccess x)              = BuiltinSuccess (f x)</span>
+<span class="lineno">  224 </span><span class="spaces">    </span><span class="nottickedoff">fmap f (BuiltinSuccessWithLogs logs x) = BuiltinSuccessWithLogs logs (f x)</span>
+<span class="lineno">  225 </span><span class="spaces">    </span><span class="nottickedoff">fmap _ (BuiltinFailure logs err)       = BuiltinFailure logs err</span></span>
+<span class="lineno">  226 </span>    {-# INLINE fmap #-}
+<span class="lineno">  227 </span>
+<span class="lineno">  228 </span>    -- Written out explicitly just in case.
+<span class="lineno">  229 </span>    <span class="decl"><span class="nottickedoff">x &lt;$ BuiltinSuccess _              = BuiltinSuccess x</span>
+<span class="lineno">  230 </span><span class="spaces">    </span><span class="nottickedoff">x &lt;$ BuiltinSuccessWithLogs logs _ = BuiltinSuccessWithLogs logs x</span>
+<span class="lineno">  231 </span><span class="spaces">    </span><span class="nottickedoff">_ &lt;$ BuiltinFailure logs err       = BuiltinFailure logs err</span></span>
+<span class="lineno">  232 </span>    {-# INLINE (&lt;$) #-}
+<span class="lineno">  233 </span>
+<span class="lineno">  234 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Applicative BuiltinResult</span></span></span></span> where
+<span class="lineno">  235 </span>    <span class="decl"><span class="istickedoff">pure = BuiltinSuccess</span></span>
+<span class="lineno">  236 </span>    {-# INLINE pure #-}
+<span class="lineno">  237 </span>
+<span class="lineno">  238 </span>    <span class="decl"><span class="nottickedoff">BuiltinSuccess f              &lt;*&gt; a = fmap f a</span>
+<span class="lineno">  239 </span><span class="spaces">    </span><span class="nottickedoff">BuiltinSuccessWithLogs logs f &lt;*&gt; a = withLogs logs $ fmap f a</span>
+<span class="lineno">  240 </span><span class="spaces">    </span><span class="nottickedoff">BuiltinFailure logs err       &lt;*&gt; _ = BuiltinFailure logs err</span></span>
+<span class="lineno">  241 </span>    {-# INLINE (&lt;*&gt;) #-}
+<span class="lineno">  242 </span>
+<span class="lineno">  243 </span>    -- Better than the default implementation, because the value in the 'BuiltinSuccess' case
+<span class="lineno">  244 </span>    -- doesn't need to be retained.
+<span class="lineno">  245 </span>    <span class="decl"><span class="istickedoff">BuiltinSuccess _              *&gt; b = <span class="nottickedoff">b</span></span>
+<span class="lineno">  246 </span><span class="spaces">    </span><span class="istickedoff">BuiltinSuccessWithLogs logs _ *&gt; b = withLogs <span class="nottickedoff">logs</span> b</span>
+<span class="lineno">  247 </span><span class="spaces">    </span><span class="istickedoff">BuiltinFailure logs err       *&gt; _ = <span class="nottickedoff">BuiltinFailure logs err</span></span></span>
+<span class="lineno">  248 </span>    {-# INLINE (*&gt;) #-}
+<span class="lineno">  249 </span>
+<span class="lineno">  250 </span>instance <span class="decl"><span class="nottickedoff">Monad BuiltinResult</span></span> where
+<span class="lineno">  251 </span>    <span class="decl"><span class="nottickedoff">BuiltinSuccess x              &gt;&gt;= f = f x</span>
+<span class="lineno">  252 </span><span class="spaces">    </span><span class="nottickedoff">BuiltinSuccessWithLogs logs x &gt;&gt;= f = withLogs logs $ f x</span>
+<span class="lineno">  253 </span><span class="spaces">    </span><span class="nottickedoff">BuiltinFailure logs err       &gt;&gt;= _ = BuiltinFailure logs err</span></span>
+<span class="lineno">  254 </span>    {-# INLINE (&gt;&gt;=) #-}
+<span class="lineno">  255 </span>
+<span class="lineno">  256 </span>    <span class="decl"><span class="istickedoff">(&gt;&gt;) = (*&gt;)</span></span>
+<span class="lineno">  257 </span>    {-# INLINE (&gt;&gt;) #-}
+<span class="lineno">  258 </span>
+<span class="lineno">  259 </span>-- | 'throwError' puts every operational unlifting error into the 'BuiltinFailure' logs. This is to
+<span class="lineno">  260 </span>-- compensate for the historical lack of error message content in operational errors (structural
+<span class="lineno">  261 </span>-- ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to
+<span class="lineno">  262 </span>-- fix the underlying issue and allow operational evaluation errors to carry some form of content,
+<span class="lineno">  263 </span>-- but for now we just fix the symptom in order for the end user to see the error message that they
+<span class="lineno">  264 </span>-- are supposed to see. The fix even makes some sense: what we do here is we emulate logging when
+<span class="lineno">  265 </span>-- the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do
+<span class="lineno">  266 </span>-- manually (like when a crypto builtin fails and puts info about the failure into the logs).
+<span class="lineno">  267 </span>instance MonadError BuiltinError BuiltinResult where
+<span class="lineno">  268 </span>    <span class="decl"><span class="nottickedoff">throwError builtinErr = BuiltinFailure operationalLogs builtinErr where</span>
+<span class="lineno">  269 </span><span class="spaces">        </span><span class="nottickedoff">operationalLogs = case builtinErr of</span>
+<span class="lineno">  270 </span><span class="spaces">            </span><span class="nottickedoff">BuiltinUnliftingEvaluationError</span>
+<span class="lineno">  271 </span><span class="spaces">                </span><span class="nottickedoff">(MkUnliftingEvaluationError</span>
+<span class="lineno">  272 </span><span class="spaces">                    </span><span class="nottickedoff">(OperationalError</span>
+<span class="lineno">  273 </span><span class="spaces">                        </span><span class="nottickedoff">(MkUnliftingError operationalErr))) -&gt; pure operationalErr</span>
+<span class="lineno">  274 </span><span class="spaces">            </span><span class="nottickedoff">_ -&gt; mempty</span></span>
+<span class="lineno">  275 </span>    {-# INLINE throwError #-}
+<span class="lineno">  276 </span>
+<span class="lineno">  277 </span>    -- Throwing logs out is lame, but embedding them into the error would be weird, since that
+<span class="lineno">  278 </span>    -- would change the error. Not that any of that matters, we only implement this because it's a
+<span class="lineno">  279 </span>    -- method of 'MonadError' and we can't not implement it.
+<span class="lineno">  280 </span>    --
+<span class="lineno">  281 </span>    -- We could make it @MonadError (DList Text, BuiltinError)@, but logs are arbitrary and are not
+<span class="lineno">  282 </span>    -- necessarily an inherent part of an error, so preserving them is as questionable as not doing
+<span class="lineno">  283 </span>    -- so.
+<span class="lineno">  284 </span>    <span class="decl"><span class="nottickedoff">BuiltinFailure _ err `catchError` f = f err</span>
+<span class="lineno">  285 </span><span class="spaces">    </span><span class="nottickedoff">res                  `catchError` _ = res</span></span>
+<span class="lineno">  286 </span>    {-# INLINE catchError #-}
+
+</pre>
+</body>
+</html>

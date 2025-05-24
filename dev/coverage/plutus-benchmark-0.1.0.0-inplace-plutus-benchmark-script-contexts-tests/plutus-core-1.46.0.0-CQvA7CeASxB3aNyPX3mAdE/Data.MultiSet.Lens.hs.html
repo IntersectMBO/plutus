@@ -1,0 +1,33 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>module Data.MultiSet.Lens (multiSetOf) where
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>import Control.Lens
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Data.MultiSet
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>-- | Create a 'MultiSet' from a 'Getter', 'Fold', etc.
+<span class="lineno">    8 </span>multiSetOf :: Getting (MultiSet a) s a -&gt; s -&gt; MultiSet a
+<span class="lineno">    9 </span>-- same as 'setOf'
+<span class="lineno">   10 </span><span class="decl"><span class="istickedoff">multiSetOf l = views l singleton</span></span>
+
+</pre>
+</body>
+</html>
