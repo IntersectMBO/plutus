@@ -280,6 +280,7 @@ The `callsiteInline` example from the test suite:
 
 inlining `a` at the first position, becomes
 
+
 `(\a -> f ((\x y -> g x y) 0 1) (a 2)) (\x y -> g x y)`
 
 ```
