@@ -51,6 +51,7 @@ data RawTy where
 data RawTyCon where
   atomic     : AtomicTyCon → RawTyCon
   list       : RawTyCon
+  array       : RawTyCon
   pair       : RawTyCon
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
@@ -184,4 +185,3 @@ rawListPrinter [] = ""
 rawListPrinter (x ∷ []) = rawPrinter x
 rawListPrinter (x ∷ y ∷ xs) = rawPrinter x ++ " , " ++ rawListPrinter (y ∷ xs)
 ```
-

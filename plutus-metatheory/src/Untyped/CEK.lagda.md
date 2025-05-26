@@ -357,6 +357,21 @@ BUILTIN nullList = λ
   ; (app (app⋆ base) (V-con (list _) (_ ∷ _))) → inj₂ (V-con bool false)
   ; _ -> inj₁ userError
   }
+BUILTIN lengthOfArray = λ
+  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (Utils.lengthOfArray as))
+    ; _ -> inj₁ userError
+  }
+BUILTIN listToArray = λ
+  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (Utils.listToArray ls))
+    ; _ -> inj₁ userError
+  }
+BUILTIN indexArray = λ
+  { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer n)) → case (Utils.indexArray as n) of λ
+         { (just v) -> inj₂ (V-con t v)
+           ; nothing -> inj₁ userError
+         }
+    ; _ -> inj₁ userError
+  }
 BUILTIN chooseData = λ
   { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
   ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v

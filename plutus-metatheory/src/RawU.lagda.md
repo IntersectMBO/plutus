@@ -36,7 +36,7 @@ open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
-open import Utils using (♯;ByteString;DATA;List;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
+open import Utils using (♯;ByteString;DATA;List;Array;[];_∷_;_×_;_,_;eqDATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 open import Utils.Decidable using (dcong;dcong₂)
 import Builtin as B
 open import Builtin using (Builtin;equals)
@@ -85,6 +85,7 @@ data Tag : Set → Set where
   pdata                : Tag (Esc DATA)
   pair                 : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
   list                 : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
+  array                 : ∀{A} → Tag (Esc A) → Tag (Esc (Array A))
   bls12-381-g1-element : Tag (Esc Bls12-381-G1-Element)
   bls12-381-g2-element : Tag (Esc Bls12-381-G2-Element)
   bls12-381-mlresult   : Tag (Esc Bls12-381-MlResult)
@@ -190,14 +191,21 @@ Equality of `TyTag`s is decidable
 
 ```
 decTag : DecidableEquality TyTag
-decTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl}) (decAtomicTyCon x y)
+decTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl }) (decAtomicTyCon x y)
 decTag (atomic _) (list _) = no λ()
 decTag (atomic _) (pair _ _) = no λ()
+decTag (atomic _) (array _) = no λ()
 decTag (list _) (atomic _) = no λ()
-decTag (list x) (list y) = dcong list (λ { refl → refl}) (decTag x y)
+decTag (list x) (list y) = dcong list (λ { refl → refl }) (decTag x y)
+decTag (list x) (array y) = no λ ()
 decTag (list _) (pair _ _) = no λ()
+decTag (array _) (pair _ _) = no λ()
+decTag (array _) (atomic _) = no λ()
+decTag (array x) (list y) = no λ ()
+decTag (array x) (array y) = dcong array (λ { refl → refl }) (decTag x y)
 decTag (pair _ _) (atomic _) = no λ()
 decTag (pair _ _) (list _) = no λ()
+decTag (pair _ _) (array _) = no λ()
 decTag (pair x x') (pair y y') = dcong₂ pair (λ {refl → refl ,, refl}) (decTag x y) (decTag x' y')
 ```
 
@@ -230,6 +238,7 @@ tag2TyTag bls12-381-g2-element = B.bls12-381-g2-element
 tag2TyTag bls12-381-mlresult = B.bls12-381-mlresult
 tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
 tag2TyTag (list t) = list (tag2TyTag t)
+tag2TyTag (array t) = array (tag2TyTag t)
 
 tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
 tagLemma integer = refl
@@ -240,6 +249,7 @@ tagLemma unit = refl
 tagLemma pdata = refl
 tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
 tagLemma (list t) = cong List (tagLemma t)
+tagLemma (array t) = cong Array (tagLemma t)
 tagLemma bls12-381-g1-element = refl
 tagLemma bls12-381-g2-element = refl
 tagLemma bls12-381-mlresult = refl
@@ -257,6 +267,7 @@ tagCon2TmCon (tagCon bls12-381-mlresult x) = tmCon (B.bls12-381-mlresult) x
 tagCon2TmCon (tagCon (pair x y) (a , b))
    rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
 tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
+tagCon2TmCon (tagCon (array x) xs) rewrite tagLemma x = tmCon (array (tag2TyTag x)) xs
 ```
 
 ### From Agda-style to Haskell-style
@@ -274,6 +285,8 @@ tyTag2Tag (atomic aBls12-381-g2-element) = Bls12-381-G2-Element ,, bls12-381-g2-
 tyTag2Tag (atomic aBls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresult
 tyTag2Tag (list t)  with tyTag2Tag t
 ... | A ,, a = List A ,, list a
+tyTag2Tag (array t)  with tyTag2Tag t
+... | A ,, a = Array A ,, array a
 tyTag2Tag (pair t u)  with tyTag2Tag t | tyTag2Tag u
 ... | A ,, a | B ,, b  = (A × B) ,, pair a b
 
@@ -288,6 +301,7 @@ tyTagLemma (atomic aBls12-381-g1-element) = refl
 tyTagLemma (atomic aBls12-381-g2-element) = refl
 tyTagLemma (atomic aBls12-381-mlresult) = refl
 tyTagLemma (list t) = cong List (tyTagLemma t)
+tyTagLemma (array t) = cong Array (tyTagLemma t)
 tyTagLemma (pair t u) = cong₂ _×_ (tyTagLemma t) (tyTagLemma u)
 
 tmCon2TagCon : TmCon → TagCon
@@ -301,6 +315,7 @@ tmCon2TagCon (tmCon (atomic aBls12-381-g1-element) x) = tagCon bls12-381-g1-elem
 tmCon2TagCon (tmCon (atomic aBls12-381-g2-element) x) = tagCon bls12-381-g2-element x
 tmCon2TagCon (tmCon (atomic aBls12-381-mlresult) x) = tagCon bls12-381-mlresult x
 tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
+tmCon2TagCon (tmCon (array t) x) rewrite tyTagLemma t = tagCon (array (proj₂ (tyTag2Tag t))) x
 tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u =
     tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
 ```

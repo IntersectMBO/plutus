@@ -246,31 +246,38 @@ infixr 5 _∷_
 ```
 ## Arrays
 
-The implementation of Arrays is single dimensional, so they are just Vectors.
+The implementation of Arrays is single dimensional, so they are just Vectors,
+but Agda Vectors require a size parameter which we don't have and can't infer.
 ```
-open import Data.Vec using (Vec)
 open import Agda.Primitive using (Level)
-open import Data.Fin.Base using (Fin; zero; suc)
 
 variable
   𝓁 : Level
   A : Set 𝓁
   n : ℕ
 
-Array : (A : Set 𝓁) → ℕ → Set 𝓁
-Array a n = Vec a n
+data Array (A : Set) : Set where
+  [] : Array A
+  _∷_ : A → Array A → Array A
 
-lengthOfArray : Array A n → ℕ
-lengthOfArray = Data.Vec.length
+lengthOfArray : Array A → ℤ
+lengthOfArray [] = + zero
+lengthOfArray (x ∷ as) with lengthOfArray as
+... | +_ n = + (suc n)
+... | ℤ.negsuc n = ℤ.negsuc n -- This should never occur...
 
-listToArray : (ls : L.List A) → Array A (L.length ls)
-listToArray = Data.Vec.fromList
+listToArray : (ls : List A) → Array A
+listToArray [] = []
+listToArray (x ∷ ls) = x ∷ (listToArray ls)
 
--- This doesn't match the type from CIP-0138, but it does match the type
--- in the Haskell implementation, and in the Agda Vec module.
-indexArray : Array A n → Fin n → A
-indexArray = Data.Vec.lookup
-
+-- This returns Maybe A, but that is then handled in the CEK evaluator
+-- to produce an Error term if the lookup fails.
+-- It obviously ins't constant time, but that's fine for semantics proofs.
+indexArray : Array A → ℤ → Maybe A
+indexArray [] n = nothing
+indexArray (x ∷ as) (+ zero) = just x
+indexArray (x ∷ as) (+ (suc n)) = indexArray as (+ n)
+indexArray (x ∷ as) (ℤ.negsuc n) = nothing
 ```
 ## DATA
 ```
