@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_)
 open _≤_
 open _≤‴_
 open import Data.Nat.Properties
@@ -244,6 +244,34 @@ infixr 5 _∷_
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
 
 ```
+## Arrays
+
+The implementation of Arrays is single dimensional, so they are just Vectors.
+```
+open import Data.Vec using (Vec)
+open import Agda.Primitive using (Level)
+open import Data.Fin.Base using (Fin; zero; suc)
+
+variable
+  𝓁 : Level
+  A : Set 𝓁
+  n : ℕ
+
+Array : (A : Set 𝓁) → ℕ → Set 𝓁
+Array a n = Vec a n
+
+lengthOfArray : Array A n → ℕ
+lengthOfArray = Data.Vec.length
+
+listToArray : (ls : L.List A) → Array A (L.length ls)
+listToArray = Data.Vec.fromList
+
+-- This doesn't match the type from CIP-0138, but it does match the type
+-- in the Haskell implementation, and in the Agda Vec module.
+indexArray : Array A n → Fin n → A
+indexArray = Data.Vec.lookup
+
+```
 ## DATA
 ```
 
@@ -264,7 +292,7 @@ eqDATA : DATA → DATA → Bool
 eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
     (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
   Data.Bool.∧
-    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))  
+    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))
 eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
@@ -277,7 +305,7 @@ eqDATA (MapDATA m₁) (MapDATA m₂) =
       (toList m₁)
       (toList m₂)
     )
-eqDATA (MapDATA x) (ListDATA x₁) = Bool.false 
+eqDATA (MapDATA x) (ListDATA x₁) = Bool.false
 eqDATA (MapDATA x) (iDATA x₁) = Bool.false
 eqDATA (MapDATA x) (bDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
@@ -350,4 +378,3 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
-
