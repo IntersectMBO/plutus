@@ -278,6 +278,9 @@ indexArray [] n = nothing
 indexArray (x ∷ as) (+ zero) = just x
 indexArray (x ∷ as) (+ (suc n)) = indexArray as (+ n)
 indexArray (x ∷ as) (ℤ.negsuc n) = nothing
+
+{-# COMPILE GHC Array = data Vector (Vector.empty | Vector.cons) #-}
+
 ```
 ## DATA
 ```
