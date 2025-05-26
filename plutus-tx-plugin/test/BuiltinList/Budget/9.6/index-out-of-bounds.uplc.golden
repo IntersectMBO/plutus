@@ -1,21 +1,14 @@
 (program
    1.1.0
-   ((\go v -> go v 20)
-      ((\s -> s s)
-         (\s xs i ->
-            force
-              (force (force chooseList)
-                 xs
-                 (delay
-                    (\ds -> (\x -> error) (force trace "PT22" (constr 0 []))))
-                 (delay
-                    ((\x xs ds eta ->
-                        force
-                          (force ifThenElse
-                             (equalsInteger 0 i)
-                             (delay x)
-                             (delay (s s xs (subtractInteger i 1)))))
-                       (force headList xs)
-                       (force tailList xs))))
-              (constr 0 [])
-              (constr 0 [])))))
+   (\v ->
+      (\l ->
+         force
+           (force (force chooseList)
+              l
+              (delay
+                 (\_ann -> (\x -> error) (force trace "PT22" (constr 0 []))))
+              (delay
+                 ((\x xs ds eta -> x) (force headList l) (force tailList l))))
+           (constr 0 [])
+           (constr 0 []))
+        (force dropList 20 v)))
