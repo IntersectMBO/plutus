@@ -1,0 +1,38 @@
+(program
+   1.1.0
+   (\xss ->
+      (\caseList' ->
+         (\s -> s s)
+           (\s ->
+              caseList'
+                []
+                (\x ->
+                   (\go xs ->
+                      (\ys ->
+                         (\l ->
+                            (\s -> s s)
+                              (\s ->
+                                 caseList'
+                                   ys
+                                   (\x xs -> force mkCons x (s s xs)))
+                              l)
+                           (go 2))
+                        (s s xs))
+                     ((\s -> s s)
+                        (\s n ->
+                           force
+                             (force ifThenElse
+                                (lessThanEqualsInteger n 0)
+                                (delay [])
+                                (delay
+                                   (force mkCons
+                                      x
+                                      ((\x -> s s x)
+                                         (subtractInteger n 1))))))))))
+        (\z f xs ->
+           force
+             (force (force chooseList)
+                xs
+                (delay z)
+                (delay (f (force headList xs) (force tailList xs)))))
+        xss))

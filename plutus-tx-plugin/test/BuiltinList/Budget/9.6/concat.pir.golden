@@ -1,0 +1,42 @@
+let
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+in
+\(xss : list (list integer)) ->
+  (letrec
+      !go : list (list integer) -> list integer
+        = caseList'
+            {list integer}
+            {list integer}
+            []
+            (\(x : list integer) (xs : list (list integer)) ->
+               let
+                 !r : list integer = go xs
+               in
+               (let
+                   b = list integer
+                 in
+                 \(f : integer -> b -> b) (acc : b) ->
+                   letrec
+                     !go : list integer -> b
+                       = caseList'
+                           {integer}
+                           {b}
+                           acc
+                           (\(x : integer) (xs : list integer) -> f x (go xs))
+                   in
+                   go)
+                 (mkCons {integer})
+                 r
+                 x)
+    in
+    go)
+    xss

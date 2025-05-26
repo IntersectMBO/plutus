@@ -72,8 +72,8 @@ tests =
       -- TODO The following tests are ignored because they require implementation of
       -- arbitrarily nested BuiltinList types.
       -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
-      -- , goldenBundle "concat" concat (concat `unsafeApplyCode` l1)
-      -- , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
+      , goldenBundle "concat" concat (concat `unsafeApplyCode` l4)
+      , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
       -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
       -- , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
@@ -233,15 +233,21 @@ l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
 l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
 l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
 
+l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
+l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
+
+l4 :: CompiledCode (L.BuiltinList (L.BuiltinList Integer))
+l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
+
 -- TODO The following functions cannot compile because they require implementation of
 -- arbitrarily nested BuiltinList types.
 -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
 
-concat :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concat = undefined -- $$(compile [|| \xs -> L.concat (xs L.<| L.singleton xs) ||])
+concat :: CompiledCode (L.BuiltinList (L.BuiltinList Integer) -> L.BuiltinList Integer)
+concat = $$(compile [|| \xss -> L.concat xss ||])
 
 concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concatMap = undefined -- $$(compile [|| \xs -> L.concatMap ( \x -> L.singleton (1 P.+ x) ) xs ||])
+concatMap = $$(compile [|| \xss -> L.concatMap (L.replicate 2) xss ||])
 
 splitAt
   :: CompiledCode (
@@ -264,5 +270,3 @@ unzip = undefined -- $$(compile [|| \xs -> L.unzip xs ||])
 zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (P.BuiltinPair Integer Integer))
 zip = undefined -- $$(compile [|| \xs -> L.zip xs xs ||])
 
--- l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
--- l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])

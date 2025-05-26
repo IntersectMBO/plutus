@@ -1,0 +1,5 @@
+cpu: 7467372
+mem: 32100
+size: 75
+
+(con (list integer) [1,2,3,4])
