@@ -248,18 +248,6 @@ findIndex f = go 0
 -}
 infixl 9 !!
 
-(!!) :: forall a. [a] -> Integer -> a
-_ !! n0 | n0 < 0 = traceError negativeIndexError
-xs0 !! n0 = go n0 xs0
- where
-  go :: Integer -> [a] -> a
-  go _ [] = traceError indexTooLargeError
-  go n (x : xs) =
-    if Builtins.equalsInteger n 0
-      then x
-      else go (Builtins.subtractInteger n 1) xs
-{-# INLINEABLE (!!) #-}
-
 {-| Cons each element of the first list to the second one in reverse order (i.e. the last element
 of the first list is the head of the result).
 
