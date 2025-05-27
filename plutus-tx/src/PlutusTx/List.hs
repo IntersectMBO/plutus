@@ -105,8 +105,8 @@ mapMaybe f = go
   where
     go :: [a] -> [b]
     go = \case
-        []   -> []
-        x:xs -> maybe (go xs) (\y -> y:go xs) (f x)
+      [] -> []
+      x : xs -> maybe (go xs) (\y -> y : go xs) (f x)
 {-# INLINABLE mapMaybe #-}
 
 -- | Returns the conjunction of a list of Bools.

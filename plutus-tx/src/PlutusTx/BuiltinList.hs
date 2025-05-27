@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- | Functions operating on `BuiltinList`.
 module PlutusTx.BuiltinList (
@@ -47,7 +46,7 @@ module PlutusTx.BuiltinList (
   nub,
   nubBy,
   zipWith
-  -- TODO export these when we have fixed the MkNil issue (see HasOpaque.hs)
+  -- TODO uncomment when done https://github.com/IntersectMBO/plutus-private/issues/1604
   -- unzip,
   -- zip,
   -- splitAt,
