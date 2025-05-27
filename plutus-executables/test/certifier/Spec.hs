@@ -9,6 +9,7 @@ import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import Test.Tasty
 
 import Test.Certifier.Executable (executableTests)
+import Test.Certifier.Plugin (pluginTests)
 
 main :: IO ()
 main = do
@@ -16,4 +17,5 @@ main = do
   defaultMain $
     testGroup "Certification"
     [ executableTests
+    , pluginTests
     ]
