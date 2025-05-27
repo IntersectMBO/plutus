@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:certify=ScriptContextCert #-}
+-- {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:certify=ScriptContextCert #-}
 
 module PlutusBenchmark.V2.Data.ScriptContexts where
 
@@ -21,7 +21,7 @@ import PlutusTx.Data.List qualified as DataList
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
-import PlutusTx.Test.Util.Compiled (compiledCodeToCertPath)
+-- import PlutusTx.Test.Util.Compiled (compiledCodeToCertPath)
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
@@ -279,14 +279,10 @@ forwardWithStakeTrickManual r_stake_cred r_ctx =
 mkForwardWithStakeTrickManualCode
   :: StakingCredential
   -> ScriptContext
-  -> (Maybe FilePath, PlutusTx.CompiledCode ())
+  -> PlutusTx.CompiledCode ()
 mkForwardWithStakeTrickManualCode cred ctx =
   let c = PlutusTx.toBuiltinData cred
       sc = PlutusTx.toBuiltinData ctx
-      code = $$(PlutusTx.compile [|| forwardWithStakeTrickManual ||])
-  in
-    ( compiledCodeToCertPath code
-    , code
+  in $$(PlutusTx.compile [|| forwardWithStakeTrickManual ||])
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
        `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
-    )
