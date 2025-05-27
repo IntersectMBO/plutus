@@ -1,4 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Redundant if" #-}
 
 -- | Functions operating on `BuiltinList`.
 module PlutusTx.BuiltinList (
@@ -154,22 +156,20 @@ all p = go
     go = caseList' True ( \x xs -> if p x then go xs else False )
 {-# INLINEABLE all #-}
 
--- | Plutus Tx version of '(GHC.List.!!)' for 'BuiltinList'.
--- This function is partial and takes linear time.
+
+{-| Get the element at a given index.
+This function throws an error if the index is negative or larger than the length
+of the list. -}
 infixl 9 !!
 (!!) :: forall a. BuiltinList a -> Integer -> a
-(!!) xs0 i0
-  | i0 `B.lessThanInteger` 0 = traceError builtinListNegativeIndexError
-  | otherwise = go xs0 i0
- where
-  go :: BuiltinList a -> Integer -> a
-  go xs i = caseList
-    ( \_ -> traceError builtinListIndexTooLargeError )
-    ( \y ys _ ->
-        if i `B.equalsInteger` 0
-        then y
-        else go ys (B.subtractInteger i 1)
-    ) xs ()
+(!!) xs i
+   | i `B.lessThanInteger` 0 = traceError builtinListNegativeIndexError
+   | otherwise =
+       B.caseList
+         (\_ann -> traceError builtinListIndexTooLargeError)
+         (\y _rest _ann -> y)
+         (BI.drop i xs)
+         ()
 {-# INLINEABLE (!!) #-}
 
 -- TODO add tests and changelog for Data.List

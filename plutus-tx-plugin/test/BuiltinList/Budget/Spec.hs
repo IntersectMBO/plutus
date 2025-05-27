@@ -83,6 +83,15 @@ tests =
       -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
       ]
 
+goldenBundleBuiltinList
+   :: TestName
+   -> CompiledCode (BuiltinList Integer -> a)
+   -> TestNested
+ goldenBundleBuiltinList label code =
+   let ints :: [Integer] = [1 .. 10]
+       applied = unsafeApplyCode code (liftCodeDef (toBuiltin ints))
+    in goldenBundle label code applied
+
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 map = $$(compile [||L.map (P.+ 1)||])
 
