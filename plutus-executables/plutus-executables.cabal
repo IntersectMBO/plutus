@@ -156,11 +156,18 @@ test-suite test-certifier
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
-  other-modules:      Test.Certifier.Executable
+  other-modules:
+    Test.Certifier.Executable
+    Test.Certifier.Plugin
+
   build-depends:
     , base
     , directory
     , filepath
+    , plutus-benchmark:script-contexts-internal
+    , plutus-tx
+    , plutus-tx-plugin
+    , plutus-tx-test-util
     , process
     , tasty
     , tasty-hunit

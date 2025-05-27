@@ -438,6 +438,7 @@ benchmark bls12-381-benchmarks
 library script-contexts-internal
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  script-contexts/src
+  visibility:      public
   exposed-modules:
     PlutusBenchmark.V1.Data.ScriptContexts
     PlutusBenchmark.V1.ScriptContexts

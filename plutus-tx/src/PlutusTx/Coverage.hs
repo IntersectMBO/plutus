@@ -25,8 +25,6 @@ module PlutusTx.Coverage (
   coverageMetadata,
   coveredAnnotations,
   addCoverageMetadata,
-  addLocationToCoverageIndex,
-  addBoolCaseToCoverageIndex,
   coverageDataFromLogMsg,
 ) where
 
@@ -45,8 +43,6 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
 import Text.Read
-
-import Control.Monad.Writer
 
 import Prettyprinter
 
@@ -151,22 +147,6 @@ instance Semigroup CoverageIndex where
 
 instance Monoid CoverageIndex where
   mempty = CoverageIndex Map.empty
-
--- | Include a location coverage annotation in the index
-addLocationToCoverageIndex :: (MonadWriter CoverageIndex m) => CovLoc -> m CoverageAnnotation
-addLocationToCoverageIndex src = do
-  let ann = CoverLocation src
-  tell $ CoverageIndex $ Map.singleton ann mempty
-  pure ann
-
--- | Include a boolean coverage annotation in the index
-addBoolCaseToCoverageIndex
-  :: (MonadWriter CoverageIndex m)
-  => CovLoc -> Bool -> CoverageMetadata -> m CoverageAnnotation
-addBoolCaseToCoverageIndex src b meta = do
-  let ann = CoverBool src b
-  tell $ CoverageIndex (Map.singleton ann meta)
-  pure ann
 
 -- | Add metadata to a coverage annotation. Does nothing if the annotation is not in the index.
 addCoverageMetadata :: CoverageAnnotation -> Metadata -> CoverageIndex -> CoverageIndex

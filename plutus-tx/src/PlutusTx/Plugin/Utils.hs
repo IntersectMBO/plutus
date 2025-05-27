@@ -29,5 +29,5 @@ a Proxy to avoid this.
 -- | Marks the given expression for compilation to PLC.
 plc :: forall (loc :: Symbol) a. Proxy loc -> a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
-plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
+plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx") (mustBeReplaced "certpath")
 {-# OPAQUE plc #-}

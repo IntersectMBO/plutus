@@ -241,7 +241,8 @@ safeLiftCode
 safeLiftCode v =
   fmap
     ( \(pir, uplc) ->
-        DeserializedCode (mempty <$ uplc) (Just (mempty <$ pir)) mempty
+            -- TODO: maybe fix?
+        DeserializedCode (mempty <$ uplc) (Just (mempty <$ pir)) mempty mempty
     )
     . safeLiftProgram v
 
@@ -269,7 +270,8 @@ safeLiftCodeUnopt
 safeLiftCodeUnopt v =
   fmap
     ( \(pir, uplc) ->
-        DeserializedCode (mempty <$ uplc) (Just (mempty <$ pir)) mempty
+            -- TODO: maybe fix?
+        DeserializedCode (mempty <$ uplc) (Just (mempty <$ pir)) mempty mempty
     )
     . safeLiftProgramUnopt v
 
@@ -519,4 +521,5 @@ typeCode p prog = do
     flip runReaderT PLC.defaultCompilationOpts $
       PLC.compileProgram prog
   db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
-  pure $ DeserializedCode (mempty <$ db) Nothing mempty
+    -- TODO: maybe fix?
+  pure $ DeserializedCode (mempty <$ db) Nothing mempty mempty

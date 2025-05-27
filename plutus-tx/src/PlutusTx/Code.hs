@@ -50,15 +50,19 @@ if you want to put it on the chain you must normalize the types first.
 -}
 data CompiledCodeIn uni fun a
   = -- | Serialized UPLC code and possibly serialized PIR code with metadata used for program coverage.
-    SerializedCode BS.ByteString (Maybe BS.ByteString) CoverageIndex
+    SerializedCode BS.ByteString (Maybe BS.ByteString) CoverageIndex (Maybe CertPath)
   | -- | Deserialized UPLC program, and possibly deserialized PIR program with metadata used for program coverage.
     DeserializedCode
       (UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans)
       (Maybe (PIR.Program PLC.TyName PLC.Name uni fun SrcSpans))
       CoverageIndex
+        (Maybe CertPath)
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
+
+-- | Type alias for the path to the certified compilation certificate, if one exists.
+type CertPath = FilePath
 
 -- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
 applyCode
@@ -95,7 +99,9 @@ applyCode fun arg = do
           <> display argPir
     (Nothing, Nothing) -> Left "Missing PIR for both the function program and the argument."
 
-  pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
+  -- I don't think it makes sense to compose certificates, so we just
+  -- return Nothing here.
+  pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg) Nothing
 
 {-| Apply a compiled function to a compiled argument. Will throw if the versions don't match,
 should only be used in non-production code.
@@ -133,10 +139,10 @@ getPlc
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
 getPlc wrapper = case wrapper of
-  SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
+  SerializedCode plc _ _ _ -> case unflat (BSL.fromStrict plc) of
     Left e                             -> throw $ ImpossibleDeserialisationFailure e
     Right (UPLC.UnrestrictedProgram p) -> p
-  DeserializedCode plc _ _ -> plc
+  DeserializedCode plc _ _ _ -> plc
 
 getPlcNoAnn
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
@@ -148,12 +154,12 @@ getPir
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
   => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun SrcSpans)
 getPir wrapper = case wrapper of
-  SerializedCode _ pir _ -> case pir of
+  SerializedCode _ pir _ _ -> case pir of
     Just bs -> case unflat (BSL.fromStrict bs) of
       Left e  -> throw $ ImpossibleDeserialisationFailure e
       Right p -> Just p
     Nothing -> Nothing
-  DeserializedCode _ pir _ -> pir
+  DeserializedCode _ pir _ _ -> pir
 
 getPirNoAnn
   :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
@@ -162,5 +168,10 @@ getPirNoAnn = fmap void . getPir
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
 getCovIdx wrapper = case wrapper of
-  SerializedCode _ _ idx   -> idx
-  DeserializedCode _ _ idx -> idx
+  SerializedCode _ _ idx _   -> idx
+  DeserializedCode _ _ idx _ -> idx
+
+getCertPath :: CompiledCodeIn uni fun a -> Maybe CertPath
+getCertPath wrapper = case wrapper of
+  SerializedCode _ _ _ certPath   -> certPath
+  DeserializedCode _ _ _ certPath -> certPath

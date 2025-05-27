@@ -22,7 +22,6 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
 import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
-import PlutusTx.Coverage
 import PlutusTx.Function qualified
 import PlutusTx.Optimize.Inline qualified
 import PlutusTx.PIRTypes
@@ -412,7 +411,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useToOpaque
            , 'useFromOpaque
            , 'mkNilOpaque
-           , 'PlutusTx.Builtins.equalsInteger           
+           , 'PlutusTx.Builtins.equalsInteger
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -446,7 +445,7 @@ compileMarkedExpr locStr codeTy origE = do
   -- See Note [Occurrence analysis]
   let origE' = GHC.occurAnalyseExpr origE
 
-  ((pirP, uplcP), covIdx) <-
+  ((pirP, uplcP), compOut) <-
     runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
       traceCompilation 1 ("Compiling expr at" GHC.<+> GHC.text locStr) $
         runCompiler moduleNameStr opts origE'
@@ -454,7 +453,8 @@ compileMarkedExpr locStr codeTy origE = do
   -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
   bsPir <- makeByteStringLiteral $ flat pirP
   bsPlc <- makeByteStringLiteral $ flat (UPLC.UnrestrictedProgram uplcP)
-  covIdxFlat <- makeByteStringLiteral $ flat covIdx
+  compOutFlat <- makeByteStringLiteral $ flat compOut
+
 
   builder <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
@@ -464,7 +464,7 @@ compileMarkedExpr locStr codeTy origE = do
       `GHC.App` GHC.Type codeTy
       `GHC.App` bsPlc
       `GHC.App` bsPir
-      `GHC.App` covIdxFlat
+      `GHC.App` compOutFlat
 
 {-| The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
@@ -475,7 +475,7 @@ runCompiler
      , fun ~ PLC.DefaultFun
      , MonadReader (CompileContext uni fun) m
      , MonadState CompileState m
-     , MonadWriter CoverageIndex m
+     , MonadWriter CompileOutput m
      , MonadQuote m
      , MonadError (CompileError uni fun Ann) m
      , MonadIO m
@@ -613,15 +613,19 @@ runCompiler moduleName opts expr = do
 
   let optCertify = opts ^. posCertify
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-  liftIO $ case optCertify of
-    Just certName -> do
-      result <- runCertifier $ mkCertifier simplTrace certName
-      case result of
-        Right certSuccess ->
-          hPutStrLn stderr $ prettyCertifierSuccess certSuccess
-        Left err ->
-          hPutStrLn stderr $ prettyCertifierError err
-    Nothing -> pure ()
+  certP <-
+    liftIO $ case optCertify of
+      Just certName -> do
+        result <- runCertifier $ mkCertifier simplTrace certName
+        case result of
+          Right certSuccess -> do
+            hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+            pure $ Just (certDir certSuccess)
+          Left err -> do
+            hPutStrLn stderr $ prettyCertifierError err
+            pure Nothing
+      Nothing -> pure Nothing
+  maybe (pure ()) addCertificatePath certP
   dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
@@ -696,8 +700,8 @@ stripTicks = \case
   e -> e
 
 -- | Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a. BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a
-mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci)
+mkCompiledCode :: forall a. BS.ByteString -> BS.ByteString -> BS.ByteString -> Maybe CertPath -> CompiledCode a
+mkCompiledCode plcBS pirBS ci mcp = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci) mcp
 
 {-| Make a 'NameInfo' mapping the given set of TH names to their
 'GHC.TyThing's for later reference.

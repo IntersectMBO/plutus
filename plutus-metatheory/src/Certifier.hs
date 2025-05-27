@@ -4,6 +4,7 @@ module Certifier (
   , prettyCertifierError
   , prettyCertifierSuccess
   , CertifierError (..)
+  , CertifierSuccess (..)
   ) where
 
 import Control.Monad ((>=>))

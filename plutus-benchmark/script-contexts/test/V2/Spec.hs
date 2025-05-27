@@ -167,11 +167,12 @@ testDataFwdStakeTrick =
 
 testDataFwdStakeTrickManual :: TestTree
 testDataFwdStakeTrickManual =
-     runTestGhcSOP
+     (runTestGhcSOP
           [ Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenEvalCekCatchBudget "dataFwdStakeTrickManual" testCode
           ]
+     )
   where
      testCredential =
           Data.SC.mkStakingCredential "someCredential"

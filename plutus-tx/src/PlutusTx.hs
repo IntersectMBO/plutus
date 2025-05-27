@@ -26,13 +26,15 @@ module PlutusTx (
   safeLiftCode,
   liftCode,
   liftCodeDef,
+  getCovIdx,
+  getCertPath,
 ) where
 
 import PlutusCore.Data (Data (..))
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Builtins (BuiltinData, builtinDataToData, dataToBuiltinData)
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getPir, getPirNoAnn, getPlc,
-                      getPlcNoAnn, unsafeApplyCode)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getCertPath, getCovIdx, getPir,
+                      getPirNoAnn, getPlc, getPlcNoAnn, unsafeApplyCode)
 import PlutusTx.IsData (FromData (..), ToData (..), UnsafeFromData (..), fromData,
                         makeIsDataIndexed, toData, unstableMakeIsData)
 import PlutusTx.Lift (liftCode, liftCodeDef, makeLift, safeLiftCode)
