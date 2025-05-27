@@ -7,7 +7,7 @@ let
 in
 \(v : list integer) ->
   let
-    !l : list integer = dropList {integer} 5 v
+    !l : list integer = dropList {integer} 20 v
   in
   (let
       r = Unit -> Unit -> integer
