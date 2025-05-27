@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- | Functions operating on `BuiltinList`.
 module PlutusTx.BuiltinList (
@@ -36,22 +37,23 @@ module PlutusTx.BuiltinList (
   reverse,
   replicate,
   findIndex,
-  unzip,
-  zip,
-  zipWith,
   head,
   last,
   tail,
   take,
   drop,
   dropWhile,
-  splitAt,
   elemBy,
-  partition,
-  sort,
-  sortBy,
   nub,
-  nubBy
+  nubBy,
+  zipWith
+  -- TODO export these when we have fixed the MkNil issue (see HasOpaque.hs)
+  -- unzip,
+  -- zip,
+  -- splitAt,
+  -- partition,
+  -- sort,
+  -- sortBy,
 ) where
 
 import PlutusTx.Builtins qualified as B
@@ -282,29 +284,29 @@ reverse xs = revAppend xs empty
 {-# INLINABLE reverse #-}
 
 -- | Plutus Tx version of 'Data.List.zip' for 'BuiltinList'.
-zip
+_zip
   :: forall a b. (MkNil a, MkNil b)
   => BuiltinList a
   -> BuiltinList b
   -> BuiltinList (BuiltinPair a b)
-zip = zipWith (curry BI.BuiltinPair)
-{-# INLINABLE zip #-}
+_zip = zipWith (curry BI.BuiltinPair)
+{-# INLINABLE _zip #-}
 
 -- | Plutus Tx version of 'Data.List.unzip' for 'BuiltinList'.
-unzip
+_unzip
   :: forall a b. (MkNil a, MkNil b)
   => BuiltinList (BuiltinPair a b)
   -> BuiltinPair (BuiltinList a) (BuiltinList b)
-unzip = caseList' emptyPair
+_unzip = caseList' emptyPair
   ( \p l -> do
       let BI.BuiltinPair (x, y) = p
-      let BI.BuiltinPair (xs', ys') = unzip l
+      let BI.BuiltinPair (xs', ys') = _unzip l
       BI.BuiltinPair (x <| xs', y <| ys')
   )
   where
     emptyPair :: BuiltinPair (BuiltinList a) (BuiltinList b)
     emptyPair = BI.BuiltinPair (empty, empty)
-{-# INLINABLE unzip #-}
+{-# INLINABLE _unzip #-}
 
 -- | Plutus Tx version of 'Data.List.head' for 'BuiltinList'.
 head :: forall a. BuiltinList a -> a
@@ -345,19 +347,19 @@ drop n l
 {-# INLINABLE drop #-}
 
 -- | Plutus Tx version of 'Data.List.splitAt' for 'BuiltinList'.
-splitAt
+_splitAt
   :: forall a. (MkNil a)
   => Integer
   -> BuiltinList a
   -> BuiltinPair (BuiltinList a) (BuiltinList a)
-splitAt n xs
+_splitAt n xs
   | n `B.lessThanEqualsInteger` 0 = BI.BuiltinPair (empty, xs)
   | B.null xs = BI.BuiltinPair (empty, empty)
   | otherwise = do
       let (x, xs') = B.unsafeUncons xs
-      let BI.BuiltinPair (xs'', xs''') = splitAt (n `B.subtractInteger` 1) xs'
+      let BI.BuiltinPair (xs'', xs''') = _splitAt (n `B.subtractInteger` 1) xs'
       BI.BuiltinPair (x <| xs'', xs''')
-{-# INLINABLE splitAt #-}
+{-# INLINABLE _splitAt #-}
 
 -- | Plutus Tx version of 'Data.List.nub' for 'BuiltinList'.
 nub :: forall a. (Eq a, MkNil a) => BuiltinList a -> BuiltinList a
@@ -423,25 +425,25 @@ replicate n0 x = go n0
 {-# INLINABLE replicate #-}
 
 -- | Plutus Tx version of 'Data.List.partition' for 'BuiltinList'.
-partition
+_partition
   :: forall a. (MkNil a)
   => (a -> Bool)
   -> BuiltinList a
   -> BuiltinPair (BuiltinList a) (BuiltinList a)
-partition p = BI.BuiltinPair . foldr select (empty, empty)
+_partition p = BI.BuiltinPair . foldr select (empty, empty)
   where
     select :: a -> (BuiltinList a, BuiltinList a) -> (BuiltinList a, BuiltinList a)
     select x ~(ts, fs) = if p x then (x <| ts, fs) else (ts, x <| fs)
-{-# INLINABLE partition #-}
+{-# INLINABLE _partition #-}
 
 -- | Plutus Tx version of 'Data.List.sort' for 'BuiltinList'.
-sort :: (MkNil a, Ord a) => BuiltinList a -> BuiltinList a
-sort = sortBy compare
-{-# INLINABLE sort #-}
+_sort :: (MkNil a, Ord a) => BuiltinList a -> BuiltinList a
+_sort = _sortBy compare
+{-# INLINABLE _sort #-}
 
 -- | Plutus Tx version of 'Data.List.sortBy' for 'BuiltinList'.
-sortBy :: MkNil a => (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
-sortBy cmp = mergeAll . sequences
+_sortBy :: MkNil a => (a -> a -> Ordering) -> BuiltinList a -> BuiltinList a
+_sortBy cmp = mergeAll . sequences
   where
     sequences = caseList'' empty (singleton . singleton) f
       where
@@ -489,5 +491,4 @@ sortBy cmp = mergeAll . sequences
 
     caseList'' :: forall a r. r -> (a -> r) -> (a -> a -> BuiltinList a -> r) -> BuiltinList a -> r
     caseList'' f0 f1 f2 = caseList' f0 ( \x xs -> caseList' (f1 x) ( \y ys -> f2 x y ys ) xs )
-
-{-# INLINABLE sortBy #-}
+{-# INLINABLE _sortBy #-}

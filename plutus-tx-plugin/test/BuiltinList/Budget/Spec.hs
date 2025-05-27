@@ -69,14 +69,14 @@ tests =
       , goldenBundle "elemBy" elemBy (elemBy `unsafeApplyCode` l1)
       , goldenBundle "nub" nub (nub `unsafeApplyCode` l1)
       , goldenBundle "nubBy" nubBy (nubBy `unsafeApplyCode` l1)
+      , goldenBundle "concat" concat (concat `unsafeApplyCode` l4)
+      , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
+      , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
       -- TODO The following tests are ignored because they require implementation of
       -- arbitrarily nested BuiltinList types.
       -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
-      , goldenBundle "concat" concat (concat `unsafeApplyCode` l4)
-      , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
       -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
-      -- , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
       -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
       -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
       -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
