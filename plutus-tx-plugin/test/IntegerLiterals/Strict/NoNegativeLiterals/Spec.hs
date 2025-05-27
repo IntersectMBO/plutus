@@ -1,14 +1,14 @@
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE TemplateHaskell    #-}
-
 {-# LANGUAGE NoNegativeLiterals #-}
 {-# LANGUAGE Strict             #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
--- | This module tests that integer literals are handled correctly when @Strict@ is on
--- and @NegativeLiterals@ is off. These two extensions affect the Core we get.
---
--- See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
+{-| This module tests that integer literals are handled correctly when @Strict@ is on
+and @NegativeLiterals@ is off. These two extensions affect the Core we get.
+
+See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
+-}
 module IntegerLiterals.Strict.NoNegativeLiterals.Spec where
 
 import PlutusTx.Code
@@ -19,9 +19,11 @@ import PlutusTx.TH (compile)
 import Test.Tasty.Extras
 
 tests :: TestNested
-tests = testNested "IntegerLiterals" . pure $ testNestedGhc
-  [ goldenPirReadable "integerLiterals-Strict-NoNegativeLiterals" integerLiterals
-  ]
+tests =
+  testNested "IntegerLiterals" . pure $
+    testNestedGhc
+      [ goldenPirReadable "integerLiterals-Strict-NoNegativeLiterals" integerLiterals
+      ]
 
 integerLiterals :: CompiledCode (Integer -> Integer)
 integerLiterals =
@@ -38,7 +40,8 @@ integerLiterals =
               ~bigLazy = 98765432109876543210
               ~bigNegLazy = -99887766554433221100
               ~bigDoubleNegLazy = -(-24680135792468013579)
-           in x PlutusTx.* smallStrict
+           in x
+                PlutusTx.* smallStrict
                 PlutusTx.+ smallNegStrict
                 PlutusTx.+ bigStrict
                 PlutusTx.+ bigNegStrict

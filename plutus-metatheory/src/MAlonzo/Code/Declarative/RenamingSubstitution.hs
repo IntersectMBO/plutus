@@ -1,30 +1,30 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Declarative.RenamingSubstitution where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Declarative qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.Equality qualified
-import MAlonzo.Code.Type.RenamingSubstitution qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.Code.Utils.List qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Declarative
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.Equality
+import qualified MAlonzo.Code.Type.RenamingSubstitution
+import qualified MAlonzo.Code.Utils
+import qualified MAlonzo.Code.Utils.List
 
 -- Declarative.RenamingSubstitution.Ren
 d_Ren_8 ::
@@ -842,9 +842,9 @@ du_subcons_458 ::
   MAlonzo.Code.Declarative.T__'8866'__110
 du_subcons_458 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.Declarative.C_Z_36    -> coe v1
+      MAlonzo.Code.Declarative.C_Z_36 -> coe v1
       MAlonzo.Code.Declarative.C_S_38 v8 -> coe v0 v2 v8
-      _                                  -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Declarative.RenamingSubstitution._[_]
 d__'91'_'93'_470 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->

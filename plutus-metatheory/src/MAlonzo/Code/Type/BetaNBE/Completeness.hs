@@ -1,32 +1,32 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Type.BetaNBE.Completeness where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.Sigma qualified
-import MAlonzo.Code.Data.Sum.Base qualified
-import MAlonzo.Code.Data.Vec.Base qualified
-import MAlonzo.Code.Type qualified
-import MAlonzo.Code.Type.BetaNBE qualified
-import MAlonzo.Code.Type.BetaNormal qualified
-import MAlonzo.Code.Type.Equality qualified
-import MAlonzo.Code.Type.RenamingSubstitution qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Sigma
+import qualified MAlonzo.Code.Data.Sum.Base
+import qualified MAlonzo.Code.Data.Vec.Base
+import qualified MAlonzo.Code.Type
+import qualified MAlonzo.Code.Type.BetaNBE
+import qualified MAlonzo.Code.Type.BetaNormal
+import qualified MAlonzo.Code.Type.Equality
+import qualified MAlonzo.Code.Type.RenamingSubstitution
+import qualified MAlonzo.Code.Utils
 
 -- Type.BetaNBE.Completeness.CR
 d_CR_10 ::
@@ -191,10 +191,10 @@ du_reflectCR_266 ::
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -> AgdaAny
 du_reflectCR_266 v0 v1
   = case coe v0 of
-      MAlonzo.Code.Utils.C_'42'_638           -> erased
-      MAlonzo.Code.Utils.C_'9839'_640         -> erased
+      MAlonzo.Code.Utils.C_'42'_638 -> erased
+      MAlonzo.Code.Utils.C_'9839'_640 -> erased
       MAlonzo.Code.Utils.C__'8658'__642 v2 v3 -> coe v1
-      _                                       -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Type.BetaNBE.Completeness.reifyCR
 d_reifyCR_284 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
@@ -239,9 +239,9 @@ du_CR'44''44''8902'_356 ::
   MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny
 du_CR'44''44''8902'_356 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.Type.C_Z_16    -> coe v1
+      MAlonzo.Code.Type.C_Z_16 -> coe v1
       MAlonzo.Code.Type.C_S_18 v7 -> coe v0 v2 v7
-      _                           -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Type.BetaNBE.Completeness.AppCR
 d_AppCR_376 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
@@ -498,7 +498,7 @@ d_renVal'183'V_754 v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10
             MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v12
               -> case coe v6 of
                    MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v13 -> erased
-                   _                                             -> coe v11
+                   _ -> coe v11
             MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v12
               -> case coe v6 of
                    MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v13

@@ -132,11 +132,11 @@
 
  We also turn
 
- > force (force ifThenElse (delay x) (delay y))
+ > (force [ (force (builtin ifThenElse)) b (delay x) (delay y) ] )
 
  into
 
- > force ifThenElse x y
+ > [ (force (builtin ifThenElse)) b x y ]
 
  if both @x@ and @y@ are pure and work-free.
 -}

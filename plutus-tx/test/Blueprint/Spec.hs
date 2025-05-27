@@ -76,11 +76,11 @@ instance (Typeable p) => HasBlueprintDefinition (Phantom (p :: k)) where
       <> definitionIdFromTypeK @k @p
 
 $( PlutusTx.asData
-    [d|
-      data Dat = MkDat {datInteger :: Integer, datBool :: Bool}
-        deriving stock (Generic)
-        deriving anyclass (HasBlueprintDefinition)
-      |]
+     [d|
+       data Dat = MkDat {datInteger :: Integer, datBool :: Bool}
+         deriving stock (Generic)
+         deriving anyclass (HasBlueprintDefinition)
+       |]
  )
 
 ----------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -24,22 +25,19 @@ module PlutusTx.Test (
 
   -- * Evaluation testing
   goldenEvalCek,
-  goldenEvalCekCatch,
   goldenEvalCekLog,
-
-  -- * Budget and size testing
-  goldenBudget,
+  goldenEvalCekCatchBudget,
 
   -- * Combined testing
   goldenBundle,
-  goldenBundle'
+  goldenBundle',
 ) where
 
 import Prelude
 
 import Control.Exception (SomeException (..))
 import Control.Lens (Field1 (_1))
-import Control.Monad.Except (ExceptT, MonadError (throwError), runExceptT)
+import Control.Monad.Except (ExceptT, MonadError (throwError))
 import Data.Either.Extras (fromRightM)
 import Data.Kind (Type)
 import Data.Tagged (Tagged (Tagged))
@@ -55,7 +53,7 @@ import PlutusCore.Pretty (PrettyConfigClassic, PrettyConfigName, PrettyConst, Pr
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test (TestNested, ToTPlc (..), ToUPlc (..), catchAll, goldenSize, goldenTPlc,
                         goldenUPlc, goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM,
-                        ppCatch, rethrow, runUPlcBudget)
+                        ppCatch, rethrow)
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
@@ -70,13 +68,13 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- `PlutusCore.Size` comparison tests
 
-fitsUnder ::
-  forall (a :: Type).
-  (Typeable a) =>
-  TestName ->
-  (String, CompiledCode a) ->
-  (String, CompiledCode a) ->
-  TestTree
+fitsUnder
+  :: forall (a :: Type)
+   . (Typeable a)
+  => TestName
+  -> (String, CompiledCode a)
+  -> (String, CompiledCode a)
+  -> TestTree
 fitsUnder name test target = singleTest name $ SizeComparisonTest test target
 
 data SizeComparisonTest (a :: Type)
@@ -117,20 +115,6 @@ renderExcess :: (TestName, Integer) -> (TestName, Integer) -> Integer -> String
 renderExcess tData mData diff =
   renderEstimates tData mData <> "Remaining headroom: " <> show diff
 
-goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = do
-  nestedGoldenVsDocM name ".budget" $ ppCatch $ do
-    PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
-    size <- UPLC.programSize <$> toUPlc compiledCode
-    let contents =
-          "cpu: "
-            <> pretty cpu
-            <> "\nmem: "
-            <> pretty mem
-            <> "\nsize: "
-            <> pretty size
-    pure (render @Text contents)
-
 goldenBundle
   :: TestName
   -> CompiledCodeIn UPLC.DefaultUni UPLC.DefaultFun a
@@ -139,8 +123,7 @@ goldenBundle
 goldenBundle name x y = do
   goldenPirReadable name x
   goldenUPlcReadable name x
-  goldenEvalCekCatch name [y]
-  goldenBudget name y
+  goldenEvalCekCatchBudget name y
 
 goldenBundle'
   :: TestName
@@ -151,11 +134,11 @@ goldenBundle' name x = goldenBundle name x x
 -- Compilation testing
 
 -- | Does not print uniques.
-goldenPir ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPir
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPir name value =
   nestedGoldenVsDoc name ".pir"
     . maybe
@@ -164,11 +147,11 @@ goldenPir name value =
     $ getPirNoAnn value
 
 -- | Does not print uniques.
-goldenPirReadable ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPirReadable
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir"
     . maybe
@@ -176,46 +159,57 @@ goldenPirReadable name value =
       (prettyReadableSimple . view progTerm)
     $ getPirNoAnn value
 
--- | Prints uniques. This should be used sparingly: a simple change to a script or a
--- compiler pass may change all uniques, making it difficult to see the actual
--- change if all uniques are printed. It is nonetheless useful sometimes.
-goldenPirReadableU ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+{-| Prints uniques. This should be used sparingly: a simple change to a script or a
+compiler pass may change all uniques, making it difficult to see the actual
+change if all uniques are printed. It is nonetheless useful sometimes.
+-}
+goldenPirReadableU
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirReadableU name value =
   nestedGoldenVsDoc name ".pir"
     . maybe "PIR not found in CompiledCode" (prettyReadable . view progTerm)
     $ getPirNoAnn value
 
-goldenPirBy ::
-  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
-  PrettyConfigClassic PrettyConfigName ->
-  TestName ->
-  CompiledCodeIn uni fun a ->
-  TestNested
+goldenPirBy
+  :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
+  => PrettyConfigClassic PrettyConfigName
+  -> TestName
+  -> CompiledCodeIn uni fun a
+  -> TestNested
 goldenPirBy config name value =
   nestedGoldenVsDoc name ".pir" $ prettyBy config $ getPir value
 
 -- Evaluation testing
 
 -- TODO: rationalize with the functions exported from PlcTestUtils
-goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCek name values =
+goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
+goldenEvalCek name term =
   nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple <$> rethrow (runPlcCek values)
+    prettyPlcClassicSimple <$> rethrow (runPlcCek term)
 
-goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCekCatch name values =
+goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> a -> TestNested
+goldenEvalCekLog name term =
   nestedGoldenVsDocM name ".eval" $
-    either (pretty . show) prettyPlcClassicSimple
-      <$> runExceptT (runPlcCek values)
+    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace term)
 
-goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => TestName -> [a] -> TestNested
-goldenEvalCekLog name values =
-  nestedGoldenVsDocM name ".eval" $
-    prettyPlcClassicSimple . view _1 <$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
+goldenEvalCekCatchBudget name compiledCode =
+  nestedGoldenVsDocM name ".eval" $ ppCatch $ do
+    (termRes, PLC.ExBudget cpu mem) <- runPlcCekBudget compiledCode
+    size <- UPLC.programSize <$> toUPlc compiledCode
+    let contents =
+          "cpu: "
+            <> pretty cpu
+            <> "\nmem: "
+            <> pretty mem
+            <> "\nsize: "
+            <> pretty size
+            <> "\n\n"
+            <> prettyPlcClassicSimple termRes
+    pure (render @Text contents)
 
 -- Helpers
 
@@ -250,22 +244,40 @@ instance
 
 runPlcCek
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
+  => a
   -> ExceptT
        SomeException
        IO
        (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
-runPlcCek values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+runPlcCek val = do
+  term <- toUPlc val
   fromRightM (throwError . SomeException) $
     UPLC.evaluateCekNoEmit
       PLC.defaultCekParametersForTesting
-      (p ^. UPLC.progTerm)
+      (term ^. UPLC.progTerm)
+
+runPlcCekBudget
+  :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
+  => a
+  -> ExceptT
+       SomeException
+       IO
+       (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun (), PLC.ExBudget)
+runPlcCekBudget val = do
+  term <- toUPlc val
+  fromRightM (throwError . SomeException) $ do
+    let
+      (evalRes, UPLC.CountingSt budget) =
+        UPLC.runCekNoEmit
+          PLC.defaultCekParametersForTesting
+          UPLC.counting
+          (term ^. UPLC.progTerm)
+
+    (,budget) <$> evalRes
 
 runPlcCekTrace
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
-  => [a]
+  => a
   -> ExceptT
        SomeException
        IO
@@ -273,14 +285,13 @@ runPlcCekTrace
        , UPLC.CekExTally PLC.DefaultFun
        , UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
        )
-runPlcCekTrace values = do
-  ps <- traverse toUPlc values
-  let p = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+runPlcCekTrace value = do
+  term <- toUPlc value
   let (result, UPLC.TallyingSt tally _, logOut) =
         UPLC.runCek
           PLC.defaultCekParametersForTesting
           UPLC.tallying
           UPLC.logEmitter
-          (p ^. UPLC.progTerm)
+          (term ^. UPLC.progTerm)
   res <- fromRightM (throwError . SomeException) result
   pure (logOut, tally, res)

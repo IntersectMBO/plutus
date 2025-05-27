@@ -1,36 +1,36 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Untyped.Reduction where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.Equality qualified
-import MAlonzo.Code.Agda.Builtin.List qualified
-import MAlonzo.Code.Agda.Builtin.Maybe qualified
-import MAlonzo.Code.Builtin qualified
-import MAlonzo.Code.Builtin.Signature qualified
-import MAlonzo.Code.Data.List.Base qualified
-import MAlonzo.Code.Data.List.NonEmpty.Base qualified
-import MAlonzo.Code.Data.List.Relation.Unary.All qualified
-import MAlonzo.Code.Data.Nat.Base qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Relation.Nullary.Negation.Core qualified
-import MAlonzo.Code.Untyped qualified
-import MAlonzo.Code.Untyped.CEK qualified
-import MAlonzo.Code.Untyped.RenamingSubstitution qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.List
+import qualified MAlonzo.Code.Agda.Builtin.Maybe
+import qualified MAlonzo.Code.Builtin
+import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.List.Base
+import qualified MAlonzo.Code.Data.List.NonEmpty.Base
+import qualified MAlonzo.Code.Data.List.Relation.Unary.All
+import qualified MAlonzo.Code.Data.Nat.Base
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Relation.Nullary.Negation.Core
+import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.CEK
+import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 
 -- Untyped.Reduction.Arity
 d_Arity_4 = ()

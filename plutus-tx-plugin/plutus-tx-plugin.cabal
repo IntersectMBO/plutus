@@ -143,7 +143,6 @@ test-suite plutus-tx-plugin-tests
     IntegerLiterals.Strict.NegativeLiterals.Spec
     IntegerLiterals.Strict.NoNegativeLiterals.Spec
     IsData.Spec
-    Lib
     Lift.Spec
     List.Properties1
     List.Properties2

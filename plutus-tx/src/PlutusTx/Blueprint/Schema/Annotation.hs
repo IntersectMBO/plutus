@@ -60,7 +60,7 @@ data SchemaAnn
   | MkSchemaAnnComment SchemaComment
   deriving stock (Eq, Ord, Show, Generic, Data, Lift)
 
-{- | An annotation for the "title" schema attribute.
+{-| An annotation for the "title" schema attribute.
 
 This annotation could be attached to a type or constructor:
 @
@@ -73,7 +73,7 @@ newtype SchemaTitle = SchemaTitle {schemaTitleToString :: String}
   deriving newtype (Eq, Ord, Show, ToJSON)
   deriving stock (Data, Lift)
 
-{- | An annotation for the "description" schema attribute.
+{-| An annotation for the "description" schema attribute.
 
 This annotation could be attached to a type or constructor:
 @
@@ -86,7 +86,7 @@ newtype SchemaDescription = SchemaDescription {schemaDescriptionToString :: Stri
   deriving newtype (Eq, Ord, Show, ToJSON)
   deriving stock (Data, Lift)
 
-{- | An annotation for the "$comment" schema attribute.
+{-| An annotation for the "$comment" schema attribute.
 
 This annotation could be attached to a type or constructor:
 @

@@ -35,101 +35,105 @@ useFromOpaque x = x
 {-# OPAQUE useFromOpaque #-}
 
 -- Also see Note [Built-in types and their Haskell counterparts].
--- | A class for converting values of Haskell-defined built-in types to their Plutus Tx
--- counterparts.
+
+{-| A class for converting values of Haskell-defined built-in types to their Plutus Tx
+counterparts.
+-}
 type HasToBuiltin :: GHC.Type -> GHC.Constraint
-class PLC.DefaultUni `PLC.Contains` a => HasToBuiltin a where
-    type ToBuiltin a
-    toBuiltin :: a -> ToBuiltin a
+class (PLC.DefaultUni `PLC.Contains` a) => HasToBuiltin a where
+  type ToBuiltin a
+  toBuiltin :: a -> ToBuiltin a
 
 -- Also see Note [Built-in types and their Haskell counterparts].
--- | A class for converting values of Plutus Tx built-in types to their Haskell-defined
--- counterparts.
+
+{-| A class for converting values of Plutus Tx built-in types to their Haskell-defined
+counterparts.
+-}
 type HasFromBuiltin :: GHC.Type -> GHC.Constraint
-class HasToBuiltin (FromBuiltin arep) => HasFromBuiltin arep where
-    type FromBuiltin arep
-    fromBuiltin :: arep -> FromBuiltin arep
+class (HasToBuiltin (FromBuiltin arep)) => HasFromBuiltin arep where
+  type FromBuiltin arep
+  fromBuiltin :: arep -> FromBuiltin arep
 
 instance HasToBuiltin Integer where
-    type ToBuiltin Integer = BuiltinInteger
-    toBuiltin = useToOpaque id
+  type ToBuiltin Integer = BuiltinInteger
+  toBuiltin = useToOpaque id
 instance HasFromBuiltin BuiltinInteger where
-    type FromBuiltin BuiltinInteger = Integer
-    fromBuiltin = useFromOpaque id
+  type FromBuiltin BuiltinInteger = Integer
+  fromBuiltin = useFromOpaque id
 
 instance HasToBuiltin ByteString where
-    type ToBuiltin ByteString = BuiltinByteString
-    toBuiltin = useToOpaque BuiltinByteString
+  type ToBuiltin ByteString = BuiltinByteString
+  toBuiltin = useToOpaque BuiltinByteString
 instance HasFromBuiltin BuiltinByteString where
-    type FromBuiltin BuiltinByteString = ByteString
-    fromBuiltin = useFromOpaque $ \(BuiltinByteString b) -> b
+  type FromBuiltin BuiltinByteString = ByteString
+  fromBuiltin = useFromOpaque $ \(BuiltinByteString b) -> b
 
 instance HasToBuiltin Text where
-    type ToBuiltin Text = BuiltinString
-    toBuiltin = useToOpaque BuiltinString
+  type ToBuiltin Text = BuiltinString
+  toBuiltin = useToOpaque BuiltinString
 instance HasFromBuiltin BuiltinString where
-    type FromBuiltin BuiltinString = Text
-    fromBuiltin (BuiltinString t) = t
+  type FromBuiltin BuiltinString = Text
+  fromBuiltin (BuiltinString t) = t
 
 instance HasToBuiltin () where
-    type ToBuiltin () = BuiltinUnit
-    toBuiltin = useToOpaque BuiltinUnit
+  type ToBuiltin () = BuiltinUnit
+  toBuiltin = useToOpaque BuiltinUnit
 instance HasFromBuiltin BuiltinUnit where
-    type FromBuiltin BuiltinUnit = ()
-    fromBuiltin (BuiltinUnit u) = u
+  type FromBuiltin BuiltinUnit = ()
+  fromBuiltin (BuiltinUnit u) = u
 
 instance HasToBuiltin Bool where
-    type ToBuiltin Bool = BuiltinBool
-    toBuiltin = useToOpaque BuiltinBool
+  type ToBuiltin Bool = BuiltinBool
+  toBuiltin = useToOpaque BuiltinBool
 instance HasFromBuiltin BuiltinBool where
-    type FromBuiltin BuiltinBool = Bool
-    fromBuiltin (BuiltinBool b) = b
+  type FromBuiltin BuiltinBool = Bool
+  fromBuiltin (BuiltinBool b) = b
 
-instance HasToBuiltin a => HasToBuiltin [a] where
-    type ToBuiltin [a] = BuiltinList (ToBuiltin a)
-    toBuiltin = useToOpaque BuiltinList . map toBuiltin
-instance HasFromBuiltin a => HasFromBuiltin (BuiltinList a) where
-    type FromBuiltin (BuiltinList a) = [FromBuiltin a]
-    fromBuiltin (BuiltinList xs) = map fromBuiltin xs
+instance (HasToBuiltin a) => HasToBuiltin [a] where
+  type ToBuiltin [a] = BuiltinList (ToBuiltin a)
+  toBuiltin = useToOpaque BuiltinList . map toBuiltin
+instance (HasFromBuiltin a) => HasFromBuiltin (BuiltinList a) where
+  type FromBuiltin (BuiltinList a) = [FromBuiltin a]
+  fromBuiltin (BuiltinList xs) = map fromBuiltin xs
 
-instance HasToBuiltin a => HasToBuiltin (Strict.Vector a) where
-    type ToBuiltin (Strict.Vector a) = BuiltinArray (ToBuiltin a)
-    toBuiltin = useToOpaque (BuiltinArray . fmap toBuiltin)
-instance HasFromBuiltin a => HasFromBuiltin (BuiltinArray a) where
-    type FromBuiltin (BuiltinArray a) = Strict.Vector (FromBuiltin a)
-    fromBuiltin (BuiltinArray xs) = fmap fromBuiltin xs
+instance (HasToBuiltin a) => HasToBuiltin (Strict.Vector a) where
+  type ToBuiltin (Strict.Vector a) = BuiltinArray (ToBuiltin a)
+  toBuiltin = useToOpaque (BuiltinArray . fmap toBuiltin)
+instance (HasFromBuiltin a) => HasFromBuiltin (BuiltinArray a) where
+  type FromBuiltin (BuiltinArray a) = Strict.Vector (FromBuiltin a)
+  fromBuiltin (BuiltinArray xs) = fmap fromBuiltin xs
 
 instance (HasToBuiltin a, HasToBuiltin b) => HasToBuiltin (a, b) where
-    type ToBuiltin (a, b) = BuiltinPair (ToBuiltin a) (ToBuiltin b)
-    toBuiltin (x, y) = BuiltinPair (toBuiltin x, toBuiltin y)
+  type ToBuiltin (a, b) = BuiltinPair (ToBuiltin a) (ToBuiltin b)
+  toBuiltin (x, y) = BuiltinPair (toBuiltin x, toBuiltin y)
 instance (HasFromBuiltin a, HasFromBuiltin b) => HasFromBuiltin (BuiltinPair a b) where
-    type FromBuiltin (BuiltinPair a b) = (FromBuiltin a, FromBuiltin b)
-    fromBuiltin (BuiltinPair (x, y)) = (fromBuiltin x, fromBuiltin y)
+  type FromBuiltin (BuiltinPair a b) = (FromBuiltin a, FromBuiltin b)
+  fromBuiltin (BuiltinPair (x, y)) = (fromBuiltin x, fromBuiltin y)
 
 instance HasToBuiltin Data where
-    type ToBuiltin Data = BuiltinData
-    toBuiltin = useToOpaque BuiltinData
+  type ToBuiltin Data = BuiltinData
+  toBuiltin = useToOpaque BuiltinData
 instance HasFromBuiltin BuiltinData where
-    type FromBuiltin BuiltinData = Data
-    fromBuiltin (BuiltinData t) = t
+  type FromBuiltin BuiltinData = Data
+  fromBuiltin (BuiltinData t) = t
 
 instance HasToBuiltin BLS12_381.G1.Element where
-    type ToBuiltin BLS12_381.G1.Element = BuiltinBLS12_381_G1_Element
-    toBuiltin = useToOpaque BuiltinBLS12_381_G1_Element
+  type ToBuiltin BLS12_381.G1.Element = BuiltinBLS12_381_G1_Element
+  toBuiltin = useToOpaque BuiltinBLS12_381_G1_Element
 instance HasFromBuiltin BuiltinBLS12_381_G1_Element where
-    type FromBuiltin BuiltinBLS12_381_G1_Element = BLS12_381.G1.Element
-    fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
+  type FromBuiltin BuiltinBLS12_381_G1_Element = BLS12_381.G1.Element
+  fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
 
 instance HasToBuiltin BLS12_381.G2.Element where
-    type ToBuiltin BLS12_381.G2.Element = BuiltinBLS12_381_G2_Element
-    toBuiltin = useToOpaque BuiltinBLS12_381_G2_Element
+  type ToBuiltin BLS12_381.G2.Element = BuiltinBLS12_381_G2_Element
+  toBuiltin = useToOpaque BuiltinBLS12_381_G2_Element
 instance HasFromBuiltin BuiltinBLS12_381_G2_Element where
-    type FromBuiltin BuiltinBLS12_381_G2_Element = BLS12_381.G2.Element
-    fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
+  type FromBuiltin BuiltinBLS12_381_G2_Element = BLS12_381.G2.Element
+  fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
 
 instance HasToBuiltin BLS12_381.Pairing.MlResult where
-    type ToBuiltin BLS12_381.Pairing.MlResult = BuiltinBLS12_381_MlResult
-    toBuiltin = useToOpaque BuiltinBLS12_381_MlResult
+  type ToBuiltin BLS12_381.Pairing.MlResult = BuiltinBLS12_381_MlResult
+  toBuiltin = useToOpaque BuiltinBLS12_381_MlResult
 instance HasFromBuiltin BuiltinBLS12_381_MlResult where
-    type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
-    fromBuiltin (BuiltinBLS12_381_MlResult a) = a
+  type FromBuiltin BuiltinBLS12_381_MlResult = BLS12_381.Pairing.MlResult
+  fromBuiltin (BuiltinBLS12_381_MlResult a) = a

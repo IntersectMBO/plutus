@@ -1,36 +1,36 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
-{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeApplications #-}
 
 module MAlonzo.Code.Evaluator.Base where
 
-import Data.Text qualified
-import MAlonzo.Code.Agda.Builtin.String qualified
-import MAlonzo.Code.Check qualified
-import MAlonzo.Code.Data.String.Base qualified
-import MAlonzo.Code.Raw qualified
-import MAlonzo.Code.RawU qualified
-import MAlonzo.Code.Scoped qualified
-import MAlonzo.Code.Scoped.Extrication qualified
-import MAlonzo.Code.Utils qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Agda.Builtin.String
+import qualified MAlonzo.Code.Check
+import qualified MAlonzo.Code.Data.String.Base
+import qualified MAlonzo.Code.Raw
+import qualified MAlonzo.Code.RawU
+import qualified MAlonzo.Code.Scoped
+import qualified MAlonzo.Code.Scoped.Extrication
+import qualified MAlonzo.Code.Utils
 
-import Data.Text qualified as T
-import FFI.Untyped qualified as U
-import PlutusCore.Error
 import PlutusCore.Pretty
+import qualified Data.Text as T
+import PlutusCore.Error
+import qualified FFI.Untyped as U
 import Raw
 -- Evaluator.Base.ParseError
 type T_ParseError_4 = PlutusCore.Error.ParserErrorBundle
@@ -77,11 +77,11 @@ check_jsonError_22 = JsonError
 cover_ERROR_12 :: ERROR -> ()
 cover_ERROR_12 x
   = case x of
-      TypeError _    -> ()
-      ParseError _   -> ()
-      ScopeError _   -> ()
+      TypeError _ -> ()
+      ParseError _ -> ()
+      ScopeError _ -> ()
       RuntimeError _ -> ()
-      JsonError _    -> ()
+      JsonError _ -> ()
 -- Evaluator.Base.uglyTypeError
 d_uglyTypeError_24 ::
   MAlonzo.Code.Check.T_TypeError_12 ->

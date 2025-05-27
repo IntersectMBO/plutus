@@ -1,31 +1,31 @@
-{-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE EmptyCase                 #-}
-{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
 module MAlonzo.Code.Cost.Raw where
 
-import Data.Text qualified
-import MAlonzo.Code.Cost.Base qualified
-import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
-                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
-                    word64ToNat)
-import MAlonzo.RTE qualified
+import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+import qualified MAlonzo.RTE
+import qualified Data.Text
+import qualified MAlonzo.Code.Cost.Base
 
-import Data.Functor.Identity (Identity, runIdentity)
 import Data.SatInt (fromSatInt)
-import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import Data.Functor.Identity (Identity, runIdentity)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget(..))
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU(..), ExMemory(..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting)
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..))
+import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
 -- Cost.Raw.HCekMachineCosts
 type T_HCekMachineCosts_4 = CekMachineCostsBase Identity
 d_HCekMachineCosts_4
@@ -89,13 +89,13 @@ d_intercept_38 :: T_LinearFunction_32 -> Integer
 d_intercept_38 v0
   = case coe v0 of
       C_mkLinearFunction_42 v1 v2 -> coe v1
-      _                           -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.LinearFunction.slope
 d_slope_40 :: T_LinearFunction_32 -> Integer
 d_slope_40 v0
   = case coe v0 of
       C_mkLinearFunction_42 v1 v2 -> coe v2
-      _                           -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.OneVariableQuadraticFunction
 d_OneVariableQuadraticFunction_44 = ()
 type T_OneVariableQuadraticFunction_44 =
@@ -115,19 +115,19 @@ d_coeff0_52 :: T_OneVariableQuadraticFunction_44 -> Integer
 d_coeff0_52 v0
   = case coe v0 of
       C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -> coe v1
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.OneVariableQuadraticFunction.coeff1
 d_coeff1_54 :: T_OneVariableQuadraticFunction_44 -> Integer
 d_coeff1_54 v0
   = case coe v0 of
       C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -> coe v2
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.OneVariableQuadraticFunction.coeff2
 d_coeff2_56 :: T_OneVariableQuadraticFunction_44 -> Integer
 d_coeff2_56 v0
   = case coe v0 of
       C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -> coe v3
-      _                                            -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableLinearFunction
 d_TwoVariableLinearFunction_60 = ()
 type T_TwoVariableLinearFunction_60 = TwoVariableLinearFunction
@@ -145,19 +145,19 @@ d_intercept_68 :: T_TwoVariableLinearFunction_60 -> Integer
 d_intercept_68 v0
   = case coe v0 of
       C_mkTwoVariableLinearFunction_74 v1 v2 v3 -> coe v1
-      _                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableLinearFunction.slope1
 d_slope1_70 :: T_TwoVariableLinearFunction_60 -> Integer
 d_slope1_70 v0
   = case coe v0 of
       C_mkTwoVariableLinearFunction_74 v1 v2 v3 -> coe v2
-      _                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableLinearFunction.slope2
 d_slope2_72 :: T_TwoVariableLinearFunction_60 -> Integer
 d_slope2_72 v0
   = case coe v0 of
       C_mkTwoVariableLinearFunction_74 v1 v2 v3 -> coe v3
-      _                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction
 d_TwoVariableQuadraticFunction_76 = ()
 type T_TwoVariableQuadraticFunction_76 =
@@ -181,43 +181,43 @@ d_minimum_92 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_minimum_92 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v1
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff00
 d_coeff00_94 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff00_94 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v2
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff10
 d_coeff10_96 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff10_96 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v3
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff01
 d_coeff01_98 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff01_98 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v4
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff20
 d_coeff20_100 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff20_100 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v5
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff11
 d_coeff11_102 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff11_102 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v6
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.TwoVariableQuadraticFunction.coeff02
 d_coeff02_104 :: T_TwoVariableQuadraticFunction_76 -> Integer
 d_coeff02_104 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v7
-      _                                                         -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction
 d_ExpModCostingFunction_108 = ()
 type T_ExpModCostingFunction_108 = ExpModCostingFunction
@@ -234,19 +234,19 @@ d_coeff00_116 :: T_ExpModCostingFunction_108 -> Integer
 d_coeff00_116 v0
   = case coe v0 of
       C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v1
-      _                                      -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction.coeff11
 d_coeff11_118 :: T_ExpModCostingFunction_108 -> Integer
 d_coeff11_118 v0
   = case coe v0 of
       C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v2
-      _                                      -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction.coeff12
 d_coeff12_120 :: T_ExpModCostingFunction_108 -> Integer
 d_coeff12_120 v0
   = case coe v0 of
       C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v3
-      _                                      -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.RawModel
 d_RawModel_124 = ()
 type T_RawModel_124 = Model
@@ -320,25 +320,25 @@ check_ExpModCost_162 = ExpModCost
 cover_RawModel_124 :: Model -> ()
 cover_RawModel_124 x
   = case x of
-      ConstantCost _          -> ()
-      AddedSizes _            -> ()
-      MultipliedSizes _       -> ()
-      MinSize _               -> ()
-      MaxSize _               -> ()
-      LinearInX _             -> ()
-      LinearInY _             -> ()
-      LinearInZ _             -> ()
+      ConstantCost _ -> ()
+      AddedSizes _ -> ()
+      MultipliedSizes _ -> ()
+      MinSize _ -> ()
+      MaxSize _ -> ()
+      LinearInX _ -> ()
+      LinearInY _ -> ()
+      LinearInZ _ -> ()
       LiteralInYOrLinearInZ _ -> ()
-      LinearInMaxYZ _         -> ()
-      LinearInYAndZ _         -> ()
-      QuadraticInY _          -> ()
-      QuadraticInZ _          -> ()
-      QuadraticInXAndY _      -> ()
-      SubtractedSizes _ _     -> ()
-      ConstAboveDiagonal _ _  -> ()
-      ConstBelowDiagonal _ _  -> ()
-      ConstOffDiagonal _ _    -> ()
-      ExpModCost _            -> ()
+      LinearInMaxYZ _ -> ()
+      LinearInYAndZ _ -> ()
+      QuadraticInY _ -> ()
+      QuadraticInZ _ -> ()
+      QuadraticInXAndY _ -> ()
+      SubtractedSizes _ _ -> ()
+      ConstAboveDiagonal _ _ -> ()
+      ConstBelowDiagonal _ _ -> ()
+      ConstOffDiagonal _ _ -> ()
+      ExpModCost _ -> ()
 -- Cost.Raw.CpuAndMemoryModel
 d_CpuAndMemoryModel_164 = ()
 type T_CpuAndMemoryModel_164 = CpuAndMemoryModel
@@ -355,13 +355,13 @@ d_cpuModel_170 :: T_CpuAndMemoryModel_164 -> T_RawModel_124
 d_cpuModel_170 v0
   = case coe v0 of
       C_mkCpuAndMemoryModel_174 v1 v2 -> coe v1
-      _                               -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.CpuAndMemoryModel.memoryModel
 d_memoryModel_172 :: T_CpuAndMemoryModel_164 -> T_RawModel_124
 d_memoryModel_172 v0
   = case coe v0 of
       C_mkCpuAndMemoryModel_174 v1 v2 -> coe v2
-      _                               -> MAlonzo.RTE.mazUnreachableError
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.BuiltinCostMap
 d_BuiltinCostMap_176 :: ()
 d_BuiltinCostMap_176 = erased
