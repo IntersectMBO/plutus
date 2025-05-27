@@ -1,19 +1,21 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module BuiltinList.Budget.Spec where
 
 import Prelude (Bool (..), Integer, Maybe (..), pure, undefined, ($), (.))
 import System.FilePath
 import Test.Tasty.Extras
-
-import PlutusTx.BuiltinList qualified as L
-import PlutusTx.Builtins.HasBuiltin (HasToBuiltin (toBuiltin))
-import PlutusTx.Code
+import PlutusTx.BuiltinList ((!!))
+import PlutusTx.BuiltinList qualified as List
+import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Prelude qualified as P
-import PlutusTx.Test
+import PlutusTx.Test (goldenBundle)
 import PlutusTx.TH (compile)
+import System.FilePath ((</>))
+import Test.Tasty (TestName)
+import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 tests :: TestNested
 tests =
@@ -82,15 +84,6 @@ tests =
       -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
       -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
       ]
-
-goldenBundleBuiltinList
-   :: TestName
-   -> CompiledCode (BuiltinList Integer -> a)
-   -> TestNested
- goldenBundleBuiltinList label code =
-   let ints :: [Integer] = [1 .. 10]
-       applied = unsafeApplyCode code (liftCodeDef (toBuiltin ints))
-    in goldenBundle label code applied
 
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 map = $$(compile [||L.map (P.+ 1)||])

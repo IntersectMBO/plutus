@@ -156,7 +156,6 @@ all p = go
     go = caseList' True ( \x xs -> if p x then go xs else False )
 {-# INLINEABLE all #-}
 
-
 {-| Get the element at a given index.
 This function throws an error if the index is negative or larger than the length
 of the list. -}
@@ -491,3 +490,4 @@ _sortBy cmp = mergeAll . sequences
     caseList'' :: forall a r. r -> (a -> r) -> (a -> a -> BuiltinList a -> r) -> BuiltinList a -> r
     caseList'' f0 f1 f2 = caseList' f0 ( \x xs -> caseList' (f1 x) ( \y ys -> f2 x y ys ) xs )
 {-# INLINABLE _sortBy #-}
+
