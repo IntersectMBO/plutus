@@ -4,18 +4,15 @@
 
 module BuiltinList.Budget.Spec where
 
+import PlutusTx.BuiltinList qualified as L
+import PlutusTx.Code (CompiledCode, unsafeApplyCode)
+import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.Prelude qualified as P
+import PlutusTx.Test (goldenBundle)
+import PlutusTx.TH (compile)
 import Prelude (Bool (..), Integer, Maybe (..), pure, undefined, ($), (.))
 import System.FilePath
 import Test.Tasty.Extras
-import PlutusTx.BuiltinList ((!!))
-import PlutusTx.BuiltinList qualified as List
-import PlutusTx.Code (CompiledCode, unsafeApplyCode)
-import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBundle)
-import PlutusTx.TH (compile)
-import System.FilePath ((</>))
-import Test.Tasty (TestName)
-import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 tests :: TestNested
 tests =
@@ -230,16 +227,16 @@ nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 nubBy = $$(compile [|| \xs -> L.nubBy (P.<=) xs ||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
-l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
+l1 = liftCodeDef $ P.toBuiltin ([1 .. 10] :: [Integer])
 
 l2 :: CompiledCode (L.BuiltinList P.BuiltinBool)
-l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
+l2 = liftCodeDef $ P.toBuiltin ([True, False, True, False] :: [Bool])
 
 l3 :: CompiledCode (L.BuiltinList (P.BuiltinPair Integer Integer))
-l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
+l3 = liftCodeDef $ P.toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
 
 l4 :: CompiledCode (L.BuiltinList (L.BuiltinList Integer))
-l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
+l4 = liftCodeDef $ P.toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
 
 -- TODO The following functions cannot compile because they require implementation of
 -- arbitrarily nested BuiltinList types.
