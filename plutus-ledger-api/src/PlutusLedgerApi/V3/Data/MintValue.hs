@@ -109,9 +109,9 @@ mintValueBurned (UnsafeMintValue m) =
 {-# INLINEABLE mintValueBurned #-}
 
 mapMaybeQuantities
-  :: (Integer -> Bool)
+  :: (Integer -> Maybe Integer)
   -> Map CurrencySymbol (Map TokenName Integer)
-  -> Map CurrencySymbol (Map TokenName Integer)
+  -> Value
 mapMaybeQuantities mapMaybeQuantity = Value . Map.mapMaybe mapMaybeCurrencies
   where
     {-# INLINEABLE mapMaybeCurrencies #-}
