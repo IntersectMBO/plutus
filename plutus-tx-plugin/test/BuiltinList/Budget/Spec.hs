@@ -76,15 +76,6 @@ tests =
       , goldenBundle "concat" concat (concat `unsafeApplyCode` l4)
       , goldenBundle "concatMap" concatMap (concatMap `unsafeApplyCode` l1)
       , goldenBundle "zipWith" zipWith (zipWith `unsafeApplyCode` l1)
-      -- TODO The following tests are ignored because they require implementation of
-      -- arbitrarily nested BuiltinList types.
-      -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
-      -- , goldenBundle "unzip" unzip (unzip `unsafeApplyCode` l3)
-      -- , goldenBundle "zip" zip (zip `unsafeApplyCode` l1)
-      -- , goldenBundle "splitAt" splitAt (splitAt `unsafeApplyCode` l1)
-      -- , goldenBundle "partition" partition (partition `unsafeApplyCode` l1)
-      -- , goldenBundle "sort" sort (sort `unsafeApplyCode` l1)
-      -- , goldenBundle "sortBy" sortBy (sortBy `unsafeApplyCode` l1)
       ]
 
 map :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
@@ -243,10 +234,6 @@ l3 = liftCodeDef $ toBuiltin ([(1, 2), (3, 4), (5, 6)] :: [(Integer, Integer)])
 l4 :: CompiledCode (L.BuiltinList (L.BuiltinList Integer))
 l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
 
--- TODO The following functions cannot compile because they require implementation of
--- arbitrarily nested BuiltinList types.
--- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
-
 concat :: CompiledCode (L.BuiltinList (L.BuiltinList Integer) -> L.BuiltinList Integer)
 concat = $$(compile [||\xss -> L.concat xss||])
 
@@ -256,31 +243,19 @@ concatMap = $$(compile [||\xss -> L.concatMap (L.replicate 2) xss||])
 splitAt
   :: CompiledCode
        (L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
-splitAt = undefined
-
--- \$$(compile [|| \xs -> L.splitAt 2 xs ||])
+splitAt = undefined -- \$$(compile [|| \xs -> L.splitAt 2 xs ||])
 
 partition :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-partition = undefined
-
--- \$$(compile [|| L.partition ||])
+partition = undefined -- \$$(compile [|| L.partition ||])
 
 sort :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sort = undefined
-
--- \$$(compile [|| \xs -> L.sort xs ||])
+sort = undefined -- \$$(compile [|| \xs -> L.sort xs ||])
 
 sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sortBy = undefined
-
--- \$$(compile [|| \xs -> L.sortBy (<=) xs ||])
+sortBy = undefined -- \$$(compile [|| \xs -> L.sortBy (<=) xs ||])
 
 unzip :: CompiledCode (L.BuiltinList (BuiltinPair a b) -> L.BuiltinList Integer)
-unzip = undefined
-
--- \$$(compile [|| \xs -> L.unzip xs ||])
+unzip = undefined -- \$$(compile [|| \xs -> L.unzip xs ||])
 
 zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (BuiltinPair Integer Integer))
-zip = undefined
-
--- \$$(compile [|| \xs -> L.zip xs xs ||])
+zip = undefined -- \$$(compile [|| \xs -> L.zip xs xs ||])
