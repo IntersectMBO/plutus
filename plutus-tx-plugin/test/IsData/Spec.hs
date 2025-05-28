@@ -40,6 +40,12 @@ import UntypedPlutusCore qualified as UPLC
 
 import Data.Proxy
 
+data MyMonoRecordAsList = MyMonoRecordAsList {mrlA :: Integer, mrlB :: Integer}
+instance P.Eq MyMonoRecordAsList where
+  {-# INLINEABLE (==) #-}
+  (MyMonoRecordAsList x1 y1) == (MyMonoRecordAsList x2 y2) = x1 P.== x2 && y1 P.== y2
+IsData.makeIsDataAsList ''MyMonoRecordAsList
+
 IsData.unstableMakeIsData ''MyMonoData
 IsData.unstableMakeIsData ''MyMonoRecord
 IsData.unstableMakeIsData ''MyPolyData
@@ -158,6 +164,7 @@ tests =
       , goldenUEval "mono" [plc (Proxy @"mono") (isDataRoundtrip (Mono2 2))]
       , goldenUEval "poly" [plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer)))]
       , goldenUEval "record" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2))]
+      , goldenUEval "recordAsList" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2))]
       , goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer]))]
       , goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
       , goldenUEval
