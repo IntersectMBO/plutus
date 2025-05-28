@@ -214,7 +214,7 @@ infixr 5 ++
 (++) l r = foldr (<|) r l
 {-# INLINABLE (++) #-}
 
--- | Plutus Tx version of '(Data.List.append)' for 'BuiltinList'.
+-- | Plutus Tx version of 'Data.List.append' for 'BuiltinList'.
 append :: forall a. BuiltinList a -> BuiltinList a -> BuiltinList a
 append = (++)
 {-# INLINABLE append #-}
