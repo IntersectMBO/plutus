@@ -17,10 +17,10 @@ import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 tests :: TestNested
 tests =
-  testNested ("BuiltinList" </> "Budget") . pure $
-    testNestedGhc
-      [
-        goldenBundle "map" map (map `unsafeApplyCode` l1)
+  testNested ("BuiltinList" </> "Budget")
+    . pure
+    $ testNestedGhc
+      [ goldenBundle "map" map (map `unsafeApplyCode` l1)
       , goldenBundle "elem" elem (elem `unsafeApplyCode` l1)
       , goldenBundle "find" find (find `unsafeApplyCode` l1)
       , goldenBundle "any" any (any `unsafeApplyCode` l1)
@@ -47,11 +47,15 @@ tests =
       , goldenBundle "foldr" foldr (foldr `unsafeApplyCode` l1)
       , goldenBundle "foldl" foldl (foldl `unsafeApplyCode` l1)
       , goldenBundle "listToMaybeJust" listToMaybeJust (listToMaybeJust `unsafeApplyCode` l1)
-      , goldenBundle "listToMaybeNothing"
-          listToMaybeNothing (listToMaybeNothing `unsafeApplyCode` l1)
+      , goldenBundle
+          "listToMaybeNothing"
+          listToMaybeNothing
+          (listToMaybeNothing `unsafeApplyCode` l1)
       , goldenBundle "uniqueElementJust" uniqueElementJust (uniqueElementJust `unsafeApplyCode` l1)
-      , goldenBundle "uniqueElementNothing"
-          uniqueElementNothing (uniqueElementNothing `unsafeApplyCode` l1)
+      , goldenBundle
+          "uniqueElementNothing"
+          uniqueElementNothing
+          (uniqueElementNothing `unsafeApplyCode` l1)
       , goldenBundle "revAppend" revAppend (revAppend `unsafeApplyCode` l1)
       , goldenBundle "reverse" reverse (reverse `unsafeApplyCode` l1)
       , goldenBundle "replicate" replicate (replicate `unsafeApplyCode` l1)
@@ -93,19 +97,19 @@ find :: CompiledCode (L.BuiltinList Integer -> (Maybe Integer, Maybe Integer))
 find = $$(compile [||\xs -> (L.find (>= 8) xs, L.find (>= 12) xs)||])
 
 any :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
-any = $$(compile [|| \xs -> (L.any (>= 8) xs, L.any (>= 12) xs) ||])
+any = $$(compile [||\xs -> (L.any (>= 8) xs, L.any (>= 12) xs)||])
 
 all :: CompiledCode (L.BuiltinList Integer -> (Bool, Bool))
-all = $$(compile [|| \xs -> (L.all (>= 8) xs, L.all (>= 0) xs) ||])
+all = $$(compile [||\xs -> (L.all (>= 8) xs, L.all (>= 0) xs)||])
 
 index :: CompiledCode (L.BuiltinList Integer -> Integer)
-index = $$(compile [|| \xs -> xs L.!! 5 ||])
+index = $$(compile [||\xs -> xs L.!! 5||])
 
 indexNegative :: CompiledCode (L.BuiltinList Integer -> Integer)
-indexNegative = $$(compile [||\xs -> xs L.!! (-1) ||])
+indexNegative = $$(compile [||\xs -> xs L.!! (-1)||])
 
 indexTooLarge :: CompiledCode (L.BuiltinList Integer -> Integer)
-indexTooLarge = $$(compile [||\xs -> xs L.!! 10 ||])
+indexTooLarge = $$(compile [||\xs -> xs L.!! 10||])
 
 cons :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 cons = $$(compile [||\xs -> L.cons 0 xs||])
@@ -117,115 +121,115 @@ unconsNothing :: CompiledCode (L.BuiltinList Integer -> Maybe (Integer, L.Builti
 unconsNothing = $$(compile [||\_ -> L.uncons L.empty||])
 
 empty :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-empty = $$(compile [|| \_ -> L.empty ||])
+empty = $$(compile [||\_ -> L.empty||])
 
 singleton :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-singleton = $$(compile [|| \_ -> L.singleton 42 ||])
+singleton = $$(compile [||\_ -> L.singleton 42||])
 
 null :: CompiledCode (L.BuiltinList Integer -> Bool)
-null = $$(compile [|| \xs -> L.null xs ||])
+null = $$(compile [||\xs -> L.null xs||])
 
 (++) :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-(++) = $$(compile [|| \xs -> xs L.++ xs ||])
+(++) = $$(compile [||\xs -> xs L.++ xs||])
 
 (<|) :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-(<|) = $$(compile [|| \xs -> 42 L.<| xs ||])
+(<|) = $$(compile [||\xs -> 42 L.<| xs||])
 
 append :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-append = $$(compile [|| \xs -> L.append xs xs ||])
+append = $$(compile [||\xs -> L.append xs xs||])
 
 findIndices :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-findIndices = $$(compile [|| \xs -> L.findIndices odd xs ||])
+findIndices = $$(compile [||\xs -> L.findIndices odd xs||])
 
 filter :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-filter = $$(compile [|| \xs -> L.filter even xs ||])
+filter = $$(compile [||\xs -> L.filter even xs||])
 
 mapMaybe :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-mapMaybe = $$(compile [|| \xs -> L.mapMaybe (\x -> if odd x then Just x else Nothing) xs ||])
+mapMaybe = $$(compile [||\xs -> L.mapMaybe (\x -> if odd x then Just x else Nothing) xs||])
 
 length :: CompiledCode (L.BuiltinList Integer -> Integer)
-length = $$(compile [|| \xs -> L.length xs ||])
+length = $$(compile [||\xs -> L.length xs||])
 
 and :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
-and = $$(compile [|| \xs -> L.and xs ||])
+and = $$(compile [||\xs -> L.and xs||])
 
 or :: CompiledCode (L.BuiltinList BuiltinBool -> Bool)
-or = $$(compile [|| \xs -> L.or xs ||])
+or = $$(compile [||\xs -> L.or xs||])
 
 notElem :: CompiledCode (L.BuiltinList Integer -> Bool)
-notElem = $$(compile [|| \xs -> L.notElem 42 xs||])
+notElem = $$(compile [||\xs -> L.notElem 42 xs||])
 
 foldr :: CompiledCode (L.BuiltinList Integer -> Integer)
-foldr = $$(compile [|| \xs -> L.foldr (+) 0 xs ||])
+foldr = $$(compile [||\xs -> L.foldr (+) 0 xs||])
 
 foldl :: CompiledCode (L.BuiltinList Integer -> Integer)
-foldl = $$(compile [|| \xs -> L.foldl (*) 1 xs ||])
+foldl = $$(compile [||\xs -> L.foldl (*) 1 xs||])
 
 listToMaybeJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-listToMaybeJust = $$(compile [|| \xs -> L.listToMaybe xs ||])
+listToMaybeJust = $$(compile [||\xs -> L.listToMaybe xs||])
 
 listToMaybeNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-listToMaybeNothing = $$(compile [|| \_ -> L.listToMaybe L.empty ||])
+listToMaybeNothing = $$(compile [||\_ -> L.listToMaybe L.empty||])
 
 uniqueElementJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-uniqueElementJust = $$(compile [|| \xs -> L.uniqueElement (L.take 1 xs) ||])
+uniqueElementJust = $$(compile [||\xs -> L.uniqueElement (L.take 1 xs)||])
 
 uniqueElementNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-uniqueElementNothing = $$(compile [|| \_ -> L.uniqueElement L.empty ||])
+uniqueElementNothing = $$(compile [||\_ -> L.uniqueElement L.empty||])
 
 revAppend :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-revAppend = $$(compile [|| \xs -> L.revAppend xs xs ||])
+revAppend = $$(compile [||\xs -> L.revAppend xs xs||])
 
 reverse :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-reverse = $$(compile [|| \xs -> L.reverse xs ||])
+reverse = $$(compile [||\xs -> L.reverse xs||])
 
 replicate :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-replicate = $$(compile [|| \_ -> L.replicate 10 0 ||])
+replicate = $$(compile [||\_ -> L.replicate 10 0||])
 
 findIndexJust :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-findIndexJust = $$(compile [|| \xs -> L.findIndex (== 4) xs ||])
+findIndexJust = $$(compile [||\xs -> L.findIndex (== 4) xs||])
 
 findIndexNothing :: CompiledCode (L.BuiltinList Integer -> Maybe Integer)
-findIndexNothing = $$(compile [|| \xs -> L.findIndex (== 99) xs ||])
+findIndexNothing = $$(compile [||\xs -> L.findIndex (== 99) xs||])
 
 zipWith :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-zipWith = $$(compile [|| \xs -> L.zipWith (+) xs xs ||])
+zipWith = $$(compile [||\xs -> L.zipWith (+) xs xs||])
 
 headOk :: CompiledCode (L.BuiltinList Integer -> Integer)
-headOk = $$(compile [|| \xs -> L.head xs ||])
+headOk = $$(compile [||\xs -> L.head xs||])
 
 headEmpty :: CompiledCode (L.BuiltinList Integer -> Integer)
-headEmpty = $$(compile [|| \_ -> L.head L.empty ||])
+headEmpty = $$(compile [||\_ -> L.head L.empty||])
 
 lastOk :: CompiledCode (L.BuiltinList Integer -> Integer)
-lastOk = $$(compile [|| \xs -> L.last xs ||])
+lastOk = $$(compile [||\xs -> L.last xs||])
 
 lastEmpty :: CompiledCode (L.BuiltinList Integer -> Integer)
-lastEmpty = $$(compile [|| \_ -> L.last L.empty ||])
+lastEmpty = $$(compile [||\_ -> L.last L.empty||])
 
 tailOk :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-tailOk = $$(compile [|| \xs -> L.tail xs ||])
+tailOk = $$(compile [||\xs -> L.tail xs||])
 
 tailEmpty :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-tailEmpty = $$(compile [|| \_ -> L.tail L.empty ||])
+tailEmpty = $$(compile [||\_ -> L.tail L.empty||])
 
 take :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-take = $$(compile [|| \xs -> L.take 5 xs ||])
+take = $$(compile [||\xs -> L.take 5 xs||])
 
 drop :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-drop = $$(compile [|| \xs -> L.drop 5 xs ||])
+drop = $$(compile [||\xs -> L.drop 5 xs||])
 
 dropWhile :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-dropWhile = $$(compile [|| \xs -> L.dropWhile (< 5) xs ||])
+dropWhile = $$(compile [||\xs -> L.dropWhile (< 5) xs||])
 
 elemBy :: CompiledCode (L.BuiltinList Integer -> Bool)
-elemBy = $$(compile [|| \xs -> L.elemBy (<=) 0 xs ||])
+elemBy = $$(compile [||\xs -> L.elemBy (<=) 0 xs||])
 
 nub :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nub = $$(compile [|| \xs -> L.nub (L.append xs xs) ||])
+nub = $$(compile [||\xs -> L.nub (L.append xs xs)||])
 
 nubBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-nubBy = $$(compile [|| \xs -> L.nubBy (<=) xs ||])
+nubBy = $$(compile [||\xs -> L.nubBy (<=) xs||])
 
 l1 :: CompiledCode (L.BuiltinList Integer)
 l1 = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])
@@ -234,7 +238,7 @@ l2 :: CompiledCode (L.BuiltinList BuiltinBool)
 l2 = liftCodeDef $ toBuiltin ([True, False, True, False] :: [Bool])
 
 l3 :: CompiledCode (L.BuiltinList (BuiltinPair Integer Integer))
-l3 = liftCodeDef $ toBuiltin ([ (1, 2), (3, 4), (5, 6) ] :: [(Integer, Integer)])
+l3 = liftCodeDef $ toBuiltin ([(1, 2), (3, 4), (5, 6)] :: [(Integer, Integer)])
 
 l4 :: CompiledCode (L.BuiltinList (L.BuiltinList Integer))
 l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
@@ -244,29 +248,39 @@ l4 = liftCodeDef $ toBuiltin ([[1, 2], [3, 4]] :: [[Integer]])
 -- See `class MkNil` in PlutusTx.Builtins.HasOpaque.
 
 concat :: CompiledCode (L.BuiltinList (L.BuiltinList Integer) -> L.BuiltinList Integer)
-concat = $$(compile [|| \xss -> L.concat xss ||])
+concat = $$(compile [||\xss -> L.concat xss||])
 
 concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-concatMap = $$(compile [|| \xss -> L.concatMap (L.replicate 2) xss ||])
+concatMap = $$(compile [||\xss -> L.concatMap (L.replicate 2) xss||])
 
 splitAt
-  :: CompiledCode (
-    L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer)
-  )
-splitAt = undefined -- $$(compile [|| \xs -> L.splitAt 2 xs ||])
+  :: CompiledCode
+       (L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
+splitAt = undefined
+
+-- \$$(compile [|| \xs -> L.splitAt 2 xs ||])
 
 partition :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-partition = undefined -- $$(compile [|| L.partition ||])
+partition = undefined
+
+-- \$$(compile [|| L.partition ||])
 
 sort :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sort = undefined -- $$(compile [|| \xs -> L.sort xs ||])
+sort = undefined
+
+-- \$$(compile [|| \xs -> L.sort xs ||])
 
 sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sortBy = undefined -- $$(compile [|| \xs -> L.sortBy (<=) xs ||])
+sortBy = undefined
+
+-- \$$(compile [|| \xs -> L.sortBy (<=) xs ||])
 
 unzip :: CompiledCode (L.BuiltinList (BuiltinPair a b) -> L.BuiltinList Integer)
-unzip = undefined -- $$(compile [|| \xs -> L.unzip xs ||])
+unzip = undefined
+
+-- \$$(compile [|| \xs -> L.unzip xs ||])
 
 zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (BuiltinPair Integer Integer))
-zip = undefined -- $$(compile [|| \xs -> L.zip xs xs ||])
+zip = undefined
 
+-- \$$(compile [|| \xs -> L.zip xs xs ||])
