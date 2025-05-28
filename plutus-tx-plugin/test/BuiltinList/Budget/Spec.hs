@@ -19,30 +19,12 @@ tests :: TestNested
 tests =
   testNested ("BuiltinList" </> "Budget") . pure $
     testNestedGhc
-      [ goldenPirReadable "map" map
-      , goldenUPlcReadable "map" map
-      , goldenEvalCekCatch "map" [map `unsafeApplyCode` l]
-      , goldenBudget "map" (map `unsafeApplyCode` l)
-      , goldenPirReadable "elem" elem
-      , goldenUPlcReadable "elem" elem
-      , goldenEvalCekCatch "elem" [elem `unsafeApplyCode` l]
-      , goldenBudget "elem" (elem `unsafeApplyCode` l)
-      , goldenPirReadable "find" find
-      , goldenUPlcReadable "find" find
-      , goldenEvalCekCatch "find" [find `unsafeApplyCode` l]
-      , goldenBudget "find" (find `unsafeApplyCode` l)
-      , goldenPirReadable "any" any
-      , goldenUPlcReadable "any" any
-      , goldenEvalCekCatch "any" [any `unsafeApplyCode` l]
-      , goldenBudget "any" (any `unsafeApplyCode` l)
-      , goldenPirReadable "all" all
-      , goldenUPlcReadable "all" all
-      , goldenEvalCekCatch "all" [all `unsafeApplyCode` l]
-      , goldenBudget "all" (all `unsafeApplyCode` l)
-      , goldenPirReadable "index" index
-      , goldenUPlcReadable "index" index
-      , goldenEvalCekCatch "index" [index `unsafeApplyCode` l]
-      , goldenBudget "index" (index `unsafeApplyCode` l)
+      [ goldenBundle "map" map (map `unsafeApplyCode` l)
+      , goldenBundle "elem" elem (elem `unsafeApplyCode` l)
+      , goldenBundle "find" find (find `unsafeApplyCode` l)
+      , goldenBundle "any" any (any `unsafeApplyCode` l)
+      , goldenBundle "all" all (all `unsafeApplyCode` l)
+      , goldenBundle "index" index (index `unsafeApplyCode` l)
       ]
 
 map :: CompiledCode (P.BuiltinList Integer -> P.BuiltinList Integer)
@@ -61,7 +43,7 @@ all :: CompiledCode (P.BuiltinList Integer -> (Bool, Bool))
 all = $$(compile [||\xs -> (L.all (P.>= 8) xs, L.all (P.>= 0) xs)||])
 
 index :: CompiledCode (P.BuiltinList Integer -> Integer)
-index = $$(compile [|| (L.!! 5) ||])
+index = $$(compile [||(L.!! 5)||])
 
 l :: CompiledCode (P.BuiltinList Integer)
 l = liftCodeDef $ toBuiltin ([1 .. 10] :: [Integer])

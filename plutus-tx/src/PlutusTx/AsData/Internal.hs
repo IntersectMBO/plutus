@@ -1,21 +1,22 @@
 {-# LANGUAGE Strict #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
--- | Functions in this module are for internal compiler use only, and should not
--- be used elsewhere.
+{-| Functions in this module are for internal compiler use only, and should not
+be used elsewhere.
+-}
 module PlutusTx.AsData.Internal where
 
 import PlutusTx.Builtins.Internal as BI
 
 -- See Note [Compiling AsData Matchers and Their Invocations]
 
-wrapUnsafeDataAsConstr:: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
+wrapUnsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
 wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
-{-# NOINLINE wrapUnsafeDataAsConstr #-}
+{-# OPAQUE wrapUnsafeDataAsConstr #-}
 
 wrapTail :: BuiltinList a -> BuiltinList a
 wrapTail = BI.tail
-{-# NOINLINE wrapTail #-}
+{-# OPAQUE wrapTail #-}
 
 -- Like `unsafeUncons` but uses `wrapTail` instead of the regular `tail`.
 --
@@ -42,7 +43,7 @@ they are unfortunately not customizable - for example, by attaching certain anno
 to certain variables as signals for the Plinth compiler.
 
 The workaround are the wrapper functions in this module. `wrapUnsafeDataAsConstr`
-is marked NOINLINE so that GHC doesn't inline it, yet its unfolding is made available
+is marked OPAQUE so that GHC doesn't inline it, yet its unfolding is made available
 via `-fexpose-all-unfoldings`. `wrapUnsafeDataAsConstr` is supposed to be used by
 AsData only, and not elsewhere, and the Plinth compiler relies on it to identify
 which functions are AsData matchers.

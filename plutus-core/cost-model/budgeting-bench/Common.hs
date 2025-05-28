@@ -15,13 +15,14 @@ import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.MkPlc
-import PlutusCore.Pretty (Pretty)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn, mkTyBuiltin)
+import PlutusCore.Pretty (Pretty, display)
 import UntypedPlutusCore as UPLC hiding (Constr)
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
-import Criterion.Main
+import Criterion.Main (Benchmark, bench, bgroup, whnf)
+import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 
@@ -40,34 +41,34 @@ same object in the heap) the underlying implementation may notice that and
 return immediately.  The code below attempts to avoid this by producing a
 completely new copy of an integer.  Experiments with 'realyUnsafePtrEquality#`
 indicate that it does what's required (in fact, `cloneInteger n = (n+1)-1` with
-NOINLINE suffices, but that's perhaps a bit too fragile).
+OPAQUE suffices, but that's perhaps a bit too fragile).
 -}
 
 incInteger :: Integer -> Integer
 incInteger n = n+1
-{-# NOINLINE incInteger #-}
+{-# OPAQUE incInteger #-}
 
 decInteger :: Integer -> Integer
 decInteger n = n-1
-{-# NOINLINE decInteger #-}
+{-# OPAQUE decInteger #-}
 
 copyInteger :: Integer -> Integer
 copyInteger = decInteger . incInteger
-{-# NOINLINE copyInteger #-}
+{-# OPAQUE copyInteger #-}
 
 copyByteString :: BS.ByteString -> BS.ByteString
 copyByteString = BS.copy
-{-# NOINLINE copyByteString #-}
+{-# OPAQUE copyByteString #-}
 
 copyData :: Data -> Data
 copyData =
     \case
      Constr n l -> Constr (copyInteger n) (map copyData l)
-     Map l      -> Map $ map (\(a,b) -> (copyData a, copyData b)) l
+     Map l      -> Map $ map (bimap copyData copyData) l
      List l     -> List (map copyData l)
      I n        -> I $ copyInteger n
      B b        -> B $ copyByteString b
-{-# NOINLINE copyData #-}
+{-# OPAQUE copyData #-}
 
 pairWith :: (a -> b) -> [a] -> [(a,b)]
 pairWith f = fmap (\a -> (a, f a))
@@ -84,7 +85,14 @@ benchWith
 -- the result, so e.g. 'evaluateCek' won't work properly because it returns a pair whose components
 -- won't be evaluated by 'whnf'. We can't use 'nf' because it does too much work: for instance if it
 -- gets back a 'Data' value it'll traverse all of it.
-benchWith params name term = bench name $ whnf (evaluateCekNoEmit params) term
+benchWith params name term = bench name $
+  whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+  where
+    handleEvaluationErrors = \case
+      Right res -> res
+      Left (ErrorWithCause err cause) ->
+        error $
+          "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
@@ -191,14 +199,40 @@ createOneTermBuiltinBench
      , uni ~ DefaultUni
      , uni `HasTermLevel` a
      , ExMemoryUsage a
-     , NFData a)
+     , NFData a
+     )
   => fun
   -> [Type tyname uni ()]
   -> [a]
   -> Benchmark
-createOneTermBuiltinBench fun tys xs =
-  bgroup (show fun) [mkBM x | x <- xs]
-  where mkBM x = benchDefault (showMemoryUsage x) $ mkApp1 fun tys x
+createOneTermBuiltinBench = createOneTermBuiltinBenchWithWrapper id
+
+{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
+  cases we want to measure the (so-called) "memory usage" of a builtin argument
+  in a nonstandard way for benchmarking and costing purposes. This function
+  allows you to supply suitable wrapping functions in the benchmarks to achieve
+  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
+  builtin denotations to make sure that during script execution the inputs to
+  the costing functions are costed in the same way as the are in thhe
+  benchmmarks.
+-}
+createOneTermBuiltinBenchWithWrapper
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a'
+     , NFData a
+     )
+  => (a -> a')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBenchWithWrapper wrapX fun tys xs =
+  bgroup (show fun)
+    [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    | x <- xs
+    ]
 
 {- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
    ys::[b], create a collection of benchmarks which run f on all pairs in
@@ -243,6 +277,29 @@ createTwoTermBuiltinBenchWithFlag fun tys flag ys zs =
                        [bgroup (showMemoryUsage y) [mkBM y z | z <- zs] | y <- ys]]
   where mkBM y z = benchDefault (showMemoryUsage z) $ mkApp3 fun tys flag y z
 
+{- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
+   ys::[b], create a collection of benchmarks which run f on all pairs in
+   {(x,y}: x in xs, y in ys}. -}
+createTwoTermBuiltinBenchWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , NFData a
+     , NFData b
+     )
+  => (a -> a', b-> b')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> Benchmark
+createTwoTermBuiltinBenchWithWrappers (wrapX, wrapY) fun tys xs ys =
+  bgroup (show fun) [bgroup (showMemoryUsage (wrapX x)) [mkBM x y | y <- ys] | x <- xs]
+  where mkBM x y = benchDefault (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
+
 {- | Given a builtin function f of type a * b -> _ together with a list of (a,b)
    pairs, create a collection of benchmarks which run f on all of the pairs in
    the list.  This can be used when the worst-case execution time of a
@@ -272,15 +329,7 @@ createTwoTermBuiltinBenchElementwise =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
-{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
-  cases we want to measure the (so-called) "memory usage" of a builtin argument
-  in a nonstandard way for benchmarking and costing purposes. This function
-  allows you to supply suitable wrapping functions in the benchmarks to achieve
-  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
-  builtin denotations to make sure that during script execution the inputs to
-  the costing functions are costed in the same way as the are in thhe
-  benchmmarks.
--}
+{- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
 createTwoTermBuiltinBenchElementwiseWithWrappers
   :: ( fun ~ DefaultFun
      , uni ~ DefaultUni
@@ -353,3 +402,32 @@ createThreeTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY, wrapZ) fun tys
   )
   inputs
   where mkBM x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp3 fun tys x y z
+
+
+createThreeTermBuiltinBenchWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , ExMemoryUsage c'
+     , NFData a
+     , NFData b
+     , NFData c
+     )
+  => (a -> a', b-> b', c -> c')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> [c]
+  -> Benchmark
+createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
+  bgroup (show fun)
+   [bgroup (showMemoryUsage (wrapX x))
+    [bgroup (showMemoryUsage (wrapY y))
+      [mkBM x y z | z <- zs] | y <- ys] | x <- xs]
+  where mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
+

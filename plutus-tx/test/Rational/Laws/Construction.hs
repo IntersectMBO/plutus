@@ -15,16 +15,28 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 constructionLaws :: [TestTree]
-constructionLaws = [
-  testPropertyNamed "ratio x 0 = Nothing" "propZeroDenom" propZeroDenom,
-  testPropertyNamed "ratio x 1 = Just . fromInteger $ x" "propOneDenom" propOneDenom,
-  testPropertyNamed "ratio x x = Just 1 for x /= 0" "propRatioSelf" propRatioSelf,
-  testCoverProperty "sign of result depends on signs of arguments" propRatioSign,
-  testPropertyNamed "if ratio x y = Just r, then unsafeRatio x y = r" "propConstructionAgreement" propConstructionAgreement,
-  testPropertyNamed "if r = fromInteger x, then numerator r = x" "propFromIntegerNum" propFromIntegerNum,
-  testPropertyNamed "if r = fromInteger x, then denominator r = 1" "propFromIntegerDen" propFromIntegerDen,
-  testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale,
-  testPropertyNamed "denominator (unsafeRatio x y) > 0" "propUnsafeRatioDenomPos" propUnsafeRatioDenomPos
+constructionLaws =
+  [ testPropertyNamed "ratio x 0 = Nothing" "propZeroDenom" propZeroDenom
+  , testPropertyNamed "ratio x 1 = Just . fromInteger $ x" "propOneDenom" propOneDenom
+  , testPropertyNamed "ratio x x = Just 1 for x /= 0" "propRatioSelf" propRatioSelf
+  , testCoverProperty "sign of result depends on signs of arguments" propRatioSign
+  , testPropertyNamed
+      "if ratio x y = Just r, then unsafeRatio x y = r"
+      "propConstructionAgreement"
+      propConstructionAgreement
+  , testPropertyNamed
+      "if r = fromInteger x, then numerator r = x"
+      "propFromIntegerNum"
+      propFromIntegerNum
+  , testPropertyNamed
+      "if r = fromInteger x, then denominator r = 1"
+      "propFromIntegerDen"
+      propFromIntegerDen
+  , testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale
+  , testPropertyNamed
+      "denominator (unsafeRatio x y) > 0"
+      "propUnsafeRatioDenomPos"
+      propUnsafeRatioDenomPos
   ]
 
 propZeroDenom :: Property
@@ -55,20 +67,23 @@ propRatioSign = property $ do
     (-1, -1) -> signIndicator === Just Plutus.GT
     (1, 1)   -> signIndicator === Just Plutus.GT
     _        -> signIndicator === Just Plutus.LT
-  where
-    go :: Gen (Plutus.Integer, Plutus.Integer)
-    go = Gen.choice [zeroNum, sameSign, diffSign]
-    zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
-    zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
-    sameSign :: Gen (Plutus.Integer, Plutus.Integer)
-    sameSign = do
-      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
-      (,) <$> gen <*> gen
-    diffSign :: Gen (Plutus.Integer, Plutus.Integer)
-    diffSign = do
-      (genN, genD) <- Gen.element [(genIntegerPos, negate <$> genIntegerPos),
-                                   (negate <$> genIntegerPos, genIntegerPos)]
-      (,) <$> genN <*> genD
+ where
+  go :: Gen (Plutus.Integer, Plutus.Integer)
+  go = Gen.choice [zeroNum, sameSign, diffSign]
+  zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
+  zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
+  sameSign :: Gen (Plutus.Integer, Plutus.Integer)
+  sameSign = do
+    gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+    (,) <$> gen <*> gen
+  diffSign :: Gen (Plutus.Integer, Plutus.Integer)
+  diffSign = do
+    (genN, genD) <-
+      Gen.element
+        [ (genIntegerPos, negate <$> genIntegerPos)
+        , (negate <$> genIntegerPos, genIntegerPos)
+        ]
+    (,) <$> genN <*> genD
 
 propConstructionAgreement :: Property
 propConstructionAgreement = property $ do

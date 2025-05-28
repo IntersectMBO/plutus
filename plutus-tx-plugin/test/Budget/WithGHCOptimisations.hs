@@ -1,4 +1,5 @@
-{-#OPTIONS_GHC -O1 #-}
+{-# OPTIONS_GHC -O1 #-}
+
 module Budget.WithGHCOptimisations where
 
 import PlutusTx.Prelude qualified as PlutusTx

@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module PlutusTx.ErrorCodes where
 
 import Data.Map (Map)
@@ -35,131 +36,132 @@ When writing a new error description please follow existing patterns:
 
 -- | All error codes used in the plutus prelude associated with a human-readable description.
 plutusPreludeErrorCodes :: Map Builtins.BuiltinString String
-plutusPreludeErrorCodes = Map.fromList
-  [ ("PT1", "TH Generation of Indexed Data Error")
-  , ("PT2", "PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported")
-  , ("PT3", "PlutusTx.Ratio: zero denominator")
-  , ("PT5", "PlutusTx.Prelude.check: input is 'False'")
-  , ("PT6", "PlutusTx.List.!!: negative index")
-  , ("PT7", "PlutusTx.List.!!: index too large")
-  , ("PT8", "PlutusTx.List.head: empty list")
-  , ("PT9", "PlutusTx.List.tail: empty list")
-  , ("PT10", "PlutusTx.Enum.().succ: bad argument")
-  , ("PT11", "PlutusTx.Enum.().pred: bad argument")
-  , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
-  , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
-  , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
-  , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
-  , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
-  , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
-  , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
-  , ("PT19", "PlutusTx.List.last: empty list")
-  , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
-  , ("PT21", "PlutusTx.List.indexBuiltinList: negative index")
-  , ("PT22", "PlutusTx.List.indexBuiltinList: index too large")
-  ]
+plutusPreludeErrorCodes =
+  Map.fromList
+    [ ("PT1", "TH Generation of Indexed Data Error")
+    , ("PT2", "PlutusTx.IsData.Class.unsafeFromBuiltinData: Void is not supported")
+    , ("PT3", "PlutusTx.Ratio: zero denominator")
+    , ("PT5", "PlutusTx.Prelude.check: input is 'False'")
+    , ("PT6", "PlutusTx.List.!!: negative index")
+    , ("PT7", "PlutusTx.List.!!: index too large")
+    , ("PT8", "PlutusTx.List.head: empty list")
+    , ("PT9", "PlutusTx.List.tail: empty list")
+    , ("PT10", "PlutusTx.Enum.().succ: bad argument")
+    , ("PT11", "PlutusTx.Enum.().pred: bad argument")
+    , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
+    , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
+    , ("PT14", "PlutusTx.Enum.Bool.pred: bad argument")
+    , ("PT15", "PlutusTx.Enum.Bool.toEnum: bad argument")
+    , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
+    , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
+    , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
+    , ("PT19", "PlutusTx.List.last: empty list")
+    , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
+    , ("PT21", "PlutusTx.List.indexBuiltinList: negative index")
+    , ("PT22", "PlutusTx.List.indexBuiltinList: index too large")
+    ]
 
 -- | The error happens in TH generation of indexed data
 reconstructCaseError :: Builtins.BuiltinString
 reconstructCaseError = "PT1"
-{-# INLINABLE reconstructCaseError #-}
+{-# INLINEABLE reconstructCaseError #-}
 
 -- | Error case of 'unsafeFromBuiltinData'
 voidIsNotSupportedError :: Builtins.BuiltinString
 voidIsNotSupportedError = "PT2"
-{-# INLINABLE voidIsNotSupportedError #-}
+{-# INLINEABLE voidIsNotSupportedError #-}
 
 -- | Ratio number can't have a zero denominator
 ratioHasZeroDenominatorError :: Builtins.BuiltinString
 ratioHasZeroDenominatorError = "PT3"
-{-# INLINABLE ratioHasZeroDenominatorError #-}
+{-# INLINEABLE ratioHasZeroDenominatorError #-}
 
 -- | 'check' input is 'False'
 checkHasFailedError :: Builtins.BuiltinString
 checkHasFailedError = "PT5"
-{-# INLINABLE checkHasFailedError #-}
+{-# INLINEABLE checkHasFailedError #-}
 
 -- | PlutusTx.List.!!: negative index
 negativeIndexError :: Builtins.BuiltinString
 negativeIndexError = "PT6"
-{-# INLINABLE negativeIndexError #-}
+{-# INLINEABLE negativeIndexError #-}
 
 -- | PlutusTx.List.!!: index too large
 indexTooLargeError :: Builtins.BuiltinString
 indexTooLargeError = "PT7"
-{-# INLINABLE indexTooLargeError #-}
+{-# INLINEABLE indexTooLargeError #-}
 
 -- | PlutusTx.List.head: empty list
 headEmptyListError :: Builtins.BuiltinString
 headEmptyListError = "PT8"
-{-# INLINABLE headEmptyListError #-}
+{-# INLINEABLE headEmptyListError #-}
 
 -- | PlutusTx.List.tail: empty list
 tailEmptyListError :: Builtins.BuiltinString
 tailEmptyListError = "PT9"
-{-# INLINABLE tailEmptyListError #-}
+{-# INLINEABLE tailEmptyListError #-}
 
 -- | PlutusTx.Enum.().succ: bad argument
 succVoidBadArgumentError :: Builtins.BuiltinString
 succVoidBadArgumentError = "PT10"
-{-# INLINABLE succVoidBadArgumentError #-}
+{-# INLINEABLE succVoidBadArgumentError #-}
 
 -- | PlutusTx.Enum.().pred: bad argument
 predVoidBadArgumentError :: Builtins.BuiltinString
 predVoidBadArgumentError = "PT11"
-{-# INLINABLE predVoidBadArgumentError #-}
+{-# INLINEABLE predVoidBadArgumentError #-}
 
 -- | PlutusTx.Enum.().toEnum: bad argument
 toEnumVoidBadArgumentError :: Builtins.BuiltinString
 toEnumVoidBadArgumentError = "PT12"
-{-# INLINABLE toEnumVoidBadArgumentError #-}
+{-# INLINEABLE toEnumVoidBadArgumentError #-}
 
 -- | PlutusTx.Enum.Bool.succ: bad argument
 succBoolBadArgumentError :: Builtins.BuiltinString
 succBoolBadArgumentError = "PT13"
-{-# INLINABLE succBoolBadArgumentError #-}
+{-# INLINEABLE succBoolBadArgumentError #-}
 
 -- | PlutusTx.Enum.Bool.pred: bad argument
 predBoolBadArgumentError :: Builtins.BuiltinString
 predBoolBadArgumentError = "PT14"
-{-# INLINABLE predBoolBadArgumentError #-}
+{-# INLINEABLE predBoolBadArgumentError #-}
 
 -- | PlutusTx.Enum.Bool.toEnum: bad argument
 toEnumBoolBadArgumentError :: Builtins.BuiltinString
 toEnumBoolBadArgumentError = "PT15"
-{-# INLINABLE toEnumBoolBadArgumentError #-}
+{-# INLINEABLE toEnumBoolBadArgumentError #-}
 
 -- | PlutusTx.Enum.Ordering.succ: bad argument
 succOrderingBadArgumentError :: Builtins.BuiltinString
 succOrderingBadArgumentError = "PT16"
-{-# INLINABLE succOrderingBadArgumentError #-}
+{-# INLINEABLE succOrderingBadArgumentError #-}
 
 -- | PlutusTx.Enum.Ordering.pred: bad argument
 predOrderingBadArgumentError :: Builtins.BuiltinString
 predOrderingBadArgumentError = "PT17"
-{-# INLINABLE predOrderingBadArgumentError #-}
+{-# INLINEABLE predOrderingBadArgumentError #-}
 
 -- | PlutusTx.Enum.Ordering.toEnum: bad argument
 toEnumOrderingBadArgumentError :: Builtins.BuiltinString
 toEnumOrderingBadArgumentError = "PT18"
-{-# INLINABLE toEnumOrderingBadArgumentError #-}
+{-# INLINEABLE toEnumOrderingBadArgumentError #-}
 
 -- | PlutusTx.List.last: empty list
 lastEmptyListError :: Builtins.BuiltinString
 lastEmptyListError = "PT19"
-{-# INLINABLE lastEmptyListError #-}
+{-# INLINEABLE lastEmptyListError #-}
 
 -- | PlutusTx.Ratio.recip: reciprocal of zero
 reciprocalOfZeroError :: Builtins.BuiltinString
 reciprocalOfZeroError = "PT20"
-{-# INLINABLE reciprocalOfZeroError #-}
+{-# INLINEABLE reciprocalOfZeroError #-}
 
 -- | PlutusTx.List.indexBuiltinList: negative index
 builtinListNegativeIndexError :: Builtins.BuiltinString
 builtinListNegativeIndexError = "PT21"
-{-# INLINABLE builtinListNegativeIndexError #-}
+{-# INLINEABLE builtinListNegativeIndexError #-}
 
 -- | PlutusTx.List.indexBuiltinList: index too large
 builtinListIndexTooLargeError :: Builtins.BuiltinString
 builtinListIndexTooLargeError = "PT22"
-{-# INLINABLE builtinListIndexTooLargeError #-}
+{-# INLINEABLE builtinListIndexTooLargeError #-}

@@ -71,7 +71,7 @@ The golden files contain the counted CPU and memory budget of the scripts.
 
 ### Versioning of `marlowe-internal`
 
-Note that the off-chain code is evolving. However the on-chain code is very stable and is compatible with GHC 8.10.7. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
+Note that the off-chain code is evolving. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
 
 ### Script versions
 

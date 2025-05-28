@@ -18,7 +18,7 @@ import Data.Text (Text)
 import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (Schema)
 
-{- | Blueprint that defines validator's compile-time parameter.
+{-| Blueprint that defines validator's compile-time parameter.
 
   The 'referencedTypes' phantom type parameter is used to track the types used in the contract
   making sure their schemas are included in the blueprint and that they are referenced

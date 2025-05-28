@@ -148,9 +148,44 @@ decEq-TyTag (_⊢♯.pair t t₁) (_⊢♯.pair t' t'') with (t ≟ t') ×-dec (
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
 
 ```
-The equality of the semantics of constants will depend on the equality of
-the underlying types, so this can leverage the standard library decision
-procedures. 
+# Decidable Equality of Builtins
+
+We need to decide equality between our builtin types. This is tricky because
+this needs to be done at both the Agda type-checking time and at runtime, while
+each stage has a completely different representation of the types.
+
+## Type-checking time vs runtime
+
+In Agda, the types are postulated, which means that at type-checking time we
+may only rely on Agda's unification algorithm to decide equality. This can be
+done by matching on `refl`, which checks whether the left hand side and the
+right hand side of `≡` are definitionally equal. However, this does not translate
+to the runtime stage, since at runtime the values which the `≡` type depends on
+are erased. Therefore, we need to somehow "inject" a Haskell equality function which
+triggers only at the runtime stage. 
+
+## Why not just implement the builtin types in Agda?
+
+The problem is that Agda's FFI only allows non-postulated Agda types which are
+representationally equivalent to the Haskell types they compile to. If we were to
+implement the types in Agda, they would need to be equivalent to the highly optimized
+and complicated Haskell types, and this is not feasible.
+
+We also cannot de-couple the Agda types from the Haskell types because the Agda
+specification of UPLC is also used in conformance testing.
+
+## Using the quirks of the FFI to our advantage
+
+Agda's FFI machinery allows us to define functions with different runtime
+and type-checking definitions (see the warning at https://agda.readthedocs.io/en/v2.7.0.1/language/foreign-function-interface.html#using-haskell-functions-from-agda).
+We are still constrained by the type, which needs to agree between the two
+stages, so we can't just define the two implementations arbitrarily. 
+
+The simplest solution is to provide separate type-checking time and runtime definitions
+for the instances of `HsEq`. During type-checking, the functions are essentially no-ops
+by always returning `true`, while at runtime they defer to the Haskell implementation of
+equality for each type. At type-checking time, we rely on matching on `refl` to defer to
+Agda's unification algorithm, while at runtime, the matching on `refl` becomes a no-op.
 
 ```
 record HsEq (A : Set) : Set where
@@ -158,30 +193,6 @@ record HsEq (A : Set) : Set where
     hsEq : A → A → Agda.Builtin.Bool.Bool
 
 open HsEq {{...}} public
-
-postulate
-  magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
-
-magicBoolDec : {A : Set} → {a b : A} → Agda.Builtin.Bool.Bool → Dec (a ≡ b)
-magicBoolDec true = yes primTrustMe
-magicBoolDec false = no magicNeg
-```
-
-Our builtins types and functions are postulated. In order to decide equality
-we rely on Agda's notion of definitional equality.
-
-The definition of `builtinEq` might seem strange, but what happens is that
-matching on `refl` triggers Agda's unification algorithm, which checks whether
-the two terms are definitionally equal.
-
-For example: for `builtinEq (mkByteString "foo") (mkByteString "foo")` the two terms
-are structurally equal so unification will succeed, and the function will return
-`yes refl`, while `builtinEq (mkByteString "foo") (mkByteString "bar")` will get
-stuck because unification does not succeed.
-```
-builtinEq : {A : Set} → Binary.Decidable {A = A} _≡_
-builtinEq {A} x y with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
-... | refl = yes refl
 
 instance
   HsEqBytestring : HsEq U.ByteString
@@ -192,14 +203,43 @@ instance
   HsEqBlsG2 = record { hsEq = U.eqBls12-381-G2-Element }
   HsEqBlsMlResult : HsEq U.Bls12-381-MlResult
   HsEqBlsMlResult = record { hsEq = U.eqBls12-381-MlResult }
+  HsEqDATA : HsEq U.DATA
+  HsEqDATA = record { hsEq = U.eqDATA }
+
+```
+
+## An example
+
+Let's look at the behavior of `builtinEq (mkByteString "foo") (mkByteString "foo")` vs
+`builtinEq (mkByteString "foo") (mkByteString "bar")`. 
+
+At type-checking time, if the two bytestrings are definitionally equal unification will succeed,
+and the function will return `yes refl`. There is no way to return `no` because there is
+no way to prove that the two terms are not equal without extra information about the
+`ByteString` type. But this is enough to make Agda not succesfully type-check the program,
+since it gets stuck while trying to normalize `primTrustMe`.
+
+At runtime, `hsEq` will defer to the Haskell implementation of bytestring equality, and return
+the correct result based on that. In the `yes` case, matching on `refl` will be a no-op,
+while in the `no` case, we return a phony negative proof. This is safe to do because we're
+at runtime and the proof gets erased anyway.
+
+```
+postulate
+  magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
+
+builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
+builtinEq {A} x y with hsEq x y
+... | false = no magicNeg
+... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
+...             | refl = yes refl
 
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = Data.Integer.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = Data.String.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = Data.Unit.Properties._≟_
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = Data.Bool.Properties._≟_
--- TODO(https://github.com/IntersectMBO/plutus-private/issues/1528): why does this use magicBoolDec? surely it can be implemented correctly
-decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag v v₁ = magicBoolDec (U.eqDATA v v₁)
+decEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = builtinEq
 decEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = builtinEq

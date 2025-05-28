@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.45.0.0
+version:         1.46.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -83,10 +83,12 @@ library
     , flat                   ^>=0.6
     , ghc
     , lens
+    , megaparsec
     , mtl
-    , plutus-core            ^>=1.45
+    , plutus-core            ^>=1.46
     , plutus-core:plutus-ir
-    , plutus-tx              ^>=1.45
+    , plutus-metatheory
+    , plutus-tx              ^>=1.46
     , prettyprinter
     , template-haskell
     , text
@@ -102,7 +104,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.45
+    , plutus-tx-plugin      ^>=1.46
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -132,6 +134,7 @@ test-suite plutus-tx-plugin-tests
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
     BuiltinList.Budget.Spec
+    ByteStringLiterals.Lib
     ByteStringLiterals.Spec
     DataList.Budget.Spec
     Inline.Spec
@@ -140,7 +143,6 @@ test-suite plutus-tx-plugin-tests
     IntegerLiterals.Strict.NegativeLiterals.Spec
     IntegerLiterals.Strict.NoNegativeLiterals.Spec
     IsData.Spec
-    Lib
     Lift.Spec
     List.Properties1
     List.Properties2
@@ -189,10 +191,10 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.45
-    , plutus-tx-plugin                 ^>=1.45
+    , plutus-tx                        ^>=1.46
+    , plutus-tx-plugin                 ^>=1.46
     , plutus-tx-test-util
     , plutus-tx:plutus-tx-testlib
     , serialise
@@ -223,10 +225,10 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                             >=4.9   && <5.0
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.45
-    , plutus-tx-plugin                 ^>=1.45
+    , plutus-tx                        ^>=1.46
+    , plutus-tx-plugin                 ^>=1.46
     , plutus-tx:plutus-tx-testlib
     , tagged
     , tasty

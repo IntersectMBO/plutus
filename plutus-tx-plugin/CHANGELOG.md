@@ -1,4 +1,16 @@
 
+<a id='changelog-1.46.0.0'></a>
+# 1.46.0.0 — 2025-05-09
+
+## Removed
+
+- GHC 8.10 is no longer supported.  The supported GHC versions are 9.6 (primary), 9.8, and 9.10; `plutus-tx-plugin` is only supported on GHC 9.6.
+
+## Fixed
+
+- In some cases HEX-encoded string literals were not handled correctly,
+  causing the "Use of fromString @ PlutusTx.Builtins.HasOpaque.BuiltinByteStringHex with inscrutable content" error.
+
 <a id='changelog-1.44.0.0'></a>
 # 1.44.0.0 — 2025-04-03
 

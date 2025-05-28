@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{- | This module contains data type declarations to use in blueprints **only**
+{-| This module contains data type declarations to use in blueprints **only**
 
 The problem with using the 'AsData' types in blueprints is that such types are opaque and
 do not reveal their schema when deriving a 'HasBlueprintSchema' instance for a blueprint.

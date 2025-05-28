@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Hedgehog.Laws.Common where
 
 import Hedgehog (Property, cover, forAll, property)

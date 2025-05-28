@@ -2,4 +2,4 @@ An error has occurred:
 The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
 Caused by: expModInteger 2 -3 4
 Logs were:
-expMod: failure
+expMod: 2 is not invertible modulo 4

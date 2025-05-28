@@ -1,138 +1,168 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
+-- this module does lots of weird stuff deliberately
+{- HLINT ignore -}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
+{-| The PlutusTx Prelude is a replacement for the Haskell Prelude that works
+better with Plutus Tx. You should use it if you're writing code that
+will be compiled with the Plutus Tx compiler.
+
+@
+    :set -XNoImplicitPrelude
+    import PlutusTx.Prelude
+@
+-}
 module PlutusTx.Prelude (
-    -- * Classes
-    module Eq,
-    module Enum,
-    module Ord,
-    module Semigroup,
-    module Monoid,
-    module Numeric,
-    module Function,
-    module Functor,
-    module Applicative,
-    module Lattice,
-    -- * Monad
-    (Haskell.>>=),
-    (Haskell.=<<),
-    (Haskell.>>),
-    Haskell.return,
-    -- * Standard functions, Tuples
-    module Base,
-    -- * Tracing functions
-    module Trace,
-    -- * Unit
-    BI.BuiltinUnit,
-    -- * String
-    BuiltinString,
-    appendString,
-    emptyString,
-    equalsString,
-    encodeUtf8,
-    -- * Error
-    error,
-    check,
-    -- * Booleans
-    module Bool,
-    -- * Integer numbers
-    Integer,
-    divide,
-    modulo,
-    quotient,
-    remainder,
-    even,
-    odd,
-    expMod,
-    -- * Maybe
-    module Maybe,
-    -- * Either
-    module Either,
-    -- * ByteStrings
-    BuiltinByteString,
-    appendByteString,
-    consByteString,
-    takeByteString,
-    dropByteString,
-    sliceByteString,
-    lengthOfByteString,
-    indexByteString,
-    emptyByteString,
-    decodeUtf8,
-    BuiltinByteStringUtf8 (..),
-    Builtins.andByteString,
-    Builtins.orByteString,
-    Builtins.xorByteString,
-    Builtins.complementByteString,
-    -- ** Bit operations
-    Builtins.readBit,
-    Builtins.writeBits,
-    Builtins.replicateByte,
-    Builtins.shiftByteString,
-    Builtins.rotateByteString,
-    Builtins.countSetBits,
-    Builtins.findFirstSetBit,
-    -- * Hashes and Signatures
-    sha2_256,
-    sha3_256,
-    blake2b_224,
-    blake2b_256,
-    keccak_256,
-    ripemd_160,
-    verifyEd25519Signature,
-    verifyEcdsaSecp256k1Signature,
-    verifySchnorrSecp256k1Signature,
-    -- * Rational numbers
-    Rational,
-    unsafeRatio,
-    ratio,
-    fromInteger,
-    round,
-    -- * Other builtin Types
-    BI.BuiltinBool,
-    BuiltinData,
-    BI.BuiltinList,
-    BI.BuiltinPair,
-    -- * To/from Data
-    ToData (..),
-    FromData (..),
-    UnsafeFromData (..),
-    -- * BLS12_381
-    BuiltinBLS12_381_G1_Element,
-    bls12_381_G1_equals,
-    bls12_381_G1_add,
-    bls12_381_G1_neg,
-    bls12_381_G1_scalarMul,
-    bls12_381_G1_compress,
-    bls12_381_G1_uncompress,
-    bls12_381_G1_hashToGroup,
-    bls12_381_G1_compressed_zero,
-    bls12_381_G1_compressed_generator,
-    BuiltinBLS12_381_G2_Element,
-    bls12_381_G2_equals,
-    bls12_381_G2_add,
-    bls12_381_G2_neg,
-    bls12_381_G2_scalarMul,
-    bls12_381_G2_compress,
-    bls12_381_G2_uncompress,
-    bls12_381_G2_hashToGroup,
-    bls12_381_G2_compressed_zero,
-    bls12_381_G2_compressed_generator,
-    BuiltinBLS12_381_MlResult,
-    bls12_381_millerLoop,
-    bls12_381_mulMlResult,
-    bls12_381_finalVerify,
-    -- * Conversions
-    fromBuiltin,
-    toBuiltin,
-    fromOpaque,
-    toOpaque,
-    integerToByteString,
-    byteStringToInteger
-    ) where
+  -- * Classes
+  module Eq,
+  module Enum,
+  module Ord,
+  module Semigroup,
+  module Monoid,
+  module Numeric,
+  module Function,
+  module Functor,
+  module Applicative,
+  module Lattice,
+
+  -- * Monad
+  (Haskell.>>=),
+  (Haskell.=<<),
+  (Haskell.>>),
+  Haskell.return,
+
+  -- * Standard functions, Tuples
+  module Base,
+
+  -- * Tracing functions
+  module Trace,
+
+  -- * Unit
+  BI.BuiltinUnit,
+
+  -- * String
+  BuiltinString,
+  appendString,
+  emptyString,
+  equalsString,
+  encodeUtf8,
+
+  -- * Error
+  error,
+  check,
+
+  -- * Booleans
+  module Bool,
+
+  -- * Integer numbers
+  Integer,
+  divide,
+  modulo,
+  quotient,
+  remainder,
+  even,
+  odd,
+  expMod,
+
+  -- * Maybe
+  module Maybe,
+
+  -- * Either
+  module Either,
+
+  -- * ByteStrings
+  BuiltinByteString,
+  appendByteString,
+  consByteString,
+  takeByteString,
+  dropByteString,
+  sliceByteString,
+  lengthOfByteString,
+  indexByteString,
+  emptyByteString,
+  decodeUtf8,
+  BuiltinByteStringUtf8 (..),
+  Builtins.andByteString,
+  Builtins.orByteString,
+  Builtins.xorByteString,
+  Builtins.complementByteString,
+
+  -- ** Bit operations
+  Builtins.readBit,
+  Builtins.writeBits,
+  Builtins.replicateByte,
+  Builtins.shiftByteString,
+  Builtins.rotateByteString,
+  Builtins.countSetBits,
+  Builtins.findFirstSetBit,
+
+  -- * Hashes and Signatures
+  sha2_256,
+  sha3_256,
+  blake2b_224,
+  blake2b_256,
+  keccak_256,
+  ripemd_160,
+  verifyEd25519Signature,
+  verifyEcdsaSecp256k1Signature,
+  verifySchnorrSecp256k1Signature,
+
+  -- * Rational numbers
+  Rational,
+  unsafeRatio,
+  ratio,
+  fromInteger,
+  round,
+
+  -- * Other builtin Types
+  BI.BuiltinBool,
+  BuiltinData,
+  BI.BuiltinList,
+  BI.BuiltinPair,
+
+  -- * To/from Data
+  ToData (..),
+  FromData (..),
+  UnsafeFromData (..),
+
+  -- * BLS12_381
+  BuiltinBLS12_381_G1_Element,
+  bls12_381_G1_equals,
+  bls12_381_G1_add,
+  bls12_381_G1_neg,
+  bls12_381_G1_scalarMul,
+  bls12_381_G1_compress,
+  bls12_381_G1_uncompress,
+  bls12_381_G1_hashToGroup,
+  bls12_381_G1_compressed_zero,
+  bls12_381_G1_compressed_generator,
+  BuiltinBLS12_381_G2_Element,
+  bls12_381_G2_equals,
+  bls12_381_G2_add,
+  bls12_381_G2_neg,
+  bls12_381_G2_scalarMul,
+  bls12_381_G2_compress,
+  bls12_381_G2_uncompress,
+  bls12_381_G2_hashToGroup,
+  bls12_381_G2_compressed_zero,
+  bls12_381_G2_compressed_generator,
+  BuiltinBLS12_381_MlResult,
+  bls12_381_millerLoop,
+  bls12_381_mulMlResult,
+  bls12_381_finalVerify,
+
+  -- * Conversions
+  fromBuiltin,
+  toBuiltin,
+  fromOpaque,
+  toOpaque,
+  integerToByteString,
+  byteStringToInteger,
+) where
 
 import Data.String (IsString (..))
 import PlutusCore.Data (Data (..))
@@ -181,83 +211,69 @@ import PlutusTx.Traversable as Traversable
 
 import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 
--- this module does lots of weird stuff deliberately
-{- HLINT ignore -}
-
--- $prelude
--- The PlutusTx Prelude is a replacement for the Haskell Prelude that works
--- better with Plutus Tx. You should use it if you're writing code that
--- will be compiled with the Plutus Tx compiler.
--- @
---     {-# LANGUAGE NoImplicitPrelude #-}
---     import PlutusTx.Prelude
--- @
-
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> BI.BuiltinUnit
 check b = if b then BI.unitval else traceError checkHasFailedError
-{-# INLINABLE check #-}
+{-# INLINEABLE check #-}
 
--- | Integer division, rounding downwards
---
---   >>> divide (-41) 5
---   -9
---
+{-| Integer division, rounding downwards
+
+  >>> divide (-41) 5
+  -9
+-}
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
-{-# INLINABLE divide #-}
+{-# INLINEABLE divide #-}
 
--- | Integer remainder, always positive for a positive divisor
---
---   >>> modulo (-41) 5
---   4
---
+{-| Integer remainder, always positive for a positive divisor
+
+  >>> modulo (-41) 5
+  4
+-}
 modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
-{-# INLINABLE modulo #-}
-
+{-# INLINEABLE modulo #-}
 
 -- | FIXME
 expMod :: Integer -> Integer -> Integer -> Integer
 expMod = Builtins.expModInteger
-{-# INLINABLE expMod #-}
+{-# INLINEABLE expMod #-}
 
--- | Integer division, rouding towards zero
---
---   >>> quotient (-41) 5
---   -8
---
-{-# INLINABLE quotient #-}
+{-| Integer division, rouding towards zero
 
+  >>> quotient (-41) 5
+  -8
+-}
+{-# INLINEABLE quotient #-}
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
 
--- | Integer remainder, same sign as dividend
---
---   >>> remainder (-41) 5
---   -1
---
+{-| Integer remainder, same sign as dividend
+
+  >>> remainder (-41) 5
+  -1
+-}
 remainder :: Integer -> Integer -> Integer
 remainder = Builtins.remainderInteger
-{-# INLINABLE remainder #-}
+{-# INLINEABLE remainder #-}
 
 even :: Integer -> Bool
 even n = if modulo n 2 == 0 then True else False
-{-# INLINABLE even #-}
+{-# INLINEABLE even #-}
 
 odd :: Integer -> Bool
 odd n = if even n then False else True
-{-# INLINABLE odd #-}
+{-# INLINEABLE odd #-}
 
 -- | Returns the n length prefix of a 'ByteString'.
 takeByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 takeByteString n bs = Builtins.sliceByteString 0 n bs
-{-# INLINABLE takeByteString #-}
+{-# INLINEABLE takeByteString #-}
 
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 dropByteString n bs = Builtins.sliceByteString n (Builtins.lengthOfByteString bs - n) bs
-{-# INLINABLE dropByteString #-}
+{-# INLINEABLE dropByteString #-}
 
 {- Note [-fno-full-laziness in Plutus Tx]
 GHC's full-laziness optimization moves computations inside a lambda that don't depend on

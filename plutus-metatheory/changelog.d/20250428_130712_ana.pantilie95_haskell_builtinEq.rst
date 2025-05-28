@@ -1,0 +1,5 @@
+Fixed
+-----
+
+- Fixed the runtime representation of `VerifiedCompilation.Equality.builtinEq`.
+- `DATA` equality now depends on `builtinEq` as well.
