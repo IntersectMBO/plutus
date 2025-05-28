@@ -112,6 +112,7 @@ filterQuantities mapQuantity = Value . Map.mapMaybe filterCurrencies
     filterCurrencies :: Map TokenName Integer -> Maybe (Map TokenName Integer)
     filterCurrencies map = do
       let map' = Map.mapMaybe mapQuantity map
+      -- Removes the CurrencySymbol if it has no tokens left
       if Map.null map' then Nothing else Just map'
     {-# INLINEABLE filterCurrencies #-}
 
