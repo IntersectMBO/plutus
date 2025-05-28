@@ -4,10 +4,9 @@ sidebar_position: 12
 
 # Evaluating CompiledCode
 
-The `CompiledCode` is intended to be evaluated by Cardano nodes when 
-transaction validation occurs. For this purpose, it is serialized and included in a transaction.
+`CompiledCode` is intended to be evaluated by Cardano nodes during transaction validation. For this purpose, it is serialized and included in a transaction.
 
-However, it is also possible to evaluate `CompiledCode` without having to run a node. Plutus evaluator called CEK Machine can be used independently of the Cardano node for the purpose of testing and troubleshooting. By evaluating Plinth programs locally developers can not only get the immediate result of the code but also obtain the traces emitted during the evaluation, as well as the consumed execution budget.
+However, it is also possible to evaluate `CompiledCode` without running a node. The Plutus evaluator, called the CEK Machine, can be used independently of the Cardano node for testing and troubleshooting. By evaluating Plinth programs locally, developers can not only obtain the immediate result of the code but also access the traces emitted during evaluation and the consumed execution budget.
 
 Let's consider the following example Plinth program:
 <LiteralInclude 
@@ -17,10 +16,9 @@ Let's consider the following example Plinth program:
   start="-- BEGIN Plinth" 
   end="-- END Plinth" />
 
-This code represents a function that expects an `Integer` argument
-and returns the `Integer` value. 
+This code defines a function that expects an `Integer` argument and returns an `Integer` value.
 
-To compile it, we can use the `compile` function as described earlier in the "[Compiling Plinth code](./compiling-plinth.md)" section:
+To compile it, use the `compile` function as described earlier in the [Compiling Plinth code](./compiling-plinth.md) section:
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -29,12 +27,12 @@ To compile it, we can use the `compile` function as described earlier in the "[C
   start="-- BEGIN CompiledCode" 
   end="-- END CompiledCode" />
 
-In order to evaluate `compiledCode`, we need to add the `plutus-tx` and `plutus-ledger-api` dependencies to our cabal file:
+To evaluate `compiledCode`, add the `plutus-tx` and `plutus-ledger-api` dependencies to your cabal file:
 ```cabal
 build-depends: plutus-tx, plutus-ledger-api
 ```
 
-So that we can import the necessary functionality:
+This allows you to import the necessary functionality:
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -43,7 +41,7 @@ So that we can import the necessary functionality:
   start="-- BEGIN Imports" 
   end="-- END Imports" />
 
-It is possible to evaluate this compiled code without applying it to any arguments, and evaluation will succeed, returning the value of type `Integer -> Integer`:
+You can evaluate this compiled code without applying it to any arguments. The evaluation will succeed, returning a value of type `Integer -> Integer`:
 
 ```haskell
 result :: EvalResult
@@ -64,22 +62,21 @@ data EvalResult = EvalResult
   deriving stock (Show)
 ```
 
-The `evalResult` field contains the result of the evaluation, which can either be a successful evaluation or an error.
+The `evalResult` field contains the result of the evaluation, which can be either a successful result or an error.
 
-The `evalResultBudget` field contains the execution budget used during the evaluation,
-which includes the CPU and memory usage.
+The `evalResultBudget` field contains the execution budget used during evaluation, including CPU and memory usage.
 
-The `evalResultTraces` field contains the traces emitted during the evaluation.
+The `evalResultTraces` field contains any traces emitted during evaluation.
 
 The `evaluateCompiledCode` function is the main workhorse of the evaluation process. Under the hood, it uses the Plutus Core evaluator (CEK machine) configured with the latest cost model stored statically in the Plutus repository.
 
 :::caution Caveat
-The execution budget reported by `evaluateCompiledCode` is not guaranteed to exactly match the execution budget spent by Cardano mainnet nodes. This discrepancy arises because the cost model utilized by `evaluateCompiledCode` is not necessarily the same cost model active on the Cardano chain at a specific moment. The definitive values for on-chain cost calculations are protocol parameters, which form part of the chain's state. In practice, these parameters are typically derived from the cost model stored in the Plutus repository at some earlier point, though this is not guaranteed. During on-chain evaluation, the ledger provides a cost model to the Plutus Core evaluator.
+The execution budget reported by `evaluateCompiledCode` is not guaranteed to exactly match the execution budget spent by Cardano mainnet nodes. This discrepancy arises because the cost model used by `evaluateCompiledCode` may differ from the cost model active on the Cardano chain at a specific moment. The definitive values for on-chain cost calculations are protocol parameters, which are part of the chain's state. In practice, these parameters are typically derived from the cost model stored in the Plutus repository at some earlier point, though this is not guaranteed. During on-chain evaluation, the ledger provides a cost model to the Plutus Core evaluator.
 :::
 
-The companion function `evaluateCompiledCode'` is a more general version of `evaluateCompiledCode`, which allows you to specify the cost model (via the `MachineParameters` type). This function is useful for testing purposes, but in most cases, you can use `evaluateCompiledCode` without needing to worry about these details.
+The companion function `evaluateCompiledCode'` is a more general version of `evaluateCompiledCode`, allowing you to specify the cost model via the `MachineParameters` type. This function is useful for testing, but in most cases, you can use `evaluateCompiledCode` without worrying about these details.
 
-To use it you'll need to supply the `MachineParameters` value like this: 
+To use it, supply a `MachineParameters` value like this:
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -88,7 +85,7 @@ To use it you'll need to supply the `MachineParameters` value like this:
   start="-- BEGIN MachineParameters" 
   end="-- END MachineParameters" />
 
-One can always use `EvalResult`'s `Show` instance to print the result of the evaluation,
+You can use the `Show` instance of `EvalResult` to print the result of the evaluation:
 <details>
 <summary>Show raw <code>EvalResult</code> output</summary>
 
@@ -141,7 +138,7 @@ EvalResult
 ```
 </details>
 
-But there is a dedicated function `displayEvalResult` that can be used to print it in a more concise and  human-readable format:
+However, there is a dedicated function, `displayEvalResult`, that prints the result in a more concise and human-readable format:
 
 ```
 Evaluation was SUCCESSFUL, result is:
@@ -157,12 +154,10 @@ Execution budget spent:
 No traces were emitted
 ```
 
-This output reveals that the evaluation was successful, and the resultng UPLC 
-value is an (un-applied) lambda abstraction. 
+This output shows that the evaluation was successful, and the resulting UPLC value is an (unapplied) lambda abstraction.
 
-To apply the compiled lambda abstraction to an argument we need to have a compiled argument, 
-and there are several ways of obtaining it from a Haskell value known at compile time:
-1. "lift" it into `CompiledCode`. See the [Lifting Values into CompiledCode](./lifting.md) section for more details.
+To apply the compiled lambda abstraction to an argument, you need a compiled argument. There are several ways to obtain it from a Haskell value known at compile time:
+1. "Lift" it into `CompiledCode`. See the [Lifting Values into CompiledCode](./lifting.md) section for more details.
     <LiteralInclude 
       file="Example/Evaluation/Main.hs" 
       language="haskell" 
@@ -170,7 +165,7 @@ and there are several ways of obtaining it from a Haskell value known at compile
       start="-- BEGIN LiftedArgument" 
       end="-- END LiftedArgument" />
 
-2. `$(compile [|| ... ||])` it the same way we compiled the function itself.
+2. Use `$(compile [|| ... ||])` in the same way as when compiling the function itself.
     <LiteralInclude 
       file="Example/Evaluation/Main.hs" 
       language="haskell" 
@@ -178,8 +173,7 @@ and there are several ways of obtaining it from a Haskell value known at compile
       start="-- BEGIN CompiledArgument" 
       end="-- END CompiledArgument" />
 
-Once we have an argument of type `CompiledCode a`, we can apply it to the compiled function
-using either the [`applyCode`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html#v:applyCode) function 
+Once you have an argument of type `CompiledCode a`, you can apply it to the compiled function using either the [`applyCode`](https://plutus.cardano.intersectmbo.org/haddock/latest/plutus-tx/PlutusTx-Code.html#v:applyCode) function
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -197,7 +191,7 @@ or the [`unsafeApplyCode`](https://plutus.cardano.intersectmbo.org/haddock/lates
   start="-- BEGIN UnsafeApplicationResult" 
   end="-- END UnsafeApplicationResult" />
 
-Lets print the result of the evaluation:
+Let's print the result of the evaluation:
 
 <LiteralInclude 
   file="Example/Evaluation/Main.hs" 
@@ -218,10 +212,9 @@ Execution budget spent:
   MEM 1,966
 ```
 
-Nice! Now we can see that calculating `2 + 2 = 4` using the CEK Machine (UPLC interpreter)
-requires 508,304 CPU and 1,966 MEM units.
+Nice! Now we can see that calculating `2 + 2 = 4` using the CEK Machine (UPLC interpreter) requires 508,304 CPU and 1,966 MEM units.
 
-For the sake of completeness, here is an example of an evaluation that fails:
+For completeness, here is an example of a failed evaluation:
 
 ```
 Evaluation FAILED:
@@ -238,10 +231,8 @@ Evaluation traces:
   2. Evaluating constant
 ```
 
-Both example outputs include execution traces emited during the evaluation.
-These can come in handy when debugging your Plinth code.
+Both example outputs include execution traces emitted during evaluation. These can be helpful when debugging your Plinth code.
 
-Caveat: traces add up to the script size, so make sure to remove them 
-when you are done debugging. 
+Caveat: traces add to the script size, so make sure to remove them when you are done debugging.
 
-The complete example code can be found in the `doc/docusaurus/static/code/Example/Evaluation/Main.hs` in the Plutus repository.
+The complete example code can be found in `doc/docusaurus/static/code/Example/Evaluation/Main.hs` in the Plutus repository.
