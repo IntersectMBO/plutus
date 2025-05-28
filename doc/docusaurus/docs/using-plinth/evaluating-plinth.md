@@ -235,4 +235,4 @@ Both example outputs include execution traces emitted during evaluation. These c
 
 Caveat: traces add to the script size, so make sure to remove them when you are done debugging.
 
-The complete example code can be found in `doc/docusaurus/static/code/Example/Evaluation/Main.hs` in the Plutus repository.
+You can find the complete example code in [`Example/Evaluation/Main.hs`](../../static/code/Example/Evaluation/Main.hs) in the Plutus repository.
