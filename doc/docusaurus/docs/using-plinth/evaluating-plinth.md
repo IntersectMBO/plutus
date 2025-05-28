@@ -29,11 +29,9 @@ To compile it, we can use the `compile` function as described earlier in the "[C
   start="-- BEGIN CompiledCode" 
   end="-- END CompiledCode" />
 
-In order to evaluate `compiledCode`, we need to add the `plutus-tx:plutus-tx-testlib` 
-dependency to our cabal file:
+In order to evaluate `compiledCode`, we need to add the `plutus-tx` and `plutus-ledger-api` dependencies to our cabal file:
 ```cabal
-  build-depends:
-    , plutus-tx:plutus-tx-testlib
+build-depends: plutus-tx, plutus-ledger-api
 ```
 
 So that we can import the necessary functionality:
