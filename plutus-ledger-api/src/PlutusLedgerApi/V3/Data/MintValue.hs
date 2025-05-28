@@ -96,16 +96,16 @@ mintValueToMap (UnsafeMintValue m) = m
 
 -- | Get the 'Value' minted by the 'MintValue'.
 mintValueMinted :: MintValue -> Value
-mintValueMinted =
-  mapMaybeQuantities (\x -> if x > 0 then Just x else Nothing) values
+mintValueMinted (UnsafeMintValue m) =
+  mapMaybeQuantities (\x -> if x > 0 then Just x else Nothing) m
 {-# INLINEABLE mintValueMinted #-}
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
 mintValueBurned :: MintValue -> Value
-mintValueBurned =
-  mapMaybeQuantities (\x -> if x < 0 then Just (abs x) else Nothing) values
+mintValueBurned (UnsafeMintValue m) =
+  mapMaybeQuantities (\x -> if x < 0 then Just (abs x) else Nothing) m
 {-# INLINEABLE mintValueBurned #-}
 
 mapMaybeQuantities
