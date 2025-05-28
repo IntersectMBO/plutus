@@ -96,31 +96,30 @@ mintValueToMap (UnsafeMintValue m) = m
 
 -- | Get the 'Value' minted by the 'MintValue'.
 mintValueMinted :: MintValue -> Value
-mintValueMinted = Value . filterQuantities (> 0) . mintValueToMap
+mintValueMinted =
+  mapMaybeQuantities (\x -> if x > 0 then Just x else Nothing) values
 {-# INLINEABLE mintValueMinted #-}
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
 mintValueBurned :: MintValue -> Value
-mintValueBurned = Value . mapQuantities abs . filterQuantities (< 0) . mintValueToMap
+mintValueBurned =
+  mapMaybeQuantities (\x -> if x < 0 then Just (abs x) else Nothing) values
 {-# INLINEABLE mintValueBurned #-}
 
-mapQuantities :: (Integer -> Integer)
-  -> Map CurrencySymbol (Map TokenName Integer)
-  -> Map CurrencySymbol (Map TokenName Integer)
-mapQuantities = Map.map . Map.map
-{-# INLINEABLE mapQuantities #-}
-
-filterQuantities
+mapMaybeQuantities
   :: (Integer -> Bool)
   -> Map CurrencySymbol (Map TokenName Integer)
   -> Map CurrencySymbol (Map TokenName Integer)
-filterQuantities p = removeEmptyCurrencies . Map.map (Map.filter p)
+mapMaybeQuantities mapMaybeQuantity = Value . Map.mapMaybe mapMaybeCurrencies
   where
-    {-# INLINEABLE removeEmptyCurrencies #-}
-    removeEmptyCurrencies = Map.filter (not . Map.null)
-{-# INLINEABLE filterQuantities #-}
+    {-# INLINEABLE mapMaybeCurrencies #-}
+    mapMaybeCurrencies :: Map TokenName Integer -> Maybe (Map TokenName Integer)
+    mapMaybeCurrencies map = do
+      let map' = Map.mapMaybe mapMaybeQuantity map
+      if Map.null map' then Nothing else Just map'
+{-# INLINEABLE mapMaybeQuantities #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
