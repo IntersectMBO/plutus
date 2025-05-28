@@ -297,8 +297,11 @@ _unzip
   -> BuiltinPair (BuiltinList a) (BuiltinList b)
 _unzip = caseList' emptyPair
   ( \p l -> do
-      let BI.BuiltinPair (x, y) = p
-      let BI.BuiltinPair (xs', ys') = _unzip l
+      let x = BI.fst p
+      let y = BI.snd p
+      let l' = _unzip l
+      let xs' = BI.fst l'
+      let ys' = BI.snd l'
       BI.BuiltinPair (x <| xs', y <| ys')
   )
   where
@@ -405,7 +408,7 @@ zipWith f = go
 {-# INLINABLE zipWith #-}
 
 -- | Plutus Tx version of 'Data.List.dropWhile' for 'BuiltinList'.
-dropWhile :: forall a. (MkNil a) => (a -> Bool) -> BuiltinList a -> BuiltinList a
+dropWhile :: forall a. (a -> Bool) -> BuiltinList a -> BuiltinList a
 dropWhile p = go
   where
     go :: BuiltinList a -> BuiltinList a

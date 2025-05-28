@@ -8,7 +8,6 @@ module PlutusTx.List (
     null,
     length,
     map,
-    mapMaybe,
     and,
     or,
     any,
@@ -55,7 +54,7 @@ import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
 import PlutusTx.Trace (traceError)
-import Prelude (Maybe (..), maybe, (.))
+import Prelude (Maybe (..), (.))
 
 {- HLINT ignore -}
 
@@ -94,20 +93,6 @@ map f = go
     [] -> []
     x : xs -> f x : go xs
 {-# INLINEABLE map #-}
-
--- | Plutus Tx version of 'Data.List.mapMaybe'.
---
---   >>> mapMaybe (\i -> if odd i then Just i else Nothing) [1, 2, 3, 4]
---   [1,3]
---
-mapMaybe :: forall a b. (a -> Maybe b) -> [a] -> [b]
-mapMaybe f = go
-  where
-    go :: [a] -> [b]
-    go = \case
-      [] -> []
-      x : xs -> maybe (go xs) (\y -> y : go xs) (f x)
-{-# INLINABLE mapMaybe #-}
 
 -- | Returns the conjunction of a list of Bools.
 and :: [Bool] -> Bool
