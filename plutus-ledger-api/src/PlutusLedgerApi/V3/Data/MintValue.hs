@@ -96,27 +96,32 @@ mintValueToMap (UnsafeMintValue m) = m
 
 -- | Get the 'Value' minted by the 'MintValue'.
 mintValueMinted :: MintValue -> Value
-mintValueMinted (UnsafeMintValue values) = filterQuantities (\x -> if x > 0 then Just x else Nothing) values
+mintValueMinted = Value . filterQuantities (> 0) . mintValueToMap
 {-# INLINEABLE mintValueMinted #-}
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
 mintValueBurned :: MintValue -> Value
-mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> if x < 0 then Just (abs x) else Nothing) values
+mintValueBurned = Value . mapQuantities abs . filterQuantities (< 0) . mintValueToMap
 {-# INLINEABLE mintValueBurned #-}
 
-filterQuantities :: (Integer -> Maybe Integer) -> Map CurrencySymbol (Map TokenName Integer) -> Value
-filterQuantities mapQuantity = Value . Map.mapMaybe filterCurrencies
+mapQuantities :: (Integer -> Integer)
+  -> Map CurrencySymbol (Map TokenName Integer)
+  -> Map CurrencySymbol (Map TokenName Integer)
+mapQuantities = Map.map . Map.map
+{-# INLINEABLE mapQuantities #-}
+
+filterQuantities
+  :: (Integer -> Bool)
+  -> Map CurrencySymbol (Map TokenName Integer)
+  -> Map CurrencySymbol (Map TokenName Integer)
+filterQuantities p = removeEmptyCurrencies . Map.map (Map.filter p)
   where
-    filterCurrencies :: Map TokenName Integer -> Maybe (Map TokenName Integer)
-    filterCurrencies map = do
-      let map' = Map.mapMaybe mapQuantity map
-      -- Removes the CurrencySymbol if it has no tokens left
-      if Map.null map' then Nothing else Just map'
-    {-# INLINEABLE filterCurrencies #-}
+    {-# INLINEABLE removeEmptyCurrencies #-}
+    removeEmptyCurrencies = Map.filter (not . Map.null)
+{-# INLINEABLE filterQuantities #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
-
 $(makeLift ''MintValue)
