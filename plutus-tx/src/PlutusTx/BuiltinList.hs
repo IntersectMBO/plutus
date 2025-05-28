@@ -409,7 +409,7 @@ dropWhile :: forall a. (MkNil a) => (a -> Bool) -> BuiltinList a -> BuiltinList 
 dropWhile p = go
   where
     go :: BuiltinList a -> BuiltinList a
-    go xs = caseList' empty ( \x xs' -> if p x then go xs' else xs ) xs
+    go xs = caseList' xs ( \x xs' -> if p x then go xs' else xs ) xs
 {-# INLINABLE dropWhile #-}
 
 -- | Plutus Tx version of 'Data.List.replicate' for 'BuiltinList'.
