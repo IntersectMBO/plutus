@@ -915,7 +915,7 @@ replicateByte
 replicateByte = BI.replicateByte
 {-# INLINEABLE replicateByte #-}
 
-{-| FIXME
+{-| FIXME(https://github.com/IntersectMBO/plutus-private/issues/1609):
 
 = See also
 
