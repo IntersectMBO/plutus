@@ -38,7 +38,8 @@ errors =
   testNested "Errors" . pure $
     testNestedGhc
       [ goldenUPlc "machInt" machInt
-      , -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+      , -- FIXME(https://github.com/IntersectMBO/plutus-private/issues/1608):
+        -- This fails differently in nix, possibly due to slightly different optimization settings
         -- , goldenPlc "negativeInt" negativeInt
         goldenUPlc "caseInt" caseInt
       , goldenUPlc "stringLiteral" stringLiteral
