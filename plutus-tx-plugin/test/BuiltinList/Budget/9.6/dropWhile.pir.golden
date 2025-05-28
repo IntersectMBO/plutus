@@ -17,7 +17,7 @@ letrec
               (/\dead -> z)
               (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
               {r})
-          []
+          xs
           (\(x : integer) (xs' : list integer) ->
              Bool_match
                (ifThenElse {Bool} (lessThanInteger x 5) True False)

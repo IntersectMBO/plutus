@@ -5,9 +5,9 @@ let
   data Unit | Unit_match where
     Unit : Unit
 in
-\(v : list integer) ->
+\(xs : list integer) ->
   let
-    !l : list integer = dropList {integer} 5 v
+    !l : list integer = dropList {integer} 5 xs
   in
   (let
       r = Unit -> Unit -> integer
@@ -25,7 +25,7 @@ in
          !x : Unit = trace {Unit} "PT22" Unit
        in
        error {Unit -> integer})
-    (\(x : integer) (xs : list integer) (ds : Unit) (eta : Unit) -> x)
+    (\(x : integer) (xs : list integer) (ds : Unit) (_ann : Unit) -> x)
     l
     Unit
     Unit

@@ -1,0 +1,18 @@
+(program
+   1.1.0
+   ((\go xs -> go xs xs)
+      ((\s -> s s)
+         (\s xs ys ->
+            (\cse ->
+               cse
+                 (\x xs' ->
+                    cse
+                      (\y ys' -> force mkCons (addInteger x y) (s s xs' ys'))
+                      ys)
+                 xs)
+              (\f xs ->
+                 force
+                   (force (force chooseList)
+                      xs
+                      (delay [])
+                      (delay (f (force headList xs) (force tailList xs)))))))))

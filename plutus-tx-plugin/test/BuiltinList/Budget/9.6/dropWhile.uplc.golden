@@ -6,7 +6,7 @@
             force
               (force (force chooseList)
                  xs
-                 (delay [])
+                 (delay xs)
                  (delay
                     ((\xs' ->
                         force
