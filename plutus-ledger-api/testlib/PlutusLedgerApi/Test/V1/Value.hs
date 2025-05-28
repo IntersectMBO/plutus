@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -9,11 +8,10 @@ import PlutusLedgerApi.V1
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.List qualified as ListTx
 
-import PlutusCore.Generators.QuickCheck.Utils (multiSplit0, uniqueVectorOf)
+import PlutusCore.Generators.QuickCheck.Utils (uniqueVectorOf)
 
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BS8
-import Data.Coerce
 import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
@@ -68,28 +66,3 @@ instance Arbitrary FaceValue where
         [ (2, pure $ FaceValue 0)
         , (1, FaceValue . fromIntegral <$> arbitrary @Int)
         ]
-
--- | A wrapper for satisfying an @Arbitrary a@ constraint without implementing an 'Arbitrary'
--- instance for @a@.
-newtype NoArbitrary a = NoArbitrary
-    { unNoArbitrary :: a
-    }
-
--- | 'arbitrary' throws, 'shrink' neither throws nor shrinks.
-instance Arbitrary (NoArbitrary a) where
-    arbitrary = error "No such 'Arbitrary' instance"
-    shrink _ = []
-
-instance Arbitrary Value where
-    arbitrary = do
-        -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
-        -- list of lists.
-        faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
-        -- Generate 'TokenName's and 'CurrencySymbol's.
-        currencies <- uniqueNames CurrencySymbol =<< traverse (uniqueNames TokenName) faceValues
-        pure $ listsToValue currencies
-
-    shrink
-        = map listsToValue
-        . coerce (shrink @[(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])])
-        . valueToLists

@@ -18,13 +18,11 @@ module Spec.Value.WithCurrencySymbol where
 
 import PlutusTx.Prelude
 
-import Data.ByteString (ByteString)
-import PlutusCore.Generators.QuickCheck.Builtin (ArbitraryBuiltin (arbitraryBuiltin), shrinkBuiltin)
+import PlutusLedgerApi.Test.QuickCheck ()
 import PlutusLedgerApi.Test.V1.Value ()
 import PlutusLedgerApi.Test.V3.MintValue ()
-import PlutusLedgerApi.V1.Value (CurrencySymbol (..), TokenName (..), Value (..), currencySymbol,
-                                 singleton, symbols, tokenName, unCurrencySymbol,
-                                 withCurrencySymbol)
+import PlutusLedgerApi.V1.Value (CurrencySymbol (..), TokenName (..), Value (..), singleton,
+                                 symbols, withCurrencySymbol)
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
@@ -109,19 +107,3 @@ scaleTestsBy factor =
 cekProp :: CompiledCode Bool -> Property
 cekProp code =
   cekResultMatchesHaskellValue (compiledCodeToTerm code) (===) True
-
-instance Arbitrary CurrencySymbol where
-  arbitrary = Haskell.fmap currencySymbol (arbitraryBuiltin @ByteString)
-  shrink =
-    Haskell.fmap currencySymbol
-      . shrinkBuiltin
-      . fromBuiltin
-      . unCurrencySymbol
-
-instance Arbitrary TokenName where
-  arbitrary = Haskell.fmap tokenName (arbitraryBuiltin @ByteString)
-  shrink =
-    Haskell.fmap tokenName
-      . shrinkBuiltin
-      . fromBuiltin
-      . unTokenName
