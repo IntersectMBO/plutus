@@ -62,6 +62,7 @@ library
     PlutusLedgerApi.Data.V1
     PlutusLedgerApi.Data.V2
     PlutusLedgerApi.Data.V3
+    PlutusLedgerApi.MachineParameters
     PlutusLedgerApi.V1
     PlutusLedgerApi.V1.Address
     PlutusLedgerApi.V1.Bytes
@@ -244,7 +245,6 @@ test-suite plutus-ledger-api-plugin-test
     , plutus-ledger-api:plutus-ledger-api-testlib
     , plutus-tx                                    ^>=1.46
     , plutus-tx-plugin                             ^>=1.46
-    , plutus-tx-test-util
     , plutus-tx:plutus-tx-testlib
     , prettyprinter
     , QuickCheck

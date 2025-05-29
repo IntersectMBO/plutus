@@ -91,7 +91,6 @@ let
             plutus-metatheory.ghcOptions = [ "-Werror" ];
             plutus-tx.ghcOptions = [ "-Werror" ];
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-            plutus-tx-test-util.ghcOptions = [ "-Werror" ];
           };
         }
       ];
