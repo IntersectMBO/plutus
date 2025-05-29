@@ -11,9 +11,7 @@ copyright:          2018 Author name here
 license:            BSD3
 build-type:         Simple
 cabal-version:      >=1.10
-extra-source-files:
-  ChangeLog.md
-  README.md
+extra-source-files: README.md
 
 source-repository head
   type:     git
