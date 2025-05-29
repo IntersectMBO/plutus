@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -10,7 +11,9 @@ import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V2
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
-import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins qualified as B
+import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString)
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -20,6 +23,16 @@ mkScriptContext :: Int -> ScriptContext
 mkScriptContext i =
   ScriptContext
     (mkTxInfo i)
+    (Spending (TxOutRef (TxId "") 0))
+
+mkScriptContextWithStake
+  :: Int
+  -> Int
+  -> Maybe (StakingCredential, Int)
+  -> ScriptContext
+mkScriptContextWithStake i j cred =
+  ScriptContext
+    (mkTxInfoWithStake i j cred)
     (Spending (TxOutRef (TxId "") 0))
 
 
@@ -38,6 +51,47 @@ mkTxInfo i = TxInfo {
   txInfoData=Map.empty,
   txInfoId=TxId ""
   }
+
+mkTxInfoWithStake
+  :: Int
+  -> Int
+  -> Maybe (StakingCredential, Int)
+  -> TxInfo
+mkTxInfoWithStake i j cred =
+  (mkTxInfo i) { txInfoWdrl = mkStakeMap j cred }
+
+-- | A very crude deterministic generator for maps of stake credentials with size
+-- approximately proportional to the input integer. If a specific credential is provided, it
+-- is inserted at the provided index.
+mkStakeMap
+  :: Int
+  -> Maybe (StakingCredential, Int)
+  -> Map.Map StakingCredential Integer
+mkStakeMap j mCred =
+  Map.unsafeFromList
+  $ case mCred of
+      Just (cred, ix) ->
+        insertAt cred ix genValues
+      Nothing ->
+        genValues
+  where
+    genValues =
+      (\i ->
+        ( mkStakingCredential ("testCred" <> show i)
+        , fromIntegral i
+        )
+      )
+      <$> [1..j]
+    insertAt x i xs =
+      take i xs <> [(x, 1000)] <> drop i xs
+
+mkStakingCredential :: String -> StakingCredential
+mkStakingCredential str =
+  StakingHash
+  . PubKeyCredential
+  . PubKeyHash
+  . stringToBuiltinByteString
+  $ str
 
 mkTxOut :: Int -> TxOut
 mkTxOut i = TxOut {
@@ -61,7 +115,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       ScriptContext txi _ = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if List.length (txInfoOutputs txi) `B.modInteger` 2 PlutusTx.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 {-# INLINABLE checkScriptContext1 #-}
@@ -115,7 +169,7 @@ for comparison.
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
-  if PlutusTx.equalsData d d
+  if B.equalsData d d
   then ()
   else PlutusTx.traceError "The argument is not equal to itself"
 {-# INLINABLE scriptContextEqualityData #-}
@@ -139,3 +193,37 @@ mkScriptContextEqualityOverheadCode sc =
   in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
+
+-- The SOP version of a script which validates that the stake credential is in
+-- the withdrawal map.
+-- The "trick" is that, if it exists, there is a high probability of the stake
+-- credential being either the first or the second element of the map.
+forwardWithStakeTrick :: BuiltinData -> BuiltinData -> ()
+forwardWithStakeTrick obsScriptCred ctx =
+  case PlutusTx.unsafeFromBuiltinData ctx of
+    ScriptContext { scriptContextTxInfo = TxInfo { txInfoWdrl } } ->
+      let obsScriptCred' = PlutusTx.unsafeFromBuiltinData obsScriptCred
+          txInfoWdrl' = Map.toList txInfoWdrl
+          wdrlAtZero = PlutusTx.fst $ List.head txInfoWdrl'
+          rest = List.tail txInfoWdrl'
+          wdrlAtOne = PlutusTx.fst $ List.head $ rest
+      in
+        if obsScriptCred' PlutusTx.== wdrlAtZero
+          || obsScriptCred' PlutusTx.== wdrlAtOne
+          then ()
+          else
+            if Map.member obsScriptCred' txInfoWdrl
+              then ()
+              else PlutusTx.traceError "not found"
+{-# INLINABLE forwardWithStakeTrick #-}
+
+mkForwardWithStakeTrickCode
+  :: StakingCredential
+  -> ScriptContext
+  -> PlutusTx.CompiledCode ()
+mkForwardWithStakeTrickCode cred ctx =
+  let c = PlutusTx.toBuiltinData cred
+      sc = PlutusTx.toBuiltinData ctx
+  in $$(PlutusTx.compile [|| forwardWithStakeTrick ||])
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef c
+       `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc

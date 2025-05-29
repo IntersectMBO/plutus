@@ -7,16 +7,17 @@
   \refstepcounter{notenumberF}
   \noindent\textbf{Note \thenotenumberF. #1}
 }
-
+\newpage
 \subsection{Batch 6}
 \label{sec:default-builtins-6}
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-6}
-The 6th batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
+The sixth batch of builtin operations is defined in Table~\ref{table:built-in-functions-6}.
 
-\setlength{\LTleft}{2mm}  % Shift the table right a bit to centre it on the page
-\begin{longtable}[H]{|l|p{67mm}|p{18mm}|c|c|}
+\setlength{\LTleft}{-12mm}  % Shift the table left a bit to centre it on the page
+\renewcommand*{\arraystretch}{1.25}  %% Stretch the space between the rows by a factor of 25%
+\begin{longtable}[H]{|l|p{45mm}|p{70mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
     & & & fail? & \\
@@ -33,8 +34,35 @@ The 6th batch of builtin operations is defined in Table~\ref{table:built-in-func
     \caption[]{Built-in functions, Batch 6}
     \label{table:built-in-functions-6}
     \endlastfoot
-    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, $ \text{$\;\; \ty{integer}] \to \ty{integer}$}
+    \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, \ty{integer}]$ \text{$\;\;\; \to \ty{integer}$}
         & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
+    \TT{caseList}        & $[\forall a_\#, \forall\star, \star, \star, \listOf{a_\#}] \to \ap$
+                                              & \text{$(t_1, t_2, []) \mapsto (t_1|)$,}
+                                              \text{$(t_1, t_2,
+                                              [x_1,\ldots,x_n]) \mapsto (t_2|x_1,[x_2,\ldots,x_n])\ (n \geq 1)$}
+                                              & & \ref{note:case-list-case-data}\\[5mm]
+    \TT{caseData}        & $[\forall\star, \star, \star, \star, \star, \star, \ty{data}] \to \ap$
+    & $(t_C, t_M, t_L, t_I, t_B, d)$
+    \smallskip
+    \newline  % The big \{ was abutting the text above
+    \text{$\;\;\mapsto
+               \left\{ \begin{array}{ll}  %% This looks better than `cases`
+                 (t_C|n,l)  & \text{if $d = \inj_C(n, l)$} \\
+                 (t_M|l)  & \text{if $d = \inj_M(l)$} \\
+                 (t_L|l)  & \text{if $d = \inj_L(l)$} \\
+                 (t_I|n)  & \text{if $d =\inj_I(n)$} \\
+                 (t_B|s)  & \text{if $d = \inj_B(s)$} \\
+               \end{array}\right.$}  & & \ref{note:case-list-case-data}\\[5mm]
+    \TT{dropList}        & $[\forall a_\#, \ty{integer}, \listOf{a_\#}]$ \text{$\;\;\; \to \listOf{a_\#}$}
+        & $(k,[x_1,\ldots,x_n])$
+        \smallskip
+        \newline
+        \text{$\;\;\mapsto \left\{ \begin{array}{ll}
+            [x_1,\ldots, x_n]      &  \text{if $k \leq 0$} \\ \relax %
+            % Without \relax the [ at the start of the next line is regarded as an argument to \\
+            [x_{k+1}, \ldots, x_n]  & \text{if $1  \leq k \leq n-1$} \\ \relax
+            []                     &\text{if $k \geq n$}\\
+        \end{array}\right.$} &  & \\
 \hline
 \end{longtable}
 
@@ -58,3 +86,38 @@ $$
 follows, for example, from Proposition I.3.1 of~\cite{Koblitz-GTM}.  See
 Note~\ref{note:integer-division-functions} of
 Section~\ref{sec:built-in-functions-1} for the definition of $\modfn$.
+
+\note{\texttt{caseList} and \texttt{caseData} in UPLC.}
+\label{note:case-list-case-data}
+The \texttt{caseList} function takes two inputs $t_1$ and $t_2$ and a list $l$
+and returns the delayed application $(t_1|)$ if $l$ is empty and
+$(t_2|h,l^{\prime})$ if $l$ is nonempty with head $h$ and tail $l^{\prime}$.
+The intended usage is that if $l$ is a list with elements of type $\alpha$ then
+$t_1$ should be a term of some type $\beta$ and $t_2$ a function of type
+$\alpha \rightarrow
+\mathtt{list}(\alpha) \rightarrow \beta$; however, Untyped Plutus Core has no notion
+of type for general terms and when \texttt{caseList} is applied there is no
+check that the inputs $t_1$ and $t_2$ are of the expected type.  In UPLC, when
+the list $l$ is nonempty the deferred application $(t_2|h,l^{\prime})$ will
+immediately be turned into a genuine application by the evaluator, and at that
+point there may be an error because the term $t_2$ cannot be applied to the
+arguments $h$ and $l^{\prime}$ (although even then an error may not occur if,
+for example $t_2 h l^{\prime}$ is not a saturated application (ie, $t_2$ expects
+more than two arguments)) .  In the case of the empty list, the value $(t_1|)$
+is effectively constant and no error will occur.  However, an error will occur
+immediately if the final argument of \texttt{caseList} is not of
+type \texttt{list}.
+
+The \texttt{caseData} function behaves similarly: the argument $d$ is expected
+to be an object of the built-in \texttt{data} type (see
+Section~\ref{sec:built-in-types-1}) and $t_C, t_M, t_L, t_I$, and $t_B$ are
+expected to be functions which will be applied to the contents of
+the \texttt{Constr}, \texttt{Map}, \texttt{List}, \texttt{I} and \texttt{B}
+constructors of the \texttt{data} argument respectively, but again there is no
+typecheck of the functional arguments when \texttt{caseData} is applied and a
+type mismatch can only be detected when the evaluator attempts to evaluate the
+deferred application.  However, there will be an immediate error if the final
+argument of \texttt{caseData} is not of type \texttt{data}.
+
+
+

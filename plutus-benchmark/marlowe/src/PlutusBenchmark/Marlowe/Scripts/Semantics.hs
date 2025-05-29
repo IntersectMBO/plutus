@@ -46,14 +46,15 @@ import PlutusLedgerApi.V2.Contexts (findDatum, findDatumHash, txSignedBy, valueS
 import PlutusLedgerApi.V2.Tx (OutputDatum (OutputDatumHash),
                               TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
+import PlutusTx.Foldable (foldMap)
+import PlutusTx.List (all, any, elem, filter, find, null)
 import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
                                             BuiltinData, BuiltinString, BuiltinUnit,
                                             Enum (fromEnum), Eq (..), Functor (fmap), Integer,
-                                            Maybe (..), Ord ((>)), Semigroup ((<>)), all, any,
-                                            check, elem, filter, find, foldMap, null, otherwise,
-                                            snd, toBuiltin, ($), (&&), (.), (/=), (||))
+                                            Maybe (..), Ord ((>)), Semigroup ((<>)), check,
+                                            otherwise, snd, toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS

@@ -1,0 +1,51 @@
+{-
+let
+  !f : all a. list integer -> list integer
+    = /\a -> \(xs : list integer) -> tailList {integer} xs
+in
+\(xs : list integer) ->
+  headList
+    {integer}
+    (tailList {integer} (f {integer} (f {integer} xs)))
+-}
+
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      f
+      (all
+        a
+        (type)
+        (fun
+          [ (con list) (con integer) ]
+          [ (con list) (con integer) ]
+        )
+      )
+    )
+    (abs
+      a
+      (type)
+      (lam
+        xs
+        [ (con list) (con integer) ]
+        [ { (builtin tailList) (con integer) } xs ]
+      )
+    )
+  )
+  (lam
+    xs
+    [ (con list) (con integer) ]
+    [
+      { (builtin headList) (con integer) }
+      [
+        { f (con integer) }
+        [
+          { f (con integer) }
+          [ { (builtin tailList) (con integer) } xs ]
+        ]
+      ]
+    ]
+  )
+)

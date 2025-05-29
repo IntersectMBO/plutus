@@ -7,12 +7,15 @@ module UntypedPlutusCore.Simplify.Opts
   , soInlineHints
   , soConservativeOpts
   , soInlineConstants
+  , soInlineCallsiteGrowth
   , defaultSimplifyOpts
   ) where
 
 import Control.Lens.TH (makeLenses)
 import Data.Default.Class
+
 import PlutusCore.Annotation (InlineHints (..))
+import PlutusCore.Size
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
@@ -20,6 +23,7 @@ data SimplifyOpts name a = SimplifyOpts
   , _soConservativeOpts        :: Bool
   , _soInlineHints             :: InlineHints name a
   , _soInlineConstants         :: Bool
+  , _soInlineCallsiteGrowth    :: Size
   }
   deriving stock (Show)
 
@@ -33,4 +37,5 @@ defaultSimplifyOpts =
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True
+    , _soInlineCallsiteGrowth = 5
     }

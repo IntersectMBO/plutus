@@ -25,10 +25,11 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 import Data.Char (isSpace)
 
 import PlutusCore.Pretty qualified as PLC
-import PlutusTx as PlutusTx
+import PlutusTx
 import PlutusTx.Builtins as Tx
+import PlutusTx.List qualified as List
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as PLC hiding (Semigroup (..), check, foldMap)
+import PlutusTx.Prelude as PLC hiding (Semigroup (..), check)
 import Prelude qualified as Haskell
 
 -------------------------------------
@@ -62,13 +63,13 @@ sumList (h:t) = h + sumList t
 
 numSolutions :: Solution -> Integer
 numSolutions (Soln _)   = 1
-numSolutions (Choose l) = sumList . map numSolutions $ l
+numSolutions (Choose l) = sumList . List.map numSolutions $ l
 numSolutions Fail       = 0
 {-# INLINABLE numSolutions #-}
 
 sizeOfSolution :: Solution -> Integer
 sizeOfSolution (Soln _)   = 1
-sizeOfSolution (Choose l) = sumList . map sizeOfSolution $ l
+sizeOfSolution (Choose l) = sumList . List.map sizeOfSolution $ l
 sizeOfSolution Fail       = 1
 
 flipSex :: Sex -> Sex
@@ -104,7 +105,7 @@ search square sex board ps
 -- % An attempt to cut down on the size of the result (not in the original program)
 prune :: [Solution] -> Solution
 prune ss =
-    case filter nonFailure ss of
+    case List.filter nonFailure ss of
       []       -> Fail
       [Soln s] -> Soln s
       l        -> Choose l
@@ -299,7 +300,7 @@ bPiece = P "b"  [ [(0,1),(0,2),(1,2)],
 {-# INLINABLE bPiece #-}
 
 unindent :: PLC.Doc ann -> [Haskell.String]
-unindent d = map (Haskell.dropWhile isSpace) (Haskell.lines . Haskell.show $ d)
+unindent d = List.map (Haskell.dropWhile isSpace) (Haskell.lines . Haskell.show $ d)
 
 runLastPiece :: Solution
 runLastPiece = search (1,2) Female initialBoard initialPieces

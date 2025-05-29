@@ -12,9 +12,8 @@ import System.FilePath
 import System.IO
 import System.Process
 import Test.Tasty
-import Test.Tasty.HUnit
-
 import Test.Tasty.Extras (goldenVsTextM)
+import Test.Tasty.HUnit
 
 {- | Run an external executable with some arguments.  This is for use inside
     HUnit Assertions -}
@@ -26,17 +25,21 @@ runProg prog args stdin' = do
     ExitSuccess   -> pure ()
   return $ T.pack output
 
-makeGoldenUplcCert :: [ String ] -> String -> TestTree
-makeGoldenUplcCert path name = do
+makeUplcCert :: [ String ] -> String -> IO T.Text
+makeUplcCert path name = do
     let inputfile = foldr (</>) ("UPLC" </> name ++ ".uplc") path
-    let goldenfile = foldr (</>) ("Golden" </> name ++ ".golden") path
     let args = ["optimise", "--certify", "TestCert",
                 "--input", inputfile,
                 "--print-mode", "Classic"]
-    let result = runProg "uplc" args []
+    runProg "uplc" args []
+
+makeGoldenUplcCert :: [ String ] -> String -> TestTree
+makeGoldenUplcCert path name = do
+    let goldenfile = foldr (</>) ("Golden" </> name ++ ".golden") path
+    let result = makeUplcCert path name
     goldenVsTextM name goldenfile result
 
--- These come from `uplc example -a` but there are a couple of failing tests which are omitted.
+-- These come from `uplc example -a`
 exampleNames :: [String]
 exampleNames =
   [ "succInteger"
@@ -53,6 +56,8 @@ exampleNames =
   , "IfIntegers"
   , "ApplyAdd1"
   , "ApplyAdd2"
+  , "DivideByZero"
+  , "DivideByZeroDrop"
   ]
 
 makeExampleM :: String -> IO T.Text
@@ -67,8 +72,45 @@ makeExample testname = do
   result <- makeExampleM testname
   let lastLine = T.takeWhileEnd (/='\n') $ T.dropEnd 1 result
   assertBool
-    (testname ++ " successfully certifies: " ++ T.unpack lastLine)
+    (testname ++ " fails to certify: " ++ T.unpack lastLine)
     $ "The compilation was successfully certified." == lastLine
+
+-- Serialisation tests: run the certifier to make a certificate,
+-- then try to load it in Agda.
+runAgda :: String -> IO (ExitCode, String)
+runAgda file = do
+  (exitCode, result, _) <- readProcessWithExitCode "agda-with-stdlib-and-metatheory" [file] []
+  return (exitCode, result)
+
+
+agdaTestCert :: [ String ] -> String -> Assertion
+agdaTestCert path name = do
+    _ <- makeUplcCert path name
+    makeAgdaLibFile
+    (resCode, resText) <- runAgda "TestCert.agda"
+    assertBool (name ++ " creates an invalid certificate:" ++ resText) (resCode == ExitSuccess)
+
+makeAgdaLibFile :: Assertion
+makeAgdaLibFile = do
+    let name = "TestCert.agda-lib"
+    let contents = unlines
+          [ "depend:"
+          , "  plutus-metatheory"
+          , "  standard-library-2.1.1"
+          , "include: ."
+          , "  name: test-cert"
+          ]
+    writeFile name contents
+
+{-
+agdaExampleCert :: String -> Assertion
+agdaExampleCert name = do
+    _ <- makeExampleM name
+    (resCode, resText) <- runAgda "TestCert.agda"
+    assertBool ("Example " ++ name
+      ++ " creates an invalid certificate: \\n" ++ resText)
+      (resCode == ExitSuccess)
+-}
 
 -- We were just calling the nested stuff with this constant, so it
 -- might as well be constant for now.
@@ -80,7 +122,9 @@ srcTests =
   [ "inc"
   -- TODO: This is currently failing to certify. This will be fixed
   -- after the PR that covers counter example tracing.
-  -- , len
+  -- , "len"
+  , "MinBS"
+  , "AA2-CSE"
   ]
 
 makeExampleTests :: [ String ] -> [ TestTree ]
@@ -89,6 +133,14 @@ makeExampleTests = map (\testname -> testCase testname (makeExample testname))
 makeTestTree :: [ String ] -> [ TestTree ]
 makeTestTree = map $ makeGoldenUplcCert fixedPath
 
+makeSerialisationTests :: [ String ] -> [ TestTree]
+makeSerialisationTests = map (\testname -> testCase testname (agdaTestCert fixedPath testname))
+
+{-
+makeSerialisationExampleTests :: [ String ] -> [ TestTree]
+makeSerialisationExampleTests = map (\testname -> testCase testname (agdaExampleCert testname))
+-}
+
 main :: IO ()
 main = do
   setLocaleEncoding utf8
@@ -96,4 +148,7 @@ main = do
     testGroup "Certification"
     [ testGroup "simple certification"  $ makeTestTree srcTests
     , testGroup "example certification"  $ makeExampleTests exampleNames
+    , testGroup "serialisation certification"  $ makeSerialisationTests srcTests
+    --, testGroup "example serialisation certification"
+    --                $ makeSerialisationExampleTests exampleNames
     ]

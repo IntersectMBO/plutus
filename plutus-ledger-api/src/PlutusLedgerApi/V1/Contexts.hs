@@ -41,6 +41,8 @@ module PlutusLedgerApi.V1.Contexts
     ) where
 
 import PlutusTx
+import PlutusTx.Foldable qualified as F
+import PlutusTx.List
 import PlutusTx.Prelude
 
 import GHC.Generics (Generic)
@@ -246,12 +248,12 @@ valuePaidTo ptx pkh = mconcat (pubKeyOutputsAt pkh ptx)
 
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> Value
-valueSpent = foldMap (txOutValue . txInInfoResolved) . txInfoInputs
+valueSpent = F.foldMap (txOutValue . txInInfoResolved) . txInfoInputs
 {-# INLINABLE valueSpent #-}
 
 -- | Get the total value of outputs produced by this transaction.
 valueProduced :: TxInfo -> Value
-valueProduced = foldMap txOutValue . txInfoOutputs
+valueProduced = F.foldMap txOutValue . txInfoOutputs
 {-# INLINABLE valueProduced #-}
 
 -- | The 'CurrencySymbol' of the current validator script.

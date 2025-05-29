@@ -146,6 +146,7 @@ import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -645,7 +646,7 @@ hashes
 -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo{txInfoData} =
-  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toSOPList txInfoData)
+  PlutusTx.fst PlutusTx.<$> List.find f (toSOPList txInfoData)
  where
   f (_, ds') = ds' PlutusTx.== ds
 

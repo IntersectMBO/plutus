@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
-{- | Conformance tests for the Agda implementation. -}
+
+-- | Conformance tests for the Agda implementation.
 module Main (main) where
 
 import Control.Monad.Trans.Except (ExceptT, runExceptT, withExceptT)
@@ -27,8 +28,8 @@ import Data.Aeson (Result (Error, Success), fromJSON, toJSON)
 -- This type corresponds to Cost.Raw.RawCostModel in plutus-metaheory.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
 
-{- Convert a set of `CostModelParams` into a `RawCostModel` suitable for use with
-   the Agda CEK machine.  We convert the `CostModelParams` into a standard
+{- Convert a set of `CostModelParams` into a `RawCostModel` suitable for use
+   with the Agda CEK machine.  We convert the `CostModelParams` into a standard
    `CekCostModel`, then convert that to Aeson's `Value` type (its intermediate
    JSON representation), and then deserialise the `Value` to a `SimpleCostModel`
    which is packed together with the machine costs from the `CekCostModel`.
@@ -41,17 +42,16 @@ type RawCostModel = (CekMachineCosts, BuiltinCostMap)
 -}
 toRawCostModel :: CostModelParams -> RawCostModel
 toRawCostModel params =
-    let CostModel machineCosts builtinCosts =
-            case applyCostModelParams defaultCekCostModelForTesting params of
-              Left e  -> error $ show e
-              Right r -> r
+  let CostModel machineCosts builtinCosts =
+        case applyCostModelParams defaultCekCostModelForTesting params of
+          Left e  -> error $ show e
+          Right r -> r
 
-        costKeyMap =
-            case fromJSON @BuiltinCostKeyMap $ toJSON builtinCosts of
-               Error s   -> error s
-               Success m -> m
-
-    in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
+      costKeyMap =
+        case fromJSON @BuiltinCostKeyMap $ toJSON builtinCosts of
+          Error s   -> error s
+          Success m -> m
+   in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
 
 {- Note [Evaluation with and without costing]
    We provide two evaluators, one with costing and one without: normally the
@@ -65,44 +65,58 @@ data CostOrNot = WithCosting | WithoutCosting
 -- Evaluate a UPLC program using the Agda CEK machine
 agdaEvalUplcProg :: CostOrNot -> UplcEvaluator
 agdaEvalUplcProg WithCosting =
-    UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
-        let
-            -- turn the body of the program into an untyped de Bruijn term
-            tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-            tmUDB = deBruijnTerm tmU
-
-        in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-             -- if there's an exception, evaluation failed, should return `Nothing`.
-             Left _ -> Nothing
-             -- evaluate the untyped term with the CEK evaluator
-             Right tmUDBSuccess ->
-                 case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
-                   Left _ -> Nothing
-                   Right (tmEvaluated,(cpuCost,memCost)) ->
-                       -- turn it back into a named term
-                       case runQuote $ runExceptT $
-                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
-                         Left _          -> Nothing
-                         Right namedTerm ->
-                             let  cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
-                             in Just (UPLC.Program () version namedTerm , cost)
-
+  UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
+    let
+      -- turn the body of the program into an untyped de Bruijn term
+      tmUDB
+        :: ExceptT
+             FreeVariableError
+             Quote
+             (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+      tmUDB = deBruijnTerm tmU
+     in
+      case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+        -- if there's an exception, evaluation failed, should return `Nothing`.
+        Left _ -> Nothing
+        -- evaluate the untyped term with the CEK evaluator
+        Right tmUDBSuccess ->
+          case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
+            Left _ -> Nothing
+            Right (tmEvaluated, (cpuCost, memCost)) ->
+              -- turn it back into a named term
+              case runQuote $
+                runExceptT $
+                  withExceptT FreeVariableErrorE $
+                    unDeBruijnTerm tmEvaluated of
+                Left _ -> Nothing
+                Right namedTerm ->
+                  let cost =
+                        ExBudget
+                          (ExCPU (fromInteger cpuCost))
+                          (ExMemory (fromInteger memCost))
+                   in Just (UPLC.Program () version namedTerm, cost)
 agdaEvalUplcProg WithoutCosting =
-    UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
-        let tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-            tmUDB = deBruijnTerm tmU
-        in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-             Left _ -> Nothing
-             Right tmUDBSuccess ->
-                 case runUAgda tmUDBSuccess of
-                   Left _ -> Nothing
-                   Right tmEvaluated ->
-                       case runQuote $ runExceptT $
-                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
-                         Left _          -> Nothing
-                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
+  UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
+    let tmUDB
+          :: ExceptT
+               FreeVariableError
+               Quote
+               (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+        tmUDB = deBruijnTerm tmU
+     in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+          Left _ -> Nothing
+          Right tmUDBSuccess ->
+            case runUAgda tmUDBSuccess of
+              Left _ -> Nothing
+              Right tmEvaluated ->
+                case runQuote $
+                  runExceptT $
+                    withExceptT FreeVariableErrorE $
+                      unDeBruijnTerm tmEvaluated of
+                  Left _          -> Nothing
+                  Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
-{- | A list of evaluation tests which are currently expected to fail.  Once a fix
+{-| A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the
  list.  The entries of the list are paths from the root of plutus-conformance to
  the directory containing the test, eg
@@ -111,7 +125,7 @@ agdaEvalUplcProg WithoutCosting =
 failingEvaluationTests :: [FilePath]
 failingEvaluationTests = []
 
-{- | A list of budget tests which are currently expected to fail.  Once a fix for
+{-| A list of budget tests which are currently expected to fail.  Once a fix for
  a test is pushed, the test will succeed and should be removed from the list.
  The entries of the list are paths from the root of plutus-conformance to the
  directory containing the test, eg
@@ -120,7 +134,7 @@ failingEvaluationTests = []
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
   -- These currently fail because the Agda code doesn't know about alternative
-  -- size measures used by `replicateByte` and `writeBits`: see
+  -- size measures used by `replicateByte`, `writeBits`, and `dropList`: see
   -- https://github.com/IntersectMBO/plutus/pull/6368.  Some of the budget tests
   -- do pass, either because evaluation fails or because two different size
   -- measures happen to be the same for small inputs.
@@ -155,9 +169,28 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-39"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-40"
   , "test-cases/uplc/evaluation/builtin/semantics/writeBits/case-41"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-01"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-02"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-03"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-04"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-05"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-06"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-07"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-08"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-09"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-10"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-11"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-13"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
+  , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
   ]
 
 -- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
-main = runUplcEvalTests (agdaEvalUplcProg WithCosting)
-       (flip elem failingEvaluationTests) (flip elem failingBudgetTests)
+main =
+  runUplcEvalTests
+    (agdaEvalUplcProg WithCosting)
+    (flip elem failingEvaluationTests)
+    (flip elem failingBudgetTests)

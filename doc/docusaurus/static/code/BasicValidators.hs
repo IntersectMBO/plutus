@@ -10,6 +10,7 @@
 module BasicValidators where
 
 import PlutusTx
+import PlutusTx.Foldable
 import PlutusTx.Prelude
 
 import PlutusLedgerApi.Common

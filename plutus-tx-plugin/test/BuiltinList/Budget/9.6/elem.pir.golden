@@ -1,0 +1,48 @@
+let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !elem : all a. (\a -> a -> a -> Bool) a -> a -> list a -> Bool
+    = /\a ->
+        \(`$dEq` : (\a -> a -> a -> Bool) a) (a : a) ->
+          letrec
+            !go : list a -> Bool
+              = \(xs : list a) ->
+                  chooseList
+                    {a}
+                    {all dead. Bool}
+                    xs
+                    (/\dead -> False)
+                    (/\dead ->
+                       let
+                         !x : a = headList {a} xs
+                         !xs : list a = tailList {a} xs
+                       in
+                       Bool_match
+                         (`$dEq` a x)
+                         {all dead. Bool}
+                         (/\dead -> True)
+                         (/\dead -> go xs)
+                         {all dead. dead})
+                    {Bool}
+          in
+          go
+in
+\(xs : list integer) ->
+  Tuple2
+    {Bool}
+    {Bool}
+    (elem
+       {integer}
+       (\(x : integer) (y : integer) ->
+          ifThenElse {Bool} (equalsInteger x y) True False)
+       8
+       xs)
+    (elem
+       {integer}
+       (\(x : integer) (y : integer) ->
+          ifThenElse {Bool} (equalsInteger x y) True False)
+       12
+       xs)

@@ -1,19 +1,17 @@
 (letrec
-    ~go : list data -> integer -> integer
-      = (let
-            r = integer -> integer
-          in
-          \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            chooseList
-              {data}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {data} xs) (tailList {data} xs))
-              {r})
-          (\(x : integer) -> x)
-          (\(ds : data) (t : list data) (eta : integer) ->
-             addInteger 1 (go t eta))
+    !go : list data -> integer
+      = \(xs : list data) ->
+          chooseList
+            {data}
+            {all dead. integer}
+            xs
+            (/\dead -> 0)
+            (/\dead ->
+               let
+                 !ds : data = headList {data} xs
+               in
+               addInteger 1 (go (tailList {data} xs)))
+            {integer}
   in
   let
     data Bool | Bool_match where
@@ -131,7 +129,7 @@
                           ds)
                        (\(void : unit) -> error {(\a -> list data) data})
                in
-               go ds 0)
+               go ds)
                2))
          True
          False)

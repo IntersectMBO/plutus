@@ -19,6 +19,8 @@ import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Substitute
 
+import Control.Lens (view)
+
 {- Note [Inlining and beta reduction of functions]
 
 We inline if its cost and size are acceptable.
@@ -72,7 +74,7 @@ applyAndBetaReduce rhs args0 = do
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
         (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
-          safe <- safeToBetaReduce n arg acc
+          safe <- safeToBetaReduce n arg tm
           if safe -- we only do substitution if it is safe to beta reduce
             then do
               acc' <- do
@@ -144,13 +146,14 @@ callSiteInline processedTSize = go
         -- than it would have before, but we can make it happen more often.
         -- We could potentially do this safely in non-conservative mode.
         rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
+        thresh <- view iiInlineCallsiteGrowth
         if costIsOk && rhsPure then do
           -- rename the rhs of the variable before any substitution
           renamedRhs <- rename headRhs
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
-              let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= processedTSize
+              let -- Inline only if the size is no bigger than not inlining plus threshold.
+                  sizeIsOk = termSize inlined <= processedTSize + max 0 thresh
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

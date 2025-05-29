@@ -342,6 +342,7 @@ BUILTIN findFirstSetBit (base $ V-con s) = inj₂ (V-con (findFirstSetBIT s))
 BUILTIN expModInteger (base  $ V-con b $ V-con e $ V-con m) with expModINTEGER b e m
 ... | just r = inj₂ (V-con r)
 ... | nothing  = inj₁ (con (ne (^ (atomic aInteger))))
+BUILTIN dropList (Λ̂ A $ V-con n $ V-con l) = inj₂ (V-con (dropLIST n l))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}

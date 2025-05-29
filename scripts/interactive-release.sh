@@ -233,14 +233,17 @@ generate-release-notes() {
 
 
 publish-gh-release() {
-  for EXEC in uplc pir plc; do 
-    nix build ".#musl64-$EXEC"
+  for EXEC in uplc pir plc plutus; do 
+    nix build ".#packages.x86_64-linux.musl64-$EXEC"
     upx -9 ./result/bin/$EXEC -o $EXEC-x86_64-linux-ghc96 --force-overwrite
   done 
+  nix build ".#metatheory-agda-library"
+  cp -f ./result/plutus-metatheory.tar.gz .
   local NOTES_FILE=$(mktemp)
   generate-release-notes > $NOTES_FILE
-  gh release create $VERSION --title $VERSION --notes-file $NOTES_FILE --latest
-  gh release upload $VERSION {uplc,plc,pir}-x86_64-linux-ghc96 --clobber
+  local COMMIT_SHA=$(git rev-parse --verify --quiet "origin/release/$VERSION")
+  gh release create $VERSION --target $COMMIT_SHA --title $VERSION --notes-file $NOTES_FILE --latest
+  gh release upload $VERSION {uplc,plc,pir,plutus}-x86_64-linux-ghc96 plutus-metatheory.tar.gz --clobber
   tell "Published the release"
 }
 
@@ -311,7 +314,7 @@ print-status() {
   echo 
 
   local PR_MERGE_STATE_STATUS=$(get-pr-merge-state-status IntersectMBO/plutus "release/$VERSION")
-  if [[ $PR_STATE == "OPEN" && $PR_MERGE_STATE_STATUS == "MERGEABLE" || $PR_STATE == "MERGED" ]]; then 
+  if [[ $PR_STATE == "OPEN" && $PR_MERGE_STATE_STATUS == "CLEAN" || $PR_STATE == "MERGED" ]]; then 
     echo -e "[2] ✅ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE and merge status $PR_MERGE_STATE_STATUS at $PR_URL"
   elif [[ $PR_STATE == "MISSING" ]]; then 
     echo -e "[2] ❌ Approve the Release PR in plutus, check CI is green, do not merge yet\n       PR $PR_STATE"

@@ -16,7 +16,7 @@ import PlutusTx.Base
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as AssocMap
 import PlutusTx.Lift
-import PlutusTx.List qualified as ListTx
+import PlutusTx.List qualified as List
 import PlutusTx.Maybe
 import PlutusTx.Numeric
 import PlutusTx.Prelude hiding (integerToByteString)
@@ -72,15 +72,15 @@ i2Bs n =
     if n < 0
         then "-" `appendByteString` i2Bs (negate n)
         -- @48@ is the ASCII code of @0@.
-        else ListTx.foldr (consByteString . (48 +)) emptyByteString $ toDigits n
+        else List.foldr (consByteString . (48 +)) emptyByteString $ toDigits n
 {-# INLINEABLE i2Bs #-}
 
 -- | Like 'i2Bs but generates longer bytestrings, so that repeated recalculations of
 -- currency/token name comparisons get reflected in the budget tests in a visible manner.
 replicateToByteString :: Integer -> BuiltinByteString
 replicateToByteString i =
-    ListTx.foldr id emptyByteString $
-        ListTx.replicate iTo6 (appendByteString $ i2Bs i)
+    List.foldr id emptyByteString $
+        List.replicate iTo6 (appendByteString $ i2Bs i)
   where
     iTo2 = i * i
     iTo4 = iTo2 * iTo2
@@ -89,17 +89,17 @@ replicateToByteString i =
 
 tokenListOptions :: [[(TokenName, Integer)]]
 tokenListOptions =
-    ListTx.map
-        (ListTx.map $ \(i, x) -> (TokenName $ replicateToByteString i, x))
+    List.map
+        (List.map $ \(i, x) -> (TokenName $ replicateToByteString i, x))
         patternOptions
 {-# INLINEABLE tokenListOptions #-}
 
 currencyListOptions :: [[(CurrencySymbol, [(TokenName, Integer)])]]
 currencyListOptions =
-    ListTx.map
-        (ListTx.map $ \(i, x) ->
+    List.map
+        (List.map $ \(i, x) ->
             ( CurrencySymbol $ replicateToByteString i
-            , tokenListOptions ListTx.!! x
+            , tokenListOptions List.!! x
             ))
         patternOptions
 {-# INLINEABLE currencyListOptions #-}
@@ -108,9 +108,9 @@ currencyListOptions =
 -- doesn't need many elements to stress-test Plutus Tx, hence the quotes).
 longCurrencyChunk :: [(CurrencySymbol, [(TokenName, Integer)])]
 longCurrencyChunk
-    = ListTx.concatMap Tx.sequence
-    . ListTx.zip (ListTx.map (CurrencySymbol . replicateToByteString) [1 .. scalingFactor])
-    $ ListTx.replicate scalingFactor tokenListOptions
+    = List.concatMap Tx.sequence
+    . List.zip (List.map (CurrencySymbol . replicateToByteString) [1 .. scalingFactor])
+    $ List.replicate scalingFactor tokenListOptions
 {-# INLINEABLE longCurrencyChunk #-}
 
 -- | Return a list whose head is the argument list with 'Nothing' inserted at the beginning, the
@@ -133,7 +133,7 @@ insertHooks xs0 = do
         go _ xsSlow = do
             prefix <- [[Nothing], []]
             suffix <- [[Nothing], []]
-            [prefix ++ map Just xsSlow ++ suffix]
+            [prefix List.++ List.map Just xsSlow List.++ suffix]
     xs0' <- go xs0 xs0
     [Nothing : xs0', xs0']
 {-# INLINEABLE insertHooks #-}
@@ -142,15 +142,15 @@ insertHooks xs0 = do
 -- inserted in it in various ways as per 'insertHooks'.
 currencyLongListOptions :: [[(CurrencySymbol, [(TokenName, Integer)])]]
 currencyLongListOptions =
-    insertHooks (ListTx.last currencyListOptions) <&> \currencyListWithHooks ->
-    ListTx.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
+    insertHooks (List.last currencyListOptions) <&> \currencyListWithHooks ->
+    List.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
 {-# INLINEABLE currencyLongListOptions #-}
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.unsafeFromSOPList . ListTx.map (fmap AssocMap.unsafeFromSOPList)
+listsToValue = Value . AssocMap.unsafeFromSOPList . List.map (fmap AssocMap.unsafeFromSOPList)
 
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToLists = ListTx.map (fmap AssocMap.toSOPList) . AssocMap.toSOPList . getValue
+valueToLists = List.map (fmap AssocMap.toSOPList) . AssocMap.toSOPList . getValue
 
 -- | Check equality of two compiled 'Value's through UPLC evaluation and annotate the result with
 -- the cost of evaluation.
@@ -203,7 +203,7 @@ test_EqCurrencyList :: Haskell.String -> [[(CurrencySymbol, [(TokenName, Integer
 test_EqCurrencyList name currencyLists =
     nestedGoldenVsDoc name ".stat" . Pretty.vsep $
         let attachCode value = (value, liftCodeDef value)
-            valuesWithCodes = map (attachCode . listsToValue) currencyLists
+            valuesWithCodes = List.map (attachCode . listsToValue) currencyLists
         in pairs valuesWithCodes Haskell.<&> \((value1, valueCode1), (value2, valueCode2)) ->
             let eqResExp = value1 `haskellEqValue` value2
                 (eqResAct, PLC.CountingSt budget) = valueCode1 `eqValueCode` valueCode2

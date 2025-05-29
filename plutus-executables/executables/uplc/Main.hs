@@ -1,5 +1,4 @@
  -- editorconfig-checker-disable
-{-# LANGUAGE TemplateHaskell #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
@@ -309,6 +308,7 @@ rawCertificate certName rawTrace =
   "module " <> certName <> " where\
   \\n\
   \\nopen import VerifiedCompilation\
+  \\nopen import VerifiedCompilation.Certificate\
   \\nopen import Untyped\
   \\nopen import RawU\
   \\nopen import Builtin\
@@ -517,7 +517,7 @@ runUplcPrintExample = runPrintExample getUplcExamples
 ----------------- Version -----------------------
 
 versioner :: Parser (a -> a)
-versioner = simpleVersioner $(gitAwareVersionInfo Paths.version)
+versioner = simpleVersioner (gitAwareVersionInfo Paths.version)
 
 ---------------- Driver ----------------
 

@@ -1,4 +1,18 @@
 
+<a id='changelog-1.45.0.0'></a>
+# 1.45.0.0 — 2025-04-15
+
+## Changed
+
+- Builtin functions are pure when partially applied. Fully applied builtins are impure, as well as incorrectly applied ones (e.g. term argument applied instead of a type argument).
+
+<a id='changelog-1.44.0.0'></a>
+# 1.44.0.0 — 2025-04-03
+
+## Fixed
+
+- Fixed a bug in PIR's callsite inliner that caused it to skip valid inlining in certain cases.
+
 <a id='changelog-1.42.0.0'></a>
 # 1.42.0.0 — 2025-03-04
 

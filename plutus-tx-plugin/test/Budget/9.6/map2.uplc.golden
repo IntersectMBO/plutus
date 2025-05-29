@@ -39,27 +39,24 @@
                                                                            (\hd ->
                                                                               force
                                                                                 (force
-                                                                                   (force
-                                                                                      ifThenElse
-                                                                                      (equalsData
-                                                                                         k
+                                                                                   ifThenElse
+                                                                                   (equalsData
+                                                                                      k
+                                                                                      (force
                                                                                          (force
-                                                                                            (force
-                                                                                               fstPair)
-                                                                                            hd))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (\ds ->
-                                                                                               constr 0
-                                                                                                 [  ])))
-                                                                                      (delay
-                                                                                         (delay
-                                                                                            (force
-                                                                                               (s
-                                                                                                  s
-                                                                                                  (delay
-                                                                                                     (\x ->
-                                                                                                        x)))))))))))
+                                                                                            fstPair)
+                                                                                         hd))
+                                                                                   (delay
+                                                                                      (\ds ->
+                                                                                         constr 0
+                                                                                           [  ]))
+                                                                                   (delay
+                                                                                      (force
+                                                                                         (s
+                                                                                            s
+                                                                                            (delay
+                                                                                               (\x ->
+                                                                                                  x)))))))))
                                                                    (delay
                                                                       (\x ->
                                                                          x)))
@@ -96,83 +93,78 @@
                                                           []) ]) ]) ]) ]) ])))
                         ((\s ->
                             s s)
-                           (\s ->
-                              (\go
-                                arg ->
-                                 delay
-                                   (caseList'
-                                      []
-                                      (\hd
-                                        tl ->
-                                         (\v' ->
-                                            (\k' ->
-                                               force
-                                                 (case
-                                                    (force
-                                                       ((\s ->
-                                                           s s)
-                                                          (\s
-                                                            arg ->
-                                                             delay
-                                                               (caseList'
-                                                                  (constr 1 [])
-                                                                  (\hd ->
-                                                                     force
-                                                                       (force
+                           (\s
+                             arg ->
+                              delay
+                                (caseList'
+                                   []
+                                   (\hd
+                                     tl ->
+                                      (\v' ->
+                                         (\k' ->
+                                            force
+                                              (case
+                                                 (force
+                                                    ((\s ->
+                                                        s s)
+                                                       (\s
+                                                         arg ->
+                                                          delay
+                                                            (caseList'
+                                                               (constr 1 [])
+                                                               (\hd ->
+                                                                  force
+                                                                    (force
+                                                                       ifThenElse
+                                                                       (equalsData
+                                                                          k'
                                                                           (force
-                                                                             ifThenElse
-                                                                             (equalsData
-                                                                                k'
-                                                                                (force
-                                                                                   (force
-                                                                                      fstPair)
-                                                                                   hd))
-                                                                             (delay
+                                                                             (force
+                                                                                fstPair)
+                                                                             hd))
+                                                                       (delay
+                                                                          (\ds ->
+                                                                             constr 0
+                                                                               [ (force
+                                                                                    (force
+                                                                                       sndPair)
+                                                                                    hd) ]))
+                                                                       (delay
+                                                                          (force
+                                                                             (s
+                                                                                s
                                                                                 (delay
-                                                                                   (\ds ->
-                                                                                      constr 0
-                                                                                        [ (force
-                                                                                             (force
-                                                                                                sndPair)
-                                                                                             hd) ])))
-                                                                             (delay
-                                                                                (delay
-                                                                                   (force
-                                                                                      (s
-                                                                                         s
-                                                                                         (delay
-                                                                                            (\x ->
-                                                                                               x)))))))))))
-                                                          (delay (\x -> x)))
-                                                       nt)
-                                                    [ (\r ->
-                                                         delay
-                                                           (force mkCons
-                                                              (mkPairData
-                                                                 k'
-                                                                 (iData
-                                                                    (addInteger
-                                                                       (unIData
-                                                                          v')
-                                                                       (unIData
-                                                                          r))))
-                                                              (force
-                                                                 (go
-                                                                    (delay
-                                                                       (\x ->
-                                                                          x)))
-                                                                 tl)))
-                                                    , (delay
-                                                         (force mkCons
-                                                            (mkPairData k' v')
-                                                            (force
-                                                               (go
-                                                                  (delay
-                                                                     (\x -> x)))
-                                                               tl))) ]))
-                                              (force (force fstPair) hd))
-                                           (force (force sndPair) hd))))
-                                (\x -> s s x))
+                                                                                   (\x ->
+                                                                                      x)))))))))
+                                                       (delay (\x -> x)))
+                                                    nt)
+                                                 [ (\r ->
+                                                      delay
+                                                        (force mkCons
+                                                           (mkPairData
+                                                              k'
+                                                              (iData
+                                                                 (addInteger
+                                                                    (unIData v')
+                                                                    (unIData
+                                                                       r))))
+                                                           (force
+                                                              (s
+                                                                 s
+                                                                 (delay
+                                                                    (\x -> x)))
+                                                              tl)))
+                                                 , (delay
+                                                      (force mkCons
+                                                         (mkPairData k' v')
+                                                         (force
+                                                            (s
+                                                               s
+                                                               (delay
+                                                                  (\x -> x)))
+                                                            tl))) ]))
+                                           (force (force fstPair) hd))
+                                        (force (force sndPair) hd))))
                            (delay (\x -> x))))
                      (unsafeFromSOPList
                         (\i -> iData i)

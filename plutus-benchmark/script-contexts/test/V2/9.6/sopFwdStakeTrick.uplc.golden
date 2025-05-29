@@ -1,0 +1,1210 @@
+(program
+   1.1.0
+   ((\caseList' ->
+       (\go ->
+          (\traceError ->
+             (\`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` ->
+                (\`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData` ->
+                   (\`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData` ->
+                      (\go ->
+                         (\`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` ->
+                            (\`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` ->
+                               (\go ->
+                                  (\`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` ->
+                                     (\`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` ->
+                                        (\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
+                                           (\go ->
+                                              (\go
+                                                obsScriptCred
+                                                ctx ->
+                                                 case
+                                                   ((\tup ->
+                                                       (\index ->
+                                                          (\args ->
+                                                             force
+                                                               (force
+                                                                  ifThenElse
+                                                                  (equalsInteger
+                                                                     0
+                                                                     index)
+                                                                  (delay
+                                                                     ((\`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` ->
+                                                                         constr 0
+                                                                           [ ((\tup ->
+                                                                                 (\index ->
+                                                                                    (\args ->
+                                                                                       force
+                                                                                         (force
+                                                                                            ifThenElse
+                                                                                            (equalsInteger
+                                                                                               0
+                                                                                               index)
+                                                                                            (delay
+                                                                                               ((\l ->
+                                                                                                   (\l ->
+                                                                                                      (\l ->
+                                                                                                         (\l ->
+                                                                                                            (\l ->
+                                                                                                               (\l ->
+                                                                                                                  (\l ->
+                                                                                                                     (\l ->
+                                                                                                                        (\l ->
+                                                                                                                           (\l ->
+                                                                                                                              (\`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` ->
+                                                                                                                                 (\cse ->
+                                                                                                                                    (\cse ->
+                                                                                                                                       (\arg_0
+                                                                                                                                         arg_1
+                                                                                                                                         arg_2
+                                                                                                                                         arg_3
+                                                                                                                                         arg_4
+                                                                                                                                         arg_5
+                                                                                                                                         arg_6
+                                                                                                                                         arg_7
+                                                                                                                                         arg_8
+                                                                                                                                         arg_9
+                                                                                                                                         arg_10
+                                                                                                                                         arg_11 ->
+                                                                                                                                          constr 0
+                                                                                                                                            [ arg_0
+                                                                                                                                            , arg_1
+                                                                                                                                            , arg_2
+                                                                                                                                            , arg_3
+                                                                                                                                            , arg_4
+                                                                                                                                            , arg_5
+                                                                                                                                            , arg_6
+                                                                                                                                            , arg_7
+                                                                                                                                            , arg_8
+                                                                                                                                            , arg_9
+                                                                                                                                            , arg_10
+                                                                                                                                            , arg_11 ])
+                                                                                                                                         ((\d ->
+                                                                                                                                             force
+                                                                                                                                               go
+                                                                                                                                               (unListData
+                                                                                                                                                  d))
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               args))
+                                                                                                                                         ((\d ->
+                                                                                                                                             force
+                                                                                                                                               go
+                                                                                                                                               (unListData
+                                                                                                                                                  d))
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         ((\d ->
+                                                                                                                                             force
+                                                                                                                                               go
+                                                                                                                                               (unListData
+                                                                                                                                                  d))
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         (cse
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         (cse
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         ((\d ->
+                                                                                                                                             force
+                                                                                                                                               go
+                                                                                                                                               (unListData
+                                                                                                                                                  d))
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                            `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                                            unIData
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         ((\tup ->
+                                                                                                                                             (\index ->
+                                                                                                                                                (\args ->
+                                                                                                                                                   force
+                                                                                                                                                     (force
+                                                                                                                                                        ifThenElse
+                                                                                                                                                        (equalsInteger
+                                                                                                                                                           0
+                                                                                                                                                           index)
+                                                                                                                                                        (delay
+                                                                                                                                                           ((\`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData` ->
+                                                                                                                                                               (\`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` ->
+                                                                                                                                                                  constr 0
+                                                                                                                                                                    [ ((\tup ->
+                                                                                                                                                                          (\index ->
+                                                                                                                                                                             (\args ->
+                                                                                                                                                                                force
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     ifThenElse
+                                                                                                                                                                                     (equalsInteger
+                                                                                                                                                                                        0
+                                                                                                                                                                                        index)
+                                                                                                                                                                                     (delay
+                                                                                                                                                                                        (constr 0
+                                                                                                                                                                                           [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                unIData
+                                                                                                                                                                                                (force
+                                                                                                                                                                                                   headList
+                                                                                                                                                                                                   args))
+                                                                                                                                                                                           , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                (force
+                                                                                                                                                                                                   headList
+                                                                                                                                                                                                   (force
+                                                                                                                                                                                                      tailList
+                                                                                                                                                                                                      args))) ]))
+                                                                                                                                                                                     (delay
+                                                                                                                                                                                        (traceError
+                                                                                                                                                                                           "PT1"))))
+                                                                                                                                                                               (force
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     sndPair)
+                                                                                                                                                                                  tup))
+                                                                                                                                                                            (force
+                                                                                                                                                                               (force
+                                                                                                                                                                                  fstPair)
+                                                                                                                                                                               tup))
+                                                                                                                                                                         (unConstrData
+                                                                                                                                                                            (force
+                                                                                                                                                                               headList
+                                                                                                                                                                               args)))
+                                                                                                                                                                    , ((\tup ->
+                                                                                                                                                                          (\index ->
+                                                                                                                                                                             (\args ->
+                                                                                                                                                                                force
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     ifThenElse
+                                                                                                                                                                                     (equalsInteger
+                                                                                                                                                                                        0
+                                                                                                                                                                                        index)
+                                                                                                                                                                                     (delay
+                                                                                                                                                                                        (constr 0
+                                                                                                                                                                                           [ (`$fUnsafeFromDataExtended_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                unIData
+                                                                                                                                                                                                (force
+                                                                                                                                                                                                   headList
+                                                                                                                                                                                                   args))
+                                                                                                                                                                                           , (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                (force
+                                                                                                                                                                                                   headList
+                                                                                                                                                                                                   (force
+                                                                                                                                                                                                      tailList
+                                                                                                                                                                                                      args))) ]))
+                                                                                                                                                                                     (delay
+                                                                                                                                                                                        (traceError
+                                                                                                                                                                                           "PT1"))))
+                                                                                                                                                                               (force
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     sndPair)
+                                                                                                                                                                                  tup))
+                                                                                                                                                                            (force
+                                                                                                                                                                               (force
+                                                                                                                                                                                  fstPair)
+                                                                                                                                                                               tup))
+                                                                                                                                                                         (unConstrData
+                                                                                                                                                                            (force
+                                                                                                                                                                               headList
+                                                                                                                                                                               (force
+                                                                                                                                                                                  tailList
+                                                                                                                                                                                  args)))) ])
+                                                                                                                                                                 (\d ->
+                                                                                                                                                                    (\tup ->
+                                                                                                                                                                       (\index ->
+                                                                                                                                                                          (\args ->
+                                                                                                                                                                             force
+                                                                                                                                                                               (force
+                                                                                                                                                                                  ifThenElse
+                                                                                                                                                                                  (equalsInteger
+                                                                                                                                                                                     0
+                                                                                                                                                                                     index)
+                                                                                                                                                                                  (delay
+                                                                                                                                                                                     (constr 1
+                                                                                                                                                                                        [  ]))
+                                                                                                                                                                                  (delay
+                                                                                                                                                                                     (force
+                                                                                                                                                                                        (force
+                                                                                                                                                                                           ifThenElse
+                                                                                                                                                                                           (equalsInteger
+                                                                                                                                                                                              1
+                                                                                                                                                                                              index)
+                                                                                                                                                                                           (delay
+                                                                                                                                                                                              (constr 0
+                                                                                                                                                                                                 [  ]))
+                                                                                                                                                                                           (delay
+                                                                                                                                                                                              (traceError
+                                                                                                                                                                                                 "PT1")))))))
+                                                                                                                                                                            (force
+                                                                                                                                                                               (force
+                                                                                                                                                                                  sndPair)
+                                                                                                                                                                               tup))
+                                                                                                                                                                         (force
+                                                                                                                                                                            (force
+                                                                                                                                                                               fstPair)
+                                                                                                                                                                            tup))
+                                                                                                                                                                      (unConstrData
+                                                                                                                                                                         d)))
+                                                                                                                                                              (\`$dUnsafeFromData`
+                                                                                                                                                                d ->
+                                                                                                                                                                 (\tup ->
+                                                                                                                                                                    (\index ->
+                                                                                                                                                                       (\args ->
+                                                                                                                                                                          force
+                                                                                                                                                                            (force
+                                                                                                                                                                               ifThenElse
+                                                                                                                                                                               (equalsInteger
+                                                                                                                                                                                  0
+                                                                                                                                                                                  index)
+                                                                                                                                                                               (delay
+                                                                                                                                                                                  (constr 1
+                                                                                                                                                                                     [  ]))
+                                                                                                                                                                               (delay
+                                                                                                                                                                                  (force
+                                                                                                                                                                                     (force
+                                                                                                                                                                                        ifThenElse
+                                                                                                                                                                                        (equalsInteger
+                                                                                                                                                                                           1
+                                                                                                                                                                                           index)
+                                                                                                                                                                                        (delay
+                                                                                                                                                                                           (constr 0
+                                                                                                                                                                                              [ (`$dUnsafeFromData`
+                                                                                                                                                                                                   (force
+                                                                                                                                                                                                      headList
+                                                                                                                                                                                                      args)) ]))
+                                                                                                                                                                                        (delay
+                                                                                                                                                                                           (force
+                                                                                                                                                                                              (force
+                                                                                                                                                                                                 ifThenElse
+                                                                                                                                                                                                 (equalsInteger
+                                                                                                                                                                                                    2
+                                                                                                                                                                                                    index)
+                                                                                                                                                                                                 (delay
+                                                                                                                                                                                                    (constr 2
+                                                                                                                                                                                                       [  ]))
+                                                                                                                                                                                                 (delay
+                                                                                                                                                                                                    (traceError
+                                                                                                                                                                                                       "PT1"))))))))))
+                                                                                                                                                                         (force
+                                                                                                                                                                            (force
+                                                                                                                                                                               sndPair)
+                                                                                                                                                                            tup))
+                                                                                                                                                                      (force
+                                                                                                                                                                         (force
+                                                                                                                                                                            fstPair)
+                                                                                                                                                                         tup))
+                                                                                                                                                                   (unConstrData
+                                                                                                                                                                      d))))
+                                                                                                                                                        (delay
+                                                                                                                                                           (traceError
+                                                                                                                                                              "PT1"))))
+                                                                                                                                                  (force
+                                                                                                                                                     (force
+                                                                                                                                                        sndPair)
+                                                                                                                                                     tup))
+                                                                                                                                               (force
+                                                                                                                                                  (force
+                                                                                                                                                     fstPair)
+                                                                                                                                                  tup))
+                                                                                                                                            (unConstrData
+                                                                                                                                               (force
+                                                                                                                                                  headList
+                                                                                                                                                  l)))
+                                                                                                                                         ((\d ->
+                                                                                                                                             force
+                                                                                                                                               go
+                                                                                                                                               (unListData
+                                                                                                                                                  d))
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                            `$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                                                                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l))
+                                                                                                                                         (cse
+                                                                                                                                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                            (force
+                                                                                                                                               headList
+                                                                                                                                               l)))
+                                                                                                                                      (cse
+                                                                                                                                         (cse
+                                                                                                                                            unIData)))
+                                                                                                                                   (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                                                                                      unBData))
+                                                                                                                                (\d ->
+                                                                                                                                   d)
+                                                                                                                                (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                                                                                   (force
+                                                                                                                                      headList
+                                                                                                                                      (force
+                                                                                                                                         tailList
+                                                                                                                                         l))))
+                                                                                                                             (force
+                                                                                                                                tailList
+                                                                                                                                l))
+                                                                                                                          (force
+                                                                                                                             tailList
+                                                                                                                             l))
+                                                                                                                       (force
+                                                                                                                          tailList
+                                                                                                                          l))
+                                                                                                                    (force
+                                                                                                                       tailList
+                                                                                                                       l))
+                                                                                                                 (force
+                                                                                                                    tailList
+                                                                                                                    l))
+                                                                                                              (force
+                                                                                                                 tailList
+                                                                                                                 l))
+                                                                                                           (force
+                                                                                                              tailList
+                                                                                                              l))
+                                                                                                        (force
+                                                                                                           tailList
+                                                                                                           l))
+                                                                                                     (force
+                                                                                                        tailList
+                                                                                                        l))
+                                                                                                  (force
+                                                                                                     tailList
+                                                                                                     args)))
+                                                                                            (delay
+                                                                                               (traceError
+                                                                                                  "PT1"))))
+                                                                                      (force
+                                                                                         (force
+                                                                                            sndPair)
+                                                                                         tup))
+                                                                                   (force
+                                                                                      (force
+                                                                                         fstPair)
+                                                                                      tup))
+                                                                                (unConstrData
+                                                                                   (force
+                                                                                      headList
+                                                                                      args)))
+                                                                           , (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                                (force
+                                                                                   headList
+                                                                                   (force
+                                                                                      tailList
+                                                                                      args))) ])
+                                                                        (\d ->
+                                                                           (\tup ->
+                                                                              (\index ->
+                                                                                 (\args ->
+                                                                                    force
+                                                                                      (force
+                                                                                         ifThenElse
+                                                                                         (equalsInteger
+                                                                                            0
+                                                                                            index)
+                                                                                         (delay
+                                                                                            (constr 1
+                                                                                               [ (unBData
+                                                                                                    (force
+                                                                                                       headList
+                                                                                                       args)) ]))
+                                                                                         (delay
+                                                                                            (force
+                                                                                               (force
+                                                                                                  ifThenElse
+                                                                                                  (equalsInteger
+                                                                                                     1
+                                                                                                     index)
+                                                                                                  (delay
+                                                                                                     (constr 3
+                                                                                                        [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                                                             (force
+                                                                                                                headList
+                                                                                                                args)) ]))
+                                                                                                  (delay
+                                                                                                     (force
+                                                                                                        (force
+                                                                                                           ifThenElse
+                                                                                                           (equalsInteger
+                                                                                                              2
+                                                                                                              index)
+                                                                                                           (delay
+                                                                                                              (constr 2
+                                                                                                                 [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                                                      (force
+                                                                                                                         headList
+                                                                                                                         args)) ]))
+                                                                                                           (delay
+                                                                                                              (force
+                                                                                                                 (force
+                                                                                                                    ifThenElse
+                                                                                                                    (equalsInteger
+                                                                                                                       3
+                                                                                                                       index)
+                                                                                                                    (delay
+                                                                                                                       (constr 0
+                                                                                                                          [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                                                                                                               (force
+                                                                                                                                  headList
+                                                                                                                                  args)) ]))
+                                                                                                                    (delay
+                                                                                                                       (traceError
+                                                                                                                          "PT1")))))))))))))
+                                                                                   (force
+                                                                                      (force
+                                                                                         sndPair)
+                                                                                      tup))
+                                                                                (force
+                                                                                   (force
+                                                                                      fstPair)
+                                                                                   tup))
+                                                                             (unConstrData
+                                                                                d))))
+                                                                  (delay
+                                                                     (traceError
+                                                                        "PT1"))))
+                                                            (force
+                                                               (force sndPair)
+                                                               tup))
+                                                         (force (force fstPair)
+                                                            tup))
+                                                      (unConstrData ctx))
+                                                   [ (\ds
+                                                       ds ->
+                                                        case
+                                                          ds
+                                                          [ (\ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds
+                                                              ds ->
+                                                               force
+                                                                 ((\`$j` ->
+                                                                     case
+                                                                       ds
+                                                                       [ (delay
+                                                                            ((\x ->
+                                                                                case
+                                                                                  error
+                                                                                  [ (\a
+                                                                                      ds ->
+                                                                                       `$j`
+                                                                                         a
+                                                                                         ds) ])
+                                                                               (force
+                                                                                  trace
+                                                                                  "PT8"
+                                                                                  (constr 0
+                                                                                     [  ]))))
+                                                                       , (\x
+                                                                           ds ->
+                                                                            delay
+                                                                              (case
+                                                                                 x
+                                                                                 [ (\a
+                                                                                     ds ->
+                                                                                      `$j`
+                                                                                        a
+                                                                                        ds) ])) ])
+                                                                    (\a
+                                                                      ds ->
+                                                                       force
+                                                                         ((\`$j` ->
+                                                                             case
+                                                                               ds
+                                                                               [ (delay
+                                                                                    (`$j`
+                                                                                       (traceError
+                                                                                          "PT9")))
+                                                                               , (\ds
+                                                                                   as ->
+                                                                                    delay
+                                                                                      (`$j`
+                                                                                         as)) ])
+                                                                            (\rest ->
+                                                                               force
+                                                                                 ((\`$j` ->
+                                                                                     case
+                                                                                       rest
+                                                                                       [ (delay
+                                                                                            ((\x ->
+                                                                                                case
+                                                                                                  error
+                                                                                                  [ (\a
+                                                                                                      ds ->
+                                                                                                       `$j`
+                                                                                                         a
+                                                                                                         ds) ])
+                                                                                               (force
+                                                                                                  trace
+                                                                                                  "PT8"
+                                                                                                  (constr 0
+                                                                                                     [  ]))))
+                                                                                       , (\x
+                                                                                           ds ->
+                                                                                            delay
+                                                                                              (case
+                                                                                                 x
+                                                                                                 [ (\a
+                                                                                                     ds ->
+                                                                                                      `$j`
+                                                                                                        a
+                                                                                                        ds) ])) ])
+                                                                                    (\a
+                                                                                      ds ->
+                                                                                       (\obsScriptCred' ->
+                                                                                          (\`$fEqStakingCredential_$c==` ->
+                                                                                             (\go ->
+                                                                                                (\cse ->
+                                                                                                   force
+                                                                                                     (case
+                                                                                                        (cse
+                                                                                                           a)
+                                                                                                        [ (delay
+                                                                                                             (constr 0
+                                                                                                                [  ]))
+                                                                                                        , (delay
+                                                                                                             (force
+                                                                                                                (case
+                                                                                                                   (cse
+                                                                                                                      a)
+                                                                                                                   [ (delay
+                                                                                                                        (constr 0
+                                                                                                                           [  ]))
+                                                                                                                   , (delay
+                                                                                                                        (go
+                                                                                                                           ds)) ]))) ]))
+                                                                                                  (`$fEqStakingCredential_$c==`
+                                                                                                     obsScriptCred'))
+                                                                                               ((\s ->
+                                                                                                   s
+                                                                                                     s)
+                                                                                                  (\s
+                                                                                                    ds ->
+                                                                                                     force
+                                                                                                       (case
+                                                                                                          ds
+                                                                                                          [ (delay
+                                                                                                               ((\x ->
+                                                                                                                   error)
+                                                                                                                  (force
+                                                                                                                     trace
+                                                                                                                     "not found"
+                                                                                                                     (constr 0
+                                                                                                                        [  ]))))
+                                                                                                          , (\ds
+                                                                                                              xs' ->
+                                                                                                               delay
+                                                                                                                 (case
+                                                                                                                    ds
+                                                                                                                    [ (\c'
+                                                                                                                        i ->
+                                                                                                                         force
+                                                                                                                           (case
+                                                                                                                              (`$fEqStakingCredential_$c==`
+                                                                                                                                 c'
+                                                                                                                                 obsScriptCred')
+                                                                                                                              [ (delay
+                                                                                                                                   (constr 0
+                                                                                                                                      [  ]))
+                                                                                                                              , (delay
+                                                                                                                                   (s
+                                                                                                                                      s
+                                                                                                                                      xs')) ])) ])) ]))))
+                                                                                            (\ds
+                                                                                              ds ->
+                                                                                               case
+                                                                                                 ds
+                                                                                                 [ (\l ->
+                                                                                                      case
+                                                                                                        ds
+                                                                                                        [ (\r ->
+                                                                                                             (\equalsByteString ->
+                                                                                                                case
+                                                                                                                  l
+                                                                                                                  [ (\l ->
+                                                                                                                       case
+                                                                                                                         r
+                                                                                                                         [ (\r ->
+                                                                                                                              equalsByteString
+                                                                                                                                l
+                                                                                                                                r)
+                                                                                                                         , (\ipv ->
+                                                                                                                              constr 1
+                                                                                                                                [  ]) ])
+                                                                                                                  , (\a ->
+                                                                                                                       case
+                                                                                                                         r
+                                                                                                                         [ (\ipv ->
+                                                                                                                              constr 1
+                                                                                                                                [  ])
+                                                                                                                         , (\a' ->
+                                                                                                                              equalsByteString
+                                                                                                                                a
+                                                                                                                                a') ]) ])
+                                                                                                               (\x
+                                                                                                                 y ->
+                                                                                                                  force
+                                                                                                                    ifThenElse
+                                                                                                                    (equalsByteString
+                                                                                                                       x
+                                                                                                                       y)
+                                                                                                                    (constr 0
+                                                                                                                       [  ])
+                                                                                                                    (constr 1
+                                                                                                                       [  ])))
+                                                                                                        , (\ipv
+                                                                                                            ipv
+                                                                                                            ipv ->
+                                                                                                             constr 1
+                                                                                                               [  ]) ])
+                                                                                                 , (\a
+                                                                                                     b
+                                                                                                     c ->
+                                                                                                      case
+                                                                                                        ds
+                                                                                                        [ (\ipv ->
+                                                                                                             constr 1
+                                                                                                               [  ])
+                                                                                                        , (\a'
+                                                                                                            b'
+                                                                                                            c' ->
+                                                                                                             force
+                                                                                                               (force
+                                                                                                                  ifThenElse
+                                                                                                                  (equalsInteger
+                                                                                                                     a
+                                                                                                                     a')
+                                                                                                                  (delay
+                                                                                                                     (force
+                                                                                                                        (force
+                                                                                                                           ifThenElse
+                                                                                                                           (equalsInteger
+                                                                                                                              b
+                                                                                                                              b')
+                                                                                                                           (delay
+                                                                                                                              (force
+                                                                                                                                 ifThenElse
+                                                                                                                                 (equalsInteger
+                                                                                                                                    c
+                                                                                                                                    c')
+                                                                                                                                 (constr 0
+                                                                                                                                    [  ])
+                                                                                                                                 (constr 1
+                                                                                                                                    [  ])))
+                                                                                                                           (delay
+                                                                                                                              (constr 1
+                                                                                                                                 [  ])))))
+                                                                                                                  (delay
+                                                                                                                     (constr 1
+                                                                                                                        [  ])))) ]) ]))
+                                                                                         (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                            obsScriptCred)))))))) ]) ])
+                                                ((\s ->
+                                                    s s)
+                                                   (\s
+                                                     arg ->
+                                                      delay
+                                                        (caseList'
+                                                           (constr 0 [])
+                                                           (\x
+                                                             xs ->
+                                                              constr 1
+                                                                [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                     x)
+                                                                , (force
+                                                                     (s
+                                                                        s
+                                                                        (delay
+                                                                           (\x ->
+                                                                              x)))
+                                                                     xs) ])))
+                                                   (delay (\x -> x))))
+                                             ((\s ->
+                                                 s s)
+                                                (\s
+                                                  arg ->
+                                                   delay
+                                                     (caseList'
+                                                        (constr 0 [])
+                                                        (\x
+                                                          xs ->
+                                                           constr 1
+                                                             [ (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
+                                                                  x)
+                                                             , (force
+                                                                  (s
+                                                                     s
+                                                                     (delay
+                                                                        (\x ->
+                                                                           x)))
+                                                                  xs) ])))
+                                                (delay (\x -> x))))
+                                          (\d ->
+                                             (\tup ->
+                                                (\index ->
+                                                   (\args ->
+                                                      force
+                                                        (force
+                                                           ifThenElse
+                                                           (equalsInteger
+                                                              0
+                                                              index)
+                                                           (delay
+                                                              (constr 0
+                                                                 [ (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
+                                                                      (force
+                                                                         headList
+                                                                         args))
+                                                                 , (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                                      (force
+                                                                         headList
+                                                                         (force
+                                                                            tailList
+                                                                            args))) ]))
+                                                           (delay
+                                                              (traceError
+                                                                 "PT1"))))
+                                                     (force (force sndPair)
+                                                        tup))
+                                                  (force (force fstPair) tup))
+                                               (unConstrData d)))
+                                       (\d ->
+                                          (\tup ->
+                                             (\index ->
+                                                (\args ->
+                                                   force
+                                                     (force
+                                                        ifThenElse
+                                                        (equalsInteger 0 index)
+                                                        (delay
+                                                           (constr 0
+                                                              [ (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
+                                                                   (force
+                                                                      headList
+                                                                      args))
+                                                              , (unIData
+                                                                   (force
+                                                                      headList
+                                                                      (force
+                                                                         tailList
+                                                                         args))) ]))
+                                                        (delay
+                                                           (traceError "PT1"))))
+                                                  (force (force sndPair) tup))
+                                               (force (force fstPair) tup))
+                                            (unConstrData d)))
+                                    (\d ->
+                                       (\tup ->
+                                          (\index ->
+                                             (\args ->
+                                                force
+                                                  (force ifThenElse
+                                                     (equalsInteger 0 index)
+                                                     (delay
+                                                        (unBData
+                                                           (force headList
+                                                              args)))
+                                                     (delay
+                                                        (traceError "PT1"))))
+                                               (force (force sndPair) tup))
+                                            (force (force fstPair) tup))
+                                         (unConstrData d)))
+                                 ((\s ->
+                                     s s)
+                                    (\s
+                                      arg ->
+                                       delay
+                                         (caseList'
+                                            (constr 0 [])
+                                            (\x
+                                              xs ->
+                                               constr 1
+                                                 [ (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
+                                                      x)
+                                                 , (force
+                                                      (s s (delay (\x -> x)))
+                                                      xs) ])))
+                                    (delay (\x -> x))))
+                              (\eta ->
+                                 (\tup ->
+                                    (\index ->
+                                       (\args ->
+                                          force
+                                            (force
+                                               ifThenElse
+                                               (equalsInteger 0 index)
+                                               (delay
+                                                  ((\l ->
+                                                      (\l ->
+                                                         (\`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` ->
+                                                            (\cse ->
+                                                               constr 0
+                                                                 [ ((\tup ->
+                                                                       (\index ->
+                                                                          (\args ->
+                                                                             force
+                                                                               (force
+                                                                                  ifThenElse
+                                                                                  (equalsInteger
+                                                                                     0
+                                                                                     index)
+                                                                                  (delay
+                                                                                     (constr 0
+                                                                                        [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                                             (force
+                                                                                                headList
+                                                                                                args))
+                                                                                        , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                             `$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                                             (force
+                                                                                                headList
+                                                                                                (force
+                                                                                                   tailList
+                                                                                                   args))) ]))
+                                                                                  (delay
+                                                                                     (traceError
+                                                                                        "PT1"))))
+                                                                            (force
+                                                                               (force
+                                                                                  sndPair)
+                                                                               tup))
+                                                                         (force
+                                                                            (force
+                                                                               fstPair)
+                                                                            tup))
+                                                                      (unConstrData
+                                                                         (force
+                                                                            headList
+                                                                            args)))
+                                                                 , (cse
+                                                                      (cse
+                                                                         unIData)
+                                                                      (force
+                                                                         headList
+                                                                         l))
+                                                                 , ((\tup ->
+                                                                       (\index ->
+                                                                          (\args ->
+                                                                             force
+                                                                               (force
+                                                                                  ifThenElse
+                                                                                  (equalsInteger
+                                                                                     0
+                                                                                     index)
+                                                                                  (delay
+                                                                                     (constr 0
+                                                                                        [  ]))
+                                                                                  (delay
+                                                                                     (force
+                                                                                        (force
+                                                                                           ifThenElse
+                                                                                           (equalsInteger
+                                                                                              1
+                                                                                              index)
+                                                                                           (delay
+                                                                                              (constr 2
+                                                                                                 [ (unBData
+                                                                                                      (force
+                                                                                                         headList
+                                                                                                         args)) ]))
+                                                                                           (delay
+                                                                                              (force
+                                                                                                 (force
+                                                                                                    ifThenElse
+                                                                                                    (equalsInteger
+                                                                                                       2
+                                                                                                       index)
+                                                                                                    (delay
+                                                                                                       (constr 1
+                                                                                                          [ (force
+                                                                                                               headList
+                                                                                                               args) ]))
+                                                                                                    (delay
+                                                                                                       (traceError
+                                                                                                          "PT1"))))))))))
+                                                                            (force
+                                                                               (force
+                                                                                  sndPair)
+                                                                               tup))
+                                                                         (force
+                                                                            (force
+                                                                               fstPair)
+                                                                            tup))
+                                                                      (unConstrData
+                                                                         (force
+                                                                            headList
+                                                                            l)))
+                                                                 , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                      unBData
+                                                                      (force
+                                                                         headList
+                                                                         (force
+                                                                            tailList
+                                                                            l))) ])
+                                                              (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                                                 unBData))
+                                                           (\`$dUnsafeFromData`
+                                                             d ->
+                                                              (\tup ->
+                                                                 (\index ->
+                                                                    (\args ->
+                                                                       force
+                                                                         (force
+                                                                            ifThenElse
+                                                                            (equalsInteger
+                                                                               1
+                                                                               index)
+                                                                            (delay
+                                                                               (constr 1
+                                                                                  [  ]))
+                                                                            (delay
+                                                                               (force
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        0
+                                                                                        index)
+                                                                                     (delay
+                                                                                        (constr 0
+                                                                                           [ (`$dUnsafeFromData`
+                                                                                                (force
+                                                                                                   headList
+                                                                                                   args)) ]))
+                                                                                     (delay
+                                                                                        (traceError
+                                                                                           "PT1")))))))
+                                                                      (force
+                                                                         (force
+                                                                            sndPair)
+                                                                         tup))
+                                                                   (force
+                                                                      (force
+                                                                         fstPair)
+                                                                      tup))
+                                                                (unConstrData
+                                                                   d)))
+                                                        (force tailList l))
+                                                     (force tailList args)))
+                                               (delay (traceError "PT1"))))
+                                         (force (force sndPair) tup))
+                                      (force (force fstPair) tup))
+                                   (unConstrData eta)))
+                           (\`$dUnsafeFromData` `$dUnsafeFromData` ->
+                              (\go d -> force go (unMapData d))
+                                ((\s -> s s)
+                                   (\s arg ->
+                                      delay
+                                        (caseList'
+                                           (constr 0 [])
+                                           (\tup tups ->
+                                              constr 1
+                                                [ (constr 0
+                                                     [ (`$dUnsafeFromData`
+                                                          (force (force fstPair)
+                                                             tup))
+                                                     , (`$dUnsafeFromData`
+                                                          (force (force sndPair)
+                                                             tup)) ])
+                                                , (force (s s (delay (\x -> x)))
+                                                     tups) ])))
+                                   (delay (\x -> x)))))
+                        ((\s ->
+                            s s)
+                           (\s
+                             arg ->
+                              delay
+                                (caseList'
+                                   (constr 0 [])
+                                   (\x
+                                     xs ->
+                                      constr 1
+                                        [ (`$fUnsafeFromDataDCert_$cunsafeFromBuiltinData`
+                                             x)
+                                        , (force (s s (delay (\x -> x)))
+                                             xs) ])))
+                           (delay (\x -> x))))
+                     (\d ->
+                        (\tup ->
+                           (\index ->
+                              (\args ->
+                                 force
+                                   (force
+                                      ifThenElse
+                                      (equalsInteger 0 index)
+                                      (delay
+                                         (constr 2
+                                            [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                 (force headList args)) ]))
+                                      (delay
+                                         (force
+                                            (force
+                                               ifThenElse
+                                               (equalsInteger 1 index)
+                                               (delay
+                                                  (constr 0
+                                                     [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                          (force headList
+                                                             args)) ]))
+                                               (delay
+                                                  (force
+                                                     (force
+                                                        ifThenElse
+                                                        (equalsInteger 2 index)
+                                                        (delay
+                                                           (constr 1
+                                                              [ (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
+                                                                   (force
+                                                                      headList
+                                                                      args))
+                                                              , (unBData
+                                                                   (force
+                                                                      headList
+                                                                      (force
+                                                                         tailList
+                                                                         args))) ]))
+                                                        (delay
+                                                           (force
+                                                              (force
+                                                                 ifThenElse
+                                                                 (equalsInteger
+                                                                    3
+                                                                    index)
+                                                                 (delay
+                                                                    (constr 5
+                                                                       [ (unBData
+                                                                            (force
+                                                                               headList
+                                                                               args))
+                                                                       , (unBData
+                                                                            (force
+                                                                               headList
+                                                                               (force
+                                                                                  tailList
+                                                                                  args))) ]))
+                                                                 (delay
+                                                                    (force
+                                                                       (force
+                                                                          ifThenElse
+                                                                          (equalsInteger
+                                                                             4
+                                                                             index)
+                                                                          (delay
+                                                                             (constr 6
+                                                                                [ (unBData
+                                                                                     (force
+                                                                                        headList
+                                                                                        args))
+                                                                                , (unIData
+                                                                                     (force
+                                                                                        headList
+                                                                                        (force
+                                                                                           tailList
+                                                                                           args))) ]))
+                                                                          (delay
+                                                                             (force
+                                                                                (force
+                                                                                   ifThenElse
+                                                                                   (equalsInteger
+                                                                                      5
+                                                                                      index)
+                                                                                   (delay
+                                                                                      (constr 3
+                                                                                         [  ]))
+                                                                                   (delay
+                                                                                      (force
+                                                                                         (force
+                                                                                            ifThenElse
+                                                                                            (equalsInteger
+                                                                                               6
+                                                                                               index)
+                                                                                            (delay
+                                                                                               (constr 4
+                                                                                                  [  ]))
+                                                                                            (delay
+                                                                                               (traceError
+                                                                                                  "PT1"))))))))))))))))))))))
+                                (force (force sndPair) tup))
+                             (force (force fstPair) tup))
+                          (unConstrData d)))
+                  (\d ->
+                     (\tup ->
+                        (\index ->
+                           (\args ->
+                              force
+                                (force
+                                   ifThenElse
+                                   (equalsInteger 0 index)
+                                   (delay
+                                      (constr 0
+                                         [ (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                              (force headList args)) ]))
+                                   (delay
+                                      (force
+                                         (force ifThenElse
+                                            (equalsInteger 1 index)
+                                            (delay
+                                               ((\l ->
+                                                   constr 1
+                                                     [ (unIData
+                                                          (force headList args))
+                                                     , (unIData
+                                                          (force headList l))
+                                                     , (unIData
+                                                          (force headList
+                                                             (force tailList
+                                                                l))) ])
+                                                  (force tailList args)))
+                                            (delay (traceError "PT1")))))))
+                             (force (force sndPair) tup))
+                          (force (force fstPair) tup))
+                       (unConstrData d)))
+               (\d ->
+                  (\tup ->
+                     (\index ->
+                        (\args ->
+                           force
+                             (force ifThenElse
+                                (equalsInteger 0 index)
+                                (delay
+                                   (constr 0 [(unBData (force headList args))]))
+                                (delay
+                                   (force
+                                      (force ifThenElse
+                                         (equalsInteger 1 index)
+                                         (delay
+                                            (constr 1
+                                               [ (unBData
+                                                    (force headList args)) ]))
+                                         (delay (traceError "PT1")))))))
+                          (force (force sndPair) tup))
+                       (force (force fstPair) tup))
+                    (unConstrData d)))
+            (\str -> (\x -> error) (force trace str (constr 0 []))))
+         ((\s -> s s)
+            (\s arg ->
+               delay
+                 (caseList'
+                    (constr 0 [])
+                    (\x xs ->
+                       constr 1
+                         [(unBData x), (force (s s (delay (\x -> x))) xs)])))
+            (delay (\x -> x))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

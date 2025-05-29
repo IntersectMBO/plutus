@@ -53,7 +53,8 @@ open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
-import IO.Primitive.Core as IO
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; SimplifierTag)
+open import Agda.Builtin.Sigma using (Σ; _,_)
 ```
 
 ## Compiler optimisation traces
@@ -62,7 +63,7 @@ A `Trace` represents a sequence of optimisation transformations applied to a pro
 and a tag (`SimplifierTag`), where each pair represents the before and after of a transformation application and the
 tag indicates which transformation was applied.
 The `Transformation` type is a sum type that represents the possible transformations which are implemented in their
-respective modules. 
+respective modules.
 
 The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
 list of ASTs are in relation with one another according to the transformations implemented in the project.
@@ -74,67 +75,51 @@ element of the next pair in the list. This might not be necessary if we decide t
 which produces a `Trace` always produces a correct one, although it might be useful to make this explicit in the type.
 ```
 
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-
-{-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
-
 data Transformation : SimplifierTag → Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation caseOfCaseT ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation forceDelayT ast ast'
-  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation floatDelayT ast ast'
-  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation cseT ast ast'
-  -- TODO: the decision procedure for Inline is broken, so we leave it as "not implemented"
-  -- isUInline : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UInline.UInline ast ast' → Transformation inlineT ast ast'
-  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation inlineT ast ast'
-  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation caseReduceT ast ast'
+  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation SimplifierTag.caseOfCaseT ast ast'
+  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
+  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
+  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
+  -- FIXME: Inline currently rejects some valid translations so is disabled.
+  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
   cons
-    : {X : Set}{{_ : DecEq X}} 
+    : {X : Set}{{_ : DecEq X}}
     {tag : SimplifierTag} {x x' : X ⊢}
     {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → (ast ast' : X ⊢) → Nary.Decidable (Transformation tag ast ast')
+isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
 isTransformation? tag ast ast' with tag
-isTransformation? tag ast ast' | floatDelayT with UFlD.isFloatDelay? ast ast'
-... | no ¬p = no λ { (isFlD x) → ¬p x }
-... | yes p = yes (isFlD p)
-isTransformation? tag ast ast' | forceDelayT with UFD.isForceDelay? ast ast'
-... | no ¬p = no λ { (isFD x) → ¬p x }
-... | yes p = yes (isFD p)
-isTransformation? tag ast ast' | caseOfCaseT with UCC.isCaseOfCase? ast ast'
-... | no ¬p = no λ { (isCoC x) → ¬p x }
-... | yes p = yes (isCoC p)
--- isTransformation? tag ast ast' | caseReduceT = yes caseReduceNotImplemented
-isTransformation? tag ast ast' | caseReduceT with UCR.isCaseReduce? ast ast'
-... | no ¬p = no λ { (isCaseReduce x) → ¬p x }
-... | yes p = yes (isCaseReduce p)
-isTransformation? tag ast ast' | inlineT = yes inlineNotImplemented
--- isTransformation? tag ast ast' | inlineT with UInline.isInline? ast ast'
--- ... | no ¬p = no λ { (isUInline x) → ¬p x }
--- ... | yes p = yes (isUInline p)
-isTransformation? tag ast ast' | cseT with UCSE.isUntypedCSE? ast ast'
-... | no ¬p = no λ { (isCSE x) → ¬p x }
-... | yes p = yes (isCSE p)
+isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
+... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
+... | proof p = proof (isFlD p)
+isTransformation? tag ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
+... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
+... | proof p = proof (isFD p)
+isTransformation? tag ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
+... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
+... | proof p = proof (isCoC p)
+isTransformation? tag ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce? ast ast'
+... | ce ¬p t b a = ce (λ { (isCaseReduce x) → ¬p x}) t b a
+... | proof p = proof (isCaseReduce p)
+isTransformation? tag ast ast' | SimplifierTag.inlineT = proof inlineNotImplemented
+isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
+... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
+... | proof p = proof (isCSE p)
 
-isTrace? : {X : Set} {{_ : DecEq X}} → Unary.Decidable (Trace {X})
-isTrace? [] = yes empty
-isTrace? ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
-... | no ¬pₜ = no λ {(cons _ rest) → ¬pₜ rest}
-... | yes pₜ with isTransformation? tag x₁ x₂
-...                 | no ¬pₑ = no λ {(cons x _) → ¬pₑ x}
-...                 | yes pₑ = yes (cons pₑ pₜ)
+isTrace? : {X : Set} {{_ : DecEq X}} → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
+isTrace? [] = proof empty
+isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
+... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
+... | proof pₜ with isTransformation? {X} tag x₁ x₂
+...                 | ce ¬p t b a = ce (λ { (cons x xx) → ¬p x}) t b a
+...                 | proof pₑ = proof (cons pₑ pₜ)
 
 
 ```
@@ -180,30 +165,35 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
 ... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
 
-data Proof : Set₁ where
-  proof
+data Cert : Set₂ where
+  cert
     : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
-    → Dec (Trace {X} result)
-    → Proof
+    → ProofOrCE (Trace {X} result)
+    → Cert
 
-runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Proof
+runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Cert
 runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
 ... | inj₁ _ = nothing
-... | inj₂ inputTrace = just (proof (isTrace? inputTrace))
+... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
+
+getCE : {A B : Set} → Maybe Cert → Maybe (Σ _ \A → (Σ _ \B → (SimplifierTag × A × B)))
+getCE nothing = nothing
+getCE (just (cert (proof _))) = nothing
+getCE (just (cert (ce _ {X} {X'} t b a))) = just (X , X' , t , b , a)
 
 open import Data.Bool.Base using (Bool; false; true)
 open import Agda.Builtin.Equality using (_≡_; refl)
 
-passed? : Maybe Proof → Bool
-passed? (just (proof (no ¬a))) = false
-passed? (just (proof (yes a))) = true
+passed? : Maybe Cert → Bool
+passed? (just (cert (ce _ _ _ _))) = false
+passed? (just (cert (proof _))) = true
 passed? nothing = false
 
 runCertifierMain : List (SimplifierTag × Untyped × Untyped) → IO ⊤
 runCertifierMain asts with runCertifier asts
-... | just (proof (yes a)) = 
+... | just (cert (proof a)) =
   putStrLn "The compilation was successfully certified."
-... | just (proof (no ¬a)) = 
+... | just (cert (ce ¬p t b a)) =
   putStrLn "The compilation was not successfully certified. Please open a bug report at https://www.github.com/IntersectMBO/plutus and attach the faulty certificate."
 ... | nothing =
   putStrLn "The certifier was unable to check the compilation. Please open a bug report at https://www.github.com/IntersectMBO/plutus."

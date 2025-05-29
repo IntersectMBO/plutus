@@ -16,6 +16,7 @@ import PlutusCore.Annotation
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
+import PlutusCore.Size (Size)
 import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (termSize)
@@ -159,28 +160,32 @@ supply, and the performance cost does not currently seem relevant. So it's fine.
 inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePassSC ic tcconfig hints binfo =
-    renamePass <> inlinePass ic tcconfig hints binfo
+inlinePassSC thresh ic tcconfig hints binfo =
+    renamePass <> inlinePass thresh ic tcconfig hints binfo
 
 inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePass ic tcconfig hints binfo =
+inlinePass thresh ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
-      (inline ic hints binfo )
+      (inline thresh ic hints binfo )
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
@@ -189,15 +194,17 @@ inlinePass ic tcconfig hints binfo =
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => Bool
+    => Size
+    -- ^ inline threshold
+    -> Bool
     -- ^ should we inline constants?
     -> InlineHints name ann
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline ic hints binfo t = let
+inline thresh ic hints binfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo ic
+        inlineInfo = InlineInfo vinfo usgs hints binfo ic thresh
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
