@@ -206,6 +206,8 @@ open HsEq {{...}} public
 instance
   HsEqBytestring : HsEq U.ByteString
   HsEqBytestring = record { hsEq = U.eqByteString }
+  HsEqArray : {A : Set} → HsEq (U.Array A)
+  HsEqArray = record { hsEq = U.eqArray }
   HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
   HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
   HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
@@ -260,14 +262,7 @@ decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t �
 ... | yes refl with decEq-⟦ _⊢♯.list t ⟧tag v v₁
 ...                  | yes refl = yes refl
 ...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
-decEq-⟦ _⊢♯.array t ⟧tag U.[] U.[] = yes refl
-decEq-⟦ _⊢♯.array t ⟧tag U.[] (x U.∷ v₁) = no λ ()
-decEq-⟦ _⊢♯.array t ⟧tag (x U.∷ v) U.[] = no (λ ())
-decEq-⟦ _⊢♯.array t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t ⟧tag x x₁
-... | no ¬x=x₁ = no λ { refl → ¬x=x₁ refl }
-... | yes refl with decEq-⟦ _⊢♯.array t ⟧tag v v₁
-...                  | yes refl = yes refl
-...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
+decEq-⟦ _⊢♯.array t ⟧tag = builtinEq
 decEq-⟦ _⊢♯.pair t t₁ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₁ ⟧tag proj₂ proj₄)
 ... | yes ( refl , refl ) = yes refl
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }

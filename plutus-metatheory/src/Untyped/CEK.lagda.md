@@ -366,10 +366,14 @@ BUILTIN listToArray = λ
     ; _ -> inj₁ userError
   }
 BUILTIN indexArray = λ
-  { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer n)) → case (Utils.indexArray as n) of λ
-         { (just v) -> inj₂ (V-con t v)
-           ; nothing -> inj₁ userError
-         }
+  { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer i)) →
+      case Data.Integer.ℤ.pos 0 ≤? i of λ
+        { (no  _) -> inj₁ userError
+        ; (yes _) -> case i <? Utils.lengthOfArray as of λ
+          { (no _)  -> inj₁ userError
+          ; (yes _) -> inj₂ (V-con t (Utils.indexArray as i))
+          }
+        }
     ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ

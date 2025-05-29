@@ -76,6 +76,10 @@ defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementSize 
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementSize x
 defaultConstantMeasure (tmCon (list t) []) = 1
 defaultConstantMeasure (tmCon (list t) l) = Utils.length l
+defaultConstantMeasure (tmCon (array t) a) with Utils.lengthOfArray a
+... | ℤ.pos ℕ.zero = 1
+... | ℤ.pos (ℕ.suc n) = ℕ.suc n
+... | ℤ.negsuc n = 1
 defaultConstantMeasure (tmCon (pair t u) (x , y)) = 1
 
 -- This is the main sizing function for Values

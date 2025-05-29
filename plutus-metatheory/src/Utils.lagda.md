@@ -246,40 +246,27 @@ infixr 5 _∷_
 ```
 ## Arrays
 
-The implementation of Arrays is single dimensional, so they are just Vectors,
-but Agda Vectors require a size parameter which we don't have and can't infer.
 ```
-open import Agda.Primitive using (Level)
 
-variable
-  𝓁 : Level
-  A : Set 𝓁
-  n : ℕ
+postulate Array : Set → Set
+{-# FOREIGN GHC import qualified Data.Vector.Strict as Strict #-}
+{-# COMPILE GHC Array = type Strict.Vector #-}
 
-data Array (A : Set) : Set where
-  [] : Array A
-  _∷_ : A → Array A → Array A
+variable A : Set
 
-lengthOfArray : Array A → ℤ
-lengthOfArray [] = + zero
-lengthOfArray (x ∷ as) with lengthOfArray as
-... | +_ n = + (suc n)
-... | ℤ.negsuc n = ℤ.negsuc n -- This should never occur...
+postulate
+  lengthOfArray : Array A → ℤ
+  listToArray : (ls : List A) → Array A
+  indexArray : Array A → ℤ → A
 
-listToArray : (ls : List A) → Array A
-listToArray [] = []
-listToArray (x ∷ ls) = x ∷ (listToArray ls)
-
--- This returns Maybe A, but that is then handled in the CEK evaluator
--- to produce an Error term if the lookup fails.
--- It obviously ins't constant time, but that's fine for semantics proofs.
-indexArray : Array A → ℤ → Maybe A
-indexArray [] n = nothing
-indexArray (x ∷ as) (+ zero) = just x
-indexArray (x ∷ as) (+ (suc n)) = indexArray as (+ n)
-indexArray (x ∷ as) (ℤ.negsuc n) = nothing
-
-{-# COMPILE GHC Array = data Vector (Vector.empty | Vector.cons) #-}
+-- This uses the same mechanism as eqBytestring above.
+-- This is only used in the decidable equality function which also
+-- uses `refl` to unify the two sides and defacto confirms or refutes
+-- structural equality.
+eqArray : Array A → Array A → Bool
+eqArray _ _ = Bool.true
+{-# FOREIGN GHC import Data.Vector (liftEq) #-}
+{-# COMPILE GHC eqArray = liftEq (==) #-}
 
 ```
 ## DATA
