@@ -12,6 +12,7 @@ import PlutusBenchmark.Lists.Sum.Compiled qualified as Sum.Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as Sum.HandWritten
 import PlutusLedgerApi.Common (EvaluationContext)
 
+import Control.DeepSeq (force)
 import Control.Exception
 import Data.Functor
 
@@ -43,11 +44,11 @@ benchmarks ctx =
     where
       mkBMsForSort name f =
         bgroup name $ sizesForSort <&> \n ->
-          bench (show n) $ benchTermCek ctx (f n)
+          let !t = force $ f n in bench (show n) $ benchTermCek ctx t
       sizesForSort = [50, 100..300]
       mkBMsForSum name f =
         bgroup name $ sizesForSum <&> \n ->
-          bench (show n) $ benchTermCek ctx (f [1..n])
+          let !t = force $ f [1..n] in bench (show n) $ benchTermCek ctx t
       sizesForSum = [100, 500, 1000, 2500, 5000]
 
 main :: IO ()
