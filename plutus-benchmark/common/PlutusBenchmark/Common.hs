@@ -47,7 +47,6 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-import Control.DeepSeq (force)
 import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
@@ -137,8 +136,7 @@ evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLike
 
 benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
 benchTermCek evalCtx term =
-    let !term' = force term
-    in whnf (evaluateCekForBench evalCtx) term'
+    whnf (evaluateCekForBench evalCtx) term
 
 benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
 benchProgramCek evalCtx (UPLC.Program _ _ term) =

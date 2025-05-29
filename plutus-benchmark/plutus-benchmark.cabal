@@ -230,6 +230,7 @@ benchmark lists
   build-depends:
     , base                     >=4.9     && <5
     , criterion                >=1.5.9.0
+    , deepseq
     , lists-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.46
