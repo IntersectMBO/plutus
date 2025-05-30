@@ -265,8 +265,8 @@ postulate
 -- structural equality.
 eqArray : Array A → Array A → Bool
 eqArray _ _ = Bool.true
-{-# FOREIGN GHC import Data.Vector (liftEq) #-}
-{-# COMPILE GHC eqArray = liftEq (==) #-}
+-- This has to consume the hidden {A : Set} param in the Agda.
+{-# COMPILE GHC eqArray = \() -> (==) #-}
 
 ```
 ## DATA

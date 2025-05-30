@@ -32,7 +32,6 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import Raw
 import qualified Data.ByteString as BS
 import qualified Data.Vector.Strict as Strict
-import Data.Vector (Eq1)
 import PlutusCore.Data as D
 import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
 import qualified PlutusCore.Crypto.BLS12_381.G2 as G2
@@ -543,7 +542,7 @@ d_indexArray_488
 -- Utils.eqArray
 d_eqArray_490 ::
   forall xA. () -> T_Array_478 xA -> T_Array_478 xA -> Bool
-d_eqArray_490 = Eq1.liftEq (==)
+d_eqArray_490 = \() -> (==)
 -- Utils.DATA
 d_DATA_492 = ()
 type T_DATA_492 = Data
