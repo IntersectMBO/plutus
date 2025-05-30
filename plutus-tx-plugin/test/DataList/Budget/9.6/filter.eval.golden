@@ -1,5 +1,5 @@
-cpu: 11010487
-mem: 45214
-size: 69
+CPU:              11_010_487
+Memory:               45_214
+Size:                     69
 
 (con (list data) [I 8, I 9, I 10])
