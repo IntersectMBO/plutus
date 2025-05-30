@@ -57,9 +57,8 @@ import UntypedPlutusCore qualified as UPLC
 import Control.Exception
 import Control.Lens hiding (lifted)
 import Control.Monad (void)
-import Control.Monad.Except (ExceptT, MonadError, liftEither, runExceptT)
+import Control.Monad.Except (ExceptT, MonadError, modifyError, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Bifunctor
 import Data.Default.Class
 import Data.Hashable
 import Data.Proxy
@@ -71,14 +70,10 @@ import Prelude as Haskell
 PIR and UPLC optimization options.
 -}
 safeLiftWith
-  :: forall a e uni fun m
+  :: forall a uni fun m
    . ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -99,7 +94,7 @@ safeLiftWith
   -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLiftWith f g v x = do
   pir <- liftQuote $ runDefT () $ Lift.lift x
-  tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
+  tcConfig <- modifyError (PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig $ Original ()
   let ccConfig =
         toDefaultCompilationCtx tcConfig
           & over ccOpts f
@@ -112,21 +107,18 @@ safeLiftWith f g v x = do
       ucOpts = g PLC.defaultCompilationOpts
   plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
   uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
-  UPLC.Program _ _ db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
+  UPLC.Program _ _ db <-
+    modifyError (PLCError . PLC.FreeVariableErrorE) $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
   pure (void pir, void db)
 
 {-| Get a Plutus Core term corresponding to the given value, applying default PIR/UPLC
 optimizations.
 -}
 safeLift
-  :: forall a e uni fun m
+  :: forall a uni fun m
    . ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -147,14 +139,10 @@ safeLift = safeLiftWith id id
 where lifting speed is more important than optimal code.
 -}
 safeLiftUnopt
-  :: forall a e uni fun m
+  :: forall a uni fun m
    . ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
@@ -181,12 +169,8 @@ optimizations.
 -}
 safeLiftProgram
   :: ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -208,12 +192,8 @@ where lifting speed is more important than optimal code.
 -}
 safeLiftProgramUnopt
   :: ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -232,12 +212,8 @@ safeLiftProgramUnopt v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safe
 
 safeLiftCode
   :: ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -262,12 +238,8 @@ where lifting speed is more important than optimal code.
 -}
 safeLiftCodeUnopt
   :: ( Lift.Lift uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
      , PLC.GEq uni
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
@@ -477,12 +449,9 @@ iff the original term has the given type. We opt for `(\x : <the type> -> x) ter
 
 -- | Check that PLC term has the given type.
 typeCheckAgainst
-  :: forall e a uni fun m
+  :: forall a uni fun m
    . ( Lift.Typeable uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PIR.AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Typecheckable uni fun
@@ -508,29 +477,21 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
   -- Here we use a 'Default' builtin semantics variant, because the
   -- typechecker needs to be handed a builtin semantics variant (implementation detail).
   -- See Note [Builtin semantics variants]
-  tcConfig <- PLC.getDefTypeCheckConfig (Original ())
+  tcConfig <- modifyError (PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig (Original ())
   -- The PIR compiler *pointfully* needs a builtin semantics variant, but in
   -- this instance of only "lifting" it is safe to default to any builtin
   -- semantics variant, since the 'Lift' is impervious to builtins and will
   -- not generate code containing builtins.  See Note [Builtin semantics variants]
   compiled <-
     flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
-  -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
-  -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
-  plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled
-  -- note: e is a scoped tyvar acting here AsError e uni (Provenance ())
-  let plcPrismatic = first (view (re PIR._PLCError)) plcConcrete
-  liftEither plcPrismatic -- embed prismatic-either to a monaderror
+
+  void $ modifyError (PLCError . PLC.TypeErrorE) $ PLC.inferTypeOfProgram tcConfig compiled
 
 -- | Try to interpret a PLC program as a 'CompiledCodeIn' of the given type. Returns successfully iff the program has the right type.
 typeCode
-  :: forall e a uni fun m
+  :: forall a uni fun m
    . ( Lift.Typeable uni a
-     , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
-     , PIR.AsTypeErrorExt e uni (Provenance ())
-     , PLC.AsFreeVariableError e
-     , PIR.AsError e uni fun (Provenance ())
-     , MonadError e m
+     , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Typecheckable uni fun
@@ -551,5 +512,7 @@ typeCode p prog = do
   compiled <-
     flip runReaderT PLC.defaultCompilationOpts $
       PLC.compileProgram prog
-  db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
+  db <-
+    modifyError (PLCError . PLC.FreeVariableErrorE) $
+      traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
   pure $ DeserializedCode (mempty <$ db) Nothing mempty

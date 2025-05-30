@@ -88,16 +88,16 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base                 >=4.9   && <5
+    , base                         >=4.9   && <5
     , bytestring
     , criterion
     , deepseq
     , directory
     , filepath
-    , flat                 ^>=0.6
-    , plutus-core          ^>=1.46
-    , plutus-ledger-api    ^>=1.46
-    , plutus-tx-test-util
+    , flat                         ^>=0.6
+    , plutus-core                  ^>=1.46
+    , plutus-ledger-api            ^>=1.46
+    , plutus-tx:plutus-tx-testlib
     , tasty
     , tasty-golden
     , temporary
@@ -465,8 +465,6 @@ test-suite plutus-benchmark-script-contexts-tests
 
   build-depends:
     , base                             >=4.9   && <5
-    , plutus-benchmark-common
-    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.46
     , plutus-tx-plugin                 ^>=1.46
@@ -474,7 +472,6 @@ test-suite plutus-benchmark-script-contexts-tests
     , script-contexts-internal
     , tasty
     , tasty-hunit
-    , text
 
 ---------------- Marlowe scripts ----------------
 

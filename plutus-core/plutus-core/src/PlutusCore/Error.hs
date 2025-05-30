@@ -12,19 +12,13 @@
 
 module PlutusCore.Error
     ( ParserError (..)
-    , AsParserErrorBundle (..)
     , ParserErrorBundle (..)
     , NormCheckError (..)
-    , AsNormCheckError (..)
     , UniqueError (..)
-    , AsUniqueError (..)
     , ExpectedShapeOr (..)
     , TypeError (..)
-    , AsTypeError (..)
     , FreeVariableError (..)
-    , AsFreeVariableError (..)
     , Error (..)
-    , AsError (..)
     , throwingEither
     , ShowErrorComponent (..)
     , ApplyProgramError (..)
@@ -136,6 +130,7 @@ data TypeError term uni fun ann
 
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.
+-- TODO: this can be killed
 data ParserErrorBundle
     = ParseErrorB !(ParseErrorBundle T.Text ParserError)
     deriving stock (Eq, Generic)
@@ -289,29 +284,6 @@ instance (PrettyUni uni, Pretty fun, Pretty ann) =>
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
-
-makeClassyPrisms ''ParseError
-makeClassyPrisms ''ParserErrorBundle
-makeClassyPrisms ''UniqueError
-makeClassyPrisms ''NormCheckError
-makeClassyPrisms ''TypeError
-makeClassyPrisms ''Error
-
-instance AsParserErrorBundle (Error uni fun ann) where
-    _ParserErrorBundle = _ParseErrorE
-
-instance AsUniqueError (Error uni fun ann) ann where
-    _UniqueError = _UniqueCoherencyErrorE
-
-instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann where
-    _TypeError = _TypeErrorE
-
-instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
-    _NormCheckError = _NormCheckErrorE
-
-instance AsFreeVariableError (Error uni fun ann) where
-    _FreeVariableError = _FreeVariableErrorE
 
 -- | Errors from `applyProgram` for PIR, PLC, UPLC.
 data ApplyProgramError =

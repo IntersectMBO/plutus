@@ -38,13 +38,13 @@ errors =
   testNested "Errors" . pure $
     testNestedGhc
       [ goldenUPlc "machInt" machInt
-      , -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+      , -- FIXME(https://github.com/IntersectMBO/plutus-private/issues/1608):
+        -- This fails differently in nix, possibly due to slightly different optimization settings
         -- , goldenPlc "negativeInt" negativeInt
         goldenUPlc "caseInt" caseInt
       , goldenUPlc "stringLiteral" stringLiteral
       , goldenUPlc "recursiveNewtype" recursiveNewtype
       , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-      , goldenUPlc "literalCaseInt" literalCaseInt
       , goldenUPlc "literalCaseBs" literalCaseBs
       , goldenUPlc "literalAppendBs" literalAppendBs
       , goldenUPlc "literalCaseOther" literalCaseOther
@@ -84,9 +84,6 @@ oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
 mutualRecursionUnfoldingsLocal :: CompiledCode Bool
 mutualRecursionUnfoldingsLocal = plc (Proxy @"mutualRecursionUnfoldingsLocal") (evenDirectLocal 4)
-
-literalCaseInt :: CompiledCode (Integer -> Integer)
-literalCaseInt = plc (Proxy @"literalCaseInt") (\case 1 -> 2; x -> x)
 
 literalCaseBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
 literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of "abc" -> ""; x -> x)

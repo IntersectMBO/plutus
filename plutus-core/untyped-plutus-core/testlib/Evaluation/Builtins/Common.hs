@@ -57,7 +57,7 @@ import Test.Tasty.QuickCheck (Property, property, (===))
 
 -- | Type check and evaluate a term.
 typecheckAnd
-    :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
+    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinSemanticsVariant fun
@@ -77,7 +77,7 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
-    :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
+    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        )
@@ -91,7 +91,7 @@ typecheckEvaluateCek semvar =
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
-    :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
+    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        )
@@ -105,7 +105,7 @@ typecheckEvaluateCekNoEmit semvar =
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
-    :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
+    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        , CaseBuiltin (UPLC.Term UPLC.NamedDeBruijn uni fun ()) uni
        , ReadKnown (UPLC.Term Name uni fun ()) a
@@ -121,7 +121,7 @@ typecheckReadKnownCek semvar =
 -- TPLC/UPLC utilities
 
 type PlcTerm  = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
-type PlcError = TPLC.Error TPLC.DefaultUni TPLC.DefaultFun ()
+type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
 type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 
 -- Possible CEK evluation results, flattened out

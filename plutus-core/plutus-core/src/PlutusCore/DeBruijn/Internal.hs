@@ -20,7 +20,6 @@ module PlutusCore.DeBruijn.Internal
   , TyDeBruijn (..)
   , NamedTyDeBruijn (..)
   , FreeVariableError (..)
-  , AsFreeVariableError (..)
   , Level (..)
   , LevelInfo (..)
   , declareUnique
@@ -51,7 +50,6 @@ import PlutusCore.Quote
 
 import Control.Exception
 import Control.Lens hiding (Index, Level, index, ix)
-import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -347,14 +345,12 @@ deBruijnToTyName
 deBruijnToTyName h (NamedTyDeBruijn n) = TyName <$> deBruijnToName h n
 
 -- | The default handler of throwing an error upon encountering a free name (unique).
-freeUniqueThrow :: (AsFreeVariableError e, MonadError e m) => Unique -> m Index
-freeUniqueThrow =
-  throwing _FreeVariableError . FreeUnique
+freeUniqueThrow :: (MonadError FreeVariableError m) => Unique -> m Index
+freeUniqueThrow = throwError . FreeUnique
 
 -- | The default handler of throwing an error upon encountering a free debruijn index.
-freeIndexThrow :: (AsFreeVariableError e, MonadError e m) => Index -> m Unique
-freeIndexThrow =
-  throwing _FreeVariableError . FreeIndex
+freeIndexThrow :: (MonadError FreeVariableError m) => Index -> m Unique
+freeIndexThrow = throwError . FreeIndex
 
 {- | A different implementation of a handler,  where "free" debruijn indices do not throw an error
 but are instead gracefully converted to fresh uniques.

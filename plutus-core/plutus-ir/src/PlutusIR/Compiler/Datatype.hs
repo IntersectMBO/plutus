@@ -30,7 +30,7 @@ import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 
-import Control.Monad.Error.Lens
+import Control.Monad.Except
 
 import Data.Text qualified as T
 import Data.Traversable
@@ -554,7 +554,7 @@ mkDestructorTy dt@(Datatype ann _ tvs _ _) = do
 
 -- | Compile a 'Datatype' bound with the given body.
 compileDatatype
-    :: Compiling m e uni fun a
+    :: Compiling m uni fun a
     => Recursivity
     -> PIRTerm uni fun a
     -> Datatype TyName Name uni (Provenance a)
@@ -601,7 +601,7 @@ compileDatatypeDefs opts r d@(Datatype ann tn _ destr constrs) = do
     pure (concreteTyDef, constrDefs, destrDef)
 
 compileRecDatatypes
-    :: Compiling m e uni fun a
+    :: Compiling m uni fun a
     => PIRTerm uni fun a
     -> NE.NonEmpty (Datatype TyName Name uni (Provenance a))
     -> m (PIRTerm uni fun a)
@@ -609,4 +609,4 @@ compileRecDatatypes body ds = case ds of
     d NE.:| [] -> compileDatatype Rec body d
     _          -> do
       p <- getEnclosing
-      throwing _Error $ UnsupportedError p "Mutually recursive datatypes"
+      throwError $ UnsupportedError p "Mutually recursive datatypes"

@@ -11,8 +11,7 @@ module PlutusIR.Compiler.Types where
 
 import Control.Lens
 import Control.Monad (when)
-import Control.Monad.Error.Lens (throwing)
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Reader (MonadReader, local)
 import Data.Default.Class
 import Data.Text qualified as T
@@ -161,10 +160,11 @@ toDefaultCompilationCtx configPlc = CompilationCtx
        , _ccRewriteRules = def
        }
 
-validateOpts :: Compiling m e uni fun a => PLC.Version -> m ()
+validateOpts :: Compiling m uni fun a => PLC.Version -> m ()
 validateOpts v = do
   datatypes <- view (ccOpts . coDatatypes . dcoStyle)
-  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $ throwing _OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
+  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $
+    throwError $ OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -214,15 +214,12 @@ unwrap p r t = case r of
 type PIRTerm uni fun a = PIR.Term PIR.TyName PIR.Name uni fun (Provenance a)
 type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 
-type Compiling m e uni fun a =
+type Compiling m uni fun a =
     ( Monad m
     , MonadReader (CompilationCtx uni fun a) m
-    , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun (Provenance a)
-    , AsTypeErrorExt e uni (Provenance a)
-    , AsError e uni fun (Provenance a)
+    , MonadError (Error uni fun (Provenance a)) m
     , PLC.AnnotateCaseBuiltin uni
     , PLC.CaseBuiltin (PIR.Term PIR.TyName PIR.Name uni fun (Provenance a)) uni
-    , MonadError e m
     , MonadQuote m
     , Ord a
     , AnnInline a
