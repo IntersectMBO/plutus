@@ -13,7 +13,7 @@ import Control.DeepSeq (force)
 -- Run the validation benchmarks using the Agda CEK machine.
 main :: IO ()
 main = do
-  let mkAgdaCekBM file program =
+  let mkAgdaCekBM name file program =
           let !benchTerm = force . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
-          in benchTermAgdaCek benchTerm
+          in benchTermAgdaCek name benchTerm
   benchWith mkAgdaCekBM

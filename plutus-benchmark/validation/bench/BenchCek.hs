@@ -21,6 +21,9 @@ main = do
   -- The validation benchmarks were all created with PlutusV1, so let's make
   -- sure that the evaluation context matches.
   evalCtx <- evaluate $ mkEvalCtx PlutusV1 DefaultFunSemanticsVariantA
-  let mkCekBM file program =
-          benchTermCek evalCtx . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
+  let mkCekBM name file
+          = benchTermCek name evalCtx
+          . toNamedDeBruijnTerm
+          . UPLC._progTerm
+          . unsafeUnflat file
   benchWith mkCekBM

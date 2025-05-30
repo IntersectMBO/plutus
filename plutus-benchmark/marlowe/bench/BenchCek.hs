@@ -9,4 +9,4 @@ import Control.Exception (evaluate)
 main :: IO ()
 main = do
   evalCtx <- evaluate mkMostRecentEvalCtx
-  runBenchmarks (benchProgramCek evalCtx)
+  runBenchmarks $ flip benchProgramCek evalCtx

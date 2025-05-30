@@ -11,4 +11,4 @@ import Control.Exception (evaluate)
 main :: IO ()
 main = do
   evalCtx <- evaluate mkMostRecentEvalCtx
-  benchWith $ benchTermCek evalCtx
+  benchWith $ flip benchTermCek evalCtx
