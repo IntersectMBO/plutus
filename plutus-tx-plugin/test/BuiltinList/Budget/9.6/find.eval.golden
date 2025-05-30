@@ -1,5 +1,5 @@
-cpu: 23309722
-mem: 99596
-size: 87
+CPU:              23_309_722
+Memory:               99_596
+Size:                     87
 
 (constr 0 (constr 0 (con integer 8)) (constr 1))
