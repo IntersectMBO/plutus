@@ -54,7 +54,7 @@ data RawTyCon where
   array       : RawTyCon
   pair       : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConArray | RTyConPair) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
