@@ -37,8 +37,6 @@ import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo, title)
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
-import PlutusTx.List qualified as List
-import PlutusTx.Traversable qualified as T
 import Prelude qualified as Haskell
 import Prettyprinter (Pretty)
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -98,32 +96,31 @@ mintValueToMap (UnsafeMintValue m) = m
 
 -- | Get the 'Value' minted by the 'MintValue'.
 mintValueMinted :: MintValue -> Value
-mintValueMinted (UnsafeMintValue values) = filterQuantities (\x -> [x | x > 0]) values
+mintValueMinted (UnsafeMintValue m) =
+  mapMaybeQuantities (\x -> if x > 0 then Just x else Nothing) m
 {-# INLINEABLE mintValueMinted #-}
 
 {- | Get the 'Value' burned by the 'MintValue'.
 All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
 -}
 mintValueBurned :: MintValue -> Value
-mintValueBurned (UnsafeMintValue values) = filterQuantities (\x -> [abs x | x < 0]) values
+mintValueBurned (UnsafeMintValue m) =
+  mapMaybeQuantities (\x -> if x < 0 then Just (abs x) else Nothing) m
 {-# INLINEABLE mintValueBurned #-}
 
-filterQuantities :: (Integer -> [Integer]) -> Map CurrencySymbol (Map TokenName Integer) -> Value
-filterQuantities mapQuantity values =
-  Value (Map.unsafeFromSOPList (List.foldr filterTokenQuantities [] (Map.toSOPList values)))
+mapMaybeQuantities
+  :: (Integer -> Maybe Integer)
+  -> Map CurrencySymbol (Map TokenName Integer)
+  -> Value
+mapMaybeQuantities mapMaybeQuantity = Value . Map.mapMaybe mapMaybeCurrencies
   where
-    {-# INLINEABLE filterTokenQuantities #-}
-    filterTokenQuantities
-      :: (CurrencySymbol, Map TokenName Integer)
-      -> [(CurrencySymbol, Map TokenName Integer)]
-      -> [(CurrencySymbol, Map TokenName Integer)]
-    filterTokenQuantities (currency, tokenQuantities) =
-      case List.concatMap (T.traverse mapQuantity) (Map.toSOPList tokenQuantities) of
-        []         -> id
-        quantities -> ((currency, Map.unsafeFromSOPList quantities) :)
-{-# INLINEABLE filterQuantities #-}
+    {-# INLINEABLE mapMaybeCurrencies #-}
+    mapMaybeCurrencies :: Map TokenName Integer -> Maybe (Map TokenName Integer)
+    mapMaybeCurrencies map = do
+      let map' = Map.mapMaybe mapMaybeQuantity map
+      if Map.null map' then Nothing else Just map'
+{-# INLINEABLE mapMaybeQuantities #-}
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
-
 $(makeLift ''MintValue)
