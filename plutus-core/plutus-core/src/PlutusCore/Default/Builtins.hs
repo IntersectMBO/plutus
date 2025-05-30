@@ -14,7 +14,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-
 module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
