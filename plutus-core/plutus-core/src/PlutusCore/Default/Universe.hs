@@ -47,9 +47,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ArrayCostedByLength (..),
-                                                    IntegerCostedLiterally (..),
-                                                    ListCostedByLength (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
@@ -129,7 +127,7 @@ instance GEq DefaultUni where
     -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
     -- recursive definition and we want two instead. The reason why we want two is because this
     -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
-    -- is hidden in the other function that is marked as @NOINLINE@ and is chosen by GHC as a
+    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
     -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
     -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
     -- very much and we've failed to settle on any other approach).
@@ -183,7 +181,7 @@ instance GEq DefaultUni where
 
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)
         geqRec = geqStep
-        {-# NOINLINE geqRec #-}
+        {-# OPAQUE geqRec #-}
 
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
@@ -499,20 +497,6 @@ deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
 deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =>
     ReadKnownIn DefaultUni term IntegerCostedLiterally
 
-deriving newtype instance KnownTypeAst tyname DefaultUni a =>
-    KnownTypeAst tyname DefaultUni (ListCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
-    MakeKnownIn DefaultUni term (ListCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term [a] =>
-    ReadKnownIn DefaultUni term (ListCostedByLength a)
-
-deriving newtype instance KnownTypeAst tyname DefaultUni a =>
-    KnownTypeAst tyname DefaultUni (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    MakeKnownIn DefaultUni term (ArrayCostedByLength a)
-deriving newtype instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    ReadKnownIn DefaultUni term (ArrayCostedByLength a)
-
 deriving via AsInteger Natural instance
     KnownTypeAst tyname DefaultUni Natural
 deriving via AsInteger Natural instance KnownBuiltinTypeIn DefaultUni term Integer =>
@@ -525,7 +509,7 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             -- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow
             if i >= 0
-            -- TODO: benchmark alternatives: ghc8.10 naturalFromInteger, ghc>=9 integerToNatural
+            -- TODO: benchmark alternatives: ghc>=9 integerToNatural
             then pure $ fromInteger i
             else throwing _OperationalUnliftingError . MkUnliftingError $ fold
                  [ Text.pack $ show i

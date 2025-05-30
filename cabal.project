@@ -27,7 +27,6 @@ packages: cardano-constitution
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
-          plutus-tx-test-util
           doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.
@@ -44,9 +43,8 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r +with-cert
 
--- Needs a newer base so won't work on 8.10, various dependencies of coq don't work
--- when cross building for windows
-if impl(ghc < 9.0) || os(windows)
+-- Various dependencies of coq don't work when cross building for windows
+if os(windows)
   -- Note: we enable this and then disable it conditionally, rather than enabling
   -- it conditionally, to avoid https://github.com/haskell/cabal/issues/9293
   package plutus-core

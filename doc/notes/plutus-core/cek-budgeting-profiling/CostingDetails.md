@@ -70,7 +70,7 @@ instance (Eq fun, Hashable fun, ToExMemory term) =>
             Restricting resb ->
                 when (exceedsBudget resb newBudget) $
                     throwingWithCause _EvaluationError
-                        (OperationalEvaluationError $ CekOutOfExError resb newBudget)
+                        (OperationalError $ CekOutOfExError resb newBudget)
                         Nothing  -- No value available for error
 ```
 
@@ -96,7 +96,7 @@ to the current mode:
                 newBudget <- exBudgetStateBudget <%= (<> budget)
                 when (exceedsBudget resb newBudget) $
                     throwingWithCause _EvaluationError
-                        (OperationalEvaluationError $ CekOutOfExError resb newBudget)
+                        (OperationalError $ CekOutOfExError resb newBudget)
                         Nothing
 ```
 
@@ -114,7 +114,7 @@ of memory very quickly.  Changing the code to
             Restricting resb -> 
                 when (exceedsBudget resb newBudget) $
                     throwingWithCause _EvaluationError
-                        (OperationalEvaluationError $ CekOutOfExError resb newBudget)
+                        (OperationalError $ CekOutOfExError resb newBudget)
                         Nothing
 ```
 

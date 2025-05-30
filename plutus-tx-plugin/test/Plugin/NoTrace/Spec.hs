@@ -9,18 +9,20 @@ module Plugin.NoTrace.Spec where
 import Prelude
 
 import Plugin.NoTrace.Lib (countTraces)
-import Plugin.NoTrace.Lib qualified as Lib
 import Plugin.NoTrace.WithoutTraces qualified as WithoutTraces
 import Plugin.NoTrace.WithPreservedLogging qualified as WithPreservedLogging
 import Plugin.NoTrace.WithTraces qualified as WithTraces
+import PlutusTx.Test.Run.Code (evaluatesToError, evaluatesWithoutError)
 import Test.Tasty (testGroup)
 import Test.Tasty.Extras (TestNested, embed)
 import Test.Tasty.HUnit (assertBool, testCase, (@=?))
 
 noTrace :: TestNested
 noTrace = embed do
-  testGroup "remove-trace"
-    [ testGroup "Trace calls are preserved (no-remove-trace)"
+  testGroup
+    "remove-trace"
+    [ testGroup
+        "Trace calls are preserved (no-remove-trace)"
         [ testCase "trace-argument" $
             1 @=? countTraces WithTraces.traceArgument
         , testCase "trace-show" $
@@ -36,9 +38,10 @@ noTrace = embed do
         , testCase "trace-impure" $
             1 @=? countTraces WithTraces.traceImpure
         , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
-            assertBool "Effect is missing" (Lib.evaluatesToError WithTraces.traceImpure)
+            assertBool "Effect is missing" (evaluatesToError WithTraces.traceImpure)
         ]
-    , testGroup "Trace calls are preserved (preserve-logging)"
+    , testGroup
+        "Trace calls are preserved (preserve-logging)"
         [ testCase "trace-argument" $
             1 @=? countTraces WithPreservedLogging.traceArgument
         , testCase "trace-show" $
@@ -54,7 +57,7 @@ noTrace = embed do
         , testCase "trace-impure" $
             1 @=? countTraces WithPreservedLogging.traceImpure
         , testCase "trace-impure with effect" $ -- See Note [Impure trace messages]
-            assertBool "Effect is missing" (Lib.evaluatesToError WithPreservedLogging.traceImpure)
+            assertBool "Effect is missing" (evaluatesToError WithPreservedLogging.traceImpure)
         ]
     , testGroup
         "Trace calls are removed (remove-trace)"
@@ -73,6 +76,6 @@ noTrace = embed do
         , testCase "trace-impure" $
             0 @=? countTraces WithoutTraces.traceImpure
         , testCase "trace-impure without effect" $ -- See Note [Impure trace messages]
-            assertBool "Effect wasn't erased" (Lib.evaluatesWithoutError WithoutTraces.traceImpure)
+            assertBool "Effect wasn't erased" (evaluatesWithoutError WithoutTraces.traceImpure)
         ]
     ]

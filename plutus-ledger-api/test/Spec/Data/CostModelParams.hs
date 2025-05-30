@@ -41,7 +41,8 @@ tests =
         for_ v3_ParamNames \p ->
           assertBool "tripping v3 cm params failed" $
             Just p == readParamName (showParamName p)
-    , -- \*** FIXME !!! *** : The introduction of the new bitwise builtins has
+    , -- \*** FIXME (https://github.com/IntersectMBO/plutus-private/issues/1612) !!! *** :
+      -- The introduction of the new bitwise builtins has
       -- messed this up because defaultCostModelParamsForTesting is the cost
       -- model parameters for model C,
       -- which now includes the new bitwise builtins.

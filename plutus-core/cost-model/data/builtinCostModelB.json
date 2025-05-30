@@ -698,34 +698,40 @@
             "type": "constant_cost"
         }
     },
-    "lengthOfArray" : {
+    "indexArray": {
         "cpu": {
-            "arguments": 99999999999999,
+            "arguments": 194922,
             "type": "constant_cost"
         },
         "memory": {
-            "arguments": 99999999999999,
+            "arguments": 32,
+            "type": "constant_cost"
+        }
+    },
+    "lengthOfArray": {
+        "cpu": {
+            "arguments": 198994,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 10,
             "type": "constant_cost"
         }
     },
     "listToArray": {
         "cpu": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 307802,
+                "slope": 8496
+            },
+            "type": "linear_in_x"
         },
         "memory": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        }
-    },
-    "indexArray": {
-        "cpu": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
-        },
-        "memory": {
-            "arguments": 99999999999999,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 7,
+                "slope": 1
+            },
+            "type": "linear_in_x"
         }
     },
     "quotientInteger": {
@@ -1146,12 +1152,19 @@
     },
     "expModInteger": {
         "cpu": {
-            "arguments": 100000000000,
-            "type": "constant_cost"
+            "arguments": {
+                "coefficient00": 607153,
+                "coefficient11": 231697,
+                "coefficient12": 53144
+            },
+            "type": "exp_mod_cost"
         },
         "memory": {
-            "arguments": 100000000000,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_in_z"
         }
     },
     "dropList": {

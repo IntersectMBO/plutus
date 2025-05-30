@@ -8,6 +8,8 @@ module UntypedPlutusCore.Simplify (
     simplifyProgram,
     simplifyProgramWithTrace,
     InlineHints (..),
+    termSimplifier,
+    module UntypedPlutusCore.Transform.Simplifier,
 ) where
 
 import PlutusCore.Compiler.Types
@@ -102,6 +104,7 @@ termSimplifier opts builtinSemanticsVariant =
         >=> inline
               (_soInlineCallsiteGrowth opts)
               (_soInlineConstants opts)
+              (_soPreserveLogging opts)
               (_soInlineHints opts)
               builtinSemanticsVariant
 

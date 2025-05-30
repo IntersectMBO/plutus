@@ -14,7 +14,7 @@ import PlutusIR.MkPir qualified as PIR
 
 import Control.Lens (view)
 import Control.Monad
-import Control.Monad.Error.Lens
+import Control.Monad.Except
 import Control.Monad.Trans
 
 import Data.List.NonEmpty hiding (length)
@@ -68,7 +68,7 @@ Here we merely have to provide it with the types of the f_is, which we *do* know
  -- See Note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
 compileRecTerms
-    :: Compiling m e uni fun a
+    :: Compiling m uni fun a
     => PIRTerm uni fun a
     -> NonEmpty (TermDef TyName Name uni fun (Provenance a))
     -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
@@ -79,7 +79,7 @@ compileRecTerms body bs = do
 
 -- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.
 mkFixpoint
-    :: forall m e uni fun a . Compiling m e uni fun a
+    :: forall m uni fun a . Compiling m uni fun a
     => NonEmpty (TermDef TyName Name uni fun (Provenance a))
     -> DefT SharedName uni fun (Provenance a) m (Tuple.Tuple (Term TyName Name uni fun) uni (Provenance a))
 mkFixpoint bs = do
@@ -88,7 +88,7 @@ mkFixpoint bs = do
     funs <- forM bs $ \(PIR.Def (PIR.VarDecl p name ty) term) ->
         case PIR.mkFunctionDef p name ty term of
             Just fun -> pure fun
-            Nothing  -> lift $ throwing _Error $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
+            Nothing  -> lift $ throwError $ CompilationError (PLC.typeAnn ty) "Recursive values must be of function type"
 
     inlineFix <- view (ccOpts . coInlineConstants)
 

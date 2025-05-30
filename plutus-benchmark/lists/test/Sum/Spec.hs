@@ -38,12 +38,12 @@ tests =
       , testProperty "Compiled left fold (data lists)"         $ prop_sum Compiled.mkSumLeftDataTerm
       ]
     , runTestGhc ["Sum"]
-      [ Tx.goldenBudget "right-fold-scott"    $ Compiled.mkSumRightScottCode input
-      , Tx.goldenBudget "right-fold-built-in" $ Compiled.mkSumRightBuiltinCode input
-      , Tx.goldenBudget "right-fold-data"     $ Compiled.mkSumRightDataCode input
-      , Tx.goldenBudget "left-fold-scott"     $ Compiled.mkSumLeftScottCode input
-      , Tx.goldenBudget "left-fold-built-in"  $ Compiled.mkSumLeftBuiltinCode input
-      , Tx.goldenBudget "left-fold-data"      $ Compiled.mkSumLeftDataCode input
+      [ Tx.goldenEvalCekCatchBudget "right-fold-scott"    $ Compiled.mkSumRightScottCode input
+      , Tx.goldenEvalCekCatchBudget "right-fold-built-in" $ Compiled.mkSumRightBuiltinCode input
+      , Tx.goldenEvalCekCatchBudget "right-fold-data"     $ Compiled.mkSumRightDataCode input
+      , Tx.goldenEvalCekCatchBudget "left-fold-scott"     $ Compiled.mkSumLeftScottCode input
+      , Tx.goldenEvalCekCatchBudget "left-fold-built-in"  $ Compiled.mkSumLeftBuiltinCode input
+      , Tx.goldenEvalCekCatchBudget "left-fold-data"      $ Compiled.mkSumLeftDataCode input
       ]
     ]
   where input = [1..100]

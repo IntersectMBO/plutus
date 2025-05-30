@@ -43,7 +43,7 @@ import Brick.Main qualified as B
 import Brick.Util qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
-import Control.Monad.Except (runExcept)
+import Control.Monad.Except (runExcept, tryError)
 import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
 import Data.Maybe

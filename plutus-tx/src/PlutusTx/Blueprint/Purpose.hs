@@ -11,7 +11,7 @@ import Data.Aeson qualified as Json
 import Data.Text (Text)
 import Language.Haskell.TH.Syntax (Lift)
 
-{- |
+{-|
   As per CIP-57, a validator arguments (redeemer, datum) and validator parameters
   all must specify a purpose that indicates in which context they are used.
 -}
@@ -23,7 +23,7 @@ instance ToJSON Purpose where
 
 purposeToText :: Purpose -> Text
 purposeToText = \case
-  Spend    -> "spend"
-  Mint     -> "mint"
+  Spend -> "spend"
+  Mint -> "mint"
   Withdraw -> "withdraw"
-  Publish  -> "publish"
+  Publish -> "publish"

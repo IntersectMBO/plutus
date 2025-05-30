@@ -6,13 +6,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE UnboxedTuples       #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Functions.Spec where
 
@@ -30,61 +30,76 @@ import PlutusTx.Test
 import Data.Proxy
 
 functions :: TestNested
-functions = testNested "Functions" . pure $ testNestedGhc
-  [ recursiveFunctions
-  , unfoldings
-  ]
+functions =
+  testNested "Functions" . pure $
+    testNestedGhc
+      [ recursiveFunctions
+      , unfoldings
+      ]
 
 recursiveFunctions :: TestNested
-recursiveFunctions = testNested "recursive" [
-    goldenPirReadable "fib" fib
-    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+recursiveFunctions =
+  testNested
+    "recursive"
+    [ goldenPirReadable "fib" fib
+    , goldenUEval "fib4" [toUPlc fib, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
     , goldenPirReadable "sum" sumDirect
-    , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
+    , goldenUEval "sumList" [toUPlc sumDirect, toUPlc listConstruct3]
     , goldenPirReadable "even" evenMutual
-    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
-    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "even3" [toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3 :: Integer)]
+    , goldenUEval "even4" [toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
     , goldenPirReadable "strictLength" strictLength
     , goldenPirReadable "lazyLength" lazyLength
-  ]
+    ]
 
 fib :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
-fib = plc (Proxy @"fib") (
-    let fib :: Integer -> Integer
-        fib n = if Builtins.equalsInteger n 0
-            then 0
-            else if Builtins.equalsInteger n 1
-            then 1
-            else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
-    in fib)
+fib =
+  plc
+    (Proxy @"fib")
+    ( let fib :: Integer -> Integer
+          fib n =
+            if Builtins.equalsInteger n 0
+              then 0
+              else
+                if Builtins.equalsInteger n 1
+                  then 1
+                  else Builtins.addInteger (fib (Builtins.subtractInteger n 1)) (fib (Builtins.subtractInteger n 2))
+       in fib
+    )
 
 sumDirect :: CompiledCode ([Integer] -> Integer)
-sumDirect = plc (Proxy @"sumDirect") (
-    let sum :: [Integer] -> Integer
-        sum []     = 0
-        sum (x:xs) = Builtins.addInteger x (sum xs)
-    in sum)
+sumDirect =
+  plc
+    (Proxy @"sumDirect")
+    ( let sum :: [Integer] -> Integer
+          sum []       = 0
+          sum (x : xs) = Builtins.addInteger x (sum xs)
+       in sum
+    )
 
 evenMutual :: CompiledCode (Integer -> Bool)
-evenMutual = plc (Proxy @"evenMutual") (
-    let even :: Integer -> Bool
-        even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
-        odd :: Integer -> Bool
-        odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
-    in even)
+evenMutual =
+  plc
+    (Proxy @"evenMutual")
+    ( let even :: Integer -> Bool
+          even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
+          odd :: Integer -> Bool
+          odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
+       in even
+    )
 
 lengthStrict :: [a] -> Integer
 lengthStrict l = go 0 l
-  where
-    go !acc []      = acc
-    go !acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+ where
+  go !acc []       = acc
+  go !acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 lengthLazy :: [a] -> Integer
 lengthLazy l = go 0 l
-  where
-    go acc []      = acc
-    go acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+ where
+  go acc []       = acc
+  go acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 strictLength :: CompiledCode ([Integer] -> Integer)
 strictLength = plc (Proxy @"strictLength") (lengthStrict @Integer)
@@ -93,18 +108,20 @@ lazyLength :: CompiledCode ([Integer] -> Integer)
 lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
 
 unfoldings :: TestNested
-unfoldings = testNested "unfoldings" [
-    goldenPirReadable "nandDirect" nandPlcDirect
+unfoldings =
+  testNested
+    "unfoldings"
+    [ goldenPirReadable "nandDirect" nandPlcDirect
     , goldenPirReadable "andDirect" andPlcDirect
     , goldenPirReadable "andExternal" andPlcExternal
     , goldenPirReadable "allDirect" allPlcDirect
     , goldenPirReadable "mutualRecursionUnfoldings" mutualRecursionUnfoldings
     , goldenPirReadable "recordSelector" recordSelector
     , goldenPirReadable "recordSelectorExternal" recordSelectorExternal
-    -- We used to have problems with polymorphic let bindings where the generalization was
-    -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
-    -- it seems to sometimes float these in, but we should keep an eye on these.
-    , goldenPirReadable "polyMap" polyMap
+    , -- We used to have problems with polymorphic let bindings where the generalization was
+      -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
+      -- it seems to sometimes float these in, but we should keep an eye on these.
+      goldenPirReadable "polyMap" polyMap
     , goldenPirReadable "applicationFunction" applicationFunction
     , goldenPirReadable "unboxedTuples2" unboxedTuples2
     , goldenPirReadable "unboxedTuples3" unboxedTuples3
@@ -112,13 +129,13 @@ unfoldings = testNested "unfoldings" [
     , goldenPirReadable "unboxedTuples5" unboxedTuples5
     , goldenPirReadable "unboxedTuples2Tuples" unboxedTuples2Tuples
     , goldenPirReadable "unboxedTuples3Tuples" unboxedTuples3Tuples
-  ]
+    ]
 
 andDirect :: Bool -> Bool -> Bool
-andDirect = \(a :: Bool) -> \(b::Bool) -> nandDirect (nandDirect a b) (nandDirect a b)
+andDirect = \(a :: Bool) -> \(b :: Bool) -> nandDirect (nandDirect a b) (nandDirect a b)
 
 nandDirect :: Bool -> Bool -> Bool
-nandDirect = \(a :: Bool) -> \(b::Bool) -> if a then False else if b then False else True
+nandDirect = \(a :: Bool) -> \(b :: Bool) -> if a then False else if b then False else True
 
 nandPlcDirect :: CompiledCode Bool
 nandPlcDirect = plc (Proxy @"nandPlcDirect") (nandDirect True False)
@@ -132,11 +149,11 @@ andPlcExternal = plc (Proxy @"andPlcExternal") (andExternal True False)
 -- self-recursion
 allDirect :: (a -> Bool) -> [a] -> Bool
 allDirect p l = case l of
-    []  -> True
-    h:t -> andDirect (p h) (allDirect p t)
+  []    -> True
+  h : t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode Bool
-allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x::Integer) -> Builtins.lessThanInteger x 5) [7, 6])
+allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x :: Integer) -> Builtins.lessThanInteger x 5) [7, 6])
 
 mutualRecursionUnfoldings :: CompiledCode Bool
 mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)
@@ -149,8 +166,8 @@ recordSelectorExternal = plc (Proxy @"recordSelectorExternal") (\(x :: MyExterna
 
 mapDirect :: (a -> b) -> [a] -> [b]
 mapDirect f l = case l of
-    []   -> []
-    x:xs -> f x : mapDirect f xs
+  []     -> []
+  x : xs -> f x : mapDirect f xs
 
 polyMap :: CompiledCode ([Integer])
 polyMap = plc (Proxy @"polyMap") (mapDirect (Builtins.addInteger 1) [0, 1])
@@ -185,14 +202,33 @@ unboxedTuples4 = plc (Proxy @"unboxedTuples4") (\x -> let a = unboxedTuple4 (# x
 unboxedTuples5 :: CompiledCode (Integer -> Integer)
 unboxedTuples5 = plc (Proxy @"unboxedTuples5") (\x -> let a = unboxedTuple5 (# x, x, x, x, x #) in a)
 
-unboxedTuples2Tuple :: (# (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #) #) -> Integer
+unboxedTuples2Tuple
+  :: (#
+       (# Integer, Integer, Integer, Integer, Integer #)
+       , (# Integer, Integer, Integer, Integer, Integer #)
+     #)
+  -> Integer
 unboxedTuples2Tuple (# i, j #) = unboxedTuple5 i `Builtins.addInteger` unboxedTuple5 j
 
 unboxedTuples2Tuples :: CompiledCode (Integer -> Integer)
-unboxedTuples2Tuples = plc (Proxy @"unboxedTuples2Tuples") (\x -> let a = unboxedTuples2Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)
+unboxedTuples2Tuples =
+  plc
+    (Proxy @"unboxedTuples2Tuples")
+    (\x -> let a = unboxedTuples2Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)
 
-unboxedTuples3Tuple :: (# (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #), (# Integer, Integer, Integer, Integer, Integer #) #) -> Integer
+unboxedTuples3Tuple
+  :: (#
+       (# Integer, Integer, Integer, Integer, Integer #)
+       , (# Integer, Integer, Integer, Integer, Integer #)
+       , (# Integer, Integer, Integer, Integer, Integer #)
+     #)
+  -> Integer
 unboxedTuples3Tuple (# i, j, k #) = unboxedTuple5 i `Builtins.addInteger` unboxedTuple5 j `Builtins.addInteger` unboxedTuple5 k
 
 unboxedTuples3Tuples :: CompiledCode (Integer -> Integer)
-unboxedTuples3Tuples = plc (Proxy @"unboxedTuples3Tuples") (\x -> let a = unboxedTuples3Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a)
+unboxedTuples3Tuples =
+  plc
+    (Proxy @"unboxedTuples3Tuples")
+    ( \x ->
+        let a = unboxedTuples3Tuple (# (# x, x, x, x, x #), (# x, x, x, x, x #), (# x, x, x, x, x #) #) in a
+    )

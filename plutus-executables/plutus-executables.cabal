@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-executables
-version:         1.45.0.0
+version:         1.46.0.0
 synopsis:        Tools for running plutus core programs
 homepage:        https://github.com/IntersectMBO/plutus
 license:         Apache-2.0
@@ -62,17 +62,6 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
-library lib
-  import:          lang, os-support, ghc-version-support
-  hs-source-dirs:  src
-  exposed-modules: AgdaUnparse
-  build-depends:
-    , base               >=4.9   && <5
-    , bytestring
-    , plutus-core        ^>=1.45
-    , plutus-metatheory
-    , text
-
 executable pir
   import:         lang
   main-is:        pir/Main.hs
@@ -85,12 +74,12 @@ executable pir
     , containers
     , lens
     , megaparsec
+    , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
-    , transformers
 
 executable plc
   import:         lang
@@ -101,8 +90,9 @@ executable plc
     , base                             >=4.9   && <5
     , bytestring
     , flat                             ^>=0.6
+    , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-execlib
 
 executable uplc
@@ -119,9 +109,8 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-execlib
-    , plutus-executables:lib
     , plutus-metatheory
     , prettyprinter
     , serialise
@@ -152,7 +141,7 @@ test-suite test-detailed
     , base
     , directory
     , extra
-    , plutus-core        ^>=1.45
+    , plutus-core        ^>=1.46
     , plutus-metatheory
     , process
     , tasty
@@ -168,15 +157,13 @@ test-suite test-certifier
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   hs-source-dirs:     test/certifier
+  other-modules:      Test.Certifier.Executable
   build-depends:
     , base
+    , directory
     , filepath
-    , plutus-core:plutus-core-testlib
     , process
     , tasty
     , tasty-hunit
-    , text
 
-  build-tool-depends:
-    , plutus-executables:plc
-    , plutus-executables:uplc
+  build-tool-depends: plutus-executables:uplc

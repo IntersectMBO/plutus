@@ -108,9 +108,10 @@ linkchecker-out.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
 *.actual.json
+*.sty
 # profiling output files
 *.timelog
 *.stacks
 .nvimrc
 release-*
-.worktrees
+TestCert.*

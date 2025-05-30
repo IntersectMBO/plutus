@@ -1,19 +1,14 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-#if !MIN_VERSION_base(4, 15, 0)
-{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
-#endif
 
 module Plugin.Laziness.Spec where
 
@@ -30,11 +25,15 @@ import PlutusTx.Test
 import Data.Proxy
 
 laziness :: TestNested
-laziness = testNested "Laziness" . pure $ testNestedGhc
-  [ goldenPirReadable "joinError" joinErrorPir
-  , goldenUEval "joinErrorEval" [ toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
-  , goldenPirReadable "lazyDepUnit" lazyDepUnit
-  ]
+laziness =
+  testNested "Laziness" . pure $
+    testNestedGhc
+      [ goldenPirReadable "joinError" joinErrorPir
+      , goldenUEval
+          "joinErrorEval"
+          [toUPlc joinErrorPir, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False]
+      , goldenPirReadable "lazyDepUnit" lazyDepUnit
+      ]
 
 joinErrorPir :: CompiledCode (Bool -> Bool -> ())
 joinErrorPir = plc (Proxy @"joinError") joinError

@@ -1,5 +1,4 @@
 {-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -9,18 +8,15 @@ module Plugin.NoTrace.Lib where
 
 import Prelude hiding (Show, show, (+))
 
-import Control.Lens (universeOf, (&), (^.))
+import Control.Lens (universeOf, (^.))
 import GHC.Exts (noinline)
 import PlutusCore.Default.Builtins qualified as Builtin
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParametersForTesting)
 import PlutusTx.Builtins (BuiltinString, appendString, error)
-import PlutusTx.Code (CompiledCode, getPlc, getPlcNoAnn)
+import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import PlutusTx.Numeric ((+))
 import PlutusTx.Show.TH (Show (show))
 import PlutusTx.Trace (trace, traceError)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (counting, noEmitter)
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (runCekDeBruijn)
 
 data Arg = MkArg
 
@@ -34,16 +30,6 @@ countTraces code =
     | let term = getPlcNoAnn code ^. UPLC.progTerm
     , subterm@(UPLC.Builtin _ Builtin.Trace) <- universeOf UPLC.termSubterms term
     ]
-
-evaluatesToError :: CompiledCode a -> Bool
-evaluatesToError = not . evaluatesWithoutError
-
-evaluatesWithoutError :: CompiledCode a -> Bool
-evaluatesWithoutError code =
-  runCekDeBruijn defaultCekParametersForTesting counting noEmitter
-  (getPlc code ^. UPLC.progTerm) & \case
-    (Left _exception, _counter, _logs) -> False
-    (Right _result, _counter, _logs) -> True
 
 ----------------------------------------------------------------------------------------------------
 -- Functions that contain traces -------------------------------------------------------------------

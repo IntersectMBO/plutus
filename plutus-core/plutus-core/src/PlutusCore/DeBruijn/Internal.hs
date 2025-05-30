@@ -20,7 +20,6 @@ module PlutusCore.DeBruijn.Internal
   , TyDeBruijn (..)
   , NamedTyDeBruijn (..)
   , FreeVariableError (..)
-  , AsFreeVariableError (..)
   , Level (..)
   , LevelInfo (..)
   , declareUnique
@@ -51,7 +50,6 @@ import PlutusCore.Quote
 
 import Control.Exception
 import Control.Lens hiding (Index, Level, index, ix)
-import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -100,6 +98,7 @@ isomorphic.
 FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
 does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
 the Num and write `DeBruijn (Index -1)`. This can be revisited when we implement PLT-1053.
+Tracked by: https://github.com/IntersectMBO/plutus-private/issues/1552
 -}
 newtype Index = Index Word64
   deriving stock (Generic)
@@ -346,14 +345,12 @@ deBruijnToTyName
 deBruijnToTyName h (NamedTyDeBruijn n) = TyName <$> deBruijnToName h n
 
 -- | The default handler of throwing an error upon encountering a free name (unique).
-freeUniqueThrow :: (AsFreeVariableError e, MonadError e m) => Unique -> m Index
-freeUniqueThrow =
-  throwing _FreeVariableError . FreeUnique
+freeUniqueThrow :: (MonadError FreeVariableError m) => Unique -> m Index
+freeUniqueThrow = throwError . FreeUnique
 
 -- | The default handler of throwing an error upon encountering a free debruijn index.
-freeIndexThrow :: (AsFreeVariableError e, MonadError e m) => Index -> m Unique
-freeIndexThrow =
-  throwing _FreeVariableError . FreeIndex
+freeIndexThrow :: (MonadError FreeVariableError m) => Index -> m Unique
+freeIndexThrow = throwError . FreeIndex
 
 {- | A different implementation of a handler,  where "free" debruijn indices do not throw an error
 but are instead gracefully converted to fresh uniques.

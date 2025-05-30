@@ -27,7 +27,7 @@ import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
 import PlutusCore (MonadQuote)
-import PlutusCore.Error (AsParserErrorBundle)
+import PlutusCore.Error (ParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -163,7 +163,7 @@ program = leadingWhitespace go
 -- "test" to the parser as the name of the input stream; to supply a name
 -- explicity, use `parse program <name> <input>`.
 parseProgram ::
-    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    (MonadError ParserErrorBundle m, MonadQuote m)
     => Text
     -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 parseProgram = parseGen program

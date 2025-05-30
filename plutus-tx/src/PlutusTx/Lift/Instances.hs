@@ -12,6 +12,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module PlutusTx.Lift.Instances () where
 
 import PlutusTx.Bool (Bool (..))
@@ -29,9 +30,9 @@ makeLift ''Either
 makeLift ''These
 makeLift ''[]
 makeLift ''()
+
 -- include a few tuple instances for convenience
 makeLift ''(,)
 makeLift ''(,,)
 makeLift ''(,,,)
 makeLift ''(,,,,)
-

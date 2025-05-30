@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.45.0.0
+version:         1.46.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -86,6 +86,7 @@ library
     PlutusTx.Enum
     PlutusTx.Eq
     PlutusTx.ErrorCodes
+    PlutusTx.Eval
     PlutusTx.Foldable
     PlutusTx.Function
     PlutusTx.Functor
@@ -135,18 +136,18 @@ library
     , deriving-compat
     , extra
     , flat                   ^>=0.6
+    , formatting
     , hashable
     , lens
     , memory
     , mtl
-    , plutus-core            ^>=1.45
+    , plutus-core            ^>=1.46
     , plutus-core:plutus-ir
     , prettyprinter
     , serialise
     , template-haskell       >=2.13.0.0
     , text
     , th-abstraction
-    , th-compat
     , vector                 ^>=0.13.2
 
   default-extensions: Strict
@@ -167,6 +168,11 @@ library plutus-tx-testlib
     Hedgehog.Laws.Lattice
     Hedgehog.Laws.Ord
     PlutusTx.Test
+    PlutusTx.Test.Golden
+    PlutusTx.Test.Orphans
+    PlutusTx.Test.Run.Code
+    PlutusTx.Test.Run.Uplc
+    PlutusTx.Test.Util.Compiled
 
   build-depends:
     , base                             >=4.9   && <5
@@ -174,14 +180,13 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
-    , plutus-tx                        ^>=1.45
-    , prettyprinter
-    , tagged
+    , plutus-tx                        ^>=1.46
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , text
 
 test-suite plutus-tx-test
@@ -224,9 +229,9 @@ test-suite plutus-tx-test
     , hedgehog-fn
     , lens
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
-    , plutus-tx                        ^>=1.45
+    , plutus-tx                        ^>=1.46
     , pretty-show
     , serialise
     , tasty

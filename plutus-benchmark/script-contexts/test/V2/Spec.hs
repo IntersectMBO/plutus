@@ -4,21 +4,17 @@
 
 module V2.Spec (allTests) where
 
-import Data.Text qualified as Text
-
-import Test.Tasty
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
-import Test.Tasty.HUnit
+import Test.Tasty.HUnit (testCase)
 
-import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
 import PlutusBenchmark.V2.Data.ScriptContexts qualified as Data.SC
 import PlutusBenchmark.V2.ScriptContexts qualified as SOP.SC
 
-import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
 import PlutusTx qualified
 import PlutusTx.Plugin ()
 import PlutusTx.Test qualified as Tx
+import PlutusTx.Test.Run.Code (assertEvaluatesSuccessfully, assertEvaluatesWithError)
 
 -- Make a set of golden tests with results stored in subdirectories determined
 -- by the GHC version.
@@ -28,141 +24,98 @@ runTestGhcSOP = runTestNested ["script-contexts", "test", "V2"] . pure . testNes
 runTestGhcData :: [TestNested] -> TestTree
 runTestGhcData = runTestNested ["script-contexts", "test", "V2", "Data"] . pure . testNestedGhc
 
-assertSucceeded :: Term -> Assertion
-assertSucceeded t =
-    case runTermCek t of
-        (Right _, _)  -> pure ()
-        (Left err, logs) -> assertFailure . Text.unpack . Text.intercalate "\n" $
-            [ render (prettyPlcClassicSimple err)
-            , "Cek logs:"
-            ] ++ logs
-
-assertFailed :: Term -> Assertion
-assertFailed t =
-    -- Using `unsafeRunTermCek` here, so that only user errors make the test pass.
-    -- Machine errors still make the test fail.
-    case unsafeRunTermCek t of
-        EvaluationFailure   -> pure ()
-        EvaluationSuccess _ -> assertFailure "Evaluation succeeded unexpectedly"
-
 testCheckSOPSc1 :: TestTree
 testCheckSOPSc1 = testGroup "checkScriptContext1"
-    [ testCase "succeed on 4" . assertSucceeded $
-        compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
-    , testCase "fails on 5" . assertFailed $
-        compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+        SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
+    , testCase "fails on 5" . assertEvaluatesWithError $
+        SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
     , runTestGhcSOP [ Tx.goldenSize "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext1-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-4" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
-                        [SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext1-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-20" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
-                        [SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 20)]
           ]
     ]
 
 testCheckDataSc1 :: TestTree
 testCheckDataSc1 = testGroup "checkScriptContext1"
-    [ testCase "succeed on 4" . assertSucceeded $
-        compiledCodeToTerm $ Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
-    , testCase "fails on 5" . assertFailed $
-        compiledCodeToTerm $ Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+        Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
+    , testCase "fails on 5" . assertEvaluatesWithError $
+        Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 5)
     , runTestGhcData [ Tx.goldenSize "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext1-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-4" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
-                        [Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext1-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext1-20" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
-                        [Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 20)]
           ]
     ]
 
 testCheckSOPSc2 :: TestTree
 testCheckSOPSc2 = testGroup "checkScriptContext2"
-    [ testCase "succeed on 4" . assertSucceeded $
-          compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
-    , testCase "succeed on 5" . assertSucceeded $
-          compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+          SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
+    , testCase "succeed on 5" . assertEvaluatesSuccessfully $
+          SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
     , runTestGhcSOP [ Tx.goldenSize "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext2-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-4" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext2-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-20" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
-                        [SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 20)]
                    ]
     ]
 
 testCheckDataSc2 :: TestTree
 testCheckDataSc2 = testGroup "checkScriptContext2"
-    [ testCase "succeed on 4" . assertSucceeded $
-          compiledCodeToTerm $ Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
-    , testCase "succeed on 5" . assertSucceeded $
-          compiledCodeToTerm $ Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+          Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
+    , testCase "succeed on 5" . assertEvaluatesSuccessfully $
+          Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 5)
     , runTestGhcData [ Tx.goldenSize "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
-                   , Tx.goldenBudget "checkScriptContext2-4" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-4" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
-                        [Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)]
-                   , Tx.goldenBudget "checkScriptContext2-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContext2-20" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
-                        [Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 20)]
                    ]
     ]
 
 testCheckSOPScEquality :: TestTree
 testCheckSOPScEquality = testGroup "checkScriptContextEquality"
-    [ runTestGhcSOP [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
+    [ runTestGhcSOP [ Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityData-20" $
                         SOP.SC.mkScriptContextEqualityDataCode (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
-                        [SOP.SC.mkScriptContextEqualityDataCode (SOP.SC.mkScriptContext 20)]
-                   , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityOverhead-20" $
                         SOP.SC.mkScriptContextEqualityOverheadCode (SOP.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
-                        [SOP.SC.mkScriptContextEqualityOverheadCode (SOP.SC.mkScriptContext 20)]
                    ]
     ]
 
 testCheckDataScEquality :: TestTree
 testCheckDataScEquality = testGroup "checkScriptContextEquality"
-    [ runTestGhcData [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
+    [ runTestGhcData [ Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityData-20" $
                         Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
-                        [Data.SC.mkScriptContextEqualityDataCode (Data.SC.mkScriptContext 20)]
-                   , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+                   , Tx.goldenEvalCekCatchBudget "checkScriptContextEqualityOverhead-20" $
                         Data.SC.mkScriptContextEqualityOverheadCode (Data.SC.mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
-                        [Data.SC.mkScriptContextEqualityOverheadCode (Data.SC.mkScriptContext 20)]
                    ]
     ]
 
 testSOPFwdStakeTrick :: TestTree
 testSOPFwdStakeTrick =
      runTestGhcSOP
-          [ Tx.goldenSize "sopFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
+          [ Tx.goldenPirReadable "sopFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "sopFwdStakeTrick" testAbsCode
-          , Tx.goldenBudget "sopFwdStakeTrick" testCode
-          , Tx.goldenEvalCekCatch "sopFwdStakeTrick" [testCode]
+          , Tx.goldenEvalCekCatchBudget "sopFwdStakeTrick" testCode
           ]
   where
      testCredential =
@@ -177,11 +130,9 @@ testSOPFwdStakeTrick =
 testDataFwdStakeTrick :: TestTree
 testDataFwdStakeTrick =
      runTestGhcSOP
-          [ Tx.goldenSize "dataFwdStakeTrick" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
+          [ Tx.goldenPirReadable "dataFwdStakeTrick" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrick" testAbsCode
-          , Tx.goldenBudget "dataFwdStakeTrick" testCode
-          , Tx.goldenEvalCekCatch "dataFwdStakeTrick" [testCode]
+          , Tx.goldenEvalCekCatchBudget "dataFwdStakeTrick" testCode
           ]
   where
      testCredential =
@@ -196,11 +147,9 @@ testDataFwdStakeTrick =
 testDataFwdStakeTrickManual :: TestTree
 testDataFwdStakeTrickManual =
      runTestGhcSOP
-          [ Tx.goldenSize "dataFwdStakeTrickManual" testCode
-          , Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
+          [ Tx.goldenPirReadable "dataFwdStakeTrickManual" testAbsCode
           , Tx.goldenUPlcReadable "dataFwdStakeTrickManual" testAbsCode
-          , Tx.goldenBudget "dataFwdStakeTrickManual" testCode
-          , Tx.goldenEvalCekCatch "dataFwdStakeTrickManual" [testCode]
+          , Tx.goldenEvalCekCatchBudget "dataFwdStakeTrickManual" testCode
           ]
   where
      testCredential =

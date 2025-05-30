@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -29,24 +30,27 @@ import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
 basic :: TestNested
 basic =
-  testNested "Basic" . pure $ testNestedGhc
-    [ goldenPirReadable "monoId" monoId
-    , goldenPirReadable "monoK" monoK
-    , goldenPirReadable "letFun" letFun
-    , goldenPirReadable "nonstrictLet" nonstrictLet
-    , goldenPirReadable "strictLet" strictLet
-    , goldenPirReadable "strictMultiLet" strictMultiLet
-    , goldenPirReadable "strictLetRec" strictLetRec
-    , -- must keep the scrutinee as it evaluates to error
-      goldenPirReadable "ifOpt" ifOpt
-    , -- should fail
-      goldenUEval "ifOptEval" [ifOpt]
-    , goldenPirReadable "monadicDo" monadicDo
-    , goldenPirReadable "patternMatchDo" patternMatchDo
-    , goldenUPlc "patternMatchFailure" patternMatchFailure
-    , goldenPirReadable "defaultCaseDuplication" defaultCaseDuplication
-    , goldenPirReadable "defaultCaseDuplicationNested" defaultCaseDuplicationNested
-    ]
+  testNested "Basic" . pure $
+    testNestedGhc
+      [ goldenPirReadable "monoId" monoId
+      , goldenPirReadable "monoK" monoK
+      , goldenPirReadable "letFun" letFun
+      , goldenPirReadable "nonstrictLet" nonstrictLet
+      , goldenPirReadable "strictLet" strictLet
+      , goldenPirReadable "strictMultiLet" strictMultiLet
+      , goldenPirReadable "strictLetRec" strictLetRec
+      , -- must keep the scrutinee as it evaluates to error
+        goldenPirReadable "ifOpt" ifOpt
+      , -- should fail
+        goldenUEval "ifOptEval" [ifOpt]
+      , goldenPirReadable "monadicDo" monadicDo
+      , goldenPirReadable "patternMatchDo" patternMatchDo
+      , goldenUPlc "patternMatchFailure" patternMatchFailure
+      , goldenPirReadable "defaultCaseDuplication" defaultCaseDuplication
+      , goldenPirReadable "defaultCaseDuplicationNested" defaultCaseDuplicationNested
+      , goldenPirReadable "integerPatternMatch" integerPatternMatch
+      , goldenPirReadable "integerCase" integerCase      
+      ]
 
 monoId :: CompiledCode (Integer -> Integer)
 monoId = plc (Proxy @"monoId") \(x :: Integer) -> x
@@ -144,3 +148,15 @@ defaultCaseDuplicationNested = plc (Proxy @"defaultCaseDuplicationNested") do
         case y of
           B -> 2
           _ -> 3
+
+integerCase :: CompiledCode Integer
+integerCase = plc (Proxy @"integerCase") ((\case {1 -> 42; 2 -> 100; _ -> -1}) (2 :: Integer))
+
+integerMatchFunction :: Integer -> Integer
+integerMatchFunction 1 = 12
+integerMatchFunction 2 = 22
+integerMatchFunction _ = 42
+
+integerPatternMatch :: CompiledCode Integer
+integerPatternMatch = plc (Proxy @"integerPatternMatch") (integerMatchFunction 2)
+

@@ -1,29 +1,24 @@
 (program
    1.1.0
-   ((\go l -> force go l)
-      ((\s -> s s)
-         (\s arg ->
-            delay
-              (\xs ->
-                 force
-                   (force (force chooseList)
-                      xs
-                      (delay (constr 0 [[], []]))
-                      (delay
-                         ((\h t ->
-                             case
-                               (force (s s (delay (\x -> x))) t)
-                               [ (\ipv ipv ->
-                                    force
-                                      (force ifThenElse
-                                         (lessThanInteger (unIData h) 8)
-                                         (delay
-                                            (constr 0
-                                               [ipv, (force mkCons h ipv)]))
-                                         (delay
-                                            (constr 0
-                                               [ (force mkCons h ipv)
-                                               , ipv ])))) ])
-                            (force headList xs)
-                            (force tailList xs))))))
-         (delay (\x -> x)))))
+   (\l ->
+      (\s -> s s)
+        (\s xs ->
+           force
+             (force (force chooseList)
+                xs
+                (delay (constr 0 [[], []]))
+                (delay
+                   ((\h ->
+                       case
+                         ((\x -> s s x) (force tailList xs))
+                         [ (\ipv ipv ->
+                              force
+                                (force ifThenElse
+                                   (lessThanInteger (unIData h) 8)
+                                   (delay
+                                      (constr 0 [ipv, (force mkCons h ipv)]))
+                                   (delay
+                                      (constr 0
+                                         [(force mkCons h ipv), ipv])))) ])
+                      (force headList xs)))))
+        l))

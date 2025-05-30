@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -O0 -fmax-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module Budget.WithoutGHCOptimisations where
 

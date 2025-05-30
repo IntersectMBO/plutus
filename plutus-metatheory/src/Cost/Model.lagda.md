@@ -81,6 +81,7 @@ data CostingModel : ℕ → Set where
   -- exactly 3 arguments
   twoArgumentsLinearInYAndZ      : Intercept → Slope → Slope → CostingModel 3
   twoArgumentsLinearInMaxYZ      : Intercept → Slope → CostingModel 3
+  threeArgumentsExpModCost       : CostingNat → CostingNat → CostingNat -> CostingModel 3
 ```
 
 A model of a builtin consists of a pair of costing models, one for CPU and one for memory.
@@ -152,6 +153,17 @@ runModel (twoArgumentsConstOffDiagonal c m) (x ∷ y ∷ []) =
   in if not (a ≡ᵇ b)
       then c
       else runModel m (x ∷ y ∷ [])
+runModel (threeArgumentsExpModCost c00 c11 c12) (x ∷ y ∷ z ∷ []) =
+  let aa = sizeOf x
+      ee = sizeOf y
+      mm = sizeOf z
+      cost0 = c00 + c11 * ee * mm + c12 * ee * mm * mm
+  in if mm <ᵇ aa
+     then cost0 + (cost0 / 2)
+     else cost0
+
+  -- ^ THIS IS INCOMPLETE: the real costing function branches if a > 5*c; however we measure
+  -- sizes in bytes instead of words for expModInteger, so it gives incorrect results anyway.
 runModel (literalCostIn n m) xs with lookup xs n
 ... | V-con (atomic aInteger) (pos (suc n)) = (n / 8) + 1
   --only uses the literal size if positive integer.
@@ -185,6 +197,7 @@ convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgume
 convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstOffDiagonal c m) = mapMaybe (twoArgumentsConstOffDiagonal c) (convertRawModel m)
+convertRawModel {3} (ExpModCost (mkExpModCostingFunction c00 c11 c12)) = just (threeArgumentsExpModCost c00 c11 c12)
 convertRawModel _ = nothing
 
 convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)

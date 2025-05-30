@@ -32,6 +32,7 @@ import Data.Maybe (fromJust)
 import Data.Set qualified as Set
 import NoThunks.Class
 import Test.Tasty
+import Test.Tasty.Extras (ignoreTestWhenHpcEnabled)
 import Test.Tasty.HUnit
 
 {- Note [Direct UPLC code]
@@ -77,7 +78,9 @@ testWith str evalFn = testGroup str $ fmap (uncurry testCase)
 --    ,("illOverAppFun", evalFn illOverAppFun @?= False) -- type error is caught by the machine
     ]
 
-{- ** FIXME: this is broken with the new cost model setup
+{- ** FIXME(https://github.com/IntersectMBO/plutus-private/issues/1611):
+
+This is broken with the new cost model setup.
 
 testUnlifting :: TestTree
 testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
@@ -130,6 +133,6 @@ tests = testGroup "eval"
     [ testAPI
 --    , testUnlifting
     , evaluationContextCacheIsComplete
-    , evaluationContextNoThunks
+    , ignoreTestWhenHpcEnabled evaluationContextNoThunks
     ]
 

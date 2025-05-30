@@ -7,26 +7,19 @@
               [ (find (\v -> greaterThanEqualsInteger v 8) xs)
               , (find (\v -> greaterThanEqualsInteger v 12) xs) ])
            (\p ->
-              force
-                ((\s -> s s)
-                   (\s arg ->
-                      delay
-                        (\xs ->
-                           force
-                             (force (force chooseList)
-                                xs
-                                (delay (constr 1 []))
-                                (delay
-                                   ((\x xs ->
-                                       force
-                                         (case
-                                            (p x)
-                                            [ (delay (constr 0 [x]))
-                                            , (delay
-                                                 (force (s s (delay (\x -> x)))
-                                                    xs)) ]))
-                                      (force headList xs)
-                                      (force tailList xs))))))
-                   (delay (\x -> x)))))
+              (\s -> s s)
+                (\s xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay (constr 1 []))
+                        (delay
+                           ((\x xs ->
+                               force
+                                 (case
+                                    (p x)
+                                    [(delay (constr 0 [x])), (delay (s s xs))]))
+                              (force headList xs)
+                              (force tailList xs)))))))
         (\x y ->
            force ifThenElse (lessThanInteger x y) (constr 1 []) (constr 0 []))))

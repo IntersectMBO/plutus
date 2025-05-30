@@ -15,7 +15,7 @@ open import VerifiedCompilation.Equality using (DecEq; _≟_;decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; isVar?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay; isvar)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary using (_×-dec_)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; toWellScoped)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; toWellScoped; con-integer)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst)
@@ -32,16 +32,12 @@ open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
-
+open import Untyped.Reduction using (iterApp)
 ```
 
 ## Translation Relation
 
 ```
-iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
-iterApp x [] = x
-iterApp x (v ∷ vs) = iterApp (x · v) vs
-
 data CaseReduce : Relation where
   casereduce : {X : Set} {{_ : DecEq X}} {x : X ⊢} { x' : X ⊢} {vs xs : List (X ⊢)} {i : ℕ}
                          → lookup? i xs ≡ just x
@@ -84,12 +80,6 @@ becomes:
 _Compiler version: _
 ```
 
-integer : RawU.TyTag
-integer = tag2TyTag RawU.integer
-
-con-integer : {X : Set} → ℕ → X ⊢
-con-integer n = (con (tmCon integer (Int.pos n)))
-
 ```
 This simple example applies the rule once, and works
 ```
@@ -117,5 +107,18 @@ _ = casereduce refl {!!}
 -- This would require unpacking the meaning of the lambdas and applications, not just the AST,
 -- so is beyond the scope of this translation relation.
 -}
+
+```
+## Semantic Equivalence
+
+```
+open import Untyped.CEK using (stepper; step)
+open import Builtin using (Builtin; addInteger; subtractInteger)
+
+ex1 : ⊥ ⊢
+ex1 = (((ƛ (ƛ (((builtin subtractInteger) · (` nothing)) · (` (just nothing)))))) · (con-integer 2)) · (con-integer 3) --- \× . \y . x - y ==>  2 - 3
+
+ex2 : ⊥ ⊢
+ex2 = (((ƛ (ƛ (((builtin subtractInteger) · (` (just nothing))) · (` nothing))))) · (con-integer 3)) · (con-integer 2) --- \x . \y . y - x ==> 2 - 3
 
 ```

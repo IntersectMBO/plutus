@@ -12,10 +12,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 serializationLaws :: [TestTree]
-serializationLaws = [
-  testPropertyNamed "FromBuiltinData-ToBuiltinData roundtrip" "propIsDataRound" propIsDataRound,
-  testPropertyNamed "unsafeFromBuiltinData . toBuiltinData = id" "propUnsafeIsData" propUnsafeIsData,
-  testPropertyNamed "FromJSON-ToJSON roundtrip" "propIsJSONRound" propIsJSONRound
+serializationLaws =
+  [ testPropertyNamed "FromBuiltinData-ToBuiltinData roundtrip" "propIsDataRound" propIsDataRound
+  , testPropertyNamed "unsafeFromBuiltinData . toBuiltinData = id" "propUnsafeIsData" propUnsafeIsData
+  , testPropertyNamed "FromJSON-ToJSON roundtrip" "propIsJSONRound" propIsJSONRound
   ]
 
 -- Helpers

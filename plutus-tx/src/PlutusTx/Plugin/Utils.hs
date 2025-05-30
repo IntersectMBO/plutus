@@ -1,15 +1,10 @@
-{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
-
 {-# OPTIONS_GHC -Wno-unused-foralls #-}
 {-# OPTIONS_GHC -fomit-interface-pragmas #-}
-#if !MIN_VERSION_base(4, 15, 0)
-{-# OPTIONS_GHC -Wwarn=unrecognised-pragmas #-}
-#endif
 
 module PlutusTx.Plugin.Utils where
 
@@ -30,8 +25,9 @@ a Proxy to avoid this.
 
 -- This needs to be defined here so we can reference it in the TH functions.
 -- If we inline this then we won't be able to find it later!
+
 -- | Marks the given expression for compilation to PLC.
-plc :: forall (loc::Symbol) a . Proxy loc -> a -> CompiledCode a
+plc :: forall (loc :: Symbol) a. Proxy loc -> a -> CompiledCode a
 -- this constructor is only really there to get rid of the unused warning
 plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")
 {-# OPAQUE plc #-}
