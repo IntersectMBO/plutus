@@ -28,7 +28,6 @@ import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
@@ -238,7 +237,7 @@ genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ typeRep @Integer
     let term = mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
-    return $ TermOf term evaluationFailure
+    return $ TermOf term builtinResultFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
 genDivideByZeroDrop :: TermGen (BuiltinResult Integer)
@@ -252,7 +251,7 @@ genDivideByZeroDrop = do
                 [ mkConstant @Integer () iv
                 , mkIterAppNoAnn (Builtin () op) [i, mkConstant @Integer () 0]
                 ]
-    return $ TermOf term evaluationFailure
+    return $ TermOf term builtinResultFailure
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens

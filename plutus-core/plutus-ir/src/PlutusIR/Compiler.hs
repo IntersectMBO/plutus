@@ -10,9 +10,6 @@ module PlutusIR.Compiler (
     compileReadableToPlc,
     Compiling,
     Error (..),
-    AsError (..),
-    AsTypeError (..),
-    AsTypeErrorExt (..),
     Provenance (..),
     DatatypeComponent (..),
     noProvenance,
@@ -63,7 +60,6 @@ import Data.Monoid
 import Data.Monoid.Extra (mwhen)
 import Debug.Trace (traceM)
 import PlutusCore qualified as PLC
-import PlutusCore.Error (throwingEither)
 import PlutusIR
 import PlutusIR.Compiler.Let qualified as Let
 import PlutusIR.Compiler.Lower
@@ -89,26 +85,26 @@ import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusPrelude
 
-isVerbose :: Compiling m e uni fun a => m Bool
+isVerbose :: Compiling m uni fun a => m Bool
 isVerbose = view $ ccOpts . coVerbose
 
-isDebug :: Compiling m e uni fun a => m Bool
+isDebug :: Compiling m uni fun a => m Bool
 isDebug = view $ ccOpts . coDebug
 
-logVerbose :: Compiling m e uni fun a => String -> m ()
+logVerbose :: Compiling m uni fun a => String -> m ()
 logVerbose = whenM (orM [isVerbose, isDebug]) . traceM
 
-logDebug :: Compiling m e uni fun a => String -> m ()
+logDebug :: Compiling m uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
-runCompilerPass :: (Compiling m e uni fun a, b ~ Provenance a) => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
+runCompilerPass :: (Compiling m uni fun a, b ~ Provenance a) => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
 runCompilerPass mpasses t = do
   passes <- mpasses
   pedantic <- view (ccOpts . coPedantic)
   res <- runExceptT $ P.runPass logVerbose pedantic passes t
-  throwingEither _Error res
+  liftEither res
 
-floatOutPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+floatOutPasses :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatOutPasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
@@ -119,7 +115,7 @@ floatOutPasses = do
         , LetMerge.letMergePass tcconfig
         ]
 
-floatInPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+floatInPasses :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatInPasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
@@ -130,7 +126,7 @@ floatInPasses = do
         , LetMerge.letMergePass tcconfig
         ]
 
-simplifierIteration :: Compiling m e uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+simplifierIteration :: Compiling m uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
 simplifierIteration suffix = do
   opts <- view ccOpts
   tcconfig <- view ccTypeCheckConfig
@@ -153,7 +149,7 @@ simplifierIteration suffix = do
       , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
       ]
 
-simplifier :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+simplifier :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 simplifier = do
   optimize <- view (ccOpts . coOptimize)
   maxIterations <- view (ccOpts . coMaxSimplifierIterations)
@@ -161,13 +157,13 @@ simplifier = do
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
 
 -- | Typecheck a PIR Term iff the context demands it.
-typeCheckTerm :: (Compiling m e uni fun a) => m (P.Pass m TyName Name uni fun (Provenance a))
+typeCheckTerm :: (Compiling m uni fun a) => m (P.Pass m TyName Name uni fun (Provenance a))
 typeCheckTerm = do
   doTc <- view (ccOpts . coTypecheck)
   tcconfig <- view ccTypeCheckConfig
   pure $ mwhen doTc $ P.typecheckPass tcconfig
 
-dce :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+dce :: Compiling m uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 dce = do
   opts <- view ccOpts
   typeCheckConfig <- view ccTypeCheckConfig
@@ -180,8 +176,8 @@ dce = do
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
 compileToReadable
-  :: forall m e uni fun a b
-  . (Compiling m e uni fun a, b ~ Provenance a)
+  :: forall m uni fun a b
+  . (Compiling m uni fun a, b ~ Provenance a)
   => Program TyName Name uni fun b
   -> m (Program TyName Name uni fun b)
 compileToReadable (Program a v t) = do
@@ -193,7 +189,7 @@ compileToReadable (Program a v t) = do
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
 -- Note: the result *does* have globally unique names.
-compileReadableToPlc :: forall m e uni fun a b . (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
+compileReadableToPlc :: forall m uni fun a b . (Compiling m uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
 compileReadableToPlc (Program a v t) = do
 
   let
@@ -223,7 +219,7 @@ compileReadableToPlc (Program a v t) = do
   PLC.Program a v <$> go t
 
 --- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m e uni fun a
+compileProgram :: Compiling m uni fun a
             => Program TyName Name uni fun a -> m (PLCProgram uni fun a)
 compileProgram =
   (pure . original)

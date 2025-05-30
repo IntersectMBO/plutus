@@ -12,7 +12,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Name.Unique
 
 import Control.Monad (void, when)
-import Control.Monad.Except (ExceptT, MonadError, throwError)
+import Control.Monad.Except
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable
 import Data.Text (Text)
@@ -50,7 +50,9 @@ checkCondition c t = case c of
     -- Typechecking requires globally unique names
     renamed <- PLC.rename t
     TC.inferType tcconfig renamed
-  GloballyUniqueNames -> void $ Uniques.checkTerm (const True) t
+  GloballyUniqueNames ->
+    void $ modifyError (PLCError . PLC.UniqueCoherencyErrorE) $
+      Uniques.checkTerm (const True) t
   Custom f -> case f t of
     Just (a, e) -> throwError $ CompilationError a e
     Nothing     -> pure ()
@@ -141,7 +143,7 @@ renamePass =
 -- | A pass that does typechecking, useful when you want to do it explicitly
 -- and not as part of a precondition check.
 typecheckPass
-  :: (TC.MonadTypeCheckPir err uni fun a m, Ord a)
+  :: (TC.MonadTypeCheckPir uni fun a m, Ord a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
 typecheckPass tcconfig = NamedPass "typechecking" $ Pass run [GloballyUniqueNames] []

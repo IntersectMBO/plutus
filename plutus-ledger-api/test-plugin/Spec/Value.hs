@@ -165,7 +165,9 @@ eqValueCode valueCode1 valueCode2 = (res, cost) where
         . PLC.unDeBruijnTermWith (Haskell.error "Free variable")
         . PLC._progTerm
         $ getPlc prog
-    res = either Haskell.throw id $ errOrRes >>= PLC.readKnownSelf
+    res =
+      either Haskell.throw id $
+        errOrRes >>= PLC.readKnownSelf
 
 -- | Check equality of two compiled 'Value's directly in Haskell.
 haskellEqValue :: Value -> Value -> Bool

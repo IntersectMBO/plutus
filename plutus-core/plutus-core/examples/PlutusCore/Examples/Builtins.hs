@@ -24,7 +24,6 @@ import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetStream
-import PlutusCore.Evaluation.Result (evaluationFailure)
 import PlutusCore.Pretty
 
 import PlutusCore.StdLib.Data.ScottList qualified as Plc
@@ -32,6 +31,7 @@ import PlutusCore.StdLib.Data.ScottList qualified as Plc
 import Control.Concurrent.MVar
 import Control.Exception
 import Control.Monad
+import Control.Monad.Except
 import Data.Default.Class
 import Data.Either
 import Data.Kind qualified as GHC (Type)
@@ -199,7 +199,7 @@ instance tyname ~ TyName => KnownTypeAst tyname DefaultUni Void where
 instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown = absurd
 instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
-    readKnown _ = throwing _StructuralUnliftingError "Can't unlift to 'Void'"
+    readKnown _ = throwError $ structuralUnliftingError "Can't unlift to 'Void'"
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)
@@ -286,7 +286,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         idAssumeCheckBoolPlc val =
             case asConstant val of
                 Right (Some (ValueOf DefaultUniBool b)) -> pure b
-                _                                       -> evaluationFailure
+                _                                       -> builtinResultFailure
 
     toBuiltinMeaning _semvar IdSomeConstantBool =
         makeBuiltinMeaning
@@ -296,7 +296,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         idSomeConstantBoolPlc :: SomeConstant uni Bool -> BuiltinResult Bool
         idSomeConstantBoolPlc = \case
             SomeConstant (Some (ValueOf DefaultUniBool b)) -> pure b
-            _                                              -> evaluationFailure
+            _                                              -> builtinResultFailure
 
     toBuiltinMeaning _semvar IdIntegerAsBool =
         makeBuiltinMeaning
@@ -306,7 +306,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         idIntegerAsBool :: SomeConstant uni Integer -> BuiltinResult (SomeConstant uni Integer)
         idIntegerAsBool = \case
             con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> pure con
-            _                                                    -> evaluationFailure
+            _                                                    -> builtinResultFailure
 
     toBuiltinMeaning _semvar IdFInteger =
         makeBuiltinMeaning
@@ -397,7 +397,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning _semvar ErrorPrime =
         makeBuiltinMeaning
-            (evaluationFailure :: forall a. BuiltinResult a)
+            (builtinResultFailure :: forall a. BuiltinResult a)
             whatever
 
     toBuiltinMeaning _semvar Comma =

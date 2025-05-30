@@ -24,8 +24,7 @@ module PlutusCore.Bitwise (
   maximumOutputLength
   ) where
 
-import PlutusCore.Builtin (BuiltinResult, emit)
-import PlutusCore.Evaluation.Result (evaluationFailure)
+import PlutusCore.Builtin (BuiltinResult, builtinResultFailure, emit)
 
 import ByteString.StrictBuilder (Builder)
 import ByteString.StrictBuilder qualified as Builder
@@ -64,7 +63,7 @@ integerToByteString endiannessArg lengthArg input
   | lengthArg < 0 = do
       emit "integerToByteString: negative length argument"
       emit $ "Length requested: " <> (pack . show $ input)
-      evaluationFailure
+      builtinResultFailure
   -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
   -- still have to make sure that the length fits into an Int.
   | lengthArg > maximumOutputLength = do
@@ -72,7 +71,7 @@ integerToByteString endiannessArg lengthArg input
                ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ lengthArg)
-      evaluationFailure
+      builtinResultFailure
   -- If the requested length is zero (ie, an explicit output size is not
   -- specified) we still have to make sure that the output won't exceed the size
   -- limit.  If the requested length is nonzero and less than the limit,
@@ -86,7 +85,7 @@ integerToByteString endiannessArg lengthArg input
                ++ show (8 * maximumOutputLength)
                ++ "-1)"
       emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
-      evaluationFailure
+      builtinResultFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. This is because, if we've made it this far, we know that overflow or truncation
@@ -98,14 +97,14 @@ integerToByteString endiannessArg lengthArg input
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
-          evaluationFailure
+          builtinResultFailure
         NotEnoughDigits -> do
           emit "integerToByteString: cannot represent Integer in given number of bytes"
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
           emit $ "Bytes requested: " <> (pack . show $ lengthArg)
-          evaluationFailure
+          builtinResultFailure
       Right result -> pure result
 
 -- | Conversion from 'Integer' to 'ByteString', as per
@@ -528,11 +527,11 @@ readBit bs ix
   | ix < 0 = do
       emit "readBit: index out of bounds"
       emit $ "Index: " <> (pack . show $ ix)
-      evaluationFailure
+      builtinResultFailure
   | ix >= len * 8 = do
       emit "readBit: index out of bounds"
       emit $ "Index: " <> (pack . show $ ix)
-      evaluationFailure
+      builtinResultFailure
   | otherwise = do
       let (bigIx, littleIx) = ix `quotRem` 8
       let flipIx = len - bigIx - 1
@@ -548,7 +547,7 @@ writeBits bs ixs bit = case unsafeDupablePerformIO . try $ go of
   Left (WriteBitsException i) -> do
     emit "writeBits: index out of bounds"
     emit $ "Index: " <> (pack . show $ i)
-    evaluationFailure
+    builtinResultFailure
   Right result -> pure result
   where
     -- This is written in a somewhat strange way. See Note [writeBits and
@@ -588,13 +587,13 @@ replicateByte :: Integer -> Word8 -> BuiltinResult ByteString
 replicateByte len w8
   | len < 0 = do
       emit "replicateByte: negative length requested"
-      evaluationFailure
+      builtinResultFailure
   | len > maximumOutputLength = do
       emit . pack $ "replicateByte: requested length is too long (maximum is "
                ++ show maximumOutputLength
                ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ len)
-      evaluationFailure
+      builtinResultFailure
   | otherwise = pure . BS.replicate (fromIntegral len) $ w8
 
 -- | Wrapper for calling 'unsafesShiftByteString' safely. Specifically, we avoid various edge cases:

@@ -4,10 +4,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Compiler.Let.Tests where
 
-import Control.Monad (join, void)
-import Control.Monad.Except (ExceptT, runExceptT)
+import PlutusPrelude
+
+import Control.Monad.Except
 import Control.Monad.Reader (Reader, runReader)
-import Data.Bifunctor
 import PlutusCore qualified as PLC
 import PlutusIR.Compiler (Provenance (..))
 import PlutusIR.Compiler qualified as PIR
@@ -51,7 +51,7 @@ test_propLets =
       let
         res :: Either e ()
         res = do
-            plcConfig <- PLC.getDefTypeCheckConfig (Original ())
+            plcConfig <- modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig (Original ())
             let ctx = PIR.toDefaultCompilationCtx plcConfig
             join $ flip runReader ctx $ PLC.runQuoteT $ runExceptT $ runExceptT v
       in convertToEitherString $ first void res

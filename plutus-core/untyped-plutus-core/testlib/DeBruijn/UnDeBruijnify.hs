@@ -76,7 +76,7 @@ test_undebruijnify = testNested "Golden"
     nestedGoldenVsPretty act (n,t) =
         nestedGoldenVsDoc n ".uplc" $ toPretty $ act $ mkProg t
 
-    actDefault = progTerm unDeBruijnTerm
+    actDefault = progTerm $ modifyError FreeVariableErrorE . unDeBruijnTerm
 
     actGrace = flip evalStateT mempty
                . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel)

@@ -12,7 +12,6 @@ import AnyProgram.With
 import Common
 import GetOpt
 import PlutusCore.Default
-import PlutusCore.Error
 import PlutusCore.Pretty qualified as PP
 import PlutusPrelude hiding ((%~))
 import Types
@@ -43,7 +42,7 @@ readProgram sngS fileS =
         _ -> case fileS^.fType.fFormat of
                 Text -> do
                     bs <- readFileName (fromJust $ fileS^.fName)
-                    case parseProgram @ParserErrorBundle sngS $ T.decodeUtf8Lenient bs of
+                    case parseProgram sngS $ T.decodeUtf8Lenient bs of
                         Left err  -> failE $ show err
                         Right res -> pure res
                 Flat_ -> withLang @Flat sngS $ do
