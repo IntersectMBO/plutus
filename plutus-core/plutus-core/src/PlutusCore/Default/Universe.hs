@@ -51,6 +51,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
+import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Proxy (Proxy (Proxy))
@@ -401,7 +402,7 @@ instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typ
             -- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@
             if fromIntegral (minBound :: a) <= i && i <= fromIntegral (maxBound :: a)
                 then pure . AsInteger $ fromIntegral i
-                else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+                else throwError . operationalUnliftingError $ fold
                         [ Text.pack $ show i
                         , " is not within the bounds of "
                         , Text.pack . show . typeRep $ Proxy @a
@@ -511,7 +512,7 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
             if i >= 0
             -- TODO: benchmark alternatives: ghc>=9 integerToNatural
             then pure $ fromInteger i
-            else throwing _OperationalUnliftingError . MkUnliftingError $ fold
+            else throwError . operationalUnliftingError $ fold
                  [ Text.pack $ show i
                  , " is not within the bounds of Natural"
                  ]

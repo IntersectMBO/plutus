@@ -26,6 +26,7 @@ module UntypedPlutusCore.Core.Type
     ) where
 
 import Control.Lens
+import Control.Monad.Except
 import PlutusPrelude
 
 import Data.Vector
@@ -128,7 +129,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
 
 instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant (Constant _ val) = pure val
-    asConstant _                = TPLC.throwNotAConstant
+    asConstant _                = throwError TPLC.notAConstant
 
     fromConstant = Constant ()
 

@@ -166,7 +166,7 @@ computeCek !ctx !env (Case ann scrut cs) = do
     pure $ Computing (FrameCases ann env cs ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
-    throwingWithCause _OperationalError CekEvaluationFailure $ Error ()
+    throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
 
 returnCek
     :: forall uni fun ann s
@@ -205,13 +205,13 @@ returnCek (FrameCases ann env cs ctx) e = case e of
     -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
     -- "apparently good" value.
     (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                    throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
+                    throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
         Just t  ->
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
-        Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
-    _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
+        Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+    _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;
@@ -240,9 +240,9 @@ forceEvaluate ann !ctx (VBuiltin fun term runtime) = do
             -- application.
             evalBuiltinApp ann ctx fun term' runtime'
         _ ->
-            throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'
+          throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
 forceEvaluate _ !_ val =
-    throwingDischarged _StructuralError NonPolymorphicInstantiationMachineError val
+    throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -273,9 +273,9 @@ applyEvaluate ann !ctx (VBuiltin fun term runtime) arg = do
         -- argument next.
         BuiltinExpectArgument f -> evalBuiltinApp ann ctx fun term' $ f arg
         _ ->
-            throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'
+          throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
 applyEvaluate _ !_ val _ =
-    throwingDischarged _StructuralError NonFunctionalApplicationMachineError val
+    throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
@@ -416,14 +416,13 @@ cekStepCost costs = runIdentity . \case
     BCase    -> cekCaseCost costs
 
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
--- 'throwingWithCause' as the cause of the failure.
-throwingDischarged
-    :: ThrowableBuiltins uni fun
-    => AReview (EvaluationError (MachineError fun) CekUserError) t
-    -> t
-    -> CekValue uni fun ann
-    -> CekM uni fun s x
-throwingDischarged l t = throwingWithCause l t . dischargeCekValue
+-- 'throwErrorWithCause' as the cause of the failure.
+throwErrorDischarged
+  :: ThrowableBuiltins uni fun
+  => EvaluationError (MachineError fun) CekUserError
+  -> CekValue uni fun ann
+  -> CekM uni fun s x
+throwErrorDischarged err = throwErrorWithCause err . dischargeCekValue
 
 -- | Look up a variable name in the environment.
 lookupVarName
@@ -432,7 +431,8 @@ lookupVarName
     => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
-        Nothing  -> throwingWithCause _StructuralError OpenTermEvaluatedMachineError $ Var () varName
+        Nothing  ->
+          throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) (Var () varName)
         Just val -> pure val
 
 -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
