@@ -164,7 +164,7 @@ type instance UniOf Val = DefaultUni
 instance ExMemoryUsage Val where
     memoryUsage = error "Not supposed to be executed"
 instance HasConstant Val where
-    asConstant _ = throwNotAConstant
+    asConstant _ = throwError notAConstant
     fromConstant _ = Val
 
 -- | Return the last element of the list that is smaller than or equal to the given one.

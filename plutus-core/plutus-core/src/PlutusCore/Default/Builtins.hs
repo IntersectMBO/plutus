@@ -39,6 +39,7 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 
 import Codec.Serialise (serialise)
 import Control.Monad (unless)
+import Control.Monad.Except (throwError)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
@@ -773,7 +774,7 @@ check that the value inside of it is a list (by matching on the type tag):
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -794,7 +795,7 @@ Here's a similar built-in function:
                     DefaultUniPair uniA _ ->              -- [1]
                         pure . fromValueOf uniA $ fst xy  -- [2]
                     _ ->
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -814,7 +815,7 @@ manual unlifting for arguments having non-monomorphized polymorphic built-in typ
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
                         _ : _ -> b
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -838,9 +839,9 @@ Our final example is this:
                     DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
                         Just Refl ->                                       -- [2]
                             pure . fromValueOf uniListA $ x : xs           -- [3]
-                        _ -> throwing _StructuralUnliftingError
+                        _ -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1001,7 +1002,7 @@ Here's how we can define it as a built-in function using 'headSpine':
                         []     -> headSpine z []                                             -- [1]
                         x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
                     _ ->
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE caseListDenotation #-}
         in makeBuiltinMeaning
             caseListDenotation
@@ -1452,7 +1453,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
                     _                     ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -1465,7 +1466,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
                     _                     ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE sndPairDenotation #-}
         in makeBuiltinMeaning
             sndPairDenotation
@@ -1481,7 +1482,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                         _ : _ -> b
                     _ ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -1500,7 +1501,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                         x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
                     _ ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE caseListDenotation #-}
         in makeBuiltinMeaning
             caseListDenotation
@@ -1516,9 +1517,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> throwing _StructuralUnliftingError
+                        _         -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1531,7 +1532,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList uniA -> case xs of
                         []    -> fail "Expected a non-empty list but got an empty one"
                         x : _ -> pure $ fromValueOf uniA x
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE headListDenotation #-}
         in makeBuiltinMeaning
             headListDenotation
@@ -1545,7 +1546,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                       case xs of
                         []      -> fail "Expected a non-empty list but got an empty one"
                         _ : xs' -> pure $ fromValueOf uniListA xs'
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE tailListDenotation #-}
         in makeBuiltinMeaning
             tailListDenotation
@@ -1556,7 +1557,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList _uniA -> pure $ null xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -2097,9 +2098,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                             IP _ -> case drop maxBound xs of
                                [] -> pure []
                                _ ->
-                                   throwing _StructuralUnliftingError
+                                   throwError $ structuralUnliftingError
                                        "Panic: unreachable clause executed"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning
             dropListDenotation
@@ -2110,7 +2111,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
             case uni of
               DefaultUniArray _uniA -> pure $ Vector.length vec
-              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+              _ -> throwError $ structuralUnliftingError "Expected an array but got something else"
           {-# INLINE lengthOfArrayDenotation #-}
         in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . paramLengthOfArray)
 
@@ -2119,7 +2120,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
             case uniListA of
               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
-              _ -> throwing _StructuralUnliftingError  "Expected a list but got something else"
+              _ -> throwError $ structuralUnliftingError  "Expected a list but got something else"
           {-# INLINE listToArrayDenotation #-}
         in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
 
@@ -2135,7 +2136,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     -- See Note [Structural vs operational errors within builtins].
                     -- The arguments are going to be printed in the "cause" part of the error
                     -- message, so we don't need to repeat them here.
-                throwing _StructuralUnliftingError "Expected an array but got something else"
+                throwError $ structuralUnliftingError "Expected an array but got something else"
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
 
