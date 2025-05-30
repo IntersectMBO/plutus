@@ -32,8 +32,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC
 
 import Control.Lens hiding ((%~))
-import Control.Monad.Error.Lens
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Singletons.Decide
 import Data.Text
@@ -61,14 +60,14 @@ compileProgram = curry $ \case
         -- TODO: optimise
         >=> pirToOutName n1 n2
         >=> toOutAnn a1 a2
-    (SPlc n1 a1, SPlc n2 a2) ->
-        through (modifyError (fmap PIR.Original . PIR.PLCError) . plcTypecheck n1 a1)
-        >=> plcToOutName n1 n2
+    (SPlc n1 a1, SPlc n2 a2) -> -- TODO: modifyError ... is repeated multiple times
+        through (modifyError (fmap PIR.Original) . plcTypecheck n1 a1)
+        >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE) . plcToOutName n1 n2
         >=> toOutAnn a1 a2
     (SUplc n1 a1, SUplc n2 a2) ->
-        through (modifyError (fmap PIR.Original) . uplcTypecheck n1 a1)
-        >=> uplcOptimise n1
-        >=> uplcToOutName n1 n2
+        through (modifyError (fmap PIR.Original . PIR.PLCError) . uplcTypecheck n1 a1)
+        >=> modifyError (fmap PIR.Original) . uplcOptimise n1
+        >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE) . uplcToOutName n1 n2
         >=> toOutAnn a1 a2
     -- nothing to be done; seems silly, but can be used for later changing format of Data
     (SData, SData) -> pure
@@ -82,13 +81,13 @@ compileProgram = curry $ \case
       withA @Ord a1 $ withA @Pretty a1 $ withA @AnnInline a1 $
         -- Note: PIR.compileProgram subsumes pir typechecking
         (PLC.runQuoteT . flip runReaderT compCtx . PIR.compileProgram)
-        >=> plcToOutName n1 n2
+        >=> modifyError (fmap PIR.Original . PIR.PLCError . PLC.FreeVariableErrorE) . plcToOutName n1 n2
         -- completely drop annotations for now
         >=> pure . void
         where
           compCtx = PIR.toDefaultCompilationCtx $
                     unsafeFromRight @(PIR.Error DefaultUni DefaultFun ()) $
-                    PLC.getDefTypeCheckConfig ()
+                    modifyError (PIR.PLCError . TypeErrorE) $ PLC.getDefTypeCheckConfig ()
 
     -- note to self: this restriction is because of PIR.Provenance appearing in the output
     (SPir _n1@SName _, SPlc _ _) -> throwingPIR "only support unit-ann output for now"
@@ -139,7 +138,7 @@ compileProgram = curry $ \case
 embedProgram :: PLC.Program tyname name uni fun ann -> PIR.Program tyname name uni fun ann
 embedProgram (PLC.Program a v t) = PIR.Program a v $ embedTerm t
 
-toOutAnn :: (Functor f, PIR.AsError e uni fun a, MonadError e m)
+toOutAnn :: (Functor f, MonadError (PIR.Error uni fun a) m)
          => SAnn s1
          -> SAnn s2
          -> f (FromAnn s1)
@@ -152,76 +151,67 @@ toOutAnn _ _                             = throwingPIR "cannot convert annotatio
 -- or by some singletons type-level programming
 
 pirTypecheck
-    :: ( PIR.AsTypeErrorExt e DefaultUni (FromAnn a)
-      , PIR.AsTypeError e (PIR.Term UPLC.TyName UPLC.Name DefaultUni DefaultFun ())
-          DefaultUni DefaultFun (FromAnn a), MonadError e m
-      )
+    :: (MonadError (PIR.Error DefaultUni DefaultFun (FromAnn a)) m)
     => SAnn a
     -> PIR.Program PLC.TyName PLC.Name DefaultUni DefaultFun (FromAnn a)
     -> m ()
 pirTypecheck sngA p = PLC.runQuoteT $ do
-    tcConfig <- withA @Monoid sngA $ PIR.getDefTypeCheckConfig mempty
+    tcConfig <- withA @Monoid sngA $ modifyError (PIR.PLCError . PLC.TypeErrorE) $ PIR.getDefTypeCheckConfig mempty
     void $ PIR.inferTypeOfProgram tcConfig p
 
-plcToUplcViaName :: (PLC.MonadQuote m, PLC.AsFreeVariableError e, MonadError e m)
+plcToUplcViaName :: (PLC.MonadQuote m, MonadError (PIR.Error uni fun ann) m)
             => SNaming n
             -> (PLC.Program PLC.TyName PLC.Name uni fun a -> m (UPLC.Program PLC.Name uni fun a))
             -> PLC.Program (FromNameTy n) (FromName n) uni fun a
             -> m (UPLC.Program (FromName n) uni fun a)
 plcToUplcViaName sngN act = case sngN of
     SName -> act
-    SNamedDeBruijn -> plcToName sngN act
-                     >=> UPLC.progTerm UPLC.deBruijnTerm
-    SDeBruijn -> plcToName sngN act
-                >=> UPLC.progTerm UPLC.deBruijnTerm
+    SNamedDeBruijn ->
+      plcToName sngN act >=>
+      UPLC.progTerm (modifyError (PIR.PLCError . PLC.FreeVariableErrorE) . UPLC.deBruijnTerm)
+    SDeBruijn ->
+      plcToName sngN act
+                >=> UPLC.progTerm (modifyError (PIR.PLCError . PLC.FreeVariableErrorE) . UPLC.deBruijnTerm)
                 >=> pure . UPLC.programMapNames PLC.unNameDeBruijn
 
-plcToName :: (PLC.MonadQuote m, PLC.AsFreeVariableError e, MonadError e m)
+plcToName :: (PLC.MonadQuote m, MonadError (PIR.Error uni fun ann) m)
           => SNaming n
           -> (PLC.Program PLC.TyName PLC.Name uni fun a -> m x)
           -> (PLC.Program (FromNameTy n) (FromName n) uni fun a -> m x)
 plcToName sngN act = case sngN of
     SName -> act
-    SNamedDeBruijn -> PLC.progTerm PLC.unDeBruijnTerm
+    SNamedDeBruijn -> PLC.progTerm (modifyError (PIR.PLCError . PLC.FreeVariableErrorE) . PLC.unDeBruijnTerm)
                       >=> act
     SDeBruijn -> pure . PLC.programMapNames PLC.fakeTyNameDeBruijn PLC.fakeNameDeBruijn
                 >=> plcToName SNamedDeBruijn act
 
-uplcViaName :: (PLC.MonadQuote m, PLC.AsFreeVariableError e, MonadError e m)
+uplcViaName :: (PLC.MonadQuote m, MonadError (PIR.Error uni fun ann) m)
             => (UPLC.Program PLC.Name uni fun a -> m (UPLC.Program PLC.Name uni fun a))
             -> SNaming n
             -> UPLC.Program (FromName n) uni fun a
             -> m (UPLC.Program (FromName n) uni fun a)
 uplcViaName act sngN = case sngN of
     SName -> act
-    SNamedDeBruijn -> UPLC.progTerm UPLC.unDeBruijnTerm
+    SNamedDeBruijn -> UPLC.progTerm (modifyError (PIR.PLCError . PLC.FreeVariableErrorE) . UPLC.unDeBruijnTerm)
                     >=> act
-                    >=> UPLC.progTerm UPLC.deBruijnTerm
+                    >=> UPLC.progTerm (modifyError (PIR.PLCError . PLC.FreeVariableErrorE) . UPLC.deBruijnTerm)
     SDeBruijn -> pure . UPLC.programMapNames UPLC.fakeNameDeBruijn
                 >=> uplcViaName act SNamedDeBruijn
                 >=> pure . UPLC.programMapNames UPLC.unNameDeBruijn
 
-plcTypecheck :: (PLC.AsTypeError
-                          e
-                          -- errors remain with names
-                          (PLC.Term PLC.TyName PLC.Name DefaultUni DefaultFun ())
-                          DefaultUni
-                          DefaultFun
-                          (FromAnn a)
-               , PLC.AsFreeVariableError e
-               , MonadError e m
-               )
+plcTypecheck :: (MonadError (PIR.Error DefaultUni DefaultFun (FromAnn a)) m)
              => SNaming n
              -> SAnn a
              -> PLC.Program (FromNameTy n) (FromName n) DefaultUni DefaultFun (FromAnn a)
              -> m ()
-plcTypecheck sngN sngA p = PLC.runQuoteT $ do
-    tcConfig <- withA @Monoid sngA $ PLC.getDefTypeCheckConfig mempty
-    void $ plcToName sngN (PLC.inferTypeOfProgram tcConfig) p
+plcTypecheck sngN sngA p = PLC.runQuoteT $  do
+    tcConfig <-
+      withA @Monoid sngA $
+        modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig mempty
+    void $ plcToName sngN (modifyError (PIR.PLCError . PLC.TypeErrorE) . PLC.inferTypeOfProgram tcConfig) p
 
 uplcOptimise :: (?opts :: Opts
-                , PLC.AsFreeVariableError e
-                , MonadError e m
+                , MonadError (PIR.Error DefaultUni DefaultFun a) m
                 )
              => SNaming n1
              -> UPLC.UnrestrictedProgram (FromName n1) DefaultUni DefaultFun a
@@ -238,23 +228,24 @@ uplcOptimise =
                    . _Wrapped
                    . uplcViaName (UPLC.simplifyProgram sOpts def)
 
-
 -- | We do not have a typechecker for uplc, but we could pretend that scopecheck is a "typechecker"
-uplcTypecheck :: forall sN sA uni fun e m
-              . (PLC.AsFreeVariableError e, PLC.AsUniqueError e (FromAnn sA), MonadError e m)
+uplcTypecheck :: forall sN sA uni fun m
+              . (MonadError (PLC.Error uni fun (FromAnn sA)) m)
               => SNaming sN
               -> SAnn sA
               -> UPLC.UnrestrictedProgram (FromName sN) uni fun (FromAnn sA)
               -> m ()
 uplcTypecheck sngN sngA ast = case sngN of
-    SName          -> withA @Ord sngA $ UPLC.checkProgram (const True) (ast ^. _Wrapped)
+    SName          ->
+      modifyError PLC.UniqueCoherencyErrorE $
+        withA @Ord sngA $ UPLC.checkProgram (const True) (ast ^. _Wrapped)
     -- TODO: deduplicate
-    SDeBruijn      -> UPLC.checkScope (ast ^. _Wrapped. UPLC.progTerm)
-    SNamedDeBruijn -> UPLC.checkScope (ast ^. _Wrapped. UPLC.progTerm)
+    SDeBruijn      -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope (ast ^. _Wrapped. UPLC.progTerm)
+    SNamedDeBruijn -> modifyError PLC.FreeVariableErrorE $ UPLC.checkScope (ast ^. _Wrapped. UPLC.progTerm)
 
 
 -- | Placed here just for uniformity, not really needed
-pirToOutName :: (PIR.AsError e uni fun a, MonadError e m)
+pirToOutName :: (MonadError (PIR.Error uni fun a) m)
              => SNaming s1
              -> SNaming s2
              -> PIR.Program (FromNameTy s1) (FromName s1) uni fun ann
@@ -262,7 +253,7 @@ pirToOutName :: (PIR.AsError e uni fun a, MonadError e m)
 pirToOutName sng1 ((sng1 %~) -> Proved Refl) = pure
 pirToOutName _ _ = throwingPIR "we do not support name conversion for PIR atm"
 
-plcToOutName :: (PLC.AsFreeVariableError e, MonadError e m)
+plcToOutName :: (MonadError FreeVariableError m)
              => SNaming s1
              -> SNaming s2
              -> PLC.Program (FromNameTy s1) (FromName s1) uni fun ann
@@ -280,14 +271,14 @@ plcToOutName SDeBruijn SName = plcToOutName SDeBruijn SNamedDeBruijn
                            >=> plcToOutName SNamedDeBruijn SName
 plcToOutName _ _ = error "this is complete, but i don't want to use -fno-warn-incomplete-patterns"
 
-uplcToOutName :: (PLC.AsFreeVariableError e, MonadError e m)
+uplcToOutName :: (MonadError FreeVariableError m)
               => SNaming s1
               -> SNaming s2
               -> UPLC.UnrestrictedProgram (FromName s1) uni fun ann
               -> m (UPLC.UnrestrictedProgram (FromName s2) uni fun ann)
 uplcToOutName = fmap _Wrapped . uplcToOutName'
 
-uplcToOutName' :: (PLC.AsFreeVariableError e, MonadError e m)
+uplcToOutName' :: (MonadError FreeVariableError m)
                => SNaming s1
                -> SNaming s2
                -> UPLC.Program (FromName s1) uni fun ann
@@ -304,9 +295,9 @@ uplcToOutName' SDeBruijn SName = uplcToOutName' SDeBruijn SNamedDeBruijn
 uplcToOutName' _ _ = error "this is complete, but i don't want to use -fno-warn-incomplete-patterns"
 
 -- TODO: use better, more detailed erroring
-throwingPIR :: (PIR.AsError e uni fun a, MonadError e m)
+throwingPIR :: (MonadError (PIR.Error uni fun a) m)
             => Text -> b -> m c
-throwingPIR = const . throwing PIR._Error . PIR.OptionsError
+throwingPIR = const . throwError . PIR.OptionsError
 
 checkProgram :: (e ~ PIR.Provenance (FromAnn (US_ann s)),
                   MonadError (PIR.Error DefaultUni DefaultFun e) m)
@@ -314,8 +305,8 @@ checkProgram :: (e ~ PIR.Provenance (FromAnn (US_ann s)),
              -> FromLang s
              -> m ()
 checkProgram sng p = modifyError (fmap PIR.Original) $ case sng of
-        SPlc n a     -> modifyError PIR.PLCError $ plcTypecheck n a p
-        SUplc n a    -> uplcTypecheck n a p
+        SPlc n a     -> plcTypecheck n a p
+        SUplc n a    -> modifyError PIR.PLCError $ uplcTypecheck n a p
         SPir SName a -> pirTypecheck a p
         SData        -> pure () -- data is type correct by construction
         SPir{}       -> throwingPIR "PIR: Cannot typecheck non-names" ()

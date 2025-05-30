@@ -50,7 +50,7 @@ runTestPass
   -> m (Term tyname name uni fun a)
 runTestPass pass t = do
   res <- runExceptT $ do
-    tcconfig <- TC.getDefTypeCheckConfig mempty
+    tcconfig <- modifyError PIR.PLCTypeError $ TC.getDefTypeCheckConfig mempty
     runPass (\_ -> pure ()) True (pass tcconfig) t
   case res of
     Left e  -> throw e
@@ -90,7 +90,7 @@ testPassProp' ann before after pass =
     let
       res :: ExceptT (PIR.Error PLC.DefaultUni PLC.DefaultFun a) m ()
       res = do
-        tcconfig <- getDefTypeCheckConfig ann
+        tcconfig <- modifyError PIR.PLCTypeError $ getDefTypeCheckConfig ann
         let tm' = before tm
         _ <- runPass (\_ -> pure ()) True (pass tcconfig) tm'
         pure ()

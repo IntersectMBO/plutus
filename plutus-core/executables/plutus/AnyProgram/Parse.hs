@@ -22,8 +22,7 @@ import PlutusCore.Data
 --
 -- This could alternatively be achieved by
 -- using a "Parsable" typeclass + withL @Parsable hasomorphism
-parseProgram :: (AsParserErrorBundle e
-               , MonadError e m)
+parseProgram :: (MonadError ParserErrorBundle m)
              => SLang n -> T.Text -> m (FromLang n)
 parseProgram s txt = PLC.runQuoteT $
     case s of

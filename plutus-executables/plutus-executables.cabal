@@ -74,12 +74,12 @@ executable pir
     , containers
     , lens
     , megaparsec
+    , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-execlib
     , plutus-core:plutus-ir
     , text
-    , transformers
 
 executable plc
   import:         lang
@@ -90,6 +90,7 @@ executable plc
     , base                             >=4.9   && <5
     , bytestring
     , flat                             ^>=0.6
+    , mtl
     , optparse-applicative
     , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-execlib
