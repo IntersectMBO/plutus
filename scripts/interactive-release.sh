@@ -131,6 +131,7 @@ open-plutus-pr() {
     "plutus-tx-plugin"
     "plutus-executables"
     "cardano-constitution"
+    "plutus-metatheory"
   )
 
   local NEW_MAJOR_VERSION=$(echo $VERSION | cut -d'.' -f1,2)
@@ -219,6 +220,7 @@ generate-release-notes() {
     "plutus-tx"
     "plutus-tx-plugin"
     "plutus-executables"
+    "plutus-metatheory"
   )
   for PACKAGE in "${CHANGELOG_PACKAGES[@]}"; do
     echo "# $PACKAGE"
