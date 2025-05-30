@@ -18,22 +18,22 @@ import Data.ByteString qualified as BS (empty)
 benchHashAndAddG1 :: EvaluationContext -> Integer -> Benchmark
 benchHashAndAddG1 ctx n =
     let prog = mkHashAndAddG1Script (listOfByteStringsOfLength n 4)
-    in bench (show n) $ benchProgramCek ctx prog
+    in benchProgramCek (show n) ctx prog
 
 benchHashAndAddG2 :: EvaluationContext -> Integer -> Benchmark
 benchHashAndAddG2 ctx n =
     let prog = mkHashAndAddG2Script (listOfByteStringsOfLength n 4)
-    in bench (show n) $ benchProgramCek ctx prog
+    in benchProgramCek (show n) ctx prog
 
 benchUncompressAndAddG1 :: EvaluationContext -> Integer -> Benchmark
 benchUncompressAndAddG1 ctx n =
     let prog = mkUncompressAndAddG1Script (listOfByteStringsOfLength n 4)
-    in bench (show n) $ benchProgramCek ctx prog
+    in benchProgramCek (show n) ctx prog
 
 benchUncompressAndAddG2 :: EvaluationContext -> Integer -> Benchmark
 benchUncompressAndAddG2 ctx n =
     let prog = mkUncompressAndAddG2Script (listOfByteStringsOfLength n 4)
-    in bench (show n) $ benchProgramCek ctx prog
+    in benchProgramCek (show n) ctx prog
 
 benchPairing :: EvaluationContext -> Benchmark
 benchPairing ctx =
@@ -45,35 +45,35 @@ benchPairing ctx =
               q1 = Tx.bls12_381_G1_hashToGroup (Tx.toBuiltin b3) emptyDst
               q2 = Tx.bls12_381_G2_hashToGroup (Tx.toBuiltin b4) emptyDst
               prog = mkPairingScript p1 p2 q1 q2
-          in bench "pairing" $ benchProgramCek ctx prog
+          in benchProgramCek "pairing" ctx prog
       _ -> error "Unexpected list returned by listOfByteStringsOfLength"
 
 benchGroth16Verify :: EvaluationContext -> Benchmark
-benchGroth16Verify ctx = bench "groth16Verify" $ benchProgramCek ctx mkGroth16VerifyScript
+benchGroth16Verify ctx = benchProgramCek "groth16Verify" ctx mkGroth16VerifyScript
 
 benchSimpleVerify :: EvaluationContext -> Benchmark
-benchSimpleVerify ctx = bench "simpleVerify" $ benchProgramCek ctx mkVerifyBlsSimplePolicy
+benchSimpleVerify ctx = benchProgramCek "simpleVerify" ctx mkVerifyBlsSimplePolicy
 
 benchVrf :: EvaluationContext -> Benchmark
-benchVrf ctx = bench "vrf" $ benchProgramCek ctx mkVrfBlsPolicy
+benchVrf ctx = benchProgramCek "vrf" ctx mkVrfBlsPolicy
 
 benchG1Verify :: EvaluationContext -> Benchmark
-benchG1Verify ctx = bench "g1Verify" $ benchProgramCek ctx mkG1VerifyPolicy
+benchG1Verify ctx = benchProgramCek "g1Verify" ctx mkG1VerifyPolicy
 
 benchG2Verify :: EvaluationContext -> Benchmark
-benchG2Verify ctx = bench "g2Verify" $ benchProgramCek ctx mkG2VerifyPolicy
+benchG2Verify ctx = benchProgramCek "g2Verify" ctx mkG2VerifyPolicy
 
 aggregateSigSingleKey :: EvaluationContext -> Benchmark
-aggregateSigSingleKey ctx = bench "aggregateSignatureSingleKey" $ benchProgramCek ctx mkAggregateSingleKeyG1Policy
+aggregateSigSingleKey ctx = benchProgramCek "aggregateSignatureSingleKey" ctx mkAggregateSingleKeyG1Policy
 
 aggregateSigMultiKey :: EvaluationContext -> Benchmark
-aggregateSigMultiKey ctx = bench "aggregateSignatureMultiKey" $ benchProgramCek ctx mkAggregateMultiKeyG2Policy
+aggregateSigMultiKey ctx = benchProgramCek "aggregateSignatureMultiKey" ctx mkAggregateMultiKeyG2Policy
 
 schnorrG1Verify :: EvaluationContext -> Benchmark
-schnorrG1Verify ctx = bench "schnorrG1Verify" $ benchProgramCek ctx mkSchnorrG1VerifyPolicy
+schnorrG1Verify ctx = benchProgramCek "schnorrG1Verify" ctx mkSchnorrG1VerifyPolicy
 
 schnorrG2Verify :: EvaluationContext -> Benchmark
-schnorrG2Verify ctx = bench "schnorrG2Verify" $ benchProgramCek ctx mkSchnorrG2VerifyPolicy
+schnorrG2Verify ctx = benchProgramCek "schnorrG2Verify" ctx mkSchnorrG2VerifyPolicy
 
 main :: IO ()
 main = do

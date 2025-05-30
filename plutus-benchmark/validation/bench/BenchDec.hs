@@ -24,8 +24,8 @@ the time taken to only flat-deserialize the script
 main :: IO ()
 main = benchWith mkDecBM
   where
-    mkDecBM :: FilePath -> BS.ByteString -> Benchmarkable
-    mkDecBM file bsFlat =
+    mkDecBM :: String -> FilePath -> BS.ByteString -> Benchmark
+    mkDecBM name file bsFlat =
         let
             UPLC.Program _ v (fullyApplied :: Term) = unsafeUnflat file bsFlat
 
@@ -40,5 +40,4 @@ main = benchWith mkDecBM
                 force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (either throw id . void . deserialiseScript futurePV
-                ) benchScript
+        in bench name $ whnf (either throw id . void . deserialiseScript futurePV) benchScript

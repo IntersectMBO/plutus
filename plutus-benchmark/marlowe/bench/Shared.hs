@@ -1,7 +1,7 @@
 -- | Plutus benchmarks based on some Marlowe examples.
 module Shared where
 
-import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)
+import Criterion.Main (Benchmark, bgroup, defaultMainWith)
 
 import PlutusBenchmark.Common (Program, getConfig)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
@@ -13,15 +13,15 @@ import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import PlutusTx.Code (CompiledCode)
 
 mkBenchmarkable
-  :: (Program -> Benchmarkable)
+  :: (String -> Program -> Benchmark)
   -> CompiledCode a
   -> M.Benchmark
-  -> (String, Benchmarkable)
+  -> Benchmark
 mkBenchmarkable benchmarker validator bm@M.Benchmark{..} =
   let benchName = show $ txInfoId $ scriptContextTxInfo bScriptContext
-   in (benchName, benchmarker $ benchmarkToUPLC validator bm)
+   in benchmarker benchName $ benchmarkToUPLC validator bm
 
-runBenchmarks :: (Program -> Benchmarkable) -> IO ()
+runBenchmarks :: (String -> Program -> Benchmark) -> IO ()
 runBenchmarks benchmarker = do
   -- Read the semantics benchmark files.
   semanticsMBench <- either error id <$> semanticsBenchmarks
@@ -30,15 +30,12 @@ runBenchmarks benchmarker = do
   rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
 
   let
-    uncurriedBench :: (String, Benchmarkable) -> Benchmark
-    uncurriedBench = uncurry bench
-
     semanticsBench :: [Benchmark] -- list of criterion semantics Benchmarks
     semanticsBench =
-      fmap (uncurriedBench . mkBenchmarkable benchmarker marloweValidator) semanticsMBench
+      fmap (mkBenchmarkable benchmarker marloweValidator) semanticsMBench
     rolePayoutBench :: [Benchmark] -- list of criterion role payout Benchmarks
     rolePayoutBench =
-      fmap (uncurriedBench . mkBenchmarkable benchmarker rolePayoutValidator) rolePayoutMBench
+      fmap (mkBenchmarkable benchmarker rolePayoutValidator) rolePayoutMBench
 
   -- Run each benchmark for 5 secs by default. This benchmark runs on the
   -- longitudinal benchmarking flow so we don't want to set it higher by

@@ -102,7 +102,7 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
-benchWith :: (FilePath -> BS.ByteString -> Benchmarkable) -> IO ()
+benchWith :: (String -> FilePath -> BS.ByteString -> Benchmark) -> IO ()
 benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
     options <- execParser $ parserInfo cfg
@@ -123,7 +123,7 @@ benchWith act = do
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
         env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
-            bench (dropExtension file) $ act file scriptBS
+            act (dropExtension file) file scriptBS
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 

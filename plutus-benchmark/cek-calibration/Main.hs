@@ -70,7 +70,7 @@ mkListTerm n =
   in code
 
 mkListBM :: EvaluationContext -> Integer -> Benchmark
-mkListBM ctx n = bench (Haskell.show n) $ benchTermCek ctx (mkListTerm n)
+mkListBM ctx n = benchTermCek (Haskell.show n) ctx (mkListTerm n)
 
 mkListBMs :: EvaluationContext -> [Integer] -> Benchmark
 mkListBMs ctx ns = bgroup "List" [mkListBM ctx n | n <- ns]
