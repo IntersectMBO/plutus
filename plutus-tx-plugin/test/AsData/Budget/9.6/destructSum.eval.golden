@@ -1,5 +1,5 @@
-cpu: 7405601
-mem: 26626
-size: 231
+CPU:               7_405_601
+Memory:               26_626
+Size:                    231
 
 (con data (Constr 0 [I 20, I 40, I 60, I 80]))

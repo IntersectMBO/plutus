@@ -26,19 +26,26 @@ module PlutusTx.Test.Golden (
   -- * Combined testing
   goldenBundle,
   goldenBundle',
+
+  -- * Pretty-printing
+  prettyBudget,
 ) where
 
 import Prelude
 
 import Control.Lens (Field1 (_1), view)
 import Control.Monad.Except (runExceptT)
+import Data.List qualified as List
+import Data.SatInt (fromSatInt)
 import Data.Text (Text)
 import Flat (Flat)
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
-import PlutusCore.Pretty (Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
                           prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
+import PlutusCore.Size (Size (..))
 import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenUPlc,
                         goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
                         runUPlcBudget)
@@ -47,23 +54,18 @@ import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
 import PlutusTx.Test.Run.Uplc (runPlcCek, runPlcCekBudget, runPlcCekTrace)
+import Prettyprinter (fill, vsep, (<+>))
 import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
+import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
   nestedGoldenVsDocM name ".budget" $ ppCatch $ do
-    PLC.ExBudget cpu mem <- runUPlcBudget [compiledCode]
+    budget <- runUPlcBudget [compiledCode]
     size <- UPLC.programSize <$> toUPlc compiledCode
-    let contents =
-          "cpu: "
-            <> pretty cpu
-            <> "\nmem: "
-            <> pretty mem
-            <> "\nsize: "
-            <> pretty size
-    pure (render @Text contents)
+    pure (render @Text (prettyBudget budget size))
 
 goldenBundle
   :: TestName
@@ -150,17 +152,14 @@ goldenEvalCekCatch name value =
 goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
-    (termRes, PLC.ExBudget cpu mem) <- runPlcCekBudget compiledCode
+    (termRes, budget) <- runPlcCekBudget compiledCode
     size <- UPLC.programSize <$> toUPlc compiledCode
     let contents =
-          "cpu: "
-            <> pretty cpu
-            <> "\nmem: "
-            <> pretty mem
-            <> "\nsize: "
-            <> pretty size
-            <> "\n\n"
-            <> prettyPlcClassicSimple termRes
+          vsep
+            [ prettyBudget budget size
+            , mempty
+            , prettyPlcClassicSimple termRes
+            ]
     pure (render @Text contents)
 
 goldenEvalCekLog
@@ -169,3 +168,25 @@ goldenEvalCekLog
 goldenEvalCekLog name value =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace value)
+
+prettyBudget :: PLC.ExBudget -> Size -> Doc ann
+prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) (Size size) =
+  vsep
+    [ fill 8 "CPU:" <+> prettyIntRightAligned (fromSatInt @Int cpu)
+    , fill 8 "Memory:" <+> prettyIntRightAligned (fromSatInt @Int mem)
+    , fill 8 "Size:" <+> prettyIntRightAligned size
+    ]
+ where
+  prettyIntRightAligned :: (Integral i) => i -> Doc ann
+  prettyIntRightAligned =
+    pretty @String
+      . printf "%19s"
+      . reverse
+      . List.intercalate "_"
+      . chunksOf 3
+      . reverse
+      . show @Integer
+      . fromIntegral
+   where
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)

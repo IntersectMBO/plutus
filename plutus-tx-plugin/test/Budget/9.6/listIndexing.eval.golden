@@ -1,5 +1,5 @@
-cpu: 5004432
-mem: 23422
-size: 82
+CPU:               5_004_432
+Memory:               23_422
+Size:                     82
 
 (con data (I 6))
