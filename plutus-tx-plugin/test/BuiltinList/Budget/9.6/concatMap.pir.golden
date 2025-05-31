@@ -1,0 +1,62 @@
+let
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+\(xss : list integer) ->
+  (letrec
+      !go : list integer -> list integer
+        = caseList'
+            {integer}
+            {list integer}
+            []
+            (\(x : integer) ->
+               letrec
+                 !go : integer -> list integer
+                   = \(n : integer) ->
+                       Bool_match
+                         (ifThenElse
+                            {Bool}
+                            (lessThanEqualsInteger n 0)
+                            True
+                            False)
+                         {all dead. list integer}
+                         (/\dead -> [])
+                         (/\dead ->
+                            mkCons {integer} x (go (subtractInteger n 1)))
+                         {all dead. dead}
+               in
+               \(xs : list integer) ->
+                 let
+                   !ys : list integer = go xs
+                   !l : list integer = go 2
+                 in
+                 (let
+                     b = list integer
+                   in
+                   \(f : integer -> b -> b) (acc : b) ->
+                     letrec
+                       !go : list integer -> b
+                         = caseList'
+                             {integer}
+                             {b}
+                             acc
+                             (\(x : integer) (xs : list integer) -> f x (go xs))
+                     in
+                     go)
+                   (mkCons {integer})
+                   ys
+                   l)
+    in
+    go)
+    xss

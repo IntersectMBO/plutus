@@ -1,0 +1,32 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !take : all a. (\arep -> list arep) a -> integer -> list a -> list a
+    = /\a ->
+        \(`$dMkNil` : (\arep -> list arep) a) (n : integer) (l : list a) ->
+          Bool_match
+            (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+            {all dead. list a}
+            (/\dead -> `$dMkNil`)
+            (/\dead ->
+               (let
+                   r = list a
+                 in
+                 \(z : r) (f : a -> list a -> r) (xs : list a) ->
+                   chooseList
+                     {a}
+                     {all dead. r}
+                     xs
+                     (/\dead -> z)
+                     (/\dead -> f (headList {a} xs) (tailList {a} xs))
+                     {r})
+                 `$dMkNil`
+                 (\(x : a) (xs : list a) ->
+                    mkCons {a} x (take {a} `$dMkNil` (subtractInteger n 1) xs))
+                 l)
+            {all dead. dead}
+in
+\(xs : list integer) -> take {integer} [] 5 xs

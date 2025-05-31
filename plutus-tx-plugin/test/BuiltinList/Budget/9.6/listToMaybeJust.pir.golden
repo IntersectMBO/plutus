@@ -1,0 +1,20 @@
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+in
+\(xs : list integer) ->
+  (let
+      r = Maybe integer
+    in
+    \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+      chooseList
+        {integer}
+        {all dead. r}
+        xs
+        (/\dead -> z)
+        (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+        {r})
+    (Nothing {integer})
+    (\(x : integer) (ds : list integer) -> Just {integer} x)
+    xs

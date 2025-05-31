@@ -7,6 +7,6 @@
               xs
               (delay [])
               (delay
-                 ((\x ->
-                     force mkCons (addInteger 1 (force headList xs)) (s s x))
+                 ((\xs ->
+                     force mkCons (addInteger 1 (force headList xs)) (s s xs))
                     (force tailList xs)))))))

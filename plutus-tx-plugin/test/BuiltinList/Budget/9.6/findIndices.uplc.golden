@@ -1,0 +1,20 @@
+(program
+   1.1.0
+   ((\go xs -> go 0 xs)
+      ((\s -> s s)
+         (\s i xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay [])
+                 (delay
+                    ((\x xs ->
+                        (\indices ->
+                           force
+                             (force ifThenElse
+                                (equalsInteger 0 (modInteger x 2))
+                                (delay indices)
+                                (delay (force mkCons i indices))))
+                          ((\x -> s s x) (addInteger 1 i) xs))
+                       (force headList xs)
+                       (force tailList xs))))))))

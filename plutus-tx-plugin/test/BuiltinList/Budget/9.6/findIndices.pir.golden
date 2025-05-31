@@ -1,0 +1,41 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : integer -> list integer -> list integer
+    = \(i : integer) ->
+        (let
+            r = list integer
+          in
+          \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
+            chooseList
+              {integer}
+              {all dead. r}
+              xs
+              (/\dead -> z)
+              (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
+              {r})
+          []
+          (\(x : integer) (xs : list integer) ->
+             let
+               !indices : list integer = go (addInteger 1 i) xs
+             in
+             Bool_match
+               (Bool_match
+                  (ifThenElse
+                     {Bool}
+                     (equalsInteger 0 (modInteger x 2))
+                     True
+                     False)
+                  {all dead. Bool}
+                  (/\dead -> False)
+                  (/\dead -> True)
+                  {all dead. dead})
+               {all dead. list integer}
+               (/\dead -> mkCons {integer} i indices)
+               (/\dead -> indices)
+               {all dead. dead})
+in
+\(xs : list integer) -> go 0 xs

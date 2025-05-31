@@ -1,0 +1,26 @@
+(program
+   1.1.0
+   ((\take xs -> force take [] 5 xs)
+      ((\s -> s s)
+         (\s arg ->
+            delay
+              (\`$dMkNil` n l ->
+                 force
+                   (force ifThenElse
+                      (lessThanEqualsInteger n 0)
+                      (delay `$dMkNil`)
+                      (delay
+                         (force
+                            (force (force chooseList)
+                               l
+                               (delay `$dMkNil`)
+                               (delay
+                                  ((\xs ->
+                                      force mkCons
+                                        (force headList l)
+                                        (force (s s (delay (\x -> x)))
+                                           `$dMkNil`
+                                           (subtractInteger n 1)
+                                           xs))
+                                     (force tailList l)))))))))
+         (delay (\x -> x)))))

@@ -1,0 +1,13 @@
+(program
+   1.1.0
+   ((\go xs -> go xs)
+      ((\s -> s s)
+         (\s xs ->
+            force
+              (force (force chooseList)
+                 xs
+                 (delay 0)
+                 (delay
+                    (addInteger
+                       (force headList xs)
+                       ((\x -> s s x) (force tailList xs)))))))))
