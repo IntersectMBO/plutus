@@ -126,7 +126,6 @@ all f = go
   go = \case
     [] -> True
     x : xs -> if f x then go xs else False
--- The pragma improves some of the budget tests.
 {-# INLINEABLE all #-}
 
 -- | Does the element occur in the list?

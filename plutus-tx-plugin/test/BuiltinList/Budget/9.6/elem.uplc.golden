@@ -5,18 +5,12 @@
          constr 0
            [ (elem
                 (\x y ->
-                   force ifThenElse
-                     (equalsInteger x y)
-                     (constr 0 [])
-                     (constr 1 []))
+                   case (equalsInteger x y) [(constr 1 []), (constr 0 [])])
                 8
                 xs)
            , (elem
                 (\x y ->
-                   force ifThenElse
-                     (equalsInteger x y)
-                     (constr 0 [])
-                     (constr 1 []))
+                   case (equalsInteger x y) [(constr 1 []), (constr 0 [])])
                 12
                 xs) ])
         (\`$dEq` a ->

@@ -408,7 +408,8 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekStepCounter s, GivenCekCosts)
 
 data CekUserError
-    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+    = CaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
+    | CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
@@ -511,6 +512,10 @@ instance AsUnliftingError CekUserError where
     _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
 
 instance Pretty CekUserError where
+    pretty (CaseBuiltinError err) = vcat
+        [ "'case' over a value of a built-in type failed with"
+        , pretty err
+        ]
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
         cat
           [ "The machine terminated part way through evaluation due to overspending the budget."
@@ -674,7 +679,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -785,6 +790,9 @@ enterComputeCek = computeCek
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
+        VCon val -> case caseBuiltin val cs of
+            Left err  -> throwingDischarged _OperationalError (CaseBuiltinError err) e
+            Right res -> computeCek ctx env res
         _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
@@ -937,7 +945,7 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: ThrowableBuiltins uni fun
+    :: (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni)
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

@@ -23,7 +23,7 @@ letrec
   !go : integer -> List integer
     = \(n : integer) ->
         Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          (case Bool (lessThanEqualsInteger n 0) [False, True])
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))

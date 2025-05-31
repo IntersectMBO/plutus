@@ -76,6 +76,8 @@ safeLiftWith
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -119,6 +121,8 @@ safeLift
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -141,6 +145,8 @@ safeLiftUnopt
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -167,6 +173,8 @@ safeLiftProgram
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -188,6 +196,8 @@ safeLiftProgramUnopt
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -206,6 +216,8 @@ safeLiftCode
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -230,6 +242,8 @@ safeLiftCodeUnopt
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -263,6 +277,8 @@ lift
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -281,6 +297,8 @@ liftUnopt
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -297,6 +315,8 @@ liftProgram
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -315,6 +335,8 @@ liftProgramUnopt
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -351,6 +373,8 @@ liftCode
      , PLC.GEq uni
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -367,6 +391,8 @@ liftCodeUnopt
      , PLC.GEq uni
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -381,6 +407,8 @@ liftCodeDef
      , PLC.GEq uni
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -397,6 +425,8 @@ liftCodeDefUnopt
      , PLC.GEq uni
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun (Provenance ())) uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -425,6 +455,7 @@ typeCheckAgainst
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -464,6 +495,8 @@ typeCode
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin (PIR.Term TyName Name uni fun (Provenance ())) uni
+     , PLC.CaseBuiltin (UPLC.Term Name uni fun ()) uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)

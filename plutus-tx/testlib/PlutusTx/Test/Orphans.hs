@@ -10,17 +10,21 @@ module PlutusTx.Test.Orphans where
 
 import Prelude
 
-import Flat (Flat)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name.Unique qualified as UPLC
 import PlutusCore.Pretty (Pretty, PrettyConst)
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test (ToTPlc (..), ToUPlc (..), catchAll)
+import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins qualified as PIR
+import PlutusIR.Compiler.Provenance qualified as PIR
 import PlutusIR.Test ()
 import PlutusIR.Transform.RewriteRules qualified as PIR
 import PlutusPrelude (Default)
 import PlutusTx.Code (CompiledCodeIn, getPir, getPlcNoAnn)
+
+import Flat (Flat)
 import Test.Tasty.Extras ()
 
 instance
@@ -33,6 +37,7 @@ instance
   ( PLC.PrettyParens (PLC.SomeTypeIn uni)
   , PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin (PIR.Term UPLC.TyName UPLC.Name uni fun (PIR.Provenance PLC.SrcSpans)) uni
   , PLC.Closed uni
   , uni `PLC.Everywhere` PrettyConst
   , Pretty fun
