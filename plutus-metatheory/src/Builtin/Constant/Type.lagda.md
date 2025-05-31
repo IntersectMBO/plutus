@@ -34,5 +34,6 @@ The use of kind ♯ limits the types for which we can construct lists and pairs.
 data TyCon : Kind → Set where
   atomic     : AtomicTyCon → TyCon ♯
   list       : TyCon (♯ ⇒ ♯)
+  array       : TyCon (♯ ⇒ ♯)
   pair       : TyCon (♯ ⇒ (♯ ⇒ ♯))
 ```

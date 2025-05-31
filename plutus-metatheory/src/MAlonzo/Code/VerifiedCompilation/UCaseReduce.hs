@@ -115,7 +115,7 @@ du_isCR'63'_48 v0 v1 v2
                                                              seq (coe v10)
                                                              (let v18
                                                                     = coe
-                                                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_954
+                                                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_976
                                                                         (coe v16) (coe v12) in
                                                               coe
                                                                 (case coe v18 of
@@ -233,7 +233,7 @@ d_ast'8321'_158
          (coe
             MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (99 :: Integer)))))
+               MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (99 :: Integer)))))
       (coe
          MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
          (coe
@@ -248,7 +248,7 @@ d_ast'8321'''_160
          MAlonzo.Code.Untyped.C_'96'_18
          (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (99 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (99 :: Integer)))
 -- VerifiedCompilation.UCaseReduce.ast
 d_ast_164 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ast_164
@@ -259,11 +259,11 @@ d_ast_164
          (coe
             MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (12 :: Integer)))
+               MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (12 :: Integer)))
             (coe
                MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (42 :: Integer)))
+                  MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (42 :: Integer)))
                (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))
       (coe
          MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
@@ -289,7 +289,7 @@ d_ast_164
                         (coe
                            MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
                            (coe
-                              MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (99 :: Integer)))))
+                              MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (99 :: Integer)))))
                      (coe
                         MAlonzo.Code.Data.List.Base.du_'91'_'93'_286
                         (coe
@@ -302,9 +302,9 @@ d_ast''_166
   = coe
       MAlonzo.Code.Untyped.C__'183'__22
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (42 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (42 :: Integer)))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (99 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (99 :: Integer)))
 -- VerifiedCompilation.UCaseReduce.ex1
 d_ex1_168 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ex1_168
@@ -332,9 +332,9 @@ d_ex1_168
                         MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                         (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (2 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (2 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (3 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (3 :: Integer)))
 -- VerifiedCompilation.UCaseReduce.ex2
 d_ex2_170 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ex2_170
@@ -362,6 +362,6 @@ d_ex2_170
                      MAlonzo.Code.Untyped.C_'96'_18
                      (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (3 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (3 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_364 (coe (2 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_368 (coe (2 :: Integer)))
