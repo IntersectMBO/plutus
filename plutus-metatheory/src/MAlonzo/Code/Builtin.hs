@@ -95,9 +95,9 @@ pattern C_mkCons_72 = MkCons
 pattern C_headList_74 = HeadList
 pattern C_tailList_76 = TailList
 pattern C_nullList_78 = NullList
-pattern C_lengthOfArray_80 = lengthOfArray
-pattern C_listToArray_82 = listToArray
-pattern C_indexArray_84 = indexArray
+pattern C_lengthOfArray_80 = LengthOfArray
+pattern C_listToArray_82 = ListToArray
+pattern C_indexArray_84 = IndexArray
 pattern C_chooseData_86 = ChooseData
 pattern C_constrData_88 = ConstrData
 pattern C_mapData_90 = MapData
@@ -228,11 +228,11 @@ check_tailList_76 = TailList
 check_nullList_78 :: T_Builtin_2
 check_nullList_78 = NullList
 check_lengthOfArray_80 :: T_Builtin_2
-check_lengthOfArray_80 = lengthOfArray
+check_lengthOfArray_80 = LengthOfArray
 check_listToArray_82 :: T_Builtin_2
-check_listToArray_82 = listToArray
+check_listToArray_82 = ListToArray
 check_indexArray_84 :: T_Builtin_2
-check_indexArray_84 = indexArray
+check_indexArray_84 = IndexArray
 check_chooseData_86 :: T_Builtin_2
 check_chooseData_86 = ChooseData
 check_constrData_88 :: T_Builtin_2
@@ -380,9 +380,9 @@ cover_Builtin_2 x
       HeadList -> ()
       TailList -> ()
       NullList -> ()
-      lengthOfArray -> ()
-      listToArray -> ()
-      indexArray -> ()
+      LengthOfArray -> ()
+      ListToArray -> ()
+      IndexArray -> ()
       ChooseData -> ()
       ConstrData -> ()
       MapData -> ()

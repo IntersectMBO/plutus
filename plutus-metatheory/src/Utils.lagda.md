@@ -258,6 +258,10 @@ postulate
   lengthOfArray : Array A → ℤ
   listToArray : (ls : List A) → Array A
   indexArray : Array A → ℤ → A
+-- These have to consume the hidden {A : Set} param in the Agda.
+{-# COMPILE GHC lengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
+{-# COMPILE GHC listToArray = \() -> Strict.fromList #-}
+{-# COMPILE GHC indexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
 
 -- This uses the same mechanism as eqBytestring above.
 -- This is only used in the decidable equality function which also
@@ -265,7 +269,6 @@ postulate
 -- structural equality.
 eqArray : Array A → Array A → Bool
 eqArray _ _ = Bool.true
--- This has to consume the hidden {A : Set} param in the Agda.
 {-# COMPILE GHC eqArray = \() -> (==) #-}
 
 ```

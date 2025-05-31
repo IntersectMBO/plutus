@@ -19,6 +19,7 @@ import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.Bool
 import qualified MAlonzo.Code.Agda.Builtin.Equality
+import qualified MAlonzo.Code.Agda.Builtin.Int
 import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Agda.Builtin.Unit
@@ -528,20 +529,19 @@ type T_Array_478 a0 = Strict.Vector a0
 d_Array_478
   = error "MAlonzo Runtime Error: postulate evaluated: Utils.Array"
 -- Utils.lengthOfArray
-d_lengthOfArray_482
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: Utils.lengthOfArray"
+d_lengthOfArray_482 :: forall xA. () -> T_Array_478 xA -> Integer
+d_lengthOfArray_482 = \() -> \as -> toInteger (Strict.length as)
 -- Utils.listToArray
-d_listToArray_486
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: Utils.listToArray"
+d_listToArray_486 ::
+  forall xA. () -> T_List_384 xA -> T_Array_478 xA
+d_listToArray_486 = \() -> Strict.fromList
 -- Utils.indexArray
-d_indexArray_488
-  = error
-      "MAlonzo Runtime Error: postulate evaluated: Utils.indexArray"
+d_indexArray_488 ::
+  forall xA. () -> T_Array_478 xA -> Integer -> xA
+d_indexArray_488 = \() -> \as -> \i -> as Strict.! (fromInteger i)
 -- Utils.eqArray
 d_eqArray_490 ::
-  forall xA. () -> T_Array_478 xA -> T_Array_478 xA -> Bool
+  forall xA. Eq xA => () -> T_Array_478 xA -> T_Array_478 xA -> Bool
 d_eqArray_490 = \() -> (==)
 -- Utils.DATA
 d_DATA_492 = ()

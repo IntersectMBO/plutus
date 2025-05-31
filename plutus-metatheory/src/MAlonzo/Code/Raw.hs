@@ -176,11 +176,15 @@ d_decRTyCon_74 v0 v1
            -> case coe v1 of
                 C_list_26 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                 _ -> coe v2
+         C_array_28
+           -> case coe v1 of
+                C_array_28 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
+                _ -> coe v2
          C_pair_30
            -> case coe v1 of
                 C_pair_30 -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                 _ -> coe v2
-         _ -> coe v2)
+         _ -> MAlonzo.RTE.mazUnreachableError)
 -- Raw.decRKi
 d_decRKi_84 ::
   MAlonzo.Code.Utils.T_Kind_650 ->

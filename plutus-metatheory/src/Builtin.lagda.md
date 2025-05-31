@@ -408,9 +408,9 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | HeadList
                                           | TailList
                                           | NullList
-                                          | lengthOfArray
-                                          | listToArray
-                                          | indexArray
+                                          | LengthOfArray
+                                          | ListToArray
+                                          | IndexArray
                                           | ChooseData
                                           | ConstrData
                                           | MapData
