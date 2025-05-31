@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Core algebraic definitions</a>
+<a id="136" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="210" class="Comment">-- The contents of this module should be accessed via `Algebra`.</a>
+
+<a id="276" class="Symbol">{-#</a> <a id="280" class="Keyword">OPTIONS</a> <a id="288" class="Pragma">--cubical-compatible</a> <a id="309" class="Pragma">--safe</a> <a id="316" class="Symbol">#-}</a>
+
+<a id="321" class="Keyword">module</a> <a id="328" href="Algebra.Core.html" class="Module">Algebra.Core</a> <a id="341" class="Keyword">where</a>
+
+<a id="348" class="Keyword">open</a> <a id="353" class="Keyword">import</a> <a id="360" href="Level.html" class="Module">Level</a> <a id="366" class="Keyword">using</a> <a id="372" class="Symbol">(</a><a id="373" href="Agda.Primitive.html#961" class="Primitive Operator">_⊔_</a><a id="376" class="Symbol">)</a>
+
+<a id="379" class="Comment">------------------------------------------------------------------------</a>
+<a id="452" class="Comment">-- Unary and binary operations</a>
+
+<a id="Op₁"></a><a id="484" href="Algebra.Core.html#484" class="Function">Op₁</a> <a id="488" class="Symbol">:</a> <a id="490" class="Symbol">∀</a> <a id="492" class="Symbol">{</a><a id="493" href="Algebra.Core.html#493" class="Bound">ℓ</a><a id="494" class="Symbol">}</a> <a id="496" class="Symbol">→</a> <a id="498" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="502" href="Algebra.Core.html#493" class="Bound">ℓ</a> <a id="504" class="Symbol">→</a> <a id="506" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="510" href="Algebra.Core.html#493" class="Bound">ℓ</a>
+<a id="512" href="Algebra.Core.html#484" class="Function">Op₁</a> <a id="516" href="Algebra.Core.html#516" class="Bound">A</a> <a id="518" class="Symbol">=</a> <a id="520" href="Algebra.Core.html#516" class="Bound">A</a> <a id="522" class="Symbol">→</a> <a id="524" href="Algebra.Core.html#516" class="Bound">A</a>
+
+<a id="Op₂"></a><a id="527" href="Algebra.Core.html#527" class="Function">Op₂</a> <a id="531" class="Symbol">:</a> <a id="533" class="Symbol">∀</a> <a id="535" class="Symbol">{</a><a id="536" href="Algebra.Core.html#536" class="Bound">ℓ</a><a id="537" class="Symbol">}</a> <a id="539" class="Symbol">→</a> <a id="541" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="545" href="Algebra.Core.html#536" class="Bound">ℓ</a> <a id="547" class="Symbol">→</a> <a id="549" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="553" href="Algebra.Core.html#536" class="Bound">ℓ</a>
+<a id="555" href="Algebra.Core.html#527" class="Function">Op₂</a> <a id="559" href="Algebra.Core.html#559" class="Bound">A</a> <a id="561" class="Symbol">=</a> <a id="563" href="Algebra.Core.html#559" class="Bound">A</a> <a id="565" class="Symbol">→</a> <a id="567" href="Algebra.Core.html#559" class="Bound">A</a> <a id="569" class="Symbol">→</a> <a id="571" href="Algebra.Core.html#559" class="Bound">A</a>
+
+<a id="574" class="Comment">------------------------------------------------------------------------</a>
+<a id="647" class="Comment">-- Left and right actions</a>
+
+<a id="Opₗ"></a><a id="674" href="Algebra.Core.html#674" class="Function">Opₗ</a> <a id="678" class="Symbol">:</a> <a id="680" class="Symbol">∀</a> <a id="682" class="Symbol">{</a><a id="683" href="Algebra.Core.html#683" class="Bound">a</a> <a id="685" href="Algebra.Core.html#685" class="Bound">b</a><a id="686" class="Symbol">}</a> <a id="688" class="Symbol">→</a> <a id="690" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="694" href="Algebra.Core.html#683" class="Bound">a</a> <a id="696" class="Symbol">→</a> <a id="698" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="702" href="Algebra.Core.html#685" class="Bound">b</a> <a id="704" class="Symbol">→</a> <a id="706" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="710" class="Symbol">(</a><a id="711" href="Algebra.Core.html#683" class="Bound">a</a> <a id="713" href="Agda.Primitive.html#961" class="Primitive Operator">⊔</a> <a id="715" href="Algebra.Core.html#685" class="Bound">b</a><a id="716" class="Symbol">)</a>
+<a id="718" href="Algebra.Core.html#674" class="Function">Opₗ</a> <a id="722" href="Algebra.Core.html#722" class="Bound">A</a> <a id="724" href="Algebra.Core.html#724" class="Bound">B</a> <a id="726" class="Symbol">=</a> <a id="728" href="Algebra.Core.html#722" class="Bound">A</a> <a id="730" class="Symbol">→</a> <a id="732" href="Algebra.Core.html#724" class="Bound">B</a> <a id="734" class="Symbol">→</a> <a id="736" href="Algebra.Core.html#724" class="Bound">B</a>
+
+<a id="Opᵣ"></a><a id="739" href="Algebra.Core.html#739" class="Function">Opᵣ</a> <a id="743" class="Symbol">:</a> <a id="745" class="Symbol">∀</a> <a id="747" class="Symbol">{</a><a id="748" href="Algebra.Core.html#748" class="Bound">a</a> <a id="750" href="Algebra.Core.html#750" class="Bound">b</a><a id="751" class="Symbol">}</a> <a id="753" class="Symbol">→</a> <a id="755" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="759" href="Algebra.Core.html#748" class="Bound">a</a> <a id="761" class="Symbol">→</a> <a id="763" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="767" href="Algebra.Core.html#750" class="Bound">b</a> <a id="769" class="Symbol">→</a> <a id="771" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="775" class="Symbol">(</a><a id="776" href="Algebra.Core.html#748" class="Bound">a</a> <a id="778" href="Agda.Primitive.html#961" class="Primitive Operator">⊔</a> <a id="780" href="Algebra.Core.html#750" class="Bound">b</a><a id="781" class="Symbol">)</a>
+<a id="783" href="Algebra.Core.html#739" class="Function">Opᵣ</a> <a id="787" href="Algebra.Core.html#787" class="Bound">A</a> <a id="789" href="Algebra.Core.html#789" class="Bound">B</a> <a id="791" class="Symbol">=</a> <a id="793" href="Algebra.Core.html#789" class="Bound">B</a> <a id="795" class="Symbol">→</a> <a id="797" href="Algebra.Core.html#787" class="Bound">A</a> <a id="799" class="Symbol">→</a> <a id="801" href="Algebra.Core.html#789" class="Bound">B</a>
+</pre></body></html>

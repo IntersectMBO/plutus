@@ -1,0 +1,624 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
+<span class="lineno">    2 </span>-- on 9.2.4 this is the flag that suppresses the above warning
+<span class="lineno">    3 </span>{-# OPTIONS -Wno-missing-signatures #-}
+<span class="lineno">    4 </span>-- 9.6 notices that all the constraints on 'TestTypesFromTheUniverseAreAllKnown'
+<span class="lineno">    5 </span>-- are redundant (which they are), but we don't care because it only exists
+<span class="lineno">    6 </span>-- to test that some constraints are solvable
+<span class="lineno">    7 </span>{-# OPTIONS -Wno-redundant-constraints #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{-# LANGUAGE BlockArguments           #-}
+<span class="lineno">   10 </span>{-# LANGUAGE CPP                      #-}
+<span class="lineno">   11 </span>{-# LANGUAGE ConstraintKinds          #-}
+<span class="lineno">   12 </span>{-# LANGUAGE DataKinds                #-}
+<span class="lineno">   13 </span>{-# LANGUAGE FlexibleInstances        #-}
+<span class="lineno">   14 </span>{-# LANGUAGE GADTs                    #-}
+<span class="lineno">   15 </span>{-# LANGUAGE InstanceSigs             #-}
+<span class="lineno">   16 </span>{-# LANGUAGE LambdaCase               #-}
+<span class="lineno">   17 </span>{-# LANGUAGE MultiParamTypeClasses    #-}
+<span class="lineno">   18 </span>{-# LANGUAGE OverloadedStrings        #-}
+<span class="lineno">   19 </span>{-# LANGUAGE PatternSynonyms          #-}
+<span class="lineno">   20 </span>{-# LANGUAGE PolyKinds                #-}
+<span class="lineno">   21 </span>{-# LANGUAGE RankNTypes               #-}
+<span class="lineno">   22 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">   23 </span>{-# LANGUAGE TypeApplications         #-}
+<span class="lineno">   24 </span>{-# LANGUAGE TypeFamilies             #-}
+<span class="lineno">   25 </span>{-# LANGUAGE TypeOperators            #-}
+<span class="lineno">   26 </span>{-# LANGUAGE UndecidableInstances     #-}
+<span class="lineno">   27 </span>#include &quot;MachDeps.h&quot;
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- effectfully: to the best of my experimentation, -O2 here improves
+<span class="lineno">   30 </span>-- performance, but it's not clear why. This needs to be investigated.
+<span class="lineno">   31 </span>{-# OPTIONS_GHC -O2 #-}
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- | The universe used by default and its instances.
+<span class="lineno">   34 </span>module PlutusCore.Default.Universe
+<span class="lineno">   35 </span>    ( DefaultUni (..)
+<span class="lineno">   36 </span>    , pattern DefaultUniList
+<span class="lineno">   37 </span>    , pattern DefaultUniArray
+<span class="lineno">   38 </span>    , pattern DefaultUniPair
+<span class="lineno">   39 </span>    , noMoreTypeFunctions
+<span class="lineno">   40 </span>    , module Export  -- Re-exporting universes infrastructure for convenience.
+<span class="lineno">   41 </span>    ) where
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>import PlutusCore.Builtin
+<span class="lineno">   44 </span>import PlutusPrelude
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+<span class="lineno">   47 </span>import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+<span class="lineno">   48 </span>import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+<span class="lineno">   49 </span>import PlutusCore.Data (Data)
+<span class="lineno">   50 </span>import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
+<span class="lineno">   51 </span>                                                    NumBytesCostedAsNumWords (..))
+<span class="lineno">   52 </span>import PlutusCore.Pretty.Extra (juxtRenderContext)
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>import Data.ByteString (ByteString)
+<span class="lineno">   55 </span>import Data.Int (Int16, Int32, Int64, Int8)
+<span class="lineno">   56 </span>import Data.Proxy (Proxy (Proxy))
+<span class="lineno">   57 </span>import Data.Text (Text)
+<span class="lineno">   58 </span>import Data.Text qualified as Text
+<span class="lineno">   59 </span>import Data.Typeable (typeRep)
+<span class="lineno">   60 </span>import Data.Vector.Strict (Vector)
+<span class="lineno">   61 </span>import Data.Word (Word16, Word32, Word64)
+<span class="lineno">   62 </span>import GHC.Exts (inline, oneShot)
+<span class="lineno">   63 </span>import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
+<span class="lineno">   64 </span>import Universe as Export
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>{- Note [PLC types and universes]
+<span class="lineno">   67 </span>We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
+<span class="lineno">   68 </span>see Note [Universes]. A built-in type in PLC is an inhabitant of
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>    Some (TypeIn uni)
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>where @uni@ is some universe, i.e. a collection of tags that have meta-types associated with them.
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>A value of a built-in type is a regular Haskell value stored in
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>    Some (ValueOf uni)
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>(together with the tag associated with its type) and such a value is also called a meta-constant.
+<span class="lineno">   79 </span>
+<span class="lineno">   80 </span>The default universe has the following constructor (pattern synonym actually):
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span>    DefaultUniList :: !(DefaultUni a) -&gt; DefaultUni [a]
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>But note that this doesn't directly lead to interop between Plutus Core and Haskell, i.e. you can't
+<span class="lineno">   85 </span>have a meta-list whose elements are of a PLC type. You can only have a meta-list constant with
+<span class="lineno">   86 </span>elements of a meta-type (i.e. a type from the universe).
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>However it is possible to apply a built-in type to an arbitrary PLC/PIR type, since we can embed
+<span class="lineno">   89 </span>a type of an arbitrary kind into 'Type' and then apply it via 'TyApp'. But we only use it to
+<span class="lineno">   90 </span>get polymorphic built-in functions over polymorphic built-in types, since it's not possible
+<span class="lineno">   91 </span>to juggle values of polymorphic built-in types instantiated with non-built-in types at runtime
+<span class="lineno">   92 </span>(it's not even possible to represent such a value in the AST, even though it's possible to represent
+<span class="lineno">   93 </span>such a 'Type').
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>Finally, it is not necessary to allow embedding PLC terms into meta-constants.
+<span class="lineno">   96 </span>We already allow built-in functions with polymorphic types. There might be a way to utilize this
+<span class="lineno">   97 </span>feature and have meta-constructors as built-in functions.
+<span class="lineno">   98 </span>-}
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>-- See Note [Representing polymorphism].
+<span class="lineno">  101 </span>-- | The universe used by default.
+<span class="lineno">  102 </span>data DefaultUni a where
+<span class="lineno">  103 </span>    DefaultUniInteger :: DefaultUni (Esc Integer)
+<span class="lineno">  104 </span>    DefaultUniByteString :: DefaultUni (Esc ByteString)
+<span class="lineno">  105 </span>    DefaultUniString :: DefaultUni (Esc Text)
+<span class="lineno">  106 </span>    DefaultUniUnit :: DefaultUni (Esc ())
+<span class="lineno">  107 </span>    DefaultUniBool :: DefaultUni (Esc Bool)
+<span class="lineno">  108 </span>    DefaultUniProtoArray :: DefaultUni (Esc Vector)
+<span class="lineno">  109 </span>    DefaultUniProtoList :: DefaultUni (Esc [])
+<span class="lineno">  110 </span>    DefaultUniProtoPair :: DefaultUni (Esc (,))
+<span class="lineno">  111 </span>    DefaultUniApply :: !(DefaultUni (Esc f)) -&gt; !(DefaultUni (Esc a)) -&gt; DefaultUni (Esc (f a))
+<span class="lineno">  112 </span>    DefaultUniData :: DefaultUni (Esc Data)
+<span class="lineno">  113 </span>    DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
+<span class="lineno">  114 </span>    DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
+<span class="lineno">  115 </span>    DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>-- GHC infers crazy types for these two and the straightforward ones break pattern matching,
+<span class="lineno">  118 </span>-- so we just leave GHC with its craziness.
+<span class="lineno">  119 </span>pattern DefaultUniList uniA =
+<span class="lineno">  120 </span>    <span class="istickedoff"><span class="nottickedoff">DefaultUniProtoList `DefaultUniApply` uniA</span></span>
+<span class="lineno">  121 </span>pattern DefaultUniArray uniA =
+<span class="lineno">  122 </span>    <span class="nottickedoff">DefaultUniProtoArray `DefaultUniApply` uniA</span>
+<span class="lineno">  123 </span>pattern DefaultUniPair uniA uniB =
+<span class="lineno">  124 </span>    <span class="istickedoff"><span class="nottickedoff">DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>instance GEq DefaultUni where
+<span class="lineno">  127 </span>    -- We define 'geq' manually instead of using 'deriveGEq', because the latter creates a single
+<span class="lineno">  128 </span>    -- recursive definition and we want two instead. The reason why we want two is because this
+<span class="lineno">  129 </span>    -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
+<span class="lineno">  130 </span>    -- is hidden in the other function that is marked as @OPAQUE@ and is chosen by GHC as a
+<span class="lineno">  131 </span>    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
+<span class="lineno">  132 </span>    -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
+<span class="lineno">  133 </span>    -- very much and we've failed to settle on any other approach).
+<span class="lineno">  134 </span>    --
+<span class="lineno">  135 </span>    -- This trick gives us a 1% speedup across validation benchmarks (some are up to 4% faster) and
+<span class="lineno">  136 </span>    -- a more sensible generated Core where things like @geq DefaulUniBool@ are reduced away.
+<span class="lineno">  137 </span>    <span class="decl"><span class="istickedoff">geq = geqStep where</span>
+<span class="lineno">  138 </span><span class="spaces">        </span><span class="istickedoff">geqStep :: DefaultUni a1 -&gt; DefaultUni a2 -&gt; Maybe (a1 :~: a2)</span>
+<span class="lineno">  139 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniInteger a2 = do</span>
+<span class="lineno">  140 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniInteger &lt;- Just a2</span>
+<span class="lineno">  141 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  142 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniByteString a2 = do</span>
+<span class="lineno">  143 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniByteString &lt;- Just a2</span>
+<span class="lineno">  144 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  145 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniString a2 = do</span>
+<span class="lineno">  146 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniString &lt;- Just a2</span>
+<span class="lineno">  147 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  148 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniUnit a2 = <span class="nottickedoff">do</span></span>
+<span class="lineno">  149 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">DefaultUniUnit &lt;- Just a2</span></span>
+<span class="lineno">  150 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just Refl</span></span>
+<span class="lineno">  151 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniBool a2 = do</span>
+<span class="lineno">  152 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniBool &lt;- Just a2</span>
+<span class="lineno">  153 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniProtoList a2 = do</span>
+<span class="lineno">  155 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniProtoList &lt;- Just a2</span>
+<span class="lineno">  156 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  157 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniProtoArray a2 = <span class="nottickedoff">do</span></span>
+<span class="lineno">  158 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">DefaultUniProtoArray &lt;- Just a2</span></span>
+<span class="lineno">  159 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just Refl</span></span>
+<span class="lineno">  160 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniProtoPair a2 = do</span>
+<span class="lineno">  161 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniProtoPair &lt;- Just a2</span>
+<span class="lineno">  162 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  163 </span><span class="spaces">        </span><span class="istickedoff">geqStep (DefaultUniApply f1 x1) a2 = do</span>
+<span class="lineno">  164 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniApply f2 x2 &lt;- Just a2</span>
+<span class="lineno">  165 </span><span class="spaces">            </span><span class="istickedoff">Refl &lt;- geqRec f1 f2</span>
+<span class="lineno">  166 </span><span class="spaces">            </span><span class="istickedoff">Refl &lt;- geqRec x1 x2</span>
+<span class="lineno">  167 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniData a2 = do</span>
+<span class="lineno">  169 </span><span class="spaces">            </span><span class="istickedoff">DefaultUniData &lt;- Just a2</span>
+<span class="lineno">  170 </span><span class="spaces">            </span><span class="istickedoff">Just Refl</span>
+<span class="lineno">  171 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniBLS12_381_G1_Element a2 = <span class="nottickedoff">do</span></span>
+<span class="lineno">  172 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">DefaultUniBLS12_381_G1_Element &lt;- Just a2</span></span>
+<span class="lineno">  173 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just Refl</span></span>
+<span class="lineno">  174 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniBLS12_381_G2_Element a2 = <span class="nottickedoff">do</span></span>
+<span class="lineno">  175 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">DefaultUniBLS12_381_G2_Element &lt;- Just a2</span></span>
+<span class="lineno">  176 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just Refl</span></span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="istickedoff">geqStep DefaultUniBLS12_381_MlResult a2 = <span class="nottickedoff">do</span></span>
+<span class="lineno">  178 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">DefaultUniBLS12_381_MlResult &lt;- Just a2</span></span>
+<span class="lineno">  179 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">Just Refl</span></span>
+<span class="lineno">  180 </span><span class="spaces">        </span><span class="istickedoff">{-# INLINE geqStep #-}</span>
+<span class="lineno">  181 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  182 </span><span class="spaces">        </span><span class="istickedoff">geqRec :: DefaultUni a1 -&gt; DefaultUni a2 -&gt; Maybe (a1 :~: a2)</span>
+<span class="lineno">  183 </span><span class="spaces">        </span><span class="istickedoff">geqRec = geqStep</span>
+<span class="lineno">  184 </span><span class="spaces">        </span><span class="istickedoff">{-# OPAQUE geqRec #-}</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>-- | For pleasing the coverage checker.
+<span class="lineno">  187 </span>noMoreTypeFunctions :: DefaultUni (Esc (f :: a -&gt; b -&gt; c -&gt; d)) -&gt; any
+<span class="lineno">  188 </span><span class="decl"><span class="nottickedoff">noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f</span></span>
+<span class="lineno">  189 </span>
+<span class="lineno">  190 </span>instance ToKind DefaultUni where
+<span class="lineno">  191 </span>    <span class="decl"><span class="istickedoff">toSingKind DefaultUniInteger              = knownKind</span>
+<span class="lineno">  192 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniByteString           = knownKind</span>
+<span class="lineno">  193 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniString               = knownKind</span>
+<span class="lineno">  194 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniUnit                 = knownKind</span>
+<span class="lineno">  195 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniBool                 = knownKind</span>
+<span class="lineno">  196 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniProtoList            = knownKind</span>
+<span class="lineno">  197 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniProtoArray           = knownKind</span>
+<span class="lineno">  198 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniProtoPair            = knownKind</span>
+<span class="lineno">  199 </span><span class="spaces">    </span><span class="istickedoff">toSingKind (DefaultUniApply uniF _)       = <span class="nottickedoff">case toSingKind uniF of _ `SingKindArrow` cod -&gt; cod</span></span>
+<span class="lineno">  200 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniData                 = knownKind</span>
+<span class="lineno">  201 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniBLS12_381_G1_Element = knownKind</span>
+<span class="lineno">  202 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniBLS12_381_G2_Element = knownKind</span>
+<span class="lineno">  203 </span><span class="spaces">    </span><span class="istickedoff">toSingKind DefaultUniBLS12_381_MlResult   = knownKind</span></span>
+<span class="lineno">  204 </span>
+<span class="lineno">  205 </span>instance HasUniApply DefaultUni where
+<span class="lineno">  206 </span>    <span class="decl"><span class="nottickedoff">uniApply = DefaultUniApply</span></span>
+<span class="lineno">  207 </span>
+<span class="lineno">  208 </span>    <span class="decl"><span class="istickedoff">matchUniApply (DefaultUniApply f a) _ h = <span class="nottickedoff">h f a</span></span>
+<span class="lineno">  209 </span><span class="spaces">    </span><span class="istickedoff">matchUniApply _                     z _ = z</span></span>
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving stock instance Show (DefaultUni a)</span></span></span></span></span></span>
+<span class="lineno">  212 </span>instance GShow DefaultUni where <span class="decl"><span class="nottickedoff">gshowsPrec = showsPrec</span></span>
+<span class="lineno">  213 </span>
+<span class="lineno">  214 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy RenderContext (DefaultUni a)</span></span> where
+<span class="lineno">  215 </span>    <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  216 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniInteger              -&gt; &quot;integer&quot;</span>
+<span class="lineno">  217 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniByteString           -&gt; &quot;bytestring&quot;</span>
+<span class="lineno">  218 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniString               -&gt; &quot;string&quot;</span>
+<span class="lineno">  219 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniUnit                 -&gt; &quot;unit&quot;</span>
+<span class="lineno">  220 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniBool                 -&gt; <span class="nottickedoff">&quot;bool&quot;</span></span>
+<span class="lineno">  221 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniProtoList            -&gt; &quot;list&quot;</span>
+<span class="lineno">  222 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniProtoArray           -&gt; <span class="nottickedoff">&quot;array&quot;</span></span>
+<span class="lineno">  223 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniProtoPair            -&gt; &quot;pair&quot;</span>
+<span class="lineno">  224 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniApply uniF uniA      -&gt; <span class="nottickedoff">uniF `juxtPrettyM` uniA</span></span>
+<span class="lineno">  225 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniData                 -&gt; &quot;data&quot;</span>
+<span class="lineno">  226 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniBLS12_381_G1_Element -&gt; <span class="nottickedoff">&quot;bls12_381_G1_element&quot;</span></span>
+<span class="lineno">  227 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniBLS12_381_G2_Element -&gt; <span class="nottickedoff">&quot;bls12_381_G2_element&quot;</span></span>
+<span class="lineno">  228 </span><span class="spaces">        </span><span class="istickedoff">DefaultUniBLS12_381_MlResult   -&gt; <span class="nottickedoff">&quot;bls12_381_mlresult&quot;</span></span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy RenderContext (SomeTypeIn DefaultUni)</span></span> where
+<span class="lineno">  231 </span>    <span class="decl"><span class="istickedoff">prettyBy config (SomeTypeIn uni) = prettyBy config uni</span></span>
+<span class="lineno">  232 </span>
+<span class="lineno">  233 </span>-- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
+<span class="lineno">  234 </span>-- doesn't pretty-print them otherwise (e.g. @integer@).
+<span class="lineno">  235 </span>instance <span class="decl"><span class="nottickedoff">Pretty (DefaultUni a)</span></span> where
+<span class="lineno">  236 </span>    <span class="decl"><span class="nottickedoff">pretty = prettyBy juxtRenderContext</span></span>
+<span class="lineno">  237 </span>instance <span class="decl"><span class="nottickedoff">Pretty (SomeTypeIn DefaultUni)</span></span> where
+<span class="lineno">  238 </span>    <span class="decl"><span class="nottickedoff">pretty (SomeTypeIn uni) = pretty uni</span></span>
+<span class="lineno">  239 </span>
+<span class="lineno">  240 </span>-- | Elaborate a built-in type (see 'ElaborateBuiltin') from 'DefaultUni'.
+<span class="lineno">  241 </span>type ElaborateBuiltinDefaultUni :: forall a. a -&gt; a
+<span class="lineno">  242 </span>type family ElaborateBuiltinDefaultUni x where
+<span class="lineno">  243 </span>    ElaborateBuiltinDefaultUni (f x) = ElaborateBuiltinDefaultUni f `TyAppRep` x
+<span class="lineno">  244 </span>    ElaborateBuiltinDefaultUni x     = BuiltinHead x
+<span class="lineno">  245 </span>
+<span class="lineno">  246 </span>type instance ElaborateBuiltin DefaultUni x = ElaborateBuiltinDefaultUni x
+<span class="lineno">  247 </span>
+<span class="lineno">  248 </span>instance (DefaultUni `Contains` f, DefaultUni `Contains` a) =&gt; DefaultUni `Contains` f a where
+<span class="lineno">  249 </span>    <span class="decl"><span class="istickedoff">knownUni = knownUni `DefaultUniApply` knownUni</span></span>
+<span class="lineno">  250 </span>
+<span class="lineno">  251 </span>instance DefaultUni `Contains` Integer where
+<span class="lineno">  252 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniInteger</span></span>
+<span class="lineno">  253 </span>instance DefaultUni `Contains` ByteString where
+<span class="lineno">  254 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniByteString</span></span>
+<span class="lineno">  255 </span>instance DefaultUni `Contains` Text where
+<span class="lineno">  256 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniString</span></span>
+<span class="lineno">  257 </span>instance DefaultUni `Contains` () where
+<span class="lineno">  258 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniUnit</span></span>
+<span class="lineno">  259 </span>instance DefaultUni `Contains` Bool where
+<span class="lineno">  260 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniBool</span></span>
+<span class="lineno">  261 </span>instance DefaultUni `Contains` [] where
+<span class="lineno">  262 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniProtoList</span></span>
+<span class="lineno">  263 </span>instance DefaultUni `Contains` Vector where
+<span class="lineno">  264 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniProtoArray</span></span>
+<span class="lineno">  265 </span>instance DefaultUni `Contains` (,) where
+<span class="lineno">  266 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniProtoPair</span></span>
+<span class="lineno">  267 </span>instance DefaultUni `Contains` Data where
+<span class="lineno">  268 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniData</span></span>
+<span class="lineno">  269 </span>instance DefaultUni `Contains` BLS12_381.G1.Element where
+<span class="lineno">  270 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniBLS12_381_G1_Element</span></span>
+<span class="lineno">  271 </span>instance DefaultUni `Contains` BLS12_381.G2.Element where
+<span class="lineno">  272 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniBLS12_381_G2_Element</span></span>
+<span class="lineno">  273 </span>instance DefaultUni `Contains` BLS12_381.Pairing.MlResult where
+<span class="lineno">  274 </span>    <span class="decl"><span class="istickedoff">knownUni = DefaultUniBLS12_381_MlResult</span></span>
+<span class="lineno">  275 </span>
+<span class="lineno">  276 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni Integer =&gt;</span>
+<span class="lineno">  277 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Integer</span></span>
+<span class="lineno">  278 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni ByteString =&gt;</span>
+<span class="lineno">  279 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni ByteString</span></span>
+<span class="lineno">  280 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni Text =&gt;</span>
+<span class="lineno">  281 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Text</span></span>
+<span class="lineno">  282 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni () =&gt;</span>
+<span class="lineno">  283 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni ()</span></span>
+<span class="lineno">  284 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni Bool =&gt;</span>
+<span class="lineno">  285 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Bool</span></span>
+<span class="lineno">  286 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni [a] =&gt;</span>
+<span class="lineno">  287 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni [a]</span></span>
+<span class="lineno">  288 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni (Vector a) =&gt;</span>
+<span class="lineno">  289 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni (Vector a)</span></span>
+<span class="lineno">  290 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni (a, b) =&gt;</span>
+<span class="lineno">  291 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni (a, b)</span></span>
+<span class="lineno">  292 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni Data =&gt;</span>
+<span class="lineno">  293 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Data</span></span>
+<span class="lineno">  294 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G1.Element =&gt;</span>
+<span class="lineno">  295 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni BLS12_381.G1.Element</span></span>
+<span class="lineno">  296 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G2.Element =&gt;</span>
+<span class="lineno">  297 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni BLS12_381.G2.Element</span></span>
+<span class="lineno">  298 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult =&gt;</span>
+<span class="lineno">  299 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult</span></span>
+<span class="lineno">  300 </span>
+<span class="lineno">  301 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  302 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term Integer</span></span>
+<span class="lineno">  303 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term ByteString =&gt;</span>
+<span class="lineno">  304 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term ByteString</span></span>
+<span class="lineno">  305 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Text =&gt;</span>
+<span class="lineno">  306 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term Text</span></span>
+<span class="lineno">  307 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term () =&gt;</span>
+<span class="lineno">  308 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term ()</span></span>
+<span class="lineno">  309 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Bool =&gt;</span>
+<span class="lineno">  310 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term Bool</span></span>
+<span class="lineno">  311 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Data =&gt;</span>
+<span class="lineno">  312 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term Data</span></span>
+<span class="lineno">  313 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term [a] =&gt;</span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="istickedoff">ReadKnownIn DefaultUni term [a]</span></span>
+<span class="lineno">  315 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term (Vector a) =&gt;</span>
+<span class="lineno">  316 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term (Vector a)</span></span>
+<span class="lineno">  317 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term (a, b) =&gt;</span>
+<span class="lineno">  318 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term (a, b)</span></span>
+<span class="lineno">  319 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =&gt;</span>
+<span class="lineno">  320 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term BLS12_381.G1.Element</span></span>
+<span class="lineno">  321 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =&gt;</span>
+<span class="lineno">  322 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term BLS12_381.G2.Element</span></span>
+<span class="lineno">  323 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =&gt;</span>
+<span class="lineno">  324 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term BLS12_381.Pairing.MlResult</span></span>
+<span class="lineno">  325 </span>
+<span class="lineno">  326 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  327 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term Integer</span></span>
+<span class="lineno">  328 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term ByteString =&gt;</span>
+<span class="lineno">  329 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term ByteString</span></span>
+<span class="lineno">  330 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term Text =&gt;</span>
+<span class="lineno">  331 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Text</span></span>
+<span class="lineno">  332 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term () =&gt;</span>
+<span class="lineno">  333 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term ()</span></span>
+<span class="lineno">  334 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Bool =&gt;</span>
+<span class="lineno">  335 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term Bool</span></span>
+<span class="lineno">  336 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term Data =&gt;</span>
+<span class="lineno">  337 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term Data</span></span>
+<span class="lineno">  338 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term [a] =&gt;</span>
+<span class="lineno">  339 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term [a]</span></span>
+<span class="lineno">  340 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term (Vector a) =&gt;</span>
+<span class="lineno">  341 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term (Vector a)</span></span>
+<span class="lineno">  342 </span>instance <span class="decl"><span class="istickedoff">KnownBuiltinTypeIn DefaultUni term (a, b) =&gt;</span>
+<span class="lineno">  343 </span><span class="spaces">    </span><span class="istickedoff">MakeKnownIn DefaultUni term (a, b)</span></span>
+<span class="lineno">  344 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =&gt;</span>
+<span class="lineno">  345 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term BLS12_381.G1.Element</span></span>
+<span class="lineno">  346 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =&gt;</span>
+<span class="lineno">  347 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term BLS12_381.G2.Element</span></span>
+<span class="lineno">  348 </span>instance <span class="decl"><span class="nottickedoff">KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =&gt;</span>
+<span class="lineno">  349 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term BLS12_381.Pairing.MlResult</span></span>
+<span class="lineno">  350 </span>
+<span class="lineno">  351 </span>-- If this tells you an instance is missing, add it right above, following the pattern.
+<span class="lineno">  352 </span>instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+<span class="lineno">  353 </span>
+<span class="lineno">  354 </span>{- Note [Integral types as Integer]
+<span class="lineno">  355 </span>Technically our universe only contains 'Integer', but many of the builtin functions that we would
+<span class="lineno">  356 </span>like to use work over 'Int', 'Word8' etc.
+<span class="lineno">  357 </span>
+<span class="lineno">  358 </span>This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8'
+<span class="lineno">  359 </span>means carefully downcasting the 'Integer', running the function, potentially upcasting at the end.
+<span class="lineno">  360 </span>And it's easy to get wrong by e.g. blindly using 'fromInteger' or 'fromIntegral'.
+<span class="lineno">  361 </span>
+<span class="lineno">  362 </span>Moreover, there is a latent risk here: if we *were* to build on a 32-bit architecture, then programs
+<span class="lineno">  363 </span>which use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
+<span class="lineno">  364 </span>
+<span class="lineno">  365 </span>So, what to do? We adopt the following strategy:
+<span class="lineno">  366 </span>- We allow lifting/unlifting bounded integral types such as 'Word8' or 'Int64' via 'Integer',
+<span class="lineno">  367 </span>  including a safe upcast in 'makeKnown' (which we could have on any architecture, but we only add
+<span class="lineno">  368 </span>  it for 64-bit for uniformity) and a safe checked downcast in 'readKnown'.
+<span class="lineno">  369 </span>- We allow lifting/unlifting 'Int' via 'Int64' and 'Word' via 'Word64', constraining the conversion
+<span class="lineno">  370 </span>  between them to 64-bit architectures where this conversion is safe.
+<span class="lineno">  371 </span>
+<span class="lineno">  372 </span>Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
+<span class="lineno">  373 </span>supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
+<span class="lineno">  374 </span>-}
+<span class="lineno">  375 </span>
+<span class="lineno">  376 </span>-- | For deriving 'KnownTypeAst', 'MakeKnown' and 'ReadKnown' instances via 'Integer'.
+<span class="lineno">  377 </span>newtype AsInteger a = AsInteger
+<span class="lineno">  378 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unAsInteger</span></span></span> :: a
+<span class="lineno">  379 </span>    }
+<span class="lineno">  380 </span>
+<span class="lineno">  381 </span>instance KnownTypeAst tyname DefaultUni (AsInteger a) where
+<span class="lineno">  382 </span>    type IsBuiltin _ _ = 'False
+<span class="lineno">  383 </span>    type ToHoles _ _ _ = '[]
+<span class="lineno">  384 </span>    type ToBinds _ acc _ = acc
+<span class="lineno">  385 </span>    <span class="decl"><span class="istickedoff">typeAst = toTypeAst $ <span class="nottickedoff">Proxy @Integer</span></span></span>
+<span class="lineno">  386 </span>
+<span class="lineno">  387 </span>instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a) =&gt;
+<span class="lineno">  388 </span>        MakeKnownIn DefaultUni term (AsInteger a) where
+<span class="lineno">  389 </span>    <span class="decl"><span class="nottickedoff">makeKnown = makeKnown . toInteger . unAsInteger</span></span>
+<span class="lineno">  390 </span>    {-# INLINE makeKnown #-}
+<span class="lineno">  391 </span>
+<span class="lineno">  392 </span>instance (KnownBuiltinTypeIn DefaultUni term Integer, Integral a, Bounded a, Typeable a) =&gt;
+<span class="lineno">  393 </span>        ReadKnownIn DefaultUni term (AsInteger a) where
+<span class="lineno">  394 </span>    <span class="decl"><span class="nottickedoff">readKnown term =</span>
+<span class="lineno">  395 </span><span class="spaces">        </span><span class="nottickedoff">-- See Note [Performance of ReadKnownIn and MakeKnownIn instances].</span>
+<span class="lineno">  396 </span><span class="spaces">        </span><span class="nottickedoff">-- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'</span>
+<span class="lineno">  397 </span><span class="spaces">        </span><span class="nottickedoff">-- (go figure why).</span>
+<span class="lineno">  398 </span><span class="spaces">        </span><span class="nottickedoff">inline readKnownConstant term &gt;&gt;= oneShot \(i :: Integer) -&gt;</span>
+<span class="lineno">  399 </span><span class="spaces">            </span><span class="nottickedoff">-- We don't make use here of 'toIntegralSized' because of performance considerations,</span>
+<span class="lineno">  400 </span><span class="spaces">            </span><span class="nottickedoff">-- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641</span>
+<span class="lineno">  401 </span><span class="spaces">            </span><span class="nottickedoff">-- TODO: benchmark an alternative 'integerToIntMaybe', modified from @ghc-bignum@</span>
+<span class="lineno">  402 </span><span class="spaces">            </span><span class="nottickedoff">if fromIntegral (minBound :: a) &lt;= i &amp;&amp; i &lt;= fromIntegral (maxBound :: a)</span>
+<span class="lineno">  403 </span><span class="spaces">                </span><span class="nottickedoff">then pure . AsInteger $ fromIntegral i</span>
+<span class="lineno">  404 </span><span class="spaces">                </span><span class="nottickedoff">else throwing _OperationalUnliftingError . MkUnliftingError $ fold</span>
+<span class="lineno">  405 </span><span class="spaces">                        </span><span class="nottickedoff">[ Text.pack $ show i</span>
+<span class="lineno">  406 </span><span class="spaces">                        </span><span class="nottickedoff">, &quot; is not within the bounds of &quot;</span>
+<span class="lineno">  407 </span><span class="spaces">                        </span><span class="nottickedoff">, Text.pack . show . typeRep $ Proxy @a</span>
+<span class="lineno">  408 </span><span class="spaces">                        </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  409 </span>    {-# INLINE readKnown #-}
+<span class="lineno">  410 </span>
+<span class="lineno">  411 </span>#if WORD_SIZE_IN_BITS == 64
+<span class="lineno">  412 </span>-- See Note [Integral types as Integer].
+<span class="lineno">  413 </span><span class="decl"><span class="istickedoff">deriving via AsInteger Int instance</span>
+<span class="lineno">  414 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Int</span></span>
+<span class="lineno">  415 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  416 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Int</span></span>
+<span class="lineno">  417 </span>instance KnownBuiltinTypeIn DefaultUni term Integer =&gt; ReadKnownIn DefaultUni term Int where
+<span class="lineno">  418 </span>    <span class="decl"><span class="nottickedoff">readKnown term = fromIntegral @Int64 @Int &lt;$&gt; readKnown term</span></span>
+<span class="lineno">  419 </span>    {-# INLINE readKnown #-}
+<span class="lineno">  420 </span>
+<span class="lineno">  421 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word instance</span>
+<span class="lineno">  422 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Word</span></span>
+<span class="lineno">  423 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  424 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Word</span></span>
+<span class="lineno">  425 </span>instance KnownBuiltinTypeIn DefaultUni term Integer =&gt; ReadKnownIn DefaultUni term Word where
+<span class="lineno">  426 </span>    <span class="decl"><span class="nottickedoff">readKnown term = fromIntegral @Word64 @Word &lt;$&gt; readKnown term</span></span>
+<span class="lineno">  427 </span>    {-# INLINE readKnown #-}
+<span class="lineno">  428 </span>#endif
+<span class="lineno">  429 </span>
+<span class="lineno">  430 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int8 instance</span>
+<span class="lineno">  431 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Int8</span></span>
+<span class="lineno">  432 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  433 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Int8</span></span>
+<span class="lineno">  434 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int8 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  435 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Int8</span></span>
+<span class="lineno">  436 </span>
+<span class="lineno">  437 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int16 instance</span>
+<span class="lineno">  438 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Int16</span></span>
+<span class="lineno">  439 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  440 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Int16</span></span>
+<span class="lineno">  441 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int16 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  442 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Int16</span></span>
+<span class="lineno">  443 </span>
+<span class="lineno">  444 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int32 instance</span>
+<span class="lineno">  445 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Int32</span></span>
+<span class="lineno">  446 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  447 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Int32</span></span>
+<span class="lineno">  448 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int32 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  449 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Int32</span></span>
+<span class="lineno">  450 </span>
+<span class="lineno">  451 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int64 instance</span>
+<span class="lineno">  452 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Int64</span></span>
+<span class="lineno">  453 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  454 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Int64</span></span>
+<span class="lineno">  455 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Int64 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  456 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Int64</span></span>
+<span class="lineno">  457 </span>
+<span class="lineno">  458 </span><span class="decl"><span class="istickedoff">deriving via AsInteger Word8 instance</span>
+<span class="lineno">  459 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Word8</span></span>
+<span class="lineno">  460 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  461 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Word8</span></span>
+<span class="lineno">  462 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word8 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  463 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Word8</span></span>
+<span class="lineno">  464 </span>
+<span class="lineno">  465 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word16 instance</span>
+<span class="lineno">  466 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Word16</span></span>
+<span class="lineno">  467 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  468 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Word16</span></span>
+<span class="lineno">  469 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word16 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  470 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Word16</span></span>
+<span class="lineno">  471 </span>
+<span class="lineno">  472 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word32 instance</span>
+<span class="lineno">  473 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Word32</span></span>
+<span class="lineno">  474 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  475 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Word32</span></span>
+<span class="lineno">  476 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word32 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  477 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Word32</span></span>
+<span class="lineno">  478 </span>
+<span class="lineno">  479 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word64 instance</span>
+<span class="lineno">  480 </span><span class="spaces">    </span><span class="nottickedoff">KnownTypeAst tyname DefaultUni Word64</span></span>
+<span class="lineno">  481 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  482 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Word64</span></span>
+<span class="lineno">  483 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Word64 instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  484 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term Word64</span></span>
+<span class="lineno">  485 </span>
+<span class="lineno">  486 </span><span class="decl"><span class="istickedoff">deriving newtype instance</span>
+<span class="lineno">  487 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni NumBytesCostedAsNumWords</span></span>
+<span class="lineno">  488 </span><span class="decl"><span class="nottickedoff">deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  489 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term NumBytesCostedAsNumWords</span></span>
+<span class="lineno">  490 </span><span class="decl"><span class="nottickedoff">deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  491 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term NumBytesCostedAsNumWords</span></span>
+<span class="lineno">  492 </span>
+<span class="lineno">  493 </span><span class="decl"><span class="istickedoff">deriving newtype instance</span>
+<span class="lineno">  494 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni IntegerCostedLiterally</span></span>
+<span class="lineno">  495 </span><span class="decl"><span class="nottickedoff">deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  496 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term IntegerCostedLiterally</span></span>
+<span class="lineno">  497 </span><span class="decl"><span class="nottickedoff">deriving newtype instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  498 </span><span class="spaces">    </span><span class="nottickedoff">ReadKnownIn DefaultUni term IntegerCostedLiterally</span></span>
+<span class="lineno">  499 </span>
+<span class="lineno">  500 </span><span class="decl"><span class="istickedoff">deriving via AsInteger Natural instance</span>
+<span class="lineno">  501 </span><span class="spaces">    </span><span class="istickedoff">KnownTypeAst tyname DefaultUni Natural</span></span>
+<span class="lineno">  502 </span><span class="decl"><span class="nottickedoff">deriving via AsInteger Natural instance KnownBuiltinTypeIn DefaultUni term Integer =&gt;</span>
+<span class="lineno">  503 </span><span class="spaces">    </span><span class="nottickedoff">MakeKnownIn DefaultUni term Natural</span></span>
+<span class="lineno">  504 </span>instance KnownBuiltinTypeIn DefaultUni term Integer =&gt; ReadKnownIn DefaultUni term Natural where
+<span class="lineno">  505 </span>    <span class="decl"><span class="nottickedoff">readKnown term =</span>
+<span class="lineno">  506 </span><span class="spaces">        </span><span class="nottickedoff">-- See Note [Performance of ReadKnownIn and MakeKnownIn instances].</span>
+<span class="lineno">  507 </span><span class="spaces">        </span><span class="nottickedoff">-- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'</span>
+<span class="lineno">  508 </span><span class="spaces">        </span><span class="nottickedoff">-- (go figure why).</span>
+<span class="lineno">  509 </span><span class="spaces">        </span><span class="nottickedoff">inline readKnownConstant term &gt;&gt;= oneShot \(i :: Integer) -&gt;</span>
+<span class="lineno">  510 </span><span class="spaces">            </span><span class="nottickedoff">-- TODO: benchmark alternatives:signumInteger,integerIsNegative,integerToNaturalThrow</span>
+<span class="lineno">  511 </span><span class="spaces">            </span><span class="nottickedoff">if i &gt;= 0</span>
+<span class="lineno">  512 </span><span class="spaces">            </span><span class="nottickedoff">-- TODO: benchmark alternatives: ghc&gt;=9 integerToNatural</span>
+<span class="lineno">  513 </span><span class="spaces">            </span><span class="nottickedoff">then pure $ fromInteger i</span>
+<span class="lineno">  514 </span><span class="spaces">            </span><span class="nottickedoff">else throwing _OperationalUnliftingError . MkUnliftingError $ fold</span>
+<span class="lineno">  515 </span><span class="spaces">                 </span><span class="nottickedoff">[ Text.pack $ show i</span>
+<span class="lineno">  516 </span><span class="spaces">                 </span><span class="nottickedoff">, &quot; is not within the bounds of Natural&quot;</span>
+<span class="lineno">  517 </span><span class="spaces">                 </span><span class="nottickedoff">]</span></span>
+<span class="lineno">  518 </span>    {-# INLINE readKnown #-}
+<span class="lineno">  519 </span>
+<span class="lineno">  520 </span>{- Note [Stable encoding of tags]
+<span class="lineno">  521 </span>'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
+<span class="lineno">  522 </span>universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
+<span class="lineno">  523 </span>and 'decodeUni' must be amended only in a backwards compatible manner.
+<span class="lineno">  524 </span>
+<span class="lineno">  525 </span>See Note [Stable encoding of TPLC]
+<span class="lineno">  526 </span>-}
+<span class="lineno">  527 </span>
+<span class="lineno">  528 </span>instance Closed DefaultUni where
+<span class="lineno">  529 </span>    type DefaultUni `Everywhere` constr =
+<span class="lineno">  530 </span>        ( constr `Permits` Integer
+<span class="lineno">  531 </span>        , constr `Permits` ByteString
+<span class="lineno">  532 </span>        , constr `Permits` Text
+<span class="lineno">  533 </span>        , constr `Permits` ()
+<span class="lineno">  534 </span>        , constr `Permits` Bool
+<span class="lineno">  535 </span>        , constr `Permits` []
+<span class="lineno">  536 </span>        , constr `Permits` Vector
+<span class="lineno">  537 </span>        , constr `Permits` (,)
+<span class="lineno">  538 </span>        , constr `Permits` Data
+<span class="lineno">  539 </span>        , constr `Permits` BLS12_381.G1.Element
+<span class="lineno">  540 </span>        , constr `Permits` BLS12_381.G2.Element
+<span class="lineno">  541 </span>        , constr `Permits` BLS12_381.Pairing.MlResult
+<span class="lineno">  542 </span>        )
+<span class="lineno">  543 </span>
+<span class="lineno">  544 </span>    -- See Note [Stable encoding of tags].
+<span class="lineno">  545 </span>    -- IF YOU'RE GETTING A WARNING HERE, DON'T FORGET TO AMEND 'withDecodedUni' RIGHT BELOW.
+<span class="lineno">  546 </span>    <span class="decl"><span class="istickedoff">encodeUni DefaultUniInteger              = [0]</span>
+<span class="lineno">  547 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniByteString           = [1]</span>
+<span class="lineno">  548 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniString               = <span class="nottickedoff">[2]</span></span>
+<span class="lineno">  549 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniUnit                 = <span class="nottickedoff">[3]</span></span>
+<span class="lineno">  550 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniBool                 = <span class="nottickedoff">[4]</span></span>
+<span class="lineno">  551 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniProtoList            = <span class="nottickedoff">[5]</span></span>
+<span class="lineno">  552 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniProtoPair            = <span class="nottickedoff">[6]</span></span>
+<span class="lineno">  553 </span><span class="spaces">    </span><span class="istickedoff">encodeUni (DefaultUniApply uniF uniA)    = <span class="nottickedoff">7 : encodeUni uniF ++ encodeUni uniA</span></span>
+<span class="lineno">  554 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniData                 = [8]</span>
+<span class="lineno">  555 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniBLS12_381_G1_Element = <span class="nottickedoff">[9]</span></span>
+<span class="lineno">  556 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniBLS12_381_G2_Element = <span class="nottickedoff">[10]</span></span>
+<span class="lineno">  557 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniBLS12_381_MlResult   = <span class="nottickedoff">[11]</span></span>
+<span class="lineno">  558 </span><span class="spaces">    </span><span class="istickedoff">encodeUni DefaultUniProtoArray           = <span class="nottickedoff">[12]</span></span></span>
+<span class="lineno">  559 </span>
+<span class="lineno">  560 </span>    -- See Note [Decoding universes].
+<span class="lineno">  561 </span>    -- See Note [Stable encoding of tags].
+<span class="lineno">  562 </span>    <span class="decl"><span class="istickedoff">withDecodedUni k = peelUniTag &gt;&gt;= \case</span>
+<span class="lineno">  563 </span><span class="spaces">        </span><span class="istickedoff">0 -&gt; k DefaultUniInteger</span>
+<span class="lineno">  564 </span><span class="spaces">        </span><span class="istickedoff">1 -&gt; k DefaultUniByteString</span>
+<span class="lineno">  565 </span><span class="spaces">        </span><span class="istickedoff">2 -&gt; k DefaultUniString</span>
+<span class="lineno">  566 </span><span class="spaces">        </span><span class="istickedoff">3 -&gt; k DefaultUniUnit</span>
+<span class="lineno">  567 </span><span class="spaces">        </span><span class="istickedoff">4 -&gt; <span class="nottickedoff">k DefaultUniBool</span></span>
+<span class="lineno">  568 </span><span class="spaces">        </span><span class="istickedoff">5 -&gt; k DefaultUniProtoList</span>
+<span class="lineno">  569 </span><span class="spaces">        </span><span class="istickedoff">6 -&gt; k DefaultUniProtoPair</span>
+<span class="lineno">  570 </span><span class="spaces">        </span><span class="istickedoff">7 -&gt;</span>
+<span class="lineno">  571 </span><span class="spaces">            </span><span class="istickedoff">withDecodedUni @DefaultUni $ \uniF -&gt;</span>
+<span class="lineno">  572 </span><span class="spaces">                </span><span class="istickedoff">withDecodedUni @DefaultUni $ \uniA -&gt;</span>
+<span class="lineno">  573 </span><span class="spaces">                    </span><span class="istickedoff">withApplicable <span class="nottickedoff">uniF</span> <span class="nottickedoff">uniA</span> $</span>
+<span class="lineno">  574 </span><span class="spaces">                        </span><span class="istickedoff">k $ uniF `DefaultUniApply` uniA</span>
+<span class="lineno">  575 </span><span class="spaces">        </span><span class="istickedoff">8  -&gt; k DefaultUniData</span>
+<span class="lineno">  576 </span><span class="spaces">        </span><span class="istickedoff">9  -&gt; <span class="nottickedoff">k DefaultUniBLS12_381_G1_Element</span></span>
+<span class="lineno">  577 </span><span class="spaces">        </span><span class="istickedoff">10 -&gt; <span class="nottickedoff">k DefaultUniBLS12_381_G2_Element</span></span>
+<span class="lineno">  578 </span><span class="spaces">        </span><span class="istickedoff">11 -&gt; <span class="nottickedoff">k DefaultUniBLS12_381_MlResult</span></span>
+<span class="lineno">  579 </span><span class="spaces">        </span><span class="istickedoff">12 -&gt; <span class="nottickedoff">k DefaultUniProtoArray</span></span>
+<span class="lineno">  580 </span><span class="spaces">        </span><span class="istickedoff">_  -&gt; <span class="nottickedoff">empty</span></span></span>
+<span class="lineno">  581 </span>
+<span class="lineno">  582 </span>    bring
+<span class="lineno">  583 </span>        :: forall constr a r proxy. DefaultUni `Everywhere` constr
+<span class="lineno">  584 </span>        =&gt; proxy constr -&gt; DefaultUni (Esc a) -&gt; (constr a =&gt; r) -&gt; r
+<span class="lineno">  585 </span>    <span class="decl"><span class="istickedoff">bring _ DefaultUniInteger r = r</span>
+<span class="lineno">  586 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniByteString r = r</span>
+<span class="lineno">  587 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniString r = r</span>
+<span class="lineno">  588 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniUnit r = r</span>
+<span class="lineno">  589 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniBool r = <span class="nottickedoff">r</span></span>
+<span class="lineno">  590 </span><span class="spaces">    </span><span class="istickedoff">bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =</span>
+<span class="lineno">  591 </span><span class="spaces">        </span><span class="istickedoff">bring <span class="nottickedoff">p</span> uniA r</span>
+<span class="lineno">  592 </span><span class="spaces">    </span><span class="istickedoff">bring p (DefaultUniProtoArray `DefaultUniApply` uniA) r =</span>
+<span class="lineno">  593 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">bring p uniA r</span></span>
+<span class="lineno">  594 </span><span class="spaces">    </span><span class="istickedoff">bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =</span>
+<span class="lineno">  595 </span><span class="spaces">        </span><span class="istickedoff">bring <span class="nottickedoff">p</span> uniA $ bring <span class="nottickedoff">p</span> uniB r</span>
+<span class="lineno">  596 </span><span class="spaces">    </span><span class="istickedoff">bring _ (f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) _ =</span>
+<span class="lineno">  597 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">noMoreTypeFunctions f</span></span>
+<span class="lineno">  598 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniData r = r</span>
+<span class="lineno">  599 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniBLS12_381_G1_Element r = <span class="nottickedoff">r</span></span>
+<span class="lineno">  600 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniBLS12_381_G2_Element r = <span class="nottickedoff">r</span></span>
+<span class="lineno">  601 </span><span class="spaces">    </span><span class="istickedoff">bring _ DefaultUniBLS12_381_MlResult r = <span class="nottickedoff">r</span></span></span>
+
+</pre>
+</body>
+</html>

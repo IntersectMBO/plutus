@@ -1,0 +1,150 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE GADTs            #-}
+<span class="lineno">    2 </span>{-# LANGUAGE RankNTypes       #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module UntypedPlutusCore.Simplify (
+<span class="lineno">    6 </span>    module Opts,
+<span class="lineno">    7 </span>    simplifyTerm,
+<span class="lineno">    8 </span>    simplifyProgram,
+<span class="lineno">    9 </span>    simplifyProgramWithTrace,
+<span class="lineno">   10 </span>    InlineHints (..),
+<span class="lineno">   11 </span>    termSimplifier,
+<span class="lineno">   12 </span>    module UntypedPlutusCore.Transform.Simplifier,
+<span class="lineno">   13 </span>) where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Compiler.Types
+<span class="lineno">   16 </span>import PlutusCore.Default qualified as PLC
+<span class="lineno">   17 </span>import PlutusCore.Default.Builtins
+<span class="lineno">   18 </span>import PlutusCore.Name.Unique
+<span class="lineno">   19 </span>import UntypedPlutusCore.Core.Type
+<span class="lineno">   20 </span>import UntypedPlutusCore.Simplify.Opts as Opts
+<span class="lineno">   21 </span>import UntypedPlutusCore.Transform.CaseOfCase
+<span class="lineno">   22 </span>import UntypedPlutusCore.Transform.CaseReduce
+<span class="lineno">   23 </span>import UntypedPlutusCore.Transform.Cse
+<span class="lineno">   24 </span>import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
+<span class="lineno">   25 </span>import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
+<span class="lineno">   26 </span>import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
+<span class="lineno">   27 </span>import UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>import Control.Monad
+<span class="lineno">   30 </span>import Data.List as List (foldl')
+<span class="lineno">   31 </span>import Data.Typeable
+<span class="lineno">   32 </span>import Data.Vector.Orphans ()
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>simplifyProgram ::
+<span class="lineno">   35 </span>    forall name uni fun m a.
+<span class="lineno">   36 </span>    (Compiling m uni fun name a) =&gt;
+<span class="lineno">   37 </span>    SimplifyOpts name a -&gt;
+<span class="lineno">   38 </span>    BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">   39 </span>    Program name uni fun a -&gt;
+<span class="lineno">   40 </span>    m (Program name uni fun a)
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">simplifyProgram opts builtinSemanticsVariant (Program a v t) =</span>
+<span class="lineno">   42 </span><span class="spaces">  </span><span class="nottickedoff">Program a v &lt;$&gt; simplifyTerm opts builtinSemanticsVariant t</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>simplifyProgramWithTrace ::
+<span class="lineno">   45 </span>    forall name uni fun m a.
+<span class="lineno">   46 </span>    (Compiling m uni fun name a) =&gt;
+<span class="lineno">   47 </span>    SimplifyOpts name a -&gt;
+<span class="lineno">   48 </span>    BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">   49 </span>    Program name uni fun a -&gt;
+<span class="lineno">   50 </span>    m (Program name uni fun a, SimplifierTrace name uni fun a)
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">simplifyProgramWithTrace opts builtinSemanticsVariant (Program a v t) = do</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">(result, trace) &lt;-</span>
+<span class="lineno">   53 </span><span class="spaces">    </span><span class="nottickedoff">runSimplifierT</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">$ termSimplifier opts builtinSemanticsVariant t</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">pure (Program a v result, trace)</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>simplifyTerm ::
+<span class="lineno">   58 </span>    forall name uni fun m a.
+<span class="lineno">   59 </span>    (Compiling m uni fun name a) =&gt;
+<span class="lineno">   60 </span>    SimplifyOpts name a -&gt;
+<span class="lineno">   61 </span>    BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">   62 </span>    Term name uni fun a -&gt;
+<span class="lineno">   63 </span>    m (Term name uni fun a)
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">simplifyTerm opts builtinSemanticsVariant term =</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">evalSimplifierT $ termSimplifier opts builtinSemanticsVariant term</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>termSimplifier ::
+<span class="lineno">   68 </span>    forall name uni fun m a.
+<span class="lineno">   69 </span>    (Compiling m uni fun name a) =&gt;
+<span class="lineno">   70 </span>    SimplifyOpts name a -&gt;
+<span class="lineno">   71 </span>    BuiltinSemanticsVariant fun -&gt;
+<span class="lineno">   72 </span>    Term name uni fun a -&gt;
+<span class="lineno">   73 </span>    SimplifierT name uni fun a m (Term name uni fun a)
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">termSimplifier opts builtinSemanticsVariant =</span>
+<span class="lineno">   75 </span><span class="spaces">    </span><span class="nottickedoff">simplifyNTimes (_soMaxSimplifierIterations opts) &gt;=&gt; cseNTimes cseTimes</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="nottickedoff">-- Run the simplifier @n@ times</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="nottickedoff">simplifyNTimes ::</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="nottickedoff">Int -&gt;</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun a -&gt;</span>
+<span class="lineno">   81 </span><span class="spaces">      </span><span class="nottickedoff">SimplifierT name uni fun a m (Term name uni fun a)</span>
+<span class="lineno">   82 </span><span class="spaces">    </span><span class="nottickedoff">simplifyNTimes n = List.foldl' (&gt;=&gt;) pure $ map simplifyStep [1..n]</span>
+<span class="lineno">   83 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   84 </span><span class="spaces">    </span><span class="nottickedoff">-- Run CSE @n@ times, interleaved with the simplifier.</span>
+<span class="lineno">   85 </span><span class="spaces">    </span><span class="nottickedoff">-- See Note [CSE]</span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="nottickedoff">cseNTimes ::</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">Int -&gt;</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun a -&gt;</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="nottickedoff">SimplifierT name uni fun a m (Term name uni fun a)</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="nottickedoff">cseNTimes n = foldl' (&gt;=&gt;) pure $ concatMap (\i -&gt; [cseStep i, simplifyStep i]) [1..n]</span>
+<span class="lineno">   91 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="nottickedoff">-- generate simplification step</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="nottickedoff">simplifyStep ::</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">Int -&gt;</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun a -&gt;</span>
+<span class="lineno">   96 </span><span class="spaces">      </span><span class="nottickedoff">SimplifierT name uni fun a m (Term name uni fun a)</span>
+<span class="lineno">   97 </span><span class="spaces">    </span><span class="nottickedoff">simplifyStep _ =</span>
+<span class="lineno">   98 </span><span class="spaces">        </span><span class="nottickedoff">floatDelay</span>
+<span class="lineno">   99 </span><span class="spaces">        </span><span class="nottickedoff">&gt;=&gt; case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of</span>
+<span class="lineno">  100 </span><span class="spaces">            </span><span class="nottickedoff">(Just Refl, Just Refl) -&gt; forceDelay builtinSemanticsVariant</span>
+<span class="lineno">  101 </span><span class="spaces">            </span><span class="nottickedoff">_                      -&gt; pure</span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="nottickedoff">&gt;=&gt; caseOfCase'</span>
+<span class="lineno">  103 </span><span class="spaces">        </span><span class="nottickedoff">&gt;=&gt; caseReduce</span>
+<span class="lineno">  104 </span><span class="spaces">        </span><span class="nottickedoff">&gt;=&gt; inline</span>
+<span class="lineno">  105 </span><span class="spaces">              </span><span class="nottickedoff">(_soInlineCallsiteGrowth opts)</span>
+<span class="lineno">  106 </span><span class="spaces">              </span><span class="nottickedoff">(_soInlineConstants opts)</span>
+<span class="lineno">  107 </span><span class="spaces">              </span><span class="nottickedoff">(_soPreserveLogging opts)</span>
+<span class="lineno">  108 </span><span class="spaces">              </span><span class="nottickedoff">(_soInlineHints opts)</span>
+<span class="lineno">  109 </span><span class="spaces">              </span><span class="nottickedoff">builtinSemanticsVariant</span>
+<span class="lineno">  110 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  111 </span><span class="spaces">    </span><span class="nottickedoff">caseOfCase' ::</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun a -&gt;</span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="nottickedoff">SimplifierT name uni fun a m (Term name uni fun a)</span>
+<span class="lineno">  114 </span><span class="spaces">    </span><span class="nottickedoff">caseOfCase' = case eqT @fun @DefaultFun of</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="nottickedoff">Just Refl -&gt; caseOfCase</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">Nothing   -&gt; pure</span>
+<span class="lineno">  117 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="nottickedoff">cseStep ::</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="nottickedoff">Int -&gt;</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="nottickedoff">Term name uni fun a -&gt;</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="nottickedoff">SimplifierT name uni fun a m (Term name uni fun a)</span>
+<span class="lineno">  122 </span><span class="spaces">    </span><span class="nottickedoff">cseStep _ =</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">case (eqT @name @Name, eqT @uni @PLC.DefaultUni) of</span>
+<span class="lineno">  124 </span><span class="spaces">        </span><span class="nottickedoff">(Just Refl, Just Refl) -&gt; cse builtinSemanticsVariant</span>
+<span class="lineno">  125 </span><span class="spaces">        </span><span class="nottickedoff">_                      -&gt; pure</span>
+<span class="lineno">  126 </span><span class="spaces"></span><span class="nottickedoff"></span>
+<span class="lineno">  127 </span><span class="spaces">    </span><span class="nottickedoff">cseTimes = if _soConservativeOpts opts then 0 else _soMaxCseIterations opts</span></span>
+
+</pre>
+</body>
+</html>

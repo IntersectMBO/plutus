@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Unit.Properties where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Unit qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Data.Sum.Base qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Relation.Binary.Bundles qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Relation.Nullary.Reflects qualified
+<span class="lineno">   25 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   26 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   27 </span>                    word64ToNat)
+<span class="lineno">   28 </span>import MAlonzo.RTE qualified
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>-- Data.Unit.Properties.⊤-irrelevant
+<span class="lineno">   31 </span>d_'8868''45'irrelevant_6 ::
+<span class="lineno">   32 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   33 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   34 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   35 </span><span class="decl"><span class="nottickedoff">d_'8868''45'irrelevant_6 = erased</span></span>
+<span class="lineno">   36 </span>-- Data.Unit.Properties._≟_
+<span class="lineno">   37 </span>d__'8799'__8 ::
+<span class="lineno">   38 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   39 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   40 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">d__'8799'__8 ~v0 ~v1 = du__'8799'__8</span></span>
+<span class="lineno">   42 </span>du__'8799'__8 ::
+<span class="lineno">   43 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">du__'8799'__8</span>
+<span class="lineno">   45 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">   47 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">   48 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 erased)</span></span>
+<span class="lineno">   49 </span>-- Data.Unit.Properties.≡-setoid
+<span class="lineno">   50 </span>d_'8801''45'setoid_10 ::
+<span class="lineno">   51 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">d_'8801''45'setoid_10</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span></span>
+<span class="lineno">   55 </span>-- Data.Unit.Properties.≡-decSetoid
+<span class="lineno">   56 </span>d_'8801''45'decSetoid_12 ::
+<span class="lineno">   57 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_84
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">d_'8801''45'decSetoid_12</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_decSetoid_406</span>
+<span class="lineno">   61 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe du__'8799'__8)</span></span>
+<span class="lineno">   62 </span>-- Data.Unit.Properties.≡-total
+<span class="lineno">   63 </span>d_'8801''45'total_14 ::
+<span class="lineno">   64 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   66 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">   67 </span><span class="decl"><span class="nottickedoff">d_'8801''45'total_14 ~v0 ~v1 = du_'8801''45'total_14</span></span>
+<span class="lineno">   68 </span>du_'8801''45'total_14 :: MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">du_'8801''45'total_14</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 erased</span></span>
+<span class="lineno">   71 </span>-- Data.Unit.Properties.≡-antisym
+<span class="lineno">   72 </span>d_'8801''45'antisym_16 ::
+<span class="lineno">   73 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   74 </span>  MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6 -&gt;
+<span class="lineno">   75 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   76 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   77 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d_'8801''45'antisym_16 = erased</span></span>
+<span class="lineno">   79 </span>-- Data.Unit.Properties.≡-isPreorder
+<span class="lineno">   80 </span>d_'8801''45'isPreorder_20 ::
+<span class="lineno">   81 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">d_'8801''45'isPreorder_20</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPreorder'46'constructor_4003</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   86 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_isEquivalence_396)</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 v1 v2 -&gt; v2)) erased</span></span>
+<span class="lineno">   88 </span>-- Data.Unit.Properties.≡-isPartialOrder
+<span class="lineno">   89 </span>d_'8801''45'isPartialOrder_24 ::
+<span class="lineno">   90 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPartialOrder_174
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">d_'8801''45'isPartialOrder_24</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPartialOrder'46'constructor_9853</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_'8801''45'isPreorder_20) erased</span></span>
+<span class="lineno">   95 </span>-- Data.Unit.Properties.≡-isTotalOrder
+<span class="lineno">   96 </span>d_'8801''45'isTotalOrder_26 ::
+<span class="lineno">   97 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsTotalOrder_404
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">d_'8801''45'isTotalOrder_26</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  100 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsTotalOrder'46'constructor_20555</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_'8801''45'isPartialOrder_24)</span>
+<span class="lineno">  102 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe du_'8801''45'total_14)</span></span>
+<span class="lineno">  103 </span>-- Data.Unit.Properties.≡-isDecTotalOrder
+<span class="lineno">  104 </span>d_'8801''45'isDecTotalOrder_28 ::
+<span class="lineno">  105 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecTotalOrder_460
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">d_'8801''45'isDecTotalOrder_28</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  108 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsDecTotalOrder'46'constructor_22695</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_'8801''45'isTotalOrder_26) (\ v0 v1 -&gt; coe du__'8799'__8)</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="nottickedoff">(\ v0 v1 -&gt; coe du__'8799'__8)</span></span>
+<span class="lineno">  111 </span>-- Data.Unit.Properties.≡-poset
+<span class="lineno">  112 </span>d_'8801''45'poset_30 ::
+<span class="lineno">  113 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314
+<span class="lineno">  114 </span><span class="decl"><span class="nottickedoff">d_'8801''45'poset_30</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.C_Poset'46'constructor_6389</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">d_'8801''45'isPartialOrder_24</span></span>
+<span class="lineno">  118 </span>-- Data.Unit.Properties.≡-decTotalOrder
+<span class="lineno">  119 </span>d_'8801''45'decTotalOrder_32 ::
+<span class="lineno">  120 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_DecTotalOrder_866
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">d_'8801''45'decTotalOrder_32</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.C_DecTotalOrder'46'constructor_17849</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">d_'8801''45'isDecTotalOrder_28</span></span>
+
+</pre>
+</body>
+</html>

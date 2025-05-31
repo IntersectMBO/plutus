@@ -1,0 +1,92 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.Tree.AVL.Height where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Data.Fin.Base qualified
+<span class="lineno">   17 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   18 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   19 </span>                    word64ToNat)
+<span class="lineno">   20 </span>import MAlonzo.RTE qualified
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>-- Data.Tree.AVL.Height.ℕ₂
+<span class="lineno">   23 </span>d_ℕ'8322'_8 :: ()
+<span class="lineno">   24 </span><span class="decl"><span class="nottickedoff">d_ℕ'8322'_8 = erased</span></span>
+<span class="lineno">   25 </span>-- Data.Tree.AVL.Height._⊕_
+<span class="lineno">   26 </span>d__'8853'__16 ::
+<span class="lineno">   27 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt; Integer -&gt; Integer
+<span class="lineno">   28 </span><span class="decl"><span class="nottickedoff">d__'8853'__16 v0 v1</span>
+<span class="lineno">   29 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   30 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Fin.Base.C_zero_12 -&gt; coe v1</span>
+<span class="lineno">   31 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Fin.Base.C_suc_16 v3</span>
+<span class="lineno">   32 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe addInt (coe (1 :: Integer)) (coe v1)</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   34 </span>-- Data.Tree.AVL.Height.pred[_⊕_]
+<span class="lineno">   35 </span>d_pred'91'_'8853'_'93'_22 ::
+<span class="lineno">   36 </span>  MAlonzo.Code.Data.Fin.Base.T_Fin_10 -&gt; Integer -&gt; Integer
+<span class="lineno">   37 </span><span class="decl"><span class="nottickedoff">d_pred'91'_'8853'_'93'_22 v0 v1</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="nottickedoff">0 -&gt; coe (0 :: Integer)</span>
+<span class="lineno">   40 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; let v2 = subInt (coe v1) (coe (1 :: Integer)) in</span>
+<span class="lineno">   41 </span><span class="spaces">           </span><span class="nottickedoff">coe (coe d__'8853'__16 (coe v0) (coe v2))</span></span>
+<span class="lineno">   42 </span>-- Data.Tree.AVL.Height._∼_⊔_
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">d__'8764'_'8852'__30 a0 a1 a2 = ()</span></span>
+<span class="lineno">   44 </span>data T__'8764'_'8852'__30
+<span class="lineno">   45 </span>  = C_'8764''43'_34 | C_'8764'0_38 | C_'8764''45'_42
+<span class="lineno">   46 </span>-- Data.Tree.AVL.Height.max∼
+<span class="lineno">   47 </span>d_max'8764'_50 ::
+<span class="lineno">   48 </span>  Integer -&gt;
+<span class="lineno">   49 </span>  Integer -&gt; Integer -&gt; T__'8764'_'8852'__30 -&gt; T__'8764'_'8852'__30
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_max'8764'_50 ~v0 ~v1 ~v2 v3 = du_max'8764'_50 v3</span></span>
+<span class="lineno">   51 </span>du_max'8764'_50 :: T__'8764'_'8852'__30 -&gt; T__'8764'_'8852'__30
+<span class="lineno">   52 </span><span class="decl"><span class="nottickedoff">du_max'8764'_50 v0</span>
+<span class="lineno">   53 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   54 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764''43'_34 -&gt; coe C_'8764''45'_42</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764'0_38    -&gt; coe C_'8764'0_38</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764''45'_42 -&gt; coe C_'8764'0_38</span>
+<span class="lineno">   57 </span><span class="spaces">      </span><span class="nottickedoff">_               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   58 </span>-- Data.Tree.AVL.Height.∼max
+<span class="lineno">   59 </span>d_'8764'max_58 ::
+<span class="lineno">   60 </span>  Integer -&gt;
+<span class="lineno">   61 </span>  Integer -&gt; Integer -&gt; T__'8764'_'8852'__30 -&gt; T__'8764'_'8852'__30
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">d_'8764'max_58 ~v0 ~v1 ~v2 v3 = du_'8764'max_58 v3</span></span>
+<span class="lineno">   63 </span>du_'8764'max_58 :: T__'8764'_'8852'__30 -&gt; T__'8764'_'8852'__30
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">du_'8764'max_58 v0</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764''43'_34 -&gt; coe C_'8764'0_38</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764'0_38    -&gt; coe C_'8764'0_38</span>
+<span class="lineno">   68 </span><span class="spaces">      </span><span class="nottickedoff">C_'8764''45'_42 -&gt; coe C_'8764''43'_34</span>
+<span class="lineno">   69 </span><span class="spaces">      </span><span class="nottickedoff">_               -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+
+</pre>
+</body>
+</html>

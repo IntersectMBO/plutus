@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Function.Identity.Categorical</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- A categorical view of the identity function</a>
+<a id="153" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="227" class="Symbol">{-#</a> <a id="231" class="Keyword">OPTIONS</a> <a id="239" class="Pragma">--cubical-compatible</a> <a id="260" class="Pragma">--safe</a> <a id="267" class="Symbol">#-}</a>
+
+<a id="272" class="Keyword">module</a> <a id="279" href="Function.Identity.Categorical.html" class="Module">Function.Identity.Categorical</a> <a id="309" class="Symbol">{</a><a id="310" href="Function.Identity.Categorical.html#310" class="Bound">ℓ</a><a id="311" class="Symbol">}</a> <a id="313" class="Keyword">where</a>
+
+<a id="320" class="Keyword">open</a> <a id="325" class="Keyword">import</a> <a id="332" href="Category.Functor.html" class="Module">Category.Functor</a>
+<a id="349" class="Keyword">open</a> <a id="354" class="Keyword">import</a> <a id="361" href="Category.Applicative.html" class="Module">Category.Applicative</a>
+<a id="382" class="Keyword">open</a> <a id="387" class="Keyword">import</a> <a id="394" href="Category.Monad.html" class="Module">Category.Monad</a>
+<a id="409" class="Keyword">open</a> <a id="414" class="Keyword">import</a> <a id="421" href="Category.Comonad.html" class="Module">Category.Comonad</a>
+<a id="438" class="Keyword">open</a> <a id="443" class="Keyword">import</a> <a id="450" href="Function.html" class="Module">Function</a>
+
+<a id="Identity"></a><a id="460" href="Function.Identity.Categorical.html#460" class="Function">Identity</a> <a id="469" class="Symbol">:</a> <a id="471" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="475" href="Function.Identity.Categorical.html#310" class="Bound">ℓ</a> <a id="477" class="Symbol">→</a> <a id="479" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="483" href="Function.Identity.Categorical.html#310" class="Bound">ℓ</a>
+<a id="485" href="Function.Identity.Categorical.html#460" class="Function">Identity</a> <a id="494" href="Function.Identity.Categorical.html#494" class="Bound">A</a> <a id="496" class="Symbol">=</a> <a id="498" href="Function.Identity.Categorical.html#494" class="Bound">A</a>
+
+<a id="functor"></a><a id="501" href="Function.Identity.Categorical.html#501" class="Function">functor</a> <a id="509" class="Symbol">:</a> <a id="511" href="Category.Functor.html#508" class="Record">RawFunctor</a> <a id="522" href="Function.Identity.Categorical.html#460" class="Function">Identity</a>
+<a id="531" href="Function.Identity.Categorical.html#501" class="Function">functor</a> <a id="539" class="Symbol">=</a> <a id="541" class="Keyword">record</a>
+  <a id="550" class="Symbol">{</a> <a id="552" href="Category.Functor.html#617" class="Field Operator">_&lt;$&gt;_</a> <a id="558" class="Symbol">=</a> <a id="560" href="Function.Base.html#624" class="Function">id</a>
+  <a id="565" class="Symbol">}</a>
+
+<a id="applicative"></a><a id="568" href="Function.Identity.Categorical.html#568" class="Function">applicative</a> <a id="580" class="Symbol">:</a> <a id="582" href="Category.Applicative.html#503" class="Function">RawApplicative</a> <a id="597" href="Function.Identity.Categorical.html#460" class="Function">Identity</a>
+<a id="606" href="Function.Identity.Categorical.html#568" class="Function">applicative</a> <a id="618" class="Symbol">=</a> <a id="620" class="Keyword">record</a>
+  <a id="629" class="Symbol">{</a> <a id="631" href="Category.Applicative.Indexed.html#1012" class="Field">pure</a> <a id="636" class="Symbol">=</a> <a id="638" href="Function.Base.html#624" class="Function">id</a>
+  <a id="643" class="Symbol">;</a> <a id="645" href="Category.Applicative.Indexed.html#1043" class="Field Operator">_⊛_</a>  <a id="650" class="Symbol">=</a> <a id="652" href="Function.Base.html#624" class="Function">id</a>
+  <a id="657" class="Symbol">}</a>
+
+<a id="monad"></a><a id="660" href="Function.Identity.Categorical.html#660" class="Function">monad</a> <a id="666" class="Symbol">:</a> <a id="668" href="Category.Monad.html#457" class="Function">RawMonad</a> <a id="677" href="Function.Identity.Categorical.html#460" class="Function">Identity</a>
+<a id="686" href="Function.Identity.Categorical.html#660" class="Function">monad</a> <a id="692" class="Symbol">=</a> <a id="694" class="Keyword">record</a>
+  <a id="703" class="Symbol">{</a> <a id="705" href="Category.Monad.Indexed.html#653" class="Field">return</a> <a id="712" class="Symbol">=</a> <a id="714" href="Function.Base.html#624" class="Function">id</a>
+  <a id="719" class="Symbol">;</a> <a id="721" href="Category.Monad.Indexed.html#686" class="Field Operator">_&gt;&gt;=_</a>  <a id="728" class="Symbol">=</a> <a id="730" href="Function.Base.html#4007" class="Function Operator">_|&gt;′_</a>
+  <a id="738" class="Symbol">}</a>
+
+<a id="comonad"></a><a id="741" href="Function.Identity.Categorical.html#741" class="Function">comonad</a> <a id="749" class="Symbol">:</a> <a id="751" href="Category.Comonad.html#459" class="Record">RawComonad</a> <a id="762" href="Function.Identity.Categorical.html#460" class="Function">Identity</a>
+<a id="771" href="Function.Identity.Categorical.html#741" class="Function">comonad</a> <a id="779" class="Symbol">=</a> <a id="781" class="Keyword">record</a>
+  <a id="790" class="Symbol">{</a> <a id="792" href="Category.Comonad.html#570" class="Field">extract</a> <a id="800" class="Symbol">=</a> <a id="802" href="Function.Base.html#624" class="Function">id</a>
+  <a id="807" class="Symbol">;</a> <a id="809" href="Category.Comonad.html#592" class="Field">extend</a>  <a id="817" class="Symbol">=</a> <a id="819" href="Function.Base.html#624" class="Function">id</a>
+  <a id="824" class="Symbol">}</a>
+</pre></body></html>
