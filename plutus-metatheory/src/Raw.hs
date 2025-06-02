@@ -156,7 +156,7 @@ unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
                                     = SomeTypeIn DefaultUniBLS12_381_MlResult
 unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
-unconvTyCon RTyConArray              = SomeTypeIn DefaultUniProtoArray
+unconvTyCon RTyConArray             = SomeTypeIn DefaultUniProtoArray
 unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
 
 
