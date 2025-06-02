@@ -34,8 +34,9 @@ processTerm
     :: CaseBuiltin uni
     => Term tyname name uni fun a -> Term tyname name uni fun a
 processTerm = \case
+    -- We could've rewritten those patterns as 'Error' in the 'Nothing' cases, but that would turn a
+    -- structural error into an operational one, which would be unfortunate, so instead we decided
+    -- not to fully optimize such scripts, since they aren't valid anyway.
     Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
-    Case ann resTy (Constant _ con) cs -> case caseBuiltin con $ fromList cs of
-        Left _    -> Error ann resTy
-        Right res -> res
+    Case _ _ (Constant _ con) cs | Right res <- caseBuiltin con (fromList cs) -> res
     t -> t

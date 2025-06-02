@@ -11,7 +11,7 @@ import Universe
 
 class AnnotateCaseBuiltin uni where
     -- | Given a tag for a built-in type and a list of branches, annotate each of the branches with
-    -- its expected type or fail if casing on values of the built-in type isn't supported.
+    -- its expected argument types or fail if casing on values of the built-in type isn't supported.
     annotateCaseBuiltin
         :: UniOf term ~ uni
         => SomeTypeIn uni

@@ -549,6 +549,7 @@ instance CaseBuiltin DefaultUni where
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
+    {-# INLINE caseBuiltin #-}
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
