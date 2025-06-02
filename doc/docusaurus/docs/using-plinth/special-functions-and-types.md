@@ -49,15 +49,11 @@ This lets you write `"hello" :: BuiltinString` in Plinth, which is quite conveni
 
 ### Builtin ByteString literals
 
-With `BuiltinByteString`s, things are a bit different.
-This is because there is no single "correct" way to encode a collection of bytes (which is what `BuiltinByteString` represents) as a string literal.
-Program authors should explicitly opt in to a specific encoding when creating a `BuiltinByteString` from literals.
-
-At the moment, Plinth supports two encodings:
+Working with `BuiltinByteString` values requires some nuance. For backward compatibility, an `IsString BuiltinByteString` instance exists, but its use is discouraged since it doesn’t explicitly convey the literal’s encoding. Instead, Plinth provides encoding-specific newtypes, each with its own `IsString` instance. Currently, two encodings are supported:
 - **Hexadecimal**, also known as **Base 16**, via the `BuiltinByteStringHex` newtype.
 - **UTF-8** via the `BuiltinByteStringUtf8` newtype.
 
-The newtypes are zero-cost abstractions that tell the compiler which `FromString` instance to use.
+The newtypes are zero-cost abstractions that tell the compiler which `IsString` instance to use.
 They can be converted to `BuiltinByteString` using the corresponding functions:
 
 ```haskell
@@ -99,15 +95,17 @@ hexBytes :: BuiltinByteStringHex
 hexBytes = "AABBCCDD" 
 
 numberOfBytes :: BuiltinByteStringHex -> Integer
-numberOfBytes hex = 
-  lengthOfByteString (unBuiltinByteStringHex hex)
+numberOfBytes hex = lengthOfByteString (unBuiltinByteStringHex hex)
 ```
 :::
 
 As an alternative to the `OverloadedStrings` language extension, you can use special functions from the `PlutusTx.Builtins.HasOpaque` module:
 
 ```haskell 
-import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteStringHex, stringToBuiltinByteStringUtf8)
+import PlutusTx.Builtins.HasOpaque 
+  ( stringToBuiltinByteStringHex
+  , stringToBuiltinByteStringUtf8
+  )
 
 -- stringToBuiltinByteStringHex :: String -> BuiltinByteString
 
