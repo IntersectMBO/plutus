@@ -55,7 +55,7 @@ At the moment, Plinth supports two encodings:
 - **Hexadecimal**, also known as **Base 16**, via the `BuiltinByteStringHex` newtype.
 - **UTF-8** via the `BuiltinByteStringUtf8` newtype.
 
-The newtypes are zero-cost abstractions that exist solely to tell the compiler which `FromString` instance to use. They can be converted to `BuiltinByteString` using the corresponding functions:
+The newtypes are zero-cost abstractions that tell the compiler which `FromString` instance to use. They can be converted to `BuiltinByteString` using the corresponding functions:
 
 ```haskell
 unBuiltinByteStringHex :: BuiltinByteStringHex -> BuiltinByteString
@@ -74,13 +74,29 @@ import PlutusTx.Builtins
   )
 
 aceOfBase16 :: BuiltinByteString
-aceOfBase16 = unBuiltinByteStringHex "0xACE0FBA5E"
--- ^ type inference figures out that the literal has the `BuiltinByteStringHex` type
+aceOfBase16 = unBuiltinByteStringHex "ACE0FBA5E"
+-- ^ type inference figures out that the literal has 
+-- the `BuiltinByteStringHex` type
 
 nonLatinTokenName :: BuiltinByteString
-nonLatinTokenName = unBuiltinByteStringUtf8 ("Мой Клёвый Токен" :: BuiltinByteStringUtf8)
--- ^ here we use an explicit type annotation for the `BuiltinByteStringUtf8` newtype 
+nonLatinTokenName = 
+  unBuiltinByteStringUtf8 
+    ("Мой Клёвый Токен" :: BuiltinByteStringUtf8)
+-- here we use an explicit ^^^ type annotation for the
+-- `BuiltinByteStringUtf8` newtype 
 ```
+
+:::tip
+You do not need to convert a `BuiltinByteStringHex` or `BuiltinByteStringUtf8` value to `BuiltinByteString` immediately. You can pass it around and only convert it when the context requires a `BuiltinByteString`. This preserves the encoding information in the type and allows downstream code to rule out invalid states. For example:
+```haskell
+hexBytes :: BuiltinByteStringHex
+hexBytes = "AABBCCDD" 
+
+numberOfBytes :: BuiltinByteStringHex -> Integer
+numberOfBytes hex = 
+  lengthOfByteString (unBuiltinByteStringHex hex)
+```
+:::
 
 As an alternative to the `OverloadedStrings` language extension, you can use special functions from the `PlutusTx.Builtins.HasOpaque` module:
 
@@ -90,7 +106,7 @@ import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteStringHex, stringToBuilti
 -- stringToBuiltinByteStringHex :: String -> BuiltinByteString
 
 aceOfBase16 :: BuiltinByteString
-aceOfBase16 = stringToBuiltinByteStringHex "0xACE0FBA5E" 
+aceOfBase16 = stringToBuiltinByteStringHex "ACE0FBA5E" 
 
 -- stringToBuiltinByteStringUtf8 :: String -> BuiltinByteString
 
@@ -104,6 +120,6 @@ These functions convert Haskell's `String` literal to Plinth's `BuiltinByteStrin
 These compile-time functions need to be *syntactically* applied to string literals, meaning that you cannot apply them to variables or expressions that are not string literals. For example, the following code will not compile:
 
 ```haskell
-stringToBuiltinByteStringHex ("0xACE0F" ++ "BA5E")
+stringToBuiltinByteStringHex ("ACE0F" ++ "BA5E")
 ```
 :::
