@@ -49,8 +49,27 @@ This lets you write `"hello" :: BuiltinString` in Plinth, which is quite conveni
 
 ### Builtin ByteString literals
 
-Working with `BuiltinByteString` requires care. For backward compatibility, an `IsString` instance exists for `BuiltinByteString`. This instance mirrors the standard Haskell `IsString ByteString` behavior by encoding the character list as UTF-8 and packing the resulting bytes into a `BuiltinByteString`.
-However, its use is discouraged because it does not explicitly convey the literal’s encoding. Instead, Plinth provides encoding-specific newtypes, each with its own `IsString` instance. Currently, two encodings are supported:
+Working with `BuiltinByteString` using `OverloadedStrings` requires care. For backward compatibility, an `IsString` instance exists for `BuiltinByteString`. This instance mirrors the standard Haskell `IsString ByteString` behavior: it converts each character to a byte by taking the lowest 8 bits of its Unicode code point.
+
+However, its use is discouraged because this conversion is lossy, keeping only the lowest byte of each character's Unicode code point. This means that characters with Unicode code points above 255 (i.e., outside the Latin-1 range) will not be represented correctly, leading to potential data loss. The example below illustrates this truncation.
+ 
+<details>
+<summary>Example of lossy conversion</summary>
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+
+import qualified Data.ByteString as BS
+import Data.Char (ord)
+import Data.Bits ((.&.))
+
+main = do
+  print $ BS.unpack ("世" :: BS.ByteString)  -- [22]
+  print $ ord '世'                           -- 19990
+  print $ (19990 :: Integer) .&. 0xFF        -- 22 (truncation result)
+```
+</details>
+
+Instead, Plinth provides encoding-specific newtypes, each with its own `IsString` instance. Currently, two encodings are supported:
 - **Hexadecimal**, also known as **Base 16**, via the `BuiltinByteStringHex` newtype.
 - **UTF-8** via the `BuiltinByteStringUtf8` newtype.
 
