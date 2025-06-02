@@ -679,7 +679,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, CaseBuiltin uni, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -945,7 +945,7 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: (ThrowableBuiltins uni fun, CaseBuiltin (NTerm uni fun ann) uni)
+    :: (ThrowableBuiltins uni fun, CaseBuiltin uni)
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

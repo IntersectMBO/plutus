@@ -1,5 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PlutusCore.Builtin.Case where
 
@@ -19,8 +18,8 @@ class AnnotateCaseBuiltin uni where
         -> [term]
         -> Either Text [(term, [Type TyName uni ann])]
 
-class UniOf term ~ uni => CaseBuiltin term uni where
+class CaseBuiltin uni where
     -- | Given a constant with its type tag and a vector of branches, choose the appropriate branch
     -- or fail if the constant doesn't correspond to any of the branches (or casing on constants of
     -- this type isn't supported at all).
-    caseBuiltin :: Some (ValueOf uni) -> Vector term -> Either Text term
+    caseBuiltin :: UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term

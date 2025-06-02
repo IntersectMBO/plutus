@@ -45,7 +45,6 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
-import PlutusCore.Core.Type (UniOf)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -535,7 +534,7 @@ instance AnnotateCaseBuiltin DefaultUni where
         DefaultUniInteger -> Right $ map (, []) branches
         _                 -> Left $ display uni <> " isn't supported in 'case'"
 
-instance UniOf term ~ DefaultUni => CaseBuiltin term DefaultUni where
+instance CaseBuiltin DefaultUni where
     caseBuiltin (Some (ValueOf uni x)) branches = case uni of
         DefaultUniBool -> case x of
             -- We allow there to be only one branch as long as the scrutinee is 'False'.

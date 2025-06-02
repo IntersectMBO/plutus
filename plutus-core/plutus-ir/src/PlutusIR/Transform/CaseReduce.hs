@@ -18,7 +18,7 @@ import PlutusIR.Pass
 import PlutusIR.TypeCheck qualified as TC
 
 caseReducePass
-  :: ( PLC.Typecheckable uni fun, CaseBuiltin (Term TyName Name uni fun a) uni
+  :: ( PLC.Typecheckable uni fun, CaseBuiltin uni
      , PLC.GEq uni, Applicative m
      )
   => TC.PirTCConfig uni fun
@@ -26,12 +26,12 @@ caseReducePass
 caseReducePass tcconfig = simplePass "case reduce" tcconfig caseReduce
 
 caseReduce
-    :: CaseBuiltin (Term tyname name uni fun a) uni
+    :: CaseBuiltin uni
     => Term tyname name uni fun a -> Term tyname name uni fun a
 caseReduce = transformOf termSubterms processTerm
 
 processTerm
-    :: CaseBuiltin (Term tyname name uni fun a) uni
+    :: CaseBuiltin uni
     => Term tyname name uni fun a -> Term tyname name uni fun a
 processTerm = \case
     Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)

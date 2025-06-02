@@ -50,7 +50,7 @@ import Control.Lens
 import Data.Set qualified as Set
 
 caseOfCase
-    :: (fun ~ PLC.DefaultFun, Monad m, CaseBuiltin (Term name uni fun a) uni)
+    :: (fun ~ PLC.DefaultFun, Monad m, CaseBuiltin uni)
     => Term name uni fun a
     -> SimplifierT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
@@ -59,8 +59,8 @@ caseOfCase term = do
   return result
 
 processTerm
-    :: fun ~ PLC.DefaultFun
-    => CaseBuiltin (Term name uni fun a) uni => Term name uni fun a -> Term name uni fun a
+    :: (fun ~ PLC.DefaultFun, CaseBuiltin uni)
+    => Term name uni fun a -> Term name uni fun a
 processTerm = \case
   Case ann scrut alts
     | ( ite@(Force a (Builtin _ PLC.IfThenElse))

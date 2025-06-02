@@ -190,7 +190,7 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
 
 instance
   ( TPLC.Typecheckable uni fun
-  , CaseBuiltin (UPLC.Term TPLC.Name uni fun ()) uni
+  , CaseBuiltin uni
   , Hashable fun
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
