@@ -49,7 +49,8 @@ This lets you write `"hello" :: BuiltinString` in Plinth, which is quite conveni
 
 ### Builtin ByteString literals
 
-Working with `BuiltinByteString` values requires some nuance. For backward compatibility, an `IsString BuiltinByteString` instance exists, but its use is discouraged since it doesn’t explicitly convey the literal’s encoding. Instead, Plinth provides encoding-specific newtypes, each with its own `IsString` instance. Currently, two encodings are supported:
+Working with `BuiltinByteString` requires care. For backward compatibility, an `IsString` instance exists for `BuiltinByteString`. This instance mirrors the standard Haskell `IsString ByteString` behavior by encoding the character list as UTF-8 and packing the resulting bytes into a `BuiltinByteString`.
+However, its use is discouraged because it does not explicitly convey the literal’s encoding. Instead, Plinth provides encoding-specific newtypes, each with its own `IsString` instance. Currently, two encodings are supported:
 - **Hexadecimal**, also known as **Base 16**, via the `BuiltinByteStringHex` newtype.
 - **UTF-8** via the `BuiltinByteStringUtf8` newtype.
 
