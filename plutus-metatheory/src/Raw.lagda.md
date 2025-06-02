@@ -80,7 +80,7 @@ data RawTm : Set where
 decRTyCon : (C C' : RawTyCon) → Bool
 decRTyCon (atomic t) (atomic t')  = does (decAtomicTyCon t t')
 decRTyCon pair       pair         = true
-decRTyCon array       array         = true
+decRTyCon array       array        = true
 decRTyCon list       list         = true
 decRTyCon _          _            = false
 
