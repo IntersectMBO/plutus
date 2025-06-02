@@ -28,17 +28,20 @@ import Plugin.Data.Spec
 import PlutusCore.Test
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
 
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc qualified as PLC
-import UntypedPlutusCore qualified as UPLC
-
 import Data.Proxy
+
+data MyMonoRecordAsList = MyMonoRecordAsList {mrlA :: Integer, mrlB :: Integer}
+instance P.Eq MyMonoRecordAsList where
+  {-# INLINEABLE (==) #-}
+  (MyMonoRecordAsList x1 y1) == (MyMonoRecordAsList x2 y2) = x1 P.== x2 && y1 P.== y2
+IsData.makeIsDataAsList ''MyMonoRecordAsList
 
 IsData.unstableMakeIsData ''MyMonoData
 IsData.unstableMakeIsData ''MyMonoRecord
@@ -89,6 +92,7 @@ AsData.asData
 AsData.asData
   [d|
     data MaybeD a = JustD a | NothingD
+      deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
     |]
 
 -- Features a nested field which is also defined with AsData
@@ -124,51 +128,75 @@ tests :: TestNested
 tests =
   testNested "IsData" . pure $
     testNestedGhc
-      [ goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1 :: Integer))]
-      , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer))]
-      , goldenUEval
+      [ assertResult "int" (plc (Proxy @"int") (isDataRoundtrip (1 :: Integer)))
+      , assertResult "tuple" (plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
+      , assertResult
           "tupleInterop"
-          [ getPlcNoAnn
-              ( plc
-                  (Proxy @"tupleInterop")
-                  ( \(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of Just t -> t P.== (1 :: Integer, 2 :: Integer); Nothing -> False
+          ( compiledCodeToHaskUnsafe
+              ( plc (Proxy @"tupleInterop")
+                  ( \(d :: P.BuiltinData) ->
+                      case IsData.fromBuiltinData d of
+                        Just t  -> t P.== (1 :: Integer, 2 :: Integer)
+                        Nothing -> False
                   )
               )
-          , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1 :: Integer, 2 :: Integer)))
-          ]
-      , goldenUEval
+              (plc (Proxy @"tupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
+          )
+      , assertResult
           "unsafeTupleInterop"
-          [ getPlcNoAnn
-              ( plc
-                  (Proxy @"unsafeTupleInterop")
-                  (\(d :: P.BuiltinData) -> IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer))
+          ( compiledCodeToHaskUnsafe
+              ( plc (Proxy @"unsafeTupleInterop")
+                  (\(d :: P.BuiltinData) ->
+                     IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer)
+                  )
               )
-          , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1 :: Integer, 2 :: Integer)))
-          ]
-      , goldenUEval "unit" [plc (Proxy @"unit") (isDataRoundtrip ())]
-      , goldenUEval
+              (plc (Proxy @"unsafeTupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
+          )
+      , assertResult "unit" (plc (Proxy @"unit") (isDataRoundtrip ()))
+      , assertResult
           "unitInterop"
-          [ getPlcNoAnn
-              ( plc
-                  (Proxy @"unitInterop")
-                  (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of Just t -> t P.== (); Nothing -> False)
+          ( compiledCodeToHaskUnsafe
+              ( plc (Proxy @"unitInterop")
+                  (\(d :: P.BuiltinData) ->
+                     case IsData.fromBuiltinData d of
+                       Just t  -> t P.== ()
+                       Nothing -> False
+                  )
               )
-          , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData ()))
-          ]
-      , goldenUEval "mono" [plc (Proxy @"mono") (isDataRoundtrip (Mono2 2))]
-      , goldenUEval "poly" [plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer)))]
-      , goldenUEval "record" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2))]
-      , goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer]))]
-      , goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
-      , goldenUEval
+              (plc (Proxy @"unitInteropArg") (P.toBuiltinData ()))
+          )
+      , assertResult "mono" (plc (Proxy @"mono") (isDataRoundtrip (Mono2 2)))
+      , assertResult "poly" (plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
+      , assertResult "record" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2)))
+      , assertResult "recordAsList" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2)))
+      , assertResult "recordAsList is List"
+          (plc (Proxy @"record") (
+              P.toBuiltinData (MyMonoRecordAsList 1 2)
+              P.== (BI.mkList $
+                      BI.mkCons (P.toBuiltinData @Integer 1) $
+                      BI.mkCons (P.toBuiltinData @Integer 2) $
+                      BI.mkNilData BI.unitval)))
+      , assertResult "list" (plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer])))
+      , assertResult "nested" (plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2)))))
+      , assertResult
           "bytestring"
-          [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
+          (plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString)))
       , goldenPirReadable "deconstructData" deconstructData
       , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
       , goldenPirReadable "matchAsData" matchAsData
-      , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
+      , goldenUEval "matchAsDataE"
+          [ compiledCodeToHaskUnsafe
+              matchAsData
+              (plc (Proxy @"test") (P.unsafeFromBuiltinData $ P.toBuiltinData $ SecondC 3))
+          ]
       , goldenPirReadable "recordAsData" recordAsData
       , goldenPirReadable "dataToData" dataToData
       , goldenPirReadable "equalityAsData" equalityAsData
       , goldenPirReadable "fieldAccessor" fieldAccessor
+      , goldenPirReadable "MyMonoRecordAsListToData"
+          (plc (Proxy @"MyMonoRecordAsListToData") (IsData.toBuiltinData @MyMonoRecordAsList))
+      , $(goldenCodeGen "MyMonoRecordAsList" (IsData.makeIsDataAsList ''MyMonoRecord))
+      , $(goldenCodeGen "MyMonoRecord" (IsData.unstableMakeIsData ''MyMonoRecord))
+      , $(goldenCodeGen "MyMonoData" (IsData.unstableMakeIsData ''MyMonoData))
+      , $(goldenCodeGen "MyPolyData" (IsData.unstableMakeIsData ''MyPolyData))
       ]
