@@ -48,7 +48,7 @@ mkConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkConstrPartsMatchPattern conIx extractFieldNames =
   let
     -- Do not change this to raw integer pattern matching.
-    -- GHC will inline `equalsEq` and do integer equality by matching
+    -- GHC may inline `integerEq` and do integer equality by matching
     -- them structurally, which the plugin does not know how to handle.
     -- (==) i -> True
     ixMatchPat = [p|((PlutusTx.==) (conIx :: Integer) -> True)|]
@@ -372,8 +372,8 @@ makeIsDataAsList dataTypeName = do
 
   cons <-
     case TH.datatypeCons dataTypeInfo of
-      [cons'] -> pure cons'
-      _       -> fail "Only data types with single constructor are eligible for 'makeIsDataAsList'"
+      [cons] -> pure cons
+      _      -> fail "Only data types with single constructor are eligible for 'makeIsDataAsList'"
 
   toDataInst <- do
     let constraints =

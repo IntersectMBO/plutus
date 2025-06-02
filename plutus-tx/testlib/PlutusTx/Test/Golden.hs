@@ -4,8 +4,12 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module PlutusTx.Test.Golden (
+  -- * TH CodGen
+  goldenCodeGen,
+
   -- * Compilation testing
   goldenPir,
   goldenPirReadable,
@@ -59,6 +63,13 @@ import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
 import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
+import Language.Haskell.TH qualified as TH
+
+-- Value assertion tests
+goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
+goldenCodeGen name code = do
+  c <- code
+  [| nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c) |]
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do

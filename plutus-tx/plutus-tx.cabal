@@ -173,6 +173,7 @@ library plutus-tx-testlib
     PlutusTx.Test.Run.Code
     PlutusTx.Test.Run.Uplc
     PlutusTx.Test.Util.Compiled
+    PlutusTx.Test.Util.Apply
 
   build-depends:
     , base                             >=4.9   && <5
@@ -188,6 +189,7 @@ library plutus-tx-testlib
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , template-haskell
     , text
 
 test-suite plutus-tx-test

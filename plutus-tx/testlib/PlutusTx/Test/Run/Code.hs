@@ -9,6 +9,7 @@ module PlutusTx.Test.Run.Code (
   evaluationResultMatchesHaskell,
   assertEvaluatesSuccessfully,
   assertEvaluatesWithError,
+  assertResultTrue,
 ) where
 
 import Prelude
@@ -19,7 +20,9 @@ import PlutusTx qualified as Tx
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Eval as Eval
 import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
-import Test.Tasty.HUnit (Assertion, assertFailure)
+import PlutusCore.Test (TestNested, assertEqualPretty, embed)
+import Test.Tasty.HUnit (Assertion, assertFailure, testCase)
+import Test.Tasty (TestName)
 import UntypedPlutusCore (DefaultUni)
 
 {-| Evaluate 'CompiledCode' and check that the result matches a given Haskell value
@@ -64,3 +67,10 @@ assertEvaluatesWithError code = do
             , "Evaluation traces:"
             , Text.unlines evalResultTraces
             ]
+
+assertResultTrue :: TestName -> CompiledCode Bool -> TestNested
+assertResultTrue name code =
+  evaluationResultMatchesHaskell
+    code
+    (\p h -> embed $ testCase name $ assertEqualPretty name p h)
+    True
