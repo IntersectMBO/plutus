@@ -98,7 +98,7 @@ convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyCo
 convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
 convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
 convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
-convTyCon (SomeTypeIn DefaultUniProtoArray)            = RTyCon RTyConArray
+convTyCon (SomeTypeIn DefaultUniProtoArray)           = RTyCon RTyConArray
 convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
 convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
 -- TODO: this should be fixed once the metatheory supports builtin arrays
