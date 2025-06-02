@@ -128,9 +128,9 @@ tests :: TestNested
 tests =
   testNested "IsData" . pure $
     testNestedGhc
-      [ assertResultTrue "int" (plc (Proxy @"int") (isDataRoundtrip (1 :: Integer)))
-      , assertResultTrue "tuple" (plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
-      , assertResultTrue
+      [ assertResult "int" (plc (Proxy @"int") (isDataRoundtrip (1 :: Integer)))
+      , assertResult "tuple" (plc (Proxy @"tuple") (isDataRoundtrip (1 :: Integer, 2 :: Integer)))
+      , assertResult
           "tupleInterop"
           ( compiledCodeToHaskUnsafe
               ( plc (Proxy @"tupleInterop")
@@ -142,7 +142,7 @@ tests =
               )
               (plc (Proxy @"tupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
           )
-      , assertResultTrue
+      , assertResult
           "unsafeTupleInterop"
           ( compiledCodeToHaskUnsafe
               ( plc (Proxy @"unsafeTupleInterop")
@@ -152,8 +152,8 @@ tests =
               )
               (plc (Proxy @"unsafeTupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
           )
-      , assertResultTrue "unit" (plc (Proxy @"unit") (isDataRoundtrip ()))
-      , assertResultTrue
+      , assertResult "unit" (plc (Proxy @"unit") (isDataRoundtrip ()))
+      , assertResult
           "unitInterop"
           ( compiledCodeToHaskUnsafe
               ( plc (Proxy @"unitInterop")
@@ -165,20 +165,20 @@ tests =
               )
               (plc (Proxy @"unitInteropArg") (P.toBuiltinData ()))
           )
-      , assertResultTrue "mono" (plc (Proxy @"mono") (isDataRoundtrip (Mono2 2)))
-      , assertResultTrue "poly" (plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
-      , assertResultTrue "record" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2)))
-      , assertResultTrue "recordAsList" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2)))
-      , assertResultTrue "recordAsList is List"
+      , assertResult "mono" (plc (Proxy @"mono") (isDataRoundtrip (Mono2 2)))
+      , assertResult "poly" (plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
+      , assertResult "record" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2)))
+      , assertResult "recordAsList" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2)))
+      , assertResult "recordAsList is List"
           (plc (Proxy @"record") (
               P.toBuiltinData (MyMonoRecordAsList 1 2)
               P.== (BI.mkList $
                       BI.mkCons (P.toBuiltinData @Integer 1) $
                       BI.mkCons (P.toBuiltinData @Integer 2) $
                       BI.mkNilData BI.unitval)))
-      , assertResultTrue "list" (plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer])))
-      , assertResultTrue "nested" (plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2)))))
-      , assertResultTrue
+      , assertResult "list" (plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer])))
+      , assertResult "nested" (plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2)))))
+      , assertResult
           "bytestring"
           (plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString)))
       , goldenPirReadable "deconstructData" deconstructData
@@ -193,6 +193,8 @@ tests =
       , goldenPirReadable "dataToData" dataToData
       , goldenPirReadable "equalityAsData" equalityAsData
       , goldenPirReadable "fieldAccessor" fieldAccessor
+      , goldenPirReadable "MyMonoRecordAsListToData"
+          (plc (Proxy @"MyMonoRecordAsListToData") (IsData.toBuiltinData @MyMonoRecordAsList))
       , $(goldenCodeGen "MyMonoRecordAsList" (IsData.makeIsDataAsList ''MyMonoRecord))
       , $(goldenCodeGen "MyMonoRecord" (IsData.unstableMakeIsData ''MyMonoRecord))
       , $(goldenCodeGen "MyMonoData" (IsData.unstableMakeIsData ''MyMonoData))
