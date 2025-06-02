@@ -49,13 +49,16 @@ This lets you write `"hello" :: BuiltinString` in Plinth, which is quite conveni
 
 ### Builtin ByteString literals
 
-With `BuiltinByteString`s, things are a bit different. This is because there is no single "correct" way to encode a collection of bytes (which is what `BuiltinByteString` represents) as a string literal. Program authors should explicitly opt in to a specific encoding when creating a `BuiltinByteString` from literals.
+With `BuiltinByteString`s, things are a bit different.
+This is because there is no single "correct" way to encode a collection of bytes (which is what `BuiltinByteString` represents) as a string literal.
+Program authors should explicitly opt in to a specific encoding when creating a `BuiltinByteString` from literals.
 
 At the moment, Plinth supports two encodings:
 - **Hexadecimal**, also known as **Base 16**, via the `BuiltinByteStringHex` newtype.
 - **UTF-8** via the `BuiltinByteStringUtf8` newtype.
 
-The newtypes are zero-cost abstractions that tell the compiler which `FromString` instance to use. They can be converted to `BuiltinByteString` using the corresponding functions:
+The newtypes are zero-cost abstractions that tell the compiler which `FromString` instance to use.
+They can be converted to `BuiltinByteString` using the corresponding functions:
 
 ```haskell
 unBuiltinByteStringHex :: BuiltinByteStringHex -> BuiltinByteString
@@ -87,7 +90,10 @@ nonLatinTokenName =
 ```
 
 :::tip
-You do not need to convert a `BuiltinByteStringHex` or `BuiltinByteStringUtf8` value to `BuiltinByteString` immediately. You can pass it around and only convert it when the context requires a `BuiltinByteString`. This preserves the encoding information in the type and allows downstream code to rule out invalid states. For example:
+You do not need to convert a `BuiltinByteStringHex` or `BuiltinByteStringUtf8` value to `BuiltinByteString` immediately.
+You can pass it around and only convert it when the context requires a `BuiltinByteString`.
+This preserves the encoding information in the type and allows downstream code to rule out invalid states.
+For example:
 ```haskell
 hexBytes :: BuiltinByteStringHex
 hexBytes = "AABBCCDD" 
@@ -114,10 +120,12 @@ mother :: BuiltinByteString
 mother = stringToBuiltinByteStringUtf8 "Мама"
 ```
 
-These functions convert Haskell's `String` literal to Plinth's `BuiltinByteString` using the corresponding encoding. What makes them special is that they are executed by Plinth **at compile time**, without increasing the size and execution budget of a Plinth program.
+These functions convert Haskell's `String` literal to Plinth's `BuiltinByteString` using the corresponding encoding.
+What makes them special is that they are executed by Plinth **at compile time**, without increasing the size and execution budget of a Plinth program.
 
 :::caution
-These compile-time functions need to be *syntactically* applied to string literals, meaning that you cannot apply them to variables or expressions that are not string literals. For example, the following code will not compile:
+These compile-time functions need to be *syntactically* applied to string literals, meaning that you cannot apply them to variables or expressions that are not string literals.
+For example, the following code will not compile:
 
 ```haskell
 stringToBuiltinByteStringHex ("ACE0F" ++ "BA5E")
