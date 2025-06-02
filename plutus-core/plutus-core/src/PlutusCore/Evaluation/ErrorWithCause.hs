@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Evaluation.ErrorWithCause
     ( ErrorWithCause (..)
@@ -34,9 +35,10 @@ instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
     {-# INLINE bimap #-}
 
-instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err cause) where
-    _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
-    {-# INLINE _EvaluationFailure #-}
+instance AsEvaluationError err structural operational =>
+        AsEvaluationError (ErrorWithCause err cause) structural operational where
+    _EvaluationError = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationError
+    {-# INLINE _EvaluationError #-}
 
 instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
     pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
@@ -63,8 +65,8 @@ deriving anyclass instance (PrettyPlc cause, PrettyPlc err, Typeable cause, Type
 throwingWithCause
     -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
     :: forall exc e t term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
-    => AReview e t -> t -> Maybe term -> m x
-throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
+    => AReview e t -> t -> term -> m x
+throwingWithCause l t cause = reviews l (\e -> throwError . ErrorWithCause e $ Just cause) t
 {-# INLINE throwingWithCause #-}
 
 -- | "Prismatically" throw a contentless error and its (optional) cause. 'throwingWithCause_' is to
@@ -72,7 +74,7 @@ throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cau
 throwingWithCause_
     -- Binds @exc@ so it can be used as a convenient parameter with @TypeApplications@.
     :: forall exc e term m x. (exc ~ ErrorWithCause e term, MonadError exc m)
-    => AReview e () -> Maybe term -> m x
+    => AReview e () -> term -> m x
 throwingWithCause_ l = throwingWithCause l ()
 {-# INLINE throwingWithCause_ #-}
 
@@ -87,7 +89,7 @@ throwBuiltinErrorWithCause
     => cause -> BuiltinError -> m void
 throwBuiltinErrorWithCause cause = \case
     BuiltinUnliftingEvaluationError unlErr ->
-        throwingWithCause _UnliftingEvaluationError unlErr $ Just cause
+        throwingWithCause _UnliftingEvaluationError unlErr cause
     BuiltinEvaluationFailure ->
-        throwingWithCause_ _EvaluationFailure $ Just cause
+        throwingWithCause_ _EvaluationFailure cause
 {-# INLINE throwBuiltinErrorWithCause #-}

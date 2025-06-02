@@ -174,7 +174,7 @@ Such cases tend to be functions returning a value of a concrete error type (as o
 variable).
 -}
 
--- See Note [Ignoring context in OperationalEvaluationError].
+-- See Note [Ignoring context in OperationalError].
 -- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
 --
@@ -190,12 +190,12 @@ _UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
 
 -- | See Note [Structural vs operational errors within builtins]
 _StructuralUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
-_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralEvaluationError
+_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralError
 {-# INLINE _StructuralUnliftingError #-}
 
 -- | See Note [Structural vs operational errors within builtins]
 _OperationalUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
-_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalEvaluationError
+_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalError
 {-# INLINE _OperationalUnliftingError #-}
 
 throwNotAConstant :: MonadError BuiltinError m => m void
@@ -269,7 +269,7 @@ instance MonadError BuiltinError BuiltinResult where
         operationalLogs = case builtinErr of
             BuiltinUnliftingEvaluationError
                 (MkUnliftingEvaluationError
-                    (OperationalEvaluationError
+                    (OperationalError
                         (MkUnliftingError operationalErr))) -> pure operationalErr
             _ -> mempty
     {-# INLINE throwError #-}

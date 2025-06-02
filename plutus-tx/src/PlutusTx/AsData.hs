@@ -22,7 +22,7 @@ import PlutusTx.IsData.TH (AsDataProdType (..), mkConstrCreateExpr, mkUnsafeCons
 
 import Prelude
 
-{- | 'asData' takes a datatype declaration and "backs it" by 'BuiltinData'. It does
+{-| 'asData' takes a datatype declaration and "backs it" by 'BuiltinData'. It does
 this by replacing the datatype with a newtype around 'BuiltinData', and providing
 pattern synonyms that match the behaviour of the original datatype.
 
@@ -38,14 +38,17 @@ Deriving clauses are transferred from the quoted declaration to the generated ne
 declaration. Note that you may therefore need to do strange things like use
 @deriving newtype@ on a data declaration.
 
-Example:
+__Example__:
+
 @
   $(asData [d|
       data Example a = Ex1 Integer | Ex2 a a
         deriving newtype (Eq)
     |])
 @
+
 becomes
+
 @
   newtype Example a = Example BuiltinData
     deriving newtype (Eq)
@@ -61,7 +64,7 @@ becomes
     ]))
     where Ex2 a1 a2 = Example (mkConstr 1 [toBuiltinData a1, toBuiltinData a2])
 
-  {-# COMPLETE Ex1, Ex2 #-}
+  {\-# COMPLETE Ex1, Ex2 #-\}
 @
 -}
 asData :: TH.Q [TH.Dec] -> TH.Q [TH.Dec]
@@ -70,6 +73,7 @@ asData decQ = do
   outputDecs <- for decs asDataFor
   pure $ concat outputDecs
 
+{- FOURMOLU_DISABLE -} -- Fourmolu gets upset on the segment below. This will just turn off fourmolu entirely.
 asDataFor :: TH.Dec -> TH.Q [TH.Dec]
 asDataFor dec = do
   -- th-abstraction doesn't include deriving clauses, so we have to handle that here
@@ -149,3 +153,4 @@ asDataFor dec = do
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats
+{- FOURMOLU_ENABLE -}

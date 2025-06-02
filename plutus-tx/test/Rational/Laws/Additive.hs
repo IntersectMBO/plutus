@@ -10,12 +10,12 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 additiveLaws :: [TestTree]
-additiveLaws = [
-  testPropertyNamed "+ commutes" "propPlusComm" propPlusComm,
-  testPropertyNamed "+ associates" "propPlusAssoc" propPlusAssoc,
-  testPropertyNamed "zero is an identity" "propZeroId" propZeroId,
-  testPropertyNamed "x - x = zero" "propMinusCancel" propMinusCancel,
-  testPropertyNamed "negate . negate = id" "propDoubleNeg" propDoubleNeg
+additiveLaws =
+  [ testPropertyNamed "+ commutes" "propPlusComm" propPlusComm
+  , testPropertyNamed "+ associates" "propPlusAssoc" propPlusAssoc
+  , testPropertyNamed "zero is an identity" "propZeroId" propZeroId
+  , testPropertyNamed "x - x = zero" "propMinusCancel" propMinusCancel
+  , testPropertyNamed "negate . negate = id" "propDoubleNeg" propDoubleNeg
   ]
 
 -- Helpers

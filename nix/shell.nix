@@ -1,4 +1,4 @@
-{ inputs, pkgs, lib, project, agda-tools, r-with-packages }:
+{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages }:
 
 let
 
@@ -28,6 +28,7 @@ let
         enable = true;
         package = tools.stylish-haskell;
         args = [ "--config" ".stylish-haskell.yaml" ];
+        excludes = [ "^plutus-metatheory/src/MAlonzo" ];
       };
       fourmolu = {
         enable = false;
@@ -52,6 +53,13 @@ let
         args = [ "-config" ".editorconfig" ];
         package = pkgs.editorconfig-checker;
       };
+      generate-malonzo-code = {
+        enable = true;
+        entry = "${metatheory.generate-malonzo-code}/bin/generate-malonzo-code";
+        files = "^plutus-metatheory/src";
+        stages = [ "pre-push" ];
+        pass_filenames = false;
+      };
     };
   };
 
@@ -61,7 +69,10 @@ let
 
   common-pkgs = [
     agda-tools.agda
+    agda-tools.agda-with-stdlib
     agda-tools.agda-mode
+
+    metatheory.generate-malonzo-code
 
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker

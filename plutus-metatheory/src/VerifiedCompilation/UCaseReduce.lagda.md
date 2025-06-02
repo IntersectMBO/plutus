@@ -15,7 +15,7 @@ open import VerifiedCompilation.Equality using (DecEq; _≟_;decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; isVar?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay; isvar)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation; convert; reflexive)
 open import Relation.Nullary using (_×-dec_)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; toWellScoped)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; toWellScoped; con-integer)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (trans; sym; subst)
@@ -79,12 +79,6 @@ becomes:
 
 _Compiler version: _
 ```
-
-integer : RawU.TyTag
-integer = tag2TyTag RawU.integer
-
-con-integer : {X : Set} → ℕ → X ⊢
-con-integer n = (con (tmCon integer (Int.pos n)))
 
 ```
 This simple example applies the rule once, and works

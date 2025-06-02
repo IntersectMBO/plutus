@@ -23,10 +23,14 @@ tests =
       , goldenBundle "any" any (any `unsafeApplyCode` l)
       , goldenBundle "elem" elem (elem `unsafeApplyCode` l)
       , goldenBundle "partition" partition (partition `unsafeApplyCode` l)
-      , goldenBundle "makeList" makeList
-          (makeList `unsafeApplyCode` liftCodeDef 1
-                    `unsafeApplyCode` liftCodeDef 2
-                    `unsafeApplyCode` liftCodeDef 3)
+      , goldenBundle
+          "makeList"
+          makeList
+          ( makeList
+              `unsafeApplyCode` liftCodeDef 1
+              `unsafeApplyCode` liftCodeDef 2
+              `unsafeApplyCode` liftCodeDef 3
+          )
       ]
 
 length :: CompiledCode (L.List Integer -> Integer)

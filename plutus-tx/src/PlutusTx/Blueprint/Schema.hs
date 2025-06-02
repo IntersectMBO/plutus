@@ -33,7 +33,7 @@ import PlutusTx.Blueprint.Definition.Id (DefinitionId, definitionIdToText)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo, comment, description, title)
 import Prelude hiding (max, maximum, min, minimum)
 
-{- | Blueprint schema definition, as defined by the CIP-0057:
+{-| Blueprint schema definition, as defined by the CIP-0057:
   https://github.com/cardano-foundation/CIPs/tree/master/CIP-0057#core-vocabulary
 
   The 'referencedTypes' phantom type parameter is used to track the types used in the contract
@@ -190,8 +190,9 @@ emptyIntegerSchema =
 
 data BytesSchema = MkBytesSchema
   { enum      :: [ByteString]
-  -- ^ An instance validates successfully if once hex-encoded,
-  -- its value matches one of the specified values.
+  {- ^ An instance validates successfully if once hex-encoded,
+  its value matches one of the specified values.
+  -}
   , minLength :: Maybe Natural
   -- ^ An instance is valid if its length is greater than, or equal to, this value.
   , maxLength :: Maybe Natural
@@ -210,8 +211,9 @@ data ListSchema (referencedTypes :: [Type]) = MkListSchema
   , maxItems    :: Maybe Natural
   -- ^ An array instance is valid if its size is less than, or equal to, this value.
   , uniqueItems :: Maybe Bool
-  -- ^ If this value is false, the instance validates successfully.
-  -- If it is set to True, the instance validates successfully if all of its elements are unique.
+  {- ^ If this value is false, the instance validates successfully.
+  If it is set to True, the instance validates successfully if all of its elements are unique.
+  -}
   }
   deriving stock (Eq, Ord, Show, Generic, Data)
 

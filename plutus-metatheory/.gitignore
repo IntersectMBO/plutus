@@ -2,7 +2,6 @@
 *.lagda~
 *.agda~
 _build
-src/MAlonzo
 html/_site
 html/.jekyll-cache
 html/*.html

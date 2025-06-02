@@ -2,6 +2,7 @@ module PlutusCore.Compiler
   ( module Opts
   , compileTerm
   , compileProgram
+  , compileProgramWithTrace
   ) where
 
 import PlutusCore.Compiler.Erase
@@ -38,3 +39,21 @@ compileProgram
   => Program tyname name uni fun a
   -> m (UPLC.Program name uni fun a)
 compileProgram (Program a v t) = UPLC.Program a v <$> compileTerm t
+
+-- | Compile a PLC program to UPLC, and optimize it. This includes
+-- the compilation trace in the result.
+compileProgramWithTrace
+  :: (Compiling m uni fun name a
+  , MonadReader (CompilationOpts name fun a) m
+  )
+  => Program tyname name uni fun a
+  -> m (UPLC.Program name uni fun a, UPLC.SimplifierTrace name uni fun a)
+compileProgramWithTrace (Program a v t) = do
+  simplOpts <- view coSimplifyOpts
+  builtinSemanticsVariant <- view coBuiltinSemanticsVariant
+  let erased = eraseTerm t
+  renamedProgram <- UPLC.Program a v <$> rename erased
+  UPLC.simplifyProgramWithTrace
+    simplOpts
+    builtinSemanticsVariant
+    renamedProgram

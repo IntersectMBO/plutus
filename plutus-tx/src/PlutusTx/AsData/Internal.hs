@@ -1,15 +1,16 @@
 {-# LANGUAGE Strict #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
--- | Functions in this module are for internal compiler use only, and should not
--- be used elsewhere.
+{-| Functions in this module are for internal compiler use only, and should not
+be used elsewhere.
+-}
 module PlutusTx.AsData.Internal where
 
 import PlutusTx.Builtins.Internal as BI
 
 -- See Note [Compiling AsData Matchers and Their Invocations]
 
-wrapUnsafeDataAsConstr:: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
+wrapUnsafeDataAsConstr :: BuiltinData -> BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
 wrapUnsafeDataAsConstr = BI.unsafeDataAsConstr
 {-# OPAQUE wrapUnsafeDataAsConstr #-}
 

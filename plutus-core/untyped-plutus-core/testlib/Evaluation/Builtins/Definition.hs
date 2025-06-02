@@ -529,7 +529,7 @@ typecheckAndEvalToOutOfEx :: Term TyName Name DefaultUni DefaultFun () -> Assert
 typecheckAndEvalToOutOfEx term =
     let evalRestricting params = fst . runCekNoEmit params restrictingLarge
     in case typecheckAnd def evalRestricting defaultBuiltinCostModelForTesting term of
-        Right (Left (ErrorWithCause (OperationalEvaluationError (CekOutOfExError _)) _)) ->
+        Right (Left (ErrorWithCause (OperationalError (CekOutOfExError _)) _)) ->
             pure ()
         err -> assertFailure $ "Expected a 'CekOutOfExError' but got: " ++ displayPlc err
 
@@ -1238,7 +1238,7 @@ test_definition =
         , test_SwapEls
         , test_IdBuiltinData
         , test_TrackCostsRestricting
-        , test_TrackCostsRetaining
+        , ignoreTestWhenHpcEnabled test_TrackCostsRetaining
         , test_SerialiseDataImpossible
         , test_fixId
         , runTestNestedHere
