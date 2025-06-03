@@ -1,0 +1,28 @@
+(program
+   1.1.0
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay xs)
+                        (delay
+                           ((\xs' ->
+                               force
+                                 (force
+                                    (force ifThenElse
+                                       (lessThanInteger (force headList xs) 5)
+                                       (delay
+                                          (delay
+                                             (force (go (delay (\x -> x)))
+                                                xs')))
+                                       (delay (delay xs)))))
+                              (force tailList xs))))))
+           (delay (\x -> x)))
+        xs))

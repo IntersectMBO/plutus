@@ -1,0 +1,37 @@
+(program
+   1.1.0
+   ((\caseList' ->
+       (\take xs ->
+          caseList'
+            (constr 1 [])
+            (\x -> caseList' (constr 0 [x]) (\ds ds -> constr 1 []))
+            (force (force take) [] 1 xs))
+         ((\f ->
+             (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+               (\s -> f (\x -> s s x)))
+            (\take arg ->
+               delay
+                 (delay
+                    (\`$dMkNil` n l ->
+                       force
+                         (force ifThenElse
+                            (lessThanEqualsInteger n 0)
+                            (delay `$dMkNil`)
+                            (delay
+                               (caseList'
+                                  `$dMkNil`
+                                  (\x xs ->
+                                     force mkCons
+                                       x
+                                       (force (force (take (delay (\x -> x))))
+                                          `$dMkNil`
+                                          (subtractInteger n 1)
+                                          xs))
+                                  l))))))
+            (delay (\x -> x))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

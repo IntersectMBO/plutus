@@ -1,0 +1,24 @@
+(program
+   1.1.0
+   (\xs ->
+      (\i ->
+         force
+           ((\traceError ->
+               force ifThenElse
+                 (lessThanInteger i 0)
+                 (delay (traceError "PT21"))
+                 (delay
+                    ((\l ->
+                        force
+                          (force (force chooseList)
+                             l
+                             (delay (\_ann -> traceError "PT22"))
+                             (delay
+                                ((\x xs ds _ann -> x)
+                                   (force headList l)
+                                   (force tailList l))))
+                          (constr 0 [])
+                          (constr 0 []))
+                       (force dropList i xs))))
+              (\str -> (\x -> error) (force trace str (constr 0 [])))))
+        (subtractInteger 0 1)))

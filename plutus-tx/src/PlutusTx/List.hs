@@ -4,48 +4,48 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.List (
-  uncons,
-  null,
-  length,
-  map,
-  and,
-  or,
-  any,
-  all,
-  elem,
-  notElem,
-  find,
-  filter,
-  listToMaybe,
-  uniqueElement,
-  findIndices,
-  findIndex,
-  foldr,
-  foldl,
-  revAppend,
-  reverse,
-  concat,
-  concatMap,
-  zip,
-  unzip,
-  (++),
-  (!!),
-  head,
-  last,
-  tail,
-  take,
-  drop,
-  splitAt,
-  nub,
-  nubBy,
-  zipWith,
-  dropWhile,
-  replicate,
-  partition,
-  sort,
-  sortBy,
-  elemBy,
-) where
+    uncons,
+    null,
+    length,
+    map,
+    and,
+    or,
+    any,
+    all,
+    elem,
+    notElem,
+    find,
+    filter,
+    listToMaybe,
+    uniqueElement,
+    findIndices,
+    findIndex,
+    foldr,
+    foldl,
+    revAppend,
+    reverse,
+    concat,
+    concatMap,
+    zip,
+    unzip,
+    (++),
+    (!!),
+    head,
+    last,
+    tail,
+    take,
+    drop,
+    splitAt,
+    nub,
+    nubBy,
+    zipWith,
+    dropWhile,
+    replicate,
+    partition,
+    sort,
+    sortBy,
+    elemBy,
+    ) where
 
 import PlutusTx.Bool (Bool (..), not, otherwise, (||))
 import PlutusTx.Builtins (Integer)
@@ -247,6 +247,17 @@ findIndex f = go 0
   12
 -}
 infixl 9 !!
+(!!) :: forall a. [a] -> Integer -> a
+_   !! n0 | n0 < 0 = traceError negativeIndexError
+xs0 !! n0 = go n0 xs0
+  where
+    go :: Integer -> [a] -> a
+    go _ []       = traceError indexTooLargeError
+    go n (x : xs) =
+        if Builtins.equalsInteger n 0
+            then x
+            else go (Builtins.subtractInteger n 1) xs
+{-# INLINABLE (!!) #-}
 
 {-| Cons each element of the first list to the second one in reverse order (i.e. the last element
 of the first list is the head of the result).
