@@ -30,13 +30,22 @@ prop_quot_rem_compatible (integer -> a) (NonZero (integer -> b)) =
   let t = addInteger (multiplyInteger b (quotientInteger a b) ) (remainderInteger a b)
   in evalOkEq t a
 
-prop_rem_periodic :: Integer -> NonZero Integer -> Integer -> Property
-prop_rem_periodic (integer -> a) (NonZero (integer -> b)) (integer -> k) =
-  let t1 = remainderInteger a b
-      t2 = remainderInteger (addInteger a (multiplyInteger k b)) b
-  in evalOkEq t1 t2
+-- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k
+prop_rem_1 :: Integer -> NonZero Integer -> Property
+prop_rem_1 (integer -> k) (NonZero (integer -> b)) =
+    let t1 = quotientInteger (multiplyInteger k b) b
+        t2 = remainderInteger (multiplyInteger k b) b
+    in evalOkEq t1 k .&&. evalOkEq t2 zero
 
--- For fixed b, `remainderInteger _ b` is an additive homomorphism:
+-- `remainderInteger _ b` is not an additive homomorphism in general (and hence
+-- not periodic) because the sign of `remainderInteger a b` is different for
+-- positive and negative a.  For example (writing `rem` for short instead of
+-- `remainderInteger`) `rem (-1) 5 = -1` and `rem 5 5 = 0` but `rem (-1+5) 5 =
+-- 4`.  However, rem (a + a') b = rem ((rem a b) + (rem a' b)) b if a and a'
+-- have the same sign, so we test that instead of checking for arbitrary a and
+-- a'.
+
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-negative integers
 -- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
 prop_rem_additive_pos :: NonNegative Integer -> NonNegative Integer -> NonZero Integer -> Property
 prop_rem_additive_pos (NonNegative (integer -> a)) (NonNegative (integer -> a')) (NonZero (integer -> b)) =
@@ -44,7 +53,7 @@ prop_rem_additive_pos (NonNegative (integer -> a)) (NonNegative (integer -> a'))
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
   in evalOkEq t1 t2
 
--- For fixed b, `remainderInteger _ b` is an additive homomorphism:
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-postive integers
 -- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
 prop_rem_additive_neg :: NonPositive Integer -> NonPositive Integer -> NonZero Integer -> Property
 prop_rem_additive_neg (NonPositive (integer -> a)) (NonPositive (integer -> a')) (NonZero (integer -> b)) =
@@ -168,12 +177,6 @@ prop_rem_neg_neg (NonPositive (integer -> a)) (Negative (integer -> b)) =
 -- For b > 0, 0 <= a `mod` b < b;
 -- For b < 0, b <  a `mod` b <= 0
 
-prop1 :: Integer -> NonZero Integer -> Integer -> Property
-prop1  (integer -> a) (NonZero (integer -> b)) (integer -> k) =
-  let t1 = remainderInteger (addInteger (multiplyInteger k b) a) b
-      t2 = addInteger (quotientInteger a b) k
-  in evalOkEq t1 t2
-
 test_integer_quot_rem_properties :: TestTree
 test_integer_quot_rem_properties =
   let testProp s p = testProperty s $ withNTests p
@@ -182,9 +185,10 @@ test_integer_quot_rem_properties =
   [
     testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
   , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
+  , testProp "rem_1" prop_rem_1
   , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
-  , testProp "remainderInteger is an additive homomorphism (1)" prop_rem_additive_pos
-  , testProp "remainderInteger is an additive homomorphism (2)" prop_rem_additive_neg
+  , testProp "remainderInteger _ b is additive on non-negative inputs" prop_rem_additive_pos
+  , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
   , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
   , testProp "remainderInteger size   " prop_rem_size
   , testProp "remainderInteger size   " prop_rem_size

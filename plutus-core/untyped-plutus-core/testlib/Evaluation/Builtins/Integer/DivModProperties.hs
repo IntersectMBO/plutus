@@ -37,6 +37,14 @@ prop_mod_periodic (integer -> a) (NonZero (integer -> b)) (integer -> k) =
       t2 = modInteger (addInteger a (multiplyInteger k b)) b
   in evalOkEq t1 t2
 
+-- (k*b) `div` b = b and (k*b) `mod` b = 0 for all k
+prop_mod_1 :: Integer -> NonZero Integer -> Property
+prop_mod_1 (integer -> k) (NonZero (integer -> b)) =
+    let t1 = divideInteger (multiplyInteger k b) b
+        t2 = modInteger (multiplyInteger k b) b
+    in evalOkEq t1 k .&&. evalOkEq t2 zero
+
+
 -- For fixed b, `modInteger _ b` is an additive homomorphism:
 -- (a+a') `mod` b = ((a `mod` b) + (a' `mod` b)) `mod` b
 prop_mod_additive :: Integer -> Integer -> NonZero Integer -> Property
@@ -157,6 +165,7 @@ test_integer_div_mod_properties =
   , testProp "mod_0_fails" prop_mod_0_fails
   , testProp "div_mod_compatible" prop_div_mod_compatible
   , testProp "mod_periodic" prop_mod_periodic
+  , testProp "mod_1" prop_mod_1
   , testProp "mod is an additive homomorphism" prop_mod_additive
   , testProp "mod is a multiplicative homomorphism" prop_mod_multiplicative
   , testProp "modSize_pos" prop_modSize_pos
