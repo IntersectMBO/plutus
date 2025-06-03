@@ -1,19 +1,90 @@
 (program
    1.1.0
-   ((\go xs -> go xs)
-      ((\s -> s s)
-         (\s xs ->
-            force
-              (force (force chooseList)
-                 xs
-                 (delay (constr 1 []))
-                 (delay
-                    ((\x ->
-                        (\xs ->
-                           force
-                             (force ifThenElse
-                                x
-                                (delay (constr 0 []))
-                                (delay (s s xs))))
-                          (force tailList xs))
-                       (force headList xs))))))))
+   ((\fix1
+      xs ->
+       (\xs ->
+          force
+            (delay
+               (\True
+                 False
+                 Bool_match ->
+                  (\or ->
+                     force or)
+                    (delay
+                       (force
+                          ((\any ->
+                              force any)
+                             (delay
+                                (delay
+                                   (\p ->
+                                      (\p ->
+                                         (\caseList' ->
+                                            (\tup ->
+                                               (\go ->
+                                                  (\go -> force go)
+                                                    (go (delay (\x -> x))))
+                                                 (force tup (\arg_0 -> arg_0)))
+                                              (delay
+                                                 (\f ->
+                                                    f
+                                                      (force
+                                                         (force fix1)
+                                                         (\go
+                                                           arg ->
+                                                            delay
+                                                              (force
+                                                                 (force
+                                                                    caseList')
+                                                                 False
+                                                                 (\x ->
+                                                                    (\x
+                                                                      xs ->
+                                                                       (\xs ->
+                                                                          force
+                                                                            (force
+                                                                               (Bool_match
+                                                                                  (p
+                                                                                     x))
+                                                                               (delay
+                                                                                  True)
+                                                                               (delay
+                                                                                  (force
+                                                                                     (go
+                                                                                        (delay
+                                                                                           (\x ->
+                                                                                              x)))
+                                                                                     xs))))
+                                                                         xs)
+                                                                      x)))))))
+                                           (delay
+                                              (delay
+                                                 (\z f xs ->
+                                                    force
+                                                      (force (force chooseList)
+                                                         xs
+                                                         (delay z)
+                                                         (delay
+                                                            (f
+                                                               (force headList
+                                                                  xs)
+                                                               (force tailList
+                                                                  xs))))))))
+                                        p))))
+                          (\x ->
+                             (\x ->
+                                force ((\ifThenElse -> ifThenElse) ifThenElse)
+                                  x
+                                  True
+                                  False)
+                               x)))))
+            (constr 0 [])
+            (constr 1 [])
+            (\x ->
+               delay (\case_True case_False -> case x [case_True, case_False]))
+            xs)
+         xs)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

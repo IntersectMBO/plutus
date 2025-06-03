@@ -1,20 +1,119 @@
 (program
    1.1.0
-   ((\go xs -> go 0 xs)
-      ((\s -> s s)
-         (\s i xs ->
-            force
-              (force (force chooseList)
-                 xs
-                 (delay [])
-                 (delay
-                    ((\x xs ->
-                        (\indices ->
-                           force
-                             (force ifThenElse
-                                (equalsInteger 0 (modInteger x 2))
-                                (delay indices)
-                                (delay (force mkCons i indices))))
-                          ((\x -> s s x) (addInteger 1 i) xs))
-                       (force headList xs)
-                       (force tailList xs))))))))
+   ((\fix1
+      xs ->
+       (\xs ->
+          force
+            (delay
+               (\True
+                 False
+                 Bool_match ->
+                  force
+                    ((\findIndices ->
+                        force findIndices)
+                       (delay
+                          (delay
+                             (\p ->
+                                (\p ->
+                                   (\mkCons ->
+                                      (\caseList' ->
+                                         (\addInteger ->
+                                            (\tup ->
+                                               (\go ->
+                                                  (\go -> force go 0)
+                                                    (go (delay (\x -> x))))
+                                                 (force tup (\arg_0 -> arg_0)))
+                                              (delay
+                                                 (\f ->
+                                                    f
+                                                      (force
+                                                         (force fix1)
+                                                         (\go
+                                                           arg ->
+                                                            delay
+                                                              (\i ->
+                                                                 (\i ->
+                                                                    force
+                                                                      (force
+                                                                         caseList')
+                                                                      []
+                                                                      (\x ->
+                                                                         (\x
+                                                                           xs ->
+                                                                            (\xs ->
+                                                                               (\indices ->
+                                                                                  force
+                                                                                    (force
+                                                                                       (Bool_match
+                                                                                          (p
+                                                                                             x))
+                                                                                       (delay
+                                                                                          (force
+                                                                                             mkCons
+                                                                                             i
+                                                                                             indices))
+                                                                                       (delay
+                                                                                          indices)))
+                                                                                 (force
+                                                                                    (go
+                                                                                       (delay
+                                                                                          (\x ->
+                                                                                             x)))
+                                                                                    (addInteger
+                                                                                       i
+                                                                                       1)
+                                                                                    xs))
+                                                                              xs)
+                                                                           x))
+                                                                   i))))))
+                                           addInteger)
+                                        (delay
+                                           (delay
+                                              (\z f xs ->
+                                                 force
+                                                   (force (force chooseList)
+                                                      xs
+                                                      (delay z)
+                                                      (delay
+                                                         (f
+                                                            (force headList xs)
+                                                            (force tailList
+                                                               xs))))))))
+                                     mkCons)
+                                  p))))
+                    ((\modInteger ->
+                        (\ifThenElse ->
+                           (\equalsInteger ->
+                              (\even ->
+                                 (\odd -> force odd)
+                                   (delay
+                                      (\n ->
+                                         (\n ->
+                                            force
+                                              (force (Bool_match (force even n))
+                                                 (delay False)
+                                                 (delay True)))
+                                           n)))
+                                (delay
+                                   (\n ->
+                                      (\n ->
+                                         (\x ->
+                                            (\b ->
+                                               force ifThenElse b True False)
+                                              (equalsInteger x 0))
+                                           (modInteger n 2))
+                                        n)))
+                             equalsInteger)
+                          ifThenElse)
+                       modInteger)))
+            (constr 0 [])
+            (constr 1 [])
+            (\x ->
+               delay (\case_True case_False -> case x [case_True, case_False]))
+            xs)
+         xs)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

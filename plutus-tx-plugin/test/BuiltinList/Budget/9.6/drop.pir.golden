@@ -1,32 +1,53 @@
 let
+  ~`$fMkNilInteger` : (\arep -> list arep) integer = []
   data Bool | Bool_match where
     True : Bool
     False : Bool
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
+  !subtractInteger : integer -> integer -> integer = subtractInteger
 in
 letrec
-  !drop : all a. (\arep -> list arep) a -> integer -> list a -> list a
+  ~drop : all a. (\arep -> list arep) a -> integer -> list a -> list a
     = /\a ->
-        \(`$dMkNil` : (\arep -> list arep) a) (n : integer) (l : list a) ->
-          Bool_match
-            (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
-            {all dead. list a}
-            (/\dead -> l)
-            (/\dead ->
-               (let
-                   r = list a
-                 in
-                 \(z : r) (f : a -> list a -> r) (xs : list a) ->
-                   chooseList
-                     {a}
-                     {all dead. r}
-                     xs
-                     (/\dead -> z)
-                     (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                     {r})
-                 `$dMkNil`
-                 (\(ds : a) (xs : list a) ->
-                    drop {a} `$dMkNil` (subtractInteger n 1) xs)
-                 l)
-            {all dead. dead}
+        \(`$dMkNil` : (\arep -> list arep) a) (n : integer) ->
+          let
+            !n : integer = n
+          in
+          \(l : list a) ->
+            let
+              !l : list a = l
+              !b : bool = lessThanEqualsInteger n 0
+            in
+            Bool_match
+              (ifThenElse {Bool} b True False)
+              {all dead. list a}
+              (/\dead -> l)
+              (/\dead ->
+                 caseList'
+                   {a}
+                   {list a}
+                   `$dMkNil`
+                   (\(ds : a) (xs : list a) ->
+                      let
+                        !xs : list a = xs
+                      in
+                      drop {a} `$dMkNil` (subtractInteger n 1) xs)
+                   l)
+              {all dead. dead}
 in
-\(xs : list integer) -> drop {integer} [] 5 xs
+\(xs : list integer) ->
+  let
+    !xs : list integer = xs
+  in
+  drop {integer} `$fMkNilInteger` 5 xs

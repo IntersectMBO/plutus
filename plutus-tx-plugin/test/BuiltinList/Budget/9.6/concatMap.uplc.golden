@@ -1,38 +1,216 @@
 (program
    1.1.0
-   (\xss ->
-      (\caseList' ->
-         (\s -> s s)
-           (\s ->
-              caseList'
-                []
-                (\x ->
-                   (\go xs ->
-                      (\ys ->
-                         (\l ->
-                            (\s -> s s)
-                              (\s ->
-                                 caseList'
-                                   ys
-                                   (\x xs -> force mkCons x (s s xs)))
-                              l)
-                           (go 2))
-                        (s s xs))
-                     ((\s -> s s)
-                        (\s n ->
-                           force
-                             (force ifThenElse
-                                (lessThanEqualsInteger n 0)
-                                (delay [])
-                                (delay
-                                   (force mkCons
-                                      x
-                                      ((\x -> s s x)
-                                         (subtractInteger n 1))))))))))
-        (\z f xs ->
-           force
-             (force (force chooseList)
-                xs
-                (delay z)
-                (delay (f (force headList xs) (force tailList xs)))))
-        xss))
+   ((\fix1
+      xss ->
+       (\xss ->
+          (\mkCons ->
+             (\`$fMkNilInteger` ->
+                force
+                  (force
+                     ((\concatMap ->
+                         force concatMap)
+                        (delay
+                           (delay
+                              (delay
+                                 (\`$dMkNil` ->
+                                    (\acc
+                                      f ->
+                                       (\f ->
+                                          (\caseList' ->
+                                             (\foldr ->
+                                                (\tup ->
+                                                   (\go ->
+                                                      (\go -> force go)
+                                                        (go (delay (\x -> x))))
+                                                     (force tup
+                                                        (\arg_0 -> arg_0)))
+                                                  (delay
+                                                     (\f ->
+                                                        f
+                                                          (force
+                                                             (force fix1)
+                                                             (\go
+                                                               arg ->
+                                                                delay
+                                                                  (force
+                                                                     (force
+                                                                        caseList')
+                                                                     acc
+                                                                     (\x ->
+                                                                        (\x
+                                                                          xs ->
+                                                                           (\xs ->
+                                                                              (\ys ->
+                                                                                 (\l ->
+                                                                                    force
+                                                                                      (force
+                                                                                         (force
+                                                                                            foldr))
+                                                                                      (force
+                                                                                         mkCons)
+                                                                                      ys
+                                                                                      l)
+                                                                                   (f
+                                                                                      x))
+                                                                                (force
+                                                                                   (go
+                                                                                      (delay
+                                                                                         (\x ->
+                                                                                            x)))
+                                                                                   xs))
+                                                                             xs)
+                                                                          x)))))))
+                                               (delay
+                                                  (delay
+                                                     (delay
+                                                        (\f ->
+                                                           (\f
+                                                             acc ->
+                                                              (\acc ->
+                                                                 (\tup ->
+                                                                    (\go ->
+                                                                       (\go ->
+                                                                          force
+                                                                            go)
+                                                                         (go
+                                                                            (delay
+                                                                               (\x ->
+                                                                                  x))))
+                                                                      (force
+                                                                         tup
+                                                                         (\arg_0 ->
+                                                                            arg_0)))
+                                                                   (delay
+                                                                      (\f ->
+                                                                         f
+                                                                           (force
+                                                                              (force
+                                                                                 fix1)
+                                                                              (\go
+                                                                                arg ->
+                                                                                 delay
+                                                                                   (force
+                                                                                      (force
+                                                                                         caseList')
+                                                                                      acc
+                                                                                      (\x ->
+                                                                                         (\x
+                                                                                           xs ->
+                                                                                            (\xs ->
+                                                                                               f
+                                                                                                 x
+                                                                                                 (force
+                                                                                                    (go
+                                                                                                       (delay
+                                                                                                          (\x ->
+                                                                                                             x)))
+                                                                                                    xs))
+                                                                                              xs)
+                                                                                           x)))))))
+                                                                acc)
+                                                             f)))))
+                                            (delay
+                                               (delay
+                                                  (\z f xs ->
+                                                     force
+                                                       (force (force chooseList)
+                                                          xs
+                                                          (delay z)
+                                                          (delay
+                                                             (f
+                                                                (force headList
+                                                                   xs)
+                                                                (force tailList
+                                                                   xs))))))))
+                                         f)
+                                      `$dMkNil`))))))
+                  (force `$fMkNilInteger`)
+                  (force
+                     ((\subtractInteger ->
+                         (\lessThanEqualsInteger ->
+                            (\ifThenElse ->
+                               force
+                                 (delay
+                                    (\True
+                                      False
+                                      Bool_match ->
+                                       (\replicate ->
+                                          force replicate)
+                                         (delay
+                                            (delay
+                                               (\`$dMkNil`
+                                                 n ->
+                                                  (\n
+                                                    x ->
+                                                     (\x ->
+                                                        (\tup ->
+                                                           (\go ->
+                                                              (\go ->
+                                                                 force go n)
+                                                                (go
+                                                                   (delay
+                                                                      (\x ->
+                                                                         x))))
+                                                             (force tup
+                                                                (\arg_0 ->
+                                                                   arg_0)))
+                                                          (delay
+                                                             (\f ->
+                                                                f
+                                                                  (force
+                                                                     (force
+                                                                        fix1)
+                                                                     (\go
+                                                                       arg ->
+                                                                        delay
+                                                                          (\n ->
+                                                                             (\n ->
+                                                                                (\b ->
+                                                                                   force
+                                                                                     (force
+                                                                                        (Bool_match
+                                                                                           (force
+                                                                                              ifThenElse
+                                                                                              b
+                                                                                              True
+                                                                                              False))
+                                                                                        (delay
+                                                                                           `$dMkNil`)
+                                                                                        (delay
+                                                                                           (force
+                                                                                              mkCons
+                                                                                              x
+                                                                                              (force
+                                                                                                 (go
+                                                                                                    (delay
+                                                                                                       (\x ->
+                                                                                                          x)))
+                                                                                                 (subtractInteger
+                                                                                                    n
+                                                                                                    1))))))
+                                                                                  (lessThanEqualsInteger
+                                                                                     n
+                                                                                     0))
+                                                                               n))))))
+                                                       x)
+                                                    n)))))
+                                 (constr 0 [])
+                                 (constr 1 [])
+                                 (\x ->
+                                    delay
+                                      (\case_True case_False ->
+                                         case x [case_True, case_False])))
+                              ifThenElse)
+                           lessThanEqualsInteger)
+                        subtractInteger)
+                     (force `$fMkNilInteger`)
+                     2))
+               (delay []))
+            mkCons
+            xss)
+         xss)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

@@ -1,11 +1,88 @@
 (program
    1.1.0
-   ((\go ds -> go 10)
-      ((\s -> s s)
-         (\s n ->
-            force
-              (force ifThenElse
-                 (lessThanEqualsInteger n 0)
-                 (delay [])
-                 (delay
-                    (force mkCons 0 ((\x -> s s x) (subtractInteger n 1)))))))))
+   ((\fix1
+      ds ->
+       force
+         ((\replicate ->
+             force replicate)
+            (delay
+               (delay
+                  (\`$dMkNil`
+                    n ->
+                     (\n
+                       x ->
+                        (\x ->
+                           (\subtractInteger ->
+                              (\mkCons ->
+                                 (\lessThanEqualsInteger ->
+                                    (\ifThenElse ->
+                                       force
+                                         (delay
+                                            (\True
+                                              False
+                                              Bool_match ->
+                                               (\tup ->
+                                                  (\go ->
+                                                     (\go -> force go n)
+                                                       (go (delay (\x -> x))))
+                                                    (force tup
+                                                       (\arg_0 -> arg_0)))
+                                                 (delay
+                                                    (\f ->
+                                                       f
+                                                         (force
+                                                            (force fix1)
+                                                            (\go
+                                                              arg ->
+                                                               delay
+                                                                 (\n ->
+                                                                    (\n ->
+                                                                       (\b ->
+                                                                          force
+                                                                            (force
+                                                                               (Bool_match
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     b
+                                                                                     True
+                                                                                     False))
+                                                                               (delay
+                                                                                  `$dMkNil`)
+                                                                               (delay
+                                                                                  (force
+                                                                                     mkCons
+                                                                                     x
+                                                                                     (force
+                                                                                        (go
+                                                                                           (delay
+                                                                                              (\x ->
+                                                                                                 x)))
+                                                                                        (subtractInteger
+                                                                                           n
+                                                                                           1))))))
+                                                                         (lessThanEqualsInteger
+                                                                            n
+                                                                            0))
+                                                                      n)))))))
+                                         (constr 0 [])
+                                         (constr 1 [])
+                                         (\x ->
+                                            delay
+                                              (\case_True case_False ->
+                                                 case
+                                                   x
+                                                   [case_True, case_False])))
+                                      ifThenElse)
+                                   lessThanEqualsInteger)
+                                mkCons)
+                             subtractInteger)
+                          x)
+                       n))))
+         ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))
+         10
+         0)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

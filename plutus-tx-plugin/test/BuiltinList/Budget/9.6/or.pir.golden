@@ -2,26 +2,48 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  ~any : all a. (a -> Bool) -> list a -> Bool
+    = /\a ->
+        \(p : a -> Bool) ->
+          let
+            !p : a -> Bool = p
+          in
+          letrec
+            ~go : list a -> Bool
+              = caseList'
+                  {a}
+                  {Bool}
+                  False
+                  (\(x : a) ->
+                     let
+                       !x : a = x
+                     in
+                     \(xs : list a) ->
+                       let
+                         !xs : list a = xs
+                       in
+                       Bool_match
+                         (p x)
+                         {all dead. Bool}
+                         (/\dead -> True)
+                         (/\dead -> go xs)
+                         {all dead. dead})
+          in
+          go
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  ~or : list bool -> Bool
+    = any
+        {bool}
+        (\(x : bool) -> let !x : bool = x in ifThenElse {Bool} x True False)
 in
-letrec
-  !go : list bool -> Bool
-    = \(xs : list bool) ->
-        chooseList
-          {bool}
-          {all dead. Bool}
-          xs
-          (/\dead -> False)
-          (/\dead ->
-             let
-               !x : bool = headList {bool} xs
-               !xs : list bool = tailList {bool} xs
-             in
-             Bool_match
-               (ifThenElse {Bool} x True False)
-               {all dead. Bool}
-               (/\dead -> True)
-               (/\dead -> go xs)
-               {all dead. dead})
-          {Bool}
-in
-\(xs : list bool) -> go xs
+\(xs : list bool) -> let !xs : list bool = xs in or xs

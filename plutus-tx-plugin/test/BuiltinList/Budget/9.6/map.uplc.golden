@@ -1,12 +1,81 @@
 (program
    1.1.0
-   ((\s -> s s)
-      (\s xs ->
-         force
-           (force (force chooseList)
-              xs
-              (delay [])
-              (delay
-                 ((\xs ->
-                     force mkCons (addInteger 1 (force headList xs)) (s s xs))
-                    (force tailList xs)))))))
+   ((\fix1 ->
+       force
+         (force
+            ((\map ->
+                force map)
+               (delay
+                  (delay
+                     (delay
+                        (\`$dMkNil`
+                          f ->
+                           (\f ->
+                              (\mkCons ->
+                                 (\caseList' ->
+                                    (\tup ->
+                                       (\go ->
+                                          (\go -> force go)
+                                            (go (delay (\x -> x))))
+                                         (force tup (\arg_0 -> arg_0)))
+                                      (delay
+                                         (\f ->
+                                            f
+                                              (force
+                                                 (force fix1)
+                                                 (\go
+                                                   arg ->
+                                                    delay
+                                                      (force
+                                                         (force caseList')
+                                                         `$dMkNil`
+                                                         (\x ->
+                                                            (\x
+                                                              xs ->
+                                                               (\xs ->
+                                                                  force
+                                                                    mkCons
+                                                                    (f x)
+                                                                    (force
+                                                                       (go
+                                                                          (delay
+                                                                             (\x ->
+                                                                                x)))
+                                                                       xs))
+                                                                 xs)
+                                                              x)))))))
+                                   (delay
+                                      (delay
+                                         (\z f xs ->
+                                            force
+                                              (force (force chooseList)
+                                                 xs
+                                                 (delay z)
+                                                 (delay
+                                                    (f
+                                                       (force headList xs)
+                                                       (force tailList
+                                                          xs))))))))
+                                mkCons)
+                             f))))))
+         ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))
+         (\v ->
+            (\`+` ->
+               (\addInteger ->
+                  (\addInteger ->
+                     (\`$fAdditiveSemigroupInteger` ->
+                        (\v -> force v)
+                          (delay
+                             (force (force `+`)
+                                (force `$fAdditiveSemigroupInteger`))))
+                       (delay (force addInteger)))
+                    (delay (\x -> (\x y -> (\y -> addInteger x y) y) x)))
+                 addInteger)
+              (delay (delay (\v -> v)))
+              v
+              ((\v -> force v) (delay 1))))
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

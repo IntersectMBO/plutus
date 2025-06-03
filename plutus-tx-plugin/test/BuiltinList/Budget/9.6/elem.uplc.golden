@@ -1,37 +1,114 @@
 (program
    1.1.0
-   (\xs ->
-      (\elem ->
-         constr 0
-           [ (elem
-                (\x y ->
-                   force ifThenElse
-                     (equalsInteger x y)
-                     (constr 0 [])
-                     (constr 1 []))
-                8
-                xs)
-           , (elem
-                (\x y ->
-                   force ifThenElse
-                     (equalsInteger x y)
-                     (constr 0 [])
-                     (constr 1 []))
-                12
-                xs) ])
-        (\`$dEq` a ->
-           (\s -> s s)
-             (\s xs ->
-                force
-                  (force (force chooseList)
-                     xs
-                     (delay (constr 1 []))
-                     (delay
-                        ((\x ->
-                            (\xs ->
-                               force
-                                 (case
-                                    (`$dEq` a x)
-                                    [(delay (constr 0 [])), (delay (s s xs))]))
-                              (force tailList xs))
-                           (force headList xs))))))))
+   ((\fix1
+      xs ->
+       (\xs ->
+          (\caseList' ->
+             force
+               (delay
+                  (\True
+                    False
+                    Bool_match ->
+                     (\elem ->
+                        (\equalsInteger ->
+                           (\`$fEqInteger` ->
+                              force
+                                (force
+                                   (force
+                                      (delay (\Tuple2 Tuple2_match -> Tuple2))
+                                      (delay
+                                         (delay
+                                            (\arg_0 arg_1 ->
+                                               constr 0 [arg_0, arg_1])))
+                                      (delay
+                                         (delay
+                                            (\x ->
+                                               delay
+                                                 (\case_Tuple2 ->
+                                                    case x [case_Tuple2]))))))
+                                (force (force elem) (force `$fEqInteger`) 8 xs)
+                                (force (force elem)
+                                   (force `$fEqInteger`)
+                                   12
+                                   xs))
+                             (delay (force equalsInteger)))
+                          (delay
+                             (\x ->
+                                (\x y ->
+                                   (\y ->
+                                      (\b ->
+                                         force
+                                           ((\ifThenElse -> ifThenElse)
+                                              ifThenElse)
+                                           b
+                                           True
+                                           False)
+                                        ((\equalsInteger -> equalsInteger)
+                                           equalsInteger
+                                           x
+                                           y))
+                                     y)
+                                  x)))
+                       (delay
+                          (delay
+                             (\`$dEq`
+                               a ->
+                                (\a ->
+                                   (\tup ->
+                                      (\go ->
+                                         (\go -> force go)
+                                           (go (delay (\x -> x))))
+                                        (force tup (\arg_0 -> arg_0)))
+                                     (delay
+                                        (\f ->
+                                           f
+                                             (force
+                                                (force fix1)
+                                                (\go
+                                                  arg ->
+                                                   delay
+                                                     (force
+                                                        (force caseList')
+                                                        False
+                                                        (\x ->
+                                                           (\x
+                                                             xs ->
+                                                              (\xs ->
+                                                                 force
+                                                                   (force
+                                                                      (Bool_match
+                                                                         (`$dEq`
+                                                                            a
+                                                                            x))
+                                                                      (delay
+                                                                         True)
+                                                                      (delay
+                                                                         (force
+                                                                            (go
+                                                                               (delay
+                                                                                  (\x ->
+                                                                                     x)))
+                                                                            xs))))
+                                                                xs)
+                                                             x)))))))
+                                  a)))))
+               (constr 0 [])
+               (constr 1 [])
+               (\x ->
+                  delay
+                    (\case_True case_False -> case x [case_True, case_False])))
+            (delay
+               (delay
+                  (\z f xs ->
+                     force
+                       (force (force chooseList)
+                          xs
+                          (delay z)
+                          (delay
+                             (f (force headList xs) (force tailList xs))))))))
+         xs)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

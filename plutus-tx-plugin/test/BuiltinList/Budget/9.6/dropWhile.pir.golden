@@ -1,30 +1,67 @@
 let
+  ~v : integer = 5
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   data Bool | Bool_match where
     True : Bool
     False : Bool
-in
-letrec
-  !go : list integer -> list integer
-    = \(xs : list integer) ->
-        (let
-            r = list integer
+  ~dropWhile : all a. (a -> Bool) -> list a -> list a
+    = /\a ->
+        \(p : a -> Bool) ->
+          let
+            !p : a -> Bool = p
           in
-          \(z : r) (f : integer -> list integer -> r) (xs : list integer) ->
-            chooseList
-              {integer}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {integer} xs) (tailList {integer} xs))
-              {r})
-          xs
-          (\(x : integer) (xs' : list integer) ->
-             Bool_match
-               (ifThenElse {Bool} (lessThanInteger x 5) True False)
-               {all dead. list integer}
-               (/\dead -> go xs')
-               (/\dead -> xs)
-               {all dead. dead})
-          xs
+          letrec
+            ~go : list a -> list a
+              = \(xs : list a) ->
+                  let
+                    !xs : list a = xs
+                  in
+                  caseList'
+                    {a}
+                    {list a}
+                    xs
+                    (\(x : a) ->
+                       let
+                         !x : a = x
+                       in
+                       \(xs' : list a) ->
+                         let
+                           !xs' : list a = xs'
+                         in
+                         Bool_match
+                           (p x)
+                           {all dead. list a}
+                           (/\dead -> go xs')
+                           (/\dead -> xs)
+                           {all dead. dead})
+                    xs
+          in
+          \(eta : list a) -> go eta
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !lessThanInteger : integer -> integer -> bool = lessThanInteger
+  ~lessThanInteger : integer -> integer -> Bool
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = lessThanInteger x y
+          in
+          ifThenElse {Bool} b True False
 in
-\(xs : list integer) -> go xs
+\(xs : list integer) ->
+  let
+    !xs : list integer = xs
+  in
+  dropWhile {integer} (\(v : integer) -> lessThanInteger v v) xs

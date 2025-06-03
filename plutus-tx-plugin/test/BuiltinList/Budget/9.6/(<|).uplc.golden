@@ -1,1 +1,8 @@
-(program 1.1.0 (\xs -> force mkCons 42 xs))
+(program
+   1.1.0
+   (\xs ->
+      (\xs ->
+         force ((\`<|` -> force `<|`) (delay ((\mkCons -> mkCons) mkCons)))
+           42
+           xs)
+        xs))

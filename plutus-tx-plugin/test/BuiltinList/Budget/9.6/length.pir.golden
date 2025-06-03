@@ -1,16 +1,30 @@
-letrec
-  !go : list integer -> integer
-    = \(xs : list integer) ->
-        chooseList
-          {integer}
-          {all dead. integer}
-          xs
-          (/\dead -> 0)
-          (/\dead ->
-             let
-               !x : integer = headList {integer} xs
-             in
-             addInteger 1 (go (tailList {integer} xs)))
-          {integer}
+let
+  !addInteger : integer -> integer -> integer = addInteger
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
+  ~length : all a. list a -> integer
+    = /\a ->
+        letrec
+          ~go : list a -> integer
+            = caseList'
+                {a}
+                {integer}
+                0
+                (\(x : a) (xs : list a) ->
+                   let
+                     !xs : list a = xs
+                     !y : integer = go xs
+                   in
+                   addInteger 1 y)
+        in
+        go
 in
-\(xs : list integer) -> go xs
+\(xs : list integer) -> let !xs : list integer = xs in length {integer} xs

@@ -1,19 +1,68 @@
 (program
    1.1.0
-   ((\revAppend xs -> force revAppend xs [])
-      ((\s -> s s)
-         (\s arg ->
-            delay
-              (\l r ->
-                 force
-                   (force (force chooseList)
-                      l
-                      (delay r)
-                      (delay
-                         ((\x xs ->
-                             force (s s (delay (\x -> x)))
-                               xs
-                               (force mkCons x r))
-                            (force headList l)
-                            (force tailList l))))))
-         (delay (\x -> x)))))
+   ((\fix1 ->
+       (\mkCons ->
+          (\caseList' ->
+             (\`$fMkNilInteger` ->
+                (\tup ->
+                   (\revAppend ->
+                      (\revAppend xs ->
+                         (\xs ->
+                            force
+                              ((\reverse -> force reverse)
+                                 (delay
+                                    (delay
+                                       (\`$dMkNil` xs ->
+                                          (\xs ->
+                                             force (force revAppend)
+                                               xs
+                                               `$dMkNil`)
+                                            xs))))
+                              (force `$fMkNilInteger`)
+                              xs)
+                           xs)
+                        (revAppend (delay (\x -> x))))
+                     (force tup (\arg_0 -> arg_0)))
+                  (delay
+                     (\f ->
+                        f
+                          (force (force fix1)
+                             (\revAppend arg ->
+                                delay
+                                  (delay
+                                     (\l ->
+                                        (\l r ->
+                                           (\r ->
+                                              force (force caseList')
+                                                r
+                                                (\x ->
+                                                   (\x xs ->
+                                                      (\xs ->
+                                                         force
+                                                           (force
+                                                              (revAppend
+                                                                 (delay
+                                                                    (\x -> x))))
+                                                           xs
+                                                           (force mkCons x r))
+                                                        xs)
+                                                     x)
+                                                l)
+                                             r)
+                                          l)))))))
+               (delay []))
+            (delay
+               (delay
+                  (\z f xs ->
+                     force
+                       (force (force chooseList)
+                          xs
+                          (delay z)
+                          (delay
+                             (f (force headList xs) (force tailList xs))))))))
+         mkCons)
+      (delay
+         (delay
+            (\f ->
+               force (delay (\s -> s s))
+                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))

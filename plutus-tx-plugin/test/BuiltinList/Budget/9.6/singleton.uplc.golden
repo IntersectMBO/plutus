@@ -1,1 +1,11 @@
-(program 1.1.0 (\ds -> [42]))
+(program
+   1.1.0
+   (\ds ->
+      force
+        ((\singleton -> force singleton)
+           (delay
+              (delay
+                 (\`$dMkNil` x ->
+                    (\x -> force ((\mkCons -> mkCons) mkCons) x `$dMkNil`) x))))
+        ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))
+        42))
