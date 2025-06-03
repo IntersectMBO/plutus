@@ -1,5 +1,5 @@
-cpu: 681907
-mem: 2596
-size: 25
+CPU:                 681_907
+Memory:                2_596
+Size:                     25
 
 (constr 0 (con integer 1))

@@ -1,5 +1,5 @@
-cpu: 64100
-mem: 500
-size: 4
+CPU:                  64_100
+Memory:                  500
+Size:                      4
 
 (con (list integer) [])
