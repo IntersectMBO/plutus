@@ -1,130 +1,30 @@
 (program
    1.1.0
-   ((\fix1
-      xs ->
-       (\xs ->
-          force
-            (delay
-               (\True
-                 False
-                 Bool_match ->
-                  force
-                    (force
-                       (delay
-                          (\Just
-                            Nothing
-                            Maybe_match ->
-                             (\findIndex ->
-                                force findIndex)
-                               (delay
-                                  (delay
-                                     (\f ->
-                                        (\f ->
-                                           (\caseList' ->
-                                              (\addInteger ->
-                                                 (\tup ->
-                                                    (\go ->
-                                                       (\go -> force go 0)
-                                                         (go (delay (\x -> x))))
-                                                      (force tup
-                                                         (\arg_0 -> arg_0)))
-                                                   (delay
-                                                      (\f ->
-                                                         f
-                                                           (force
-                                                              (force fix1)
-                                                              (\go
-                                                                arg ->
-                                                                 delay
-                                                                   (\i ->
-                                                                      (\i ->
-                                                                         force
-                                                                           (force
-                                                                              caseList')
-                                                                           (force
-                                                                              Nothing)
-                                                                           (\x ->
-                                                                              (\x
-                                                                                xs ->
-                                                                                 (\xs ->
-                                                                                    force
-                                                                                      (force
-                                                                                         (Bool_match
-                                                                                            (f
-                                                                                               x))
-                                                                                         (delay
-                                                                                            (force
-                                                                                               Just
-                                                                                               i))
-                                                                                         (delay
-                                                                                            (force
-                                                                                               (go
-                                                                                                  (delay
-                                                                                                     (\x ->
-                                                                                                        x)))
-                                                                                               (addInteger
-                                                                                                  i
-                                                                                                  1)
-                                                                                               xs))))
-                                                                                   xs)
-                                                                                x))
-                                                                        i))))))
-                                                addInteger)
-                                             (delay
-                                                (delay
-                                                   (\z f xs ->
-                                                      force
-                                                        (force
-                                                           (force chooseList)
-                                                           xs
-                                                           (delay z)
-                                                           (delay
-                                                              (f
-                                                                 (force headList
-                                                                    xs)
-                                                                 (force tailList
-                                                                    xs))))))))
-                                          f)))))
-                       (delay (\arg_0 -> constr 0 [arg_0]))
-                       (delay (constr 1 []))
-                       (delay
-                          (\x ->
-                             delay
-                               (\case_Just case_Nothing ->
-                                  case x [case_Just, case_Nothing]))))
-                    (\v ->
-                       (\`==` ->
-                          (\ifThenElse ->
-                             (\equalsInteger ->
-                                (\equalsInteger ->
-                                   (\`$fEqInteger` ->
-                                      (\v -> force v)
-                                        (delay
-                                           (force (force `==`)
-                                              (force `$fEqInteger`))))
-                                     (delay (force equalsInteger)))
-                                  (delay
-                                     (\x ->
-                                        (\x y ->
-                                           (\y ->
-                                              (\b ->
-                                                 force ifThenElse b True False)
-                                                (equalsInteger x y))
-                                             y)
-                                          x)))
-                               equalsInteger)
-                            ifThenElse)
-                         (delay (delay (\v -> v)))
-                         v
-                         ((\v -> force v) (delay 99)))))
-            (constr 0 [])
-            (constr 1 [])
-            (\x ->
-               delay (\case_True case_False -> case x [case_True, case_False]))
-            xs)
-         xs)
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\i xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay (constr 1 []))
+                        (delay
+                           ((\xs ->
+                               force
+                                 (force
+                                    (force ifThenElse
+                                       (equalsInteger (force headList xs) 99)
+                                       (delay (delay (constr 0 [i])))
+                                       (delay
+                                          (delay
+                                             (force (go (delay (\x -> x)))
+                                                (addInteger i 1)
+                                                xs))))))
+                              (force tailList xs))))))
+           (delay (\x -> x)))
+        0
+        xs))

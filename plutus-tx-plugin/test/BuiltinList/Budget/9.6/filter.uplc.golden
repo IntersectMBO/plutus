@@ -1,107 +1,28 @@
 (program
    1.1.0
-   ((\fix1
-      xs ->
-       (\xs ->
-          force
-            (delay
-               (\True
-                 False
-                 Bool_match ->
-                  force
-                    ((\filter ->
-                        force filter)
-                       (delay
-                          (delay
-                             (\`$dMkNil` ->
-                                (\acc
-                                  p ->
-                                   (\p ->
-                                      (\mkCons ->
-                                         (\caseList' ->
-                                            (\tup ->
-                                               (\go ->
-                                                  (\go -> force go)
-                                                    (go (delay (\x -> x))))
-                                                 (force tup (\arg_0 -> arg_0)))
-                                              (delay
-                                                 (\f ->
-                                                    f
-                                                      (force
-                                                         (force fix1)
-                                                         (\go
-                                                           arg ->
-                                                            delay
-                                                              (force
-                                                                 (force
-                                                                    caseList')
-                                                                 acc
-                                                                 (\x ->
-                                                                    (\x
-                                                                      xs ->
-                                                                       (\xs ->
-                                                                          (\xs ->
-                                                                             force
-                                                                               (force
-                                                                                  (Bool_match
-                                                                                     (p
-                                                                                        x))
-                                                                                  (delay
-                                                                                     (force
-                                                                                        mkCons
-                                                                                        x
-                                                                                        xs))
-                                                                                  (delay
-                                                                                     xs)))
-                                                                            (force
-                                                                               (go
-                                                                                  (delay
-                                                                                     (\x ->
-                                                                                        x)))
-                                                                               xs))
-                                                                         xs)
-                                                                      x)))))))
-                                           (delay
-                                              (delay
-                                                 (\z f xs ->
-                                                    force
-                                                      (force (force chooseList)
-                                                         xs
-                                                         (delay z)
-                                                         (delay
-                                                            (f
-                                                               (force headList
-                                                                  xs)
-                                                               (force tailList
-                                                                  xs))))))))
-                                        mkCons)
-                                     p)
-                                  `$dMkNil`))))
-                    ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))
-                    ((\modInteger ->
-                        (\ifThenElse ->
-                           (\equalsInteger ->
-                              (\even -> force even)
-                                (delay
-                                   (\n ->
-                                      (\n ->
-                                         (\x ->
-                                            (\b ->
-                                               force ifThenElse b True False)
-                                              (equalsInteger x 0))
-                                           (modInteger n 2))
-                                        n)))
-                             equalsInteger)
-                          ifThenElse)
-                       modInteger)))
-            (constr 0 [])
-            (constr 1 [])
-            (\x ->
-               delay (\case_True case_False -> case x [case_True, case_False]))
-            xs)
-         xs)
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay [])
+                        (delay
+                           ((\x xs ->
+                               (\xs ->
+                                  force
+                                    (force
+                                       (force ifThenElse
+                                          (equalsInteger (modInteger x 2) 0)
+                                          (delay (delay (force mkCons x xs)))
+                                          (delay (delay xs)))))
+                                 (force (go (delay (\x -> x))) xs))
+                              (force headList xs)
+                              (force tailList xs))))))
+           (delay (\x -> x)))
+        xs))

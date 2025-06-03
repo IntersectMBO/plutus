@@ -1,105 +1,30 @@
 (program
    1.1.0
-   ((\fix1
-      xs ->
-       (\xs ->
-          force
-            (force
-               (force
-                  ((\zipWith ->
-                      force zipWith)
-                     (delay
-                        (delay
-                           (delay
-                              (delay
-                                 (\`$dMkNil`
-                                   f ->
-                                    (\f ->
-                                       (\mkCons ->
-                                          (\caseList' ->
-                                             (\tup ->
-                                                (\go ->
-                                                   (\go eta eta ->
-                                                      force go eta eta)
-                                                     (go (delay (\x -> x))))
-                                                  (force tup (\arg_0 -> arg_0)))
-                                               (delay
-                                                  (\f ->
-                                                     f
-                                                       (force
-                                                          (force fix1)
-                                                          (\go
-                                                            arg ->
-                                                             delay
-                                                               (\xs ->
-                                                                  (\xs
-                                                                    ys ->
-                                                                     (\ys ->
-                                                                        force
-                                                                          (force
-                                                                             caseList')
-                                                                          `$dMkNil`
-                                                                          (\x ->
-                                                                             (\x
-                                                                               xs' ->
-                                                                                (\xs' ->
-                                                                                   force
-                                                                                     (force
-                                                                                        caseList')
-                                                                                     `$dMkNil`
-                                                                                     (\y ->
-                                                                                        (\y
-                                                                                          ys' ->
-                                                                                           (\ys' ->
-                                                                                              force
-                                                                                                mkCons
-                                                                                                (f
-                                                                                                   x
-                                                                                                   y)
-                                                                                                (force
-                                                                                                   (go
-                                                                                                      (delay
-                                                                                                         (\x ->
-                                                                                                            x)))
-                                                                                                   xs'
-                                                                                                   ys'))
-                                                                                             ys')
-                                                                                          y)
-                                                                                     ys)
-                                                                                  xs')
-                                                                               x)
-                                                                          xs)
-                                                                       ys)
-                                                                    xs))))))
-                                            (delay
-                                               (delay
-                                                  (\z f xs ->
-                                                     force
-                                                       (force (force chooseList)
-                                                          xs
-                                                          (delay z)
-                                                          (delay
-                                                             (f
-                                                                (force headList
-                                                                   xs)
-                                                                (force tailList
-                                                                   xs))))))))
-                                         mkCons)
-                                      f))))))))
-            ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))
-            (force ((\`+` -> force `+`) (delay (delay (\v -> v))))
-               ((\addInteger ->
-                   (\addInteger ->
-                      (\`$fAdditiveSemigroupInteger` ->
-                         force `$fAdditiveSemigroupInteger`)
-                        (delay (force addInteger)))
-                     (delay (\x -> (\x y -> (\y -> addInteger x y) y) x)))
-                  addInteger))
-            xs
-            xs)
-         xs)
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\xs ys ->
+                   (\cse ->
+                      cse
+                        (\x xs' ->
+                           cse
+                             (\y ys' ->
+                                force mkCons
+                                  (addInteger x y)
+                                  (force (go (delay (\x -> x))) xs' ys'))
+                             ys)
+                        xs)
+                     (\f xs ->
+                        force
+                          (force (force chooseList)
+                             xs
+                             (delay [])
+                             (delay
+                                (f (force headList xs) (force tailList xs)))))))
+           (delay (\x -> x)))
+        xs
+        xs))

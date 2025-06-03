@@ -1,135 +1,22 @@
 (program
    1.1.0
    (\xs ->
-      (\xs ->
-         force
-           ((\`!!` ->
-               force `!!`)
+      force
+        ((\traceError ->
+            force ifThenElse
+              (lessThanInteger 10 0)
+              (delay (traceError "PT21"))
               (delay
-                 (delay
-                    (\xs ->
-                       (\xs
-                         i ->
-                          (\i ->
-                             (\b ->
-                                force
-                                  ((\unitval ->
-                                      (\trace ->
-                                         (\error ->
-                                            force
-                                              (delay
-                                                 (\Unit
-                                                   Unit_match ->
-                                                    (\traceError ->
-                                                       force
-                                                         (force
-                                                            (delay
-                                                               (\True
-                                                                 False
-                                                                 Bool_match ->
-                                                                  Bool_match
-                                                                    (force
-                                                                       ((\ifThenElse ->
-                                                                           ifThenElse)
-                                                                          ifThenElse)
-                                                                       b
-                                                                       True
-                                                                       False)))
-                                                            (constr 0 [])
-                                                            (constr 1 [])
-                                                            (\x ->
-                                                               delay
-                                                                 (\case_True
-                                                                   case_False ->
-                                                                    case
-                                                                      x
-                                                                      [ case_True
-                                                                      , case_False ])))
-                                                         (delay
-                                                            (force
-                                                               (force
-                                                                  traceError)
-                                                               ((\builtinListNegativeIndexError ->
-                                                                   force
-                                                                     builtinListNegativeIndexError)
-                                                                  (delay
-                                                                     "PT21"))))
-                                                         (delay
-                                                            ((\l ->
-                                                                force
-                                                                  (force
-                                                                     ((\caseList' ->
-                                                                         caseList')
-                                                                        (delay
-                                                                           (delay
-                                                                              (\z
-                                                                                f
-                                                                                xs ->
-                                                                                 force
-                                                                                   (force
-                                                                                      (force
-                                                                                         chooseList)
-                                                                                      xs
-                                                                                      (delay
-                                                                                         z)
-                                                                                      (delay
-                                                                                         (f
-                                                                                            (force
-                                                                                               headList
-                                                                                               xs)
-                                                                                            (force
-                                                                                               tailList
-                                                                                               xs)))))))))
-                                                                  (\_ann ->
-                                                                     force
-                                                                       (force
-                                                                          traceError)
-                                                                       ((\builtinListIndexTooLargeError ->
-                                                                           force
-                                                                             builtinListIndexTooLargeError)
-                                                                          (delay
-                                                                             "PT22")))
-                                                                  (\x ->
-                                                                     (\x
-                                                                       xs
-                                                                       ds
-                                                                       _ann ->
-                                                                        x)
-                                                                       x)
-                                                                  l
-                                                                  Unit
-                                                                  Unit)
-                                                               (force
-                                                                  ((\drop ->
-                                                                      drop)
-                                                                     dropList)
-                                                                  i
-                                                                  xs))))
-                                                      (delay
-                                                         (delay
-                                                            (\str ->
-                                                               (\str ->
-                                                                  (\x ->
-                                                                     force error
-                                                                       unitval)
-                                                                    (force trace
-                                                                       str
-                                                                       Unit))
-                                                                 str)))))
-                                              (constr 0 [])
-                                              (\x ->
-                                                 delay
-                                                   (\case_Unit ->
-                                                      case x [case_Unit])))
-                                           (delay (\thunk -> error)))
-                                        trace)
-                                     ()))
-                               ((\lessThanInteger -> lessThanInteger)
-                                  lessThanInteger
-                                  i
-                                  0))
-                            i)
-                         xs))))
-           xs
-           10)
-        xs))
+                 ((\l ->
+                     force
+                       (force (force chooseList)
+                          l
+                          (delay (\_ann -> traceError "PT22"))
+                          (delay
+                             ((\x xs ds _ann -> x)
+                                (force headList l)
+                                (force tailList l))))
+                       (constr 0 [])
+                       (constr 0 []))
+                    (force dropList 10 xs))))
+           (\str -> (\x -> error) (force trace str (constr 0 []))))))

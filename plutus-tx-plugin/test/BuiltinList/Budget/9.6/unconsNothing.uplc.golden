@@ -2,52 +2,9 @@
    1.1.0
    (\ds ->
       force
-        (force
-           (delay
-              (\Just Nothing Maybe_match ->
-                 force
-                   (delay
-                      (\Tuple2 Tuple2_match ->
-                         (\uncons -> force uncons)
-                           (delay
-                              (delay
-                                 (force
-                                    (force
-                                       ((\caseList' -> caseList')
-                                          (delay
-                                             (delay
-                                                (\z f xs ->
-                                                   force
-                                                     (force (force chooseList)
-                                                        xs
-                                                        (delay z)
-                                                        (delay
-                                                           (f
-                                                              (force headList
-                                                                 xs)
-                                                              (force tailList
-                                                                 xs)))))))))
-                                    (force Nothing)
-                                    (\h ->
-                                       (\h t ->
-                                          (\t ->
-                                             force Just
-                                               (force (force Tuple2) h t))
-                                            t)
-                                         h))))))
-                   (delay (delay (\arg_0 arg_1 -> constr 0 [arg_0, arg_1])))
-                   (delay
-                      (delay
-                         (\x ->
-                            delay (\case_Tuple2 -> case x [case_Tuple2]))))))
-           (delay (\arg_0 -> constr 0 [arg_0]))
+        (force (force chooseList)
+           []
            (delay (constr 1 []))
            (delay
-              (\x ->
-                 delay
-                   (\case_Just case_Nothing ->
-                      case x [case_Just, case_Nothing]))))
-        (force
-           ((\mkNil -> (\empty -> force empty) (delay (force mkNil)))
-              (delay (delay (\v -> v))))
-           ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay [])))))
+              (constr 0
+                 [(constr 0 [(force headList []), (force tailList [])])])))))

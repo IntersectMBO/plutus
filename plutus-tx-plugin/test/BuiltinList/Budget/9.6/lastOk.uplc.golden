@@ -1,99 +1,29 @@
 (program
    1.1.0
-   ((\fix1 ->
-       force
-         (delay
-            (\Unit
-              Unit_match ->
-               (\traceError ->
-                  (\lastEmptyBuiltinListError ->
-                     (\caseList' ->
-                        (\caseList ->
-                           (\tup ->
-                              (\last ->
-                                 (\last xs -> (\xs -> force (force last) xs) xs)
-                                   (last (delay (\x -> x))))
-                                (force tup (\arg_0 -> arg_0)))
-                             (delay
-                                (\f ->
-                                   f
-                                     (force
-                                        (force fix1)
-                                        (\last
-                                          arg ->
-                                           delay
-                                             (delay
-                                                (force
-                                                   (force (force caseList))
-                                                   (\ds ->
-                                                      force
-                                                        (force traceError)
-                                                        (force
-                                                           lastEmptyBuiltinListError))
-                                                   (\x ->
-                                                      (\x
-                                                        xs ->
-                                                         (\xs ->
-                                                            force
-                                                              (force caseList')
-                                                              x
-                                                              (\ds
-                                                                ds ->
-                                                                 force
-                                                                   (force
-                                                                      (last
-                                                                         (delay
-                                                                            (\x ->
-                                                                               x))))
-                                                                   xs)
-                                                              xs)
-                                                           xs)
-                                                        x))))))))
-                          (delay
-                             (delay
-                                (delay
-                                   (\nilCase ->
-                                      (\nilCase consCase ->
-                                         (\consCase l ->
-                                            (\l ->
-                                               force (force caseList')
-                                                 nilCase
-                                                 (\x ->
-                                                    (\x xs ->
-                                                       (\xs ds -> consCase x xs)
-                                                         xs)
-                                                      x)
-                                                 l
-                                                 Unit)
-                                              l)
-                                           consCase)
-                                        nilCase)))))
-                       (delay
-                          (delay
-                             (\z f xs ->
-                                force
-                                  (force (force chooseList)
-                                     xs
-                                     (delay z)
-                                     (delay
-                                        (f
-                                           (force headList xs)
-                                           (force tailList xs))))))))
-                    (delay "PT25"))
+   ((\caseList' ->
+       (\last xs -> force (force last) xs)
+         ((\f ->
+             (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+               (\s -> f (\x -> s s x)))
+            (\last arg ->
+               delay
                  (delay
-                    (delay
-                       (\str ->
-                          (\str ->
-                             (\x ->
-                                force
-                                  ((\error -> error) (delay (\thunk -> error)))
-                                  ((\unitval -> unitval) ()))
-                               (force ((\trace -> trace) trace) str Unit))
-                            str)))))
-         (constr 0 [])
-         (\x -> delay (\case_Unit -> case x [case_Unit])))
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+                    (\l ->
+                       caseList'
+                         (\ds ->
+                            (\x -> error) (force trace "PT25" (constr 0 [])))
+                         (\x xs ds ->
+                            caseList'
+                              x
+                              (\ds ds ->
+                                 force (force (last (delay (\x -> x)))) xs)
+                              xs)
+                         l
+                         (constr 0 []))))
+            (delay (\x -> x))))
+      (\z f xs ->
+         force
+           (force (force chooseList)
+              xs
+              (delay z)
+              (delay (f (force headList xs) (force tailList xs)))))))

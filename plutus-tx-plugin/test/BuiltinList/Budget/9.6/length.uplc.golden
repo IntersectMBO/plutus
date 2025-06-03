@@ -1,49 +1,21 @@
 (program
    1.1.0
-   ((\fix1 xs ->
-       (\xs ->
-          force
-            ((\length -> force length)
-               (delay
-                  (delay
-                     ((\caseList' ->
-                         (\addInteger ->
-                            (\tup ->
-                               (\go -> (\go -> force go) (go (delay (\x -> x))))
-                                 (force tup (\arg_0 -> arg_0)))
-                              (delay
-                                 (\f ->
-                                    f
-                                      (force (force fix1)
-                                         (\go arg ->
-                                            delay
-                                              (force (force caseList')
-                                                 0
-                                                 (\x xs ->
-                                                    (\xs ->
-                                                       (\y -> addInteger 1 y)
-                                                         (force
-                                                            (go
-                                                               (delay
-                                                                  (\x -> x)))
-                                                            xs))
-                                                      xs)))))))
-                           addInteger)
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay 0)
                         (delay
-                           (delay
-                              (\z f xs ->
-                                 force
-                                   (force (force chooseList)
-                                      xs
-                                      (delay z)
-                                      (delay
-                                         (f
-                                            (force headList xs)
-                                            (force tailList xs)))))))))))
-            xs)
-         xs)
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+                           ((\x xs ->
+                               addInteger 1 (force (go (delay (\x -> x))) xs))
+                              (force headList xs)
+                              (force tailList xs))))))
+           (delay (\x -> x)))
+        xs))

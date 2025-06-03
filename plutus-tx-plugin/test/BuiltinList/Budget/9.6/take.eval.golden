@@ -1,5 +1,5 @@
-cpu: 14308301
-mem: 70962
-size: 204
+cpu: 8932301
+mem: 37362
+size: 117
 
 (con (list integer) [1,2,3,4,5])

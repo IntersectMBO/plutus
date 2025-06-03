@@ -1,8 +1,1 @@
-(program
-   1.1.0
-   (\xs ->
-      (\xs ->
-         force ((\cons -> force cons) (delay ((\mkCons -> mkCons) mkCons)))
-           0
-           xs)
-        xs))
+(program 1.1.0 (\xs -> force mkCons 0 xs))

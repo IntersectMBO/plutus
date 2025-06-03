@@ -1,78 +1,24 @@
 (program
    1.1.0
-   ((\fix1
-      xs ->
-       (\xs ->
-          force
-            (force
-               ((\foldl ->
-                   force foldl)
-                  (delay
-                     (delay
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\acc xs ->
+                   force
+                     (force (force chooseList)
+                        xs
+                        (delay acc)
                         (delay
-                           (\f ->
-                              (\f ->
-                                 (\caseList' ->
-                                    (\tup ->
-                                       (\go ->
-                                          (\go eta -> force go eta)
-                                            (go (delay (\x -> x))))
-                                         (force tup (\arg_0 -> arg_0)))
-                                      (delay
-                                         (\f ->
-                                            f
-                                              (force
-                                                 (force fix1)
-                                                 (\go
-                                                   arg ->
-                                                    delay
-                                                      (\acc ->
-                                                         (\acc ->
-                                                            force
-                                                              (force caseList')
-                                                              acc
-                                                              (\x ->
-                                                                 (\x
-                                                                   xs ->
-                                                                    (\xs ->
-                                                                       force
-                                                                         (go
-                                                                            (delay
-                                                                               (\x ->
-                                                                                  x)))
-                                                                         (f
-                                                                            acc
-                                                                            x)
-                                                                         xs)
-                                                                      xs)
-                                                                   x))
-                                                           acc))))))
-                                   (delay
-                                      (delay
-                                         (\z f xs ->
-                                            force
-                                              (force (force chooseList)
-                                                 xs
-                                                 (delay z)
-                                                 (delay
-                                                    (f
-                                                       (force headList xs)
-                                                       (force tailList
-                                                          xs))))))))
-                                f))))))
-            (force ((\`*` -> force `*`) (delay (delay (\v -> v))))
-               ((\multiplyInteger ->
-                   (\multiplyInteger ->
-                      (\`$fMultiplicativeSemigroupInteger` ->
-                         force `$fMultiplicativeSemigroupInteger`)
-                        (delay (force multiplyInteger)))
-                     (delay (\x -> (\x y -> (\y -> multiplyInteger x y) y) x)))
-                  multiplyInteger))
-            1
-            xs)
-         xs)
-      (delay
-         (delay
-            (\f ->
-               force (delay (\s -> s s))
-                 (\s -> f (\x -> force (delay (\s -> s s)) s x)))))))
+                           ((\x xs ->
+                               force (go (delay (\x -> x)))
+                                 (multiplyInteger acc x)
+                                 xs)
+                              (force headList xs)
+                              (force tailList xs))))))
+           (delay (\x -> x)))
+        1
+        xs))

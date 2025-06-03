@@ -1,7 +1,1 @@
-(program
-   1.1.0
-   (\ds ->
-      force
-        ((\empty -> force empty)
-           (delay ((\mkNil -> force mkNil) (delay (delay (\v -> v))))))
-        ((\`$fMkNilInteger` -> force `$fMkNilInteger`) (delay []))))
+(program 1.1.0 (\ds -> []))

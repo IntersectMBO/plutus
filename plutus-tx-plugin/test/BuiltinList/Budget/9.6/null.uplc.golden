@@ -1,31 +1,3 @@
 (program
    1.1.0
-   (\xs ->
-      (\xs ->
-         force
-           (force
-              (delay
-                 (\True False Bool_match ->
-                    (\null -> force null)
-                      (delay
-                         ((\null -> force null)
-                            (delay
-                               (delay
-                                  (\l ->
-                                     (\l ->
-                                        (\b ->
-                                           force
-                                             ((\ifThenElse -> ifThenElse)
-                                                ifThenElse)
-                                             b
-                                             True
-                                             False)
-                                          (force ((\null -> null) nullList) l))
-                                       l)))))))
-              (constr 0 [])
-              (constr 1 [])
-              (\x ->
-                 delay
-                   (\case_True case_False -> case x [case_True, case_False])))
-           xs)
-        xs))
+   (\xs -> force ifThenElse (force nullList xs) (constr 0 []) (constr 1 [])))
