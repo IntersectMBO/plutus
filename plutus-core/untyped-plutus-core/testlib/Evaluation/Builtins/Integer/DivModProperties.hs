@@ -26,26 +26,42 @@ prop_mod_0_fails (integer -> a) =
   fails (modInteger a zero)
 
 -- b /= 0 => a = b * (a `div` b) + (a `mod` b)
-prop_div_mod_compatible :: Integer -> (NonZero Integer) -> Property
+prop_div_mod_compatible :: Integer -> NonZero Integer -> Property
 prop_div_mod_compatible (integer -> a) (NonZero (integer -> b)) =
   let t = addInteger (multiplyInteger b (divideInteger a b) ) (modInteger a b)
   in evalOkEq t a
 
-prop_mod_periodic :: Integer -> (NonZero Integer) -> Integer -> Property
+prop_mod_periodic :: Integer -> NonZero Integer -> Integer -> Property
 prop_mod_periodic (integer -> a) (NonZero (integer -> b)) (integer -> k) =
   let t1 = modInteger a b
       t2 = modInteger (addInteger a (multiplyInteger k b)) b
   in evalOkEq t1 t2
 
+-- For fixed b, `modInteger _ b` is an additive homomorphism:
+-- (a+a') `mod` b = ((a `mod` b) + (a' `mod` b)) `mod` b
+prop_mod_additive :: Integer -> Integer -> NonZero Integer -> Property
+prop_mod_additive (integer -> a) (integer -> a') (NonZero (integer -> b)) =
+  let t1 = modInteger (addInteger a a') b
+      t2 = modInteger (addInteger (modInteger a b) (modInteger a' b)) b
+  in evalOkEq t1 t2
+
+-- For fixed b, `modInteger _ b` is a multiplicative homomorphism:
+-- (a*a') `mod` b = ((a `mod` b) * (a' `mod` b)) `mod` b
+prop_mod_multiplicative :: Integer -> Integer -> NonZero Integer -> Property
+prop_mod_multiplicative (integer -> a) (integer -> a') (NonZero (integer -> b)) =
+  let t1 = modInteger (multiplyInteger a a') b
+      t2 = modInteger (multiplyInteger (modInteger a b) (modInteger a' b)) b
+  in evalOkEq t1 t2
+
 -- For b > 0, 0 <= a `mod` b < b;
-prop_modSize_pos :: Integer -> (Positive Integer) -> Property
+prop_modSize_pos :: Integer -> Positive Integer -> Property
 prop_modSize_pos (integer -> a) (Positive (integer -> b)) =
   let t1 = lessThanEqualsInteger zero (modInteger a b)
       t2 = lessThanInteger (modInteger a b) b
   in evalOkEq t1 true .&&. evalOkEq t2 true
 
 -- For b < 0, b < a `mod` b <= 0
-prop_modSize_neg :: Integer -> (Negative Integer) -> Property
+prop_modSize_neg :: Integer -> Negative Integer -> Property
 prop_modSize_neg (integer -> a) (Negative (integer -> b)) =
   let t1 = lessThanEqualsInteger (modInteger a b) zero
       t2 = lessThanInteger b (modInteger a b)
@@ -141,6 +157,8 @@ test_integer_div_mod_properties =
   , testProp "mod_0_fails" prop_mod_0_fails
   , testProp "div_mod_compatible" prop_div_mod_compatible
   , testProp "mod_periodic" prop_mod_periodic
+  , testProp "mod is an additive homomorphism" prop_mod_additive
+  , testProp "mod is a multiplicative homomorphism" prop_mod_multiplicative
   , testProp "modSize_pos" prop_modSize_pos
   , testProp "modSize_neg" prop_modSize_neg
   , testProp "div_pos_pos" prop_div_pos_pos

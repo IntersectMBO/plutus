@@ -26,6 +26,7 @@ import Evaluation.Builtins.Common (typecheckAnd, typecheckEvaluateCek, typecheck
 import Evaluation.Builtins.Conversion qualified as Conversion
 import Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
 import Evaluation.Builtins.Integer.ExpModInteger (test_expModInteger_properties)
+import Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_VariantAProp,
@@ -1257,6 +1258,7 @@ test_definition =
         , test_integer_ring_properties
         , test_integer_div_mod_properties
         , test_integer_quot_rem_properties
+        , test_integer_order_properties
         , test_integer_ring_properties
         , test_expModInteger_properties
         , test_Other

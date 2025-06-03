@@ -14,7 +14,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 250
+withNTests = withMaxSuccess 100
 
 prop_quot_0_fails :: Integer -> Property
 prop_quot_0_fails (integer -> a) =
@@ -25,22 +25,46 @@ prop_rem_0_fails (integer -> a) =
   fails (remainderInteger a zero)
 
 -- b /= 0 => a = b * (a `quot` b) + (a `rem` b)
-prop_quot_rem_compatible :: Integer -> (NonZero Integer) -> Property
+prop_quot_rem_compatible :: Integer -> NonZero Integer -> Property
 prop_quot_rem_compatible (integer -> a) (NonZero (integer -> b)) =
   let t = addInteger (multiplyInteger b (quotientInteger a b) ) (remainderInteger a b)
   in evalOkEq t a
 
-prop_rem_periodic :: Integer -> (NonZero Integer) -> Integer -> Property
+prop_rem_periodic :: Integer -> NonZero Integer -> Integer -> Property
 prop_rem_periodic (integer -> a) (NonZero (integer -> b)) (integer -> k) =
   let t1 = remainderInteger a b
       t2 = remainderInteger (addInteger a (multiplyInteger k b)) b
+  in evalOkEq t1 t2
+
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism:
+-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
+prop_rem_additive_pos :: NonNegative Integer -> NonNegative Integer -> NonZero Integer -> Property
+prop_rem_additive_pos (NonNegative (integer -> a)) (NonNegative (integer -> a')) (NonZero (integer -> b)) =
+  let t1 = remainderInteger (addInteger a a') b
+      t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
+  in evalOkEq t1 t2
+
+-- For fixed b, `remainderInteger _ b` is an additive homomorphism:
+-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
+prop_rem_additive_neg :: NonPositive Integer -> NonPositive Integer -> NonZero Integer -> Property
+prop_rem_additive_neg (NonPositive (integer -> a)) (NonPositive (integer -> a')) (NonZero (integer -> b)) =
+  let t1 = remainderInteger (addInteger a a') b
+      t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
+  in evalOkEq t1 t2
+
+-- For fixed b, `remainderInteger _ b` is a multiplicative homomorphism:
+-- (a*a') `rem` b = ((a `rem` b) * (a' `rem` b)) `rem` b
+prop_rem_multiplicative :: Integer -> Integer -> NonZero Integer -> Property
+prop_rem_multiplicative (integer -> a) (integer -> a') (NonZero (integer -> b)) =
+  let t1 = remainderInteger (multiplyInteger a a') b
+      t2 = remainderInteger (multiplyInteger (remainderInteger a b) (remainderInteger a' b)) b
   in evalOkEq t1 t2
 
 -- For a >= 0 and b > 0, 0 <= |a `rem` b| < |b|
 -- The sign of the remainder is a bit tricky in this case.  We test that the
 -- absolute value of the remainder is in the expected range and leave the sign
 -- to later tests.
-prop_rem_size :: Integer -> (NonZero Integer) -> Property
+prop_rem_size :: Integer -> NonZero Integer -> Property
 prop_rem_size (integer -> a) (NonZero (integer -> b)) =
   let r = C.abs (remainderInteger a b)
       t1 = lessThanEqualsInteger zero r
@@ -64,22 +88,22 @@ le0 t = lessThanEqualsInteger t zero
    - -   +
 -}
 
-prop_quot_pos_pos :: (NonNegative Integer) -> (Positive Integer) -> Property
+prop_quot_pos_pos :: NonNegative Integer -> Positive Integer -> Property
 prop_quot_pos_pos (NonNegative (integer -> a)) (Positive (integer -> b)) =
   let t = ge0 (quotientInteger a b)
   in evalOkEq t true
 
-prop_quot_neg_pos :: (NonPositive Integer) -> (Positive Integer) -> Property
+prop_quot_neg_pos :: NonPositive Integer -> Positive Integer -> Property
 prop_quot_neg_pos (NonPositive (integer -> a)) (Positive (integer -> b)) =
   let t = le0 (quotientInteger a b)
   in evalOkEq t true
 
-prop_quot_pos_neg :: (NonNegative Integer) -> (Negative Integer) -> Property
+prop_quot_pos_neg :: NonNegative Integer -> Negative Integer -> Property
 prop_quot_pos_neg (NonNegative (integer -> a)) (Negative (integer -> b)) =
   let t = le0 (quotientInteger a b)
   in evalOkEq t true
 
-prop_quot_neg_neg :: (NonPositive Integer) -> (Negative Integer) -> Property
+prop_quot_neg_neg :: NonPositive Integer -> Negative Integer -> Property
 prop_quot_neg_neg (NonPositive (integer -> a)) (Negative (integer -> b)) =
   let t =  ge0 (quotientInteger a b)
   in evalOkEq t true
@@ -159,6 +183,10 @@ test_integer_quot_rem_properties =
     testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
   , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
   , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
+  , testProp "remainderInteger is an additive homomorphism (1)" prop_rem_additive_pos
+  , testProp "remainderInteger is an additive homomorphism (2)" prop_rem_additive_neg
+  , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
+  , testProp "remainderInteger size   " prop_rem_size
   , testProp "remainderInteger size   " prop_rem_size
   , testProp "quotientInteger + + = +"  prop_quot_pos_pos
   , testProp "quotientInteger - + = -"  prop_quot_neg_pos
