@@ -71,6 +71,7 @@ instance
 
 instance
   ( PLC.GEq uni
+  , uni `PLC.Everywhere` Eq
   , PLC.Typecheckable uni fun
   , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni

@@ -47,10 +47,12 @@ import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseOfCase), Sim
                                                recordSimplification)
 
 import Control.Lens
-import Data.Set qualified as Set
+import Data.List (nub)
 
 caseOfCase
-    :: (fun ~ PLC.DefaultFun, Monad m, CaseBuiltin uni)
+    :: ( fun ~ PLC.DefaultFun, Monad m, CaseBuiltin uni
+       , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` Eq
+       )
     => Term name uni fun a
     -> SimplifierT name uni fun a m (Term name uni fun a)
 caseOfCase term = do
@@ -59,7 +61,9 @@ caseOfCase term = do
   return result
 
 processTerm
-    :: (fun ~ PLC.DefaultFun, CaseBuiltin uni)
+    :: ( fun ~ PLC.DefaultFun, CaseBuiltin uni
+       , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` Eq
+       )
     => Term name uni fun a -> Term name uni fun a
 processTerm = \case
   Case ann scrut alts
@@ -80,9 +84,10 @@ processTerm = \case
       (Case annInner scrut)
       (do
         constrs <- for altsInner $ \case
-          c@(Constr _ i _) -> Just (i, c)
-          _                -> Nothing
+          c@(Constr _ i _)   -> Just (Left i, c)
+          c@(Constant _ val) -> Just (Right val, c)
+          _                  -> Nothing
         -- See Note [Case-of-case and duplicating code].
-        guard $ length (Set.fromList . toList $ fmap fst constrs) == length constrs
+        guard $ length (nub . toList $ fmap fst constrs) == length constrs
         pure $ constrs <&> \(_, c) -> CaseReduce.processTerm $ Case annOuter c altsOuter)
   other -> other
