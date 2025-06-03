@@ -73,6 +73,7 @@ let
     agda-tools.agda-mode
 
     metatheory.generate-malonzo-code
+    metatheory.agda-with-stdlib-and-metatheory
 
     r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
