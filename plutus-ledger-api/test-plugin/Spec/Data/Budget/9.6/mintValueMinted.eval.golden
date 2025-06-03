@@ -1,6 +1,6 @@
-cpu: 16100
-mem: 200
-size: 136
+CPU:                  16_100
+Memory:                  200
+Size:                    136
 
 (lam
   ds
