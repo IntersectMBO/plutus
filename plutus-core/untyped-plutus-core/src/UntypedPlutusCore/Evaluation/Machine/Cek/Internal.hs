@@ -85,13 +85,13 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Exception qualified as Exception
-import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
 import Control.Monad.Except (MonadError, catchError, throwError, tryError)
 import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
+import Data.Bifunctor
 import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
@@ -423,6 +423,13 @@ newtype CekM uni fun s a = CekM
 type CekEvaluationException name uni fun =
     EvaluationException (MachineError fun) CekUserError (Term name uni fun ())
 
+instance BuiltinErrorToEvaluationError (MachineError fun) CekUserError where
+  builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =
+    bimap UnliftingMachineError (const CekEvaluationFailure) $ unUnliftingEvaluationError err
+  builtinErrorToEvaluationError BuiltinEvaluationFailure =
+    OperationalError CekEvaluationFailure
+  {-# INLINE builtinErrorToEvaluationError #-}
+
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
 
@@ -451,14 +458,13 @@ But in our case this is okay, because:
 -}
 
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
--- 'throwingWithCause' as the cause of the failure.
-throwingDischarged
-    :: ThrowableBuiltins uni fun
-    => AReview (EvaluationError (MachineError fun) CekUserError) t
-    -> t
-    -> CekValue uni fun ann
-    -> CekM uni fun s x
-throwingDischarged l t = throwingWithCause l t . dischargeCekValue
+-- 'throwErrorWithCause' as the cause of the failure.
+throwErrorDischarged
+  :: ThrowableBuiltins uni fun
+  => EvaluationError (MachineError fun) CekUserError
+  -> CekValue uni fun ann
+  -> CekM uni fun s x
+throwErrorDischarged err = throwErrorWithCause err . dischargeCekValue
 
 instance ThrowableBuiltins uni fun =>
         MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
@@ -503,12 +509,6 @@ instance ThrowableBuiltins uni fun =>
                 ErrorWithCause
                     (StructuralError . PanicMachineError $ displayException err)
                     Nothing
-
-instance AsEvaluationFailure CekUserError where
-    _EvaluationFailure = _EvaluationFailureVia CekEvaluationFailure
-
-instance AsUnliftingError CekUserError where
-    _UnliftingError = _UnliftingErrorVia CekEvaluationFailure
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
@@ -576,7 +576,7 @@ type instance UniOf (CekValue uni fun ann) = uni
 
 instance HasConstant (CekValue uni fun ann) where
     asConstant (VCon val) = pure val
-    asConstant _          = throwNotAConstant
+    asConstant _          = throwError notAConstant
     {-# INLINE asConstant #-}
 
     fromConstant = VCon
@@ -735,7 +735,7 @@ enterComputeCek = computeCek
         computeCek (FrameCases env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
-        throwingWithCause _OperationalError CekEvaluationFailure $ Error ()
+        throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -780,12 +780,12 @@ enterComputeCek = computeCek
         -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
         -- "apparently good" value.
         (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
-                        throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
+                        throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
         -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwingDischarged _StructuralError (MissingCaseBranchMachineError i) e
-        _ -> throwingDischarged _StructuralError NonConstrScrutinizedMachineError e
+            Nothing -> throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
+        _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.
@@ -819,9 +819,9 @@ enterComputeCek = computeCek
                 -- application.
                 evalBuiltinApp ctx fun term' runtime'
             _ ->
-                throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'
+                throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
     forceEvaluate !_ val =
-        throwingDischarged _StructuralError NonPolymorphicInstantiationMachineError val
+        throwErrorDischarged (StructuralError NonPolymorphicInstantiationMachineError) val
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -850,9 +850,9 @@ enterComputeCek = computeCek
             BuiltinExpectArgument f ->
                 evalBuiltinApp ctx fun term' $ f arg
             _ ->
-                throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'
+                throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
     applyEvaluate !_ val _ =
-        throwingDischarged _StructuralError NonFunctionalApplicationMachineError val
+        throwErrorDischarged (StructuralError NonFunctionalApplicationMachineError) val
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
@@ -928,7 +928,7 @@ enterComputeCek = computeCek
     lookupVarName :: NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
     lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
         Env.contIndexOne
-            (throwingWithCause _StructuralError OpenTermEvaluatedMachineError $ Var () varName)
+            (throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) $ Var () varName)
             pure
             varEnv
             (coerce varIx)

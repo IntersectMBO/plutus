@@ -5,7 +5,7 @@
 
 module PlutusCore.Builtin.HasConstant
     ( BuiltinError (..)
-    , throwNotAConstant
+    , notAConstant
     , HasConstant (..)
     , HasConstantIn
     , fromValueOf
@@ -17,6 +17,8 @@ import PlutusCore.Core
 import PlutusCore.Name.Unique
 
 import Universe
+
+import Control.Monad.Except
 
 {- Note [Existence of HasConstant]
 We don't really need 'HasConstant' and could get away with only having 'HasConstantIn', however
@@ -56,6 +58,6 @@ fromValue = fromValueOf knownUni
 
 instance HasConstant (Term TyName Name uni fun ()) where
     asConstant (Constant _ val) = pure val
-    asConstant _                = throwNotAConstant
+    asConstant _                = throwError notAConstant
 
     fromConstant = Constant ()

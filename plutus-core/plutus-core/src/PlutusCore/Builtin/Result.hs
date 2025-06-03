@@ -10,35 +10,27 @@
 
 module PlutusCore.Builtin.Result
     ( EvaluationError (..)
-    , AsEvaluationError (..)
     , UnliftingError (..)
     , UnliftingEvaluationError (..)
     , BuiltinError (..)
     , BuiltinResult (..)
-    , AsUnliftingEvaluationError (..)
-    , AsUnliftingError (..)
-    , AsBuiltinError (..)
-    , AsBuiltinResult (..)
-    , _UnliftingErrorVia
-    , _StructuralUnliftingError
-    , _OperationalUnliftingError
-    , throwNotAConstant
-    , throwUnderTypeError
+    , notAConstant
+    , underTypeError
+    , operationalUnliftingError
+    , structuralUnliftingError
     , emit
     , withLogs
     , throwing
     , throwing_
+    , builtinResultFailure
     ) where
 
 import PlutusPrelude
 
 import PlutusCore.Evaluation.Error
-import PlutusCore.Evaluation.Result
 
-import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
-import Data.Bitraversable
 import Data.DList (DList)
 import Data.String (IsString)
 import Data.Text (Text)
@@ -93,56 +85,6 @@ data BuiltinResult a
     | BuiltinFailure (DList Text) BuiltinError
     deriving stock (Show, Foldable)
 
-mtraverse makeClassyPrisms
-    [ ''UnliftingError
-    , ''UnliftingEvaluationError
-    , ''BuiltinError
-    , ''BuiltinResult
-    ]
-
-instance AsEvaluationError UnliftingEvaluationError UnliftingError UnliftingError where
-    _EvaluationError = coerced
-    {-# INLINE _EvaluationError #-}
-
--- | An 'UnliftingEvaluationError' /is/ an 'EvaluationError', hence for this instance we only
--- require both @structural@ and @operational@ to have '_UnliftingError' prisms, so that we can
--- handle both the cases pointwisely.
-instance (AsUnliftingError structural, AsUnliftingError operational) =>
-        AsUnliftingEvaluationError (EvaluationError structural operational) where
-    _UnliftingEvaluationError = go . coerced where
-        go =
-            prism'
-                (bimap
-                    (review _UnliftingError)
-                    (review _UnliftingError))
-                (bitraverse
-                    (reoption . matching _UnliftingError)
-                    (reoption . matching _UnliftingError))
-    {-# INLINE _UnliftingEvaluationError #-}
-
-instance AsUnliftingEvaluationError BuiltinError where
-    _UnliftingEvaluationError = _BuiltinUnliftingEvaluationError . _UnliftingEvaluationError
-    {-# INLINE _UnliftingEvaluationError #-}
-
-instance AsEvaluationFailure BuiltinError where
-    _EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure
-    {-# INLINE _EvaluationFailure #-}
-
--- >>> import PlutusCore.Evaluation.Result
--- >>> evaluationFailure :: BuiltinResult Bool
--- BuiltinFailure (fromList []) BuiltinEvaluationFailure
---
--- >>> import Control.Lens
--- >>> let res = BuiltinFailure (pure mempty) evaluationFailure :: BuiltinResult Bool
--- >>> matching _EvaluationFailure res
--- Right ()
---
--- >>> matching _BuiltinFailure $ BuiltinSuccess True
--- Left (BuiltinSuccess True)
-instance AsEvaluationFailure (BuiltinResult a) where
-    _EvaluationFailure = _BuiltinFailure . iso (\_ -> ()) (\_ -> pure evaluationFailure)
-    {-# INLINE _EvaluationFailure #-}
-
 instance MonadFail BuiltinResult where
     fail err = BuiltinFailure (pure $ Text.pack err) BuiltinEvaluationFailure
     {-# INLINE fail #-}
@@ -160,8 +102,8 @@ instance Pretty BuiltinError where
     pretty BuiltinEvaluationFailure              = "Builtin evaluation failure"
 
 {- Note [INLINE and OPAQUE on error-related definitions]
-We mark error-related definitions such as prisms like '_StructuralUnliftingError' and regular
-functions like 'throwNotAConstant' with @INLINE@, because this produces significantly less cluttered
+We mark error-related definitions such as prisms like 'structuralUnliftingError' and regular
+functions like 'notAConstant' with @INLINE@, because this produces significantly less cluttered
 GHC Core. Not doing so results in 20+% larger Core for builtins.
 
 However in a few specific cases we use @OPAQUE@ instead to get tighter Core. @OPAQUE@ is the
@@ -184,27 +126,24 @@ variable).
 --
 -- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and
 -- 'CekUserError'.
-_UnliftingErrorVia :: Pretty err => err -> Prism' err UnliftingError
-_UnliftingErrorVia err = iso (MkUnliftingError . display) (const err)
-{-# INLINE _UnliftingErrorVia #-}
 
--- | See Note [Structural vs operational errors within builtins]
-_StructuralUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
-_StructuralUnliftingError = _BuiltinUnliftingEvaluationError . _StructuralError
-{-# INLINE _StructuralUnliftingError #-}
+operationalUnliftingError :: Text -> BuiltinError
+operationalUnliftingError =
+  BuiltinUnliftingEvaluationError . MkUnliftingEvaluationError . OperationalError . MkUnliftingError
+{-# INLINE operationalUnliftingError #-}
 
--- | See Note [Structural vs operational errors within builtins]
-_OperationalUnliftingError :: AsBuiltinError err => Prism' err UnliftingError
-_OperationalUnliftingError = _BuiltinUnliftingEvaluationError . _OperationalError
-{-# INLINE _OperationalUnliftingError #-}
+structuralUnliftingError :: Text -> BuiltinError
+structuralUnliftingError =
+  BuiltinUnliftingEvaluationError . MkUnliftingEvaluationError . StructuralError . MkUnliftingError
+{-# INLINE structuralUnliftingError #-}
 
-throwNotAConstant :: MonadError BuiltinError m => m void
-throwNotAConstant = throwing _StructuralUnliftingError "Not a constant"
-{-# INLINE throwNotAConstant #-}
+notAConstant :: BuiltinError
+notAConstant = structuralUnliftingError "Not a constant"
+{-# INLINE notAConstant #-}
 
-throwUnderTypeError :: MonadError BuiltinError m => m void
-throwUnderTypeError = throwing _StructuralUnliftingError "Panic: 'TypeError' was bypassed"
-{-# INLINE throwUnderTypeError #-}
+underTypeError :: BuiltinError
+underTypeError = structuralUnliftingError "Panic: 'TypeError' was bypassed"
+{-# INLINE underTypeError #-}
 
 -- | Add a log line to the logs.
 emit :: Text -> BuiltinResult ()
@@ -284,3 +223,7 @@ instance MonadError BuiltinError BuiltinResult where
     BuiltinFailure _ err `catchError` f = f err
     res                  `catchError` _ = res
     {-# INLINE catchError #-}
+
+builtinResultFailure :: BuiltinResult a
+builtinResultFailure = BuiltinFailure mempty BuiltinEvaluationFailure
+{-# INLINE builtinResultFailure #-}

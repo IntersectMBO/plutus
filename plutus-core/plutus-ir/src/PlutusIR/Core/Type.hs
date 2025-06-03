@@ -33,7 +33,7 @@ module PlutusIR.Core.Type
 
 import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (HasConstant (..), notAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
@@ -172,7 +172,7 @@ type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance HasConstant (Term tyname name uni fun ()) where
   asConstant (Constant _ val) = pure val
-  asConstant _                = throwNotAConstant
+  asConstant _                = throwError notAConstant
 
   fromConstant = Constant ()
 
