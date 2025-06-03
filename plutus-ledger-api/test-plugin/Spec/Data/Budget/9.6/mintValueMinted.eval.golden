@@ -1,0 +1,142 @@
+cpu: 16100
+mem: 200
+size: 136
+
+(lam
+  ds
+  [
+    [
+      (lam
+        mapMaybe
+        [
+          [
+            [ mapMaybe (lam eta [ (builtin unMapData) eta ]) ]
+            (lam ds [ (builtin mapData) ds ])
+          ]
+          (lam
+            map
+            [
+              (lam
+                l
+                (force
+                  [
+                    [
+                      [
+                        (force (builtin ifThenElse))
+                        [ (force (builtin nullList)) l ]
+                      ]
+                      (delay (constr 1))
+                    ]
+                    (delay (constr 0 l))
+                  ]
+                )
+              )
+              [
+                [
+                  [
+                    [ mapMaybe (builtin unIData) ] (lam i [ (builtin iData) i ])
+                  ]
+                  (lam
+                    x
+                    (force
+                      [
+                        [
+                          [
+                            (force (builtin ifThenElse))
+                            [
+                              [ (builtin lessThanEqualsInteger) x ]
+                              (con integer 0)
+                            ]
+                          ]
+                          (delay (constr 1))
+                        ]
+                        (delay (constr 0 x))
+                      ]
+                    )
+                  )
+                ]
+                map
+              ]
+            ]
+          )
+        ]
+      )
+      (lam
+        `$dUnsafeFromData`
+        (lam
+          `$dToData`
+          (lam
+            f
+            [
+              (lam s [ s s ])
+              (lam
+                s
+                (lam
+                  xs
+                  (force
+                    [
+                      [
+                        [ (force (force (builtin chooseList))) xs ]
+                        (delay (con (list (pair data data)) []))
+                      ]
+                      (delay
+                        [
+                          [
+                            (lam
+                              hd
+                              (force
+                                (case
+                                  [
+                                    f
+                                    [
+                                      `$dUnsafeFromData`
+                                      [ (force (force (builtin sndPair))) hd ]
+                                    ]
+                                  ]
+                                  (lam
+                                    v'
+                                    (delay
+                                      (lam
+                                        eta
+                                        [
+                                          [
+                                            (force (builtin mkCons))
+                                            [
+                                              [
+                                                (builtin mkPairData)
+                                                [
+                                                  (force
+                                                    (force (builtin fstPair))
+                                                  )
+                                                  hd
+                                                ]
+                                              ]
+                                              [ `$dToData` v' ]
+                                            ]
+                                          ]
+                                          [ [ s s ] eta ]
+                                        ]
+                                      )
+                                    )
+                                  )
+                                  (delay (lam x [ [ s s ] x ]))
+                                )
+                              )
+                            )
+                            [ (force (builtin headList)) xs ]
+                          ]
+                          [ (force (builtin tailList)) xs ]
+                        ]
+                      )
+                    ]
+                  )
+                )
+              )
+            ]
+          )
+        )
+      )
+    ]
+    ds
+  ]
+)

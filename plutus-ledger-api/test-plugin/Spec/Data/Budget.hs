@@ -19,6 +19,7 @@ import Test.Tasty.Extras
 import Data.Bifunctor
 import Data.String
 import PlutusLedgerApi.V1.Data.Value
+import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
 import PlutusTx.Code
 import PlutusTx.Data.AssocMap as Map
 import PlutusTx.Lift (liftCodeDef)
@@ -30,6 +31,8 @@ tests =
   runTestNested ["test-plugin", "Spec", "Data", "Budget"] . pure . testNestedGhc $
       [ goldenPirReadable "gt" compiledGt
       , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+      , goldenEvalCekCatchBudget "mintValueMinted" compiledMintValueMinted
+      , goldenEvalCekCatchBudget "mintValueBurned" compiledMintValueBurned
       ]
         ++ concatMap
           ( \(TestCase name code) ->
@@ -43,6 +46,12 @@ compiledGt = $$(compile [||gt||])
 
 compiledGeq :: CompiledCode (Value -> Value -> Bool)
 compiledGeq = $$(compile [||geq||])
+
+compiledMintValueMinted :: CompiledCode (MintValue.MintValue -> Value)
+compiledMintValueMinted = $$(compile [||MintValue.mintValueMinted||])
+
+compiledMintValueBurned :: CompiledCode (MintValue.MintValue -> Value)
+compiledMintValueBurned = $$(compile [||MintValue.mintValueBurned||])
 
 compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Integer)
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
