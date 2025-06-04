@@ -241,23 +241,3 @@ concat = $$(compile [||\xss -> L.concat xss||])
 
 concatMap :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 concatMap = $$(compile [||\xss -> L.concatMap (L.replicate 2) xss||])
-
-splitAt
-  :: CompiledCode
-       (L.BuiltinList Integer -> BuiltinPair (L.BuiltinList Integer) (L.BuiltinList Integer))
-splitAt = undefined -- \$$(compile [|| \xs -> L.splitAt 2 xs ||])
-
-partition :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-partition = undefined -- \$$(compile [|| L.partition ||])
-
-sort :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sort = undefined -- \$$(compile [|| \xs -> L.sort xs ||])
-
-sortBy :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
-sortBy = undefined -- \$$(compile [|| \xs -> L.sortBy (<=) xs ||])
-
-unzip :: CompiledCode (L.BuiltinList (BuiltinPair a b) -> L.BuiltinList Integer)
-unzip = undefined -- \$$(compile [|| \xs -> L.unzip xs ||])
-
-zip :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList (BuiltinPair Integer Integer))
-zip = undefined -- \$$(compile [|| \xs -> L.zip xs xs ||])
