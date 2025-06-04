@@ -18,7 +18,7 @@ import Generators (test_parsing)
 import Scoping.Spec (test_names)
 import Transform.CaseOfCase.Spec (test_caseOfCase)
 import Transform.Inline.Spec (test_inline)
-import Transform.Simplify (test_simplify)
+import Transform.Simplify.Spec (test_simplify)
 
 import Test.Tasty
 

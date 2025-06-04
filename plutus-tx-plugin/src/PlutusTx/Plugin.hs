@@ -411,7 +411,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useToOpaque
            , 'useFromOpaque
            , 'mkNilOpaque
-           , 'PlutusTx.Builtins.equalsInteger           
+           , 'PlutusTx.Builtins.equalsInteger
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =

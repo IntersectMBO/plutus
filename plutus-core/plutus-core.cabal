@@ -463,8 +463,8 @@ library untyped-plutus-core-testlib
     Scoping.Spec
     Transform.CaseOfCase.Spec
     Transform.Inline.Spec
-    Transform.Simplify
     Transform.Simplify.Lib
+    Transform.Simplify.Spec
 
   build-depends:
     , base                             >=4.9   && <5

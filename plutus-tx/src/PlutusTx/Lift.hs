@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 module PlutusTx.Lift (
   safeLiftWith,
@@ -251,7 +251,7 @@ unsafely
 unsafely ma = runQuote $ do
   run <- runExceptT ma
   case run of
-    Left e -> throw e
+    Left e  -> throw e
     Right t -> pure t
 
 {-| Get a Plutus Core term corresponding to the given value, throwing any errors that

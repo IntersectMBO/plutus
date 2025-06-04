@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Transform.Simplify where
+module Transform.Simplify.Spec where
 
 import Data.Text (Text)
 import Data.Vector qualified as V
