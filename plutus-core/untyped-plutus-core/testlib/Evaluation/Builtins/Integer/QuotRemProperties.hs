@@ -31,8 +31,8 @@ prop_quot_rem_compatible (integer -> a) (NonZero (integer -> b)) =
   in evalOkEq t a
 
 -- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k
-prop_rem_1 :: Integer -> NonZero Integer -> Property
-prop_rem_1 (integer -> k) (NonZero (integer -> b)) =
+prop_quot_rem_multiple :: Integer -> NonZero Integer -> Property
+prop_quot_rem_multiple (integer -> k) (NonZero (integer -> b)) =
     let t1 = quotientInteger (multiplyInteger k b) b
         t2 = remainderInteger (multiplyInteger k b) b
     in evalOkEq t1 k .&&. evalOkEq t2 zero
@@ -61,8 +61,9 @@ prop_rem_additive_neg (NonPositive (integer -> a)) (NonPositive (integer -> a'))
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
   in evalOkEq t1 t2
 
--- For fixed b, `remainderInteger _ b` is a multiplicative homomorphism:
--- (a*a') `rem` b = ((a `rem` b) * (a' `rem` b)) `rem` b
+-- Somewhat unexpectedly, for fixed b, `remainderInteger _ b` is a
+-- multiplicative homomorphism: : (a*a') `rem` b = ((a `rem` b) * (a' `rem` b))
+-- `rem` b
 prop_rem_multiplicative :: Integer -> Integer -> NonZero Integer -> Property
 prop_rem_multiplicative (integer -> a) (integer -> a') (NonZero (integer -> b)) =
   let t1 = remainderInteger (multiplyInteger a a') b
@@ -185,22 +186,20 @@ test_integer_quot_rem_properties =
   [
     testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
   , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
-  , testProp "rem_1" prop_rem_1
   , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
+  , testProp "quotientInteger and remainderInteger behave sensibly on multiples of the divisor" prop_quot_rem_multiple
   , testProp "remainderInteger _ b is additive on non-negative inputs" prop_rem_additive_pos
   , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
   , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
-  , testProp "remainderInteger size   " prop_rem_size
-  , testProp "remainderInteger size   " prop_rem_size
-  , testProp "quotientInteger + + = +"  prop_quot_pos_pos
-  , testProp "quotientInteger - + = -"  prop_quot_neg_pos
-  , testProp "quotientInteger + - = -"  prop_quot_pos_neg
-  , testProp "quotientInteger - - = +"  prop_quot_neg_neg
-  , testProp "remainderInteger + + = +" prop_rem_pos_pos
-  , testProp "remainderInteger - + = -" prop_rem_neg_pos
-  , testProp "remainderInteger + - = +" prop_rem_pos_neg
-  , testProp "remainderInteger - - = -" prop_rem_neg_neg
---  , testProp "prop1" prop1
+  , testProp "remainderInteger size correct" prop_rem_size
+  , testProp "quotientInteger (>= 0) (> 0) >= 0"  prop_quot_pos_pos
+  , testProp "quotientInteger (<= 0) (> 0) <= 0"  prop_quot_neg_pos
+  , testProp "quotientInteger (>= 0) (< 0) <= 0"  prop_quot_pos_neg
+  , testProp "quotientInteger (<= 0) (< 0) >= 0"  prop_quot_neg_neg
+  , testProp "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
+  , testProp "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
+  , testProp "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
+  , testProp "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
   ]
 
 {-
