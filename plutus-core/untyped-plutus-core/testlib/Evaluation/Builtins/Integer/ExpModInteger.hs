@@ -17,7 +17,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
-numberOfTests = 250
+numberOfTests = 300
 
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
@@ -114,7 +114,7 @@ prop_negated_exponent_inverse = do
   let t1 = expModInteger a e m
       t2 = expModInteger a (-e) m
       t = mkApp2 PLC.ModInteger (mkApp2 PLC.MultiplyInteger t1 t2) (mkConstant () m)
-  pure $ evalOkEq t one  -- For m=1 this would be zero.
+  pure $ evalOkEq t one  -- For m=1 this would zero.
 
 -- (ab)^e mod m = a^e * b^e mod m
 prop_multiplicative :: Gen Property

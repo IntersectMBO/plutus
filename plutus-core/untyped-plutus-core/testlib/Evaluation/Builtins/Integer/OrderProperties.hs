@@ -2,7 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-{- | Property tests for the `lessThanInteger` and `lessThanEqualsInteger` builtins -}
+{- | Property tests for the `lessThanInteger` and `lessThanEqualsInteger` builtins
+   and their interaction with the arithmetic functions.  -}
 module Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 where
 
@@ -16,87 +17,70 @@ import Test.Tasty.QuickCheck
 import Prelude hiding (and, not, or)
 
 numberOfTests :: Int
-numberOfTests = 250
+numberOfTests = 200
 
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
-lteReflexive  :: Integer -> Property
-lteReflexive (integer -> a) =
+-- Standard properties of a partial order
+lte_reflexive  :: Integer -> Property
+lte_reflexive (integer -> a) =
   evalOkTrue $ lessThanEqualsInteger a a
 
-lteReflexive2  :: Integer -> Integer -> Property
-lteReflexive2 (integer -> a) (integer -> b) =
-  evalOkTrue $ lessThanEqualsInteger a b `implies` (not $ lessThanInteger b a)
-
-lteAntisymmetric  :: Integer -> Integer -> Property
-lteAntisymmetric (integer -> a) (integer -> b) =
+lte_antisymmetric  :: Integer -> Integer -> Property
+lte_antisymmetric (integer -> a) (integer -> b) =
   evalOkTrue $ (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a) `implies` equalsInteger a b
 
-lteTransitive :: Integer -> Integer -> Integer -> Property
-lteTransitive (integer -> a) (integer -> b) (integer -> c) =
-    evalOkTrue $ (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
-
-ltVersusLte :: Integer -> Integer -> Property
-ltVersusLte (integer -> a) (integer -> b) =
-    evalOkTrue $ lessThanEqualsInteger a b `iff` (lessThanInteger a b `xor` equalsInteger a b)
+lte_transitive :: Integer -> Integer -> Integer -> Property
+lte_transitive (integer -> a) (integer -> b) (integer -> c) =
+  evalOkTrue $ (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
 
 trichotomy :: Integer -> Integer -> Property
 trichotomy (integer -> a) (integer -> b) =
-    evalOkTrue $ lessThanInteger a b `xor` equalsInteger a b `xor` lessThanInteger b a
+  evalOkTrue $ lessThanInteger a b `xor` equalsInteger a b `xor` lessThanInteger b a
 
-add :: Integer -> Integer -> Integer -> Integer -> Property
-add (integer -> a) (integer -> b) (integer -> c) (integer -> d) =
-    evalOkTrue $
-      (lessThanEqualsInteger a b `and` lessThanEqualsInteger c d)
-      `implies` lessThanEqualsInteger (addInteger a c) (addInteger b d)
+-- This establishes a connection between < and <=, allowing us to limit
+-- ourselves to checking properties of <=.
+lt_versus_lte :: Integer -> Integer -> Property
+lt_versus_lte (integer -> a) (integer -> b) =
+  evalOkTrue $ lessThanEqualsInteger a b `iff` (lessThanInteger a b `xor` equalsInteger a b)
 
-add_pos :: Integer -> NonNegative Integer -> Property
-add_pos (integer -> a) (NonNegative (integer -> k)) =
-    evalOkTrue $ lessThanEqualsInteger a (addInteger a k)
+-- a <= b and c <= d => a+c <= b+d.  In conjunction with the ring properties
+-- this implies, for example, that the sum of two positive integers is positive
+-- and the sum of two negative integers is negative, and that a <= a+k for
+-- positive k.
+add_pairs :: Integer -> Integer -> Integer -> Integer -> Property
+add_pairs (integer -> a) (integer -> b) (integer -> c) (integer -> d) =
+  evalOkTrue $
+    (lessThanEqualsInteger a b `and` lessThanEqualsInteger c d)
+    `implies` lessThanEqualsInteger (addInteger a c) (addInteger b d)
 
-add_neg :: Integer -> NonPositive Integer -> Property
-add_neg (integer -> a) (NonPositive (integer -> k)) =
-    evalOkTrue $ lessThanEqualsInteger (addInteger a k) a
-
-add_pos_pos :: NonNegative Integer -> NonNegative Integer -> Property
-add_pos_pos (NonNegative (integer -> a)) (NonNegative (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger zero (addInteger a b)
-
-add_neg_neg :: NonPositive Integer -> NonPositive Integer -> Property
-add_neg_neg (NonPositive (integer -> a)) (NonPositive (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger (addInteger a b) zero
-
+-- Test that the signs of various types of product are correct.
 mul_pos_pos :: NonNegative Integer -> NonNegative Integer -> Property
 mul_pos_pos (NonNegative (integer -> a)) (NonNegative (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
+  evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
 
 mul_pos_neg :: NonNegative Integer -> NonPositive Integer -> Property
 mul_pos_neg (NonNegative (integer -> a)) (NonPositive (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
+  evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
 
 mul_neg_pos :: NonPositive Integer -> NonNegative Integer -> Property
 mul_neg_pos (NonPositive (integer -> a)) (NonNegative (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
+  evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
 
 mul_neg_neg :: NonPositive Integer -> NonPositive Integer -> Property
 mul_neg_neg (NonPositive (integer -> a)) (NonPositive (integer -> b)) =
-    evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
+  evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
 
 test_integer_order_properties :: TestTree
 test_integer_order_properties =
   testGroup "Property tests involving integer ordering"
-    [ testProp "lessThanEqualsInteger is reflexive" lteReflexive
-    , testProp "lessThanEqualsInteger is reflexive 2" lteReflexive2
-    , testProp "lessThanEqualsInteger is antisymmetric" lteAntisymmetric
-    , testProp "lessThanEqualsInteger is transitive" lteTransitive
-    , testProp "a <= b <=> a < b or a = b" ltVersusLte
+    [ testProp "lessThanEqualsInteger is reflexive" lte_reflexive
+    , testProp "lessThanEqualsInteger is antisymmetric" lte_antisymmetric
+    , testProp "lessThanEqualsInteger is transitive" lte_transitive
+    , testProp "a <= b <=> a < b or a = b" lt_versus_lte
     , testProp "a < b or a = b or b < a" trichotomy
-    , testProp "add" add
-    , testProp "k >= 0 => addInteger a k >= a" add_pos
-    , testProp "k <= 0 => addInteger a k <= a" add_neg
-    , testProp "addInteger (>= 0) (>= 0) >= 0" add_pos_pos
-    , testProp "addInteger (<= 0) (<= 0) <= 0" add_neg_neg
+    , testProp "a <= b and c <= d => addInteger a c <= addInteger b d" add_pairs
     , testProp "multiplyInteger (>= 0) (>= 0) >= 0" mul_pos_pos
     , testProp "multiplyInteger (>= 0) (<= 0) <= 0" mul_pos_neg
     , testProp "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos

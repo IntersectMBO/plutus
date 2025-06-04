@@ -17,7 +17,7 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 numberOfTests :: Int
-numberOfTests = 250
+numberOfTests = 400
 
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
