@@ -13,7 +13,6 @@ import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Test (goldenBundle)
 import PlutusTx.TH (compile)
-import Prelude (undefined)
 import System.FilePath ((</>))
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 
