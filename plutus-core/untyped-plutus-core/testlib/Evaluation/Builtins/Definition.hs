@@ -25,7 +25,7 @@ import Evaluation.Builtins.Common (typecheckAnd, typecheckEvaluateCek, typecheck
                                    typecheckReadKnownCek)
 import Evaluation.Builtins.Conversion qualified as Conversion
 import Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
-import Evaluation.Builtins.Integer.ExpModInteger (test_expModInteger_properties)
+import Evaluation.Builtins.Integer.ExpModIntegerProperties (test_expModInteger_properties)
 import Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)

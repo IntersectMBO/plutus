@@ -13,16 +13,19 @@ import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 100
+numberOfTests :: Int
+numberOfTests = 250
+
+testProp :: Testable prop => TestName -> prop -> TestTree
+testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
 prop_quot_0_fails :: Integer -> Property
 prop_quot_0_fails (integer -> a) =
-  fails (quotientInteger a zero)
+  fails $ quotientInteger a zero
 
 prop_rem_0_fails :: Integer -> Property
 prop_rem_0_fails (integer -> a) =
-  fails (remainderInteger a zero)
+  fails $ remainderInteger a zero
 
 -- b /= 0 => a = b * (a `quot` b) + (a `rem` b)
 prop_quot_rem_compatible :: Integer -> NonZero Integer -> Property
@@ -79,157 +82,62 @@ prop_rem_size (integer -> a) (NonZero (integer -> b)) =
   let r = C.abs (remainderInteger a b)
       t1 = lessThanEqualsInteger zero r
       t2 = lessThanInteger r (C.abs b)
-  in evalOkEq t1 true .&&. evalOkEq t2 true
+  in evalOkTrue t1 .&&. evalOkTrue t2
 
-ge0 :: PlcTerm -> PlcTerm
-ge0 t = lessThanEqualsInteger zero t
-
-le0 :: PlcTerm -> PlcTerm
-le0 t = lessThanEqualsInteger t zero
-
-{- Sign tests for quotientInteger. We test that the signs are as follows for
-   q = quotientInteger a b:
-
-   a b   q
-  ---------
-   + +   +
-   - +   -
-   + -   -
-   - -   +
--}
+-- a >=0 && b > 0 => a `quot` b >= 0 and a `rem` b >= 0
+-- a <=0 && b > 0 => a `quot` b <= 0 and a `rem` b <= 0
+-- a >=0 && b < 0 => a `quot` b <= 0 and a `rem` b >= 0
+-- a < 0 && b < 0 => a `quot` b >= 0 and a `rem` b <= 0
 
 prop_quot_pos_pos :: NonNegative Integer -> Positive Integer -> Property
 prop_quot_pos_pos (NonNegative (integer -> a)) (Positive (integer -> b)) =
-  let t = ge0 (quotientInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ ge0 (quotientInteger a b)
 
 prop_quot_neg_pos :: NonPositive Integer -> Positive Integer -> Property
 prop_quot_neg_pos (NonPositive (integer -> a)) (Positive (integer -> b)) =
-  let t = le0 (quotientInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ le0 (quotientInteger a b)
 
 prop_quot_pos_neg :: NonNegative Integer -> Negative Integer -> Property
 prop_quot_pos_neg (NonNegative (integer -> a)) (Negative (integer -> b)) =
-  let t = le0 (quotientInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ le0 (quotientInteger a b)
 
 prop_quot_neg_neg :: NonPositive Integer -> Negative Integer -> Property
 prop_quot_neg_neg (NonPositive (integer -> a)) (Negative (integer -> b)) =
-  let t =  ge0 (quotientInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ ge0 (quotientInteger a b)
 
-{- Sign tests for remainderInteger. We test that the signs are as follows for
-   r = remainderInteger a b:
-
-   a b   r
-  ---------
-   + +   +
-   - +   -
-   + -   +
-   - -   -
--}
 prop_rem_pos_pos :: (NonNegative Integer) -> (Positive Integer) -> Property
 prop_rem_pos_pos (NonNegative (integer -> a)) (Positive (integer -> b)) =
-  let t = ge0 (remainderInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ ge0 (remainderInteger a b)
 
 prop_rem_neg_pos :: (NonPositive Integer) -> (Positive Integer) -> Property
 prop_rem_neg_pos (NonPositive (integer -> a)) (Positive (integer -> b)) =
-  let t = le0 (remainderInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ le0 (remainderInteger a b)
 
 prop_rem_pos_neg :: (NonNegative Integer) -> (Negative Integer) -> Property
 prop_rem_pos_neg (NonNegative (integer -> a)) (Negative (integer -> b)) =
-  let t = ge0 (remainderInteger a b)
-  in evalOkEq t true
+  evalOkTrue $ ge0 (remainderInteger a b)
 
 prop_rem_neg_neg :: (NonPositive Integer) -> (Negative Integer) -> Property
 prop_rem_neg_neg (NonPositive (integer -> a)) (Negative (integer -> b)) =
-  let t = le0 (remainderInteger a b)
-  in evalOkEq t true
-
-{- Sign tests.
-   0 <= a `mod` b < b
-   (a+kb) `mod` b = a `mod` b
--}
-
-{-
-        99 div  44 =   2     99 quot  44 =   2
-       -99 div  44 =  -3    -99 quot  44 =  -2
-        99 div -44 =  -3     99 quot -44 =  -2
-       -99 div -44 =   2    -99 quot -44 =   2
-
-        88 div  44 =   2     88 quot  44 =   2
-       -88 div  44 =  -2    -88 quot  44 =  -2
-        88 div -44 =  -2     88 quot -44 =  -2
-       -88 div -44 =   2    -88 quot -44 =   2
-
-        99 mod  44 =  11     99 rem   44 =  11
-       -99 mod  44 =  33    -99 rem   44 = -11
-        99 mod -44 = -33     99 rem  -44 =  11
-       -99 mod -44 = -11    -99 rem  -44 = -11
--}
-
--- a >=0 && b > 0 => a div b >= 0 and a mod b >= 0
--- a <=0 && b > 0 => a div b <= 0 and a mod b >= 0
--- a >=0 && b < 0 => a div b <= 0 and a mod b <= 0
--- a < 0 && b < 0 => a div b >= 0 and a mod b <= 0
-
--- For b > 0, 0 <= a `mod` b < b;
--- For b < 0, b <  a `mod` b <= 0
+  evalOkTrue $ le0 (remainderInteger a b)
 
 test_integer_quot_rem_properties :: TestTree
 test_integer_quot_rem_properties =
-  let testProp s p = testProperty s $ withNTests p
-  in
   testGroup "Property tests for quotientInteger and remainderInteger"
-  [
-    testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
-  , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
-  , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
-  , testProp "quotientInteger and remainderInteger behave sensibly on multiples of the divisor" prop_quot_rem_multiple
-  , testProp "remainderInteger _ b is additive on non-negative inputs" prop_rem_additive_pos
-  , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
-  , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
-  , testProp "remainderInteger size correct" prop_rem_size
-  , testProp "quotientInteger (>= 0) (> 0) >= 0"  prop_quot_pos_pos
-  , testProp "quotientInteger (<= 0) (> 0) <= 0"  prop_quot_neg_pos
-  , testProp "quotientInteger (>= 0) (< 0) <= 0"  prop_quot_pos_neg
-  , testProp "quotientInteger (<= 0) (< 0) >= 0"  prop_quot_neg_neg
-  , testProp "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
-  , testProp "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
-  , testProp "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
-  , testProp "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
-  ]
-
-{-
-Div
-
- a b   q
----------
- + +   +
- - +   -
- + -   -
- - -   +
-
-Mod
-
- a b   r
----------
- + +   +
- - +   +
- + -   -
- - -   -
-
-
-        99 div  44 =   2     99 quot  44 =   2
-       -99 div  44 =  -3    -99 quot  44 =  -2
-        99 div -44 =  -3     99 quot -44 =  -2
-       -99 div -44 =   2    -99 quot -44 =   2
-
-        99 mod  44 =  11     99 rem   44 =  11
-       -99 mod  44 =  33    -99 rem   44 = -11
-        99 mod -44 = -33     99 rem  -44 =  11
-       -99 mod -44 = -11    -99 rem  -44 = -11
-
--}
+    [ testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
+    , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
+    , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
+    , testProp "quotientInteger and remainderInteger behave sensibly on multiples of the divisor" prop_quot_rem_multiple
+    , testProp "remainderInteger _ b is additive on non-negative inputs" prop_rem_additive_pos
+    , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
+    , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
+    , testProp "remainderInteger size correct" prop_rem_size
+    , testProp "quotientInteger (>= 0) (> 0) >= 0"  prop_quot_pos_pos
+    , testProp "quotientInteger (<= 0) (> 0) <= 0"  prop_quot_neg_pos
+    , testProp "quotientInteger (>= 0) (< 0) <= 0"  prop_quot_pos_neg
+    , testProp "quotientInteger (<= 0) (< 0) >= 0"  prop_quot_neg_neg
+    , testProp "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
+    , testProp "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
+    , testProp "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg
+    , testProp "remainderInteger (<= 0) (< 0) <= 0" prop_rem_neg_neg
+    ]

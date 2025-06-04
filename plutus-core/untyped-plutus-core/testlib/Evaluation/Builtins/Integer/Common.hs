@@ -39,6 +39,12 @@ lessThanInteger a b = mkIterAppNoAnn (builtin () PLC.LessThanInteger) [a, b]
 lessThanEqualsInteger :: PlcTerm -> PlcTerm -> PlcTerm
 lessThanEqualsInteger a b = mkIterAppNoAnn (builtin () PLC.LessThanEqualsInteger) [a, b]
 
+le0 :: PlcTerm -> PlcTerm
+le0 t = lessThanEqualsInteger t zero
+
+ge0 :: PlcTerm -> PlcTerm
+ge0 t = lessThanEqualsInteger zero t
+
 iteAt :: PlcType -> PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
 iteAt ty b t f =
   let ite = tyInst () (builtin () PLC.IfThenElse) ty
