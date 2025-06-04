@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 
 {- | Property tests for the `lessThanInteger` and `lessThanEqualsInteger` builtins
-   and their interaction with the arithmetic functions.  -}
+   and their interaction with the arithmetic functions. -}
 module Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 where
 
