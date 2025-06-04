@@ -16,74 +16,66 @@ import Test.Tasty.QuickCheck
 import Prelude hiding (and, not, or)
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 100
+withNTests = withMaxSuccess 10000
 
 lteReflexive  :: Integer -> Property
 lteReflexive (integer -> a) =
-  let t = lessThanEqualsInteger a a
-  in evalOkTrue t
+  evalOkTrue $ lessThanEqualsInteger a a
 
 lteAntisymmetric  :: Integer -> Integer -> Property
 lteAntisymmetric (integer -> a) (integer -> b) =
-  let t = ((lessThanEqualsInteger a b) `and` (lessThanEqualsInteger b a)) `implies` (equalsInteger a b)
-  in evalOkTrue t
+  evalOkTrue $ ((lessThanEqualsInteger a b) `and` (lessThanEqualsInteger b a)) `implies` (equalsInteger a b)
 
 lteTransitive :: Integer -> Integer -> Integer -> Property
 lteTransitive (integer -> a) (integer -> b) (integer -> c) =
-    let t = ((lessThanEqualsInteger a b) `and` (lessThanEqualsInteger b c)) `implies` (lessThanEqualsInteger a c)
-    in evalOkTrue t
+    evalOkTrue $ ((lessThanEqualsInteger a b) `and` (lessThanEqualsInteger b c)) `implies` (lessThanEqualsInteger a c)
 
 ltVersusLte :: Integer -> Integer -> Property
 ltVersusLte (integer -> a) (integer -> b) =
-    let t = (lessThanEqualsInteger a b) `iff` ((lessThanInteger a b) `xor` (equalsInteger a b))
-    in evalOkTrue t
+    evalOkTrue $ (lessThanEqualsInteger a b) `iff` ((lessThanInteger a b) `xor` (equalsInteger a b))
 
 trichotomy :: Integer -> Integer -> Property
 trichotomy (integer -> a) (integer -> b) =
-    let t1 = lessThanInteger a b
-        t2 = equalsInteger a b
-        t3 = lessThanInteger b a
-    in evalOkTrue (t1 `xor` t2 `xor` t3)
+    evalOkTrue (lessThanInteger a b `xor` equalsInteger a b `xor` lessThanInteger b a)
+
+add :: Integer -> Integer -> Integer -> Integer -> Property
+add (integer -> a) (integer -> b) (integer -> c) (integer -> d) =
+    evalOkTrue $
+      ((lessThanEqualsInteger a b) `and` (lessThanEqualsInteger c d))
+      `implies` lessThanEqualsInteger (addInteger a c) (addInteger b d)
 
 add_pos :: Integer -> NonNegative Integer -> Property
 add_pos (integer -> a) (NonNegative (integer -> k)) =
-    let t = lessThanEqualsInteger a (addInteger a k)
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger a (addInteger a k)
 
 add_neg :: Integer -> NonPositive Integer -> Property
 add_neg (integer -> a) (NonPositive (integer -> k)) =
-    let t = lessThanEqualsInteger (addInteger a k) a
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger (addInteger a k) a
 
 add_pos_pos :: NonNegative Integer -> NonNegative Integer -> Property
 add_pos_pos (NonNegative (integer -> a)) (NonNegative (integer -> b)) =
-    let t = lessThanEqualsInteger zero (addInteger a b)
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger zero (addInteger a b)
 
 add_neg_neg :: NonPositive Integer -> NonPositive Integer -> Property
 add_neg_neg (NonPositive (integer -> a)) (NonPositive (integer -> b)) =
-    let t = lessThanEqualsInteger (addInteger a b) zero
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger (addInteger a b) zero
 
 mul_pos_pos :: NonNegative Integer -> NonNegative Integer -> Property
 mul_pos_pos (NonNegative (integer -> a)) (NonNegative (integer -> b)) =
-    let t = lessThanEqualsInteger zero (multiplyInteger a b)
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
 
 mul_pos_neg :: NonNegative Integer -> NonPositive Integer -> Property
 mul_pos_neg (NonNegative (integer -> a)) (NonPositive (integer -> b)) =
-    let t = lessThanEqualsInteger (multiplyInteger a b) zero
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
 
 mul_neg_pos :: NonPositive Integer -> NonNegative Integer -> Property
 mul_neg_pos (NonPositive (integer -> a)) (NonNegative (integer -> b)) =
-    let t = lessThanEqualsInteger (multiplyInteger a b) zero
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger (multiplyInteger a b) zero
 
 mul_neg_neg :: NonPositive Integer -> NonPositive Integer -> Property
 mul_neg_neg (NonPositive (integer -> a)) (NonPositive (integer -> b)) =
-    let t = lessThanEqualsInteger zero (multiplyInteger a b)
-    in evalOkTrue t
+    evalOkTrue $ lessThanEqualsInteger zero (multiplyInteger a b)
+
 {-
   a = a
 
@@ -117,8 +109,9 @@ test_integer_order_properties =
   [ testProp "lessThanEqualsInteger is reflexive" lteReflexive
   , testProp "lessThanEqualsInteger is antisymmetric" lteAntisymmetric
   , testProp "lessThanEqualsInteger is transitive" lteTransitive
-  , testProp "lessThanVersusLessThanEquals" ltVersusLte
-  , testProp "trichotomy holds" trichotomy
+  , testProp "a <= b <=> a < b or a = b" ltVersusLte
+  , testProp "a < b or a = b or b < a" trichotomy
+  , testProp "add" add
   , testProp "k >= 0 => addInteger a k >= a" add_pos
   , testProp "k <= 0 => addInteger a k <= a" add_neg
   , testProp "addInteger (>= 0) (>= 0) >= 0" add_pos_pos
@@ -127,6 +120,5 @@ test_integer_order_properties =
   , testProp "multiplyInteger (>= 0) (<= 0) <= 0" mul_pos_neg
   , testProp "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos
   , testProp "multiplyInteger (<= 0) (<= 0) >= 0" mul_neg_neg
-  , testProp "a <= b <=> a < b or a = b" lte1
-  , testProp "a <= b <=> a < b or a = b" lte2
   ]
+
