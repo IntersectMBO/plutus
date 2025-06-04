@@ -16,7 +16,7 @@ import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
 import Generators (test_parsing)
 import Scoping.Spec (test_names)
-import Transform.CaseOfCase.Test (test_caseOfCase)
+import Transform.CaseOfCase.Spec (test_caseOfCase)
 import Transform.Inline.Spec (test_inline)
 import Transform.Simplify (test_simplify)
 

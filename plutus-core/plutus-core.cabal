@@ -461,7 +461,7 @@ library untyped-plutus-core-testlib
     Flat.Spec
     Generators
     Scoping.Spec
-    Transform.CaseOfCase.Test
+    Transform.CaseOfCase.Spec
     Transform.Inline.Spec
     Transform.Simplify
     Transform.Simplify.Lib
