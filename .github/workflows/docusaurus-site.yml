@@ -2,6 +2,7 @@
 # 
 # On pull requests, this workflow builds the site and deploys a temporary preview
 # to gh-pages.
+#
 # On push to master or on workflow dispatch it deploys the site to: 
 # https://plutus.cardano.intersectmbo.org/docs
 
