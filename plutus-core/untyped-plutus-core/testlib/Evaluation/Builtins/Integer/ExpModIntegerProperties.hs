@@ -60,7 +60,7 @@ prop_in_range = do
       ub = mkApp2 PLC.LessThanEqualsInteger t (mkApp2 PLC.SubtractInteger (integer m) (integer 1))
   pure $ evalOkTrue lb .&&. evalOkTrue ub
 
--- For m>1, a^0 = 1 (equals 1, not congruent to 1)
+-- For m > 1, a^0 = 1 (equals 1, not congruent to 1)
 prop_power_zero :: Gen Property
 prop_power_zero = do
   a <- arbitrary
@@ -68,7 +68,7 @@ prop_power_zero = do
   let t = expModInteger a 0 m
   pure $ evalOkEq t one
 
--- For m>=1, expModInteger a 1 m = a (mod m) for all a
+-- For m >= 1, expModInteger a 1 m = a (mod m) for all a
 prop_power_one :: Gen Property
 prop_power_one = do
   a <- arbitrary
@@ -77,7 +77,7 @@ prop_power_one = do
       t2 = mkApp2 PLC.ModInteger (mkConstant () a) (mkConstant () m)
   pure $ evalOkEq t1 t2
 
--- For m >= 1 and e>=0, expModInteger a e m exists for all a
+-- For m >= 1 and e >= 0, expModInteger a e m exists for all a
 prop_positive_exponent :: Gen Property
 prop_positive_exponent = do
   e <- arbitrary `suchThat` (>=0)
@@ -86,7 +86,7 @@ prop_positive_exponent = do
   let t = expModInteger a e m
   pure $ ok t
 
--- If m>1, e<0, and gcd a m = 1, expModInteger a e m succeeds
+-- If m > 1, e < 0, and gcd a m = 1, expModInteger a e m succeeds
 prop_negative_exponent_good :: Gen Property
 prop_negative_exponent_good = do
   m <- arbitrary `suchThat` (>1)
@@ -95,7 +95,7 @@ prop_negative_exponent_good = do
   let t = expModInteger a e m
   pure $ ok t
 
--- If m>1, e<0, and gcd a m /= 1, expModInteger a e m fails
+-- If m > 1, e < 0, and gcd a m /= 1, expModInteger a e m fails
 prop_negative_exponent_bad :: Gen Property
 prop_negative_exponent_bad = do
   m <- arbitrary `suchThat` (>1)
@@ -104,7 +104,7 @@ prop_negative_exponent_bad = do
   let t = expModInteger a e m
   pure $ fails t
 
--- If m>1 and gcd a m = 1, expModInteger a e m succeeds for all e and is the
+-- If m > 1 and gcd a m = 1, expModInteger a e m succeeds for all e and is the
 -- multiplicative inverse of expModInteger a (-e) m modulo m.
 prop_negated_exponent_inverse :: Gen Property
 prop_negated_exponent_inverse = do
@@ -114,7 +114,7 @@ prop_negated_exponent_inverse = do
   let t1 = expModInteger a e m
       t2 = expModInteger a (-e) m
       t = mkApp2 PLC.ModInteger (mkApp2 PLC.MultiplyInteger t1 t2) (mkConstant () m)
-  pure $ evalOkEq t one  -- For m=1 this would zero.
+  pure $ evalOkEq t one  -- For m=1 this would be zero.
 
 -- (ab)^e mod m = a^e * b^e mod m
 prop_multiplicative :: Gen Property

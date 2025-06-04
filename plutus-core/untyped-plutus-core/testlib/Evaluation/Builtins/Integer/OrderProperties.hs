@@ -85,7 +85,7 @@ mul_neg_neg (NonPositive (integer -> a)) (NonPositive (integer -> b)) =
 
 test_integer_order_properties :: TestTree
 test_integer_order_properties =
-  testGroup "Property tests for lessThanInteger and lessThanEqualsInteger"
+  testGroup "Property tests involving integer ordering"
     [ testProp "lessThanEqualsInteger is reflexive" lteReflexive
     , testProp "lessThanEqualsInteger is reflexive 2" lteReflexive2
     , testProp "lessThanEqualsInteger is antisymmetric" lteAntisymmetric
