@@ -1,12 +1,18 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Builtin.Case where
 
 import PlutusCore.Core.Type (Type, UniOf)
 import PlutusCore.Name.Unique
 
+import Control.DeepSeq (NFData (..), rwhnf)
 import Data.Text (Text)
 import Data.Vector (Vector)
+import NoThunks.Class
+import Text.PrettyBy (display)
 import Universe
 
 class AnnotateCaseBuiltin uni where
@@ -23,3 +29,19 @@ class CaseBuiltin uni where
     -- or fail if the constant doesn't correspond to any of the branches (or casing on constants of
     -- this type isn't supported at all).
     caseBuiltin :: UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term
+
+data CaserBuiltin uni = CaserBuiltin
+    { unCaserBuiltin
+        :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term)
+    }
+
+instance NFData (CaserBuiltin uni) where
+    rnf = rwhnf
+
+deriving via OnlyCheckWhnfNamed "PlutusCore.Builtin.Case.CaserBuiltin" (CaserBuiltin uni)
+    instance NoThunks (CaserBuiltin uni)
+
+unavailableCaserBuiltin :: Int -> CaserBuiltin uni
+unavailableCaserBuiltin ver =
+    CaserBuiltin $ \_ _ -> Left $
+        "'case' on values of built-in types is not supported in protocol version " <> display ver

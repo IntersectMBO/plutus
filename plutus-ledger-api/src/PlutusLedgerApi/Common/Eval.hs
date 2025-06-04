@@ -21,7 +21,7 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
-import PlutusCore.Builtin (readKnown)
+import PlutusCore.Builtin (CaserBuiltin, readKnown)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -154,6 +154,7 @@ data EvaluationContext = EvaluationContext
     , _evalCtxMachParsCache :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
       -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
       -- current language version.
+    , _evalCtxCaserBuiltin  :: MajorProtocolVersion -> CaserBuiltin DefaultUni
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
@@ -176,10 +177,12 @@ mkDynEvaluationContext
     => PlutusLedgerLanguage
     -> [BuiltinSemanticsVariant DefaultFun]
     -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
+    -> (MajorProtocolVersion -> CaserBuiltin DefaultUni)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext ll semVars toSemVar newCMP =
-    EvaluationContext ll toSemVar <$> mkMachineParametersFor semVars newCMP
+mkDynEvaluationContext ll semVars toSemVar newCMP toCaser = do
+    machPars <- mkMachineParametersFor semVars newCMP
+    pure $ EvaluationContext ll toSemVar machPars toCaser
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

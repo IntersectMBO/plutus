@@ -43,8 +43,11 @@ mkEvaluationContext =
       PlutusV1
       [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-      ( \pv ->
+      (\pv ->
           if pv < changPV
             then DefaultFunSemanticsVariantA
-            else DefaultFunSemanticsVariantB
-      )
+            else DefaultFunSemanticsVariantB)
+      (\pv ->
+          if pv < futurePV
+            then unavailableCaserBuiltin (getMajorProtocolVersion pv)
+            else CaserBuiltin caseBuiltin)

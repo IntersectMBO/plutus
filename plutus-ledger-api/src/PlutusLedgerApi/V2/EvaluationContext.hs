@@ -43,3 +43,7 @@ mkEvaluationContext =
         (\pv -> if pv < changPV
             then DefaultFunSemanticsVariantA
             else DefaultFunSemanticsVariantB)
+        (\pv ->
+            if pv < futurePV
+              then unavailableCaserBuiltin (getMajorProtocolVersion pv)
+              else CaserBuiltin caseBuiltin)

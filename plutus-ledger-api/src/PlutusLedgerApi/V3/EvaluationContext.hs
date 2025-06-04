@@ -40,3 +40,7 @@ mkEvaluationContext =
         [DefaultFunSemanticsVariantC]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (const DefaultFunSemanticsVariantC)
+        (\pv ->
+            if pv < futurePV
+              then unavailableCaserBuiltin (getMajorProtocolVersion pv)
+              else CaserBuiltin caseBuiltin)

@@ -8,6 +8,7 @@
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
+import PlutusCore (UniOf)
 import PlutusCore.Builtin
 
 import Control.DeepSeq
@@ -40,6 +41,7 @@ data MachineParameters machinecosts fun val =
     MachineParameters {
       machineCosts    :: machinecosts
     , builtinsRuntime :: BuiltinsRuntime fun val
+    , caserBuiltin    :: CaserBuiltin (UniOf val)
     }
     deriving stock Generic
     deriving anyclass (NFData)
@@ -47,7 +49,11 @@ data MachineParameters machinecosts fun val =
 -- For some reason the generic instance gives incorrect nothunk errors,
 -- see https://github.com/input-output-hk/nothunks/issues/24
 instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
-  wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
+  wNoThunks ctx (MachineParameters costs runtime caser) = allNoThunks
+    [ noThunks ctx costs
+    , noThunks ctx runtime
+    , noThunks ctx caser
+    ]
 
 {- Note [The CostingPart constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
@@ -85,6 +91,7 @@ mkMachineParameters ::
     )
     => BuiltinSemanticsVariant fun
     -> CostModel machinecosts builtincosts
+    -> CaserBuiltin uni
     -> MachineParameters machinecosts fun val
 mkMachineParameters semvar (CostModel mchnCosts builtinCosts) =
     MachineParameters mchnCosts (inline toBuiltinsRuntime semvar builtinCosts)
