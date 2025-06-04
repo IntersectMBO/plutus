@@ -23,27 +23,31 @@ testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
 -- Standard properties of a partial order
-lte_reflexive  :: Integer -> Property
+lte_reflexive :: Integer -> Property
 lte_reflexive (integer -> a) =
   evalOkTrue $ lessThanEqualsInteger a a
 
-lte_antisymmetric  :: Integer -> Integer -> Property
+lte_antisymmetric :: Integer -> Integer -> Property
 lte_antisymmetric (integer -> a) (integer -> b) =
-  evalOkTrue $ (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a) `implies` equalsInteger a b
+  evalOkTrue $
+    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a) `implies` equalsInteger a b
 
 lte_transitive :: Integer -> Integer -> Integer -> Property
 lte_transitive (integer -> a) (integer -> b) (integer -> c) =
-  evalOkTrue $ (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
+  evalOkTrue $
+    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
 
 trichotomy :: Integer -> Integer -> Property
 trichotomy (integer -> a) (integer -> b) =
-  evalOkTrue $ lessThanInteger a b `xor` equalsInteger a b `xor` lessThanInteger b a
+  evalOkTrue $
+    lessThanInteger a b `xor` equalsInteger a b `xor` lessThanInteger b a
 
 -- This establishes a connection between < and <=, allowing us to limit
 -- ourselves to checking properties of <=.
 lt_versus_lte :: Integer -> Integer -> Property
 lt_versus_lte (integer -> a) (integer -> b) =
-  evalOkTrue $ lessThanEqualsInteger a b `iff` (lessThanInteger a b `xor` equalsInteger a b)
+  evalOkTrue $
+    lessThanEqualsInteger a b `iff` (lessThanInteger a b `xor` equalsInteger a b)
 
 -- a <= b and c <= d => a+c <= b+d.  In conjunction with the ring properties
 -- this implies, for example, that the sum of two positive integers is positive
@@ -86,4 +90,3 @@ test_integer_order_properties =
     , testProp "multiplyInteger (<= 0) (>= 0) <= 0" mul_neg_pos
     , testProp "multiplyInteger (<= 0) (<= 0) >= 0" mul_neg_neg
     ]
-
