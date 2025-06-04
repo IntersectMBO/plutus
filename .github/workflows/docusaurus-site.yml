@@ -30,6 +30,12 @@ jobs:
         working-directory: doc/docusaurus
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
+      - name: Deploy Preview
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: doc/docusaurus/build
+
       - name: Deploy Site 
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: JamesIves/github-pages-deploy-action@v4.7.3
