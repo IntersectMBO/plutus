@@ -45,16 +45,6 @@ trichotomy (integer -> a) (integer -> b) =
         t3 = lessThanInteger b a
     in evalOkTrue (t1 `xor` t2 `xor` t3)
 
-lte1 :: Integer -> Integer -> Property
-lte1 (integer -> a) (integer -> b) =
-    let t = implies (lessThanEqualsInteger a b) (xor (lessThanInteger a b) (equalsInteger a b))
-    in evalOkTrue t
-
-lte2 :: Integer -> Integer -> Property
-lte2 (integer -> a) (integer -> b) =
-    let t = implies (lessThanInteger a b `or` equalsInteger a b) (lessThanEqualsInteger a b)
-    in evalOkTrue t
-
 add_pos :: Integer -> NonNegative Integer -> Property
 add_pos (integer -> a) (NonNegative (integer -> k)) =
     let t = lessThanEqualsInteger a (addInteger a k)
