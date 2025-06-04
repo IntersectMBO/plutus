@@ -1,7 +1,8 @@
 # This workflow builds and deploys the Docusaurus site.
 # 
-# This workflow builds the site on pull requests, and it also automatically deploys 
-# the site on push to master or on workflow dispatch to: 
+# On pull requests, this workflow builds the site and deploys a temporary preview
+# to gh-pages.
+# On push to master or on workflow dispatch it deploys the site to: 
 # https://plutus.cardano.intersectmbo.org/docs
 
 
@@ -29,6 +30,12 @@ jobs:
       - name: Build Site 
         working-directory: doc/docusaurus
         run: nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
+
+      - name: Deploy Preview
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: doc/docusaurus/build
 
       - name: Deploy Site 
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
