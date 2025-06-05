@@ -22,6 +22,7 @@ jobs:
     runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
+      pull-requests: write
     environment:
       name: github-pages
     steps:
