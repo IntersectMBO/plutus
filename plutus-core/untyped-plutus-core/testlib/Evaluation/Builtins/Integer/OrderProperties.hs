@@ -31,7 +31,7 @@ testProp s p = testProperty s $ withMaxSuccess numberOfTests p
    that always satisified the preconditions and then created terms to check that
    the conclusion holds.  It's arguable which of these is better, but the way
    it's done here exercises the comparison builtins more so perhaps increases
-   the possibility of detecting unexpected behaviour. -}
+   the probability of detecting unexpected behaviour. -}
 
 lte_reflexive :: Integer -> Property
 lte_reflexive (integer -> a) =
