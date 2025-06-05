@@ -45,7 +45,8 @@ import PlutusCore.TypeCheck.Internal
 -- instantiated and builtins don't. Another reason is that 'Typecheckable' is not required during
 -- type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular
 -- argument to the worker of the type checker.
-type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
+type Typecheckable uni fun =
+    (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun, AnnotateCaseBuiltin uni)
 
 -- | The default kind checking config.
 defKindCheckConfig :: KindCheckConfig

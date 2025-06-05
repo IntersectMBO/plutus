@@ -218,6 +218,8 @@ type Compiling m uni fun a =
     ( Monad m
     , MonadReader (CompilationCtx uni fun a) m
     , MonadError (Error uni fun (Provenance a)) m
+    , PLC.AnnotateCaseBuiltin uni
+    , PLC.CaseBuiltin uni
     , MonadQuote m
     , Ord a
     , AnnInline a

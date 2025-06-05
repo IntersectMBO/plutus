@@ -1,4 +1,11 @@
 (program
    1.1.0
-   ((\x -> force ifThenElse (lessThanInteger 0 x) (constr 0 []) (constr 1 []))
+   ((\x ->
+       force
+         (case
+            (force
+               (case
+                  (lessThanInteger 0 x)
+                  [(delay (constr 0 [])), (delay (constr 1 []))]))
+            [(delay (constr 1 [])), (delay (constr 0 []))]))
       1))

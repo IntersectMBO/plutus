@@ -17,7 +17,7 @@ letrec
                !t : list data = tailList {data} xs
              in
              Bool_match
-               (ifThenElse {Bool} (equalsData (I 8) h) True False)
+               (case Bool (equalsData (I 8) h) [False, True])
                {all dead. Bool}
                (/\dead -> True)
                (/\dead -> go t)

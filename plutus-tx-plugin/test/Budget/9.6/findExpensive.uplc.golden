@@ -10,10 +10,9 @@
               , (\x xs ->
                    delay
                      (force
-                        (force ifThenElse
+                        (case
                            (lessThanEqualsInteger 1 x)
-                           (delay (s s xs))
-                           (delay (constr 0 [x]))))) ]))
+                           [(delay (constr 0 [x])), (delay (s s xs))]))) ]))
       (constr 1
          [ 1
          , (constr 1

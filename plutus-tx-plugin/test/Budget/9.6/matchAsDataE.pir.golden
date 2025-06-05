@@ -24,7 +24,7 @@
       {integer}
       (\(ds : integer) (ds : list data) ->
          Bool_match
-           (ifThenElse {Bool} (equalsInteger 0 ds) True False)
+           (case Bool (equalsInteger 0 ds) [False, True])
            {all dead. integer}
            (/\dead -> unIData (headList {data} ds))
            (/\dead ->
@@ -44,7 +44,7 @@
                 {integer}
                 (\(ds : integer) (ds : list data) ->
                    Bool_match
-                     (ifThenElse {Bool} (equalsInteger 1 ds) True False)
+                     (case Bool (equalsInteger 1 ds) [False, True])
                      {all dead. integer}
                      (/\dead -> 1)
                      (/\dead ->
