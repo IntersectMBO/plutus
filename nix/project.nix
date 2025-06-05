@@ -21,7 +21,7 @@ let
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
         ghc96-coverage.modules = [{
-          # packages.plutus-metatheory.doCoverage = true;
+          packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;
           packages.plutus-core.configureFlags = [ "--ghc-option=-D__HPC_ENABLED__" ];
         }];
