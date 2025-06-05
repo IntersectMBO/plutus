@@ -22,7 +22,17 @@ numberOfTests = 200
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
--- Standard properties of a partial order
+{- Standard properties of a partial order.  In most of these we create totally
+   random inputs and then create terms checking that the expected properties are
+   satisfied.  The inputs are completely random, so in some cases we'll be
+   checking vacuous implications (for example, in `add_pairs`, where only one
+   quarter of the cases will be checking the property that we really want to
+   check).  Instead we could have used `suchThat` to generate inputs that always
+   satisified the preconditions and then created terms to check that the
+   conclusion holds.  It's arguable which of these is better, but the way it's
+   done here exercises the comparison builtins more so perhaps increases the
+   possibility of detecting unexpected behaviour. -}
+
 lte_reflexive :: Integer -> Property
 lte_reflexive (integer -> a) =
   evalOkTrue $ lessThanEqualsInteger a a
@@ -30,12 +40,14 @@ lte_reflexive (integer -> a) =
 lte_antisymmetric :: Integer -> Integer -> Property
 lte_antisymmetric (integer -> a) (integer -> b) =
   evalOkTrue $
-    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a) `implies` equalsInteger a b
+    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b a)
+    `implies` equalsInteger a b
 
 lte_transitive :: Integer -> Integer -> Integer -> Property
 lte_transitive (integer -> a) (integer -> b) (integer -> c) =
   evalOkTrue $
-    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
+    (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c)
+    `implies` lessThanEqualsInteger a c
 
 -- This implies that lessThanEqualsInteger is a total order.
 trichotomy :: Integer -> Integer -> Property
