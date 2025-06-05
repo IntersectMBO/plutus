@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 module Evaluation.Builtins.Integer.Common
 where
 
@@ -48,33 +50,28 @@ le0 t = lessThanEqualsInteger t zero
 ge0 :: PlcTerm -> PlcTerm
 ge0 t = lessThanEqualsInteger zero t
 
-iteAt :: PlcType -> PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
-iteAt ty b t f =
-  let ite = tyInst () (builtin () PLC.IfThenElse) ty
-  in mkIterAppNoAnn ite [b, t, f]
-
-iteAtInteger :: PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
-iteAtInteger = iteAt (mkTyBuiltin @_ @Integer ())
-
-iteAtBool :: PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
-iteAtBool = iteAt (mkTyBuiltin @_ @Bool ())
+ite :: forall a . PLC.DefaultUni `PLC.HasTypeLevel` a
+       => PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
+ite b t f =
+  let ite0 = tyInst () (builtin () PLC.IfThenElse) (mkTyBuiltin @_ @a ())
+  in mkIterAppNoAnn ite0 [b, t, f]
 
 -- Various logical combinations of boolean terms.
 
 abs :: PlcTerm -> PlcTerm
-abs t = iteAtInteger (lessThanEqualsInteger zero t) t (subtractInteger zero t)
+abs t = ite @Integer (lessThanEqualsInteger zero t) t (subtractInteger zero t)
 
 not :: PlcTerm -> PlcTerm
-not t = iteAtBool t false true
+not t = ite @Bool t false true
 
 and :: PlcTerm -> PlcTerm -> PlcTerm
-and t1 t2 = iteAtBool t1 (iteAtBool t2 true false) false
+and t1 t2 = ite @Bool t1 (ite @Bool t2 true false) false
 
 or :: PlcTerm -> PlcTerm -> PlcTerm
-or t1 t2 = iteAtBool t1 true (iteAtBool t2 true false)
+or t1 t2 = ite @Bool t1 true (ite @Bool t2 true false)
 
 xor :: PlcTerm -> PlcTerm -> PlcTerm
-xor t1 t2 = iteAtBool t1 (iteAtBool t2 false true) t2
+xor t1 t2 = ite @Bool t1 (ite @Bool t2 false true) t2
 
 implies :: PlcTerm -> PlcTerm -> PlcTerm
 implies t1 t2 = (not t1) `or` t2
