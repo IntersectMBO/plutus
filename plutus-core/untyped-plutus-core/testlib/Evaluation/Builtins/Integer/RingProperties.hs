@@ -8,22 +8,11 @@ module Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
 where
 
 import Evaluation.Builtins.Common
-
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc (builtin, mkIterAppNoAnn)
+import Evaluation.Builtins.Integer.Common
 
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
-
-addInteger :: PlcTerm -> PlcTerm -> PlcTerm
-addInteger a b = mkIterAppNoAnn (builtin () PLC.AddInteger) [a, b]
-
-subtractInteger :: PlcTerm -> PlcTerm -> PlcTerm
-subtractInteger a b = mkIterAppNoAnn (builtin () PLC.SubtractInteger) [a, b]
-
-multiplyInteger :: PlcTerm -> PlcTerm -> PlcTerm
-multiplyInteger a b = mkIterAppNoAnn (builtin () PLC.MultiplyInteger) [a, b]
 
 -- a+(b+c) = (a+b)+c
 prop_addition_associative :: Integer -> Integer -> Integer -> Property
