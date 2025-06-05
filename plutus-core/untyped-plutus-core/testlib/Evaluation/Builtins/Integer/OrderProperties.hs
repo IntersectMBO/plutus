@@ -22,16 +22,16 @@ numberOfTests = 200
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
-{- Standard properties of a partial order.  In most of these we create totally
-   random inputs and then create terms checking that the expected properties are
-   satisfied.  The inputs are completely random, so in some cases we'll be
-   checking vacuous implications (for example, in `add_pairs`, where only one
-   quarter of the cases will be checking the property that we really want to
-   check).  Instead we could have used `suchThat` to generate inputs that always
-   satisified the preconditions and then created terms to check that the
-   conclusion holds.  It's arguable which of these is better, but the way it's
-   done here exercises the comparison builtins more so perhaps increases the
-   possibility of detecting unexpected behaviour. -}
+{- Tests for standard properties of order relations.  In most of these we create
+   totally random inputs and then create terms checking that the expected
+   properties are satisfied.  The inputs are completely random, so in some cases
+   we'll be checking vacuous implications (for example, in `add_pairs`, where
+   only one quarter of the cases will be checking the property that we really
+   want to check).  Instead we could have used `suchThat` to generate inputs
+   that always satisified the preconditions and then created terms to check that
+   the conclusion holds.  It's arguable which of these is better, but the way
+   it's done here exercises the comparison builtins more so perhaps increases
+   the possibility of detecting unexpected behaviour. -}
 
 lte_reflexive :: Integer -> Property
 lte_reflexive (integer -> a) =
@@ -62,10 +62,13 @@ lt_versus_lte (integer -> a) (integer -> b) =
   evalOkTrue $
     lessThanEqualsInteger a b `iff` (lessThanInteger a b `xor` equalsInteger a b)
 
--- a <= b and c <= d => a+c <= b+d.  In conjunction with the ring properties
--- this implies, for example, that the sum of two positive integers is positive
--- and the sum of two negative integers is negative, and that a <= a+k for
--- positive k.
+-- Tests of some relations between the comparison operators and the arithmetic
+-- operators.
+
+-- Check that a <= b and c <= d => a+c <= b+d.  In conjunction with the ring
+-- properties this implies, for example, that the sum of two positive integers
+-- is positive and the sum of two negative integers is negative, and that a <=
+-- a+k for positive k.
 add_pairs :: Integer -> Integer -> Integer -> Integer -> Property
 add_pairs (integer -> a) (integer -> b) (integer -> c) (integer -> d) =
   evalOkTrue $
