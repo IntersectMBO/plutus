@@ -2,7 +2,7 @@
 
 module Scoping.Spec where
 
-import Generators.Spec (genProgram, genTerm)
+import Generators.Lib (genProgram, genTerm)
 
 import UntypedPlutusCore (_soInlineHints, _soPreserveLogging, defaultSimplifyOpts)
 import UntypedPlutusCore.Mark
