@@ -10,8 +10,10 @@ module PlutusLedgerApi.V2.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.ProtocolVersions (futurePV)
 import PlutusLedgerApi.V2.ParamName as V2
 
+import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))
 
 import Control.Monad
@@ -38,12 +40,12 @@ mkEvaluationContext =
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
         PlutusV2
-        [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
+        (\pv ->
+          if pv < futurePV
+            then unavailableCaserBuiltin $ getMajorProtocolVersion pv
+            else CaserBuiltin caseBuiltin)
+      [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (\pv -> if pv < changPV
             then DefaultFunSemanticsVariantA
             else DefaultFunSemanticsVariantB)
-        (\pv ->
-            if pv < futurePV
-              then unavailableCaserBuiltin (getMajorProtocolVersion pv)
-              else CaserBuiltin caseBuiltin)

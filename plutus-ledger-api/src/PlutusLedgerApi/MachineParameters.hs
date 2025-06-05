@@ -1,17 +1,25 @@
 module PlutusLedgerApi.MachineParameters where
 
+import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.ProtocolVersions (futurePV)
+
+import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
-import PlutusCore.Evaluation.Machine.MachineParameters (mkMachineParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..),
+                                                        mkMachineVariantParameters)
 import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
-import PlutusLedgerApi.Common
 
 machineParametersFor
   :: PlutusLedgerLanguage
   -> MajorProtocolVersion
   -> DefaultMachineParameters
 machineParametersFor ledgerLang majorPV =
-  mkMachineParameters builtinSemVar (cekCostModelForVariant builtinSemVar)
+  MachineParameters
+      (if majorPV < futurePV
+        then unavailableCaserBuiltin $ getMajorProtocolVersion majorPV
+        else CaserBuiltin caseBuiltin)
+      (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)
  where
   builtinSemVar =
     case ledgerLang of

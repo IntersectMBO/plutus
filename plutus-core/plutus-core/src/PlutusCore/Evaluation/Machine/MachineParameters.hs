@@ -37,25 +37,33 @@ makeLenses ''CostModel
   cost model for builtins and their denotations.  This bundles one of those
   together with the cost model for evaluator steps.  The 'term' type will be
   CekValue when we're using this with the CEK machine. -}
-data MachineParameters machinecosts fun val =
-    MachineParameters {
-      machineCosts    :: machinecosts
+data MachineVariantParameters machineCosts fun val =
+    MachineVariantParameters {
+      machineCosts    :: machineCosts
     , builtinsRuntime :: BuiltinsRuntime fun val
-    , caserBuiltin    :: CaserBuiltin (UniOf val)
+    }
+    deriving stock Generic
+    deriving anyclass (NFData)
+
+data MachineParameters machineCosts fun val =
+    MachineParameters {
+      machineCaserBuiltin      :: CaserBuiltin (UniOf val)
+    , machineVariantParameters :: MachineVariantParameters machineCosts fun val
     }
     deriving stock Generic
     deriving anyclass (NFData)
 
 -- For some reason the generic instance gives incorrect nothunk errors,
 -- see https://github.com/input-output-hk/nothunks/issues/24
-instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
-  wNoThunks ctx (MachineParameters costs runtime caser) = allNoThunks
-    [ noThunks ctx costs
-    , noThunks ctx runtime
-    , noThunks ctx caser
-    ]
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineVariantParameters machinecosts fun val) where
+  wNoThunks ctx (MachineVariantParameters costs runtime) =
+      allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
-{- Note [The CostingPart constraint in mkMachineParameters]
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
+  wNoThunks ctx (MachineParameters caser varPars) =
+      allNoThunks [ noThunks ctx caser, noThunks ctx varPars ]
+
+{- Note [The CostingPart constraint in mkMachineVariantParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
 to fail to inline the function at its call site regardless of the @INLINE@ pragma and an explicit
 'inline' call.
@@ -82,7 +90,7 @@ which makes sense: if @f@ receives all its type and term args then there's less 
 
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-mkMachineParameters ::
+mkMachineVariantParameters ::
     ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
       CostingPart uni fun ~ builtincosts
@@ -90,9 +98,8 @@ mkMachineParameters ::
     , ToBuiltinMeaning uni fun
     )
     => BuiltinSemanticsVariant fun
-    -> CostModel machinecosts builtincosts
-    -> CaserBuiltin uni
-    -> MachineParameters machinecosts fun val
-mkMachineParameters semvar (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime semvar builtinCosts)
-{-# INLINE mkMachineParameters #-}
+    -> CostModel machineCosts builtincosts
+    -> MachineVariantParameters machineCosts fun val
+mkMachineVariantParameters semvar (CostModel mchnCosts builtinCosts) =
+    MachineVariantParameters mchnCosts $ inline toBuiltinsRuntime semvar builtinCosts
+{-# INLINE mkMachineVariantParameters #-}

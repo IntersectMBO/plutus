@@ -9,6 +9,7 @@ import PlutusCore.Core.Type (Type, UniOf)
 import PlutusCore.Name.Unique
 
 import Control.DeepSeq (NFData (..), rwhnf)
+import Data.Default.Class (Default (..))
 import Data.Text (Text)
 import Data.Vector (Vector)
 import NoThunks.Class
@@ -40,6 +41,9 @@ instance NFData (CaserBuiltin uni) where
 
 deriving via OnlyCheckWhnfNamed "PlutusCore.Builtin.Case.CaserBuiltin" (CaserBuiltin uni)
     instance NoThunks (CaserBuiltin uni)
+
+instance CaseBuiltin uni => Default (CaserBuiltin uni) where
+    def = CaserBuiltin caseBuiltin
 
 unavailableCaserBuiltin :: Int -> CaserBuiltin uni
 unavailableCaserBuiltin ver =
