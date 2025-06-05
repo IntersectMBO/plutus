@@ -50,11 +50,14 @@ le0 t = lessThanEqualsInteger t zero
 ge0 :: PlcTerm -> PlcTerm
 ge0 t = lessThanEqualsInteger zero t
 
-ite :: forall a . PLC.DefaultUni `PLC.HasTypeLevel` a
-       => PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
+ite
+  :: forall a
+   . PLC.DefaultUni `PLC.HasTypeLevel` a
+  => PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
 ite b t f =
-  let ite0 = tyInst () (builtin () PLC.IfThenElse) (mkTyBuiltin @_ @a ())
-  in mkIterAppNoAnn ite0 [b, t, f]
+  let ty = mkTyBuiltin @_ @a ()
+      iteInst = tyInst () (builtin () PLC.IfThenElse) ty
+  in mkIterAppNoAnn iteInst [b, t, f]
 
 -- Various logical combinations of boolean terms.
 
