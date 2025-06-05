@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators     #-}
 
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
-module Generators where
+module Generators.Spec where
 
 import PlutusPrelude (display, fold, on, void, zipExact, (&&&))
 
@@ -79,13 +79,13 @@ genProgram = fmap eraseProgram AST.genProgram
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
     prog <- forAllPretty . runAstGen $
-        discardIfAnyConstant (not . isSerialisable) $ Generators.genProgram @DefaultFun
+        discardIfAnyConstant (not . isSerialisable) $ genProgram @DefaultFun
     tripping prog (Flat.flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . Flat.unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do
     prog <- TextualProgram <$>
-        forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) Generators.genProgram)
+        forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
     tripping prog (displayPlc . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
@@ -103,7 +103,7 @@ propTermSrcSpan = testPropertyNamed
         code <- display <$>
             forAllPretty (view progTerm <$>
                 runAstGen (discardIfAnyConstant (not . isSerialisable)
-                    (Generators.genProgram @DefaultFun)))
+                    (genProgram @DefaultFun)))
         annotateShow code
         let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
         trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])

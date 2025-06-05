@@ -459,7 +459,7 @@ library untyped-plutus-core-testlib
     Evaluation.Machines
     Evaluation.Regressions
     Flat.Spec
-    Generators
+    Generators.Spec
     Scoping.Spec
     Transform.CaseOfCase.Spec
     Transform.Inline.Spec
