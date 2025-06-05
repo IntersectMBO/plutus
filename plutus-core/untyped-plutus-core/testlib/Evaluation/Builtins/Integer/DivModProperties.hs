@@ -20,15 +20,18 @@ numberOfTests = 200
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
+-- `divideInteger _ 0` always fails.
 prop_div_0_fails :: Integer -> Property
 prop_div_0_fails (integer -> a) =
   fails $ divideInteger a zero
 
+-- `modInteger _ 0` always fails.
 prop_mod_0_fails :: Integer -> Property
 prop_mod_0_fails (integer -> a) =
   fails $ modInteger a zero
 
 -- b /= 0 => a = b * (a `div` b) + (a `mod` b)
+-- This is the crucial property relating `divideInteger` and `modInteger`.
 prop_div_mod_compatible :: Integer -> NonZero Integer -> Property
 prop_div_mod_compatible (integer -> a) (NonZero (integer -> b)) =
   let t = addInteger (multiplyInteger b (divideInteger a b) ) (modInteger a b)
@@ -73,10 +76,10 @@ prop_mod_size_neg (integer -> a) (Negative (integer -> b)) =
       t2 = lessThanInteger b (modInteger a b)
   in evalOkTrue t1 .&&. evalOkTrue t2
 
--- a >=0 && b > 0 => a `div` b >= 0 and a `mod` b >= 0
--- a <=0 && b > 0 => a `div` b <= 0 and a `mod` b >= 0
--- a >=0 && b < 0 => a `div` b <= 0 and a `mod` b <= 0
--- a < 0 && b < 0 => a `div` b >= 0 and a `mod` b <= 0
+-- a >= 0 && b > 0  =>  a `div` b >= 0  and  a `mod` b >= 0
+-- a <= 0 && b > 0  =>  a `div` b <= 0  and  a `mod` b >= 0
+-- a >= 0 && b < 0  =>  a `div` b <= 0  and  a `mod` b <= 0
+-- a <  0 && b < 0  =>  a `div` b >= 0  and  a `mod` b <= 0
 
 prop_div_pos_pos :: (NonNegative Integer) -> (Positive Integer) -> Property
 prop_div_pos_pos (NonNegative (integer -> a)) (Positive (integer -> b)) =

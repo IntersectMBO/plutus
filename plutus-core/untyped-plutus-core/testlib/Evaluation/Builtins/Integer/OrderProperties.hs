@@ -7,14 +7,14 @@
 module Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 where
 
+import Prelude hiding (and, not, or)
+
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.Integer.Common as C
 
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
-
-import Prelude hiding (and, not, or)
 
 numberOfTests :: Int
 numberOfTests = 200
@@ -37,6 +37,7 @@ lte_transitive (integer -> a) (integer -> b) (integer -> c) =
   evalOkTrue $
     (lessThanEqualsInteger a b `and` lessThanEqualsInteger b c) `implies` lessThanEqualsInteger a c
 
+-- This implies that lessThanEqualsInteger is a total order.
 trichotomy :: Integer -> Integer -> Property
 trichotomy (integer -> a) (integer -> b) =
   evalOkTrue $

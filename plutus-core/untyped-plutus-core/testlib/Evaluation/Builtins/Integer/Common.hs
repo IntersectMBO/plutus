@@ -2,12 +2,15 @@
 module Evaluation.Builtins.Integer.Common
 where
 
+import Prelude hiding (and, not, or)
+
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (builtin, mkIterAppNoAnn, mkTyBuiltin, tyInst)
 
 import Evaluation.Builtins.Common
 
-import Prelude hiding (and, not, or)
+-- Functions creating terms that are applications of various builtins, for
+-- convenience.
 
 addInteger :: PlcTerm -> PlcTerm -> PlcTerm
 addInteger a b = mkIterAppNoAnn (builtin () PLC.AddInteger) [a, b]
@@ -55,6 +58,8 @@ iteAtInteger = iteAt (mkTyBuiltin @_ @Integer ())
 
 iteAtBool :: PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
 iteAtBool = iteAt (mkTyBuiltin @_ @Bool ())
+
+-- Various logical combinations of boolean terms.
 
 abs :: PlcTerm -> PlcTerm
 abs t = iteAtInteger (lessThanEqualsInteger zero t) t (subtractInteger zero t)

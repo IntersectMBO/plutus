@@ -6,8 +6,10 @@
 module Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 where
 
+import Prelude hiding (abs)
+
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.Integer.Common as C
+import Evaluation.Builtins.Integer.Common
 
 import Test.QuickCheck
 import Test.Tasty
@@ -19,15 +21,18 @@ numberOfTests = 200
 testProp :: Testable prop => TestName -> prop -> TestTree
 testProp s p = testProperty s $ withMaxSuccess numberOfTests p
 
+-- `quotientInteger _ 0` always fails.
 prop_quot_0_fails :: Integer -> Property
 prop_quot_0_fails (integer -> a) =
   fails $ quotientInteger a zero
 
+-- `remainderInteger _ 0` always fails.
 prop_rem_0_fails :: Integer -> Property
 prop_rem_0_fails (integer -> a) =
   fails $ remainderInteger a zero
 
 -- b /= 0 => a = b * (a `quot` b) + (a `rem` b)
+-- This is the crucial property relating `quotientInteger` and `remainderInteger`.
 prop_quot_rem_compatible :: Integer -> NonZero Integer -> Property
 prop_quot_rem_compatible (integer -> a) (NonZero (integer -> b)) =
   let t = addInteger (multiplyInteger b (quotientInteger a b) ) (remainderInteger a b)
@@ -79,15 +84,15 @@ prop_rem_multiplicative (integer -> a) (integer -> a') (NonZero (integer -> b)) 
 -- to later tests.
 prop_rem_size :: Integer -> NonZero Integer -> Property
 prop_rem_size (integer -> a) (NonZero (integer -> b)) =
-  let r = C.abs (remainderInteger a b)
+  let r = abs (remainderInteger a b)
       t1 = lessThanEqualsInteger zero r
-      t2 = lessThanInteger r (C.abs b)
+      t2 = lessThanInteger r (abs b)
   in evalOkTrue t1 .&&. evalOkTrue t2
 
--- a >=0 && b > 0 => a `quot` b >= 0 and a `rem` b >= 0
--- a <=0 && b > 0 => a `quot` b <= 0 and a `rem` b <= 0
--- a >=0 && b < 0 => a `quot` b <= 0 and a `rem` b >= 0
--- a < 0 && b < 0 => a `quot` b >= 0 and a `rem` b <= 0
+-- a >= 0 && b > 0  =>  a `quot` b >= 0  and  a `rem` b >= 0
+-- a <= 0 && b > 0  =>  a `quot` b <= 0  and  a `rem` b <= 0
+-- a >= 0 && b < 0  =>  a `quot` b <= 0  and  a `rem` b >= 0
+-- a <= 0 && b < 0  =>  a `quot` b >= 0  and  a `rem` b <= 0
 
 prop_quot_pos_pos :: NonNegative Integer -> Positive Integer -> Property
 prop_quot_pos_pos (NonNegative (integer -> a)) (Positive (integer -> b)) =
