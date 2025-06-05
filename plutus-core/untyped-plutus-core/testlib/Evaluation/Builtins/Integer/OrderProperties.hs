@@ -10,7 +10,7 @@ where
 import Prelude hiding (and, not, or)
 
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.Integer.Common as C
+import Evaluation.Builtins.Integer.Common
 
 import Test.QuickCheck
 import Test.Tasty
