@@ -395,17 +395,26 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun ann = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun ann)))
+type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
+type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
-type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
+type GivenCekSpender uni fun s = (?cekBudgetSpender :: CekBudgetSpender uni fun s)
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekStepCounter s = (?cekStepCounter :: StepCounter CounterSize s)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekStepCounter s, GivenCekCosts)
+type GivenCekReqs uni fun ann s =
+    ( GivenCekRuntime uni fun ann
+    , GivenCekCaserBuiltin uni
+    , GivenCekEmitter uni fun s
+    , GivenCekSpender uni fun s
+    , GivenCekSlippage
+    , GivenCekStepCounter s
+    , GivenCekCosts
+    )
 
 data CekUserError
     = CaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
@@ -659,11 +668,16 @@ runCekM
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
+runCekM
+        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (ExBudgetMode getExBudgetInfo)
+        (EmitterMode getEmitterMode)
+        a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
+        ?cekCaserBuiltin = caser
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -679,7 +693,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, CaseBuiltin uni, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -790,7 +804,7 @@ enterComputeCek = computeCek
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
-        VCon val -> case caseBuiltin val cs of
+        VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err  -> throwErrorDischarged (OperationalError $ CaseBuiltinError err) e
             Right res -> computeCek ctx env res
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
@@ -945,7 +959,7 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: (ThrowableBuiltins uni fun, CaseBuiltin uni)
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

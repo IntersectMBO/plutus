@@ -58,7 +58,7 @@ import Test.Tasty.QuickCheck (Property, property, (===))
 -- | Type check and evaluate a term.
 typecheckAnd
     :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage
+       , CaseBuiltin uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinSemanticsVariant fun
     -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
@@ -71,7 +71,7 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
     _ <- TPLC.inferType tcConfig term
     return . action runtime $ TPLC.eraseTerm term
     where
-      runtime = mkMachineParameters semvar $
+      runtime = MachineParameters def . mkMachineVariantParameters semvar $
                 -- FIXME: make sure we have the the correct cost model for the semantics variant.
                    CostModel defaultCekMachineCostsForTesting costingPart
 
