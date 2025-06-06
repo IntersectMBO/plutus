@@ -459,12 +459,13 @@ library untyped-plutus-core-testlib
     Evaluation.Machines
     Evaluation.Regressions
     Flat.Spec
-    Generators
+    Generators.Lib
+    Generators.Spec
     Scoping.Spec
-    Transform.CaseOfCase.Test
+    Transform.CaseOfCase.Spec
     Transform.Inline.Spec
-    Transform.Simplify
     Transform.Simplify.Lib
+    Transform.Simplify.Spec
 
   build-depends:
     , base                             >=4.9   && <5

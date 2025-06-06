@@ -14,11 +14,11 @@ import Evaluation.Golden (test_golden)
 import Evaluation.Machines (test_NumberOfStepCounters, test_budget, test_machines, test_tallying)
 import Evaluation.Regressions (schnorrVerifyRegressions)
 import Flat.Spec (test_flat)
-import Generators (test_parsing)
+import Generators.Spec (test_parsing)
 import Scoping.Spec (test_names)
-import Transform.CaseOfCase.Test (test_caseOfCase)
+import Transform.CaseOfCase.Spec (test_caseOfCase)
 import Transform.Inline.Spec (test_inline)
-import Transform.Simplify (test_simplify)
+import Transform.Simplify.Spec (test_simplify)
 
 import Test.Tasty
 
