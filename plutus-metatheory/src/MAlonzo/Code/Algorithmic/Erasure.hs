@@ -75,25 +75,25 @@ du_eraseVar_28 v0 v1 v2
 -- Algorithmic.Erasure.eraseTC
 d_eraseTC_36 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_198
+  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_216
 d_eraseTC_36 v0 v1
   = coe
-      MAlonzo.Code.RawU.C_tmCon_202
+      MAlonzo.Code.RawU.C_tmCon_220
       (coe MAlonzo.Code.Algorithmic.d_ty2sty_64 (coe v0)) (coe v1)
 -- Algorithmic.Erasure.erase
 d_erase_48 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Untyped.T__'8866'_14
 d_erase_48 v0 v1 v2 v3
   = case coe v3 of
-      MAlonzo.Code.Algorithmic.C_'96'_174 v5
+      MAlonzo.Code.Algorithmic.C_'96'_184 v5
         -> coe
              MAlonzo.Code.Untyped.C_'96'_18
              (coe du_eraseVar_28 (coe v0) (coe v1) (coe v5))
-      MAlonzo.Code.Algorithmic.C_ƛ_180 v6
+      MAlonzo.Code.Algorithmic.C_ƛ_190 v6
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v8 v9
                -> coe
@@ -102,14 +102,14 @@ d_erase_48 v0 v1 v2 v3
                        d_erase_48 (coe v0)
                        (coe MAlonzo.Code.Algorithmic.C__'44'__12 v1 v8) (coe v9) (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C__'183'__186 v4 v6 v7
+      MAlonzo.Code.Algorithmic.C__'183'__196 v4 v6 v7
         -> coe
              MAlonzo.Code.Untyped.C__'183'__22
              (coe
                 d_erase_48 (coe v0) (coe v1)
                 (coe MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v4 v2) (coe v6))
              (coe d_erase_48 (coe v0) (coe v1) (coe v4) (coe v7))
-      MAlonzo.Code.Algorithmic.C_Λ_192 v6
+      MAlonzo.Code.Algorithmic.C_Λ_202 v6
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C_Π_14 v8 v9
                -> coe
@@ -120,37 +120,37 @@ d_erase_48 v0 v1 v2 v3
                        (coe MAlonzo.Code.Algorithmic.C__'44''8902'__8 v1) (coe v9)
                        (coe v6))
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__202 v4 v6 v7 v8
+      MAlonzo.Code.Algorithmic.C__'183''8902'_'47'__212 v4 v6 v7 v8
         -> coe
              MAlonzo.Code.Untyped.C_force_24
              (coe
                 d_erase_48 (coe v0) (coe v1)
                 (coe MAlonzo.Code.Type.BetaNormal.C_Π_14 v4 v6) (coe v7))
-      MAlonzo.Code.Algorithmic.C_wrap_210 v7
+      MAlonzo.Code.Algorithmic.C_wrap_220 v7
         -> case coe v2 of
              MAlonzo.Code.Type.BetaNormal.C_μ_24 v9 v10 v11
                -> coe
                     d_erase_48 (coe v0) (coe v1)
                     (coe
                        MAlonzo.Code.Type.BetaNBE.d_nf_258 (coe v0)
-                       (coe MAlonzo.Code.Utils.C_'42'_638)
+                       (coe MAlonzo.Code.Utils.C_'42'_652)
                        (coe
                           MAlonzo.Code.Type.C__'183'__30 v9
                           (coe
                              MAlonzo.Code.Type.C__'183'__30
                              (coe
-                                MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                (coe MAlonzo.Code.Utils.C_'42'_638))
+                                MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                (coe MAlonzo.Code.Utils.C_'42'_652))
                              (MAlonzo.Code.Type.BetaNormal.d_embNf_128
                                 (coe v0)
                                 (coe
-                                   MAlonzo.Code.Utils.C__'8658'__642
+                                   MAlonzo.Code.Utils.C__'8658'__656
                                    (coe
-                                      MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                      (coe MAlonzo.Code.Utils.C_'42'_638))
+                                      MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                      (coe MAlonzo.Code.Utils.C_'42'_652))
                                    (coe
-                                      MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                      (coe MAlonzo.Code.Utils.C_'42'_638)))
+                                      MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                      (coe MAlonzo.Code.Utils.C_'42'_652)))
                                 (coe v10))
                              (coe
                                 MAlonzo.Code.Type.C_ƛ_28
@@ -159,23 +159,23 @@ d_erase_48 v0 v1 v2 v3
                                    (MAlonzo.Code.Type.BetaNormal.d_embNf_128
                                       (coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v9))
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__642
+                                         MAlonzo.Code.Utils.C__'8658'__656
                                          (coe
-                                            MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                            (coe MAlonzo.Code.Utils.C_'42'_638))
+                                            MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                            (coe MAlonzo.Code.Utils.C_'42'_652))
                                          (coe
-                                            MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                            (coe MAlonzo.Code.Utils.C_'42'_638)))
+                                            MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                            (coe MAlonzo.Code.Utils.C_'42'_652)))
                                       (coe
                                          MAlonzo.Code.Type.BetaNormal.d_weakenNf_122 v0
                                          (coe
-                                            MAlonzo.Code.Utils.C__'8658'__642
+                                            MAlonzo.Code.Utils.C__'8658'__656
                                             (coe
-                                               MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                               (coe MAlonzo.Code.Utils.C_'42'_638))
+                                               MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                               (coe MAlonzo.Code.Utils.C_'42'_652))
                                             (coe
-                                               MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                               (coe MAlonzo.Code.Utils.C_'42'_638)))
+                                               MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                               (coe MAlonzo.Code.Utils.C_'42'_652)))
                                          v9 v10))
                                    (coe
                                       MAlonzo.Code.Type.C_'96'_22 (coe MAlonzo.Code.Type.C_Z_16)))))
@@ -183,16 +183,16 @@ d_erase_48 v0 v1 v2 v3
                              (coe v0) (coe v9) (coe v11))))
                     (coe v7)
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Algorithmic.C_unwrap_220 v4 v6 v7 v8
+      MAlonzo.Code.Algorithmic.C_unwrap_230 v4 v6 v7 v8
         -> coe
              d_erase_48 (coe v0) (coe v1)
              (coe MAlonzo.Code.Type.BetaNormal.C_μ_24 v4 v6 v7) (coe v8)
-      MAlonzo.Code.Algorithmic.C_constr_230 v5 v7 v9
+      MAlonzo.Code.Algorithmic.C_constr_240 v5 v7 v9
         -> coe
              MAlonzo.Code.Untyped.C_constr_34
              (coe MAlonzo.Code.Data.Fin.Base.du_toℕ_18 (coe v5))
              (coe d_erase'45'ConstrArgs_58 (coe v0) (coe v1) (coe v7) (coe v9))
-      MAlonzo.Code.Algorithmic.C_case_242 v4 v5 v7 v8
+      MAlonzo.Code.Algorithmic.C_case_252 v4 v5 v7 v8
         -> coe
              MAlonzo.Code.Untyped.C_case_40
              (coe
@@ -200,12 +200,12 @@ d_erase_48 v0 v1 v2 v3
                 (coe MAlonzo.Code.Type.BetaNormal.C_SOP_28 v4 v5) (coe v7))
              (coe
                 du_erase'45'Cases_76 (coe v0) (coe v1) (coe v2) (coe v5) (coe v8))
-      MAlonzo.Code.Algorithmic.C_con_248 v4 v6
+      MAlonzo.Code.Algorithmic.C_con_258 v4 v6
         -> coe
              MAlonzo.Code.Untyped.C_con_28 (coe d_eraseTC_36 (coe v4) (coe v6))
-      MAlonzo.Code.Algorithmic.C_builtin_'47'__254 v5
+      MAlonzo.Code.Algorithmic.C_builtin_'47'__264 v5
         -> coe MAlonzo.Code.Untyped.C_builtin_44 (coe v5)
-      MAlonzo.Code.Algorithmic.C_error_258
+      MAlonzo.Code.Algorithmic.C_error_268
         -> coe MAlonzo.Code.Untyped.C_error_46
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Algorithmic.Erasure.erase-ConstrArgs
@@ -235,7 +235,7 @@ d_erase'45'Cases_76 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   Integer ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Algorithmic.T_Cases_162 ->
+  MAlonzo.Code.Algorithmic.T_Cases_172 ->
   [MAlonzo.Code.Untyped.T__'8866'_14]
 d_erase'45'Cases_76 v0 v1 v2 ~v3 v4 v5
   = du_erase'45'Cases_76 v0 v1 v2 v4 v5
@@ -244,20 +244,20 @@ du_erase'45'Cases_76 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Algorithmic.T_Cases_162 ->
+  MAlonzo.Code.Algorithmic.T_Cases_172 ->
   [MAlonzo.Code.Untyped.T__'8866'_14]
 du_erase'45'Cases_76 v0 v1 v2 v3 v4
   = case coe v4 of
-      MAlonzo.Code.Algorithmic.C_'91''93'_268
+      MAlonzo.Code.Algorithmic.C_'91''93'_278
         -> coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16
-      MAlonzo.Code.Algorithmic.C__'8759'__280 v8 v9
+      MAlonzo.Code.Algorithmic.C__'8759'__290 v8 v9
         -> case coe v3 of
              MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v11 v12
                -> coe
                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
                     (coe
                        d_erase_48 (coe v0) (coe v1)
-                       (coe MAlonzo.Code.Algorithmic.du_mkCaseType_146 v2 v11) (coe v8))
+                       (coe MAlonzo.Code.Algorithmic.du_mkCaseType_156 v2 v11) (coe v8))
                     (coe
                        du_erase'45'Cases_76 (coe v0) (coe v1) (coe v2) (coe v12) (coe v9))
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -362,7 +362,7 @@ d_lemcon''_294 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.RawU.T_TmCon_198 ->
+  MAlonzo.Code.RawU.T_TmCon_216 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_lemcon''_294 = erased
 -- Algorithmic.Erasure.lemerror
@@ -407,7 +407,7 @@ d_lem'45'erase_372 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_lem'45'erase_372 = erased
 -- Algorithmic.Erasure.lem-subst
@@ -424,7 +424,7 @@ d_lem'45'erase''_398 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_lem'45'erase''_398 = erased
 -- Algorithmic.Erasure.lem-erase''
@@ -434,7 +434,7 @@ d_lem'45'erase''''_420 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_lem'45'erase''''_420 = erased
 -- Algorithmic.Erasure.same
@@ -469,7 +469,7 @@ d_same'45'mkCaseType_478 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_same'45'mkCaseType_478 = erased
@@ -521,7 +521,7 @@ d_same''_674 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Algorithmic.T__'8866'__168 ->
+  MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_same''_674 = erased
 -- Algorithmic.Erasure.same'ConstrArgs
@@ -549,6 +549,6 @@ d_same''Case_718 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   Integer ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Algorithmic.T_Cases_162 ->
+  MAlonzo.Code.Algorithmic.T_Cases_172 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_same''Case_718 = erased
