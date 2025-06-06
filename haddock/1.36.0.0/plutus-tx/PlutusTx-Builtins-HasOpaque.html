@@ -1,0 +1,1733 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Builtins.HasOpaque</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.36.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Builtins.HasOpaque.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Builtins.HasOpaque</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:stringToBuiltinByteString"
+	      >stringToBuiltinByteString</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:stringToBuiltinString"
+	      >stringToBuiltinString</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasToOpaque"
+	      >HasToOpaque</a
+	      > a arep | a &#8594; arep <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:toOpaque"
+		  >toOpaque</a
+		  > &#8759; a &#8594; arep</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasFromOpaque"
+	      >HasFromOpaque</a
+	      > arep a | arep &#8594; a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:fromOpaque"
+		  >fromOpaque</a
+		  > &#8759; arep &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkNilOpaque"
+	      >mkNilOpaque</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:MkNil"
+	      >MkNil</a
+	      > arep <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:mkNil"
+		  >mkNil</a
+		  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		  >BuiltinList</a
+		  > arep</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stringToBuiltinByteString" class="def"
+	    >stringToBuiltinByteString</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinByteString</a
+	    > <a href="src/PlutusTx.Builtins.HasOpaque.html#stringToBuiltinByteString" class="link"
+	    >Source</a
+	    > <a href="#v:stringToBuiltinByteString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:stringToBuiltinString" class="def"
+	    >stringToBuiltinString</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.Builtins.HasOpaque.html#stringToBuiltinString" class="link"
+	    >Source</a
+	    > <a href="#v:stringToBuiltinString" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasToOpaque" class="def"
+	    >HasToOpaque</a
+	    > a arep | a &#8594; arep <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Builtins.HasOpaque.html#HasToOpaque" class="link"
+	    >Source</a
+	    > <a href="#t:HasToOpaque" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class for converting values of transparent Haskell-defined built-in types (such as <code
+	      >()</code
+	      >,
+ <code
+	      ><a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		>Bool</a
+		></code
+	      >, '[]' etc) to their opaque Plutus Tx counterparts. Instances for built-in types that are
+ not transparent are provided as well, simply as identities, since those types are already opaque.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toOpaque" class="def"
+	      >toOpaque</a
+	      > &#8759; a &#8594; arep <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+	      >Source</a
+	      > <a href="#v:toOpaque" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:toOpaque" class="def"
+		>toOpaque</a
+		> &#8759; a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		>~</a
+		> arep &#8658; a &#8594; arep <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+		>Source</a
+		> <a href="#v:toOpaque" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasToOpaque"
+	    >Instances</h4
+	    ><details id="i:HasToOpaque" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:1"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-236" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:2"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-239" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:3"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-242" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:4"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-159" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:5"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-233" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:6"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-156" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:7"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-162" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:8"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > () <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		      >BuiltinUnit</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; () &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+			  >BuiltinUnit</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:9"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBool</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-184" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBool</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:10"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > a arep, <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > arep) &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > [a] (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		      >BuiltinList</a
+		      > arep)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-206" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; [a] &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > arep <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasToOpaque:HasToOpaque:11"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasToOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasToOpaque</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      >, <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      >) (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      >)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-225" class="link"
+		    >Source</a
+		    > <a href="#t:HasToOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasToOpaque:HasToOpaque:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toOpaque"
+			  >toOpaque</a
+			  > &#8759; (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  >, <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  >) &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+			  >BuiltinPair</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#toOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:toOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasFromOpaque" class="def"
+	    >HasFromOpaque</a
+	    > arep a | arep &#8594; a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Builtins.HasOpaque.html#HasFromOpaque" class="link"
+	    >Source</a
+	    > <a href="#t:HasFromOpaque" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class for converting values of opaque Plutus Tx types to their transparent Haskell-defined
+ counterparts (a.k.a. pattern-matchable) built-in types (such as <code
+	      >()</code
+	      >, <code
+	      ><a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		>Bool</a
+		></code
+	      >, '[]' etc). If no
+ transparent counterpart exists, then the implementation is identity.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:fromOpaque" class="def"
+	      >fromOpaque</a
+	      > &#8759; arep &#8594; a <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+	      >Source</a
+	      > <a href="#v:fromOpaque" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:fromOpaque" class="def"
+		>fromOpaque</a
+		> &#8759; a <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		>~</a
+		> arep &#8658; arep &#8594; a <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+		>Source</a
+		> <a href="#v:fromOpaque" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasFromOpaque"
+	    >Instances</h4
+	    ><details id="i:HasFromOpaque" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:1"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G1_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-237" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G1_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G1_Element</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:2"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_G2_Element</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-240" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_G2_Element" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_G2_Element</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:3"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBLS12_381_MlResult</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-243" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBLS12_381_MlResult" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBLS12_381_MlResult</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:4"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBool</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-187" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:5"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-160" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinByteString</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:6"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-234" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:7"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-157" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:8"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-163" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+			  >BuiltinString</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:9"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		      >BuiltinUnit</a
+		      > ()</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+			  >BuiltinUnit</a
+			  > &#8594; () <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:10"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > arep a &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		      >BuiltinList</a
+		      > arep) [a]</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-212" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > arep &#8594; [a] <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasFromOpaque:HasFromOpaque:11"
+		      ></span
+		      > (<a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > arep a, <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > brep b) &#8658; <a href="PlutusTx-Builtins-HasOpaque.html#t:HasFromOpaque" title="PlutusTx.Builtins.HasOpaque"
+		      >HasFromOpaque</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      > arep brep) (a, b)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-228" class="link"
+		    >Source</a
+		    > <a href="#t:HasFromOpaque" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasFromOpaque:HasFromOpaque:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromOpaque"
+			  >fromOpaque</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+			  >BuiltinPair</a
+			  > arep brep &#8594; (a, b) <a href="src/PlutusTx.Builtins.HasOpaque.html#fromOpaque" class="link"
+			  >Source</a
+			  > <a href="#v:fromOpaque" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkNilOpaque" class="def"
+	    >mkNilOpaque</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	    >BuiltinList</a
+	    > a <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNilOpaque" class="link"
+	    >Source</a
+	    > <a href="#v:mkNilOpaque" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The empty list of elements of the given type that gets spotted by the plugin (grep for
+ <code
+	      ><a href="PlutusTx-Builtins-HasOpaque.html#v:mkNilOpaque" title="PlutusTx.Builtins.HasOpaque"
+		>mkNilOpaque</a
+		></code
+	      > in the plugin code) and replaced by the actual empty list constant for types that
+ are supported (a subset of built-in types).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:MkNil" class="def"
+	    >MkNil</a
+	    > arep <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Builtins.HasOpaque.html#MkNil" class="link"
+	    >Source</a
+	    > <a href="#t:MkNil" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:mkNil" class="def"
+	      >mkNil</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+	      >BuiltinList</a
+	      > arep <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+	      >Source</a
+	      > <a href="#v:mkNil" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MkNil"
+	    >Instances</h4
+	    ><details id="i:MkNil" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MkNil:MkNil:1"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBool</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-202" class="link"
+		    >Source</a
+		    > <a href="#t:MkNil" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MkNil:MkNil:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mkNil"
+			  >mkNil</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+			  >BuiltinBool</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+			  >Source</a
+			  > <a href="#v:mkNil" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MkNil:MkNil:2"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-203" class="link"
+		    >Source</a
+		    > <a href="#t:MkNil" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MkNil:MkNil:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mkNil"
+			  >mkNil</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+			  >Source</a
+			  > <a href="#v:mkNil" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MkNil:MkNil:3"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+		      >BuiltinInteger</a
+		      ></span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-201" class="link"
+		    >Source</a
+		    > <a href="#t:MkNil" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MkNil:MkNil:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mkNil"
+			  >mkNil</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinInteger" title="PlutusTx.Builtins.Internal"
+			  >BuiltinInteger</a
+			  > <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+			  >Source</a
+			  > <a href="#v:mkNil" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MkNil:MkNil:4"
+		      ></span
+		      > <a href="PlutusTx-Builtins-HasOpaque.html#t:MkNil" title="PlutusTx.Builtins.HasOpaque"
+		      >MkNil</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      >)</span
+		    > <a href="src/PlutusTx.Builtins.HasOpaque.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:MkNil" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MkNil:MkNil:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Builtins-HasOpaque.html"
+			>PlutusTx.Builtins.HasOpaque</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mkNil"
+			  >mkNil</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+			  >BuiltinList</a
+			  > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+			  >BuiltinPair</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  >) <a href="src/PlutusTx.Builtins.HasOpaque.html#mkNil" class="link"
+			  >Source</a
+			  > <a href="#v:mkNil" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:IsString:IsString:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:IsString" title="Data.String"
+		  >IsString</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinByteString</a
+		  ></span
+		> <a href="src/PlutusTx.Builtins.HasOpaque.html#line-53" class="link"
+		>Source</a
+		> <a href="#v:-36-fIsStringBuiltinByteString" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:IsString:IsString:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:fromString"
+		      >fromString</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+		      >String</a
+		      > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:fromString" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:IsString:IsString:2"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:IsString" title="Data.String"
+		  >IsString</a
+		  > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		  >BuiltinString</a
+		  ></span
+		> <a href="src/PlutusTx.Builtins.HasOpaque.html#line-61" class="link"
+		>Source</a
+		> <a href="#v:-36-fIsStringBuiltinString" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:IsString:IsString:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:fromString"
+		      >fromString</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/Data-String.html#t:String" title="Data.String"
+		      >String</a
+		      > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:fromString" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

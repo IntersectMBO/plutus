@@ -1,0 +1,875 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MagicHash   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UnboxedSums #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Crypto.ExpMod</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.ExpMod.html#expMod"
+	><span class="hs-identifier"
+	  >expMod</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Natural.html"
+	><span class="hs-identifier"
+	  >GHC.Natural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >-- Ghc&gt;=9 has this in base</span
+      ><span class="hs-cpp"
+      >
+#if MIN_VERSION_base(4,15,0)
+</span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html"
+	><span class="hs-identifier"
+	  >GHC.Num.Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >-- similar to `Default.Builtins.nonZeroSecondArg`</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- We don't really need it because integerPowMod# returns `()` on zero mod, but we put</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- in case of future implementation changes.</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="expMod"
+      ><span class="annot"
+	><span class="annottext"
+	  >expMod :: Integer -&gt; Integer -&gt; Natural -&gt; BuiltinResult Natural
+</span
+	  ><a href="PlutusCore.Crypto.ExpMod.html#expMod"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >expMod</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; BuiltinResult Natural
+forall a. String -&gt; BuiltinResult a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Cannot divide by zero&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.ExpMod.html#expMod"
+	><span class="hs-identifier hs-var"
+	  >expMod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681772285"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681772285"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681772286"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681772286"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681772287"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681772287"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Natural -&gt; (# Natural | () #)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#integerPowMod%23"
+	><span class="hs-identifier hs-var"
+	  >integerPowMod#</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681772285"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681772286"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681772287"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(#</span
+      ><span
+      > </span
+      ><span id="local-6989586621681772289"
+      ><span class="annot"
+	><span class="annottext"
+	  >Natural
+</span
+	  ><a href="#local-6989586621681772289"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >#)</span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural -&gt; BuiltinResult Natural
+forall a. a -&gt; BuiltinResult a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Natural
+</span
+	><a href="#local-6989586621681772289"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(#</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >#)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; BuiltinResult Natural
+forall a. String -&gt; BuiltinResult a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;expMod: failure&quot;</span
+	></span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span class="hs-comment"
+      >-- FIXME: fugly stub implementation to make the various test-suites/CI pass for GHC8.10.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- This means that we cannot provide random testing for expMod at the moment.</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >0</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fail</span
+      ><span
+      > </span
+      ><span class="hs-string"
+      >&quot;Cannot divide by zero&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >500</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >0</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >500</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >1</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >500</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >5</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >500</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >0</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >1</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-number"
+      >3</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >4</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >1</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >2</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-number"
+      >3</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >3</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >2</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >4</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-number"
+      >5</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >9</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >4</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >2</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-number"
+      >3</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >4</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fail</span
+      ><span
+      > </span
+      ><span class="hs-string"
+      >&quot;expMod: failure&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >500</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >-</span
+      ><span class="hs-number"
+      >5</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >5</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fail</span
+      ><span
+      > </span
+      ><span class="hs-string"
+      >&quot;expMod: failure&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- FIXME: this has to be fixed either by deciding to stop supporting GHC8.10</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- or by backporting ghc-bignum's integerPowMod# implementation to old ghc8.10/integer-gmp&lt;1.1</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-identifier"
+      >expMod</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_b</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_e</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_m</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >fail</span
+      ><span
+      > </span
+      ><span class="hs-string"
+      >&quot;expMod: FIXME: stub for GHC8.10, report to plutus developers&quot;</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.ExpMod.html#expMod"
+	><span class="hs-identifier hs-type"
+	  >expMod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Natural.html#Natural"
+	><span class="hs-identifier hs-type"
+	  >Natural</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Crypto.ExpMod.html#expMod"
+	><span class="hs-pragma hs-type"
+	  >expMod</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
