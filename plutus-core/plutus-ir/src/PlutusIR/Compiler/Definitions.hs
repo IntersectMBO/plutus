@@ -17,7 +17,7 @@
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module PlutusIR.Compiler.Definitions (
-  DefT,
+  DefT(..),
   MonadDefs (..),
   TermDefWithStrictness,
   runDefT,

@@ -422,7 +422,7 @@ equalsInteger x y = fromOpaque (BI.equalsInteger (toOpaque x) (toOpaque y))
 
 -- | Aborts evaluation with an error.
 error :: () -> a
-error x = BI.error (toOpaque x)
+error _ = BI.error BI.unitval
 {-# INLINEABLE error #-}
 
 -- | Append two 'String's.

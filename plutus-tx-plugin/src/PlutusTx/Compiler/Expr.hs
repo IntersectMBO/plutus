@@ -86,6 +86,7 @@ import Data.Text.Encoding qualified as TE
 import Data.Traversable (for)
 import Data.Tuple.Extra
 import Data.Word (Word8)
+import Debug.Trace qualified as Debug
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -1083,7 +1084,10 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding n) of
             -- See Note [Unfoldings]
             -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-            Just unfolding -> hoistExpr n unfolding
+            Just unfolding ->
+              Debug.trace ("Unfolding for " <> GHC.showPprUnsafe n) $
+              Debug.trace (" -> " <> GHC.showPprUnsafe unfolding) $
+                hoistExpr n unfolding
             Nothing ->
               throwSd FreeVariableError $
                 "Variable"

@@ -77,10 +77,10 @@ instance HasFromBuiltin BuiltinString where
 
 instance HasToBuiltin () where
   type ToBuiltin () = BuiltinUnit
-  toBuiltin = useToOpaque BuiltinUnit
+  toBuiltin = useToOpaque (\() -> BuiltinUnit)
 instance HasFromBuiltin BuiltinUnit where
   type FromBuiltin BuiltinUnit = ()
-  fromBuiltin (BuiltinUnit u) = u
+  fromBuiltin BuiltinUnit = ()
 
 instance HasToBuiltin Bool where
   type ToBuiltin Bool = BuiltinBool
