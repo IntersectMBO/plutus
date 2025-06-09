@@ -22,25 +22,25 @@ import PlutusTx.Blueprint.Definition (DefinitionId, Definitions, definitionsToMa
 import PlutusTx.Blueprint.Preamble (Preamble)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
-{- | A blueprint of a smart contract, as defined by the CIP-0057
+{-| A blueprint of a smart contract, as defined by the CIP-0057
 
 The 'referencedTypes' type variable is used to track the types used in the contract
 making sure their schemas are included in the blueprint and that they are referenced
 in a type-safe way. See Note ["Unrolling" types] for more details.
 -}
 data ContractBlueprint where
-  MkContractBlueprint ::
-    forall referencedTypes.
-    { contractId :: Maybe Text
-    -- ^ An optional identifier for the contract.
-    , contractPreamble :: Preamble
-    -- ^ An object with meta-information about the contract.
-    , contractValidators :: Set (ValidatorBlueprint referencedTypes)
-    -- ^ A set of validator blueprints that are part of the contract.
-    , contractDefinitions :: Definitions referencedTypes
-    -- ^ A registry of schema definitions used across the blueprint.
-    } ->
-    ContractBlueprint
+  MkContractBlueprint
+    :: forall referencedTypes
+     . { contractId :: Maybe Text
+       -- ^ An optional identifier for the contract.
+       , contractPreamble :: Preamble
+       -- ^ An object with meta-information about the contract.
+       , contractValidators :: Set (ValidatorBlueprint referencedTypes)
+       -- ^ A set of validator blueprints that are part of the contract.
+       , contractDefinitions :: Definitions referencedTypes
+       -- ^ A registry of schema definitions used across the blueprint.
+       }
+    -> ContractBlueprint
 
 instance ToJSON ContractBlueprint where
   toJSON MkContractBlueprint{..} =

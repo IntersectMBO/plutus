@@ -1,22 +1,27 @@
-cabal-version:   3.0
-name:            plutus-core
-version:         1.45.0.0
-license:         Apache-2.0
+cabal-version:      3.0
+name:               plutus-core
+version:            1.46.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:      michael.peyton-jones@iohk.io
-author:          Plutus Core Team
-synopsis:        Language library for Plutus Core
-description:     Pretty-printer, parser, and typechecker for Plutus Core.
-category:        Language, Plutus
-build-type:      Simple
+maintainer:         michael.peyton-jones@iohk.io
+author:             Plutus Core Team
+synopsis:           Language library for Plutus Core
+description:        Pretty-printer, parser, and typechecker for Plutus Core.
+category:           Language, Plutus
+build-type:         Simple
 extra-doc-files:
   CHANGELOG.md
   README.md
 
-data-files:
+-- Using `extra-source-files` here means that Cabal can deduce that some of the
+-- Haskell source files depend on the JSON and R files, and it'll rebuild things
+-- as required if the files below are changed.  This doesn't happen if you use
+-- `data-files`.  See https://github.com/haskell/cabal/pull/6889 and the issue
+-- #4746 that it mentions.
+extra-source-files:
   cost-model/data/*.R
   cost-model/data/builtinCostModelA.json
   cost-model/data/builtinCostModelB.json
@@ -385,7 +390,7 @@ test-suite plutus-core-test
     , hex-text
     , mmorph
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , prettyprinter
     , serialise
@@ -444,6 +449,7 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
+    Evaluation.Builtins.Integer.ExpModInteger
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
     Evaluation.Debug
@@ -453,12 +459,13 @@ library untyped-plutus-core-testlib
     Evaluation.Machines
     Evaluation.Regressions
     Flat.Spec
-    Generators
+    Generators.Lib
+    Generators.Spec
     Scoping.Spec
-    Transform.CaseOfCase.Test
+    Transform.CaseOfCase.Spec
     Transform.Inline.Spec
-    Transform.Simplify
     Transform.Simplify.Lib
+    Transform.Simplify.Spec
 
   build-depends:
     , base                             >=4.9   && <5
@@ -470,7 +477,7 @@ library untyped-plutus-core-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , pretty-show
     , prettyprinter
@@ -578,7 +585,7 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.45
+    , plutus-core          ^>=1.46
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -644,7 +651,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , QuickCheck
@@ -706,7 +713,7 @@ executable plutus
     , microlens-th           ^>=0.4
     , mono-traversable
     , mtl
-    , plutus-core            ^>=1.45
+    , plutus-core            ^>=1.46
     , plutus-core:plutus-ir
     , prettyprinter
     , primitive
@@ -747,7 +754,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.45
+    , plutus-core                      ^>=1.46
     , plutus-core:plutus-core-testlib
     , plutus-core:plutus-ir
     , prettyprinter
@@ -814,7 +821,7 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core                 ^>=1.45
+    , plutus-core                 ^>=1.46
     , plutus-core:plutus-ir
     , pretty-simple
     , prettyprinter               >=1.1.0.1
@@ -826,6 +833,7 @@ library plutus-core-testlib
     , Stream
     , tagged
     , tasty
+    , tasty-expected-failure
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
@@ -851,7 +859,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core            ^>=1.45
+    , plutus-core            ^>=1.46
     , plutus-core:plutus-ir
 
 ----------------------------------------------
@@ -931,7 +939,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.45
+    , plutus-core            ^>=1.46
     , QuickCheck
     , quickcheck-instances
     , random
@@ -970,7 +978,7 @@ executable generate-cost-model
     , directory
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.45
+    , plutus-core           ^>=1.46
     , text
 
   --    , exceptions
@@ -1014,7 +1022,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.45
+    , plutus-core       ^>=1.46
     , template-haskell
     , text
 
@@ -1031,7 +1039,7 @@ executable print-cost-model
     , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.45
+    , plutus-core  ^>=1.46
 
 ----------------------------------------------
 -- satint

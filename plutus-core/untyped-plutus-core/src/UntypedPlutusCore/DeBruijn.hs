@@ -14,7 +14,6 @@ module UntypedPlutusCore.DeBruijn
     -- but hide it in the parent module.
     , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , FreeVariableError (..)
-    , AsFreeVariableError (..)
     , deBruijnTerm
     , unDeBruijnTerm
     , unNameDeBruijn
@@ -43,14 +42,14 @@ This module is just a boring port of the typed version.
 -- | Convert a 'Term' with 'Name's into a 'Term' with 'DeBruijn's.
 -- Will throw an error if a free variable is encountered.
 deBruijnTerm
-    :: (AsFreeVariableError e, MonadError e m)
+    :: (MonadError FreeVariableError m)
     => Term Name uni fun ann -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
 -- | Convert a 'Term' with 'DeBruijn's into a 'Term' with 'Name's.
 -- Will throw an error if a free variable is encountered.
 unDeBruijnTerm
-    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
+    :: (MonadQuote m, MonadError FreeVariableError m)
     => Term NamedDeBruijn uni fun ann -> m (Term Name uni fun ann)
 unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 

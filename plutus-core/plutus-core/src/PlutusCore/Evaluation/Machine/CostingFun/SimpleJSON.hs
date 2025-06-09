@@ -101,6 +101,7 @@ data Model
     | ConstAboveDiagonal    Integer Model
     | ConstBelowDiagonal    Integer Model
     | ConstOffDiagonal      Integer Model
+    | ExpModCost            ExpModCostingFunction
       deriving stock (Show, Lift)
 
 {- The JSON representation consists of a list of pairs of (type, arguments)

@@ -10,6 +10,7 @@ import PlutusCore (DefaultFun, DefaultUni, FreeVariableError, Kind (Type), Name 
                    NamedTyDeBruijn, Program, Quote, Rename (rename), Term (..), TyName (..),
                    Type (..), Unique (..), deBruijnTerm, runQuote, runQuoteT, unDeBruijnTerm)
 import PlutusCore qualified
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Generators.Hedgehog (TermOf (..), forAllNoShowT, forAllPretty, generalizeT)
 import PlutusCore.Generators.Hedgehog.AST as AST (genName, genProgram, genTerm, mangleNames,
                                                   runAstGen)
@@ -22,6 +23,7 @@ import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (Prerena
                         checkFails, mapTestLimitAtLeast, noMarkRename, test_scopingGood,
                         test_scopingSpoilRenamer)
 
+import Control.Monad.Except (modifyError)
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Hedgehog (Gen, Property, assert, forAll, property, tripping)
@@ -198,7 +200,7 @@ prop_printing_parsing_roundtrip = property $ generalizeT do
   tripping name display parse
   where
     parse :: String -> Either (PlutusCore.Error DefaultUni DefaultFun ()) Name
-    parse str = runQuoteT do
+    parse str = runQuoteT $ modifyError PLC.ParseErrorE $ do
       Parser.parse Parser.name "test_printing_parsing_roundtrip" (Text.pack str)
 
 test_names :: TestTree

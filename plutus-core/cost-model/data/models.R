@@ -761,7 +761,7 @@ modelFun <- function(path) {
         fname <- "ByteStringToInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
-        m <- lm(t ~  I(y_mem) + I(y_mem^2), filtered)
+        m <- lm(t ~ I(y_mem) + I(y_mem^2), filtered)
         mk.result(m, "quadratic_in_y")
     }
 
@@ -794,7 +794,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t~I(y_mem*z_mem^2)+I(y_mem*z_mem), filtered)
+        m <- lm(t ~ I(y_mem*z_mem) + I(y_mem*z_mem^2), filtered)
         mk.result(m, "exp_mod_cost")
     }
 

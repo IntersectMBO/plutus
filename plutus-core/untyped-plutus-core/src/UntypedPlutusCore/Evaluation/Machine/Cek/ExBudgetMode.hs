@@ -30,11 +30,11 @@ import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
 import Control.Lens (imap)
 import Control.Monad (when)
+import Control.Monad.Except
 import Data.Hashable (Hashable)
 import Data.HashMap.Monoidal as HashMap
 import Data.Map.Strict qualified as Map
@@ -149,8 +149,9 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
                     -- @spend@ without this bang. Bangs on @cpuLeft'@ and @memLeft'@ don't help
                     -- either as those are forced by 'writeCpu' and 'writeMem' anyway. Go figure.
                     !budgetLeft = ExBudget cpuLeft' memLeft'
-                throwingWithCause _EvaluationError
-                    (OperationalEvaluationError . CekOutOfExError $ ExRestrictingBudget budgetLeft)
+                throwError $
+                  ErrorWithCause
+                    (OperationalError (CekOutOfExError $ ExRestrictingBudget budgetLeft))
                     Nothing
         spender = CekBudgetSpender spend
         remaining = ExBudget <$> readCpu <*> readMem

@@ -2,7 +2,6 @@ module Benchmarks.Integers (makeBenchmarks) where
 
 import Common
 import Generators
-
 import PlutusCore
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes (..))
 
@@ -59,34 +58,31 @@ powers have to be calculated, and these quickly grow so that their size is
 similar to that of `m`.  In the benchmarks we use `a = m div 3` to start with a
 value of reasonable size.
 
-In the costing function for `expModInteger` we measure sizes in units of 8-bit
-bytes (rather than the default of 64-bit words) in order to get benchmark
-results with a reasonable granularity.  For exponents `e<0` a little extra time
-is required to perform an initial modular inversion, but this only adds a
-percent or two to the execution time so for simplicity we benchmark only with
-positive values of `e`. For values of `a` with `size(a)>>size(m)` an extra
-modular reduction has to be performed before starting the main calculation.  It
-is difficult to model the effect of this precisely, so we impose an extra charge
-by increasing the cost of `expModInteger` by 50% for values of `a` with large
-sizes; to avoid the penalty, call `modInteger` before calling `expModInteger`.
+For exponents `e<0` a little extra time is required to perform an initial
+modular inversion, but this only adds a percent or two to the execution time so
+for simplicity we benchmark only with positive values of `e`. For values of `a`
+with `size(a)>size(m)` an extra modular reduction has to be performed before
+starting the main calculation.  It is difficult to model the effect of this
+precisely, so we impose an extra charge by increasing the cost of
+`expModInteger` by 50% for values of `a` with large sizes; to avoid the penalty,
+call `modInteger` before calling `expModInteger`.
 -}
-
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
       pow (a::Integer) (b::Integer) = a^b
       moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..31]
-      -- ^ 16 entries, sizes = 4, 12, ..., 124 bytes
+      -- ^ 16 entries, sizes = 4, 12, ..., 124 bytes (memoryUsage = 1,2,...,16)
       es = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
       -- ^ Largest number less than modulus with binary expansion 1111...1.
       -- This is the worst case.
 
   in bgroup (show fun)
-     [bgroup (showMemoryUsage (IntegerCostedByNumBytes (m `div` 3)))
-       [bgroup (showMemoryUsage (IntegerCostedByNumBytes e))
+     [bgroup (showMemoryUsage (m `div` 3))
+       [bgroup (showMemoryUsage e)
          [mkBM a e m | a <- [m `div` 3] ] | e <- es ] | m <- moduli ]
   where mkBM a e m =
-          benchDefault (showMemoryUsage (IntegerCostedByNumBytes m)) $
+          benchDefault (showMemoryUsage m) $
           mkApp3 ExpModInteger [] a e m
 
 makeBenchmarks :: StdGen -> [Benchmark]

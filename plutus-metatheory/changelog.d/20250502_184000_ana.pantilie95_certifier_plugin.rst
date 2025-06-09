@@ -1,0 +1,4 @@
+Added
+-----
+
+- The certifier component has been moved from `plutus-executables` to `plutus-metatheory`. It has also been exposed as a library inside the package.

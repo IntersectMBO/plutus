@@ -7,7 +7,6 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
-
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -275,7 +274,8 @@ class MkNil arep where
 instance MkNil BuiltinInteger
 instance MkNil BuiltinBool
 instance MkNil BuiltinData
-instance MkNil (BuiltinPair BuiltinData BuiltinData)
+instance (MkNil a) => MkNil (BuiltinList a)
+instance (MkNil a, MkNil b) => MkNil (BuiltinPair a b)
 
 instance (HasToOpaque a arep, MkNil arep) => HasToOpaque [a] (BuiltinList arep) where
   toOpaque = goList

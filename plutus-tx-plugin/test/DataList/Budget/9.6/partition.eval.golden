@@ -1,3 +1,7 @@
+CPU:              14_295_614
+Memory:               58_252
+Size:                     76
+
 (constr
   0
   (con (list data) [I 8, I 9, I 10])

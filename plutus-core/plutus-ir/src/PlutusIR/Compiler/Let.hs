@@ -15,7 +15,7 @@ import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 
 import Control.Monad
-import Control.Monad.Error.Lens
+import Control.Monad.Except
 import Control.Monad.Trans
 
 import Control.Lens hiding (Strict)
@@ -42,7 +42,7 @@ data LetKind = RecTerms | NonRecTerms | Types | DataTypes
   deriving stock (Show, Eq, Ord)
 
 compileLetsPassSC
-  :: Compiling m e uni fun a
+  :: Compiling m uni fun a
   => TC.PirTCConfig uni fun
   -> LetKind
   -> Pass m TyName Name uni fun (Provenance a)
@@ -50,7 +50,7 @@ compileLetsPassSC tcconfig letKind =
     renamePass <> compileLetsPass tcconfig letKind
 
 compileLetsPass
-  :: Compiling m e uni fun a
+  :: Compiling m uni fun a
   => TC.PirTCConfig uni fun
   -> LetKind
   -> Pass m TyName Name uni fun (Provenance a)
@@ -62,12 +62,12 @@ compileLetsPass tcconfig letKind =
       [ConstCondition (Typechecks tcconfig)]
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
-compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
+compileLets :: Compiling m uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
 compileLets kind t = getEnclosing >>= \p ->
     -- See Note [Extra definitions while compiling let-bindings]
     runDefT p $ transformMOf termSubterms (compileLet kind) t
 
-compileLet :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
+compileLet :: Compiling m uni fun a => LetKind -> PIRTerm uni fun a -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
             -- Right-associative fold because `let {b1;b2} in t` === `let {b1} in (let {b2} in t)`
@@ -76,7 +76,7 @@ compileLet kind = \case
     x -> pure x
 
 compileRecBindings
-    :: Compiling m e uni fun a
+    :: Compiling m uni fun a
     => LetKind
     -> PIRTerm uni fun a
     -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a))
@@ -88,13 +88,13 @@ compileRecBindings kind body bs =
          TermBind {} -> compileRecTermBindings kind body singleGroup
          DatatypeBind {} -> lift $ compileRecDataBindings kind body singleGroup
          tb@TypeBind {} ->
-            lift $ getEnclosing >>= \p -> throwing _Error $
+            lift $ getEnclosing >>= \p -> throwError $
                 CompilationError p
                     ("Type bindings cannot appear in recursive let, use datatypebind instead"
                     <> "The type binding is \n "
                     <> display tb)
     -- only one single group should appear, we do not allow mixing of bind styles
-    _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term/type/data bindings in recursive let"
+    _ -> lift $ getEnclosing >>= \p -> throwError $ CompilationError p "Mixed term/type/data bindings in recursive let"
   where
         -- We group the bindings by their binding style, i.e.: term , data or type bindingstyle
         -- All bindings of a let should be of the same style; for that, we make use of the `groupWith1`
@@ -105,7 +105,7 @@ compileRecBindings kind body bs =
         grouped  = NE.groupWith1 (\case { TermBind {} -> 1 ::Int ; TypeBind {} -> 2; _ -> 3 }) bs
 
 compileRecTermBindings
-    :: Compiling m e uni fun a
+    :: Compiling m uni fun a
     => LetKind
     -> PIRTerm uni fun a
     -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a))
@@ -113,19 +113,19 @@ compileRecTermBindings
 compileRecTermBindings RecTerms body bs = do
     binds <- forM bs $ \case
         TermBind _ Strict vd rhs -> pure $ PIR.Def vd rhs
-        _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: type binding in term binding group"
+        _ -> lift $ getEnclosing >>= \p -> throwError $ CompilationError p "Internal error: type binding in term binding group"
     compileRecTerms body binds
 compileRecTermBindings _ body bs = lift $ getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileRecDataBindings :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a)) -> m (PIRTerm uni fun a)
+compileRecDataBindings :: Compiling m uni fun a => LetKind -> PIRTerm uni fun a -> NE.NonEmpty (Binding TyName Name uni fun (Provenance a)) -> m (PIRTerm uni fun a)
 compileRecDataBindings DataTypes body bs = do
     binds <- forM bs $ \case
         DatatypeBind _ d -> pure d
-        _ -> getEnclosing >>= \p -> throwing _Error $ CompilationError p "Internal error: term or type binding in datatype binding group"
+        _ -> getEnclosing >>= \p -> throwError $ CompilationError p "Internal error: term or type binding in datatype binding group"
     compileRecDatatypes body binds
 compileRecDataBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileNonRecBinding :: Compiling m e uni fun a => LetKind -> Binding TyName Name uni fun (Provenance a) -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
+compileNonRecBinding :: Compiling m uni fun a => LetKind -> Binding TyName Name uni fun (Provenance a) -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
 compileNonRecBinding NonRecTerms (TermBind x Strict d rhs) body = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
    PIR.mkImmediateLamAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
 compileNonRecBinding Types (TypeBind x d rhs) body = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $

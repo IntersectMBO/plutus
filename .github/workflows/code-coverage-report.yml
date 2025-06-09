@@ -1,0 +1,46 @@
+# On push to master, this workflow builds and publishes the project's coverage 
+# report to: https://plutus.cardano.intersectmbo.org/dev/coverage
+
+name: "📊 Code Coverage Report"
+
+on:
+  push: 
+    branches: 
+      - master 
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-ci]
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Build Report
+        run: | 
+          nix build --no-warn-dirty --accept-flake-config .#project-coverage-report
+
+      # Note: Only the Union Report is required (found in the 'all' subdirectory).
+      # We intentionally exclude the Individual Reports due to their large size, 
+      # which makes them impossible to upload to GitHub Pages; Jekyll fails with 
+      # an out of disk error:
+      # https://github.com/IntersectMBO/plutus/actions/runs/15466656160/job/43540218892)
+      # As of June 2025, the full set of Individual Reports occupies approximately 3.1 GB, 
+      # with plutus-metatheory alone accounting for ~3 GB.
+      - name: Patch Report
+        run: | 
+          mkdir -p out
+          cp -Lr result/share/hpc/vanilla/html/all/* out
+          mv out/hpc_index.html out/index.html
+
+      - name: Deploy Report
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        with:
+          folder: out
+          target-folder: dev/coverage
+          single-commit: true

@@ -1,0 +1,17 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !null : all a. list a -> bool = nullList
+  ~null : all a. list a -> Bool
+    = /\a ->
+        \(l : list a) ->
+          let
+            !l : list a = l
+            !b : bool = null {a} l
+          in
+          ifThenElse {Bool} b True False
+  ~null : all a. list a -> Bool = null
+in
+\(xs : list integer) -> let !xs : list integer = xs in null {integer} xs

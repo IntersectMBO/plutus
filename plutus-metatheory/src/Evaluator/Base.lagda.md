@@ -42,7 +42,7 @@ postulate
 {-# COMPILE GHC prettyPrintTm = display @T.Text . unconv 0 #-}
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT 0 #-}
 
-{-# FOREIGN GHC import qualified Untyped as U #-}
+{-# FOREIGN GHC import qualified FFI.Untyped as U #-}
 {-# COMPILE GHC prettyPrintUTm = display @T.Text . U.uconv 0 #-}
 ```
 

@@ -27,7 +27,6 @@ packages: cardano-constitution
           plutus-metatheory
           plutus-tx
           plutus-tx-plugin
-          plutus-tx-test-util
           doc/docusaurus/docusaurus-examples.cabal
 
 -- We never, ever, want this.

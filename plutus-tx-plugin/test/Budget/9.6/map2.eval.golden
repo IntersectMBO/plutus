@@ -1,3 +1,7 @@
+CPU:             121_640_515
+Memory:              365_182
+Size:                    466
+
 (constr
   1
   (constr 0 (con integer 105) (con integer 5))

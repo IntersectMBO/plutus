@@ -2,24 +2,33 @@
    1.1.0
    (\xs ->
       (\greaterThanEqualsInteger ->
-         (\find ->
+         (\cse ->
             constr 0
-              [ (find (\v -> greaterThanEqualsInteger v 8) xs)
-              , (find (\v -> greaterThanEqualsInteger v 12) xs) ])
+              [ (cse (\v -> greaterThanEqualsInteger v 8) xs)
+              , (cse (\v -> greaterThanEqualsInteger v 12) xs) ])
            (\p ->
-              (\s -> s s)
-                (\s xs ->
-                   force
-                     (force (force chooseList)
-                        xs
-                        (delay (constr 1 []))
-                        (delay
-                           ((\x xs ->
-                               force
-                                 (case
-                                    (p x)
-                                    [(delay (constr 0 [x])), (delay (s s xs))]))
-                              (force headList xs)
-                              (force tailList xs)))))))
+              force
+                ((\f ->
+                    (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+                      (\s -> f (\x -> s s x)))
+                   (\go arg ->
+                      delay
+                        (\xs ->
+                           force
+                             (force (force chooseList)
+                                xs
+                                (delay (constr 1 []))
+                                (delay
+                                   ((\x xs ->
+                                       force
+                                         (case
+                                            (p x)
+                                            [ (delay (constr 0 [x]))
+                                            , (delay
+                                                 (force (go (delay (\x -> x)))
+                                                    xs)) ]))
+                                      (force headList xs)
+                                      (force tailList xs))))))
+                   (delay (\x -> x)))))
         (\x y ->
            force ifThenElse (lessThanInteger x y) (constr 1 []) (constr 0 []))))

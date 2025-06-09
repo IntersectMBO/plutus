@@ -19,6 +19,7 @@ import Test.Tasty.Extras
 import Data.Bifunctor
 import Data.String
 import PlutusLedgerApi.V1.Data.Value
+import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
 import PlutusTx.Code
 import PlutusTx.Data.AssocMap as Map
 import PlutusTx.Lift (liftCodeDef)
@@ -33,8 +34,7 @@ tests =
       ]
         ++ concatMap
           ( \(TestCase name code) ->
-              [ goldenBudget name code
-              , goldenEvalCekCatch name [code]
+              [ goldenEvalCekCatchBudget name code
               ]
           )
           testCases
@@ -45,13 +45,24 @@ compiledGt = $$(compile [||gt||])
 compiledGeq :: CompiledCode (Value -> Value -> Bool)
 compiledGeq = $$(compile [||geq||])
 
+compiledMintValueMinted :: CompiledCode (MintValue.MintValue -> Value)
+compiledMintValueMinted = $$(compile [||MintValue.mintValueMinted||])
+
+compiledMintValueBurned :: CompiledCode (MintValue.MintValue -> Value)
+compiledMintValueBurned = $$(compile [||MintValue.mintValueBurned||])
+
 compiledCurrencySymbolValueOf :: CompiledCode (Value -> CurrencySymbol -> Integer)
 compiledCurrencySymbolValueOf = $$(compile [||currencySymbolValueOf||])
 
 mkValue :: [(Integer, [(Integer, Integer)])] -> Value
-mkValue =
-    Value
-    . Map.unsafeFromSOPList
+mkValue = Value . mkCurrencyMap
+
+mkMintValue :: [(Integer, [(Integer, Integer)])] -> MintValue.MintValue
+mkMintValue = MintValue.UnsafeMintValue . mkCurrencyMap
+
+mkCurrencyMap :: [(Integer, [(Integer, Integer)])] -> Map CurrencySymbol (Map TokenName Integer)
+mkCurrencyMap
+    = Map.unsafeFromSOPList
     . fmap (bimap toSymbol (Map.unsafeFromSOPList . fmap (first toToken)))
 
 toSymbol :: Integer -> CurrencySymbol
@@ -91,6 +102,17 @@ value3 =
     , (3, [(300, 301), (302, 303), (304, 305), (306, 307)])
     , (4, [(400, 401), (402, 403), (404, 405), (406, 407)])
     , (5, [(500, 501), (502, 503), (504, 505), (506, 507), (508, 509)])
+    ]
+
+
+value4 :: MintValue.MintValue
+value4 =
+  mkMintValue
+    [ (1, [(100, -101)])
+    , (2, [(200, -201), (202,  203)])
+    , (3, [(300, -301), (302, -303), (304, -305), (306, -307)])
+    , (4, [(400, -401), (402,  403), (404,  405), (406,  407)])
+    , (5, [(500, -501), (502,  503), (504,  505), (506,  507), (508, -509)])
     ]
 
 data TestCase = forall a. TestCase TestName (CompiledCode a)
@@ -162,5 +184,15 @@ testCases =
       ( compiledCurrencySymbolValueOf
           `unsafeApplyCode` liftCodeDef value2
           `unsafeApplyCode` liftCodeDef (toSymbol 6)
+      )
+  , TestCase
+      "mintValueMinted"
+      ( compiledMintValueMinted
+          `unsafeApplyCode` liftCodeDef value4
+      )
+  , TestCase
+      "mintValueBurned"
+      ( compiledMintValueBurned
+          `unsafeApplyCode` liftCodeDef value4
       )
   ]

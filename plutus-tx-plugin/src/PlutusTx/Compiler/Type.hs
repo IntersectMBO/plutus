@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-{- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
+{-| Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
 matchers, and pattern match alternatives.
 -}
 module PlutusTx.Compiler.Type (
@@ -63,7 +63,7 @@ TODO: use topNormaliseType to be more efficient and handle newtypes as well. Pro
 is dealing with recursive newtypes.
 -}
 
-{- | Compile a type, first of all normalizing it to remove type family redexes.
+{-| Compile a type, first of all normalizing it to remove type family redexes.
 
 Generally, we need to call this whenever we are compiling a "new" type from the program.
 If we are compiling a part of a type we are already processing then it has likely been
@@ -99,8 +99,8 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
     (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) ->
       -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
       if (GHC.isRuntimeRepTy . GHC.varType) tv
-      then compileType tpe
-      else mkTyForallScoped tv (compileType tpe)
+        then compileType tpe
+        else mkTyForallScoped tv (compileType tpe)
     -- I think it's safe to ignore the coercion here
     (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
     _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
@@ -122,11 +122,11 @@ we just have to ban recursive newtypes, and we do this by blackholing the name w
 definition, and dying if we see it again.
 -}
 
-compileTyCon ::
-  forall uni fun m ann.
-  (CompilingDefault uni fun m ann) =>
-  GHC.TyCon ->
-  m (PIRType uni)
+compileTyCon
+  :: forall uni fun m ann
+   . (CompilingDefault uni fun m ann)
+  => GHC.TyCon
+  -> m (PIRType uni)
 compileTyCon tc
   | tc == GHC.intTyCon = throwPlain $ UnsupportedError "Int: use Integer instead"
   | tc == GHC.intPrimTyCon =
@@ -251,20 +251,20 @@ sortConstructors tc cs =
 
 getDataCons :: (Compiling uni fun m ann) => GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
-  where
-    extractDcs tc
-      | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
-          GHC.AbstractTyCon ->
-            throwSd UnsupportedError $
-              "Abstract type:" GHC.<+> GHC.ppr tc
-          GHC.DataTyCon{GHC.data_cons = dcs} -> pure dcs
-          GHC.TupleTyCon{GHC.data_con = dc} -> pure [dc]
-          GHC.SumTyCon{GHC.data_cons = dcs} -> pure dcs
-          GHC.NewTyCon{GHC.data_con = dc} -> pure [dc]
-      | GHC.isFamilyTyCon tc =
+ where
+  extractDcs tc
+    | GHC.isAlgTyCon tc || GHC.isTupleTyCon tc = case GHC.algTyConRhs tc of
+        GHC.AbstractTyCon ->
           throwSd UnsupportedError $
-            "Irreducible type family application:" GHC.<+> GHC.ppr tc
-      | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
+            "Abstract type:" GHC.<+> GHC.ppr tc
+        GHC.DataTyCon{GHC.data_cons = dcs} -> pure dcs
+        GHC.TupleTyCon{GHC.data_con = dc} -> pure [dc]
+        GHC.SumTyCon{GHC.data_cons = dcs} -> pure dcs
+        GHC.NewTyCon{GHC.data_con = dc} -> pure [dc]
+    | GHC.isFamilyTyCon tc =
+        throwSd UnsupportedError $
+          "Irreducible type family application:" GHC.<+> GHC.ppr tc
+    | otherwise = throwSd UnsupportedError $ "Type constructor:" GHC.<+> GHC.ppr tc
 
 {- Note [On data constructor workers and wrappers]
 By default GHC has 'unbox-small-strict-fields' flag enabled.
@@ -278,7 +278,7 @@ That fixes the type mismatch problem when the GHC unpacks the field but we infer
 the type of the original code without that information.
 -}
 
-{- | Makes the type of the constructor corresponding to the given 'DataCon', with the
+{-| Makes the type of the constructor corresponding to the given 'DataCon', with the
 type variables free.
 -}
 mkConstructorType :: (CompilingDefault uni fun m ann) => GHC.DataCon -> m (PIRType uni)
@@ -322,7 +322,7 @@ getMatch tc = do
       throwSd UnsupportedError $
         "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
-{- | Get the matcher of the given 'Type' (which must be equal to a type constructor application)
+{-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
 -}
 getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRTerm uni fun)
@@ -338,7 +338,7 @@ getMatchInstantiated t =
       throwSd CompilationError $
         "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 
-{- | Drops prefix of 'RuntimeRep' type variables (similar to 'dropRuntimeRepArgs').
+{-| Drops prefix of 'RuntimeRep' type variables (similar to 'dropRuntimeRepArgs').
 Useful for e.g. dropping 'LiftedRep type variables arguments of unboxed tuple type applications:
 
   dropRuntimeRepVars [ k0, k1, a, b ] == [a, b]

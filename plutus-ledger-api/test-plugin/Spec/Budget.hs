@@ -34,9 +34,7 @@ tests =
       ]
         ++ concatMap
           ( \(TestCase name code) ->
-              [ goldenBudget name code
-              , goldenEvalCekCatch name [code]
-              ]
+              [ goldenEvalCekCatchBudget name code ]
           )
           testCases
 

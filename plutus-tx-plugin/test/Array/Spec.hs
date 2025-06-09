@@ -4,9 +4,9 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-optimize #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-simplifier-beta #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-simplifier-evaluate-builtins #-}

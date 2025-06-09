@@ -16,20 +16,18 @@
 
 module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
-    , AsUnliftingError (..)
     , BuiltinError (..)
     , MachineError (..)
-    , AsMachineError (..)
     , EvaluationError (..)
-    , AsEvaluationError (..)
     , ErrorWithCause (..)
     , EvaluationException
-    , throwNotAConstant
-    , throwing
-    , throwing_
-    , throwingWithCause
+    , notAConstant
+    , throwErrorWithCause
     , splitStructuralOperational
     , unsafeSplitStructuralOperational
+    , BuiltinErrorToEvaluationError
+    , builtinErrorToEvaluationError
+    , throwBuiltinErrorWithCause
     ) where
 
 import PlutusPrelude
@@ -39,7 +37,7 @@ import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Control.Lens
+import Control.Monad.Except
 import Data.Either.Extras
 import Data.Word (Word64)
 import Prettyprinter
@@ -69,47 +67,34 @@ data MachineError fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
-mtraverse makeClassyPrisms
-    [ ''MachineError
-    ]
-
-instance structural ~ MachineError fun =>
-        AsMachineError (EvaluationError structural operational) fun where
-    _MachineError = _StructuralEvaluationError
-    {-# INLINE _MachineError #-}
-
-instance AsUnliftingError (MachineError fun) where
-    _UnliftingError = _UnliftingMachineError
-    {-# INLINE _UnliftingError #-}
-
 type EvaluationException structural operational =
     ErrorWithCause (EvaluationError structural operational)
 
-{- Note [Ignoring context in OperationalEvaluationError]
-The 'OperationalEvaluationError' error has a term argument, but 'splitStructuralOperational' just
+{- Note [Ignoring context in OperationalError]
+The 'OperationalError' error has a term argument, but 'splitStructuralOperational' just
 discards this and returns 'EvaluationFailure'. This means that, for example, if we use the @plc@
 command to execute a program containing a division by zero, @plc@ exits silently without reporting
 that anything has gone wrong (but returning a non-zero exit code to the shell via 'exitFailure').
-This is because 'OperationalEvaluationError' is used in cases when a PLC program itself goes wrong
+This is because 'OperationalError' is used in cases when a PLC program itself goes wrong
 (see the Haddock of 'EvaluationError'). This is used to signal unsuccessful validation and so is
 not regarded as a real error; in contrast structural errors are genuine errors and we report their
 context if available.
 -}
 
 -- See the Haddock of 'EvaluationError' for what structural and operational errors are.
--- See Note [Ignoring context in OperationalEvaluationError].
--- | Preserve the contents of an 'StructuralEvaluationError' as a 'Left' and turn an
--- 'OperationalEvaluationError' into a @Right EvaluationFailure@ (thus erasing the content of the
+-- See Note [Ignoring context in OperationalError].
+-- | Preserve the contents of an 'StructuralError' as a 'Left' and turn an
+-- 'OperationalError' into a @Right EvaluationFailure@ (thus erasing the content of the
 -- error in the latter case).
 splitStructuralOperational
     :: Either (EvaluationException structural operational term) a
     -> Either (ErrorWithCause structural term) (EvaluationResult a)
 splitStructuralOperational (Right term) = Right $ EvaluationSuccess term
 splitStructuralOperational (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    StructuralEvaluationError err -> Left $ ErrorWithCause err cause
-    OperationalEvaluationError _  -> Right EvaluationFailure
+    StructuralError err -> Left $ ErrorWithCause err cause
+    OperationalError _  -> Right EvaluationFailure
 
--- | Throw on a 'StructuralEvaluationError' and turn an 'OperationalEvaluationError' into an
+-- | Throw on a 'StructuralError' and turn an 'OperationalError' into an
 -- 'EvaluationFailure' (thus erasing the content of the error in the latter case).
 unsafeSplitStructuralOperational
     :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
@@ -141,3 +126,18 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         [ "Panic: a GHC exception was thrown, please report this as a bug."
         , "The error: " <+> pretty err
         ]
+
+class BuiltinErrorToEvaluationError structural operational where
+  builtinErrorToEvaluationError :: BuiltinError -> EvaluationError structural operational
+
+-- | Attach a @cause@ to a 'BuiltinError' and throw that.
+-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+-- happy path, hence this function must not force its first argument.
+-- TODO: wrap @cause@ in 'Lazy' once we have it.
+throwBuiltinErrorWithCause
+    :: ( MonadError (EvaluationException structural operational cause) m
+       , BuiltinErrorToEvaluationError structural operational
+       )
+    => cause -> BuiltinError -> m void
+throwBuiltinErrorWithCause cause e = throwErrorWithCause (builtinErrorToEvaluationError e) cause
+{-# INLINE throwBuiltinErrorWithCause #-}

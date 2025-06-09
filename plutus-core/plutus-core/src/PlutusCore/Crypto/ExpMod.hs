@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP         #-}
 {-# LANGUAGE MagicHash   #-}
 {-# LANGUAGE UnboxedSums #-}
 module PlutusCore.Crypto.ExpMod

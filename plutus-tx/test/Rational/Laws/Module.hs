@@ -10,11 +10,11 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
 moduleLaws :: [TestTree]
-moduleLaws = [
-  testPropertyNamed "scale 0 = 0" "propScaleZero" propScaleZero,
-  testPropertyNamed "scale 1 = id" "propScaleOne" propScaleOne,
-  testPropertyNamed "scale distributes over +" "propScaleDistPlus" propScaleDistPlus,
-  testPropertyNamed "scale x (scale y r) = scale (x * y) r" "propScaleTimes" propScaleTimes
+moduleLaws =
+  [ testPropertyNamed "scale 0 = 0" "propScaleZero" propScaleZero
+  , testPropertyNamed "scale 1 = id" "propScaleOne" propScaleOne
+  , testPropertyNamed "scale distributes over +" "propScaleDistPlus" propScaleDistPlus
+  , testPropertyNamed "scale x (scale y r) = scale (x * y) r" "propScaleTimes" propScaleTimes
   ]
 
 propScaleZero :: Property

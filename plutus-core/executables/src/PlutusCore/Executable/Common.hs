@@ -43,7 +43,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
-import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..))
+import PlutusCore.Error (ParserErrorBundle (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -99,8 +99,7 @@ class ProgramLike p where
     -- Throws a @UniqueError@ when not all names are unique.
     checkUniques ::
         ( Ord ann
-        , AsUniqueError e ann
-        , MonadError e m
+        , MonadError (PLC.UniqueError ann) m
         ) =>
         p ann ->
         m ()
@@ -401,8 +400,8 @@ toTypedTermExample term = TypedTermExample ty term
   where
     program = PLC.Program () PLC.latestVersion term
     errOrTy = PLC.runQuote . runExceptT $ do
-        tcConfig <- PLC.getDefTypeCheckConfig ()
-        PLC.inferTypeOfProgram tcConfig program
+        tcConfig <- modifyError PLC.TypeErrorE $ PLC.getDefTypeCheckConfig ()
+        modifyError PLC.TypeErrorE $ PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
             error $ PP.displayPlc err

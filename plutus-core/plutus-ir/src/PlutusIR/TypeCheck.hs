@@ -17,14 +17,14 @@ module PlutusIR.TypeCheck (
   MonadTypeCheckPir,
 ) where
 
+import PlutusPrelude
+
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR
 import PlutusIR.Error
 import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck.Internal
-
-import Control.Monad ((>=>))
 
 {- Note [Goal of PIR typechecker]
 
@@ -60,7 +60,7 @@ compiler pipeline:
 
 -- | The default 'TypeCheckConfig'.
 getDefTypeCheckConfig ::
-  (MonadKindCheck err term uni fun ann m, PLC.Typecheckable uni fun) =>
+  (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, PLC.Typecheckable uni fun) =>
   ann ->
   m (PirTCConfig uni fun)
 getDefTypeCheckConfig ann = do
@@ -72,7 +72,7 @@ Note: The "inferred type" can escape its scope if YesEscape config is passed, se
 [PIR vs Paper Escaping Types Difference]
 -}
 inferType ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  (MonadTypeCheckPir uni fun ann m) =>
   PirTCConfig uni fun ->
   Term TyName Name uni fun ann ->
   m (Normalized (Type TyName uni ()))
@@ -85,7 +85,7 @@ Note: this may allow witnessing a type that escapes its scope, see
 [PIR vs Paper Escaping Types Difference]
 -}
 checkType ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  (MonadTypeCheckPir uni fun ann m) =>
   PirTCConfig uni fun ->
   ann ->
   Term TyName Name uni fun ann ->
@@ -100,7 +100,7 @@ Note: The "inferred type" can escape its scope if YesEscape config is passed, se
 [PIR vs Paper Escaping Types Difference]
 -}
 inferTypeOfProgram ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  (MonadTypeCheckPir uni fun ann m) =>
   PirTCConfig uni fun ->
   Program TyName Name uni fun ann ->
   m (Normalized (Type TyName uni ()))
@@ -113,7 +113,7 @@ Note: this may allow witnessing a type that escapes its scope, see
 [PIR vs Paper Escaping Types Difference]
 -}
 checkTypeOfProgram ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  (MonadTypeCheckPir uni fun ann m) =>
   PirTCConfig uni fun ->
   ann ->
   Program TyName Name uni fun ann ->

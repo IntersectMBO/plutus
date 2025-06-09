@@ -17,7 +17,6 @@ module PlutusCore.DeBruijn
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
-    , AsFreeVariableError (..)
     , unNameDeBruijn
     , unNameTyDeBruijn
     , fakeNameDeBruijn
@@ -74,28 +73,28 @@ unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
 -- | Convert a 'Type' with 'NamedTyDeBruijn's into a 'Type' with 'TyName's.
 -- Will throw an error if a free variable is encountered.
 unDeBruijnTy
-    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
+    :: (MonadQuote m, MonadError FreeVariableError m)
     => Type NamedTyDeBruijn uni ann -> m (Type TyName uni ann)
 unDeBruijnTy = unDeBruijnTyWith freeIndexThrow
 
 -- | Convert a 'Term' with 'NamedTyDeBruijn's and 'NamedDeBruijn's into a 'Term' with 'TyName's and
 --  'Name's. Will throw an error if a free variable is encountered.
 unDeBruijnTerm
-    :: (MonadQuote m, AsFreeVariableError e, MonadError e m)
+    :: (MonadQuote m, MonadError FreeVariableError m)
     => Term NamedTyDeBruijn NamedDeBruijn uni fun ann -> m (Term TyName Name uni fun ann)
 unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'NamedTyDeBruijn's.
 -- Will throw an error if a free variable is encountered.
 deBruijnTy
-    :: (AsFreeVariableError e, MonadError e m)
+    :: (MonadError FreeVariableError m)
     => Type TyName uni ann -> m (Type NamedTyDeBruijn uni ann)
 deBruijnTy = deBruijnTyWith freeUniqueThrow
 
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'NamedTyDeBruijn's and
 -- 'NamedDeBruijn's. Will throw an error if a free variable is encountered.
 deBruijnTerm
-    :: (AsFreeVariableError e, MonadError e m)
+    :: (MonadError FreeVariableError m)
     => Term TyName Name uni fun ann -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
 deBruijnTerm = deBruijnTermWith freeUniqueThrow
 

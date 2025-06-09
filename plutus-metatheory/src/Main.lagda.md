@@ -94,7 +94,7 @@ postulate
 {-# COMPILE GHC exitFailure = exitFailure #-}
 
 -- Input Options stuff
-{-# FOREIGN GHC import Opts #-}
+{-# FOREIGN GHC import FFI.Opts #-}
 
 data EvalOptions (A : Set) : Set where
   EvalOpts : Input → Format → EvalMode → BudgetMode A → EvalOptions A
