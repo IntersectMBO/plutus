@@ -73,7 +73,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
                         &        &     & \constr{k}{M_1 \ldots M_m}      & \textrm{constructor with tag $k$ and $m$ arguments ($m \geq 0$)}\\
-                        &        &     & \kase{M}{N_1 \ldots N_m}        & \textrm{case analysis with $m$ alternatives ($m \geq 0$)}\\
+                        &        &     & \kase{M}{N_1 \ldots N_n}        & \textrm{case analysis with $n$ alternatives ($n \geq 0$)}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
 
@@ -131,11 +131,13 @@ scrutinee and then a list of case branches. The behaviour of $\keyword{constr}$
 and $\keyword{case}$ is mostly straightforward: $\keyword{constr}$ evaluates its
 arguments and forms a value; $\keyword{case}$ evaluates the scrutinee into a
 $\keyword{constr}$ value, selects the branch corresponding to the tag on the
-value, and then applies that to the arguments in the value. Note that
-$\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
-applying (and hence evaluating) the one that is eventually selected.  The list
-of branches in $\keyword{case}$ is allowed to be empty, but in that case there
-will be an error if it is ever applied to a scrutinee.
+value (if the tag is $k$ and the branches are $N_1, \ldots, N_n$ then it selects
+$N_{k+1}$, with an error occurring if $k$ does not lie between 0 and $n-1$), and
+then applies that to the arguments in the value. Note that $\keyword{case}$ does
+\emph{not} strictly evaluate the case branches, only applying (and hence
+evaluating) the one that is eventually selected.  The list of branches in
+$\keyword{case}$ is allowed to be empty, but in that case there will be an error
+if it is ever applied to a scrutinee.
 
 \paragraph{Constructor tags}
 Constructor tags can in principle be any natural number. In practice, since they cannot

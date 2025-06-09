@@ -114,13 +114,14 @@ functions between bytestrings and bitstrings
 \item We typically index the bytes in bytestrings starting from the
   \textit{left} end but the bits in bitstrings from the \textit{right} end.
 
-\item The bytestring $[c_0, \ldots, c_n]$ may be denoted by $c_0{\cdots}c_n$ ($n
-  \geq 1$, $c_i \in \B$);  the empty bytestring may be denoted by $\epsilon$.
+\item The bytestring $[c_0, \ldots, c_{n-1}]$ may be denoted by
+  $c_0{\cdots}c_{n-1}$ ($n \geq 0$, $c_i \in \B$); the empty bytestring may be
+  denoted by $\epsilon$.
 
-\item The bitstring $[b_n, \ldots, b_0]$ may be denoted by $b_n{\cdots}b_0$ ($n
-  \geq 1$, $b_i \in \b$); the empty bitstring may be denoted by $\epsilon$: we
-  also use this symbol for the empty bytestring, but this should not cause any
-  confusion.
+\item The  bitstring $[b_{n-1}, \ldots, b_0]$ may be denoted by
+  $b_{n-1}{\cdots}b_0$ ($n \geq 0$, $b_i \in \b$); the empty bitstring may be
+  denoted by $\epsilon$: we also use this symbol for the empty bytestring, but
+  this should not cause any confusion.
 
 \item In the special case of bitstrings sometimes use notation such as
   \texttt{101110} to denote the list $[1,0,1,1,1,0]$; we use a teletype font to

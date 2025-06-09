@@ -236,13 +236,13 @@ it applies at each possible monomorphisation in an obvious way.
                                                          \errorX & \text{otherwise}
                                                        \end{cases}$} & Yes & \ref{note:consbytestring}\\[2mm]
     \TT{sliceByteString}        & $[\ty{integer}, \ty{integer}, \ty{bytestring]} $  \text {$\;\; \to  \ty{bytestring}$}
-                                                   &   $(s,k,[c_0,\ldots,c_n])$ \text{$\;\;\mapsto [c_{\max(s,0)},\ldots,c_{\min(s+k-1,n-1)}]$}
+                                                   &   $(s,k,[c_1,\ldots,c_n])$ \text{$\;\;\mapsto [c_{\max(s+1,1)},\ldots,c_{\min(s+k,n)}]$}
                                                    & No & \ref{note:slicebytestring}\\[2mm]
     \TT{lengthOfByteString}       & $[\ty{bytestring}] \to \ty{integer}$ & $[] \mapsto 0, [c_1,\ldots, c_n] \mapsto n$ & No & \\[2mm]
     \TT{indexByteString}          & $[\ty{bytestring}, \ty{integer}] $ \text{$\;\; \to \ty{integer}$}
-                                                   & $([c_0,\ldots,c_{n-1}],j)$ \text{$\;\;\mapsto
+                                                   & $([c_1,\ldots,c_n],i)$ \text{$\;\;\mapsto
                                                        \begin{cases}
-                                                         c_i & \text{if $0 \leq j \leq n-1$} \\[2mm]
+                                                         c_{i+1} & \text{if $0 \leq i \leq n-1$} \\[2mm]
                                                          \errorX & \text{otherwise}
                                                        \end{cases}$} & Yes & \\[2mm]
     \TT{equalsByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bool}$}   & = & No & \ref{note:bytestring-comparison}\\[2mm]
@@ -377,9 +377,9 @@ The application \texttt{[[(builtin sliceByteString) (con integer $s$)] (con
 $k$ starting at position $s$; indexing is zero-based, so a call with $s=0$
 returns a substring starting with the first element of $b$, $s=1$ returns a
 substring starting with the second, and so on.  This function always succeeds,
-even if the arguments are out of range: if $b=[c_0, \ldots, c_{n-1}]$ then the
+even if the arguments are out of range: if $b=[c_1, \ldots, c_n]$ then the
   application above returns the substring $[c_i, \ldots, c_j]$ where
-  $i=\max(s,0)$ and $j=\min(s+k-1, n-1)$; if $j<i$ then the empty string is returned.
+  $i=\max(s+1,1)$ and $j=\min(s+k, n)$; if $j<i$ then the empty string is returned.
 
 \note{Comparisons of bytestrings.}
 \label{note:bytestring-comparison}
