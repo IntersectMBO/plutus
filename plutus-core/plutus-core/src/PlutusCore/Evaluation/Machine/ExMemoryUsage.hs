@@ -12,7 +12,6 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     , NumBytesCostedAsNumWords(..)
     , IntegerCostedLiterally(..)
-    , IntegerCostedByNumBytes(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1

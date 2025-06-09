@@ -23,8 +23,7 @@ import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedByNumBytes (..),
-                                                    IntegerCostedLiterally (..),
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..), memoryUsage,
                                                     singletonRose)
 import PlutusCore.Pretty (PrettyConfigPlc)

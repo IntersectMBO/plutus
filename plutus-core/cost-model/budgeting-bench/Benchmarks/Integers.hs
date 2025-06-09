@@ -3,7 +3,6 @@ module Benchmarks.Integers (makeBenchmarks) where
 import Common
 import Generators
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedByNumBytes (..))
 
 import Criterion.Main
 import GHC.Num.Integer
