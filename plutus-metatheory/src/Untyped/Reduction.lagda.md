@@ -18,7 +18,6 @@ open import Builtin using (Builtin; equals; decBuiltin; arity; arity₀)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂;_≢_)
 open import Relation.Nullary.Negation using (contradiction)
 open import Data.Nat using (ℕ; zero; suc; _<_; _≟_; _<?_; _≤_)
 open import Data.Nat.Properties using (suc-injective)
@@ -26,6 +25,7 @@ open import Data.List using (List; []; _∷_)
 open import Untyped.CEK using (BUILTIN'; lookup?)
 open import Data.List.Relation.Unary.All using (All)
 import Relation.Binary.PropositionalEquality as Eq using (subst; trans; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂;_≢_)
 open import Relation.Nullary using (yes;no)
 ```
 ## Saturation
@@ -61,10 +61,9 @@ makeSign : Builtin → Sign
 makeSign b = ((arg ^ (arity b)) ((force ^ (arity₀ b)) nil))
 
 data Stack {X : Set} : Sign → X ⊢ → Set where
-  builtin : {b : Builtin} → Stack (makeSign b) (builtin b)
+  builtin : {σ : Sign} {b : Builtin} → {(makeSign b) ≡ σ} → Stack σ (builtin b)
   force : {σ : Sign} {t : X ⊢} → Stack (force σ) t → Stack σ (force t)
-  app : {σ : Sign} {t v : X ⊢} → Stack (arg σ) t → Stack σ (t · v)
-
+  app : {σ : Sign} {t v : X ⊢} → Stack (arg σ) t → Value v → Stack σ (t · v)
 ```
 ## Values
 ```
@@ -225,97 +224,11 @@ progress (delay t) = done delay
 progress (con x) = done con
 progress (constr i xs) = {!!}
 progress (case t ts) = {!!}
-progress (builtin b) with makeSign b in sig-b
-... | force σ = done (stack (force σ) (λ ()) {!builtin!})
-... | arg σ = {!!}
-... | nil rewrite sig-b = step (sat-builtin {!!})
+progress (builtin b) with makeSign b in sign-b
+... | force σ = done (stack (force σ) (λ ()) (builtin {_} {force σ} {b} {sign-b}))
+... | arg σ = done (stack σ {!!} {!!})
+... | nil = step (sat-builtin (builtin {_} {nil} {b} {sign-b}))
 progress error = fail
-{-
-progress (` ())
-progress (ƛ M) = done ƛ
-progress (L · R) with progress L
-... | fail = step error₁
-... | step L⟶L' = step (ξ₁ L⟶L')
-... | done VL with progress R
-...   | fail = step error₂
-...   | step R⟶R' = step (ξ₂ VL R⟶R')
-...   | done VR with VL
-...     | delay = step app-delay
-...     | ƛ = step (β VR)
-...     | con = step app-con
-...     | constr x = step app-constr
-progress ((force t) · R) | done VL | done VR | unsat₀ s v = step (app-interleave-error (sat-force-step {t = t} s))
-progress ((force t) · R) | done VL | done VR | unsat₀₋₁ s v with sat (force t) in sat-ft
-... | no-builtin = contradiction (Eq.trans (Eq.sym sat-ft) (sat-force-step {t = t} s)) λ ()
-... | interleave-error = {!!}
-... | want zero zero = step (ξ₁ (sat-builtin sat-ft)) -- step (ξ₁ (sat-force-builtin sat-ft))
-... | want zero (suc zero)  = step (sat-builtin {!!}) --step (sat-app-builtin (sat-app-step {t = force t} {t₁ = R} sat-ft))
-... | want zero (suc (suc a₁)) = done (unsat₁ sat-ft VL VR)
-... | want (suc a₀) a₁ = step (app-interleave-error sat-ft)
-progress ((t · t₁) · R) | done VL | done VR | unsat₁ sat-l≡want v v₁ with sat (t · t₁) in sat-L
-...       | no-builtin = contradiction (Eq.trans (Eq.sym (sat-app-step {t = t} {t₁ = t₁} sat-l≡want)) sat-L ) λ ()
-...       | interleave-error = {!!}
-...       | want (suc a₀) a₁ = step (app-interleave-error sat-L)
-...       | want zero zero = {!!} -- step (ξ₁ (sat-app-builtin sat-L))
-...       | want zero (suc zero) = {!!} -- step (sat-app-builtin (sat-app-step {t = t · t₁} {t₁ = R} sat-L))
-...       | want zero (suc (suc a₁)) = done (unsat₁ sat-L VL VR)
-progress ((builtin b) · R) | done VL | done VR | builtin with arity b in arity-b
-... | a₁ with arity₀ b in arity₀-b
-...   | suc a₀ = step (app-interleave-error (cong₂ want arity₀-b arity-b))
-progress (builtin b · R) | done VL | done VR | builtin | suc zero | zero  = {!!} -- step (sat-app-builtin (sat-app-step {t = (builtin b)} {t₁ = R} (cong₂ want arity₀-b arity-b)))
-progress (builtin b · R) | done VL | done VR | builtin | suc (suc a₁) | zero  = done (unsat₁ (cong₂ want arity₀-b arity-b) VL VR)
-progress (force m) with progress m
-... | step x = step (ξ₃ x)
-... | fail = step force-error
-... | done x with sat m in sat-m
-...   | interleave-error = {!!}
-...   | want zero a₁ = step (force-interleave-error sat-m)
-...   | want (suc (suc a₀)) a₁ = done (unsat₀ sat-m x)
-...   | want (suc zero) zero = {!!} -- step (sat-force-builtin (sat-force-step {t = m} sat-m))
-...   | want (suc zero) (suc a₁) = done (unsat₀₋₁ sat-m x)
-progress (force (ƛ m)) | done Vm | no-builtin = step force-ƛ
-progress (force (m · m₁)) | done (unsat₁ sat-m≡want Vm Vm₁) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-app-step {t = m} {t₁ = m₁} sat-m≡want)) λ ()
-progress (force (force m)) | done (unsat₀ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
-progress (force (force m)) | done (unsat₀₋₁ sat-m≡want v) | no-builtin = contradiction (Eq.trans (Eq.sym sat-m) (sat-force-step {t = m} sat-m≡want)) λ ()
-progress (force (delay m)) | done Vm | no-builtin = step force-delay
-progress (force (con x)) | done Vm | no-builtin = step force-con
-progress (force (constr i xs)) | done Vm | no-builtin = step force-constr
-progress (force (case m ts)) | done () | no-builtin
-progress (force error) | done Vm | no-builtin = step force-error
-
-progress (delay M) = done delay
-progress (con v) = done con
-progress (constr i []) = done (constr All.[])
-progress (constr i (x ∷ xs)) with progress x
-... | step x₁ = step (constr-step x₁)
-... | fail = step constr-error
-... | done x₁ with progress (constr i xs)
-...   | done x₂ = done (constr (x₁ All.∷ (value-constr-recurse x₂)))
-... | step (constr-step x₂) = step (constr-sub-step (constr-step x₂))
-... | step (constr-sub-step x₂) = step (constr-sub-step (constr-sub-step x₂))
-... | step constr-error = step (constr-sub-error constr-error)
-... | step (constr-sub-error x₂) = step (constr-sub-error (constr-sub-error x₂))
-progress (case (ƛ x) ts) = step case-ƛ
-progress (case (x · x₁) ts) with progress (x · x₁)
-... | step x₂ = step (case-reduce x₂)
-... | done (unsat₁ s Vm Vm₁) = step (case-unsat₁ (sat-app-step {t = x} {t₁ = x₁} s))
-progress (case (force x) ts) with progress (force x)
-... | step x₁ = step (case-reduce x₁)
-... | done (unsat₀ s Vm) = step (case-unsat₀ (sat-force-step {t = x} s))
-... | done (unsat₀₋₁ s Vm) = step (case-unsat₁ (sat-force-step {t = x} s))
-progress (case (delay x) ts) = step case-delay
-progress (case (con x) ts) = step case-con
-progress (case (constr i xs) ts) with lookup? i ts in lookup-i
-... | nothing = step (broken-const lookup-i)
-... | just t = step (case-constr lookup-i)
-progress (case (case x ts₁) ts) with progress (case x ts₁)
-... | step x' = step (case-reduce x')
-... | done ()
-progress (case (builtin b) ts) = step case-builtin
-progress (case error ts) = step case-error
-progress (builtin b) = done builtin
-progress error = fail
--}
 ```
 ## "Reduction" Equivalence
 ```
