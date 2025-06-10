@@ -1661,12 +1661,64 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramUnBData)
 
     toBuiltinMeaning _semvar EqualsData =
-        let equalsDataDenotation :: Data -> Data -> Bool
-            equalsDataDenotation = (==)
+        let equalsDataDenotation :: Data -> Data -> LazyResult Data Bool
+            equalsDataDenotation = goData where
+                goData (Constr i1 args1) = \case
+                    Constr i2 args2 ->
+                        -- Computing equality of two integers without costing the operation first is
+                        -- wrong, but see the reasoning about 'min' below.
+                        if i1 == i2
+                            then case goListWith goData args1 args2 of
+                                LazyResult args' b -> LazyResult (Constr i1 args') b
+                            else LazyResult (Constr (min i1 i2) []) False
+                    _ -> LazyResult (Constr i1 []) False
+                goData (List xs1) = \case
+                    List xs2 -> case goListWith goData xs1 xs2 of
+                        LazyResult xs' b -> LazyResult (List xs') b
+                    _ -> LazyResult (List []) False
+                goData (Map xs1) = \case
+                    Map xs2 -> case goListWith goPairData xs1 xs2 of
+                        LazyResult xs' b -> LazyResult (Map xs') b
+                    _ -> LazyResult (Map []) False
+                goData (I i1) = \case
+                     -- Computing 'min' upfront without costing it first is wrong. Maybe we could
+                     -- fix this by having a 'min' producing 'Integer' chunks lazily, but I'm not
+                     -- sure if that's even possible to implement.
+                     -- But given that 'min' is linear in the worst case, and the user had to
+                     -- produce those integers somehow, and the user will pay for this operation as
+                     -- a part of 'equalsData', it's very unlikely anything resembling an attack
+                     -- can be constructed here.
+                     I i2 -> LazyResult (I $ min i1 i2) $ i1 == i2
+                     _ -> LazyResult (I 0) False
+                goData (B b1) = \case
+                     -- Computing 'length' upfront without costing it first is OK, because it has a
+                     -- constant cost anyway.
+                     B b2 ->
+                         LazyResult (B $ if BS.length b1 < BS.length b2 then b1 else b2) $ b1 == b2
+                     _ -> LazyResult (B "") False
+
+                -- Flip arguments of 'LazyResult' for an Applicative interface?
+                goListWith
+                    :: (a -> a -> LazyResult info Bool)
+                    -> [a]
+                    -> [a]
+                    -> LazyResult [info] Bool
+                goListWith _ [] = \case
+                    [] -> LazyResult [] True
+                    _:_ -> LazyResult [] False
+                goListWith f (x1:xs1) = \case
+                    [] -> LazyResult [] False
+                    x2:xs2 -> case (f x1 x2, goListWith f xs1 xs2) of
+                        (LazyResult d bX, LazyResult ds bXs) -> LazyResult (d:ds) $ bX && bXs
+
+                goPairData :: (Data, Data) -> (Data, Data) -> LazyResult (Data, Data) Bool
+                goPairData (dL1, dR1) (dL2, dR2) = case (goData dL1 dL2, goData dR1 dR2) of
+                    (LazyResult dL bL, LazyResult dR bR) -> LazyResult (dL, dR) $ bL && bR
             {-# INLINE equalsDataDenotation #-}
-        in makeBuiltinMeaning
+        in makeCostedBuiltinMeaning
             equalsDataDenotation
-            (runCostingFunTwoArguments . paramEqualsData)
+            (\cost (LazyResult common _) _ _ ->
+                runCostingFunTwoArguments (paramEqualsData cost) common common)
 
     toBuiltinMeaning _semvar SerialiseData =
         let serialiseDataDenotation :: Data -> BS.ByteString

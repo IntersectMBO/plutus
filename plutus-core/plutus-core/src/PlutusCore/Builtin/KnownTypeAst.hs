@@ -343,6 +343,13 @@ instance
             (toTypeAst $ Proxy @a)
     {-# INLINE typeAst #-}
 
+instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (LazyResult info a) where
+    type IsBuiltin _ (LazyResult info a) = 'False
+    type ToHoles _ _ (LazyResult info a) = '[TypeHole a]
+    type ToBinds uni acc (LazyResult info a) = ToBinds uni acc a
+    typeAst = toTypeAst $ Proxy @a
+    {-# INLINE typeAst #-}
+
 -- Utils
 
 -- | Insert @x@ into @xs@ unless it's already there.

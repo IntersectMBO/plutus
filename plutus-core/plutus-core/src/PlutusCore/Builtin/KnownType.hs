@@ -418,3 +418,7 @@ instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val) rep) where
     makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}
+
+instance MakeKnownIn uni val a => MakeKnownIn uni val (LazyResult info a) where
+    makeKnown (LazyResult _ x) = makeKnown x
+    {-# INLINE makeKnown #-}

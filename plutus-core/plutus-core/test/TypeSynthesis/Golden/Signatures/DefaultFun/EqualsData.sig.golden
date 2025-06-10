@@ -1,1 +1,1 @@
-Data -> Data -> Bool
+Data -> Data -> LazyResult Data Bool
