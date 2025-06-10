@@ -1,2 +1,0 @@
-(program 1.1.0 (con (array integer) [(lam x (lam y x))])
-)
