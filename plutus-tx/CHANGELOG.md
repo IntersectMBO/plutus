@@ -1,4 +1,32 @@
 
+<a id='changelog-1.47.0.0'></a>
+# 1.47.0.0 — 2025-06-10
+
+## Added
+
+- `PlutusTx.Test.Run.Code` module was added to the `plutus-tx:testlib` package.
+  This module provides a way to run compiled Plutus code in a test environment,
+  allowing for easier testing and debugging of Plutus scripts. See more details in the User Guide.
+
+- Added over 30 new functions to `PlutusTx.BuiltinList`
+
+- Added new errors codes:
+  - `PT23` -> `PlutusTx.BuiltinList.head: empty list`
+  - `PT24` -> `PlutusTx.BuiltinList.tail: empty list`
+  - `PT25` -> `PlutusTx.BuiltinList.last: empty list`
+
+- Added TH help `PlutusTx.IsData.TH.makeIsDataAsList` which generates `ToData`, `FromData`, `UnsafeFromData` instances with internal representation being `Data.List` instead of `Data.Constr` for given product datatype(only having a single constructor).
+
+- Added `PlutusTx.Test.Util.compiledCodeToHask` and `PlutusTx.Test.Util.compiledCodeToHaskUnsafe` for applying parameters to `CompiledCodeIn uni fun` tersely.
+
+- Added `PlutusTx.Test.Golden.goldenCodeGen` for generating golden of the generated code from Template Haskell.
+
+- Added `assertResult` for asserting given `CompiledCode Bool` evaluates `True`.
+
+## Changed
+
+- `BuiltinList` lookup is made cheaper by using the `DropList` builtin function.
+
 <a id='changelog-1.46.0.0'></a>
 # 1.46.0.0 — 2025-05-09
 
