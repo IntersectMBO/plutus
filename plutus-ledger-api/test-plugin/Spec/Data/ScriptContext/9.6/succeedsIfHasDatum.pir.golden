@@ -25,10 +25,11 @@ in
                      (sndPair {integer} {list data} (unConstrData d)))))
     in
     Bool_match
-      (case
-         Bool
+      (ifThenElse
+         {Bool}
          (equalsInteger 1 (fstPair {integer} {list data} tup))
-         [False, True])
+         True
+         False)
       {all dead. Bool}
       (/\dead ->
          let
@@ -43,12 +44,12 @@ in
              !args : list data = sndPair {integer} {list data} tup
            in
            Bool_match
-             (case Bool (equalsInteger 1 index) [False, True])
+             (ifThenElse {Bool} (equalsInteger 1 index) True False)
              {all dead. Maybe data}
              (/\dead -> Nothing {data})
              (/\dead ->
                 Bool_match
-                  (case Bool (equalsInteger 0 index) [False, True])
+                  (ifThenElse {Bool} (equalsInteger 0 index) True False)
                   {all dead. Maybe data}
                   (/\dead -> Just {data} (headList {data} args))
                   (/\dead -> traceError {Maybe data} "PT1")

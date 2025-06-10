@@ -352,7 +352,8 @@ defineBuiltinTerms = do
      in case fun of
           PLC.IfThenElse -> case datatypeStyle of
               PIR.ScottEncoding  -> defineBuiltinInl 'Builtins.ifThenElse
-              PIR.SumsOfProducts -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
+              PIR.SumsOfProducts -> defineBuiltinInl 'Builtins.ifThenElse
+              PIR.BuiltinCasing  -> defineBuiltinTerm annMayInline 'Builtins.ifThenElse $
                   fmap (const annMayInline) . runQuote $ do
                       a <- freshTyName "a"
                       b <- freshName "b"
