@@ -1,4 +1,13 @@
 
+<a id='changelog-1.47.0.0'></a>
+# 1.47.0.0 — 2025-06-10
+
+## Added
+
+- Integrated the compiler certifier into the plugin. This feature can be accessed using the `certify` plugin option. Note that this is currently very experimental, and is released now mainly for testing purposes.
+
+- Added support for `integerEq` into the plugin, enabling use of `(==) @Integer` and pattern matching on `Integer` type values.
+
 <a id='changelog-1.46.0.0'></a>
 # 1.46.0.0 — 2025-05-09
 

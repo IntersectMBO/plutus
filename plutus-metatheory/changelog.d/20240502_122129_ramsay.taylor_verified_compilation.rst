@@ -1,3 +1,0 @@
-# Added
-
-Initial Translation Relation for the Untyped Case of Case simplification phase
