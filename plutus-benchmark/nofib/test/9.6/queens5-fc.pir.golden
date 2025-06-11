@@ -136,7 +136,7 @@
       Fc : Algorithm
     !equalsInteger : integer -> integer -> Bool
       = \(x : integer) (y : integer) ->
-          case Bool (equalsInteger x y) [False, True]
+          ifThenElse {Bool} (equalsInteger x y) True False
     data Unit | Unit_match where
       Unit : Unit
   in
@@ -281,10 +281,11 @@
                                               (xs : List integer) ->
                                                /\dead ->
                                                  Bool_match
-                                                   (case
-                                                      Bool
+                                                   (ifThenElse
+                                                      {Bool}
                                                       (equalsInteger a x)
-                                                      [False, True])
+                                                      True
+                                                      False)
                                                    {all dead. Bool}
                                                    (/\dead -> False)
                                                    (/\dead -> go xs)
@@ -335,8 +336,8 @@
               (ipv : integer)
               (ipv : Assign -> Assign -> Bool) ->
                Bool_match
-                 (case
-                    Bool
+                 (ifThenElse
+                    {Bool}
                     (equalsInteger
                        (List_match
                           {Assign}
@@ -349,7 +350,8 @@
                                {integer}
                                (\(var : integer) (val : integer) -> var)))
                        ipv)
-                    [False, True])
+                    True
+                    False)
                  {all dead. ConflictSet}
                  (/\dead -> Known (Nil {integer}))
                  (/\dead -> Unknown)
@@ -554,7 +556,7 @@
     !interval : integer -> integer -> List integer
       = \(a : integer) (b : integer) ->
           Bool_match
-            (case Bool (lessThanEqualsInteger a b) [True, False])
+            (ifThenElse {Bool} (lessThanEqualsInteger a b) False True)
             {all dead. List integer}
             (/\dead -> Nil {integer})
             (/\dead -> Cons {integer} a (interval (addInteger 1 a) b))
@@ -998,7 +1000,7 @@
             (\(x : ConflictSet) (xs : List ConflictSet) ->
                /\dead ->
                  Bool_match
-                   (case Bool (equalsInteger 0 ds) [False, True])
+                   (ifThenElse {Bool} (equalsInteger 0 ds) True False)
                    {all dead. ConflictSet}
                    (/\dead -> x)
                    (/\dead -> go (subtractInteger ds 1) xs)
@@ -1070,7 +1072,11 @@
                                        1
                                in
                                Bool_match
-                                 (case Bool (lessThanInteger n 0) [False, True])
+                                 (ifThenElse
+                                    {Bool}
+                                    (lessThanInteger n 0)
+                                    True
+                                    False)
                                  {all dead. ConflictSet}
                                  (/\dead -> traceError {ConflictSet} "PT6")
                                  (/\dead -> go n ds)
@@ -1095,7 +1101,7 @@
     !abs : integer -> integer
       = \(n : integer) ->
           Bool_match
-            (case Bool (lessThanInteger n 0) [False, True])
+            (ifThenElse {Bool} (lessThanInteger n 0) True False)
             {all dead. integer}
             (/\dead -> subtractInteger 0 n)
             (/\dead -> n)
@@ -1234,7 +1240,7 @@
                       (\(j : integer) (n : integer) ->
                          Bool_match
                            (Bool_match
-                              (case Bool (equalsInteger m n) [False, True])
+                              (ifThenElse {Bool} (equalsInteger m n) True False)
                               {all dead. Bool}
                               (/\dead -> False)
                               (/\dead -> True)
@@ -1242,12 +1248,13 @@
                            {all dead. Bool}
                            (/\dead ->
                               Bool_match
-                                (case
-                                   Bool
+                                (ifThenElse
+                                   {Bool}
                                    (equalsInteger
                                       (abs (subtractInteger i j))
                                       (abs (subtractInteger m n)))
-                                   [False, True])
+                                   True
+                                   False)
                                 {all dead. Bool}
                                 (/\dead -> False)
                                 (/\dead -> True)
@@ -1676,8 +1683,8 @@
                                                 {all dead. dead}
                                       in
                                       Bool_match
-                                        (case
-                                           Bool
+                                        (ifThenElse
+                                           {Bool}
                                            (lessThanInteger
                                               (List_match
                                                  {Assign}
@@ -1693,7 +1700,8 @@
                                                         (val : integer) ->
                                                          var)))
                                               ds)
-                                           [False, True])
+                                           True
+                                           False)
                                         {all dead. a}
                                         (/\dead -> go vallist)
                                         (/\dead -> n)

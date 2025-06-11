@@ -2,6 +2,9 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
+  !equalsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (equalsByteString x y) True False
   data Credential | Credential_match where
     PubKeyCredential : bytestring -> Credential
     ScriptCredential : bytestring -> Credential
@@ -25,16 +28,14 @@ let
                        Credential_match
                          r
                          {Bool}
-                         (\(r : bytestring) ->
-                            case Bool (equalsByteString l r) [False, True])
+                         (\(r : bytestring) -> equalsByteString l r)
                          (\(ipv : bytestring) -> False))
                     (\(a : bytestring) ->
                        Credential_match
                          r
                          {Bool}
                          (\(ipv : bytestring) -> False)
-                         (\(a' : bytestring) ->
-                            case Bool (equalsByteString a a') [False, True])))
+                         (\(a' : bytestring) -> equalsByteString a a')))
                (\(ipv : integer) (ipv : integer) (ipv : integer) -> False))
           (\(a : integer) (b : integer) (c : integer) ->
              StakingCredential_match
@@ -43,14 +44,14 @@ let
                (\(ipv : Credential) -> False)
                (\(a' : integer) (b' : integer) (c' : integer) ->
                   Bool_match
-                    (case Bool (equalsInteger a a') [False, True])
+                    (ifThenElse {Bool} (equalsInteger a a') True False)
                     {all dead. Bool}
                     (/\dead ->
                        Bool_match
-                         (case Bool (equalsInteger b b') [False, True])
+                         (ifThenElse {Bool} (equalsInteger b b') True False)
                          {all dead. Bool}
                          (/\dead ->
-                            case Bool (equalsInteger c c') [False, True])
+                            ifThenElse {Bool} (equalsInteger c c') True False)
                          (/\dead -> False)
                          {all dead. dead})
                     (/\dead -> False)
@@ -70,12 +71,12 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. Bool}
           (/\dead -> False)
           (/\dead ->
              Bool_match
-               (case Bool (equalsInteger 1 index) [False, True])
+               (ifThenElse {Bool} (equalsInteger 1 index) True False)
                {all dead. Bool}
                (/\dead -> True)
                (/\dead -> traceError {Bool} "PT1")
@@ -95,18 +96,18 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (case Bool (equalsInteger 0 index) [False, True])
+            (ifThenElse {Bool} (equalsInteger 0 index) True False)
             {all dead. Extended a}
             (/\dead -> NegInf {a})
             (/\dead ->
                Bool_match
-                 (case Bool (equalsInteger 1 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
                  {all dead. Extended a}
                  (/\dead ->
                     Finite {a} (`$dUnsafeFromData` (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (case Bool (equalsInteger 2 index) [False, True])
+                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
                       {all dead. Extended a}
                       (/\dead -> PosInf {a})
                       (/\dead -> traceError {Extended a} "PT1")
@@ -121,12 +122,12 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. Credential}
           (/\dead -> PubKeyCredential (unBData (headList {data} args)))
           (/\dead ->
              Bool_match
-               (case Bool (equalsInteger 1 index) [False, True])
+               (ifThenElse {Bool} (equalsInteger 1 index) True False)
                {all dead. Credential}
                (/\dead -> ScriptCredential (unBData (headList {data} args)))
                (/\dead -> traceError {Credential} "PT1")
@@ -141,7 +142,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. StakingCredential}
           (/\dead ->
              StakingHash
@@ -149,7 +150,7 @@ let
                   (headList {data} args)))
           (/\dead ->
              Bool_match
-               (case Bool (equalsInteger 1 index) [False, True])
+               (ifThenElse {Bool} (equalsInteger 1 index) True False)
                {all dead. StakingCredential}
                (/\dead ->
                   let
@@ -179,7 +180,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. DCert}
           (/\dead ->
              DCertDelegRegKey
@@ -187,7 +188,7 @@ let
                   (headList {data} args)))
           (/\dead ->
              Bool_match
-               (case Bool (equalsInteger 1 index) [False, True])
+               (ifThenElse {Bool} (equalsInteger 1 index) True False)
                {all dead. DCert}
                (/\dead ->
                   DCertDelegDeRegKey
@@ -195,7 +196,7 @@ let
                        (headList {data} args)))
                (/\dead ->
                   Bool_match
-                    (case Bool (equalsInteger 2 index) [False, True])
+                    (ifThenElse {Bool} (equalsInteger 2 index) True False)
                     {all dead. DCert}
                     (/\dead ->
                        DCertDelegDelegate
@@ -204,7 +205,7 @@ let
                          (unBData (headList {data} (tailList {data} args))))
                     (/\dead ->
                        Bool_match
-                         (case Bool (equalsInteger 3 index) [False, True])
+                         (ifThenElse {Bool} (equalsInteger 3 index) True False)
                          {all dead. DCert}
                          (/\dead ->
                             DCertPoolRegister
@@ -213,7 +214,11 @@ let
                                  (headList {data} (tailList {data} args))))
                          (/\dead ->
                             Bool_match
-                              (case Bool (equalsInteger 4 index) [False, True])
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsInteger 4 index)
+                                 True
+                                 False)
                               {all dead. DCert}
                               (/\dead ->
                                  DCertPoolRetire
@@ -222,18 +227,20 @@ let
                                       (headList {data} (tailList {data} args))))
                               (/\dead ->
                                  Bool_match
-                                   (case
-                                      Bool
+                                   (ifThenElse
+                                      {Bool}
                                       (equalsInteger 5 index)
-                                      [False, True])
+                                      True
+                                      False)
                                    {all dead. DCert}
                                    (/\dead -> DCertGenesis)
                                    (/\dead ->
                                       Bool_match
-                                        (case
-                                           Bool
+                                        (ifThenElse
+                                           {Bool}
                                            (equalsInteger 6 index)
-                                           [False, True])
+                                           True
+                                           False)
                                         {all dead. DCert}
                                         (/\dead -> DCertMir)
                                         (/\dead -> traceError {DCert} "PT1")
@@ -252,7 +259,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. bytestring}
           (/\dead -> unBData (headList {data} args))
           (/\dead -> traceError {bytestring} "PT1")
@@ -267,7 +274,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. TxOutRef}
           (/\dead ->
              TxOutRef
@@ -290,12 +297,12 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. ScriptPurpose}
           (/\dead -> Minting (unBData (headList {data} args)))
           (/\dead ->
              Bool_match
-               (case Bool (equalsInteger 1 index) [False, True])
+               (ifThenElse {Bool} (equalsInteger 1 index) True False)
                {all dead. ScriptPurpose}
                (/\dead ->
                   Spending
@@ -303,7 +310,7 @@ let
                        (headList {data} args)))
                (/\dead ->
                   Bool_match
-                    (case Bool (equalsInteger 2 index) [False, True])
+                    (ifThenElse {Bool} (equalsInteger 2 index) True False)
                     {all dead. ScriptPurpose}
                     (/\dead ->
                        Rewarding
@@ -311,7 +318,7 @@ let
                             (headList {data} args)))
                     (/\dead ->
                        Bool_match
-                         (case Bool (equalsInteger 3 index) [False, True])
+                         (ifThenElse {Bool} (equalsInteger 3 index) True False)
                          {all dead. ScriptPurpose}
                          (/\dead ->
                             Certifying
@@ -335,12 +342,12 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (case Bool (equalsInteger 1 index) [False, True])
+            (ifThenElse {Bool} (equalsInteger 1 index) True False)
             {all dead. Maybe a}
             (/\dead -> Nothing {a})
             (/\dead ->
                Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Maybe a}
                  (/\dead ->
                     Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -424,7 +431,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. TxOut}
           (/\dead ->
              let
@@ -439,7 +446,7 @@ let
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Address}
                  (/\dead ->
                     Address
@@ -464,18 +471,22 @@ let
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. OutputDatum}
                  (/\dead -> NoOutputDatum)
                  (/\dead ->
                     Bool_match
-                      (case Bool (equalsInteger 1 index) [False, True])
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. OutputDatum}
                       (/\dead ->
                          OutputDatumHash (unBData (headList {data} args)))
                       (/\dead ->
                          Bool_match
-                           (case Bool (equalsInteger 2 index) [False, True])
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger 2 index)
+                              True
+                              False)
                            {all dead. OutputDatum}
                            (/\dead -> OutputDatum (headList {data} args))
                            (/\dead -> traceError {OutputDatum} "PT1")
@@ -498,7 +509,7 @@ let
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. TxInInfo}
           (/\dead ->
              TxInInfo
@@ -545,7 +556,7 @@ in
       !args : list data = sndPair {integer} {list data} tup
     in
     Bool_match
-      (case Bool (equalsInteger 0 index) [False, True])
+      (ifThenElse {Bool} (equalsInteger 0 index) True False)
       {all dead. ScriptContext}
       (/\dead ->
          ScriptContext
@@ -556,7 +567,7 @@ in
              !args : list data = sndPair {integer} {list data} tup
            in
            Bool_match
-             (case Bool (equalsInteger 0 index) [False, True])
+             (ifThenElse {Bool} (equalsInteger 0 index) True False)
              {all dead. TxInfo}
              (/\dead ->
                 let
@@ -669,7 +680,7 @@ in
                     !args : list data = sndPair {integer} {list data} tup
                   in
                   Bool_match
-                    (case Bool (equalsInteger 0 index) [False, True])
+                    (ifThenElse {Bool} (equalsInteger 0 index) True False)
                     {all dead. Interval integer}
                     (/\dead ->
                        Interval
@@ -681,7 +692,11 @@ in
                            !args : list data = sndPair {integer} {list data} tup
                          in
                          Bool_match
-                           (case Bool (equalsInteger 0 index) [False, True])
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger 0 index)
+                              True
+                              False)
                            {all dead. LowerBound integer}
                            (/\dead ->
                               LowerBound
@@ -702,7 +717,11 @@ in
                            !args : list data = sndPair {integer} {list data} tup
                          in
                          Bool_match
-                           (case Bool (equalsInteger 0 index) [False, True])
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger 0 index)
+                              True
+                              False)
                            {all dead. UpperBound integer}
                            (/\dead ->
                               UpperBound

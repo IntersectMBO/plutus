@@ -10,10 +10,11 @@ in
     !lookForCred : pair data data -> list (pair data data) -> Unit
       = \(p : pair data data) (tl : list (pair data data)) ->
           Bool_match
-            (case
-               Bool
+            (ifThenElse
+               {Bool}
                (equalsData r_stake_cred (fstPair {data} {data} p))
-               [False, True])
+               True
+               False)
             {all dead. Unit}
             (/\dead -> Unit)
             (/\dead -> lookForCred tl)
@@ -81,12 +82,12 @@ in
       !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
     in
     Bool_match
-      (case Bool (equalsData r_stake_cred wdrlAtZero) [False, True])
+      (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtZero) True False)
       {all dead. Unit}
       (/\dead -> Unit)
       (/\dead ->
          Bool_match
-           (case Bool (equalsData r_stake_cred wdrlAtOne) [False, True])
+           (ifThenElse {Bool} (equalsData r_stake_cred wdrlAtOne) True False)
            {all dead. Unit}
            (/\dead -> Unit)
            (/\dead -> lookForCred rest)

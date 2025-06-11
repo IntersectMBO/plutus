@@ -36,13 +36,13 @@
                {all dead. dead})
     !even : integer -> Bool
       = \(n : integer) ->
-          case Bool (equalsInteger 0 (modInteger n 2)) [False, True]
+          ifThenElse {Bool} (equalsInteger 0 (modInteger n 2)) True False
   in
   letrec
     !expModManual : integer -> integer -> integer -> integer
       = \(b' : integer) (e : integer) (m : integer) ->
           Bool_match
-            (case Bool (equalsInteger 0 e) [False, True])
+            (ifThenElse {Bool} (equalsInteger 0 e) True False)
             {all dead. integer}
             (/\dead -> 1)
             (/\dead ->
@@ -178,14 +178,15 @@
                     {all dead. dead}
           in
           Bool_match
-            (case
-               Bool
+            (ifThenElse
+               {Bool}
                (equalsInteger
                   0
                   (modInteger
                      (subtractInteger (multiplyInteger x x) xx)
                      57896044618658097711785492504343953926634992332820282019728792003956564819949))
-               [False, True])
+               True
+               False)
             {all dead. integer}
             (/\dead -> `$j` False)
             (/\dead -> `$j` True)
@@ -207,7 +208,7 @@
                         (Nil {integer}))
                      False)
             !x : integer = xRecover yInt
-            !x_ : Bool = case Bool (readBit bs 7) [False, True]
+            !x_ : Bool = ifThenElse {Bool} (readBit bs 7) True False
           in
           Bool_match
             (even x)
@@ -371,10 +372,11 @@
          (next : bytestring -> SHA512State -> Tuple2 SHA512State bytestring)
          (input : bytestring) ->
           Bool_match
-            (case
-               Bool
+            (ifThenElse
+               {Bool}
                (equalsInteger 0 (lengthOfByteString input))
-               [False, True])
+               True
+               False)
             {all dead. SHA512State}
             (/\dead -> state)
             (/\dead ->
@@ -457,7 +459,7 @@
     !scalarMult : Tuple2 integer integer -> integer -> Tuple2 integer integer
       = \(p : Tuple2 integer integer) (e : integer) ->
           Bool_match
-            (case Bool (equalsInteger 0 e) [False, True])
+            (ifThenElse {Bool} (equalsInteger 0 e) True False)
             {all dead. Tuple2 integer integer}
             (/\dead -> Tuple2 {integer} {integer} 0 1)
             (/\dead ->
@@ -482,10 +484,11 @@
             !added : integer = addInteger (byteStringToInteger True x) yI
           in
           Bool_match
-            (case
-               Bool
+            (ifThenElse
+               {Bool}
                (lessThanInteger 18446744073709551615 added)
-               [False, True])
+               True
+               False)
             {all dead. bytestring}
             (/\dead ->
                g
@@ -579,10 +582,11 @@
                    (\(x : integer) (y : integer) ->
                       let
                         !xLSBVal : Bool
-                          = case
-                              Bool
+                          = ifThenElse
+                              {Bool}
                               (readBit (integerToByteString False 32 x) 248)
-                              [False, True]
+                              True
+                              False
                       in
                       writeBits
                         (integerToByteString False 32 y)
@@ -2228,7 +2232,7 @@
                         1
                 in
                 Bool_match
-                  (case Bool (lessThanEqualsInteger r -1) [False, True])
+                  (ifThenElse {Bool} (lessThanEqualsInteger r -1) True False)
                   {all dead. bytestring}
                   (/\dead -> `$j` (addInteger 1024 r))
                   (/\dead -> `$j` r)
@@ -2281,9 +2285,9 @@
            {Bool}
            (\(x : integer) (y : integer) ->
               Bool_match
-                (case Bool (equalsInteger x x) [False, True])
+                (ifThenElse {Bool} (equalsInteger x x) True False)
                 {all dead. Bool}
-                (/\dead -> case Bool (equalsInteger y y) [False, True])
+                (/\dead -> ifThenElse {Bool} (equalsInteger y y) True False)
                 (/\dead -> False)
                 {all dead. dead})))
   (B #c080c2932178c2adc2a7c3917a6009c3b37cc383245824c3a9c2a6c3aac080c286c2986c14c3b334c39915c298c2b47b244dc3a352c396c39a25c3b1c29d050e0509c298c28cc2abc3b0c38866c2b8c285c38bc3a37ac2a3c080c2b9c29b59c28bc2b2c3b902)
