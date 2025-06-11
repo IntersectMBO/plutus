@@ -670,3 +670,27 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.46
+
+------------------ linear vesting -------------------
+
+library linear-vesting-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  linear-vesting/src
+  exposed-modules: PlutusBenchmark.LinearVesting
+  build-depends:
+    , base               >=4.9   && <5
+    , plutus-ledger-api  ^>=1.46
+    , plutus-tx          ^>=1.46
+    , plutus-tx-plugin   ^>=1.46
+
+benchmark linear-vesting
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: linear-vesting/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , criterion
+    , linear-vesting-internal
+    , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.46

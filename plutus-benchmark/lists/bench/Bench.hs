@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 {- | Plutus benchmarks for some simple list algorithms.  See README.md for more information. -}
 
 module Main (main) where
