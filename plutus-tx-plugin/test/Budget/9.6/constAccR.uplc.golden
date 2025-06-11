@@ -5,8 +5,8 @@
       ((\s -> s s)
          (\s n ->
             force
-              (case
+              (force ifThenElse
                  (lessThanEqualsInteger n 0)
-                 [ (delay (constr 1 [1, ((\x -> s s x) (subtractInteger n 1))]))
-                 , (delay (constr 0 [])) ]))
+                 (delay (constr 0 []))
+                 (delay (constr 1 [1, ((\x -> s s x) (subtractInteger n 1))]))))
          1000)))

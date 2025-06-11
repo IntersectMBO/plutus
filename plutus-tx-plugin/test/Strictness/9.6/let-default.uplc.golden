@@ -2,6 +2,7 @@
    1.1.0
    (\m ->
       force
-        (case
+        (force ifThenElse
            (lessThanInteger m 0)
-           [(delay m), (delay ((\cse -> addInteger cse cse) (error m)))])))
+           (delay ((\cse -> addInteger cse cse) (error m)))
+           (delay m))))

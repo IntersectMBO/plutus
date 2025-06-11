@@ -7,7 +7,7 @@ let
 in
 \(m : integer) ->
   Bool_match
-    (case Bool (lessThanInteger m 0) [False, True])
+    (ifThenElse {Bool} (lessThanInteger m 0) True False)
     {all dead. integer}
     (/\dead ->
        addInteger (error {integer -> integer} m) (error {integer -> integer} m))

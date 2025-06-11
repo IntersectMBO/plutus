@@ -1,8 +1,7 @@
 let
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   data Bool | Bool_match where
     True : Bool
     False : Bool

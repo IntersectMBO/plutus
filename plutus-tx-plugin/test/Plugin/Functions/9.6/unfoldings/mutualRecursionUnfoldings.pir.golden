@@ -3,8 +3,7 @@ let
     True : Bool
     False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   !subtractInteger : integer -> integer -> integer = subtractInteger
 in
 letrec

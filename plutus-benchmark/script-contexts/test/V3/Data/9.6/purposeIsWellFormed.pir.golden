@@ -2,6 +2,7 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
+<<<<<<< HEAD
 in
 letrec
   data (List :: * -> *) a | List_match where
@@ -333,6 +334,8 @@ letrec
           {all dead. dead}
 in
 let
+=======
+>>>>>>> 7e21569f69b83520d5dfa47ad3a5908224009f45
   !`$fEqCredential_$c==` : data -> data -> Bool
     = \(ds : data) (ds : data) ->
         let
@@ -783,6 +786,16 @@ let
             {all dead. dead}
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   !filter :
      all a.
        (\a -> data -> a) a ->
@@ -845,6 +858,42 @@ let
                        {all dead. dead})
           in
           go ds
+  !mapMaybe :
+     all k a b.
+       (\a -> data -> a) a ->
+       (\a -> a -> data) b ->
+       (a -> Maybe b) ->
+       (\k a -> list (pair data data)) k a ->
+       (\k a -> list (pair data data)) k b
+    = /\k a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (f : a -> Maybe b) ->
+          letrec
+            !go : list (pair data data) -> list (pair data data)
+              = caseList'
+                  {pair data data}
+                  {list (pair data data)}
+                  []
+                  (\(hd : pair data data) ->
+                     Maybe_match
+                       {b}
+                       (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                       {all dead.
+                          list (pair data data) -> list (pair data data)}
+                       (\(v' : b) ->
+                          /\dead ->
+                            \(eta : list (pair data data)) ->
+                              mkCons
+                                {pair data data}
+                                (mkPairData
+                                   (fstPair {data} {data} hd)
+                                   (`$dToData` v'))
+                                (go eta))
+                       (/\dead -> go)
+                       {all dead. dead})
+          in
+          go
   !null : all a. (\a -> list data) a -> Bool
     = /\a ->
         \(eta : (\a -> list data) a) ->
@@ -914,19 +963,49 @@ in
                      bytestring
                      ((\k a -> list (pair data data)) bytestring integer)) ->
                  ds))
-           (unsafeFromSOPList
+           (mapMaybe
               {bytestring}
               {(\k a -> list (pair data data)) bytestring integer}
-              bData
+              {(\k a -> list (pair data data)) bytestring integer}
+              (\(eta : data) -> unMapData eta)
               (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
                  mapData ds)
-              (go
-                 (toSOPList
-                    {bytestring}
-                    {(\k a -> list (pair data data)) bytestring integer}
-                    unBData
-                    (\(eta : data) -> unMapData eta)
-                    (unMapData (headList {data} l))))))
+              (\(map : (\k a -> list (pair data data)) bytestring integer) ->
+                 let
+                   !l : list (pair data data)
+                     = mapMaybe
+                         {bytestring}
+                         {integer}
+                         {integer}
+                         unIData
+                         (\(i : integer) -> iData i)
+                         (\(x : integer) ->
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (lessThanEqualsInteger x 0)
+                                 False
+                                 True)
+                              {all dead. Maybe integer}
+                              (/\dead -> Just {integer} x)
+                              (/\dead -> Nothing {integer})
+                              {all dead. dead})
+                         map
+                 in
+                 Bool_match
+                   (ifThenElse {Bool} (nullList {pair data data} l) True False)
+                   {all dead.
+                      Maybe
+                        ((\k a -> list (pair data data)) bytestring integer)}
+                   (/\dead ->
+                      Nothing
+                        {(\k a -> list (pair data data)) bytestring integer})
+                   (/\dead ->
+                      Just
+                        {(\k a -> list (pair data data)) bytestring integer}
+                        l)
+                   {all dead. dead})
+              (unMapData (headList {data} l))))
       (/\dead ->
          let
            !tup : pair integer (list data) = unConstrData scriptInfo

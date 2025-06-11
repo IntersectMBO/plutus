@@ -19,7 +19,7 @@ letrec
           (\(x : integer) (xs : List integer) ->
              /\dead ->
                Bool_match
-                 (case Bool (lessThanEqualsInteger x 0) [False, True])
+                 (ifThenElse {Bool} (lessThanEqualsInteger x 0) True False)
                  {all dead. Bool}
                  (/\dead -> go xs)
                  (/\dead -> False)
@@ -30,7 +30,7 @@ letrec
   !go : integer -> List integer
     = \(n : integer) ->
         Bool_match
-          (case Bool (lessThanEqualsInteger n 0) [False, True])
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))

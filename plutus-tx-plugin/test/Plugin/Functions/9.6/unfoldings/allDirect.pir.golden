@@ -64,8 +64,7 @@ let
     = /\a ->
         \(g : all b. (a -> b -> b) -> b -> b) ->
           g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   ~lessThanInteger : integer -> integer -> Bool
     = \(x : integer) ->

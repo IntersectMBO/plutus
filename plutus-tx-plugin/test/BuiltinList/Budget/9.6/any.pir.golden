@@ -1,24 +1,40 @@
 let
+  ~v : integer = 12
+  ~v : integer = 8
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !any : all a. (a -> Bool) -> list a -> Bool
+  ~any : all a. (a -> Bool) -> list a -> Bool
     = /\a ->
         \(p : a -> Bool) ->
+          let
+            !p : a -> Bool = p
+          in
           letrec
-            !go : list a -> Bool
-              = \(xs : list a) ->
-                  chooseList
-                    {a}
-                    {all dead. Bool}
-                    xs
-                    (/\dead -> False)
-                    (/\dead ->
+            ~go : list a -> Bool
+              = caseList'
+                  {a}
+                  {Bool}
+                  False
+                  (\(x : a) ->
+                     let
+                       !x : a = x
+                     in
+                     \(xs : list a) ->
                        let
-                         !x : a = headList {a} xs
-                         !xs : list a = tailList {a} xs
+                         !xs : list a = xs
                        in
                        Bool_match
                          (p x)
@@ -26,19 +42,27 @@ let
                          (/\dead -> True)
                          (/\dead -> go xs)
                          {all dead. dead})
-                    {Bool}
           in
           go
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !lessThanInteger : integer -> integer -> bool = lessThanInteger
+  ~greaterThanEqualsInteger : integer -> integer -> Bool
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        \(y : integer) ->
+          let
+            !y : integer = y
+          in
+          ifThenElse {Bool} (lessThanInteger x y) False True
 in
 \(xs : list integer) ->
+  let
+    !xs : list integer = xs
+  in
   Tuple2
     {Bool}
     {Bool}
-    (any
-       {integer}
-       (\(v : integer) -> case Bool (lessThanInteger v 8) [True, False])
-       xs)
-    (any
-       {integer}
-       (\(v : integer) -> case Bool (lessThanInteger v 12) [True, False])
-       xs)
+    (any {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)
+    (any {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)

@@ -1,1 +1,1 @@
-\(x : bool) (y : integer) (z : integer) -> case integer x [z, y]
+\(x : bool) (y : integer) (z : integer) -> ifThenElse {integer} x y z

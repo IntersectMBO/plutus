@@ -7,8 +7,7 @@ let
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !fst : all a b. pair a b -> a = fstPair
   !head : all a. list a -> a = headList
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~reconstructCaseError : string = "PT1"
   !snd : all a b. pair a b -> b = sndPair
   data Unit | Unit_match where

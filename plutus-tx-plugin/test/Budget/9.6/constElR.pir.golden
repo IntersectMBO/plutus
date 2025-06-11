@@ -24,7 +24,7 @@ letrec
   !go : integer -> List integer
     = \(n : integer) ->
         Bool_match
-          (case Bool (lessThanEqualsInteger n 0) [False, True])
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))

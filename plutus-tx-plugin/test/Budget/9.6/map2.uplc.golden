@@ -41,25 +41,20 @@
                                                             (constr 1 [])
                                                             (\hd ->
                                                                force
-                                                                 (case
-                                                                    (equalsData
-                                                                       k'
+                                                                 ifThenElse
+                                                                 (equalsData
+                                                                    k'
+                                                                    (force
                                                                        (force
-                                                                          (force
-                                                                             fstPair)
-                                                                          hd))
-                                                                    [ (delay
-                                                                         (\x ->
-                                                                            s
-                                                                              s
-                                                                              x))
-                                                                    , (delay
-                                                                         (\ds ->
-                                                                            constr 0
-                                                                              [ (force
-                                                                                   (force
-                                                                                      sndPair)
-                                                                                   hd) ])) ])))
+                                                                          fstPair)
+                                                                       hd))
+                                                                 (\ds ->
+                                                                    constr 0
+                                                                      [ (force
+                                                                           (force
+                                                                              sndPair)
+                                                                           hd) ])
+                                                                 (\x -> s s x)))
                                                        nt)
                                                     [ (\r ->
                                                          delay
@@ -80,38 +75,30 @@
                                               (force (force fstPair) hd))
                                            (force (force sndPair) hd)))
                                  nt))
-                           ((\s ->
-                               s s)
+                           ((\s -> s s)
                               (\s ->
                                  caseList'
                                    []
-                                   (\hd
-                                     tl ->
+                                   (\hd tl ->
                                       (\tl' ->
                                          force
                                            (case
                                               ((\k ->
-                                                  (\s ->
-                                                     s s)
+                                                  (\s -> s s)
                                                     (\s ->
                                                        caseList'
                                                          (constr 1 [])
                                                          (\hd ->
-                                                            force
-                                                              (case
-                                                                 (equalsData
-                                                                    k
+                                                            force ifThenElse
+                                                              (equalsData
+                                                                 k
+                                                                 (force
                                                                     (force
-                                                                       (force
-                                                                          fstPair)
-                                                                       hd))
-                                                                 [ (delay
-                                                                      (\x ->
-                                                                         s s x))
-                                                                 , (delay
-                                                                      (\ds ->
-                                                                         constr 0
-                                                                           [  ])) ])))
+                                                                       fstPair)
+                                                                    hd))
+                                                              (\ds ->
+                                                                 constr 0 [])
+                                                              (\x -> s s x)))
                                                     nt)
                                                  (force (force fstPair) hd))
                                               [ (delay tl')

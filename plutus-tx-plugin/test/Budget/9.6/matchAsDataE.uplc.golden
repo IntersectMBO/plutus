@@ -8,20 +8,22 @@
             (unConstrData ds))
          [ (\ds ds ->
               force
-                (case
+                (force ifThenElse
                    (equalsInteger 0 ds)
-                   [ (delay
-                        (case
-                           ((\tup ->
-                               constr 0
-                                 [ (force (force fstPair) tup)
-                                 , (force (force sndPair) tup) ])
-                              (unConstrData ds))
-                           [ (\ds ds ->
-                                force
-                                  (case
-                                     (equalsInteger 1 ds)
-                                     [ (delay ((\cse -> case cse [cse]) error))
-                                     , (delay 1) ])) ]))
-                   , (delay (unIData (force headList ds))) ])) ])
+                   (delay (unIData (force headList ds)))
+                   (delay
+                      (case
+                         ((\tup ->
+                             constr 0
+                               [ (force (force fstPair) tup)
+                               , (force (force sndPair) tup) ])
+                            (unConstrData ds))
+                         [ (\ds ds ->
+                              force
+                                (force ifThenElse
+                                   (equalsInteger 1 ds)
+                                   (delay 1)
+                                   (delay
+                                      ((\cse -> case cse [cse])
+                                         error)))) ])))) ])
       (Constr 0 [I 1])))

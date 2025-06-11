@@ -24,7 +24,7 @@ in
     {integer}
     (\(ds : integer) (ds : list data) ->
        Bool_match
-         (case Bool (equalsInteger 0 ds) [False, True])
+         (ifThenElse {Bool} (equalsInteger 0 ds) True False)
          {all dead. integer}
          (/\dead ->
             let
@@ -49,7 +49,7 @@ in
               {integer}
               (\(ds : integer) (ds : list data) ->
                  Bool_match
-                   (case Bool (equalsInteger 1 ds) [False, True])
+                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
                    {all dead. integer}
                    (/\dead -> 1)
                    (/\dead ->

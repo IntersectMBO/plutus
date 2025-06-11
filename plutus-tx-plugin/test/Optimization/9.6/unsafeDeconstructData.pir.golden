@@ -24,12 +24,12 @@ in
         !args : list data = sndPair {integer} {list data} tup
       in
       Bool_match
-        (case Bool (equalsInteger 1 index) [False, True])
+        (ifThenElse {Bool} (equalsInteger 1 index) True False)
         {all dead. Maybe a}
         (/\dead -> Nothing {a})
         (/\dead ->
            Bool_match
-             (case Bool (equalsInteger 0 index) [False, True])
+             (ifThenElse {Bool} (equalsInteger 0 index) True False)
              {all dead. Maybe a}
              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
              (/\dead -> traceError {Maybe a} "PT1")
@@ -42,7 +42,7 @@ in
          !args : list data = sndPair {integer} {list data} tup
        in
        Bool_match
-         (case Bool (equalsInteger 0 index) [False, True])
+         (ifThenElse {Bool} (equalsInteger 0 index) True False)
          {all dead. Tuple2 integer integer}
          (/\dead ->
             Tuple2

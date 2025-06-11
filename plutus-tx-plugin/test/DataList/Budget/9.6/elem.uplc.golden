@@ -11,8 +11,9 @@
                     ((\h ->
                         (\t ->
                            force
-                             (case
+                             (force ifThenElse
                                 (equalsData (I 8) h)
-                                [(delay (s s t)), (delay (constr 0 []))]))
+                                (delay (constr 0 []))
+                                (delay (s s t))))
                           (force tailList xs))
                        (force headList xs))))))))

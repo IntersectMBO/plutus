@@ -3,8 +3,7 @@ let
     True : Bool
     False : Bool
   !equalsData : data -> data -> bool = equalsData
-  !ifThenElse : all a. bool -> a -> a -> a
-    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsData : data -> data -> Bool
     = \(d : data) ->
         let

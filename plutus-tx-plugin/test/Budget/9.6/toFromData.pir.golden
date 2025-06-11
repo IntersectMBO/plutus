@@ -92,12 +92,12 @@ in
       !args : list data = sndPair {integer} {list data} tup
     in
     Bool_match
-      (case Bool (equalsInteger 0 index) [False, True])
+      (ifThenElse {Bool} (equalsInteger 0 index) True False)
       {all dead. Either integer b}
       (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
       (/\dead ->
          Bool_match
-           (case Bool (equalsInteger 1 index) [False, True])
+           (ifThenElse {Bool} (equalsInteger 1 index) True False)
            {all dead. Either integer b}
            (/\dead ->
               Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
@@ -115,12 +115,12 @@ in
          !args : list data = sndPair {integer} {list data} tup
        in
        Bool_match
-         (case Bool (equalsInteger 1 index) [False, True])
+         (ifThenElse {Bool} (equalsInteger 1 index) True False)
          {all dead. Maybe a}
          (/\dead -> Nothing {a})
          (/\dead ->
             Bool_match
-              (case Bool (equalsInteger 0 index) [False, True])
+              (ifThenElse {Bool} (equalsInteger 0 index) True False)
               {all dead. Maybe a}
               (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
               (/\dead -> traceError {Maybe a} "PT1")
@@ -133,7 +133,7 @@ in
           !args : list data = sndPair {integer} {list data} tup
         in
         Bool_match
-          (case Bool (equalsInteger 0 index) [False, True])
+          (ifThenElse {Bool} (equalsInteger 0 index) True False)
           {all dead. Tuple3 Bool integer Bool}
           (/\dead ->
              let
@@ -150,12 +150,12 @@ in
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Bool}
                  (/\dead -> False)
                  (/\dead ->
                     Bool_match
-                      (case Bool (equalsInteger 1 index) [False, True])
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
                       (/\dead -> True)
                       (/\dead -> traceError {Bool} "PT1")
@@ -169,12 +169,12 @@ in
                  !args : list data = sndPair {integer} {list data} tup
                in
                Bool_match
-                 (case Bool (equalsInteger 0 index) [False, True])
+                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
                  {all dead. Bool}
                  (/\dead -> False)
                  (/\dead ->
                     Bool_match
-                      (case Bool (equalsInteger 1 index) [False, True])
+                      (ifThenElse {Bool} (equalsInteger 1 index) True False)
                       {all dead. Bool}
                       (/\dead -> True)
                       (/\dead -> traceError {Bool} "PT1")

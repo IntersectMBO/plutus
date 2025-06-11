@@ -1,0 +1,3 @@
+(program
+   1.1.0
+   (\xs -> force ifThenElse (force nullList xs) (constr 0 []) (constr 1 [])))

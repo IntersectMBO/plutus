@@ -5,9 +5,9 @@
   in
   \(x : integer) (y : integer) ->
     Bool_match
-      (case Bool (lessThanInteger x 3) [False, True])
+      (ifThenElse {Bool} (lessThanInteger x 3) True False)
       {all dead. Bool}
-      (/\dead -> case Bool (lessThanInteger y 3) [False, True])
+      (/\dead -> ifThenElse {Bool} (lessThanInteger y 3) True False)
       (/\dead -> False)
       {all dead. dead})
   4

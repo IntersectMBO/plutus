@@ -20,8 +20,8 @@ on:
       - "🔮 Metatheory Site"
       - "🌘 Nightly Testsuite"
       - "📝 Papers & Specs"
-      - "🏛️ Plinth Template"
       - "📊 Code Coverage Report"
+      - "pages-build-deployment"
 
 jobs:
   Send:

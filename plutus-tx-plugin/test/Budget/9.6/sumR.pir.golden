@@ -23,7 +23,7 @@ letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         Bool_match
-          (case Bool (lessThanEqualsInteger x lim) [True, False])
+          (ifThenElse {Bool} (lessThanEqualsInteger x lim) False True)
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead ->

@@ -124,33 +124,7 @@
           )
         )
       )
-      (abs
-        { no-src-span }
-        a
-        ({ no-src-span } type)
-        (lam
-          { no-src-span }
-          b
-          (con { no-src-span } bool)
-          (lam
-            { no-src-span }
-            x
-            { no-src-span } a
-            (lam
-              { no-src-span }
-              y
-              { no-src-span } a
-              (case
-                { no-src-span }
-                { no-src-span } a
-                { no-src-span } b
-                { no-src-span } y
-                { no-src-span } x
-              )
-            )
-          )
-        )
-      )
+      (builtin { no-src-span } ifThenElse)
     )
     (termbind
       { no-src-span }

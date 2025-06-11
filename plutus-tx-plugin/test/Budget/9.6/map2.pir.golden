@@ -162,10 +162,11 @@ in
                            False
                            (\(hd : pair data data) ->
                               Bool_match
-                                (case
-                                   Bool
+                                (ifThenElse
+                                   {Bool}
                                    (equalsData k (fstPair {data} {data} hd))
-                                   [False, True])
+                                   True
+                                   False)
                                 {all dead. list (pair data data) -> Bool}
                                 (/\dead ->
                                    \(ds : list (pair data data)) -> True)
@@ -202,10 +203,11 @@ in
                               (Nothing {data})
                               (\(hd : pair data data) ->
                                  Bool_match
-                                   (case
-                                      Bool
+                                   (ifThenElse
+                                      {Bool}
                                       (equalsData k' (fstPair {data} {data} hd))
-                                      [False, True])
+                                      True
+                                      False)
                                    {all dead.
                                       list (pair data data) -> Maybe data}
                                    (/\dead ->
