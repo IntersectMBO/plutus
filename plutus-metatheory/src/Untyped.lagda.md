@@ -83,13 +83,13 @@ uglyTmCon (tmCon integer x)              = "(integer " ++ show x ++ ")"
 uglyTmCon (tmCon bytestring x)           = "bytestring"
 uglyTmCon (tmCon unit _)                 = "()"
 uglyTmCon (tmCon string s)               = "(string " ++ s ++ ")"
-uglyTmCon (tmCon bool false)             = "(bool " ++ "false" ++ ")"
-uglyTmCon (tmCon bool true)              = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon bool false)             = "(bool false)"
+uglyTmCon (tmCon bool true)              = "(bool true)"
 uglyTmCon (tmCon pdata d)                = uglyDATA d
 uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME
-uglyTmCon (tmCon (pair t u) (x , y))     = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
+uglyTmCon (tmCon (pair t u) (x , y))     = "(pair (" ++ uglyTmCon (tmCon t x) ++ " , " ++ uglyTmCon (tmCon u y) ++ ") )"
 uglyTmCon (tmCon (list t) xs)            = "(list [ " ++ (uglyTmConList t xs) ++ " ])"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}

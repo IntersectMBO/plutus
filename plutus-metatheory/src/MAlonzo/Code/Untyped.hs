@@ -83,18 +83,8 @@ d_uglyTmCon_68 v0
                       -> coe ("()" :: Data.Text.Text)
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16
                       -> if coe v2
-                           then coe
-                                  MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                  ("(bool " :: Data.Text.Text)
-                                  (coe
-                                     MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                     ("true" :: Data.Text.Text) (")" :: Data.Text.Text))
-                           else coe
-                                  MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                  ("(bool " :: Data.Text.Text)
-                                  (coe
-                                     MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                     ("false" :: Data.Text.Text) (")" :: Data.Text.Text))
+                           then coe ("(bool true)" :: Data.Text.Text)
+                           else coe ("(bool false)" :: Data.Text.Text)
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
                       -> coe du_uglyDATA_64
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20
@@ -116,19 +106,19 @@ d_uglyTmCon_68 v0
                     MAlonzo.Code.Utils.C__'44'__380 v6 v7
                       -> coe
                            MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                           ("(pair " :: Data.Text.Text)
+                           ("(pair (" :: Data.Text.Text)
                            (coe
                               MAlonzo.Code.Data.String.Base.d__'43''43'__20
                               (d_uglyTmCon_68
                                  (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v4) (coe v6)))
                               (coe
                                  MAlonzo.Code.Data.String.Base.d__'43''43'__20
-                                 (" " :: Data.Text.Text)
+                                 (" , " :: Data.Text.Text)
                                  (coe
                                     MAlonzo.Code.Data.String.Base.d__'43''43'__20
                                     (d_uglyTmCon_68
                                        (coe MAlonzo.Code.RawU.C_tmCon_202 (coe v5) (coe v7)))
-                                    (")" :: Data.Text.Text))))
+                                    (") )" :: Data.Text.Text))))
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
