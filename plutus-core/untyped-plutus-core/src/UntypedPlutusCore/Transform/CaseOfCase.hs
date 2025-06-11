@@ -75,6 +75,11 @@ processTerm = \case
           mkIterApp
             ite
             [ cond
+            -- Here we call a single step of case-reduce in order to immediately clean up the
+            -- duplication of @alts@. Otherwise optimizing case-of-case-of-case-of... would create
+            -- exponential blowup of the case branches, which would eventually get deduplicated
+            -- with case-reduce, but only after that exponential blowup has already slowed the
+            -- optimizer down unnecessarily.
             , (trueAnn, Delay trueAnn . CaseReduce.processTerm $ Case ann true alts)
             , (falseAnn, Delay falseAnn . CaseReduce.processTerm $ Case ann false alts)
             ]
