@@ -76,8 +76,8 @@ uglyTmCon : TmCon → String
 {-# TERMINATING #-}
 uglyTmConList : (t : TyTag) → ⟦ list t ⟧tag → String
 uglyTmConList t [] = ""
-uglyTmConList t (x ∷ []) = uglyTmCon ((tmCon t x))
-uglyTmConList t (x ∷ l ∷ ls) = uglyTmCon ((tmCon t x)) ++ " , " ++ (uglyTmConList t (l ∷ ls))
+uglyTmConList t (x ∷ []) = uglyTmCon (tmCon t x)
+uglyTmConList t (x ∷ l ∷ ls) = uglyTmCon (tmCon t x) ++ " , " ++ (uglyTmConList t (l ∷ ls))
 
 uglyTmCon (tmCon integer x)              = "(integer " ++ show x ++ ")"
 uglyTmCon (tmCon bytestring x)           = "bytestring"
@@ -102,6 +102,9 @@ postulate showNat : ℕ → String
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
+-- FIXME: This is boring but we should fill it in
+-- if we are going to start using this
+-- https://github.com/IntersectMBO/plutus-private/issues/1621
 
 uglyList : ∀{X} → L.List (X ⊢) → String
 uglyList' : ∀{X} → L.List (X ⊢) → String
