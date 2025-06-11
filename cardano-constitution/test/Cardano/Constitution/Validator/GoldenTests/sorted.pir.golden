@@ -139,12 +139,12 @@ program
     !`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
       = \(eta : integer) (eta : integer) ->
           Bool_match
-            (case Bool (equalsInteger eta eta) [False, True])
+            (ifThenElse {Bool} (equalsInteger eta eta) True False)
             {all dead. Ordering}
             (/\dead -> EQ)
             (/\dead ->
                Bool_match
-                 (case Bool (lessThanEqualsInteger eta eta) [False, True])
+                 (ifThenElse {Bool} (lessThanEqualsInteger eta eta) True False)
                  {all dead. Ordering}
                  (/\dead -> LT)
                  (/\dead -> GT)
@@ -162,18 +162,19 @@ program
                  ds
                  {Bool}
                  (\(n' : integer) (d' : integer) ->
-                    case
-                      Bool
+                    ifThenElse
+                      {Bool}
                       (lessThanEqualsInteger
                          (multiplyInteger n d')
                          (multiplyInteger n' d))
-                      [False, True]))
+                      True
+                      False))
   in
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
           Bool_match
-            (case Bool (equalsInteger 0 y) [False, True])
+            (ifThenElse {Bool} (equalsInteger 0 y) True False)
             {all dead. integer}
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
@@ -183,12 +184,12 @@ program
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
           Bool_match
-            (case Bool (equalsInteger 0 d) [False, True])
+            (ifThenElse {Bool} (equalsInteger 0 d) True False)
             {all dead. Rational}
             (/\dead -> error {Rational})
             (/\dead ->
                Bool_match
-                 (case Bool (lessThanInteger d 0) [False, True])
+                 (ifThenElse {Bool} (lessThanInteger d 0) True False)
                  {all dead. Rational}
                  (/\dead ->
                     unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
@@ -212,8 +213,6 @@ program
   let
     data Unit | Unit_match where
       Unit : Unit
-    !ifThenElse : all a. bool -> a -> a -> a
-      = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   in
   letrec
     !validateParamValue : ParamValue -> data -> Bool
@@ -229,12 +228,16 @@ program
                    (CConsOrd
                       {integer}
                       (\(x : integer) (y : integer) ->
-                         case Bool (equalsInteger x y) [False, True])
+                         ifThenElse {Bool} (equalsInteger x y) True False)
                       `$fOrdInteger_$ccompare`
                       (\(x : integer) (y : integer) ->
-                         case Bool (lessThanInteger x y) [False, True])
+                         ifThenElse {Bool} (lessThanInteger x y) True False)
                       (\(x : integer) (y : integer) ->
-                         case Bool (lessThanEqualsInteger x y) [False, True])
+                         ifThenElse
+                           {Bool}
+                           (lessThanEqualsInteger x y)
+                           True
+                           False)
                       (\(x : integer) (y : integer) ->
                          ifThenElse
                            {Bool}
@@ -245,14 +248,22 @@ program
                          ifThenElse {Bool} (lessThanInteger x y) False True)
                       (\(x : integer) (y : integer) ->
                          Bool_match
-                           (case Bool (lessThanEqualsInteger x y) [False, True])
+                           (ifThenElse
+                              {Bool}
+                              (lessThanEqualsInteger x y)
+                              True
+                              False)
                            {all dead. integer}
                            (/\dead -> y)
                            (/\dead -> x)
                            {all dead. dead})
                       (\(x : integer) (y : integer) ->
                          Bool_match
-                           (case Bool (lessThanEqualsInteger x y) [False, True])
+                           (ifThenElse
+                              {Bool}
+                              (lessThanEqualsInteger x y)
+                              True
+                              False)
                            {all dead. integer}
                            (/\dead -> x)
                            (/\dead -> y)
@@ -277,16 +288,18 @@ program
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
                                    Bool_match
-                                     (case
-                                        Bool
+                                     (ifThenElse
+                                        {Bool}
                                         (equalsInteger n n')
-                                        [False, True])
+                                        True
+                                        False)
                                      {all dead. Bool}
                                      (/\dead ->
-                                        case
-                                          Bool
+                                        ifThenElse
+                                          {Bool}
                                           (equalsInteger d d')
-                                          [False, True])
+                                          True
+                                          False)
                                      (/\dead -> False)
                                      {all dead. dead})))
                       (\(ds : Rational) (ds : Rational) ->
@@ -310,12 +323,13 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   case
-                                     Bool
+                                   ifThenElse
+                                     {Bool}
                                      (lessThanInteger
                                         (multiplyInteger n d')
                                         (multiplyInteger n' d))
-                                     [False, True])))
+                                     True
+                                     False)))
                       `$fOrdRational0_$c<=`
                       (\(ds : Rational) (ds : Rational) ->
                          Rational_match
@@ -326,13 +340,11 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   let
-                                     !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
-                                   in
                                    ifThenElse
                                      {Bool}
-                                     (lessThanEqualsInteger x y)
+                                     (lessThanEqualsInteger
+                                        (multiplyInteger n d')
+                                        (multiplyInteger n' d))
                                      False
                                      True)))
                       (\(ds : Rational) (ds : Rational) ->
@@ -344,13 +356,11 @@ program
                                 ds
                                 {Bool}
                                 (\(n' : integer) (d' : integer) ->
-                                   let
-                                     !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
-                                   in
                                    ifThenElse
                                      {Bool}
-                                     (lessThanInteger x y)
+                                     (lessThanInteger
+                                        (multiplyInteger n d')
+                                        (multiplyInteger n' d))
                                      False
                                      True)))
                       (\(x : Rational) (y : Rational) ->
@@ -389,7 +399,7 @@ program
             ds
             {list data -> Bool}
             (\(eta : list data) ->
-               case Bool (nullList {data} eta) [False, True])
+               ifThenElse {Bool} (nullList {data} eta) True False)
             (\(paramValueHd : ParamValue)
               (paramValueTl : List ParamValue)
               (actualValueData : list data) ->
@@ -5299,12 +5309,13 @@ program
                                                  (unConstrData ds)))))
                              in
                              Bool_match
-                               (case
-                                  Bool
+                               (ifThenElse
+                                  {Bool}
                                   (equalsInteger
                                      5
                                      (fstPair {integer} {list data} si))
-                                  [False, True])
+                                  True
+                                  False)
                                {all dead. data}
                                (/\dead ->
                                   headList
@@ -5317,7 +5328,7 @@ program
         !x : integer = fstPair {integer} {list data} ds
       in
       Bool_match
-        (case Bool (equalsInteger 0 x) [False, True])
+        (ifThenElse {Bool} (equalsInteger 0 x) True False)
         {all dead. Maybe (List (Tuple2 data data))}
         (/\dead ->
            Just
@@ -5331,7 +5342,7 @@ program
              caseData_go (unMapData d)))
         (/\dead ->
            Bool_match
-             (case Bool (equalsInteger 2 x) [False, True])
+             (ifThenElse {Bool} (equalsInteger 2 x) True False)
              {all dead. Maybe (List (Tuple2 data data))}
              (/\dead -> Nothing {List (Tuple2 data data)})
              (/\dead -> error {Maybe (List (Tuple2 data data))})
