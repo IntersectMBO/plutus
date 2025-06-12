@@ -1,12 +1,20 @@
 (program
    1.1.0
-   ((\s -> s s)
-      (\s xs ->
-         force
-           (force (force chooseList)
-              xs
-              (delay [])
-              (delay
-                 ((\x ->
-                     force mkCons (addInteger 1 (force headList xs)) (s s x))
-                    (force tailList xs)))))))
+   (force
+      ((\f ->
+          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+            (\s -> f (\x -> s s x)))
+         (\go arg ->
+            delay
+              (\xs ->
+                 force
+                   (force (force chooseList)
+                      xs
+                      (delay [])
+                      (delay
+                         ((\xs ->
+                             force mkCons
+                               (addInteger (force headList xs) 1)
+                               (force (go (delay (\x -> x))) xs))
+                            (force tailList xs))))))
+         (delay (\x -> x)))))

@@ -28,7 +28,7 @@ import Data.Text qualified as T
 lookupName :: Scope uni fun -> GHC.Name -> Maybe (PLCVar uni, Maybe (PIRTerm uni fun))
 lookupName (Scope ns _) n = Map.lookup n ns
 
-{- |
+{-|
 Reverses the OccName tidying that GHC does, see 'tidyOccEnv'
 and accompanying Notes.
 
@@ -57,15 +57,15 @@ compileVarFresh ann v = do
   n' <- compileNameFresh $ GHC.getName v
   pure $ PLC.VarDecl ann n' t'
 
-{- | Like `compileVarFresh`, but takes a `PIRType` instead of obtaining the
+{-| Like `compileVarFresh`, but takes a `PIRType` instead of obtaining the
 PIR type from the given `GHC.Var`.
 -}
-compileVarWithTyFresh ::
-  (CompilingDefault uni fun m ann) =>
-  Ann ->
-  GHC.Var ->
-  PIRType uni ->
-  m (PLCVar uni)
+compileVarWithTyFresh
+  :: (CompilingDefault uni fun m ann)
+  => Ann
+  -> GHC.Var
+  -> PIRType uni
+  -> m (PLCVar uni)
 compileVarWithTyFresh ann v t = do
   n' <- compileNameFresh $ GHC.getName v
   pure $ PLC.VarDecl ann n' t
@@ -91,7 +91,7 @@ compileTcTyVarFresh tc = do
 pushName :: GHC.Name -> PLCVar uni -> Maybe (PIRTerm uni fun) -> Scope uni fun -> Scope uni fun
 pushName ghcName n def (Scope ns tyns) = Scope (Map.insert ghcName (n, def) ns) tyns
 
-pushNames :: [(GHC.Name, PLCVar uni, Maybe (PIRTerm uni fun ))] -> Scope uni fun -> Scope uni fun
+pushNames :: [(GHC.Name, PLCVar uni, Maybe (PIRTerm uni fun))] -> Scope uni fun -> Scope uni fun
 pushNames mappings scope = foldl' (\acc (n, v, def) -> pushName n v def acc) scope mappings
 
 pushTyName :: GHC.Name -> PLCTyVar -> Scope uni fun -> Scope uni fun

@@ -39,7 +39,6 @@ import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Text.Read (readMaybe)
 import Type.Reflection
 
-
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion               :: PLC.Version
   , _posDoTypecheck                    :: Bool
@@ -88,7 +87,8 @@ type OptionValue = Text
 data Implication a = forall b. Implication (a -> Bool) (Lens' PluginOptions b) b
 
 -- | A plugin option definition for a `PluginOptions` field of type @a@.
-data PluginOption = forall a.
+data PluginOption
+  = forall a.
   (Pretty a) =>
   PluginOption
   { poTypeRep      :: TypeRep a
@@ -96,13 +96,15 @@ data PluginOption = forall a.
   , poFun          :: Maybe OptionValue -> Validation ParseError (a -> a)
   -- ^ Consumes an optional value, and either updates the field or reports an error.
   , poLens         :: Lens' PluginOptions a
-  -- ^ Lens focusing on the field. This is for modifying the field, as well as
-  -- getting the field value from `defaultPluginOptions` for pretty printing.
+  {- ^ Lens focusing on the field. This is for modifying the field, as well as
+  getting the field value from `defaultPluginOptions` for pretty printing.
+  -}
   , poDescription  :: Text
   -- ^ A description of the option.
   , poImplications :: [Implication a]
-  -- ^ Implications of this option being set to a particular value.
-  -- An option should not imply itself.
+  {- ^ Implications of this option being set to a particular value.
+  An option should not imply itself.
+  -}
   }
 
 data ParseError
@@ -156,15 +158,15 @@ pluginOptions =
     , let k = "defer-errors"
           desc =
             "If a compilation error happens and this option is turned on, "
-            <> "the compilation error is suppressed and the original Haskell "
-            <> "expression is replaced with a runtime-error expression."
+              <> "the compilation error is suppressed and the original Haskell "
+              <> "expression is replaced with a runtime-error expression."
        in (k, PluginOption typeRep (setTrue k) posDeferErrors desc [])
     , let k = "conservative-optimisation"
           desc =
             "When conservative optimisation is used, only the optimisations that "
-            <> "never make the program worse (in terms of cost or size) are employed. "
-            <> "Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, "
-            <> "`no-simplifier-evaluate-builtins`, and `preserve-logging`."
+              <> "never make the program worse (in terms of cost or size) are employed. "
+              <> "Implies `no-relaxed-float-in`, `no-inline-constants`, `no-inline-fix`, "
+              <> "`no-simplifier-evaluate-builtins`, and `preserve-logging`."
        in ( k
           , PluginOption
               typeRep
@@ -202,20 +204,20 @@ pluginOptions =
     , let k = "inline-callsite-growth"
           desc =
             "Sets the inlining threshold for callsites. 0 disables inlining a binding at a "
-            <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
-            <> "no more than `n`. Keep in mind that doing so does not mean the final program "
-            <> "will be bigger, since inlining can often unlock further optimizations."
+              <> "callsite if it increases the AST size; `n` allows inlining if the AST size grows by "
+              <> "no more than `n`. Keep in mind that doing so does not mean the final program "
+              <> "will be bigger, since inlining can often unlock further optimizations."
        in (k, PluginOption typeRep (readOption k) posInlineCallsiteGrowth desc [])
     , let k = "inline-constants"
           desc =
             "Always inline constants. Inlining constants always reduces script "
-            <> "costs slightly, but may increase script sizes if a large constant "
-            <> "is used more than once. Implied by `no-conservative-optimisation`."
+              <> "costs slightly, but may increase script sizes if a large constant "
+              <> "is used more than once. Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posInlineConstants desc [])
     , let k = "inline-fix"
           desc =
             "Always inline fixed point combinators. This is generally preferable as "
-            <> "it often enables further optimization, though it may increase script size."
+              <> "it often enables further optimization, though it may increase script size."
        in (k, PluginOption typeRep (setTrue k) posInlineFix desc [])
     , let k = "optimize"
           desc = "Run optimization passes such as simplification and floating let-bindings."
@@ -255,7 +257,7 @@ pluginOptions =
     , let k = "simplifier-evaluate-builtins"
           desc =
             "Run a simplification pass that evaluates fully saturated builtin applications. "
-            <> "Implied by `no-conservative-optimisation`."
+              <> "Implied by `no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierEvaluateBuiltins desc [])
     , let k = "simplifier-inline"
           desc = "Run a simplification pass that performs inlining"
@@ -281,13 +283,13 @@ pluginOptions =
     , let k = "relaxed-float-in"
           desc =
             "Use a more aggressive float-in pass, which often leads to reduced costs "
-            <> "but may occasionally lead to slightly increased costs. Implied by "
-            <> "`no-conservative-optimisation`."
+              <> "but may occasionally lead to slightly increased costs. Implied by "
+              <> "`no-conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posRelaxedFloatin desc [])
     , let k = "preserve-logging"
           desc =
             "Turn off optimisations that may alter (i.e., add, remove or change the "
-            <> "order of) trace messages. Implied by `conservative-optimisation`."
+              <> "order of) trace messages. Implied by `conservative-optimisation`."
        in (k, PluginOption typeRep (setTrue k) posPreserveLogging desc [])
     , let k = "remove-trace"
           desc = "Eliminate calls to `trace` from Plutus Core"
@@ -298,10 +300,10 @@ pluginOptions =
     , let k = "certify"
           desc =
             "Produce a certificate for the compiled program, with the given name. "
-            <> "This certificate provides evidence that the compiler optimizations have "
-            <> "preserved the functional behavior of the original program. "
-            <> "Currently, this is only supported for the UPLC compilation pipeline. "
-            <> "Warning: this is an experimental feature and may not work as expected."
+              <> "This certificate provides evidence that the compiler optimizations have "
+              <> "preserved the functional behavior of the original program. "
+              <> "Currently, this is only supported for the UPLC compilation pipeline. "
+              <> "Warning: this is an experimental feature and may not work as expected."
           p = optional $ do
             firstC <- upperChar
             rest <- many (alphaNumChar <|> char '_' <|> char '\\')
@@ -331,12 +333,12 @@ readOption k = \case
   Nothing -> Failure $ MissingValue k
 
 -- | Obtain an option value of type @a@ from an `Int`.
-fromReadOption ::
-  (Read a) =>
-  OptionKey ->
-  (a -> Validation ParseError b) ->
-  Maybe OptionValue ->
-  Validation ParseError (b -> b)
+fromReadOption
+  :: (Read a)
+  => OptionKey
+  -> (a -> Validation ParseError b)
+  -> Maybe OptionValue
+  -> Validation ParseError (b -> b)
 fromReadOption k f = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> const <$> f i
@@ -381,10 +383,10 @@ defaultPluginOptions =
     , _posCertify = Nothing
     }
 
-processOne ::
-  OptionKey ->
-  Maybe OptionValue ->
-  Validation ParseError (PluginOptions -> PluginOptions)
+processOne
+  :: OptionKey
+  -> Maybe OptionValue
+  -> Validation ParseError (PluginOptions -> PluginOptions)
 processOne key val
   | Just (PluginOption _ f field _ impls) <- Map.lookup key pluginOptions =
       fmap (applyImplications field impls) . over field <$> f val
@@ -408,9 +410,9 @@ applyImplications field =
     )
     id
 
-processAll ::
-  [(OptionKey, Maybe OptionValue)] ->
-  Validation ParseErrors [PluginOptions -> PluginOptions]
+processAll
+  :: [(OptionKey, Maybe OptionValue)]
+  -> Validation ParseErrors [PluginOptions -> PluginOptions]
 processAll = traverse $ first (ParseErrors . pure) . uncurry processOne
 
 toKeyValue :: GHC.CommandLineOption -> (OptionKey, Maybe OptionValue)
@@ -420,7 +422,7 @@ toKeyValue opt = case List.elemIndex '=' opt of
     let (lhs, rhs) = splitAt idx opt
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
-{- | Parses the arguments that were given to ghc at commandline as
+{-| Parses the arguments that were given to ghc at commandline as
  "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val"
 -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions

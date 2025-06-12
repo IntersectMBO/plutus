@@ -10,6 +10,11 @@
 \newpage
 \subsection{Batch 6}
 \label{sec:default-builtins-6}
+This section describes some new types and functions which have not been released
+at the time of writing (May 2025), but are expected to be released at a later
+date, with the possible exception of the \texttt{caseList} and \texttt{caseData}
+functions, which are experimental and may be removed at some point and replaced
+with better alternatives.
 
 \subsubsection{Built-in type operators}
 \label{sec:built-in-type-operators-6}
@@ -66,23 +71,6 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
     \endlastfoot
     \TT{expModInteger}        & $[\ty{integer}, \ty{integer}, \ty{integer}]$ \text{$\;\;\; \to \ty{integer}$}
         & $\mathsf{expMod} $  & Yes & \ref{note:exp-mod-integer}\\
-    \TT{caseList}        & $[\forall a_\#, \forall\star, \star, \star, \listOf{a_\#}] \to \ap$
-                                              & \text{$(t_1, t_2, []) \mapsto (t_1|)$,}
-                                              \text{$(t_1, t_2,
-                                              [x_1,\ldots,x_n]) \mapsto (t_2|x_1,[x_2,\ldots,x_n])\ (n \geq 1)$}
-                                              & & \ref{note:case-list-case-data}\\[5mm]
-    \TT{caseData}        & $[\forall\star, \star, \star, \star, \star, \star, \ty{data}] \to \ap$
-    & $(t_C, t_M, t_L, t_I, t_B, d)$
-    \smallskip
-    \newline  % The big \{ was abutting the text above
-    \text{$\;\;\mapsto
-               \left\{ \begin{array}{ll}  %% This looks better than `cases`
-                 (t_C|n,l)  & \text{if $d = \inj_C(n, l)$} \\
-                 (t_M|l)  & \text{if $d = \inj_M(l)$} \\
-                 (t_L|l)  & \text{if $d = \inj_L(l)$} \\
-                 (t_I|n)  & \text{if $d =\inj_I(n)$} \\
-                 (t_B|s)  & \text{if $d = \inj_B(s)$} \\
-               \end{array}\right.$}  & & \ref{note:case-list-case-data}\\[5mm]
     \TT{dropList}        & $[\forall a_\#, \ty{integer}, \listOf{a_\#}]$ \text{$\;\;\; \to \listOf{a_\#}$}
         & $(k,[x_1,\ldots,x_n])$
         \smallskip
@@ -118,6 +106,23 @@ Operations are defined in Table~\ref{table:built-in-functions-6}.
         \end{array}\right.$}  
       & Yes
       & \\
+    \TT{caseList}        & $[\forall a_\#, \forall\star, \star, \star, \listOf{a_\#}] \to \ap$
+                                              & \text{$(t_1, t_2, []) \mapsto (t_1|)$,}
+                                              \text{$(t_1, t_2,
+                                              [x_1,\ldots,x_n]) \mapsto (t_2|x_1,[x_2,\ldots,x_n])\ (n \geq 1)$}
+                                              & & \ref{note:case-list-case-data}\\[5mm]
+    \TT{caseData}        & $[\forall\star, \star, \star, \star, \star, \star, \ty{data}] \to \ap$
+    & $(t_C, t_M, t_L, t_I, t_B, d)$
+    \smallskip
+    \newline  % The big \{ was abutting the text above
+    \text{$\;\;\mapsto
+               \left\{ \begin{array}{ll}  %% This looks better than `cases`
+                 (t_C|n,l)  & \text{if $d = \inj_C(n, l)$} \\
+                 (t_M|l)  & \text{if $d = \inj_M(l)$} \\
+                 (t_L|l)  & \text{if $d = \inj_L(l)$} \\
+                 (t_I|n)  & \text{if $d =\inj_I(n)$} \\
+                 (t_B|s)  & \text{if $d = \inj_B(s)$} \\
+               \end{array}\right.$}  & & \ref{note:case-list-case-data}\\
 \hline
 \end{longtable}
 

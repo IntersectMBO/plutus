@@ -205,7 +205,7 @@ d_parseUPLC_62 v0
               MAlonzo.Code.Utils.du_withE_282
               (coe MAlonzo.Code.Evaluator.Base.C_scopeError_18)
               (coe
-                 MAlonzo.Code.Untyped.d_scopeCheckU0_308 (coe d_convPU_32 v1))))
+                 MAlonzo.Code.Untyped.d_scopeCheckU0_322 (coe d_convPU_32 v1))))
 -- Evaluator.Program.typeCheckPLC
 d_typeCheckPLC_70 ::
   MAlonzo.Code.Scoped.T_ScopedTm_522 ->
@@ -296,7 +296,7 @@ d_executePLC_80 v0 v1
                                               MAlonzo.Code.Utils.C_inj'8322'_14
                                               (coe
                                                  MAlonzo.Code.Evaluator.Base.d_prettyPrintUTm_10
-                                                 (MAlonzo.Code.Untyped.d_extricateU0_222
+                                                 (MAlonzo.Code.Untyped.d_extricateU0_236
                                                     (coe
                                                        MAlonzo.Code.Untyped.CEK.d_discharge_126
                                                        (coe v7))))
@@ -515,7 +515,7 @@ d_showUPLCResult_138 v0
                 MAlonzo.Code.Utils.C_inj'8322'_14
                 (coe
                    MAlonzo.Code.Evaluator.Base.d_prettyPrintUTm_10
-                   (MAlonzo.Code.Untyped.d_extricateU0_222
+                   (MAlonzo.Code.Untyped.d_extricateU0_236
                       (coe MAlonzo.Code.Untyped.CEK.d_discharge_126 (coe v2))))
          MAlonzo.Code.Untyped.CEK.C_'9670'_228
            -> coe

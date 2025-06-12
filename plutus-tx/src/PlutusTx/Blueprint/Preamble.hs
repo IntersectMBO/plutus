@@ -24,8 +24,9 @@ data Preamble = MkPreamble
   , preamblePlutusVersion :: PlutusVersion
   -- ^ The Plutus version assumed for all validators
   , preambleLicense       :: Maybe Text
-  -- ^ A license under which the specification
-  -- and contract code is distributed
+  {- ^ A license under which the specification
+  and contract code is distributed
+  -}
   }
   deriving stock (Show, Generic)
 

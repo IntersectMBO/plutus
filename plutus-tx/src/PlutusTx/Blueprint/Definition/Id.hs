@@ -5,16 +5,16 @@
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module PlutusTx.Blueprint.Definition.Id
-  ( DefinitionId
-  , definitionIdFromType
-  , definitionIdFromTypeK
-  , definitionIdToText
-  , definitionIdUnit
-  , definitionIdList
-  , definitionIdTuple2
-  , definitionIdTuple3
-  ) where
+module PlutusTx.Blueprint.Definition.Id (
+  DefinitionId,
+  definitionIdFromType,
+  definitionIdFromTypeK,
+  definitionIdToText,
+  definitionIdUnit,
+  definitionIdList,
+  definitionIdTuple2,
+  definitionIdTuple3,
+) where
 
 import Prelude
 
@@ -38,7 +38,7 @@ instance Semigroup DefinitionId where
 definitionIdFromType :: forall (t :: Type). (Typeable t) => DefinitionId
 definitionIdFromType = MkDefinitionId . pack . show . typeRep $ Proxy @t
 
-{- | Creates a 'DefinitionId' from a type with a kind other than 'Type'.
+{-| Creates a 'DefinitionId' from a type with a kind other than 'Type'.
 Example:
 > definitionIdFromTypeK @(Type -> Type) @Maybe
 -}

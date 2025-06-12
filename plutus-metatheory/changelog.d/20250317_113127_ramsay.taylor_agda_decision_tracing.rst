@@ -1,4 +1,0 @@
-Added
------
-
-- Failed certifications now produce counterexamples

@@ -3,11 +3,11 @@ module Test.Certifier.Optimizer where
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
 import PlutusCore qualified as PLC
-import Test.Tasty
-import Test.Tasty.HUnit
-import Transform.Simplify
-import Transform.Simplify.Lib
-import UntypedPlutusCore
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
+import Transform.Simplify.Lib (testCse, testSimplify)
+import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
+import UntypedPlutusCore (DefaultFun, DefaultUni, Name, SimplifierTrace, Term)
 
 type SimplifierFunc
   = Term Name PLC.DefaultUni PLC.DefaultFun ()

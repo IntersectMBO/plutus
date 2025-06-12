@@ -115,8 +115,8 @@ handleError :: Type TyName DefaultUni ()
        -> Either (U.ErrorWithCause (U.EvaluationError structural operational) term)
                  (Term TyName Name DefaultUni DefaultFun ())
 handleError ty e = case U._ewcError e of
-  U.StructuralEvaluationError _  -> throwError e
-  U.OperationalEvaluationError _ -> return (Error () ty)
+  U.StructuralError _  -> throwError e
+  U.OperationalError _ -> return (Error () ty)
 
 -- untyped version of `handleError`
 handleUError ::
@@ -124,8 +124,8 @@ handleUError ::
        -> Either (U.ErrorWithCause (U.EvaluationError structural operational) term)
                  (U.Term Name DefaultUni DefaultFun ())
 handleUError e = case U._ewcError e of
-  U.StructuralEvaluationError _  -> throwError e
-  U.OperationalEvaluationError _ -> return (U.Error ())
+  U.StructuralError _  -> throwError e
+  U.OperationalError _ -> return (U.Error ())
 
 -- |Property: check if the type is preserved by evaluation.
 --

@@ -1,4 +1,19 @@
 
+<a id='changelog-1.47.0.0'></a>
+# 1.47.0.0 — 2025-06-10
+
+## Changed
+
+- In #7106 improved error reporting in the evaluators.
+
+- `StructuralEvaluationError` and `OperationalEvaluationError` were renamed to `StructuralError` and `OperationalError` respectively.
+- `_MachineError` was made obsolete in favor of `_StructuralError`.
+
+- The tags for the flat encodings of the as-yet-unreleased `dropList`,
+  `lengthOfArray`, `listToArray`, `indexArray`, `caseList` and `caseData`
+  built-in functions have been changed pending the possible removal of
+  `caseList` and `caseData`.
+
 <a id='changelog-1.46.0.0'></a>
 # 1.46.0.0 — 2025-05-09
 

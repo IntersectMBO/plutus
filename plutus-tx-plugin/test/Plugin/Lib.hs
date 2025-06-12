@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
 module Plugin.Lib where
 
 import PlutusTx.Prelude
@@ -16,15 +17,15 @@ import PlutusTx.Builtins qualified as Builtins
 andExternal :: Bool -> Bool -> Bool
 andExternal a b = if a then b else False
 
-data MyExternalRecord = MyExternalRecord { myExternal :: Integer }
+data MyExternalRecord = MyExternalRecord {myExternal :: Integer}
 
 evenDirect :: Integer -> Bool
 evenDirect n = if Builtins.equalsInteger n 0 then True else oddDirect (Builtins.subtractInteger n 1)
-{-# INLINABLE evenDirect #-}
+{-# INLINEABLE evenDirect #-}
 
 oddDirect :: Integer -> Bool
 oddDirect n = if Builtins.equalsInteger n 0 then False else evenDirect (Builtins.subtractInteger n 1)
-{-# INLINABLE oddDirect #-}
+{-# INLINEABLE oddDirect #-}
 
 -- GHC will lift out the error call to the top level, which is unsafe unless we bind it lazily.
 -- This is in Lib so we get the fully optimized unfolding with awkward top-level binds and everything.

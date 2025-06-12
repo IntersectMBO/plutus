@@ -1,0 +1,5 @@
+CPU:               8_932_301
+Memory:               37_362
+Size:                    117
+
+(con (list integer) [1,2,3,4,5])

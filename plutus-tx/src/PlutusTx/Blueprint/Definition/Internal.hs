@@ -48,7 +48,7 @@ definitionsToMap NoDefinitions _k = Map.empty
 definitionsToMap (AddDefinition (MkDefinition defId v) s) k =
   Map.insert defId (k v) (definitionsToMap s k)
 
-{- |
+{-|
   A constraint that checks if a schema definition is present in a list of schema definitions.
   Gives a user-friendly error message if the schema definition is not found.
 -}
