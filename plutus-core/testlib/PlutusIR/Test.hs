@@ -54,6 +54,7 @@ import Prettyprinter.Render.Text
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Pretty a
@@ -70,7 +71,9 @@ instance
 
 instance
   ( PLC.GEq uni
+  , uni `PLC.Everywhere` Eq
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Hashable fun
@@ -111,6 +114,7 @@ asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 compileWithOpts ::
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , Ord a
   , PLC.AnnInline a
   , PLC.PrettyUni uni

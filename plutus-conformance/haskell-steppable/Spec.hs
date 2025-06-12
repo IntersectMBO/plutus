@@ -4,6 +4,7 @@
 module Main (main) where
 
 import PlutusConformance.Common
+import PlutusCore.Evaluation.Machine.MachineParameters qualified as UPLC
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
@@ -31,9 +32,9 @@ failingBudgetTests = []
 evalSteppableUplcProg :: UplcEvaluator
 evalSteppableUplcProg = UplcEvaluatorWithCosting $
   \modelParams (UPLC.Program a v t) -> do
-    params <- case mkMachineParametersFor [def] modelParams of
+    params <- case mkMachineVariantParametersFor [def] modelParams of
       Left _               -> Nothing
-      Right machParamsList -> lookup def machParamsList
+      Right machParamsList -> UPLC.MachineParameters def <$> lookup def machParamsList
     -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with
     -- free variables, that is why we manually check first for any free vars
     case UPLC.deBruijnTerm t of

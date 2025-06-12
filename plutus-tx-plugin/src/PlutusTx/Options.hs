@@ -15,6 +15,7 @@ import PlutusCore.Parser as PLC
 import PlutusCore.Quote as PLC
 import PlutusCore.Version qualified as PLC
 import PlutusIR.Compiler qualified as PIR
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusTx.Compiler.Types
 import UntypedPlutusCore qualified as UPLC
 
@@ -51,6 +52,7 @@ data PluginOptions = PluginOptions
   , _posOptimize                       :: Bool
   , _posPedantic                       :: Bool
   , _posVerbosity                      :: Verbosity
+  , _posDatatypes                      :: PIR.DatatypeCompilationOpts
   , _posMaxSimplifierIterationsPir     :: Int
   , _posMaxSimplifierIterationsUPlc    :: Int
   , _posMaxCseIterations               :: Int
@@ -239,6 +241,9 @@ pluginOptions =
               desc
               []
           )
+    , let k = "datatypes"
+          desc = "Set datatype encoding style"
+       in (k, PluginOption typeRep (readOption k) posDatatypes desc [])
     , let k = "max-simplifier-iterations-pir"
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
@@ -359,6 +364,7 @@ defaultPluginOptions =
     , _posOptimize = True
     , _posPedantic = False
     , _posVerbosity = Quiet
+    , _posDatatypes = PIR.defaultDatatypeCompilationOpts
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
     , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
     , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts

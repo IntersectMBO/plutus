@@ -149,17 +149,20 @@ faster than the used in production. Also see Note [noinline for saving on
 ticks]. -}
 defaultCekParametersA :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersA =
-    noinline mkMachineParameters DefaultFunSemanticsVariantA cekCostModelVariantA
+    MachineParameters def $
+        noinline mkMachineVariantParameters DefaultFunSemanticsVariantA cekCostModelVariantA
 
 -- See Note [No inlining for MachineParameters]
 defaultCekParametersB :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersB =
-    noinline mkMachineParameters DefaultFunSemanticsVariantB cekCostModelVariantB
+    MachineParameters def $
+        noinline mkMachineVariantParameters DefaultFunSemanticsVariantB cekCostModelVariantB
 
 -- See Note [No inlining for MachineParameters]
 defaultCekParametersC :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParametersC =
-    noinline mkMachineParameters DefaultFunSemanticsVariantC cekCostModelVariantC
+    MachineParameters def $
+        noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC
 
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
@@ -357,5 +360,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
     -- See Note [noinline for saving on ticks].
-    noinline mkMachineParameters def $
-        CostModel unitCekMachineCosts unitCostBuiltinCostModel
+    MachineParameters def $
+        noinline mkMachineVariantParameters def $
+            CostModel unitCekMachineCosts unitCostBuiltinCostModel

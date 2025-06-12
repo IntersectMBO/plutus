@@ -344,6 +344,7 @@ mkPatternFunctorBody :: MonadQuote m => DatatypeCompilationOpts -> ann -> Dataty
 mkPatternFunctorBody opts ann d = case _dcoStyle opts of
   ScottEncoding  -> mkScottTy ann d
   SumsOfProducts -> pure $ mkDatatypeSOPTy ann d
+  BuiltinCasing  -> pure $ mkDatatypeSOPTy ann d
 
 {- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor body.
 
@@ -427,7 +428,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
         pure $ zipWith (VarDecl ann) argNames argTypes
 
     constrBody <- case _dcoStyle opts of
-          SumsOfProducts -> do
+          style | style == SumsOfProducts || style == BuiltinCasing -> do
             -- We have to be a bit careful annotating the type of the constr. It is inside the 'wrap' so it
             -- needs to be one level "unrolled".
 
@@ -437,7 +438,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
             let unrolled = unveilDatatype (getType dty) d pf
 
             pure $ Constr ann unrolled index (fmap PIR.mkVar argsAndTypes)
-          ScottEncoding -> do
+          _ScottEncoding -> do
             resultType <- resultTypeName d
 
             -- case arguments and their types
@@ -499,7 +500,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
     xn <- safeFreshName "x"
 
     destrBody <- case _dcoStyle opts of
-        SumsOfProducts -> do
+        style | style == SumsOfProducts || style == BuiltinCasing -> do
             resultType <- resultTypeName d
             -- Variables for case arguments, and the bodies to be used as the actual cases
             caseVars <- for constrs $ \c -> do
@@ -518,7 +519,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
                 -- See Note [Recursive datatypes]
                 -- case (unwrap x) case_1 .. case_j
                 Case ann (TyVar ann resultType) (unwrap ann dty $ Var ann xn) (fmap PIR.mkVar caseVars)
-        ScottEncoding ->
+        _ScottEncoding ->
             pure $
                 -- See Note [Recursive datatypes]
                 -- unwrap
