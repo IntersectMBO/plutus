@@ -861,7 +861,7 @@ d_runU_194 v0
          MAlonzo.Code.Utils.du_withE_282
          (coe MAlonzo.Code.Evaluator.Base.C_scopeError_18)
          (coe
-            MAlonzo.Code.Untyped.d_scopeCheckU0_322 (coe d_convTmU_46 v0)))
+            MAlonzo.Code.Untyped.d_scopeCheckU0_326 (coe d_convTmU_46 v0)))
       (coe
          (\ v1 ->
             coe
@@ -872,7 +872,7 @@ d_runU_194 v0
                       MAlonzo.Code.Utils.C_inj'8322'_14
                       (coe
                          d_unconvTmU_48
-                         (MAlonzo.Code.Untyped.d_extricateU0_236
+                         (MAlonzo.Code.Untyped.d_extricateU0_240
                             (coe MAlonzo.Code.Untyped.CEK.d_discharge_126 (coe v2))))))))
 -- Evaluator.Term.runUCounting
 runUCountingAgda ::
@@ -1291,7 +1291,7 @@ d_runUCounting_202 v0 v1
                           MAlonzo.Code.Utils.du_withE_282
                           (coe MAlonzo.Code.Evaluator.Base.C_scopeError_18)
                           (coe
-                             MAlonzo.Code.Untyped.d_scopeCheckU0_322 (coe d_convTmU_46 v1)))
+                             MAlonzo.Code.Untyped.d_scopeCheckU0_326 (coe d_convTmU_46 v1)))
                        (coe
                           (\ v6 ->
                              coe
@@ -1328,7 +1328,7 @@ d_runUCounting_202 v0 v1
                                                     MAlonzo.Code.Utils.C__'44'__380
                                                     (coe
                                                        d_unconvTmU_48
-                                                       (MAlonzo.Code.Untyped.d_extricateU0_236
+                                                       (MAlonzo.Code.Untyped.d_extricateU0_240
                                                           (coe
                                                              MAlonzo.Code.Untyped.CEK.d_discharge_126
                                                              (coe v9))))
@@ -1543,7 +1543,7 @@ d_alphaU_406 v0 v1
                                   -> case coe v7 of
                                        MAlonzo.Code.Utils.C_inj'8322'_14 v9
                                          -> coe
-                                              MAlonzo.Code.Untyped.d_decUTm_332
+                                              MAlonzo.Code.Untyped.d_decUTm_336
                                               (coe d_convTmU_46 v8) (coe d_convTmU_46 v9)
                                        _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
                                 _ -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8))

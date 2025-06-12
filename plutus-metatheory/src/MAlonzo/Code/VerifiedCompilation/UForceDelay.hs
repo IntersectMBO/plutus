@@ -440,11 +440,11 @@ d_forceDelaySimpleBefore_156
                                           MAlonzo.Code.Untyped.C_'96'_18
                                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))))))
                   (coe
-                     MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))))
+                     MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimpleAfter
 d_forceDelaySimpleAfter_158 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_forceDelaySimpleAfter_158
@@ -464,11 +464,11 @@ d_forceDelaySimpleAfter_158
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
 -- VerifiedCompilation.UForceDelay.forceDelaySimple
 d_forceDelaySimple_160 :: T_FD_120
 d_forceDelaySimple_160
@@ -503,17 +503,17 @@ d_forceDelaySimple_160
                   (coe
                      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                      (coe
-                        MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))
+                        MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))
                      (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
             (coe
                MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))
                (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))))
       (coe
          MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_reflexive_1756
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (3 :: Integer)))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (3 :: Integer)))
          (coe MAlonzo.Code.VerifiedCompilation.Equality.d_EmptyEq_128))
 -- VerifiedCompilation.UForceDelay.lastDelayBreak
 d_lastDelayBreak_162 ::
@@ -540,15 +540,15 @@ d_ast0_182
                      MAlonzo.Code.Untyped.C_builtin_44
                      (coe MAlonzo.Code.Builtin.C_ifThenElse_60)))
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
             (coe
                MAlonzo.Code.Untyped.C_delay_26
                (coe
-                  MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer)))))
+                  MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer)))))
          (coe
             MAlonzo.Code.Untyped.C_delay_26
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))))
 -- VerifiedCompilation.UForceDelay.ast1
 d_ast1_184 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ast1_184
@@ -564,11 +564,11 @@ d_ast1_184
                   MAlonzo.Code.Untyped.C_builtin_44
                   (coe MAlonzo.Code.Builtin.C_ifThenElse_60)))
             (coe
-               MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+               MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
          (coe
-            MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (1 :: Integer))))
+            MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (1 :: Integer))))
       (coe
-         MAlonzo.Code.Untyped.du_con'45'integer_382 (coe (2 :: Integer)))
+         MAlonzo.Code.Untyped.du_con'45'integer_386 (coe (2 :: Integer)))
 -- VerifiedCompilation.UForceDelay.ifThenElseProof
 d_ifThenElseProof_186 :: T_FD_120
 d_ifThenElseProof_186

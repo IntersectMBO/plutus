@@ -541,7 +541,7 @@ d_indexArray_488 ::
 d_indexArray_488 = \() -> \as -> \i -> as Strict.! (fromInteger i)
 -- Utils.eqArray
 d_eqArray_490 ::
-  forall xA. Eq xA => () -> T_Array_478 xA -> T_Array_478 xA -> Bool
+  forall xA. () -> T_Array_478 xA -> T_Array_478 xA -> Bool
 d_eqArray_490 = \() -> (==)
 -- Utils.DATA
 d_DATA_492 = ()
