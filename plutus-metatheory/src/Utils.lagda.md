@@ -9,7 +9,7 @@ module Utils where
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
-open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_;_<_)
 open _≤_
 open _≤‴_
 open import Data.Nat.Properties
@@ -244,6 +244,34 @@ infixr 5 _∷_
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
 
 ```
+## Arrays
+
+```
+
+postulate Array : Set → Set
+{-# FOREIGN GHC import qualified Data.Vector.Strict as Strict #-}
+{-# COMPILE GHC Array = type Strict.Vector #-}
+
+variable A : Set
+
+postulate
+  lengthOfArray : Array A → ℤ
+  listToArray : (ls : List A) → Array A
+  indexArray : Array A → ℤ → A
+-- These have to consume the hidden {A : Set} param in the Agda.
+{-# COMPILE GHC lengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
+{-# COMPILE GHC listToArray = \() -> Strict.fromList #-}
+{-# COMPILE GHC indexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
+
+-- This uses the same mechanism as eqBytestring above.
+-- This is only used in the decidable equality function which also
+-- uses `refl` to unify the two sides and defacto confirms or refutes
+-- structural equality.
+eqArray : Array A → Array A → Bool
+eqArray _ _ = Bool.true
+{-# COMPILE GHC eqArray = \() -> (==) #-}
+
+```
 ## DATA
 ```
 
@@ -264,7 +292,7 @@ eqDATA : DATA → DATA → Bool
 eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
     (Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂))
   Data.Bool.∧
-    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))  
+    L.and (L.zipWith eqDATA (toList l₁) (toList l₂))
 eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
@@ -277,7 +305,7 @@ eqDATA (MapDATA m₁) (MapDATA m₂) =
       (toList m₁)
       (toList m₂)
     )
-eqDATA (MapDATA x) (ListDATA x₁) = Bool.false 
+eqDATA (MapDATA x) (ListDATA x₁) = Bool.false
 eqDATA (MapDATA x) (iDATA x₁) = Bool.false
 eqDATA (MapDATA x) (bDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
@@ -350,4 +378,3 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
-

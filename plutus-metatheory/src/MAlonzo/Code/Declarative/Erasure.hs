@@ -76,10 +76,10 @@ du_eraseVar_40 v0 v1 v2
 -- Declarative.Erasure.eraseTC
 d_eraseTC_48 ::
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
-  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_198
+  AgdaAny -> MAlonzo.Code.RawU.T_TmCon_216
 d_eraseTC_48 v0 v1
   = coe
-      MAlonzo.Code.RawU.C_tmCon_202
+      MAlonzo.Code.RawU.C_tmCon_220
       (coe MAlonzo.Code.Declarative.d_ty2TyTag_74 (coe v0)) (coe v1)
 -- Declarative.Erasure.erase
 d_erase_60 ::
@@ -137,8 +137,8 @@ d_erase_60 v0 v1 v2 v3
                        (coe
                           MAlonzo.Code.Type.C__'183'__30
                           (coe
-                             MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                             (coe MAlonzo.Code.Utils.C_'42'_638))
+                             MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                             (coe MAlonzo.Code.Utils.C_'42'_652))
                           v10
                           (coe
                              MAlonzo.Code.Type.C_ƛ_28
@@ -147,13 +147,13 @@ d_erase_60 v0 v1 v2 v3
                                 (coe
                                    MAlonzo.Code.Type.RenamingSubstitution.d_weaken_98 v0
                                    (coe
-                                      MAlonzo.Code.Utils.C__'8658'__642
+                                      MAlonzo.Code.Utils.C__'8658'__656
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_638))
+                                         MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_652))
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__642 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_638)))
+                                         MAlonzo.Code.Utils.C__'8658'__656 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_652)))
                                    v9 v10)
                                 (coe MAlonzo.Code.Type.C_'96'_22 (coe MAlonzo.Code.Type.C_Z_16)))))
                        v11)
@@ -198,7 +198,7 @@ d_erase'45'Sub_72 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
-  (MAlonzo.Code.Utils.T_Kind_636 ->
+  (MAlonzo.Code.Utils.T_Kind_650 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8866''8902'__20) ->
   (MAlonzo.Code.Type.T__'8866''8902'__20 ->
@@ -210,7 +210,7 @@ d_erase'45'Sub_72 v0 v1 v2 v3 v4 v5 v6
       d_erase_60 (coe v1) (coe v3)
       (coe
          MAlonzo.Code.Type.RenamingSubstitution.d_sub_346 (coe v0) (coe v1)
-         (coe v4) (coe MAlonzo.Code.Utils.C_'42'_638)
+         (coe v4) (coe MAlonzo.Code.Utils.C_'42'_652)
          (coe d_backVar'8902'_156 (coe v0) (coe v2) (coe v6)))
       (coe
          v5 (d_backVar'8902'_156 (coe v0) (coe v2) (coe v6))
@@ -283,7 +283,7 @@ d_backVar'8902'_156 v0 v1 v2
              MAlonzo.Code.Type.C__'44''8902'__6 v6 v7
                -> coe
                     MAlonzo.Code.Type.RenamingSubstitution.d_weaken_98 v6
-                    (coe MAlonzo.Code.Utils.C_'42'_638) v7
+                    (coe MAlonzo.Code.Utils.C_'42'_652) v7
                     (d_backVar'8902'_156 (coe v6) (coe v4) (coe v2))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Declarative.C__'44'__26 v4 v5

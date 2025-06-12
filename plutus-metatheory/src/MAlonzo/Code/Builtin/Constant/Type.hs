@@ -23,4 +23,4 @@ import qualified MAlonzo.Code.Builtin.Constant.AtomicType
 d_TyCon_6 a0 = ()
 data T_TyCon_6
   = C_atomic_8 MAlonzo.Code.Builtin.Constant.AtomicType.T_AtomicTyCon_6 |
-    C_list_10 | C_pair_12
+    C_list_10 | C_array_12 | C_pair_14

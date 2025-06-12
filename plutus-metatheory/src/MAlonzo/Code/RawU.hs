@@ -50,6 +50,7 @@ pattern TagUnit                 = DefaultUniUnit
 pattern TagData                 = DefaultUniData
 pattern TagPair ta tb           = DefaultUniPair ta tb
 pattern TagList ta              = DefaultUniList ta
+pattern TagArray ta              = DefaultUniArray ta
 pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element
 pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element
 pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult
@@ -74,22 +75,22 @@ d_convSigTy_6 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_260 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_260
+  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_266
 d_convSigTy_6 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 ~v9 ~v10 ~v11
               ~v12 ~v13 ~v14 v15
   = du_convSigTy_6 v15
 du_convSigTy_6 ::
-  MAlonzo.Code.Builtin.Signature.T_SigTy_260 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_260
+  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_266
 du_convSigTy_6 v0 = coe v0
 -- RawU._.sig2type
 d_sig2type_8 ::
-  MAlonzo.Code.Builtin.Signature.T_Sig_68 ->
+  MAlonzo.Code.Builtin.Signature.T_Sig_72 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_sig2type_8
   = coe
-      MAlonzo.Code.Builtin.Signature.du_sig2type_236
+      MAlonzo.Code.Builtin.Signature.du_sig2type_242
       (\ v0 v1 v2 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)
       (coe
          (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))
@@ -112,7 +113,7 @@ d_sigTy2type_10 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__120 ->
   MAlonzo.Code.Utils.T__'8724'_'8803'__120 ->
-  MAlonzo.Code.Builtin.Signature.T_SigTy_260 ->
+  MAlonzo.Code.Builtin.Signature.T_SigTy_266 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_sigTy2type_10 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 v7 ~v8 ~v9 ~v10
   = du_sigTy2type_10 v7
@@ -128,7 +129,7 @@ d_'8866''9839'2TyNe'9839'_12 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6
 d_'8866''9839'2TyNe'9839'_12
   = coe
-      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_182
+      MAlonzo.Code.Builtin.Signature.du_'8866''9839'2TyNe'9839'_186
       (\ v0 v1 v2 -> coe MAlonzo.Code.Type.BetaNormal.C_ne_20 v2)
       (coe
          (\ v0 v1 v2 v3 -> coe MAlonzo.Code.Type.BetaNormal.C_'96'_8 v3))
@@ -151,9 +152,10 @@ pattern C_unit_38 = TagUnit
 pattern C_pdata_40 = TagData
 pattern C_pair_46 a0 a1 = TagPair a0 a1
 pattern C_list_50 a0 = TagList a0
-pattern C_bls12'45'381'45'g1'45'element_52 = TagBLS12_381_G1_Element
-pattern C_bls12'45'381'45'g2'45'element_54 = TagBLS12_381_G2_Element
-pattern C_bls12'45'381'45'mlresult_56 = TagBLS12_381_MlResult
+pattern C_array_54 a0 = TagArray a0
+pattern C_bls12'45'381'45'g1'45'element_56 = TagBLS12_381_G1_Element
+pattern C_bls12'45'381'45'g2'45'element_58 = TagBLS12_381_G2_Element
+pattern C_bls12'45'381'45'mlresult_60 = TagBLS12_381_MlResult
 check_integer_30 :: T_Tag_28 (T_Esc_24 Integer)
 check_integer_30 = TagInt
 check_bytestring_32 ::
@@ -167,7 +169,7 @@ check_bool_36 = TagBool
 check_unit_38 ::
   T_Tag_28 (T_Esc_24 MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6)
 check_unit_38 = TagUnit
-check_pdata_40 :: T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_478)
+check_pdata_40 :: T_Tag_28 (T_Esc_24 MAlonzo.Code.Utils.T_DATA_492)
 check_pdata_40 = TagData
 check_pair_46 ::
   forall xA.
@@ -181,18 +183,23 @@ check_list_50 ::
     T_Tag_28 (T_Esc_24 xA) ->
     T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_List_384 xA))
 check_list_50 = TagList
-check_bls12'45'381'45'g1'45'element_52 ::
+check_array_54 ::
+  forall xA.
+    T_Tag_28 (T_Esc_24 xA) ->
+    T_Tag_28 (T_Esc_24 (MAlonzo.Code.Utils.T_Array_478 xA))
+check_array_54 = TagArray
+check_bls12'45'381'45'g1'45'element_56 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_624)
-check_bls12'45'381'45'g1'45'element_52 = TagBLS12_381_G1_Element
-check_bls12'45'381'45'g2'45'element_54 ::
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_638)
+check_bls12'45'381'45'g1'45'element_56 = TagBLS12_381_G1_Element
+check_bls12'45'381'45'g2'45'element_58 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_628)
-check_bls12'45'381'45'g2'45'element_54 = TagBLS12_381_G2_Element
-check_bls12'45'381'45'mlresult_56 ::
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_642)
+check_bls12'45'381'45'g2'45'element_58 = TagBLS12_381_G2_Element
+check_bls12'45'381'45'mlresult_60 ::
   T_Tag_28
-    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_632)
-check_bls12'45'381'45'mlresult_56 = TagBLS12_381_MlResult
+    (T_Esc_24 MAlonzo.Code.Utils.T_Bls12'45'381'45'MlResult_646)
+check_bls12'45'381'45'mlresult_60 = TagBLS12_381_MlResult
 cover_Tag_28 :: Tag a1 -> ()
 cover_Tag_28 x
   = case x of
@@ -204,32 +211,33 @@ cover_Tag_28 x
       TagData -> ()
       TagPair _ _ -> ()
       TagList _ -> ()
+      TagArray _ -> ()
       TagBLS12_381_G1_Element -> ()
       TagBLS12_381_G2_Element -> ()
       TagBLS12_381_MlResult -> ()
 -- RawU.TagCon
-d_TagCon_58 = ()
-type T_TagCon_58 = TagCon
-pattern C_tagCon_62 a0 a1 = TagCon a0 a1
-check_tagCon_62 ::
-  forall xA. T_Tag_28 (T_Esc_24 xA) -> xA -> T_TagCon_58
-check_tagCon_62 = TagCon
-cover_TagCon_58 :: TagCon -> ()
-cover_TagCon_58 x
+d_TagCon_62 = ()
+type T_TagCon_62 = TagCon
+pattern C_tagCon_66 a0 a1 = TagCon a0 a1
+check_tagCon_66 ::
+  forall xA. T_Tag_28 (T_Esc_24 xA) -> xA -> T_TagCon_62
+check_tagCon_66 = TagCon
+cover_TagCon_62 :: TagCon -> ()
+cover_TagCon_62 x
   = case x of
       TagCon _ _ -> ()
 -- RawU.decTagCon'
-d_decTagCon''_76 ::
+d_decTagCon''_80 ::
   () ->
   () ->
   T_Tag_28 (T_Esc_24 AgdaAny) ->
   AgdaAny -> T_Tag_28 (T_Esc_24 AgdaAny) -> AgdaAny -> Bool
-d_decTagCon''_76 ~v0 ~v1 v2 v3 v4 v5
-  = du_decTagCon''_76 v2 v3 v4 v5
-du_decTagCon''_76 ::
+d_decTagCon''_80 ~v0 ~v1 v2 v3 v4 v5
+  = du_decTagCon''_80 v2 v3 v4 v5
+du_decTagCon''_80 ::
   T_Tag_28 (T_Esc_24 AgdaAny) ->
   AgdaAny -> T_Tag_28 (T_Esc_24 AgdaAny) -> AgdaAny -> Bool
-du_decTagCon''_76 v0 v1 v2 v3
+du_decTagCon''_80 v0 v1 v2 v3
   = let v4 = coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8 in
     coe
       (case coe v0 of
@@ -244,7 +252,7 @@ du_decTagCon''_76 v0 v1 v2 v3
                 _ -> coe v4
          C_bytestring_32
            -> case coe v2 of
-                C_bytestring_32 -> coe MAlonzo.Code.Builtin.d_equals_328 v1 v3
+                C_bytestring_32 -> coe MAlonzo.Code.Builtin.d_equals_342 v1 v3
                 _ -> coe v4
          C_string_34
            -> case coe v2 of
@@ -270,7 +278,7 @@ du_decTagCon''_76 v0 v1 v2 v3
                 _ -> coe v4
          C_pdata_40
            -> case coe v2 of
-                C_pdata_40 -> coe MAlonzo.Code.Utils.d_eqDATA_490 (coe v1) (coe v3)
+                C_pdata_40 -> coe MAlonzo.Code.Utils.d_eqDATA_504 (coe v1) (coe v3)
                 _ -> coe v4
          C_pair_46 v7 v8
            -> case coe v1 of
@@ -281,8 +289,8 @@ du_decTagCon''_76 v0 v1 v2 v3
                               MAlonzo.Code.Utils.C__'44'__380 v15 v16
                                 -> coe
                                      MAlonzo.Code.Data.Bool.Base.d__'8743'__24
-                                     (coe du_decTagCon''_76 (coe v7) (coe v9) (coe v13) (coe v15))
-                                     (coe du_decTagCon''_76 (coe v8) (coe v10) (coe v14) (coe v16))
+                                     (coe du_decTagCon''_80 (coe v7) (coe v9) (coe v13) (coe v15))
+                                     (coe du_decTagCon''_80 (coe v8) (coe v10) (coe v14) (coe v16))
                               _ -> MAlonzo.RTE.mazUnreachableError
                        _ -> coe v4
                 _ -> MAlonzo.RTE.mazUnreachableError
@@ -303,64 +311,64 @@ du_decTagCon''_76 v0 v1 v2 v3
                               MAlonzo.Code.Utils.C__'8759'__390 v11 v12
                                 -> coe
                                      MAlonzo.Code.Data.Bool.Base.d__'8743'__24
-                                     (coe du_decTagCon''_76 (coe v6) (coe v7) (coe v10) (coe v11))
+                                     (coe du_decTagCon''_80 (coe v6) (coe v7) (coe v10) (coe v11))
                                      (coe
-                                        du_decTagCon''_76 (coe C_list_50 v6) (coe v8)
+                                        du_decTagCon''_80 (coe C_list_50 v6) (coe v8)
                                         (coe C_list_50 v10) (coe v12))
                               _ -> coe v4
                        _ -> coe v4
                 _ -> MAlonzo.RTE.mazUnreachableError
          _ -> coe v4)
 -- RawU.decTagCon
-d_decTagCon_136 :: T_TagCon_58 -> T_TagCon_58 -> Bool
-d_decTagCon_136 v0 v1
+d_decTagCon_140 :: T_TagCon_62 -> T_TagCon_62 -> Bool
+d_decTagCon_140 v0 v1
   = case coe v0 of
-      C_tagCon_62 v3 v4
+      C_tagCon_66 v3 v4
         -> case coe v1 of
-             C_tagCon_62 v6 v7
-               -> coe du_decTagCon''_76 (coe v3) (coe v4) (coe v6) (coe v7)
+             C_tagCon_66 v6 v7
+               -> coe du_decTagCon''_80 (coe v3) (coe v4) (coe v6) (coe v7)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.Untyped
-d_Untyped_146 = ()
-type T_Untyped_146 = UTerm
-pattern C_UVar_148 a0 = UVar a0
-pattern C_ULambda_150 a0 = ULambda a0
-pattern C_UApp_152 a0 a1 = UApp a0 a1
-pattern C_UCon_154 a0 = UCon a0
-pattern C_UError_156 = UError
-pattern C_UBuiltin_158 a0 = UBuiltin a0
-pattern C_UDelay_160 a0 = UDelay a0
-pattern C_UForce_162 a0 = UForce a0
-pattern C_UConstr_164 a0 a1 = UConstr a0 a1
-pattern C_UCase_166 a0 a1 = UCase a0 a1
-check_UVar_148 :: Integer -> T_Untyped_146
-check_UVar_148 = UVar
-check_ULambda_150 :: T_Untyped_146 -> T_Untyped_146
-check_ULambda_150 = ULambda
-check_UApp_152 :: T_Untyped_146 -> T_Untyped_146 -> T_Untyped_146
-check_UApp_152 = UApp
-check_UCon_154 :: T_TagCon_58 -> T_Untyped_146
-check_UCon_154 = UCon
-check_UError_156 :: T_Untyped_146
-check_UError_156 = UError
-check_UBuiltin_158 ::
-  MAlonzo.Code.Builtin.T_Builtin_2 -> T_Untyped_146
-check_UBuiltin_158 = UBuiltin
-check_UDelay_160 :: T_Untyped_146 -> T_Untyped_146
-check_UDelay_160 = UDelay
-check_UForce_162 :: T_Untyped_146 -> T_Untyped_146
-check_UForce_162 = UForce
-check_UConstr_164 ::
+d_Untyped_150 = ()
+type T_Untyped_150 = UTerm
+pattern C_UVar_152 a0 = UVar a0
+pattern C_ULambda_154 a0 = ULambda a0
+pattern C_UApp_156 a0 a1 = UApp a0 a1
+pattern C_UCon_158 a0 = UCon a0
+pattern C_UError_160 = UError
+pattern C_UBuiltin_162 a0 = UBuiltin a0
+pattern C_UDelay_164 a0 = UDelay a0
+pattern C_UForce_166 a0 = UForce a0
+pattern C_UConstr_168 a0 a1 = UConstr a0 a1
+pattern C_UCase_170 a0 a1 = UCase a0 a1
+check_UVar_152 :: Integer -> T_Untyped_150
+check_UVar_152 = UVar
+check_ULambda_154 :: T_Untyped_150 -> T_Untyped_150
+check_ULambda_154 = ULambda
+check_UApp_156 :: T_Untyped_150 -> T_Untyped_150 -> T_Untyped_150
+check_UApp_156 = UApp
+check_UCon_158 :: T_TagCon_62 -> T_Untyped_150
+check_UCon_158 = UCon
+check_UError_160 :: T_Untyped_150
+check_UError_160 = UError
+check_UBuiltin_162 ::
+  MAlonzo.Code.Builtin.T_Builtin_2 -> T_Untyped_150
+check_UBuiltin_162 = UBuiltin
+check_UDelay_164 :: T_Untyped_150 -> T_Untyped_150
+check_UDelay_164 = UDelay
+check_UForce_166 :: T_Untyped_150 -> T_Untyped_150
+check_UForce_166 = UForce
+check_UConstr_168 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_384 T_Untyped_146 -> T_Untyped_146
-check_UConstr_164 = UConstr
-check_UCase_166 ::
-  T_Untyped_146 ->
-  MAlonzo.Code.Utils.T_List_384 T_Untyped_146 -> T_Untyped_146
-check_UCase_166 = UCase
-cover_Untyped_146 :: UTerm -> ()
-cover_Untyped_146 x
+  MAlonzo.Code.Utils.T_List_384 T_Untyped_150 -> T_Untyped_150
+check_UConstr_168 = UConstr
+check_UCase_170 ::
+  T_Untyped_150 ->
+  MAlonzo.Code.Utils.T_List_384 T_Untyped_150 -> T_Untyped_150
+check_UCase_170 = UCase
+cover_Untyped_150 :: UTerm -> ()
+cover_Untyped_150 x
   = case x of
       UVar _ -> ()
       ULambda _ -> ()
@@ -373,18 +381,18 @@ cover_Untyped_146 x
       UConstr _ _ -> ()
       UCase _ _ -> ()
 -- RawU.TyTag
-d_TyTag_168 :: ()
-d_TyTag_168 = erased
+d_TyTag_172 :: ()
+d_TyTag_172 = erased
 -- RawU.⟦_⟧tag
-d_'10214'_'10215'tag_170 ::
+d_'10214'_'10215'tag_174 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 -> ()
-d_'10214'_'10215'tag_170 = erased
+d_'10214'_'10215'tag_174 = erased
 -- RawU.decTag
-d_decTag_174 ::
+d_decTag_178 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_decTag_174 v0 v1
+d_decTag_178 v0 v1
   = case coe v0 of
       MAlonzo.Code.Builtin.Signature.C_atomic_12 v3
         -> case coe v1 of
@@ -398,7 +406,12 @@ d_decTag_174 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             MAlonzo.Code.Builtin.Signature.C_pair_20 v5 v6
+             MAlonzo.Code.Builtin.Signature.C_array_20 v5
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v5 v6
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
@@ -414,14 +427,41 @@ d_decTag_174 v0 v1
              MAlonzo.Code.Builtin.Signature.C_list_16 v5
                -> coe
                     MAlonzo.Code.Utils.Decidable.du_dcong_40
-                    (d_decTag_174 (coe v3) (coe v5))
-             MAlonzo.Code.Builtin.Signature.C_pair_20 v5 v6
+                    (d_decTag_178 (coe v3) (coe v5))
+             MAlonzo.Code.Builtin.Signature.C_array_20 v5
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v5 v6
                -> coe
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              _ -> MAlonzo.RTE.mazUnreachableError
-      MAlonzo.Code.Builtin.Signature.C_pair_20 v3 v4
+      MAlonzo.Code.Builtin.Signature.C_array_20 v3
+        -> case coe v1 of
+             MAlonzo.Code.Builtin.Signature.C_atomic_12 v5
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             MAlonzo.Code.Builtin.Signature.C_list_16 v5
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             MAlonzo.Code.Builtin.Signature.C_array_20 v5
+               -> coe
+                    MAlonzo.Code.Utils.Decidable.du_dcong_40
+                    (d_decTag_178 (coe v3) (coe v5))
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v5 v6
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Builtin.Signature.C_pair_24 v3 v4
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v6
                -> coe
@@ -433,28 +473,33 @@ d_decTag_174 v0 v1
                     MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
                     (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
-             MAlonzo.Code.Builtin.Signature.C_pair_20 v6 v7
+             MAlonzo.Code.Builtin.Signature.C_array_20 v6
+               -> coe
+                    MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32
+                    (coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)
+                    (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v6 v7
                -> coe
                     MAlonzo.Code.Utils.Decidable.du_dcong'8322'_70
-                    (coe d_decTag_174 (coe v3) (coe v6))
-                    (coe d_decTag_174 (coe v4) (coe v7))
+                    (coe d_decTag_178 (coe v3) (coe v6))
+                    (coe d_decTag_178 (coe v4) (coe v7))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.TmCon
-d_TmCon_198 = ()
-data T_TmCon_198
-  = C_tmCon_202 MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
+d_TmCon_216 = ()
+data T_TmCon_216
+  = C_tmCon_220 MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
                 AgdaAny
 -- RawU.tag2TyTag
-d_tag2TyTag_206 ::
+d_tag2TyTag_224 ::
   () ->
   T_Tag_28 AgdaAny ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
-d_tag2TyTag_206 ~v0 v1 = du_tag2TyTag_206 v1
-du_tag2TyTag_206 ::
+d_tag2TyTag_224 ~v0 v1 = du_tag2TyTag_224 v1
+du_tag2TyTag_224 ::
   T_Tag_28 AgdaAny ->
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
-du_tag2TyTag_206 v0
+du_tag2TyTag_224 v0
   = case coe v0 of
       C_integer_30
         -> coe
@@ -482,78 +527,82 @@ du_tag2TyTag_206 v0
              (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18)
       C_pair_46 v3 v4
         -> coe
-             MAlonzo.Code.Builtin.Signature.C_pair_20
-             (coe du_tag2TyTag_206 (coe v3)) (coe du_tag2TyTag_206 (coe v4))
+             MAlonzo.Code.Builtin.Signature.C_pair_24
+             (coe du_tag2TyTag_224 (coe v3)) (coe du_tag2TyTag_224 (coe v4))
       C_list_50 v2
         -> coe
              MAlonzo.Code.Builtin.Signature.C_list_16
-             (coe du_tag2TyTag_206 (coe v2))
-      C_bls12'45'381'45'g1'45'element_52
+             (coe du_tag2TyTag_224 (coe v2))
+      C_array_54 v2
+        -> coe
+             MAlonzo.Code.Builtin.Signature.C_array_20
+             (coe du_tag2TyTag_224 (coe v2))
+      C_bls12'45'381'45'g1'45'element_56
         -> coe
              MAlonzo.Code.Builtin.Signature.C_atomic_12
              (coe
                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20)
-      C_bls12'45'381'45'g2'45'element_54
+      C_bls12'45'381'45'g2'45'element_58
         -> coe
              MAlonzo.Code.Builtin.Signature.C_atomic_12
              (coe
                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22)
-      C_bls12'45'381'45'mlresult_56
+      C_bls12'45'381'45'mlresult_60
         -> coe
              MAlonzo.Code.Builtin.Signature.C_atomic_12
              (coe
                 MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tagLemma
-d_tagLemma_218 ::
+d_tagLemma_238 ::
   () ->
   T_Tag_28 (T_Esc_24 AgdaAny) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_tagLemma_218 = erased
+d_tagLemma_238 = erased
 -- RawU.tagCon2TmCon
-d_tagCon2TmCon_226 :: T_TagCon_58 -> T_TmCon_198
-d_tagCon2TmCon_226 v0
+d_tagCon2TmCon_248 :: T_TagCon_62 -> T_TmCon_216
+d_tagCon2TmCon_248 v0
   = case coe v0 of
-      C_tagCon_62 v2 v3
+      C_tagCon_66 v2 v3
         -> case coe v2 of
              C_integer_30
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                     (coe v3)
              C_bytestring_32
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10))
                     (coe v3)
              C_string_34
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12))
                     (coe v3)
              C_bool_36
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16))
                     (coe v3)
              C_unit_38
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14))
                     (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)
              C_pdata_40
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18))
@@ -562,37 +611,44 @@ d_tagCon2TmCon_226 v0
                -> coe
                     seq (coe v3)
                     (coe
-                       C_tmCon_202
+                       C_tmCon_220
                        (coe
-                          MAlonzo.Code.Builtin.Signature.C_pair_20
-                          (coe du_tag2TyTag_206 (coe v6)) (coe du_tag2TyTag_206 (coe v7)))
+                          MAlonzo.Code.Builtin.Signature.C_pair_24
+                          (coe du_tag2TyTag_224 (coe v6)) (coe du_tag2TyTag_224 (coe v7)))
                        (coe v3))
              C_list_50 v5
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_list_16
-                       (coe du_tag2TyTag_206 (coe v5)))
+                       (coe du_tag2TyTag_224 (coe v5)))
                     (coe v3)
-             C_bls12'45'381'45'g1'45'element_52
+             C_array_54 v5
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
+                    (coe
+                       MAlonzo.Code.Builtin.Signature.C_array_20
+                       (coe du_tag2TyTag_224 (coe v5)))
+                    (coe v3)
+             C_bls12'45'381'45'g1'45'element_56
+               -> coe
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe
                           MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20))
                     (coe v3)
-             C_bls12'45'381'45'g2'45'element_54
+             C_bls12'45'381'45'g2'45'element_58
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe
                           MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22))
                     (coe v3)
-             C_bls12'45'381'45'mlresult_56
+             C_bls12'45'381'45'mlresult_60
                -> coe
-                    C_tmCon_202
+                    C_tmCon_220
                     (coe
                        MAlonzo.Code.Builtin.Signature.C_atomic_12
                        (coe
@@ -601,10 +657,10 @@ d_tagCon2TmCon_226 v0
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tyTag2Tag
-d_tyTag2Tag_272 ::
+d_tyTag2Tag_302 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_tyTag2Tag_272 v0
+d_tyTag2Tag_302 v0
   = case coe v0 of
       MAlonzo.Code.Builtin.Signature.C_atomic_12 v2
         -> case coe v2 of
@@ -632,18 +688,18 @@ d_tyTag2Tag_272 v0
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20
                -> coe
                     MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased
-                    (coe C_bls12'45'381'45'g1'45'element_52)
+                    (coe C_bls12'45'381'45'g1'45'element_56)
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22
                -> coe
                     MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased
-                    (coe C_bls12'45'381'45'g2'45'element_54)
+                    (coe C_bls12'45'381'45'g2'45'element_58)
              MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24
                -> coe
                     MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased
-                    (coe C_bls12'45'381'45'mlresult_56)
+                    (coe C_bls12'45'381'45'mlresult_60)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Builtin.Signature.C_list_16 v2
-        -> let v3 = d_tyTag2Tag_272 (coe v2) in
+        -> let v3 = d_tyTag2Tag_302 (coe v2) in
            coe
              (case coe v3 of
                 MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
@@ -651,10 +707,19 @@ d_tyTag2Tag_272 v0
                        MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased
                        (coe C_list_50 v5)
                 _ -> MAlonzo.RTE.mazUnreachableError)
-      MAlonzo.Code.Builtin.Signature.C_pair_20 v2 v3
-        -> let v4 = d_tyTag2Tag_272 (coe v2) in
+      MAlonzo.Code.Builtin.Signature.C_array_20 v2
+        -> let v3 = d_tyTag2Tag_302 (coe v2) in
            coe
-             (let v5 = d_tyTag2Tag_272 (coe v3) in
+             (case coe v3 of
+                MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v4 v5
+                  -> coe
+                       MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased
+                       (coe C_array_54 v5)
+                _ -> MAlonzo.RTE.mazUnreachableError)
+      MAlonzo.Code.Builtin.Signature.C_pair_24 v2 v3
+        -> let v4 = d_tyTag2Tag_302 (coe v2) in
+           coe
+             (let v5 = d_tyTag2Tag_302 (coe v3) in
               coe
                 (case coe v4 of
                    MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 v6 v7
@@ -667,58 +732,66 @@ d_tyTag2Tag_272 v0
                    _ -> MAlonzo.RTE.mazUnreachableError))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- RawU.tyTagLemma
-d_tyTagLemma_308 ::
+d_tyTagLemma_350 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_tyTagLemma_308 = erased
+d_tyTagLemma_350 = erased
 -- RawU.tmCon2TagCon
-d_tmCon2TagCon_316 :: T_TmCon_198 -> T_TagCon_58
-d_tmCon2TagCon_316 v0
+d_tmCon2TagCon_360 :: T_TmCon_216 -> T_TagCon_62
+d_tmCon2TagCon_360 v0
   = case coe v0 of
-      C_tmCon_202 v1 v2
+      C_tmCon_220 v1 v2
         -> case coe v1 of
              MAlonzo.Code.Builtin.Signature.C_atomic_12 v4
                -> case coe v4 of
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8
-                      -> coe C_tagCon_62 (coe C_integer_30) v2
+                      -> coe C_tagCon_66 (coe C_integer_30) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBytestring_10
-                      -> coe C_tagCon_62 (coe C_bytestring_32) v2
+                      -> coe C_tagCon_66 (coe C_bytestring_32) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aString_12
-                      -> coe C_tagCon_62 (coe C_string_34) v2
+                      -> coe C_tagCon_66 (coe C_string_34) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aUnit_14
                       -> coe
-                           C_tagCon_62 (coe C_unit_38)
+                           C_tagCon_66 (coe C_unit_38)
                            (coe MAlonzo.Code.Agda.Builtin.Unit.C_tt_8)
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBool_16
-                      -> coe C_tagCon_62 (coe C_bool_36) v2
+                      -> coe C_tagCon_66 (coe C_bool_36) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aData_18
-                      -> coe C_tagCon_62 (coe C_pdata_40) v2
+                      -> coe C_tagCon_66 (coe C_pdata_40) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g1'45'element_20
-                      -> coe C_tagCon_62 (coe C_bls12'45'381'45'g1'45'element_52) v2
+                      -> coe C_tagCon_66 (coe C_bls12'45'381'45'g1'45'element_56) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'g2'45'element_22
-                      -> coe C_tagCon_62 (coe C_bls12'45'381'45'g2'45'element_54) v2
+                      -> coe C_tagCon_66 (coe C_bls12'45'381'45'g2'45'element_58) v2
                     MAlonzo.Code.Builtin.Constant.AtomicType.C_aBls12'45'381'45'mlresult_24
-                      -> coe C_tagCon_62 (coe C_bls12'45'381'45'mlresult_56) v2
+                      -> coe C_tagCon_66 (coe C_bls12'45'381'45'mlresult_60) v2
                     _ -> MAlonzo.RTE.mazUnreachableError
              MAlonzo.Code.Builtin.Signature.C_list_16 v4
                -> coe
-                    C_tagCon_62
+                    C_tagCon_66
                     (coe
                        C_list_50
                        (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                          (coe d_tyTag2Tag_272 (coe v4))))
+                          (coe d_tyTag2Tag_302 (coe v4))))
                     v2
-             MAlonzo.Code.Builtin.Signature.C_pair_20 v4 v5
+             MAlonzo.Code.Builtin.Signature.C_array_20 v4
+               -> coe
+                    C_tagCon_66
+                    (coe
+                       C_array_54
+                       (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
+                          (coe d_tyTag2Tag_302 (coe v4))))
+                    v2
+             MAlonzo.Code.Builtin.Signature.C_pair_24 v4 v5
                -> coe
                     seq (coe v2)
                     (coe
-                       C_tagCon_62
+                       C_tagCon_66
                        (coe
                           C_pair_46
                           (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                             (coe d_tyTag2Tag_272 (coe v4)))
+                             (coe d_tyTag2Tag_302 (coe v4)))
                           (MAlonzo.Code.Agda.Builtin.Sigma.d_snd_30
-                             (coe d_tyTag2Tag_272 (coe v5))))
+                             (coe d_tyTag2Tag_302 (coe v5))))
                        v2)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
