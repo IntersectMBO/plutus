@@ -45,7 +45,7 @@ to apply a variable to some other term).
 \end{figure}%
 \nomenclature[Gb1]{$\Sigma$}{CEK machine state}%
 \nomenclature[Gb2]{$s$}{CEK machine stack}%
-\nomenclature[Gb2a]{$f$}{CEK stack frame: $\inForceFrame, \inAppLeftFrame{(M,\rho)}, \inAppRightFrame{V}, \inConstrFrame{i}{M_0 \ldots M_{i-1}}{V_{i+1} \ldots V_n}, \inCaseFrame{M_0 \ldots M_n}$}
+\nomenclature[Gb2a]{$f$}{CEK stack frame: $\inForceFrame, \inAppLeftFrame{(M,\rho)}, \inAppRightFrame{V}, \inConstrFrame{i}{M_1 \ldots M_{j-1}}{V_{j+1} \ldots V_n}, \inCaseFrame{M_1 \ldots M_n}$}
 \nomenclature[Gb3]{$V$}{CEK value: $\VCon{\tn}{c}, \VDelay{M}{\rho},\VLamAbs{x}{M}{\rho},\VBuiltin{b}{\repetition{V}}{\eta}$}%
 \nomenclature[Gb4]{$\rho$}{CEK environment}%
 \nomenclature[Gb5]{$\rho[x]$}{Value bound to variable $x$ in environment $\rho$}%
@@ -154,8 +154,8 @@ state.
                          \inConstrFrame{i}{\repetition{V} \cons V}{(\repetition{M}, \rho)} \cons s;\rho \compute M \\
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
-\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_1} \cons s ;\rho \compute M_i \enskip \text{if $0 \leq i \leq n$}
+\inCaseFrame{(M_1 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_1 \ldots V_m}   &~\mapsto~&
+                         \inAppLeftFrame{V_m} \cons \cdots \cons \inAppLeftFrame{V_1} \cons s ;\rho \compute M_{i+1} \enskip \text{if $0 \leq i \leq n-1$}
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
