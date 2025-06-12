@@ -1,0 +1,127 @@
+name: hackage-ci
+
+# Build some hackage packages:
+#  containers time polyparse hscolour cpphs pretty
+# and some currently modified packages:
+#  * transformers      master source in darcs
+#  * mtl               PR not submitted yet
+#  * parsec
+
+on:
+  push:
+#    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-hackage:
+    runs-on: ubuntu-latest
+    steps:
+    # mhs
+    - name: checkout mhs repo
+      uses: actions/checkout@v4
+      with:
+        path: mhs
+    - name: make and install mhs
+      run: |
+        cd mhs
+        make minstall
+
+    # containers
+    - name: checkout containers repo
+      uses: actions/checkout@v4
+      with:
+        repository: haskell/containers
+        path: containers
+    - name: compile and install containers package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd containers/containers
+        mcabal install
+
+    # transformers
+    - name: checkout transformers repo
+      uses: actions/checkout@v4
+      with:
+        repository: augustss/transformers
+        path: transformers
+    - name: compile and install transformers package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd transformers
+        mcabal install
+
+    # time
+    - name: checkout time repo
+      uses: actions/checkout@v4
+      with:
+        repository: haskell/time
+        path: time
+    - name: compile and install time package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd time
+        mcabal install
+
+    # malcolm-wallace-universe
+    - name: checkout malcolm-wallace-universe repo
+      uses: actions/checkout@v4
+      with:
+        repository: hackage-trustees/malcolm-wallace-universe
+        path: malcolm-wallace-universe
+    - name: compile and install polyparse
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd malcolm-wallace-universe/polyparse-1.12
+        mcabal install
+    - name: compile and install hscolour
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd malcolm-wallace-universe/hscolour-1.24.4
+        mcabal install
+    - name: compile and install cpphs
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd malcolm-wallace-universe/cpphs-1.20.9
+        mcabal install
+
+    # mtl
+    - name: checkout mtl repo
+      uses: actions/checkout@v4
+      with:
+        repository: augustss/mtl
+        path: mtl
+    - name: compile and install mtl package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd mtl
+        mcabal install
+
+    # pretty
+    - name: checkout pretty repo
+      uses: actions/checkout@v4
+      with:
+        repository: haskell/pretty
+        path: pretty
+    - name: compile and install pretty package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd pretty
+        mcabal install
+
+    # parsec
+    - name: checkout parsec repo
+      uses: actions/checkout@v4
+      with:
+        repository: augustss/parsec
+        path: parsec
+    - name: compile and install parsec package
+      run: |
+        PATH="$HOME/.mcabal/bin:$PATH"
+        cd parsec
+        mcabal install
+
+    # DONE
+    - name: cleanup
+      run: |
+        rm -rf $HOME/.mcabal

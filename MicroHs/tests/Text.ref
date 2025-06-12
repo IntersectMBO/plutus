@@ -1,0 +1,24 @@
+"abc"
+"abc"
+"abcabd"
+[True,False,False,False,False,True,False,False,False,False,True,False,False,False,False,True,False,True,True,True,True,False,True,True,True,True,False,True,True,True,True,False,False,True,False,True,False,False,False,True,True,True,False,True,False,False,False,False,True,True,False,True,False,True,False,True,True,True,True,True,False,False,False,True,False,False,True,False,True,False,True,False,False,False,False,False,True,True,True,False,True,False,True,False,True,True,True,False,False,False,True,False,True,True,True,True]
+[EQ,LT,GT,LT,GT,EQ,GT,LT,LT,LT,EQ,LT,GT,GT,GT,EQ]
+"abc"
+'a'
+"bc"
+Just ('a',"bc")
+False
+True
+"\65533"
+"\65533"
+"\228\246\252\223"
+"\195\184\195\159\206\158\195\179\195\175\197\177\195\166\227\129\132\215\148\197\130\208\148\224\184\155\224\185\135\197\159"
+"\248\NUL\223\NUL\158\ETX\243\NUL\239\NULq\SOH\230\NULD0\212\ENQB\SOH\DC4\EOT\ESC\SOG\SO_\SOH"
+"\NUL\248\NUL\223\ETX\158\NUL\243\NUL\239\SOHq\NUL\230\&0D\ENQ\212\SOHB\EOT\DC4\SO\ESC\SOG\SOH_"
+"\248\NUL\NUL\NUL\223\NUL\NUL\NUL\158\ETX\NUL\NUL\243\NUL\NUL\NUL\239\NUL\NUL\NULq\SOH\NUL\NUL\230\NUL\NUL\NULD0\NUL\NUL\212\ENQ\NUL\NULB\SOH\NUL\NUL\DC4\EOT\NUL\NUL\ESC\SO\NUL\NULG\SO\NUL\NUL_\SOH\NUL\NUL"
+"\NUL\NUL\NUL\248\NUL\NUL\NUL\223\NUL\NUL\ETX\158\NUL\NUL\NUL\243\NUL\NUL\NUL\239\NUL\NUL\SOHq\NUL\NUL\NUL\230\NUL\NUL0D\NUL\NUL\ENQ\212\NUL\NUL\SOHB\NUL\NUL\EOT\DC4\NUL\NUL\SO\ESC\NUL\NUL\SOG\NUL\NUL\SOH_"
+True
+True
+True
+True
+True

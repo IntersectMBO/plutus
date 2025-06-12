@@ -1,0 +1,140 @@
+cabal-version:      3.0
+name:               MicroHs
+version:            0.13.2.0
+
+-- *** When changing the version number, also
+-- *** run 'sh updateversion.sh'
+-- *** Yeah, it stinks.
+synopsis:           A small compiler for Haskell
+license:            Apache-2.0
+license-file:       LICENSE
+copyright:          2023,2024,2025 Lennart Augustsson
+category:           language
+author:             lennart@augustsson.net
+maintainer:         lennart@augustsson.net
+stability:          experimental
+description:
+  A compiler for an extended subset of Haskell-2010.
+  The compiler translates to combinators and can compile itself.
+
+build-type:         Simple
+extra-source-files:
+  Example.hs
+  generated/cpphs.c
+  generated/mhs.c
+  ghc/**/*.hs
+  lib/**/*.hs
+  lib/**/*.hs-boot
+  LICENSE
+  Makefile
+  mhs/**/*.hs
+  paths/Paths_MicroHs.hs
+  README.md
+  src/runtime/*.c
+  src/runtime/*.h
+  tests/*.hs
+  tests/*.hs-boot
+  tests/*.ref
+  tests/Makefile
+  Tools/Addcombs.hs
+  Tools/Compress.hs
+  Tools/convertX.sh
+
+data-files:
+  lib/**/*.hs
+  lib/**/*.hs-boot
+  src/runtime/*.c
+  src/runtime/*.h
+
+-- I would like to have these two only for ghc, but I can't figure out how.
+-- But mcabal has a hack that recognizes lines that start with --MCABAL as valid lines.
+--MCABALif impl(ghc)
+--MCABAL data-files:
+source-repository head
+  type:     git
+  location: https://github.com/augustss/MicroHs
+
+executable mhs
+  default-language:   Haskell2010
+  ghc-options:
+    -Wall -Wno-unrecognised-warning-flags -Wno-x-partial
+    -fwrite-ide-info -Wno-deprecations -main-is MicroHs.Main
+
+  main-is:            MicroHs/Main.hs
+  default-extensions:
+    FlexibleContexts
+    FlexibleInstances
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    TypeSynonymInstances
+
+  other-modules:
+    Data.Double
+    Data.Integer
+    MHSPrelude
+    MicroHs.Abstract
+    MicroHs.Builtin
+    MicroHs.Compile
+    MicroHs.CompileCache
+    MicroHs.Deriving
+    MicroHs.Desugar
+    MicroHs.EncodeData
+    MicroHs.Exp
+    MicroHs.ExpPrint
+    MicroHs.Expr
+    MicroHs.FFI
+    MicroHs.Fixity
+    MicroHs.Flags
+    MicroHs.Graph
+    MicroHs.Ident
+    MicroHs.IdentMap
+    MicroHs.Interactive
+    MicroHs.IntMap
+    MicroHs.IntSet
+    MicroHs.Lex
+    MicroHs.List
+    MicroHs.MakeCArray
+    MicroHs.Names
+    MicroHs.Package
+    MicroHs.Parse
+    MicroHs.State
+    MicroHs.StateIO
+    MicroHs.SymTab
+    MicroHs.TargetConfig
+    MicroHs.TCMonad
+    MicroHs.Translate
+    MicroHs.TypeCheck
+    Paths_MicroHs
+    PrimTable
+    System.Compress
+    System.Console.SimpleReadline
+    System.IO.MD5
+    System.IO.Serialize
+    System.IO.TimeMilli
+    Text.ParserComb
+    Text.PrettyPrint.HughesPJLite
+
+  autogen-modules:    Paths_MicroHs
+
+  if impl(ghc)
+    hs-source-dirs: ghc src
+    build-depends:
+      , array        >=0.5  && <0.6
+      , base         >=4.10 && <4.30
+      , bytestring   >=0.5  && <0.20
+      , deepseq      >=1.1  && <1.8
+      , directory    >=1.2  && <1.6
+      , filepath     >=1.1  && <1.8
+      , ghc-prim     >=0.5  && <0.15
+      , haskeline    >=0.8  && <0.10
+      , plutus-core
+      , process      >=1.6  && <1.10
+      , text         >=2.0  && <2.5
+      , time         >=1.1  && <1.20
+
+  if impl(hugs)
+    hs-source-dirs: hugs src
+
+  if impl(mhs)
+    hs-source-dirs: mhs src
+    build-depends:  base >=0.1 && <10.0

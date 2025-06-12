@@ -1,0 +1,17 @@
+yes
+no
+1234
+0
+-567
+'x'
+'\n'
+False
+[1,20,3]
+[1]
+[]
+(123,'a')
+Nothing
+Just 890
+Left 678
+Right True
+5

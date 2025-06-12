@@ -1,0 +1,46 @@
+* Have compile return a Stats record of timing etc
+* In interactive mode, make the runtime system catch ^C and stop execution
+* Type checker improvements:
+  - allow generalization for local bindings
+  - use subsumption (like if) in the arms of alternatives
+  - instead of skolemization, use regular variables, making sure they are unique
+* Redo type synonym expansion
+  - Do expansion during unification
+* Implement two level tables for instances even in the tricky cases
+* Removing [] from prim table
+* Use pointer reversal during marking, will be slower
+* Fix bug uncovered by Data.Type.Equality
+* mkQIdent
+* Get rid of evalstring()
+  - do everything in Haskell
+* Better pretty print of Expr
+* Implement qualified constraints
+* Use capi, add value and field modifiers
+* Ad hoc fix for f.g: check if g is a field
+* Divide lib into different packages
+* Sync lib with GHC base
+* Use finalizers for alloca?
+* Better naming of internal identifiers
+* Add mask&co to exceptions
+* Make a Unicode version of Data.Char
+  - make tables using the Haskell tools
+  - read tables lazily when outside ASCII range
+* Add EmptyDataDeriving
+* Implement hSetBuffering
+  Do this by adding a new BFILE type that just buffers:
+   NoBuffering      - flush on every character
+   LineBuffering    - flush on '\n'
+   (BlockBuffering n - accumulate a block before doing a write)
+
+Bugs:
+* Check for escaping skolemized variables
+* Type checking Data.Data
+* let needs {} in a do with {}
+* export list in -boot doesn't work
+* overloaded PatBind is totally wrong
+* newtype deriving Semigroup is broken
+* polykinded signatures don't work properly, e.g., ~
+  there is no place to put the forall
+* tr :: forall t -> Typeable t => TypeRep
+  tr a = typeRep (Proxy :: Proxy a)
+* cannot parse (a -> b) as an expression

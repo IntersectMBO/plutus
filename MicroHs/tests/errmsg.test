@@ -1,0 +1,229 @@
+module M() awhere
+-----
+"../tmp/E.hs": line 2, col 12:
+  found:    awhere
+  expected: where
+
+=====
+module M() where
+x :: Int
+x = 1 +
+y = 0
+-----
+"../tmp/E.hs": line 5, col 1:
+  found:    ;
+  expected: - LQIdent ( UQIdent [ literal _primitive @ \ case let if QualDo do
+
+=====
+module E() where
+x :: Int
+x = y
+-----
+"../tmp/E.hs": line 4, col 5: undefined value: y
+
+=====
+module E() where
+x :: Int
+x = A
+-----
+"../tmp/E.hs": line 4, col 5: undefined value: A
+
+=====
+module E() where
+x :: T
+x = 1
+-----
+"../tmp/E.hs": line 3, col 6: undefined type: T
+
+=====
+module E() where
+x :: Int
+x = 1
+y :: Int
+y = 2
+x :: Int
+x = 3
+-----
+"../tmp/E.hs": line 4, col 1: duplicate definition E.x
+
+=====
+module E() where
+type T a = (a, a)
+data D (f :: Type -> Type) = D (f Int)
+x :: D T
+x = (0, 0)
+-----
+"../tmp/E.hs": line 5, col 8: bad synonym use
+
+=====
+module E(module M) where
+-----
+"../tmp/E.hs": line 2, col 17: undefined module: M
+
+=====
+module E(T) where
+-----
+"../tmp/E.hs": line 2, col 10: undefined export: T
+
+=====
+module E(T(..)) where
+-----
+"../tmp/E.hs": line 2, col 10: undefined export: T
+
+=====
+module E(x) where
+-----
+"../tmp/E.hs": line 2, col 10: undefined export: x
+
+=====
+module E(lookup) where
+import TestMap
+-----
+"../tmp/E.hs": line 2, col 10: ambiguous export: lookup [Data.List.lookup,TestMap.lookup]
+
+=====
+module E() where
+import TestMap
+a :: ()
+a = lookup
+-----
+"../tmp/E.hs": line 5, col 5: ambiguous value: lookup [Data.List.lookup,TestMap.lookup]
+
+=====
+module E() where
+infixl 5 +++
+infixr 5 ***
+(+++) :: Int -> Int -> Int
+(+++) = (+)
+(***) :: Int -> Int -> Int
+(***) = (*)
+x :: Int
+x = 1 +++ 2 *** 3
+-----
+"../tmp/E.hs": line 10, col 13: ambiguous operator expression
+
+=====
+module E() where
+a :: Int
+a = 'a'
+-----
+"../tmp/E.hs": line 4, col 5: Cannot satisfy constraint: (Char ~ Int)
+     fully qualified: (Primitives.~ Primitives.Char Primitives.Int)
+=====
+module E() where
+data T = C Maybe
+-----
+"../tmp/E.hs": line 3, col 12: kind error: cannot unify Type and (_a2 -> _a3)
+
+=====
+module E() where
+data T (a :: X) = T
+-----
+"../tmp/E.hs": line 3, col 14: undefined kind: X
+
+=====
+module E() where
+data T = forall a . C a
+x :: Int
+x = let { C a = C (1::Int) } in a
+-----
+"../tmp/E.hs": line 5, col 11: existentials not allowed in pattern binding
+
+=====
+module E() where
+class C a where { m :: a }
+instance C Int where { x = 1 }
+-----
+"../tmp/E.hs": line 4, col 24: superflous instance binding
+
+=====
+module E() where
+data T = C Int
+x = case undefined of
+      C -> True
+-----
+"../tmp/E.hs": line 5, col 7: too few arguments
+
+=====
+module E() where
+data T = C Int
+x = case undefined of
+      C _ _ -> True
+-----
+"../tmp/E.hs": line 5, col 7: too many arguments
+
+=====
+module E() where
+x = 1000000_
+-----
+"../tmp/E.hs": line 3, col 12: _ cannot be used as a variable
+
+=====
+module E() where
+x = _1000000
+-----
+"../tmp/E.hs": line 3, col 5: undefined value: _1000000
+
+=====
+module E() where
+x = _0.0001
+-----
+"../tmp/E.hs": line 3, col 5: undefined value: _0
+
+=====
+module E() where
+x = 0_.0001
+-----
+"../tmp/E.hs": line 3, col 6: _ cannot be used as a variable
+
+=====
+module E() where
+x = 0._0001
+-----
+"../tmp/E.hs": line 3, col 7: Cannot satisfy constraint: (HasField "_0001" Integer b)
+     fully qualified: (Data.Records.HasField "_0001" Data.Integer_Type.Integer b)
+
+=====
+module E() where
+x = 0.0001_
+-----
+"../tmp/E.hs": line 3, col 11: _ cannot be used as a variable
+
+=====
+module E() where
+x = 1e_+23
+-----
+"../tmp/E.hs": line 3, col 6: undefined value: e_
+
+=====
+module E() where
+x = 1e+_23
+-----
+"../tmp/E.hs": line 3, col 6: undefined value: e
+
+=====
+module E() where
+x = 1e_23
+-----
+"../tmp/E.hs": line 3, col 6: undefined value: e_23
+
+=====
+module E() where
+x = 1e23_
+-----
+"../tmp/E.hs": line 3, col 9: _ cannot be used as a variable
+
+=====
+module E() where
+x = _0xffff
+-----
+"../tmp/E.hs": line 3, col 5: undefined value: _0xffff
+
+=====
+module E() where
+x = 0xffff_
+-----
+"../tmp/E.hs": line 3, col 11: _ cannot be used as a variable
+
+=====
+END

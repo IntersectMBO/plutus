@@ -1,0 +1,5 @@
+*.comb binary
+generated/mhs.c binary
+generated/cpphs.c binary
+generated/mcabal.c binary
+doc/hs2024.pdf binary

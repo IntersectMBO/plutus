@@ -1,0 +1,70 @@
+# Warnings I don't like
+- ignore: {name: Eta reduce}
+- ignore: {name: Use head}                  # head gives a warning
+- ignore: {name: Use list comprehension}
+- ignore: {name: Use tuple-section}
+- ignore: {name: Move guards forward}
+- ignore: {name: Use lambda-case}
+- ignore: {name: "Use <&>"}
+# Some special exceptions
+- ignore: {name: Use list literal pattern, within: [MicroHs.Main,System.Console.GetOpt]}
+- ignore: {name: "Avoid lambda using `infix`", within: [MicroHs.TypeCheck]}
+# Various lib stuff
+- ignore: {name: Use fst, within: [Data.Functor]}
+- ignore: {name: Use snd, within: [Data.Functor]}
+- ignore: {name: Use unless, within: [Control.Applicative,Control.Monad]}
+- ignore: {name: "Use >>", within: [Control.Monad]}
+- ignore: {name: "Use <$>", within: [Control.Monad]}
+- ignore: {name: Use id, within: [Control.Exception.Internal]}
+- ignore: {name: Use bimap, within: [Data.Bifunctor]}
+- ignore: {name: Use first, within: [Data.Bifunctor,Text.ParserCombinators.ReadP,Text.Read.Internal]}
+- ignore: {name: Use concatMap, within: [Data.ByteString]}
+- ignore: {name: Use span, within: [Data.ByteString]}
+- ignore: {name: Use isAlpha, within: [Data.Char]}
+- ignore: {name: Redundant if, within: [Data.Eq,Data.Ord]}
+- ignore: {name: Use logBase, within: [Data.Floating]}
+- ignore: {name: Use tan, within: [Data.Floating]}
+- ignore: {name: Use fold, within: [Data.Foldable]}
+- ignore: {name: Use elem, within: [Data.Foldable]}
+- ignore: {name: Use elemIndex, within: [Data.List]}
+- ignore: {name: Use elemIndices, within: [Data.List]}
+- ignore: {name: Use insert, within: [Data.List]}
+- ignore: {name: Use negate, within: [Data.Num]}
+- ignore: {name: Use min, within: [Data.Ord]}
+- ignore: {name: Use max, within: [Data.Ord]}
+- ignore: {name: Use traverse, within: [Data.Traversable]}
+- ignore: {name: Use sequenceA, within: [Data.Traversable]}
+- ignore: {name: Redundant lambda, within: [Data.Tuple]}
+- ignore: {name: Use foldr, within: [Control.Applicative]}
+- ignore: {name: Use otherwise, within: [Data.Char,Data.Integer_Type,Data.Int.Instances,Data.Integer.Internal]}
+- ignore: {name: Use guards, within: [Data.Ord,Data.Int.Instances,Data.Integer.Internal,Numeric.FormatFloat,System.IO]}
+- ignore: {name: Avoid lambda, within: [Data.Functor.Compose]}
+- ignore: {name: Use camelCase, within: [Foreign.ForeignPtr,Text.Printf,Text.ParserCombinators.ReadP,Text.ParserCombinators.ReadPrec,Text.Read.Internal]}
+- ignore: {name: Use newtype instead of data, within: [Data.Tuple,Data.Version]}
+- ignore: {name: "Use <|>", within: [Text.Printf]}
+# in tests
+- ignore: {name: "Redundant ==", within: [Eq]}
+- ignore: {name: "Use <$>", within: [Text.ParserCombinators.ReadP]}
+- ignore: {name: Use isNothing, within: [Eq]}
+- ignore: {name: Use uncurry, within: [Fac]}
+- ignore: {name: Redundant list comprehension, within: [ListCompr]}
+- ignore: {name: Use catMaybes, within: [Case]}
+- ignore: {name: "Avoid lambda using `infix`", within: [Integer]}
+- ignore: {name: Use let, within: [Irref]}
+- ignore: {name: "Use &&", within: [ListTest]}
+- ignore: {name: Use id, within: [Rank2]}
+- ignore: {name: Use newtype instead of data, within: [Typeable]}
+- ignore: {name: Use typeRep, within: [Typeable]}
+- ignore: {name: Use newtype instead of data, within: [Via]}
+- ignore: {name: Use const, within: [Control.Exception.Internal]}
+- ignore: {name: Use writeList2Chan, within: [Control.Concurrent.Chan]}
+
+- arguments:
+    - --ignore-glob=lib/Data/Foldable1.hs
+    - --ignore-glob=lib/MiniPrelude.hs
+    - --ignore-glob=lib/Prelude.hs
+    - --ignore-glob=lib/gmp/Data/Integer_Type.hs
+    - --ignore-glob=mhs/MHSPrelude.hs
+    - --ignore-glob=tests/Bang.hs
+    - --ignore-glob=tests/MultiIf.hs
+    - --ignore-glob=tests/Record.hs

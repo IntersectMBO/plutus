@@ -1,0 +1,2 @@
+To compile
+  make CC=cc65 CONF=c64 CCWARNS= CCOPTS= CCLIBS=

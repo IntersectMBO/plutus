@@ -1,0 +1,30 @@
+CR{a=1,b=True}
+CR{a=2,b=False}
+CR{a=10,b=True}
+CR{a=10,b=False}
+CRR{r=CR{a=999,b=True},a=True}
+2
+False
+1
+1
+True
+1
+1
+True
+S1 10
+S2 20 "foo"
+S1 99
+S2 88 "foo"
+S2 20 "bar"
+999
+2
+1
+888
+2
+777
+2
+CR{a=333,b=True}
+10
+20
+10
+20

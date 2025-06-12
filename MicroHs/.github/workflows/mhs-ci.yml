@@ -1,0 +1,241 @@
+name: MicroHs CI
+
+on:
+  push:
+#    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+# Using
+#  runs-on: ubuntu-latest
+# fails, so use an older Ubuntu
+
+jobs:
+  build-linux-x86_64:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make
+    - name: make everytestmhs
+      run: make everytestmhs
+
+    - name: Cabal cache
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-cabal
+      with:
+        path: ~/.cabal
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        cabal update
+        cabal build --only-dependencies
+    - name: Build
+      run: cabal build
+
+  build-linux-micro-x86_64:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make CONF=micro-64
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make
+    - name: make everytestmhs
+      run: make everytestmhs
+# cabal is missing
+#    - name: cabal build
+#      run: cabal build
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: set up MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: nmake
+      run: nmake -f Makefile.windows
+    - name: nmake exampletest
+      run: nmake -f Makefile.windows exampletest
+
+  build-linux-aarch64:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: aarch64
+        branch: v3.15
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make
+    - name: make everytestmhs
+      run: make everytestmhs
+#    - name: cabal build
+#      run: cabal build
+
+  build-linux-s390x:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: s390x
+        branch: v3.15
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make
+    - name: make everytestmhs
+      run: make everytestmhs
+#    - name: cabal build
+#      run: cabal build
+
+  build-linux-x86:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: x86
+        branch: v3.15
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make CONF=unix-32
+      shell: alpine.sh {0}
+    - name: make everytestmhs
+      run: make CONF=unix-32 everytestmhs
+      shell: alpine.sh {0}
+
+  build-linux-armv7:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: armv7
+        branch: v3.15
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make CONF=unix-32
+      shell: alpine.sh {0}
+    - name: make everytestmhs
+      run: make CONF=unix-32 everytestmhs
+      shell: alpine.sh {0}
+
+  build-linux-riscv64:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: riscv64
+        branch: v3.20
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make CONF=unix-64
+      shell: alpine.sh {0}
+    - name: make everytestmhs
+      run: make CONF=unix-64 everytestmhs
+      shell: alpine.sh {0}
+
+  build-linux-ppc64le:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: jirutka/setup-alpine@v1
+      with:
+        arch: ppc64le
+        branch: v3.15
+        packages: >
+          build-base
+          gcc
+          make
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - name: make
+      run: make CONF=unix-64
+      shell: alpine.sh {0}
+    - name: make everytestmhs
+      run: make CONF=unix-64 everytestmhs
+      shell: alpine.sh {0}
+
+#  build-linux-ppc64be:
+#    runs-on: ubuntu-22.04
+#    steps:
+#    - uses: jirutka/setup-alpine@v1
+#      with:
+#        arch: ppc64be
+#        branch: v3.15
+#        packages: >
+#          build-base
+#          gcc
+#          make
+#    - name: checkout repo
+#      uses: actions/checkout@v4
+#    - name: make
+#      run: make CONF=unix-64
+#      shell: alpine.sh {0}
+#    - name: make everytestmhs
+#      run: make CONF=unix-64 everytestmhs
+#      shell: alpine.sh {0}
+
+  build-linux-emscripten:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: mymindstorm/setup-emsdk@v13
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - uses: haskell-actions/setup@v2
+    - name: make newmhs
+      run: make newmhs
+    - name: run emscripten tests
+      run: make runtestemscripten
+
+  build-macos-emscripten:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: mymindstorm/setup-emsdk@v13
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - uses: haskell-actions/setup@v2
+    - name: make newmhs
+      run: make newmhs
+    - name: run emscripten tests
+      run: make runtestemscripten

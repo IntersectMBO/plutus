@@ -1,0 +1,21 @@
+True
+False
+False
+True
+False
+True
+True
+True
+False
+True
+False
+A 'a'
+B False
+C 'a' 1
+D
+A (A 'a')
+R{x='a',y=10}
+R{x=R{x='b',y=11},y=10}
+Alt [True]
+1
+(X,Z)

@@ -1,0 +1,2 @@
+#define WORD_SIZE_IN_BITS 64
+#undef WORDS_BIGENDIAN

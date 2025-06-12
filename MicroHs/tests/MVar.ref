@@ -1,0 +1,25 @@
+test1 A
+test1 B
+fun A
+test1 C
+test1 D
+test1 E
+999
+fun B
+fun A
+888
+fun B
+test1 F
+fun A
+777
+fun B
+test1 G
+---
+Nothing
+test2 A
+test2 B
+False
+Just 111
+True
+Just 333
+Just 333

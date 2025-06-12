@@ -1,0 +1,15 @@
+True
+True
+False
+True
+N 3
+True
+True
+True
+0x20AC
+"S \"hello\""
+P (Just 10)
+M "ababab"
+I 2
+II 100
+done
