@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PatternSynonyms          #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -22,6 +23,8 @@ module PlutusCore.Builtin.Polymorphism
     , ElaborateBuiltin
     , AllElaboratedArgs
     , AllBuiltinArgs
+    , LazyResult
+    , pattern LazyResult
     ) where
 
 import PlutusPrelude
@@ -227,6 +230,12 @@ type AllBuiltinArgs
         :: forall a. (GHC.Type -> GHC.Type) -> (GHC.Type -> GHC.Constraint) -> a -> GHC.Constraint
 class    AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
 instance AllElaboratedArgs constr (ElaborateBuiltin uni x) => AllBuiltinArgs uni constr x
+
+data LazyResult info a = StrictResult info a
+pattern LazyResult :: info -> a -> LazyResult info a
+pattern LazyResult info x <- ~(StrictResult info x) where
+    LazyResult = StrictResult
+{-# COMPLETE LazyResult #-}
 
 -- Custom type errors to guide the programmer adding a new built-in function.
 
