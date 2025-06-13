@@ -122,7 +122,7 @@ Do feel free to assign any issue to yourself if you want to track it and follow 
 
 ### Labeling
 
-We use the GitHub labels feature. Reasons:
+We use the GitHub labels feature for new issues in the [plutus repository](https://github.com/IntersectMBO/plutus). Reasons:
 
 - For our own sake: a status label is easily accessible and makes it clear what the status of each issue is and whether it requires attention or not. You can even use labels in filter queries and specifically look for issues that may require attention (more on that below). Every single issue must have a `status: <something>` label.
 - For the sake of our users: a label succinctly summarizes how the team views the issue and whether to expect any action on it in the foreseeable future or not.
