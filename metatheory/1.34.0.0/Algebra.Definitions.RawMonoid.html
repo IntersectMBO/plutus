@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Algebra.Definitions.RawMonoid</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Basic auxiliary definitions for monoid-like structures</a>
+<a id="164" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="238" class="Symbol">{-#</a> <a id="242" class="Keyword">OPTIONS</a> <a id="250" class="Pragma">--cubical-compatible</a> <a id="271" class="Pragma">--safe</a> <a id="278" class="Symbol">#-}</a>
+
+<a id="283" class="Keyword">open</a> <a id="288" class="Keyword">import</a> <a id="295" href="Algebra.Bundles.html" class="Module">Algebra.Bundles</a> <a id="311" class="Keyword">using</a> <a id="317" class="Symbol">(</a><a id="318" href="Algebra.Bundles.html#4113" class="Record">RawMonoid</a><a id="327" class="Symbol">)</a>
+<a id="329" class="Keyword">open</a> <a id="334" class="Keyword">import</a> <a id="341" href="Data.Nat.Base.html" class="Module">Data.Nat.Base</a> <a id="355" class="Symbol">as</a> <a id="358" class="Module">ℕ</a> <a id="360" class="Keyword">using</a> <a id="366" class="Symbol">(</a><a id="367" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a><a id="368" class="Symbol">;</a> <a id="370" href="Agda.Builtin.Nat.html#221" class="InductiveConstructor">zero</a><a id="374" class="Symbol">;</a> <a id="376" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a><a id="379" class="Symbol">)</a>
+<a id="381" class="Keyword">open</a> <a id="386" class="Keyword">import</a> <a id="393" href="Data.Vec.Functional.html" class="Module">Data.Vec.Functional</a> <a id="413" class="Symbol">as</a> <a id="416" class="Module">Vector</a> <a id="423" class="Keyword">using</a> <a id="429" class="Symbol">(</a><a id="430" href="Data.Vec.Functional.html#1190" class="Function">Vector</a><a id="436" class="Symbol">)</a>
+
+<a id="439" class="Keyword">module</a> <a id="446" href="Algebra.Definitions.RawMonoid.html" class="Module">Algebra.Definitions.RawMonoid</a> <a id="476" class="Symbol">{</a><a id="477" href="Algebra.Definitions.RawMonoid.html#477" class="Bound">a</a> <a id="479" href="Algebra.Definitions.RawMonoid.html#479" class="Bound">ℓ</a><a id="480" class="Symbol">}</a> <a id="482" class="Symbol">(</a><a id="483" href="Algebra.Definitions.RawMonoid.html#483" class="Bound">M</a> <a id="485" class="Symbol">:</a> <a id="487" href="Algebra.Bundles.html#4113" class="Record">RawMonoid</a> <a id="497" href="Algebra.Definitions.RawMonoid.html#477" class="Bound">a</a> <a id="499" href="Algebra.Definitions.RawMonoid.html#479" class="Bound">ℓ</a><a id="500" class="Symbol">)</a> <a id="502" class="Keyword">where</a>
+
+<a id="509" class="Keyword">open</a> <a id="514" href="Algebra.Bundles.html#4113" class="Module">RawMonoid</a> <a id="524" href="Algebra.Definitions.RawMonoid.html#483" class="Bound">M</a> <a id="526" class="Keyword">renaming</a> <a id="535" class="Symbol">(</a> <a id="537" href="Algebra.Bundles.html#4243" class="Field Operator">_∙_</a> <a id="541" class="Symbol">to</a> <a id="544" class="Field Operator">_+_</a> <a id="548" class="Symbol">;</a> <a id="550" href="Algebra.Bundles.html#4269" class="Field">ε</a> <a id="552" class="Symbol">to</a> <a id="555" class="Field">0#</a> <a id="558" class="Symbol">)</a>
+
+<a id="561" class="Comment">------------------------------------------------------------------------</a>
+<a id="634" class="Comment">-- Re-export definitions over a magma</a>
+<a id="672" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="746" class="Keyword">open</a> <a id="751" class="Keyword">import</a> <a id="758" href="Algebra.Definitions.RawMagma.html" class="Module">Algebra.Definitions.RawMagma</a> <a id="787" href="Algebra.Bundles.html#4290" class="Function">rawMagma</a> <a id="796" class="Keyword">public</a>
+
+<a id="804" class="Comment">------------------------------------------------------------------------</a>
+<a id="877" class="Comment">-- Multiplication by natural number</a>
+<a id="913" class="Comment">------------------------------------------------------------------------</a>
+<a id="986" class="Comment">-- Standard definition</a>
+
+<a id="1010" class="Comment">-- A simple definition, easy to use and prove properties about.</a>
+
+<a id="1075" class="Keyword">infixr</a> <a id="1082" class="Number">8</a> <a id="1084" href="Algebra.Definitions.RawMonoid.html#1089" class="Function Operator">_×_</a>
+
+<a id="_×_"></a><a id="1089" href="Algebra.Definitions.RawMonoid.html#1089" class="Function Operator">_×_</a> <a id="1093" class="Symbol">:</a> <a id="1095" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a> <a id="1097" class="Symbol">→</a> <a id="1099" href="Algebra.Bundles.html#4195" class="Field">Carrier</a> <a id="1107" class="Symbol">→</a> <a id="1109" href="Algebra.Bundles.html#4195" class="Field">Carrier</a>
+<a id="1117" class="Number">0</a>     <a id="1123" href="Algebra.Definitions.RawMonoid.html#1089" class="Function Operator">×</a> <a id="1125" href="Algebra.Definitions.RawMonoid.html#1125" class="Bound">x</a> <a id="1127" class="Symbol">=</a> <a id="1129" href="Algebra.Definitions.RawMonoid.html#555" class="Field">0#</a>
+<a id="1132" href="Agda.Builtin.Nat.html#234" class="InductiveConstructor">suc</a> <a id="1136" href="Algebra.Definitions.RawMonoid.html#1136" class="Bound">n</a> <a id="1138" href="Algebra.Definitions.RawMonoid.html#1089" class="Function Operator">×</a> <a id="1140" href="Algebra.Definitions.RawMonoid.html#1140" class="Bound">x</a> <a id="1142" class="Symbol">=</a> <a id="1144" href="Algebra.Definitions.RawMonoid.html#1140" class="Bound">x</a> <a id="1146" href="Algebra.Definitions.RawMonoid.html#544" class="Field Operator">+</a> <a id="1148" class="Symbol">(</a><a id="1149" href="Algebra.Definitions.RawMonoid.html#1136" class="Bound">n</a> <a id="1151" href="Algebra.Definitions.RawMonoid.html#1089" class="Function Operator">×</a> <a id="1153" href="Algebra.Definitions.RawMonoid.html#1140" class="Bound">x</a><a id="1154" class="Symbol">)</a>
+
+<a id="1157" class="Comment">------------------------------------------------------------------------</a>
+<a id="1230" class="Comment">-- Type-checking optimised definition</a>
+
+<a id="1269" class="Comment">-- For use in code where high performance at type-checking time is</a>
+<a id="1336" class="Comment">-- important, e.g. solvers and tactics. Firstly it avoids unnecessarily</a>
+<a id="1408" class="Comment">-- multiplying by the unit if possible, speeding up type-checking and</a>
+<a id="1478" class="Comment">-- makes for much more readable proofs:</a>
+<a id="1518" class="Comment">--</a>
+<a id="1521" class="Comment">--     Standard definition:  x * 2 = x + x + 0#</a>
+<a id="1569" class="Comment">--     Optimised definition: x * 2 = x + x</a>
+<a id="1612" class="Comment">--</a>
+<a id="1615" class="Comment">-- Secondly, associates to the left which, counterintuitive as it may</a>
+<a id="1685" class="Comment">-- seem, also speeds up typechecking.</a>
+<a id="1723" class="Comment">--</a>
+<a id="1726" class="Comment">--     Standard definition: x * 3 = x + (x + (x + 0#))</a>
+<a id="1781" class="Comment">--     Our definition:      x * 3 = (x + x) + x</a>
+
+<a id="1830" class="Keyword">infixl</a> <a id="1837" class="Number">8</a> <a id="1839" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">_×′_</a>
+
+<a id="_×′_"></a><a id="1845" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">_×′_</a> <a id="1850" class="Symbol">:</a> <a id="1852" href="Agda.Builtin.Nat.html#203" class="Datatype">ℕ</a> <a id="1854" class="Symbol">→</a> <a id="1856" href="Algebra.Bundles.html#4195" class="Field">Carrier</a> <a id="1864" class="Symbol">→</a> <a id="1866" href="Algebra.Bundles.html#4195" class="Field">Carrier</a>
+<a id="1874" class="Number">0</a>     <a id="1880" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">×′</a> <a id="1883" href="Algebra.Definitions.RawMonoid.html#1883" class="Bound">x</a> <a id="1885" class="Symbol">=</a> <a id="1887" href="Algebra.Definitions.RawMonoid.html#555" class="Field">0#</a>
+<a id="1890" class="Number">1</a>     <a id="1896" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">×′</a> <a id="1899" href="Algebra.Definitions.RawMonoid.html#1899" class="Bound">x</a> <a id="1901" class="Symbol">=</a> <a id="1903" href="Algebra.Definitions.RawMonoid.html#1899" class="Bound">x</a>
+<a id="1905" href="Agda.Builtin.Nat.html#234" class="CatchallClause InductiveConstructor">suc</a><a id="1908" class="CatchallClause"> </a><a id="1909" href="Algebra.Definitions.RawMonoid.html#1909" class="CatchallClause Bound">n</a><a id="1910" class="CatchallClause"> </a><a id="1911" href="Algebra.Definitions.RawMonoid.html#1845" class="CatchallClause Function Operator">×′</a><a id="1913" class="CatchallClause"> </a><a id="1914" href="Algebra.Definitions.RawMonoid.html#1914" class="CatchallClause Bound">x</a> <a id="1916" class="Symbol">=</a> <a id="1918" href="Algebra.Definitions.RawMonoid.html#1909" class="Bound">n</a> <a id="1920" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">×′</a> <a id="1923" href="Algebra.Definitions.RawMonoid.html#1914" class="Bound">x</a> <a id="1925" href="Algebra.Definitions.RawMonoid.html#544" class="Field Operator">+</a> <a id="1927" href="Algebra.Definitions.RawMonoid.html#1914" class="Bound">x</a>
+
+<a id="1930" class="Symbol">{-#</a> <a id="1934" class="Keyword">INLINE</a> <a id="1941" href="Algebra.Definitions.RawMonoid.html#1845" class="Function Operator">_×′_</a> <a id="1946" class="Symbol">#-}</a>
+
+<a id="1951" class="Comment">------------------------------------------------------------------------</a>
+<a id="2024" class="Comment">-- Summation</a>
+<a id="2037" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="sum"></a><a id="2111" href="Algebra.Definitions.RawMonoid.html#2111" class="Function">sum</a> <a id="2115" class="Symbol">:</a> <a id="2117" class="Symbol">∀</a> <a id="2119" class="Symbol">{</a><a id="2120" href="Algebra.Definitions.RawMonoid.html#2120" class="Bound">n</a><a id="2121" class="Symbol">}</a> <a id="2123" class="Symbol">→</a> <a id="2125" href="Data.Vec.Functional.html#1190" class="Function">Vector</a> <a id="2132" href="Algebra.Bundles.html#4195" class="Field">Carrier</a> <a id="2140" href="Algebra.Definitions.RawMonoid.html#2120" class="Bound">n</a> <a id="2142" class="Symbol">→</a> <a id="2144" href="Algebra.Bundles.html#4195" class="Field">Carrier</a>
+<a id="2152" href="Algebra.Definitions.RawMonoid.html#2111" class="Function">sum</a> <a id="2156" class="Symbol">=</a> <a id="2158" href="Data.Vec.Functional.html#3146" class="Function">Vector.foldr</a> <a id="2171" href="Algebra.Definitions.RawMonoid.html#544" class="Field Operator">_+_</a> <a id="2175" href="Algebra.Definitions.RawMonoid.html#555" class="Field">0#</a>
+</pre></body></html>

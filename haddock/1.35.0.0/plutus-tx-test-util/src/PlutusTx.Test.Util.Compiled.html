@@ -1,0 +1,2505 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Test.Util.Compiled</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Program"
+	><span class="hs-identifier"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnTerm"
+	><span class="hs-identifier"
+	  >toAnonDeBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnProg"
+	><span class="hs-identifier"
+	  >toAnonDeBruijnProg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toNamedDeBruijnTerm"
+	><span class="hs-identifier"
+	  >toNamedDeBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	><span class="hs-identifier"
+	  >compiledCodeToTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#haskellValueToTerm"
+	><span class="hs-identifier"
+	  >haskellValueToTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#unsafeRunTermCek"
+	><span class="hs-identifier"
+	  >unsafeRunTermCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#runTermCek"
+	><span class="hs-identifier"
+	  >runTermCek</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#cekResultMatchesHaskellValue"
+	><span class="hs-identifier"
+	  >cekResultMatchesHaskellValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.html"
+	><span class="hs-identifier"
+	  >PlutusTx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetingDefaults</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Cek</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Term"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	  ><span class="hs-identifier hs-var"
+	    >Term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >PLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Program"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#Program"
+	  ><span class="hs-identifier hs-var"
+	    >Program</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >PLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Given a DeBruijn-named term, give every variable the name &quot;v&quot;.  If we later
+   call unDeBruijn, that will rename the variables to things like &quot;v123&quot;, where
+   123 is the relevant de Bruijn index.-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toNamedDeBruijnTerm"
+	><span class="hs-identifier hs-type"
+	  >toNamedDeBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span id="toNamedDeBruijnTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >toNamedDeBruijnTerm :: Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#toNamedDeBruijnTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toNamedDeBruijnTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DeBruijn -&gt; NamedDeBruijn)
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall name name' (uni :: * -&gt; *) fun ann.
+(name -&gt; name') -&gt; Term name uni fun ann -&gt; Term name' uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Subst.html#termMapNames"
+	><span class="hs-identifier hs-var"
+	  >UPLC.termMapNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DeBruijn -&gt; NamedDeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#fakeNameDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.fakeNameDeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Remove the textual names from a NamedDeBruijn term -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnTerm"
+	><span class="hs-identifier hs-type"
+	  >toAnonDeBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="toAnonDeBruijnTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >toAnonDeBruijnTerm :: Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toAnonDeBruijnTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NamedDeBruijn -&gt; DeBruijn)
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+forall name name' (uni :: * -&gt; *) fun ann.
+(name -&gt; name') -&gt; Term name uni fun ann -&gt; Term name' uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Subst.html#termMapNames"
+	><span class="hs-identifier hs-var"
+	  >UPLC.termMapNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NamedDeBruijn -&gt; DeBruijn
+</span
+	><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#unNameDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >UPLC.unNameDeBruijn</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnProg"
+	><span class="hs-identifier hs-type"
+	  >toAnonDeBruijnProg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#DeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.DeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="toAnonDeBruijnProg"
+      ><span class="annot"
+	><span class="annottext"
+	  >toAnonDeBruijnProg :: Program NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnProg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toAnonDeBruijnProg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679132655"
+      ><span class="annot"
+	><span class="annottext"
+	  >Version
+</span
+	  ><a href="#local-6989586621679132655"
+	  ><span class="hs-identifier hs-var"
+	    >ver</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679132656"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679132656"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+-&gt; Version
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall name (uni :: * -&gt; *) fun ann.
+ann -&gt; Version -&gt; Term name uni fun ann -&gt; Program name uni fun ann
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-var"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><a href="#local-6989586621679132655"
+	><span class="hs-identifier hs-var"
+	  >ver</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term DeBruijn DefaultUni DefaultFun ()
+ -&gt; Program DeBruijn DefaultUni DefaultFun ())
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+-&gt; Program DeBruijn DefaultUni DefaultFun ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Term DeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#toAnonDeBruijnTerm"
+	><span class="hs-identifier hs-var"
+	  >toAnonDeBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679132656"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="local-6989586621679132462"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	  ><span class="hs-identifier hs-type"
+	    >compiledCodeToTerm</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-56"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCodeIn"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.CompiledCodeIn</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultFun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679132462"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	  ><span class="hs-identifier hs-type"
+	    >Term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="compiledCodeToTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >compiledCodeToTerm :: forall a.
+CompiledCodeIn DefaultUni DefaultFun a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledCodeToTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn DefaultUni DefaultFun a
+-&gt; Program NamedDeBruijn DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun ()
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#getPlcNoAnn"
+	><span class="hs-identifier hs-var"
+	  >Tx.getPlcNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >UPLC.Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679132694"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679132694"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679132694"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
+   if we try to do this over an arbitrary universe.-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621679132470"
+      ><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#haskellValueToTerm"
+	  ><span class="hs-identifier hs-type"
+	    >haskellValueToTerm</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-62"
+	></span
+	><span
+	>    </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679132470"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679132470"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	  ><span class="hs-identifier hs-type"
+	    >Term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="haskellValueToTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >haskellValueToTerm :: forall a.
+Lift DefaultUni a =&gt;
+a -&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#haskellValueToTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >haskellValueToTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn DefaultUni DefaultFun a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall a.
+CompiledCodeIn DefaultUni DefaultFun a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#compiledCodeToTerm"
+	><span class="hs-identifier hs-var"
+	  >compiledCodeToTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompiledCodeIn DefaultUni DefaultFun a
+ -&gt; Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; (a -&gt; CompiledCodeIn DefaultUni DefaultFun a)
+-&gt; a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; CompiledCodeIn DefaultUni DefaultFun a
+forall (uni :: * -&gt; *) a fun.
+(Lift uni a, GEq uni, ThrowableBuiltins uni fun,
+ Typecheckable uni fun, Default (CostingPart uni fun),
+ Default (BuiltinsInfo uni fun), Default (RewriteRules uni fun),
+ Hashable fun) =&gt;
+a -&gt; CompiledCodeIn uni fun a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Lift.html#liftCodeDef"
+	><span class="hs-identifier hs-var"
+	  >Tx.liftCodeDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#unsafeRunTermCek"
+	><span class="hs-identifier hs-type"
+	  >unsafeRunTermCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	><span class="hs-identifier hs-type"
+	  >EvaluationResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="unsafeRunTermCek"
+      ><span class="annot"
+	><span class="annottext"
+	  >unsafeRunTermCek :: Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#unsafeRunTermCek"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unsafeRunTermCek</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     (MachineError DefaultFun)
+     CekUserError
+     (Term NamedDeBruijn DefaultUni DefaultFun ()))
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall structural term operational a.
+(PrettyPlc structural, PrettyPlc term, Typeable structural,
+ Typeable term) =&gt;
+Either (EvaluationException structural operational term) a
+-&gt; EvaluationResult a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.Exception.html#unsafeSplitStructuralOperational"
+	><span class="hs-identifier hs-var"
+	  >unsafeSplitStructuralOperational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either
+   (EvaluationException
+      (MachineError DefaultFun)
+      CekUserError
+      (Term NamedDeBruijn DefaultUni DefaultFun ()))
+   (Term NamedDeBruijn DefaultUni DefaultFun ())
+ -&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; (Term NamedDeBruijn DefaultUni DefaultFun ()
+    -&gt; Either
+         (EvaluationException
+            (MachineError DefaultFun)
+            CekUserError
+            (Term NamedDeBruijn DefaultUni DefaultFun ()))
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679132740"
+      ><span class="annot"
+	><span class="annottext"
+	  >Either
+  (EvaluationException
+     (MachineError DefaultFun)
+     CekUserError
+     (Term NamedDeBruijn DefaultUni DefaultFun ()))
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	  ><a href="#local-6989586621679132740"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RestrictingSt
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     (MachineError DefaultFun)
+     CekUserError
+     (Term NamedDeBruijn DefaultUni DefaultFun ()))
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="#local-6989586621679132740"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Either
+    (EvaluationException
+       (MachineError DefaultFun)
+       CekUserError
+       (Term NamedDeBruijn DefaultUni DefaultFun ()))
+    (Term NamedDeBruijn DefaultUni DefaultFun ()),
+  RestrictingSt, [Text])
+ -&gt; Either
+      (EvaluationException
+         (MachineError DefaultFun)
+         CekUserError
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+      (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; (Term NamedDeBruijn DefaultUni DefaultFun ()
+    -&gt; (Either
+          (EvaluationException
+             (MachineError DefaultFun)
+             CekUserError
+             (Term NamedDeBruijn DefaultUni DefaultFun ()))
+          (Term NamedDeBruijn DefaultUni DefaultFun ()),
+        RestrictingSt, [Text]))
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; Either
+     (EvaluationException
+        (MachineError DefaultFun)
+        CekUserError
+        (Term NamedDeBruijn DefaultUni DefaultFun ()))
+     (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+-&gt; ExBudgetMode RestrictingSt DefaultUni DefaultFun
+-&gt; EmitterMode DefaultUni DefaultFun
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; (Either
+      (EvaluationException
+         (MachineError DefaultFun)
+         CekUserError
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+      (Term NamedDeBruijn DefaultUni DefaultFun ()),
+    RestrictingSt, [Text])
+forall (uni :: * -&gt; *) fun ann cost.
+ThrowableBuiltins uni fun =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; ExBudgetMode cost uni fun
+-&gt; EmitterMode uni fun
+-&gt; NTerm uni fun ann
+-&gt; (Either
+      (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()),
+    cost, [Text])
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#runCekDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >runCekDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+forall ann.
+Typeable ann =&gt;
+MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForTesting"
+	><span class="hs-identifier hs-var"
+	  >PLC.defaultCekParametersForTesting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetMode RestrictingSt DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+ThrowableBuiltins uni fun =&gt;
+ExBudgetMode RestrictingSt uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode.html#restrictingEnormous"
+	><span class="hs-identifier hs-var"
+	  >Cek.restrictingEnormous</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#noEmitter"
+	><span class="hs-identifier hs-var"
+	  >Cek.noEmitter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Just run a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#runTermCek"
+	><span class="hs-identifier hs-type"
+	  >runTermCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#CekEvaluationException"
+	><span class="hs-identifier hs-type"
+	  >CekEvaluationException</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#NamedDeBruijn"
+	><span class="hs-identifier hs-type"
+	  >UPLC.NamedDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="runTermCek"
+      ><span class="annot"
+	><span class="annottext"
+	  >runTermCek :: Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; (Either
+      (EvaluationException
+         (MachineError DefaultFun)
+         CekUserError
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+      (Term NamedDeBruijn DefaultUni DefaultFun ()),
+    [Text])
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#runTermCek"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runTermCek</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679132745"
+      ><span class="annot"
+	><span class="annottext"
+	  >Either
+  (EvaluationException
+     (MachineError DefaultFun)
+     CekUserError
+     (Term NamedDeBruijn DefaultUni DefaultFun ()))
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	  ><a href="#local-6989586621679132745"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RestrictingSt
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679132746"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Text]
+</span
+	  ><a href="#local-6989586621679132746"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  (EvaluationException
+     (MachineError DefaultFun)
+     CekUserError
+     (Term NamedDeBruijn DefaultUni DefaultFun ()))
+  (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="#local-6989586621679132745"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Text]
+</span
+	><a href="#local-6989586621679132746"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Either
+    (EvaluationException
+       (MachineError DefaultFun)
+       CekUserError
+       (Term NamedDeBruijn DefaultUni DefaultFun ()))
+    (Term NamedDeBruijn DefaultUni DefaultFun ()),
+  RestrictingSt, [Text])
+ -&gt; (Either
+       (EvaluationException
+          (MachineError DefaultFun)
+          CekUserError
+          (Term NamedDeBruijn DefaultUni DefaultFun ()))
+       (Term NamedDeBruijn DefaultUni DefaultFun ()),
+     [Text]))
+-&gt; (Term NamedDeBruijn DefaultUni DefaultFun ()
+    -&gt; (Either
+          (EvaluationException
+             (MachineError DefaultFun)
+             CekUserError
+             (Term NamedDeBruijn DefaultUni DefaultFun ()))
+          (Term NamedDeBruijn DefaultUni DefaultFun ()),
+        RestrictingSt, [Text]))
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; (Either
+      (EvaluationException
+         (MachineError DefaultFun)
+         CekUserError
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+      (Term NamedDeBruijn DefaultUni DefaultFun ()),
+    [Text])
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+-&gt; ExBudgetMode RestrictingSt DefaultUni DefaultFun
+-&gt; EmitterMode DefaultUni DefaultFun
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; (Either
+      (EvaluationException
+         (MachineError DefaultFun)
+         CekUserError
+         (Term NamedDeBruijn DefaultUni DefaultFun ()))
+      (Term NamedDeBruijn DefaultUni DefaultFun ()),
+    RestrictingSt, [Text])
+forall (uni :: * -&gt; *) fun ann cost.
+ThrowableBuiltins uni fun =&gt;
+MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+-&gt; ExBudgetMode cost uni fun
+-&gt; EmitterMode uni fun
+-&gt; NTerm uni fun ann
+-&gt; (Either
+      (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()),
+    cost, [Text])
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#runCekDeBruijn"
+	><span class="hs-identifier hs-var"
+	  >runCekDeBruijn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+forall ann.
+Typeable ann =&gt;
+MachineParameters
+  CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Evaluation.Machine.ExBudgetingDefaults.html#defaultCekParametersForTesting"
+	><span class="hs-identifier hs-var"
+	  >PLC.defaultCekParametersForTesting</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetMode RestrictingSt DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun.
+ThrowableBuiltins uni fun =&gt;
+ExBudgetMode RestrictingSt uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode.html#restrictingEnormous"
+	><span class="hs-identifier hs-var"
+	  >Cek.restrictingEnormous</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EmitterMode DefaultUni DefaultFun
+forall (uni :: * -&gt; *) fun. EmitterMode uni fun
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.html#logEmitter"
+	><span class="hs-identifier hs-var"
+	  >Cek.logEmitter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Evaluate a PLC term and check that the result matches a given Haskell value
+   (perhaps obtained by running the Haskell code that the term was compiled
+   from).  We evaluate the lifted Haskell value as well, because lifting may
+   produce reducible terms. The function is polymorphic in the comparison
+   operator so that we can use it with both HUnit Assertions and QuickCheck
+   Properties.  -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="local-6989586621679132527"
+      ><span id="local-6989586621679132528"
+	><span class="annot"
+	  ><a href="PlutusTx.Test.Util.Compiled.html#cekResultMatchesHaskellValue"
+	    ><span class="hs-identifier hs-type"
+	      >cekResultMatchesHaskellValue</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-89"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Tx.Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	    ><span class="hs-identifier hs-type"
+	      >DefaultUni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679132527"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-90"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-91"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	    ><span class="hs-identifier hs-type"
+	      >EvaluationResult</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="../../plutus-core/src/PlutusCore.Evaluation.Result.html#EvaluationResult"
+	    ><span class="hs-identifier hs-type"
+	      >EvaluationResult</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Test.Util.Compiled.html#Term"
+	    ><span class="hs-identifier hs-type"
+	      >Term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679132528"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-92"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679132527"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-93"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679132528"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span id="cekResultMatchesHaskellValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >cekResultMatchesHaskellValue :: forall a b.
+Lift DefaultUni a =&gt;
+Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; (EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+    -&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+    -&gt; b)
+-&gt; a
+-&gt; b
+</span
+	  ><a href="PlutusTx.Test.Util.Compiled.html#cekResultMatchesHaskellValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekResultMatchesHaskellValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679132750"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	  ><a href="#local-6989586621679132750"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679132751"
+      ><span class="annot"
+	><span class="annottext"
+	  >EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; b
+</span
+	  ><a href="#local-6989586621679132751"
+	  ><span class="hs-identifier hs-var"
+	    >matches</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679132752"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679132752"
+	  ><span class="hs-identifier hs-var"
+	    >value</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#unsafeRunTermCek"
+	><span class="hs-identifier hs-var"
+	  >unsafeRunTermCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="#local-6989586621679132750"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+-&gt; b
+</span
+	><a href="#local-6989586621679132751"
+	><span class="hs-operator hs-var"
+	  >`matches`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#unsafeRunTermCek"
+	><span class="hs-identifier hs-var"
+	  >unsafeRunTermCek</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term NamedDeBruijn DefaultUni DefaultFun ()
+ -&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ()))
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+-&gt; EvaluationResult (Term NamedDeBruijn DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.2.1/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall a.
+Lift DefaultUni a =&gt;
+a -&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+</span
+	><a href="PlutusTx.Test.Util.Compiled.html#haskellValueToTerm"
+	><span class="hs-identifier hs-var"
+	  >haskellValueToTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679132752"
+	><span class="hs-identifier hs-var"
+	  >value</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ></pre
+    ></body
+  ></html
+>
