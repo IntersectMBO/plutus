@@ -113,7 +113,7 @@ constrTerm tm = withSpan $ \sp ->
       args <- many tm
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
       when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
-      pure $ Constr sp ty (fromIntegral tag) args
+      pure $ PIR.constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parametric
 caseTerm tm = withSpan $ \sp -> inParens $ do
