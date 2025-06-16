@@ -46,8 +46,8 @@ traceCompilationStep
   -- ^ The compilation action
   -> m a
 traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
-  CompileState nextStep prevSteps <- get
-  put $ CompileState (nextStep + 1) (nextStep : prevSteps)
+  CompileState nextStep prevSteps callStack <- get
+  put $ CompileState (nextStep + 1) (nextStep : prevSteps) callStack
   let mbParentStep = listToMaybe prevSteps
   s <- sdToStr sd
   traceM $
@@ -62,5 +62,15 @@ traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
       <> show nextStep
       <> maybe "" (\parentStep -> ", Returning to step " <> show parentStep) mbParentStep
       <> ">"
-  modify' $ \(CompileState nextStep' prevSteps') -> CompileState nextStep' (drop 1 prevSteps')
+  modify' $ \(CompileState nextStep' prevSteps' callStack') ->
+    CompileState nextStep' (drop 1 prevSteps') callStack'
+  pure res
+
+pushCallStack :: MonadState CompileState m => GHC.Var -> m a -> m a
+pushCallStack expr x = do
+  orig <- get
+  modify' $ \(CompileState nextStep' prevSteps' callStack') ->
+    CompileState nextStep' prevSteps' (expr : callStack')
+  res <- x
+  put orig
   pure res

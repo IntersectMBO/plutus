@@ -412,6 +412,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useFromOpaque
            , 'mkNilOpaque
            , 'PlutusTx.Builtins.equalsInteger
+           , 'PlutusTx.Trace.callStack
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -427,6 +428,7 @@ compileMarkedExpr locStr codeTy origE = do
                 , coCoverage = coverage
                 , coRemoveTrace = _posRemoveTrace opts
                 , coInlineFix = _posInlineFix opts
+                , coGenerateCallStack = _posGenerateCallStack opts
                 }
           , ccFlags = flags
           , ccFamInstEnvs = famEnvs
@@ -441,7 +443,7 @@ compileMarkedExpr locStr codeTy origE = do
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
           }
-      st = CompileState 0 mempty
+      st = CompileState 0 mempty mempty
   -- See Note [Occurrence analysis]
   let origE' = GHC.occurAnalyseExpr origE
 

@@ -46,10 +46,11 @@ type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions
-  { coProfile     :: ProfileOpts
-  , coCoverage    :: CoverageOpts
-  , coRemoveTrace :: Bool
-  , coInlineFix   :: Bool
+  { coProfile           :: ProfileOpts
+  , coCoverage          :: CoverageOpts
+  , coRemoveTrace       :: Bool
+  , coInlineFix         :: Bool
+  , coGenerateCallStack :: Bool
   }
 
 data CompileContext uni fun = CompileContext
@@ -77,6 +78,8 @@ data CompileState = CompileState
   {- ^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
   the current point. This is used when generating debug traces.
   -}
+  , csCallStack     :: [GHC.Id]
+  -- ^ The callstack of called function IDs. This is used to generate callstack information.
   }
 
 -- | Verbosity level of the Plutus Tx compiler.

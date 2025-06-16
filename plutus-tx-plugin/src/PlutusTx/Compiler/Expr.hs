@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiWayIf            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -72,12 +73,13 @@ import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask, asks, local)
+import Control.Monad.State (get)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as BSC
 import Data.Generics.Uniplate.Data (transform, universeBi)
-import Data.List (elemIndex, isPrefixOf, isSuffixOf)
+import Data.List (elemIndex, intercalate, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
 import Data.Maybe (mapMaybe)
 import Data.Set qualified as Set
@@ -838,6 +840,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     } <-
     ask
 
+  CompileOptions {..} <- asks ccOpts
+
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   builtinIntegerTyCon <- lookupGhcTyCon ''BI.BuiltinInteger
   builtinBoolTyCon <- lookupGhcTyCon ''BI.BuiltinBool
@@ -857,6 +861,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   boolOperatorOr <- lookupGhcName '(PlutusTx.Bool.||)
   boolOperatorAnd <- lookupGhcName '(PlutusTx.Bool.&&)
   inlineName <- lookupGhcName 'PlutusTx.Optimize.Inline.inline
+  callStackName <- lookupGhcName 'PlutusTx.Trace.callStack
 
   case e of
     {- Note [Lazy boolean operators]
@@ -872,6 +877,29 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.App (GHC.App (GHC.Var var) a) b
       | GHC.getName var == boolOperatorAnd ->
           compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
+
+    GHC.Var var
+      | coGenerateCallStack && GHC.getName var == callStackName -> do
+          CompileState _ _ traces <- get
+
+          let
+            nameStr v = GHC.occNameString $ GHC.occName $ GHC.varName $ v
+            printCallStackEntry v =
+              case getVarSourceSpan v of
+                -- FIXME: We don't have span for typeclass definition and typeclass
+                -- instances definition. It appears GHC have already erased span for these
+                -- in this stage of compilation pipeline, so to fix, it would requiring
+                -- pulling some information from other stages of compilation pipeline which
+                -- will be messy.
+                Nothing  -> nameStr v <> ":" <> show ()
+                Just src -> nameStr v <> ":" <> show (src ^. srcSpanIso)
+
+            msgStr =
+              intercalate "\n\\-" $ reverse $
+                printCallStackEntry <$> traces
+
+          pure (PLC.mkConstant annAlwaysInline (T.pack msgStr))
+
     -- `inline f` or `inline (f x  ... xn)`
     GHC.App (GHC.App (GHC.Var var) (GHC.Type _aTy)) e'
       | GHC.getName var == inlineName || GHC.getName var == GHC.inlineIdName ->
@@ -928,6 +956,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                 | GHC.getName tyCtor == builtinByteStringUtf8TyName ->
                     PIR.Constant annMayInline . PLC.someValue
                       <$> stringLiteralAsBytes builtinByteStringUtf8TyName content
+
               -- BuiltinByteStringHex
               Just tyCtor | GHC.getName tyCtor == builtinByteStringHexTyName -> do
                 hexBytes <- stringLiteralAsBytes builtinByteStringHexTyName content
@@ -1083,7 +1112,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding n) of
             -- See Note [Unfoldings]
             -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-            Just unfolding -> hoistExpr n unfolding
+            Just unfolding ->
+              pushCallStack n $ hoistExpr n unfolding
             Nothing ->
               throwSd FreeVariableError $
                 "Variable"

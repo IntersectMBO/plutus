@@ -76,6 +76,7 @@ data PluginOptions = PluginOptions
     _posRemoveTrace                    :: Bool
   , _posDumpCompilationTrace           :: Bool
   , _posCertify                        :: Maybe String
+  , _posGenerateCallStack              :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -309,6 +310,9 @@ pluginOptions =
             rest <- many (alphaNumChar <|> char '_' <|> char '\\')
             pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
+    , let k = "generate-callstack"
+          desc = "Generate callstack string and replace 'callStack' with callstack at the location."
+       in (k, PluginOption typeRep (setTrue k) posGenerateCallStack desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -381,6 +385,7 @@ defaultPluginOptions =
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
     , _posCertify = Nothing
+    , _posGenerateCallStack = False
     }
 
 processOne
