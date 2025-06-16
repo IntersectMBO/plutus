@@ -17,6 +17,7 @@ import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 
+import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Transform.RewriteRules qualified as PIR
@@ -70,16 +71,18 @@ data CompileContext uni fun = CompileContext
   }
 
 data CompileState = CompileState
-  { csNextStep      :: Int
+  { csNextStep           :: Int
   {- ^ The ID of the next step to be taken by the PlutusTx compiler.
   This is used when generating debug traces.
   -}
-  , csPreviousSteps :: [Int]
+  , csPreviousSteps      :: [Int]
   {- ^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
   the current point. This is used when generating debug traces.
   -}
-  , csCallStack     :: [GHC.Id]
+  , csCallStack          :: [GHC.Id]
   -- ^ The callstack of called function IDs. This is used to generate callstack information.
+  , csCallStackNames     :: [PIR.Name]
+  , csCallStackFunctions :: Set LexName
   }
 
 -- | Verbosity level of the Plutus Tx compiler.

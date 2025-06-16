@@ -443,7 +443,7 @@ compileMarkedExpr locStr codeTy origE = do
           , ccRewriteRules = makeRewriteRules opts
           , ccSafeToInline = False
           }
-      st = CompileState 0 mempty mempty
+      st = CompileState 0 mempty mempty mempty mempty
   -- See Note [Occurrence analysis]
   let origE' = GHC.occurAnalyseExpr origE
 

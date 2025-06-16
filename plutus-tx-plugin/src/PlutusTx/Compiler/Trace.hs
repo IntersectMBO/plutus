@@ -7,11 +7,15 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 
+import PlutusCore qualified as PLC
+import PlutusIR qualified as PIR
+
 import Control.Monad.Except
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Maybe
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Debug.Trace
 import GHC.Plugins qualified as GHC
@@ -46,8 +50,8 @@ traceCompilationStep
   -- ^ The compilation action
   -> m a
 traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
-  CompileState nextStep prevSteps callStack <- get
-  put $ CompileState (nextStep + 1) (nextStep : prevSteps) callStack
+  compileState@(CompileState{csNextStep = nextStep, csPreviousSteps = prevSteps}) <- get
+  put $ compileState {csNextStep = (nextStep + 1), csPreviousSteps = (nextStep : prevSteps)}
   let mbParentStep = listToMaybe prevSteps
   s <- sdToStr sd
   traceM $
@@ -62,15 +66,37 @@ traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
       <> show nextStep
       <> maybe "" (\parentStep -> ", Returning to step " <> show parentStep) mbParentStep
       <> ">"
-  modify' $ \(CompileState nextStep' prevSteps' callStack') ->
-    CompileState nextStep' (drop 1 prevSteps') callStack'
+  modify' $ \compileState'@(CompileState {csPreviousSteps = prevSteps'}) ->
+    compileState' {csPreviousSteps = drop 1 prevSteps'}
   pure res
 
 pushCallStack :: MonadState CompileState m => GHC.Var -> m a -> m a
 pushCallStack expr x = do
-  orig <- get
-  modify' $ \(CompileState nextStep' prevSteps' callStack') ->
-    CompileState nextStep' prevSteps' (expr : callStack')
+  origCallStack <- gets csCallStack
+  modify' $ \compileState@(CompileState {csCallStack = callstack}) ->
+    compileState {csCallStack = (expr : callstack)}
   res <- x
-  put orig
+  modify' $ \compileState -> compileState {csCallStack = origCallStack}
   pure res
+
+lastCallStackName :: MonadState CompileState m => m (Maybe (PIR.Name))
+lastCallStackName = do
+  names <- gets csCallStackNames
+  pure $ case names of
+    []    -> Nothing
+    (x:_) -> Just x
+
+bob :: (PLC.MonadQuote m, MonadState CompileState m) => m a -> m a
+bob x = do
+  callstack <- PLC.freshName "callstack"
+  origNames <- gets csCallStackNames
+  modify' $ \compileState@(CompileState {csCallStackNames = names}) ->
+    compileState {csCallStackNames = (callstack : names)}
+  res <- x
+  modify' $ \compileState -> compileState {csCallStackNames = origNames}
+  pure res
+
+insertCallStackFunctionName :: MonadState CompileState m => LexName -> m ()
+insertCallStackFunctionName name =
+  modify' $ \compileState@(CompileState {csCallStackFunctions = fns}) ->
+    compileState {csCallStackFunctions = Set.insert name fns}
