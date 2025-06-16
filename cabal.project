@@ -74,6 +74,15 @@ source-repository-package
   location: https://github.com/jaccokrijnen/plutus-cert
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
 
+source-repository-package
+  type: git
+  location: https://github.com/intersectMBO/cardano-base
+  tag: 971708b0142f86507e8694351186551ac8753cf0
+  --sha256: sha256-28LmiDqJMdIIgSwOz+d8k0ftxNZQr/TuXh7RuFy9tpQ=
+  subdir:
+    cardano-crypto-class
+    cardano-crypto-praos
+
 allow-newer:
   -- https://github.com/tweag/HaskellR/pull/420
   , inline-r:singletons-th
