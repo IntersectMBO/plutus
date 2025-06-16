@@ -22,10 +22,11 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
 import Prelude hiding (fail)
 
-import Control.Monad (fail)
+import Control.Monad (fail, when)
 import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
+import Data.Word (Word64)
 import PlutusCore (MonadQuote)
 import PlutusCore.Error (ParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
@@ -104,10 +105,15 @@ errorTerm _tm = withSpan $ \sp ->
     inParens $ PIR.error sp <$> (symbol "error" *> pType)
 
 constrTerm :: Parametric
-constrTerm tm = withSpan $ \sp -> inParens $ do
-    res <- PIR.constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many tm
-    whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-    pure res
+constrTerm tm = withSpan $ \sp ->
+    inParens $ do
+      let maxTag = fromIntegral (maxBound :: Word64)
+      ty <- symbol "constr" *> pType
+      tag :: Integer <- lexeme Lex.decimal
+      args <- many tm
+      whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
+      when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+      pure $ Constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parametric
 caseTerm tm = withSpan $ \sp -> inParens $ do
