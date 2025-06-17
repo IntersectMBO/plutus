@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module PlutusTx.Compiler.Trace where
 
@@ -7,15 +6,11 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 
-import PlutusCore qualified as PLC
-import PlutusIR qualified as PIR
-
 import Control.Monad.Except
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Maybe
-import Data.Set qualified as Set
 import Data.Text (Text)
 import Debug.Trace
 import GHC.Plugins qualified as GHC
@@ -69,34 +64,3 @@ traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
   modify' $ \compileState'@(CompileState {csPreviousSteps = prevSteps'}) ->
     compileState' {csPreviousSteps = drop 1 prevSteps'}
   pure res
-
-pushCallStack :: MonadState CompileState m => GHC.Var -> m a -> m a
-pushCallStack expr x = do
-  origCallStack <- gets csCallStack
-  modify' $ \compileState@(CompileState {csCallStack = callstack}) ->
-    compileState {csCallStack = (expr : callstack)}
-  res <- x
-  modify' $ \compileState -> compileState {csCallStack = origCallStack}
-  pure res
-
-lastCallStackName :: MonadState CompileState m => m (Maybe (PIR.Name))
-lastCallStackName = do
-  names <- gets csCallStackNames
-  pure $ case names of
-    []    -> Nothing
-    (x:_) -> Just x
-
-bob :: (PLC.MonadQuote m, MonadState CompileState m) => m a -> m a
-bob x = do
-  callstack <- PLC.freshName "callstack"
-  origNames <- gets csCallStackNames
-  modify' $ \compileState@(CompileState {csCallStackNames = names}) ->
-    compileState {csCallStackNames = (callstack : names)}
-  res <- x
-  modify' $ \compileState -> compileState {csCallStackNames = origNames}
-  pure res
-
-insertCallStackFunctionName :: MonadState CompileState m => LexName -> m ()
-insertCallStackFunctionName name =
-  modify' $ \compileState@(CompileState {csCallStackFunctions = fns}) ->
-    compileState {csCallStackFunctions = Set.insert name fns}

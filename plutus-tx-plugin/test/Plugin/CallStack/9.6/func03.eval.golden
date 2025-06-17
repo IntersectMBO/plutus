@@ -1,0 +1,9 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
+
+Trace:
+func:test/Plugin/CallStack/Spec.hs:70:1-70:4
+\-functionFromOtherModule:test/Plugin/CallStack/Spec.hs:85:1-85:23
+\-wraps:test/Plugin/CallStack/OtherModule.hs:10:1-10:5
+\-errorWhenTrue:test/Plugin/CallStack/OtherModule.hs:6:1-6:13

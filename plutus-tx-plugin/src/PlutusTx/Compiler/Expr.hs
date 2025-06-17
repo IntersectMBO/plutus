@@ -17,8 +17,6 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import Debug.Trace qualified as DT
-
 import GHC.Builtin.Names qualified as GHC
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.ByteCode.Types qualified as GHC
@@ -75,7 +73,7 @@ import Control.Exception (displayException)
 import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask, asks, local)
-import Control.Monad.State (MonadState, gets)
+import Control.Monad.State (MonadState, gets, modify')
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
@@ -614,13 +612,53 @@ for any variables that were freshly created by the simplifier. That's easy to fi
 ourselves before we start.
 -}
 
+-- | Apply callstack to given term if given 'GHC.Var' requires callstack to be applied.
+applyCallStack
+  :: MonadState CompileState m
+  => GHC.Var
+  -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+  -> m (PIRTerm PLC.DefaultUni PLC.DefaultFun)
+applyCallStack currVar t = do
+  csFuns <- gets csNeedsCallStack
+  if Set.member (LexName $ GHC.varName currVar) csFuns
+    then do
+      lastCs <- lastCallStackName
+      let
+        nameStr v = GHC.occNameString $ GHC.occName $ GHC.varName $ v
+        printCallStackEntry v =
+          case getVarSourceSpan v of
+            -- FIXME: Variables will miss span information when the module they are defined
+            -- in is loaded from cache instead of getting compiled.
+            Nothing  -> nameStr v
+            Just src -> nameStr v <> ":" <> show (src ^. srcSpanIso)
+        msgArg =
+          case lastCs of
+            Nothing -> PLC.mkConstant annMayInline $ T.pack $ printCallStackEntry currVar
+            Just lastCs' ->
+              PIR.Apply annMayInline
+               (PIR.Apply annMayInline
+                (PIR.Builtin annMayInline PLC.AppendString)
+                (PIR.Var annMayInline lastCs'))
+               (PLC.mkConstant annMayInline $ T.pack $ "\n\\-" <> printCallStackEntry currVar)
+
+      pure (PIR.Apply annMayInline t msgArg)
+    else pure t
+
+-- | Same as 'PIR.lookupTerm' but will handle terms that requires callstack.
+lookupTerm
+  :: CompilingDefault uni fun m ann
+  => GHC.Var
+  -> m (Maybe (PIRTerm PLC.DefaultUni PLC.DefaultFun))
+lookupTerm var =
+  PIR.lookupTerm (LexName $ GHC.varName var)
+  >>= traverse (applyCallStack var)
+
 hoistExpr
-  :: (CompilingDefault uni fun m ann)
-  => Bool
-  -> GHC.Var
+  :: CompilingDefault uni fun m ann
+  => GHC.Var
   -> GHC.CoreExpr
   -> m (PIRTerm uni fun)
-hoistExpr doTrace var t = do
+hoistExpr var t = do
   wrapUnsafeDataAsConstrName <-
     lookupGhcName 'PlutusTx.AsData.Internal.wrapUnsafeDataAsConstr
   let name = GHC.getName var
@@ -640,10 +678,48 @@ hoistExpr doTrace var t = do
           }
   -- See Note [Dependency tracking]
   modifyCurDeps (Set.insert lexName)
-  maybeDef <- traverse (applyCallStackLamAbs var) =<< PIR.lookupTerm lexName
-  let addSpan = case getVarSourceSpan var of
-        Nothing  -> id
-        Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+  maybeDef <- lookupTerm var
+  let
+    -- When 'generate-callstack' is turned off, we don't push new callstack binds
+    -- nor put names into 'csCallStackDeps'. 'wrapInCallStackLamAbs' will automatically figure
+    -- out not to make changes to given term if there's no callstack bind available. And,
+    -- 'applyCallStack' will not apply callstack when given name is not in 'csCallStackDeps'.
+    pushNewCallStackName run = do
+      generateCallStack <- asks (coGenerateCallStack . ccOpts)
+      if generateCallStack
+        then do
+          insertCallStackDeps lexName
+
+          callstack <- PLC.freshName "callstack"
+          origNames <- gets csCallStackNames
+          modify' $ \compileState@(CompileState {csCallStackNames = names}) ->
+            compileState {csCallStackNames = (callstack : names)}
+          res <- run
+          modify' $ \compileState -> compileState {csCallStackNames = origNames}
+          pure res
+        else run
+
+    wrapInCallStackLamAbs var' t' = do
+      newCsName <- lastCallStackName
+      case newCsName of
+        Nothing -> pure (t', var')
+        Just newCsName' -> do
+          let
+            varWithCallStack =
+              var' & PLC.varDeclType
+              %~ (PLC.TyFun annMayInline
+                   (PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniString)))
+          pure $
+            (PIR.LamAbs
+              annMayInline
+              newCsName'
+              (PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniString)) t'
+            , varWithCallStack
+            )
+
+    addSpan = case getVarSourceSpan var of
+      Nothing  -> id
+      Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
   case maybeDef of
     Just term -> pure term
     -- See Note [Dependency tracking]
@@ -656,24 +732,19 @@ hoistExpr doTrace var t = do
           (PIR.Def var' (PIR.mkVar var', PIR.Strict))
           mempty
 
-        -- See Note [Non-strict let-bindings]
-        if doTrace
-          then do
-            DT.trace ("inserting:" <> show lexName) (insertCallStackFunctionName lexName)
-            t' <- bob $ wrapInCallStackLamAbs =<< maybeProfileRhs var' =<< addSpan (compileExpr t)
+        -- Order matters here!
+        -- We first add new callstack variable to state
+        -- then we run `compileExpr`.
+        (t', var'') <- pushNewCallStackName $
+          (wrapInCallStackLamAbs var')
+          =<< maybeProfileRhs var'
+          =<< addSpan (compileExpr t)
 
-            csfuns <- gets csCallStackFunctions
-            let
-              var'' =
-                var' & PLC.varDeclType
-                %~ (PLC.TyFun annMayInline
-                      (PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniString)))
-            PIR.modifyTermDef lexName (const $ PIR.Def var'' (t', PIR.NonStrict))
-            DT.trace ("DID: "<> show lexName<> " from " <> (show csfuns) <> "\n" <> (show $ PP.pretty t')) $ applyCallStackLamAbs var $ PIR.mkVar var''
-          else do
-            t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
-            PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-            pure $ PIR.mkVar var'
+        -- See Note [Non-strict let-bindings]
+        PIR.modifyTermDef lexName (const $ PIR.Def var'' (t', PIR.NonStrict))
+
+        -- Apply callstack.
+        applyCallStack var $ PIR.mkVar var''
 
 maybeProfileRhs
   :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
@@ -847,55 +918,6 @@ entryExitTracing lamName displayName e ty =
    an unfolding.
 -}
 
-wrapInCallStackLamAbs
-  :: MonadState CompileState m
-  => PIRTerm PLC.DefaultUni PLC.DefaultFun
-  -> m (PIRTerm PLC.DefaultUni PLC.DefaultFun)
-wrapInCallStackLamAbs t = do
-  newCsName <- lastCallStackName
-  case newCsName of
-    Nothing -> pure t
-    Just newCsName' ->
-      pure $
-        PIR.LamAbs
-          annMayInline
-          newCsName'
-          (PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniString)) t
-
-applyCallStackLamAbs
-  :: MonadState CompileState m
-  => GHC.Var
-  -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-  -> m (PIRTerm PLC.DefaultUni PLC.DefaultFun)
-applyCallStackLamAbs currVar t = do
-  csFuns <- gets csCallStackFunctions
-  if Set.member (LexName $ GHC.varName currVar) csFuns
-    then do
-      lastCs <- lastCallStackName
-      let
-        nameStr v = GHC.occNameString $ GHC.occName $ GHC.varName $ v
-        printCallStackEntry v =
-          case getVarSourceSpan v of
-            -- FIXME: We don't have span for typeclass definition and typeclass
-            -- instances definition. It appears GHC have already erased span for these
-            -- in this stage of compilation pipeline, so to fix, it would requiring
-            -- pulling some information from other stages of compilation pipeline which
-            -- will be messy.
-            Nothing  -> nameStr v
-            Just src -> nameStr v <> ":" <> show (src ^. srcSpanIso)
-        msgArg =
-          case lastCs of
-            Nothing -> PLC.mkConstant annMayInline $ T.pack $ printCallStackEntry currVar
-            Just lastCs' ->
-              PIR.Apply annMayInline
-               (PIR.Apply annMayInline
-                (PIR.Builtin annMayInline PLC.AppendString)
-                (PIR.Var annMayInline lastCs'))
-               (PLC.mkConstant annMayInline $ T.pack $ "\n\\-" <> printCallStackEntry currVar)
-
-      pure (PIR.Apply annMayInline t msgArg)
-    else pure t
-
 compileExpr :: (CompilingDefault uni fun m ann) => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
@@ -904,6 +926,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     , ccModBreaks = maybeModBreaks
     , ccBuiltinsInfo = binfo
     , ccSafeToInline = safeToInline
+    , ccOpts = CompileOptions {..}
     } <-
     ask
 
@@ -943,8 +966,9 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       | GHC.getName var == boolOperatorAnd ->
           compileExpr $ GHC.mkIfThenElse a b (GHC.Var GHC.falseDataConId)
 
+    -- callStack
     GHC.Var var
-      | GHC.getName var == callStackName -> do
+      | coGenerateCallStack && GHC.getName var == callStackName -> do
           csName <- lastCallStackName
           case csName of
             Nothing      -> pure (PLC.mkConstant annAlwaysInline $ T.pack "root")
@@ -1149,12 +1173,12 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         Nothing -> throwSd CompilationError $ "Id not in class method list:" GHC.<+> GHC.ppr n
       let rhs = GHC.mkDictSelRhs cls val_index
 
-      hoistExpr False n rhs
+      hoistExpr n rhs
     GHC.Var n -> do
       -- Defined names, including builtin names
       let lexName = LexName $ GHC.getName n
       modifyCurDeps (\d -> Set.insert lexName d)
-      maybeDef <- traverse (applyCallStackLamAbs n) =<< PIR.lookupTerm lexName
+      maybeDef <- lookupTerm n
       case maybeDef of
         Just term -> pure term
         Nothing ->
@@ -1162,8 +1186,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
           case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding n) of
             -- See Note [Unfoldings]
             -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-            Just unfolding ->
-              pushCallStack n $ hoistExpr True n unfolding
+            Just unfolding -> hoistExpr n unfolding
             Nothing ->
               throwSd FreeVariableError $
                 "Variable"

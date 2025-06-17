@@ -1,0 +1,8 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
+
+Trace:
+func:test/Plugin/CallStack/Spec.hs:70:1-70:4
+\-$fMyClassInteger:test/Plugin/CallStack/Spec.hs:90:10-90:24
+\-$cmyClassFunc:test/Plugin/CallStack/Spec.hs:91:3-91:13

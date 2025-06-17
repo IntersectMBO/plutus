@@ -3,6 +3,7 @@ module Plugin.Spec where
 import Test.Tasty.Extras
 
 import Plugin.Basic.Spec
+import Plugin.CallStack.Spec
 import Plugin.Coverage.Spec
 import Plugin.Data.Spec
 import Plugin.Debug.Spec
@@ -35,4 +36,5 @@ tests =
     , profiling
     , coverage
     , patterns
+    , callstack
     ]
