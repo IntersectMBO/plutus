@@ -3,7 +3,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -84,7 +83,7 @@ data CompileState = CompileState
   {- ^ The callstack variables bound at the current state. The first element represents the
   most recent callstack.
   -}
-  , csNeedsCallStack :: Set LexName
+  , csCallStackDeps  :: Set LexName
   {- ^ Set of names that requires callstack. A name being in this set indicates that their
   corresponding term is modified to have extra string argument and need to apply callstack
   before using the function.
@@ -100,8 +99,8 @@ lastCallStackName = do
 
 insertCallStackDeps :: MonadState CompileState m => LexName -> m ()
 insertCallStackDeps name =
-  modify' $ \compileState@(CompileState {csNeedsCallStack = fns}) ->
-    compileState {csNeedsCallStack = Set.insert name fns}
+  modify' $ \compileState@(CompileState {csCallStackDeps = fns}) ->
+    compileState {csCallStackDeps = Set.insert name fns}
 
 -- | Verbosity level of the Plutus Tx compiler.
 data Verbosity

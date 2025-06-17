@@ -613,13 +613,13 @@ ourselves before we start.
 -}
 
 -- | Apply callstack to given term if given 'GHC.Var' requires callstack to be applied.
-applyCallStack
+applyCallStackWhenNeeded
   :: MonadState CompileState m
   => GHC.Var
   -> PIRTerm PLC.DefaultUni PLC.DefaultFun
   -> m (PIRTerm PLC.DefaultUni PLC.DefaultFun)
-applyCallStack currVar t = do
-  csFuns <- gets csNeedsCallStack
+applyCallStackWhenNeeded currVar t = do
+  csFuns <- gets csCallStackDeps
   if Set.member (LexName $ GHC.varName currVar) csFuns
     then do
       lastCs <- lastCallStackName
@@ -651,7 +651,7 @@ lookupTerm
   -> m (Maybe (PIRTerm PLC.DefaultUni PLC.DefaultFun))
 lookupTerm var =
   PIR.lookupTerm (LexName $ GHC.varName var)
-  >>= traverse (applyCallStack var)
+  >>= traverse (applyCallStackWhenNeeded var)
 
 hoistExpr
   :: CompilingDefault uni fun m ann
@@ -744,7 +744,7 @@ hoistExpr var t = do
         PIR.modifyTermDef lexName (const $ PIR.Def var'' (t', PIR.NonStrict))
 
         -- Apply callstack.
-        applyCallStack var $ PIR.mkVar var''
+        applyCallStackWhenNeeded var $ PIR.mkVar var''
 
 maybeProfileRhs
   :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
