@@ -21,12 +21,13 @@ module PlutusLedgerApi.Common.Eval
     ) where
 
 import PlutusCore
-import PlutusCore.Builtin (readKnown)
+import PlutusCore.Builtin (CaserBuiltin, readKnown)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
+import PlutusCore.Evaluation.Machine.MachineParameters (MachineParameters (..))
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
@@ -111,11 +112,11 @@ mkTermToEvaluate ll pv script args = do
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv (EvaluationContext ll toSemVar machParsList) =
+toMachineParameters pv (EvaluationContext ll toCaser toSemVar machParsList) =
     case lookup (toSemVar pv) machParsList of
         Nothing -> error $ Prelude.concat
             ["Internal error: ", show ll, " does not support protocol version ", show pv]
-        Just machPars -> machPars
+        Just machVarPars -> MachineParameters (toCaser pv) machVarPars
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script. This is so that they can be computed once and cached, rather than being recomputed on every
@@ -148,10 +149,17 @@ protocol version are
 data EvaluationContext = EvaluationContext
     { _evalCtxLedgerLang    :: PlutusLedgerLanguage
       -- ^ Specifies what language versions the 'EvaluationContext' is for.
+    , _evalCtxCaserBuiltin  :: MajorProtocolVersion -> CaserBuiltin DefaultUni
+      -- ^ Specifies how 'case' on values of built-in types works: fails evaluation for older
+      -- protocol versions and defers to 'caseBuiltin' for newer ones. Note that this function
+      -- doesn't depend on the 'PlutusLedgerLanguage' or the AST version: deserialisation of a 1.0.0
+      -- AST fails upon encountering a 'Case' node anyway, so we can safely assume here that 'case'
+      -- is available.
     , _evalCtxToSemVar      :: MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun
       -- ^ Specifies how to get a semantics variant for this ledger language given a
       -- 'MajorProtocolVersion'.
-    , _evalCtxMachParsCache :: [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
+    , _evalCtxMachParsCache ::
+        [(BuiltinSemanticsVariant DefaultFun, DefaultMachineVariantParameters)]
       -- ^ The cache of 'DefaultMachineParameters' for each semantics variant supported by the
       -- current language version.
     }
@@ -174,12 +182,14 @@ with the updated cost model parameters.
 mkDynEvaluationContext
     :: MonadError CostModelApplyError m
     => PlutusLedgerLanguage
+    -> (MajorProtocolVersion -> CaserBuiltin DefaultUni)
     -> [BuiltinSemanticsVariant DefaultFun]
     -> (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext ll semVars toSemVar newCMP =
-    EvaluationContext ll toSemVar <$> mkMachineParametersFor semVars newCMP
+mkDynEvaluationContext ll toCaser semVars toSemVar newCMP = do
+    machPars <- mkMachineVariantParametersFor semVars newCMP
+    pure $ EvaluationContext ll toCaser toSemVar machPars
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

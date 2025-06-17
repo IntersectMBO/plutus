@@ -73,9 +73,11 @@ safeLiftWith
   :: forall a uni fun m
    . ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -116,9 +118,11 @@ safeLift
   :: forall a uni fun m
    . ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -138,9 +142,11 @@ safeLiftUnopt
   :: forall a uni fun m
    . ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -164,9 +170,11 @@ optimizations.
 safeLiftProgram
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -185,9 +193,11 @@ where lifting speed is more important than optimal code.
 safeLiftProgramUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -203,9 +213,11 @@ safeLiftProgramUnopt v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safe
 safeLiftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -227,9 +239,11 @@ where lifting speed is more important than optimal code.
 safeLiftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -263,6 +277,8 @@ lift
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -281,6 +297,8 @@ liftUnopt
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -297,6 +315,8 @@ liftProgram
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -315,6 +335,8 @@ liftProgramUnopt
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -349,8 +371,10 @@ liftProgramDefUnopt = liftProgramUnopt PLC.latestVersion
 liftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -365,8 +389,10 @@ where lifting speed is more important than optimal code.
 liftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -379,8 +405,10 @@ liftCodeUnopt v x = unsafely $ safeLiftCodeUnopt v x
 liftCodeDef
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -395,8 +423,10 @@ where lifting speed is more important than optimal code.
 liftCodeDefUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
      , Default (PIR.RewriteRules uni fun)
@@ -425,6 +455,7 @@ typeCheckAgainst
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)
@@ -463,7 +494,9 @@ typeCode
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.GEq uni
+     , PLC.Everywhere uni Eq
      , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
      , PrettyUni uni
      , Pretty fun
      , Default (PLC.CostingPart uni fun)

@@ -20,7 +20,8 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
                                                           defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
-                                                        mkMachineParameters)
+                                                        mkMachineVariantParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.Parser qualified as PC
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.TypeCheck qualified as PLC
@@ -30,8 +31,8 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core qualified as PIR
 import PlutusIR.Parser (pTerm)
 import UntypedPlutusCore.Core qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), evaluateCek,
-                                                 logEmitter, unsafeSplitStructuralOperational)
+import UntypedPlutusCore.Evaluation.Machine.Cek (EvaluationResult (..), evaluateCek, logEmitter,
+                                                 unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
 pirTermFromFile
@@ -87,11 +88,14 @@ evaluateUplcProgramWithTraces uplcProg =
   first unsafeSplitStructuralOperational $
     evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
-  costModel :: CostModel CekMachineCosts BuiltinCostModel =
-    CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
-  machineParameters
-    :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
-      mkMachineParameters def costModel
+  costModel :: CostModel CekMachineCosts BuiltinCostModel
+  costModel =
+      CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
+
+  machineParameters :: DefaultMachineParameters
+  machineParameters =
+      -- TODO: proper semantic variant. What should def be?
+      MachineParameters def $ mkMachineVariantParameters def costModel
 
 defaultCompilationCtx
   :: Either

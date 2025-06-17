@@ -58,7 +58,14 @@ instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
 -- old Plutus Core language version.
 --
 -- See Note [Encoding of datatypes]
-data DatatypeStyle = ScottEncoding | SumsOfProducts
+data DatatypeStyle
+    = ScottEncoding
+    | SumsOfProducts
+    | BuiltinCasing
+      -- ^ A temporary data type style used to make a couple of V3 ledger-api-test tests pass
+      -- before we can support casing on values of built-in types in newer protocol versions and
+      -- merge this into 'SumsOfProducts' (which is what controls whether 'Case' is available or
+      -- not).
     deriving stock (Show, Read, Eq)
 
 instance Pretty DatatypeStyle where
@@ -66,12 +73,12 @@ instance Pretty DatatypeStyle where
 
 newtype DatatypeCompilationOpts = DatatypeCompilationOpts
     { _dcoStyle :: DatatypeStyle
-    } deriving stock (Show)
+    } deriving newtype (Show, Read, Pretty)
 
 makeLenses ''DatatypeCompilationOpts
 
 defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
-defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
+defaultDatatypeCompilationOpts = DatatypeCompilationOpts BuiltinCasing
 
 data CompilationOpts a = CompilationOpts {
     _coOptimize                         :: Bool
@@ -163,7 +170,7 @@ toDefaultCompilationCtx configPlc = CompilationCtx
 validateOpts :: Compiling m uni fun a => PLC.Version -> m ()
 validateOpts v = do
   datatypes <- view (ccOpts . coDatatypes . dcoStyle)
-  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $
+  when ((datatypes == SumsOfProducts || datatypes == BuiltinCasing) && v < PLC.plcVersion110) $
     throwError $ OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
@@ -218,6 +225,8 @@ type Compiling m uni fun a =
     ( Monad m
     , MonadReader (CompilationCtx uni fun a) m
     , MonadError (Error uni fun (Provenance a)) m
+    , PLC.AnnotateCaseBuiltin uni
+    , PLC.CaseBuiltin uni
     , MonadQuote m
     , Ord a
     , AnnInline a

@@ -19,6 +19,9 @@ import GHC.Exts (inline)
 -- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
 -- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
 -- machine.
+type DefaultMachineVariantParameters =
+    MachineVariantParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
+
 type DefaultMachineParameters =
     MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
@@ -59,15 +62,15 @@ inlining).
 --
 -- This function is very expensive, so its result needs to be cached if it's going to be used
 -- multiple times.
-mkMachineParametersFor
+mkMachineVariantParametersFor
     :: MonadError CostModelApplyError m
     => [BuiltinSemanticsVariant DefaultFun]
     -> CostModelParams
-    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineParameters)]
-mkMachineParametersFor semVars newCMP = do
+    -> m [(BuiltinSemanticsVariant DefaultFun, DefaultMachineVariantParameters)]
+mkMachineVariantParametersFor semVars newCMP = do
     res <- for semVars $ \semVar ->
         -- See Note [Inlining meanings of builtins].
-        (,) semVar . inline mkMachineParameters semVar <$>
+        (,) semVar . inline mkMachineVariantParameters semVar <$>
             applyCostModelParams (cekCostModelForVariant semVar) newCMP
     -- Force all thunks to pay the cost of creating machine parameters upfront. Doing it here saves
     -- us from doing that in every single benchmark runner.
