@@ -127,7 +127,7 @@ builtinsIntroducedIn = Map.fromList [
           Ripemd_160
           ]),
   ((PlutusV3, futurePV), Set.fromList [
-          ExpModInteger,
+          ExpModInteger, Bls12_381_G1_multiScalarMul, Bls12_381_G2_multiScalarMul,
           CaseList, CaseData, DropList,
           ListToArray, IndexArray, LengthOfArray
           ])
