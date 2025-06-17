@@ -23,10 +23,13 @@ import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
+import PlutusCore.Version
 
+import Control.Monad (when)
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
-import PlutusCore.Version
+import Data.Word (Word64)
+
 import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -78,9 +81,13 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- Constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many term
+      let maxTag = fromIntegral (maxBound :: Word64)
+      ty <- symbol "constr" *> pType
+      tag :: Integer <- lexeme Lex.decimal
+      args <- many term
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-      pure res
+      when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+      pure $ Constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->

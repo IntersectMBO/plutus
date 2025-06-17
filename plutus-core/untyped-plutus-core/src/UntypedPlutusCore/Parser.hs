@@ -15,7 +15,7 @@ module UntypedPlutusCore.Parser
 
 import Prelude hiding (fail)
 
-import Control.Monad (fail, (<=<))
+import Control.Monad (fail, when, (<=<))
 import Control.Monad.Except
 
 import PlutusCore qualified as PLC
@@ -30,6 +30,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
 import Data.Vector qualified as V
+import Data.Word (Word64)
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 import PlutusCore.Version
@@ -75,9 +76,12 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> many term
+      let maxTag = fromIntegral (maxBound :: Word64)
+      tag :: Integer <- symbol "constr" *> lexeme Lex.decimal
+      args <- many term
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-      pure res
+      when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+      pure $ UPLC.Constr sp (fromIntegral tag) args
 
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
