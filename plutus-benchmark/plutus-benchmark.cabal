@@ -626,7 +626,7 @@ benchmark marlowe-agda-cek
     , plutus-ledger-api        ^>=1.48
     , plutus-tx                ^>=1.48
 
--------------------- bitwise-----------------------
+-------------------- bitwise -----------------------
 
 library bitwise-internal
   import:          lang, ghc-version-support, os-support
@@ -670,6 +670,7 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.48
+    , text
 
 ------------------ linear vesting -------------------
 
@@ -694,4 +695,43 @@ executable linear-vesting
     , base                         >=4.9 && <5
     , linear-vesting-internal
     , plutus-tx:plutus-tx-testlib
-    , text
+
+------------------ Cardano Open Oracle Protocol -------------------        
+library coop
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  coop/src
+  exposed-modules:
+    PlutusBenchmark.Coop.Gen
+    PlutusBenchmark.Coop.Scripts
+    PlutusBenchmark.Coop.Types
+    PlutusBenchmark.Coop.Utils
+
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , crypton
+    , lens
+    , memory
+    , plutus-ledger-api
+    , plutus-tx          ^>=1.48
+    , plutus-tx-plugin   ^>=1.48
+    , QuickCheck
+
+executable gen-coop-flat
+  import:         lang, ghc-version-support, os-support
+  hs-source-dirs: coop/exe
+  main-is:        Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , coop
+    , directory
+    , filepath
+    , flat
+    , plutus-benchmark-common
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-tx                    ^>=1.48
+    , plutus-tx:plutus-tx-testlib
+    , QuickCheck
