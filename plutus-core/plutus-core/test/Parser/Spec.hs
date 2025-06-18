@@ -20,7 +20,7 @@ import Test.Tasty.Hedgehog
 propTermSrcSpan :: Property
 propTermSrcSpan = property $ do
     term <- _progTerm <$>
-        forAllWith display (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
+        forAllWith display (runAstGen $ regenConstantsUntil isSerialisable =<< genProgram)
     let code = display (term :: Term TyName Name DefaultUni DefaultFun ())
     let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
     trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])

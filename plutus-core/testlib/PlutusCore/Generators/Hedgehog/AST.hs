@@ -4,7 +4,8 @@
 
 module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
-    , discardIfAnyConstant
+    , regenConstantUntil
+    , regenConstantsUntil
     , AstGen
     , runAstGen
     , genVersion
@@ -17,18 +18,18 @@ module PlutusCore.Generators.Hedgehog.AST
     , genType
     , genTerm
     , genProgram
+    , genNameMangler
     , mangleNames
     ) where
 
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Core.Plated (termConstantsDeep)
 import PlutusCore.Generators.QuickCheck.Builtin ()
 import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
-import Control.Lens (andOf, coerced, to)
+import Control.Lens (coerced)
 import Control.Monad.Morph (hoist)
 import Control.Monad.Reader
 import Data.Set (Set)
@@ -60,12 +61,23 @@ runAstGen a = do
     names <- genNames
     Gen.fromGenT $ hoist (return . flip runReader names) a
 
-discardIfAnyConstant
+regenConstantUntil
   :: MonadGen m
-  => (Some (ValueOf uni) -> Bool)
-  -> m (Program tyname name uni fun ann)
-  -> m (Program tyname name uni fun ann)
-discardIfAnyConstant p = Gen.filterT . andOf $ progTerm . termConstantsDeep . to (not . p)
+  => (Some (ValueOf DefaultUni) -> Bool)
+  -> Some (ValueOf DefaultUni)
+  -> m (Maybe (Some (ValueOf DefaultUni)))
+regenConstantUntil p = go $ \_ -> Nothing where
+    go ret val
+        | p val = pure $ ret val
+        | otherwise = genConstant >>= go Just
+
+regenConstantsUntil
+  :: MonadGen m
+  => (Some (ValueOf DefaultUni) -> Bool)
+  -> Program tyname name DefaultUni fun ann
+  -> m (Program tyname name DefaultUni fun ann)
+regenConstantsUntil p =
+    progTerm . termSubstConstantsM $ \ann -> fmap (fmap $ Constant ann) . regenConstantUntil p
 
 -- The parser will reject uses of new constructs if the version is not high enough
 -- In order to keep our lives simple, we just generate a version that is always high
@@ -109,14 +121,14 @@ genKind = simpleRecursive nonRecursive recursive where
     nonRecursive = pure <$> sequence [Type] ()
     recursive = [KindArrow () <$> genKind <*> genKind]
 
-genBuiltin :: (Bounded fun, Enum fun) => AstGen fun
+genBuiltin :: (MonadGen m, Bounded fun, Enum fun) => m fun
 genBuiltin = Gen.element [minBound .. maxBound]
 
-genConstant :: AstGen (Some (ValueOf DefaultUni))
+genConstant :: MonadGen m => m (Some (ValueOf DefaultUni))
 -- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
 genConstant = arbitrary
 
-genSomeTypeIn :: AstGen (SomeTypeIn DefaultUni)
+genSomeTypeIn :: MonadGen m => m (SomeTypeIn DefaultUni)
 -- The @QuickCheck@ generator is a good one, so we reuse it in @hedgehog@ via @hedgehog-quickcheck@.
 genSomeTypeIn = arbitrary
 
@@ -169,6 +181,18 @@ subset1 s
     | otherwise = fmap (Just . Set.fromList) $ (:) <$> Gen.element xs <*> Gen.subsequence xs
     where xs = Set.toList s
 
+-- See Note [Name mangling]
+genNameMangler :: Set Name -> AstGen (Name -> AstGen (Maybe Name))
+genNameMangler names = Gen.justT $ do
+    mayNamesMangle <- subset1 names
+    for mayNamesMangle $ \namesMangle -> do
+        let isNew name = not $ name `Set.member` namesMangle
+        newNames <- Gen.justT $ ensure (not . null) . filter isNew <$> genNames
+        pure $ \name ->
+            if name `Set.member` namesMangle
+                then Just <$> Gen.element newNames
+                else pure Nothing
+
 substAllNames
     :: Monad m
     => (Name -> m (Maybe Name))
@@ -180,17 +204,12 @@ substAllNames ren =
 
 -- See Note [ScopeHandling].
 allTermNames :: Term TyName Name DefaultUni DefaultFun () -> Set Name
-allTermNames = setOf (vTerm <^> tvTerm . coerced)
+allTermNames = setOf $ vTerm <^> tvTerm . coerced
 
 -- See Note [Name mangling]
-mangleNames :: Term TyName Name DefaultUni DefaultFun () -> AstGen (Maybe (Term TyName Name DefaultUni DefaultFun ()))
+mangleNames
+    :: Term TyName Name DefaultUni DefaultFun ()
+    -> AstGen (Term TyName Name DefaultUni DefaultFun ())
 mangleNames term = do
-    let names = allTermNames term
-    mayNamesMangle <- subset1 names
-    for mayNamesMangle $ \namesMangle -> do
-        let isNew name = not $ name `Set.member` namesMangle
-        newNames <- Gen.justT $ ensure (not . null) . filter isNew <$> genNames
-        let mang name
-                | name `Set.member` namesMangle = Just <$> Gen.element newNames
-                | otherwise                     = return Nothing
-        substAllNames mang term
+    mang <- genNameMangler $ allTermNames term
+    substAllNames mang term
