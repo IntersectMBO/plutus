@@ -7,7 +7,7 @@
 module PlutusBenchmark.Coop.FsValidator where
 
 import PlutusTx.Prelude
-import Prelude ()
+import Prelude (undefined)
 
 import PlutusLedgerApi.V1.Interval
 import PlutusLedgerApi.V1.Value
@@ -143,3 +143,19 @@ fsMp
         currencyValue ownCs (mintValueToValue txInfoMint) == fsToMint
   in BI.unitval
 fsMp _ _ = traceError "GHC's pattern exhaustiveness checker is being silly, this won't get compiled"
+
+authMp :: AuthMpParams -> ScriptContext -> BuiltinUnit
+authMp
+  (AuthMpParams {..})
+  (ScriptContext
+   (TxInfo {..})
+   (Redeemer (unsafeFromBuiltinData @AuthMpRedeemer -> AuthMpBurn))
+   (MintingScript ownCs)
+  ) = undefined
+authMp
+  (AuthMpParams {..})
+  (ScriptContext
+   (TxInfo {..})
+   (Redeemer (unsafeFromBuiltinData @AuthMpRedeemer -> AuthMpMint))
+   (MintingScript ownCs)
+  ) = undefined
