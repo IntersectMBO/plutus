@@ -6,12 +6,12 @@ This document elaborates on the triage process that we use to prioritize and res
 
 The triage person is responsible for monitoring the following places:
 
+- Un-triaged [issues](https://github.com/IntersectMBO/plutus/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22status%3A%20needs%20triage%22) and external [PRs](https://github.com/IntersectMBO/plutus/pulls) in the [plutus](https://github.com/IntersectMBO/plutus) repository.  Note that this repository has a number of triage-related labels which whould be used as described [here](https://github.com/IntersectMBO/plutus/blob/master/doc/TRIAGE.md#labeling).
 - The `#plutus` [Slack channel](https://input-output-rnd.slack.com/archives/C21UF2WVC).
 - Plutus-related [CIPs](https://github.com/cardano-foundation/CIPs/pulls?q=is%3Apr+is%3Aopen+label%3A%22Category%3A+Plutus%22).
 - The [wg-plutus](https://discord.com/channels/1136727663583698984/1239888614796820531) Discord channel.
-- Un-triaged [issues](https://github.com/IntersectMBO/plutus/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22status%3A%20needs%20triage%22) and external [PRs](https://github.com/IntersectMBO/plutus/pulls) in the [plutus](https://github.com/IntersectMBO/plutus) repository.  Note that this repository has a number of triage-related labels which whould be used as described [here](https://github.com/IntersectMBO/plutus/blob/master/doc/TRIAGE.md#labeling).
-- New [issues](https://github.com/cardano-scaling/cardano-blueprint/issues) and external [PRs](https://github.com/cardano-scaling/cardano-blueprint/pulls) in the [cardano-blueprint](https://github.com/cardano-scaling/cardano-blueprint) repository.
 - New [issues](https://github.com/IntersectMBO/plinth-template/issues) and external [PRs](https://github.com/IntersectMBO/plinth-template/pulls) in the [plinth-template](https://github.com/IntersectMBO/plinth-template) repository.
+- New Plutus-related [issues](https://github.com/cardano-scaling/cardano-blueprint/issues) and external [PRs](https://github.com/cardano-scaling/cardano-blueprint/pulls) in the [cardano-blueprint](https://github.com/cardano-scaling/cardano-blueprint) repository.
 
 ## Why
 
