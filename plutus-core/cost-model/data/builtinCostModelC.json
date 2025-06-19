@@ -149,6 +149,22 @@
             "type": "constant_cost"
         }
     },
+    "bls12_381_G1_multiScalarMul": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "min_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "min_size"
+        }
+    },
     "bls12_381_G1_uncompress": {
         "cpu": {
             "arguments": 52948122,
@@ -223,6 +239,22 @@
         "memory": {
             "arguments": 36,
             "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_multiScalarMul": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "min_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "min_size"
         }
     },
     "bls12_381_G2_uncompress": {

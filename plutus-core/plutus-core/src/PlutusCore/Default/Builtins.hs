@@ -2151,7 +2151,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE bls12_381_G1_multiScalarMulDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G1_multiScalarMulDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramBls12_381_G1_multiScalarMul)
 
     toBuiltinMeaning _semvar Bls12_381_G2_multiScalarMul =
         let bls12_381_G2_multiScalarMulDenotation
@@ -2160,7 +2160,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             {-# INLINE bls12_381_G2_multiScalarMulDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G2_multiScalarMulDenotation
-            (runCostingFunTwoArguments . unimplementedCostingFun)
+            (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
