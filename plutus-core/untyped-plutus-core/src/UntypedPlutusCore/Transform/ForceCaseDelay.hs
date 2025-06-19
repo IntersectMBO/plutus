@@ -32,6 +32,6 @@ processTerm = \case
   where
     findDelayUnderLambdas :: Term name uni fun a -> Maybe (Term name uni fun a)
     findDelayUnderLambdas = \case
-      LamAbs _ _ body -> findDelayUnderLambdas body
+      LamAbs ann var body -> LamAbs ann var <$> findDelayUnderLambdas body
       Delay _ term    -> Just term
       _               -> Nothing

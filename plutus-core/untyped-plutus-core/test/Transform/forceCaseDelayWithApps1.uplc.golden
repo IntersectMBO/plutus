@@ -1,0 +1,1 @@
+case scrut [(\x -> 1)]

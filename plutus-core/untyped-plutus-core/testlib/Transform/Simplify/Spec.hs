@@ -426,6 +426,62 @@ forceDelayComplex = runQuote $ do
           (Var () funcVar)
   pure app
 
+forceCaseDelayNoApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps1 = runQuote $ do
+  scrut <- freshName "scrut"
+  let one = mkConstant @Integer () 1
+      term = Force () $ Case () (Var () scrut) (V.fromList [Delay () one])
+  pure term
+
+forceCaseDelayWithApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps1 = runQuote $ do
+  scrut <- freshName "scrut"
+  x <- freshName "x"
+  let one = mkConstant @Integer () 1
+      term =
+        Force ()
+        $ Case ()
+          (Var () scrut)
+          (V.fromList [LamAbs () x $ Delay () one])
+  pure term
+
+forceCaseDelayNoApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps2 = runQuote $ do
+  scrut <- freshName "scrut"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      term =
+        Force ()
+        $ Case ()
+          (Var () scrut)
+          (V.fromList [Delay () one, Delay () two])
+  pure term
+
+forceCaseDelayWithApps2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps2 = runQuote $ do
+  scrut <- freshName "scrut"
+  x <- freshName "x"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      term =
+        Force ()
+        $ Case ()
+          (Var () scrut)
+          (V.fromList [LamAbs () x $ Delay () one, Delay () two])
+  pure term
+
+forceCaseDelayNoApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayNoApps2Fail = runQuote $ do
+  scrut <- freshName "scrut"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      term =
+        Force ()
+        $ Case ()
+          (Var () scrut)
+          (V.fromList [Delay () one, two])
+  pure term
+
 -- | This is the first example in Note [CSE].
 cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 cse1 = runQuote $ do
@@ -512,6 +568,11 @@ testSimplifyInputs =
   , ("forceDelayMultiApply", forceDelayMultiApply)
   , ("forceDelayMultiForce", forceDelayMultiForce)
   , ("forceDelayComplex", forceDelayComplex)
+  , ("forceCaseDelayNoApps1", forceCaseDelayNoApps1)
+  , ("forceCaseDelayWithApps1", forceCaseDelayWithApps1)
+  , ("forceCaseDelayNoApps2", forceCaseDelayNoApps2)
+  , ("forceCaseDelayWithApps2", forceCaseDelayWithApps2)
+  , ("forceCaseDelayNoApps2Fail", forceCaseDelayNoApps2Fail)
   ]
 
 testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
