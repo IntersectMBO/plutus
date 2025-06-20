@@ -626,7 +626,7 @@ benchmark marlowe-agda-cek
     , plutus-ledger-api        ^>=1.47
     , plutus-tx                ^>=1.47
 
--------------------- bitwise-----------------------
+-------------------- bitwise -----------------------
 
 library bitwise-internal
   import:          lang, ghc-version-support, os-support
@@ -670,3 +670,20 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.47
+
+-------------------- Cardano Open Oracle Protocol -----------------------        
+library coop
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  coop/src
+  exposed-modules:
+    PlutusBenchmark.Coop.FsValidator
+    PlutusBenchmark.Coop.Types
+    PlutusBenchmark.Coop.Utils
+
+  build-depends:
+    , base
+    , lens
+    , plutus-ledger-api
+    , plutus-tx          ^>=1.47
+    , plutus-tx-plugin   ^>=1.47
+    , text
