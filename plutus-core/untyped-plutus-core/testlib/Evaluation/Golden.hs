@@ -388,8 +388,11 @@ caseProd1 = runQuote $ do
 caseNoBranch :: Term TyName Name DefaultUni DefaultFun ()
 caseNoBranch = Case () integer tag1 []
 
+caseInteger :: Term TyName Name DefaultUni DefaultFun ()
+caseInteger = Case () integer (mkConstant @Integer () 1) []
+
 caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
-caseNonTag = Case () integer (mkConstant @Integer () 1) []
+caseNonTag = Case () integer (builtin () AddInteger) []
 
 -- | For testing that an accidental exception will get caught.
 headSingletonException :: Term TyName Name DefaultUni DefaultFun ()
@@ -481,6 +484,7 @@ namesAndTests =
    , ("case4", case4)
    , ("caseProd1", caseProd1)
    , ("caseNoBranch", caseNoBranch)
+   , ("caseInteger", caseInteger)
    , ("caseNonTag", caseNonTag)
    ]
 

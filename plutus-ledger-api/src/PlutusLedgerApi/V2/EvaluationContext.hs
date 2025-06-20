@@ -32,11 +32,12 @@ supplied in the wrong order then script cost calculations will be incorrect.
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 a protocol update with the updated cost model parameters.
 -}
-mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-                    => [Int64] -- ^ the (updated) cost model parameters of the protocol
-                    -> m EvaluationContext
+mkEvaluationContext
+  :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
+  => [Int64] -- ^ the (updated) cost model parameters of the protocol
+  -> m EvaluationContext
 mkEvaluationContext =
-    tagWithParamNames @V2.ParamName
+  tagWithParamNames @V2.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
         PlutusV2
@@ -44,8 +45,9 @@ mkEvaluationContext =
           if pv < futurePV
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin)
-      [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
+        [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-        (\pv -> if pv < changPV
+        (\pv ->
+          if pv < changPV
             then DefaultFunSemanticsVariantA
             else DefaultFunSemanticsVariantB)

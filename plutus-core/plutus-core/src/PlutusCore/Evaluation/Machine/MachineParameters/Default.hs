@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -ddump-prep -ddump-to-file -dsuppress-all -dno-suppress-type-signatures -dppr-case-as-let -fforce-recomp -dumpdir /home/effectfully/code/iohk/plutus/junk/GHC-Core-dumps #-}
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
 -- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
 -- we need to be able to visually inspect, hence we dedicate a separate file to it.
@@ -16,12 +17,13 @@ import Control.DeepSeq (force)
 import Control.Monad.Except
 import GHC.Exts (inline)
 
--- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
--- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
--- machine.
+-- | The semantics-variant-dependent part of 'MachineParameters'.
 type DefaultMachineVariantParameters =
     MachineVariantParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
+-- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
+-- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
+-- machine.
 type DefaultMachineParameters =
     MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 

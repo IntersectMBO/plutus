@@ -31,6 +31,10 @@ class CaseBuiltin uni where
     -- this type isn't supported at all).
     caseBuiltin :: UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term
 
+-- See Note [DO NOT newtype-wrap functions].
+-- | A @data@ version of 'CaseBuiltin'. we parameterize the evaluator by a 'CaserBuiltin' so that
+-- the caller can choose whether to use the 'caseBuiltin' method or the always failing caser (the
+-- latter is required for earlier protocol versions when we didn't support casing on builtins).
 data CaserBuiltin uni = CaserBuiltin
     { unCaserBuiltin
         :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term)

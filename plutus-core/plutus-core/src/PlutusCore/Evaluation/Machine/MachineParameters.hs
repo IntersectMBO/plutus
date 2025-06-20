@@ -33,10 +33,7 @@ data CostModel machinecosts builtincosts =
     } deriving stock (Eq, Show)
 makeLenses ''CostModel
 
-{-| At execution time we need a 'BuiltinsRuntime' object which includes both the
-  cost model for builtins and their denotations.  This bundles one of those
-  together with the cost model for evaluator steps.  The 'term' type will be
-  CekValue when we're using this with the CEK machine. -}
+-- | The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
 data MachineVariantParameters machineCosts fun val =
     MachineVariantParameters {
       machineCosts    :: machineCosts
@@ -45,6 +42,11 @@ data MachineVariantParameters machineCosts fun val =
     deriving stock Generic
     deriving anyclass (NFData)
 
+{-| At execution time we need a 'BuiltinsRuntime' object which includes both the cost model for
+builtins and their denotations. This bundles one of those together with the cost model for evaluator
+steps and a 'CaserBuiltin' specifying how casing on values of built-in types works.
+The @val@ type will be 'CekValue' when we're using this with the CEK machine.
+-}
 data MachineParameters machineCosts fun val =
     MachineParameters {
       machineCaserBuiltin      :: CaserBuiltin (UniOf val)

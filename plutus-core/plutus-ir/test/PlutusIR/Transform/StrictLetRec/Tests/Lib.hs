@@ -94,7 +94,6 @@ evaluateUplcProgramWithTraces uplcProg =
 
   machineParameters :: DefaultMachineParameters
   machineParameters =
-      -- TODO: proper semantic variant. What should def be?
       MachineParameters def $ mkMachineVariantParameters def costModel
 
 defaultCompilationCtx

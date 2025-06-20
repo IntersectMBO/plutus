@@ -1,1 +1,7 @@
-(Right (con integer))
+(Left Type mismatch at ()
+Expected a term of type
+  '(sop)'
+But found one of type
+  '(fun (con integer) (fun (con integer) (con integer)))'
+Namely,
+  '(builtin addInteger)')
