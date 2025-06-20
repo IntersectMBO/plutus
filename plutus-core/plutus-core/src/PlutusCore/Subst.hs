@@ -24,7 +24,10 @@ module PlutusCore.Subst
     , vTerm
     , tvTerm
     , tvTy
-    , purely
+    , substConstantA
+    , substConstant
+    , termSubstConstantsM
+    , termSubstConstants
     ) where
 
 import PlutusPrelude
@@ -37,8 +40,7 @@ import PlutusCore.Name.Unique (HasUnique)
 import PlutusCore.Name.UniqueSet (UniqueSet)
 import PlutusCore.Name.UniqueSet qualified as USet
 
-purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
-purely = coerce
+import Universe
 
 -- | Applicatively replace a type variable using the given function.
 substTyVarA
@@ -277,3 +279,34 @@ tvTerm = termSubtypesDeep . typeTyVars
 -- | Get all the type variables in a type.
 tvTy :: Fold (Type tyname uni ann) tyname
 tvTy = typeSubtypesDeep . typeTyVars
+
+-- | Applicatively replace a constant using the given function.
+substConstantA
+    :: Applicative f
+    => (ann -> Some (ValueOf uni) -> f (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> f (Term tyname name uni fun ann)
+substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
+substConstantA _    t                    = pure t
+
+-- | Replace a constant using the given function.
+substConstant
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
+substConstant = purely (substConstantA . curry) . uncurry
+
+-- | Monadically substitute constants using the given function.
+termSubstConstantsM
+    :: Monad m
+    => (ann -> Some (ValueOf uni) -> m (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
+termSubstConstantsM = transformMOf termSubterms . substConstantA
+
+-- | Substitute constants using the given function.
+termSubstConstants
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
+termSubstConstants = purely (termSubstConstantsM . curry) . uncurry

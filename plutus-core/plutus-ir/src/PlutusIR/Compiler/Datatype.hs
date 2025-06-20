@@ -23,7 +23,7 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
-import PlutusIR.Transform.Substitute
+import PlutusIR.Subst
 
 import PlutusCore.Core qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

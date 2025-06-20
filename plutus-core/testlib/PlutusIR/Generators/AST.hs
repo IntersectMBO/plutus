@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module PlutusIR.Generators.AST
     ( module Export
-    , discardIfAnyConstant
+    , regenConstantsUntil
     , genProgram
     , genTerm
     , genBinding
@@ -16,25 +16,25 @@ module PlutusIR.Generators.AST
     ) where
 
 import PlutusIR
-import PlutusIR.Core.Plated
+import PlutusIR.Subst
 
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Generators.Hedgehog.AST as Export (AstGen, genBuiltin, genConstant, genKind,
                                                      genVersion, runAstGen, simpleRecursive)
 import PlutusCore.Generators.Hedgehog.AST qualified as PLC
 
-import Control.Lens (andOf, to)
 import Hedgehog hiding (Rec, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Universe
 
-discardIfAnyConstant
+regenConstantsUntil
   :: MonadGen m
-  => (Some (ValueOf uni) -> Bool)
-  -> m (Program tyname name uni fun ann)
-  -> m (Program tyname name uni fun ann)
-discardIfAnyConstant p = Gen.filterT . andOf $ progTerm . termConstantsDeep . to (not . p)
+  => (Some (ValueOf PLC.DefaultUni) -> Bool)
+  -> Program tyname name PLC.DefaultUni fun ann
+  -> m (Program tyname name PLC.DefaultUni fun ann)
+regenConstantsUntil p =
+    progTerm . termSubstConstantsM $ \ann -> fmap (fmap $ Constant ann) . PLC.regenConstantUntil p
 
 genName :: PLC.AstGen Name
 genName = Gen.filterT (not . isPirKw . _nameText) PLC.genName where

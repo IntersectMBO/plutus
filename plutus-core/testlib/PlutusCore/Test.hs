@@ -141,7 +141,7 @@ checkQuiet prop = do
 checkFails :: Property -> IO ()
 -- 'withAtLeastTests' gives the property that is supposed to fail some room in order for it to
 -- reach a failing test case.
-checkFails = checkQuiet . withAtLeastTests 1000 >=> \res -> res @?= False
+checkFails = checkQuiet . withAtLeastTests 100000 >=> \res -> res @?= False
 
 -- | Check whether the given constant can be serialised. Useful for tests of the
 -- parser\/deserializer where we need to filter out unprintable\/unserialisable terms. Technically,

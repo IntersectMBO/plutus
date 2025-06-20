@@ -16,8 +16,8 @@ import PlutusCore.Rename.Internal (Dupable (Dupable))
 import PlutusIR.Analysis.Size (Size, termSize)
 import PlutusIR.Contexts
 import PlutusIR.Core
+import PlutusIR.Subst
 import PlutusIR.Transform.Inline.Utils
-import PlutusIR.Transform.Substitute
 
 import Control.Lens (view)
 

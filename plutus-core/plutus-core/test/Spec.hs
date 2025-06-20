@@ -65,83 +65,10 @@ main = do
       includingOptions [Option $ Proxy @NEAT.GenMode, Option $ Proxy @NEAT.GenDepth]
         : defaultIngredients
 
-compareName :: Name -> Name -> Bool
-compareName = (==) `on` _nameText
-
-compareTyName :: TyName -> TyName -> Bool
-compareTyName (TyName n) (TyName n') = compareName n n'
-
-compareTerm ::
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a) =>
-  Term TyName Name uni fun a ->
-  Term TyName Name uni fun a ->
-  Bool
-compareTerm (Var _ n) (Var _ n') = compareName n n'
-compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t') =
-  compareTyName n n' && k == k' && compareTerm t t'
-compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') =
-  compareName n n' && compareType ty ty' && compareTerm t t'
-compareTerm (Apply _ t t'') (Apply _ t' t''') =
-  compareTerm t t' && compareTerm t'' t'''
-compareTerm (Constant _ x) (Constant _ y) = x == y
-compareTerm (Builtin _ bi) (Builtin _ bi') = bi == bi'
-compareTerm (TyInst _ t ty) (TyInst _ t' ty') =
-  compareTerm t t' && compareType ty ty'
-compareTerm (Unwrap _ t) (Unwrap _ t') = compareTerm t t'
-compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
-  compareType pat1 pat2 && compareType arg1 arg2 && compareTerm t1 t2
-compareTerm (Constr _ ty i es) (Constr _ ty' i' es') =
-  compareType ty ty' && i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
-compareTerm (Case _ ty arg cs) (Case _ ty' arg' cs') =
-  compareType ty ty'
-    && compareTerm arg arg'
-    && maybe False (all (uncurry compareTerm)) (zipExact cs cs')
-compareTerm (Error _ ty) (Error _ ty') = compareType ty ty'
-compareTerm _ _ = False
-
-compareType ::
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq a) =>
-  Type TyName uni a ->
-  Type TyName uni a ->
-  Bool
-compareType (TyVar _ n) (TyVar _ n') = compareTyName n n'
-compareType (TyFun _ t s) (TyFun _ t' s') =
-  compareType t t' && compareType s s'
-compareType (TyIFix _ pat1 arg1) (TyIFix _ pat2 arg2) =
-  compareType pat1 pat2 && compareType arg1 arg2
-compareType (TyForall _ n k t) (TyForall _ n' k' t') =
-  compareTyName n n' && k == k' && compareType t t'
-compareType (TyBuiltin _ x) (TyBuiltin _ y) = x == y
-compareType (TyLam _ n k t) (TyLam _ n' k' t') =
-  compareTyName n n' && k == k' && compareType t t'
-compareType (TyApp _ t t') (TyApp _ t'' t''') =
-  compareType t t'' && compareType t' t'''
-compareType (TySOP _ tyls) (TySOP _ tyls') =
-  maybe
-    False
-    (all (\(tyl1, tyl2) -> maybe False (all (uncurry compareType)) (zipExact tyl1 tyl2)))
-    (zipExact tyls tyls')
-compareType _ _ = False
-
-compareProgram ::
-  (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a) =>
-  Program TyName Name uni fun a ->
-  Program TyName Name uni fun a ->
-  Bool
-compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
-
--- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram
-  {unTextualProgram :: Program TyName Name DefaultUni DefaultFun a}
-  deriving stock (Show)
-
-instance (Eq a) => Eq (TextualProgram a) where
-  (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
-
 propFlat :: Property
 propFlat = property $ do
   prog <- forAllPretty . runAstGen $
-    discardIfAnyConstant (not . isSerialisable) $ genProgram @DefaultFun
+    regenConstantsUntil isSerialisable =<< genProgram @DefaultFun
   Hedgehog.tripping prog Flat.flat Flat.unflat
 
 {- The following tests check that (A) the parser can
@@ -223,18 +150,11 @@ text, hopefully returning the same thing.
 -}
 propParser :: Property
 propParser = property $ do
-  prog <- TextualProgram <$>
-    forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
-  Hedgehog.tripping
-    prog
-    (displayPlc . unTextualProgram)
-    (\p -> fmap (TextualProgram . void) (parseProg p))
+  prog <- forAllPretty . runAstGen $ regenConstantsUntil isSerialisable =<< genProgram
+  Hedgehog.tripping prog displayPlc (fmap void . parseProg)
   where
     parseProg ::
-      T.Text ->
-      Either
-        ParserErrorBundle
-        (Program TyName Name DefaultUni DefaultFun SrcSpan)
+      T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SrcSpan)
     parseProg = runQuoteT . parseProgram
 
 type TestFunction = T.Text -> Either DefaultError T.Text

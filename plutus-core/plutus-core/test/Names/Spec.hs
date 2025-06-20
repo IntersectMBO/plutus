@@ -26,7 +26,7 @@ import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (Prerena
 import Control.Monad.Except (modifyError)
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
-import Hedgehog (Gen, Property, assert, forAll, property, tripping)
+import Hedgehog (Gen, Property, assert, forAll, property, tripping, (/==), (===))
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -53,24 +53,23 @@ test_DeBruijnInteresting =
 
 test_mangle :: TestTree
 test_mangle =
-  testPropertyNamed "equality does not survive mangling" "equality_mangling" $ property do
-    (term, termMangled) <- forAll . Gen.just $ runAstGen do
+  testPropertyNamed "equality does not survive mangling" "equality_mangling" . property $ do
+    (term, termMangled) <- forAll . runAstGen $ do
       term <- AST.genTerm
-      mayTermMang <- mangleNames term
-      pure $ do
-        termMang <- mayTermMang
-        Just (term, termMang)
-    assert $ term /= termMangled && termMangled /= term
+      (,) term <$> mangleNames term
+    term /== termMangled
+    termMangled /== term
 
 -- | Test equality of a program and its renamed version, given a renamer.
 prop_equalityFor
-  :: (program ~ Program TyName Name DefaultUni DefaultFun ())
+  :: program ~ Program TyName Name DefaultUni DefaultFun ()
   => (program -> Quote program)
   -> Property
 prop_equalityFor ren = property do
   prog <- forAllPretty $ runAstGen genProgram
   let progRen = runQuote $ ren prog
-  assert $ progRen == prog && prog == progRen
+  progRen === prog
+  prog === progRen
 
 test_equalityRename :: TestTree
 test_equalityRename =

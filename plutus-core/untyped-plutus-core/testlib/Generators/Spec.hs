@@ -11,7 +11,6 @@ import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Flat (flat, unflat)
-import Generators.Lib (TextualProgram (..), genProgram)
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -31,21 +30,19 @@ import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (Program)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (progTerm, termAnn)
-import UntypedPlutusCore.Generators.Hedgehog (discardIfAnyConstant)
+import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, regenConstantsUntil)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
     prog <- forAllPretty . runAstGen $
-        discardIfAnyConstant (not . isSerialisable) $ genProgram @DefaultFun
+        regenConstantsUntil isSerialisable =<< genProgram @DefaultFun
     tripping prog (flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do
-    prog <- TextualProgram <$>
-        forAllPretty (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
-    tripping prog (displayPlc . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) (parseProg p))
+    prog <- forAllPretty (runAstGen $ regenConstantsUntil isSerialisable =<< genProgram)
+    tripping prog displayPlc (fmap void . parseProg)
     where
         parseProg
             :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SrcSpan)
@@ -60,8 +57,7 @@ propTermSrcSpan = testPropertyNamed
     $ do
         code <- display <$>
             forAllPretty (view progTerm <$>
-                runAstGen (discardIfAnyConstant (not . isSerialisable)
-                    (genProgram @DefaultFun)))
+                runAstGen (regenConstantsUntil isSerialisable =<< genProgram @DefaultFun))
         annotateShow code
         let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
         trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])

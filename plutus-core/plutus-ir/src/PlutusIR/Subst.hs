@@ -4,6 +4,15 @@
 {-# LANGUAGE ViewPatterns        #-}
 
 module PlutusIR.Subst (
+  substVarA,
+  substTyVarA,
+  typeSubstTyNames,
+  termSubstNames,
+  termSubstNamesM,
+  termSubstTyNames,
+  termSubstTyNamesM,
+  bindingSubstNames,
+  bindingSubstTyNames,
   fvTerm,
   ftvTerm,
   fvBinding,
@@ -12,21 +21,96 @@ module PlutusIR.Subst (
   vTerm,
   tvTerm,
   tvTy,
+  substConstantA,
+  substConstant,
+  termSubstConstantsM,
+  termSubstConstants,
 ) where
+
+import PlutusPrelude
 
 import PlutusCore.Core (typeTyVars)
 import PlutusCore.Core qualified as PLC
+import PlutusCore.Name.Unique (HasUnique, TermUnique, TypeUnique)
 import PlutusCore.Name.Unique qualified as PLC
+import PlutusCore.Name.UniqueSet (UniqueSet)
 import PlutusCore.Name.UniqueSet qualified as USet
-import PlutusCore.Subst (ftvTy, ftvTyCtx, tvTy)
-
+import PlutusCore.Subst (ftvTy, ftvTyCtx, tvTy, typeSubstTyNames)
 import PlutusIR.Core
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
 import Data.Traversable (mapAccumL)
-import PlutusCore.Name.Unique (HasUnique, TermUnique, TypeUnique)
-import PlutusCore.Name.UniqueSet (UniqueSet)
+import Universe
+
+-- | Applicatively replace a variable using the given function.
+substVarA ::
+  (Applicative f) =>
+  (name -> f (Maybe (Term tyname name uni fun ann))) ->
+  Term tyname name uni fun ann ->
+  f (Term tyname name uni fun ann)
+substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
+substVarA _ t                  = pure t
+{-# INLINE substVarA #-}
+
+-- | Applicatively replace a type variable using the given function.
+substTyVarA ::
+  (Applicative f) =>
+  (tyname -> f (Maybe (Type tyname uni ann))) ->
+  Type tyname uni ann ->
+  f (Type tyname uni ann)
+substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
+substTyVarA _ ty                        = pure ty
+{-# INLINE substTyVarA #-}
+
+-- | Naively substitute names using the given functions (i.e. do not substitute binders).
+termSubstNames ::
+  (name -> Maybe (Term tyname name uni fun a)) ->
+  Term tyname name uni fun a ->
+  Term tyname name uni fun a
+termSubstNames = purely termSubstNamesM
+
+-- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
+termSubstNamesM ::
+  (Monad m) =>
+  (name -> m (Maybe (Term tyname name uni fun ann))) ->
+  Term tyname name uni fun ann ->
+  m (Term tyname name uni fun ann)
+termSubstNamesM = transformMOf termSubterms . substVarA
+
+-- | Naively substitute type names using the given functions (i.e. do not substitute binders).
+termSubstTyNames ::
+  (tyname -> Maybe (Type tyname uni a)) ->
+  Term tyname name uni fun a ->
+  Term tyname name uni fun a
+termSubstTyNames = purely termSubstTyNamesM
+
+{- | Naively monadically substitute type names using the given function
+(i.e. do not substitute binders).
+-}
+termSubstTyNamesM ::
+  (Monad m) =>
+  (tyname -> m (Maybe (Type tyname uni ann))) ->
+  Term tyname name uni fun ann ->
+  m (Term tyname name uni fun ann)
+termSubstTyNamesM =
+  transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA
+
+-- | Naively substitute names using the given functions (i.e. do not substitute binders).
+bindingSubstNames ::
+  (name -> Maybe (Term tyname name uni fun a)) ->
+  Binding tyname name uni fun a ->
+  Binding tyname name uni fun a
+bindingSubstNames nameF = over bindingSubterms (termSubstNames nameF)
+
+-- | Naively substitute type names using the given functions (i.e. do not substitute binders).
+bindingSubstTyNames ::
+  (tyname -> Maybe (Type tyname uni a)) ->
+  Binding tyname name uni fun a ->
+  Binding tyname name uni fun a
+bindingSubstTyNames tynameF =
+  over bindingSubterms (termSubstTyNames tynameF)
+    . over bindingSubtypes (typeSubstTyNames tynameF)
 
 -- | Get all the free term variables in a PIR term.
 fvTerm :: (HasUnique name TermUnique) => Traversal' (Term tyname name uni fun ann) name
@@ -153,3 +237,34 @@ vTerm = termSubtermsDeep . termVars
 -- | Get all the type variables in a term.
 tvTerm :: Fold (Term tyname name uni fun ann) tyname
 tvTerm = termSubtypesDeep . typeTyVars
+
+-- | Applicatively replace a constant using the given function.
+substConstantA
+    :: Applicative f
+    => (ann -> Some (ValueOf uni) -> f (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> f (Term tyname name uni fun ann)
+substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
+substConstantA _    t                    = pure t
+
+-- | Replace a constant using the given function.
+substConstant
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
+substConstant = purely (substConstantA . curry) . uncurry
+
+-- | Monadically substitute constants using the given function.
+termSubstConstantsM
+    :: Monad m
+    => (ann -> Some (ValueOf uni) -> m (Maybe (Term tyname name uni fun ann)))
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
+termSubstConstantsM = transformMOf termSubterms . substConstantA
+
+-- | Substitute constants using the given function.
+termSubstConstants
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+    -> Term tyname name uni fun ann
+    -> Term tyname name uni fun ann
+termSubstConstants = purely (termSubstConstantsM . curry) . uncurry
