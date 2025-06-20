@@ -1,0 +1,10 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
+
+Trace:
+func:test/Plugin/CallStack/Spec.hs:70:1-70:4
+\-nestedLinear:test/Plugin/CallStack/Spec.hs:63:1-63:12
+\-nestedLinear2:test/Plugin/CallStack/Spec.hs:64:1-64:13
+\-nestedLinear3:test/Plugin/CallStack/Spec.hs:65:1-65:13
+\-nestedLinear4:test/Plugin/CallStack/Spec.hs:66:1-66:13

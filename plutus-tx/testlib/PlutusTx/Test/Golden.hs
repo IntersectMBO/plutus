@@ -25,6 +25,7 @@ module PlutusTx.Test.Golden (
   goldenEvalCek,
   goldenEvalCekCatch,
   goldenEvalCekCatchBudget,
+  goldenEvalCekTraceCatchBudget,
   goldenEvalCekLog,
 
   -- * Combined testing
@@ -37,7 +38,7 @@ module PlutusTx.Test.Golden (
 
 import Prelude
 
-import Control.Lens (Field1 (_1), view)
+import Control.Lens (Field1 (_1), view, (^.))
 import Control.Monad.Except (runExceptT)
 import Data.List qualified as List
 import Data.SatInt (fromSatInt)
@@ -46,6 +47,7 @@ import Flat (Flat)
 import Language.Haskell.TH qualified as TH
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
@@ -64,6 +66,8 @@ import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
 import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+
 
 -- Value assertion tests
 goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
@@ -172,6 +176,47 @@ goldenEvalCekCatchBudget name compiledCode =
             , prettyPlcClassicSimple termRes
             ]
     pure (render @Text contents)
+
+goldenEvalCekTraceCatchBudget :: TestName -> CompiledCode a -> TestNested
+goldenEvalCekTraceCatchBudget name compiledCode =
+  nestedGoldenVsDocM name ".eval" . ppCatch $ do
+    term <- toUPlc compiledCode
+    let
+      (evalRes, UPLC.CountingSt budget, logOut) =
+        UPLC.runCek
+          PLC.defaultCekParametersForTesting
+          UPLC.counting
+          UPLC.logEmitter
+          (term ^. UPLC.progTerm)
+      size = UPLC.programSize term
+
+      traceMsg =
+        case logOut of
+          [] -> ["Trace: <empty>"]
+          x ->
+              [ "Trace:"
+              , vsep $ pretty <$> x
+              ]
+
+    case evalRes of
+      Left evalErr ->
+        pure $
+          render @Text $
+            vsep
+              [ prettyReadable evalErr
+              , mempty
+              , vsep traceMsg
+              ]
+      Right termRes ->
+        pure $
+          render @Text $
+            vsep
+              [ prettyBudget budget size
+              , mempty
+              , vsep traceMsg
+              , mempty
+              , prettyPlcClassicSimple termRes
+              ]
 
 goldenEvalCekLog
   :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun)
