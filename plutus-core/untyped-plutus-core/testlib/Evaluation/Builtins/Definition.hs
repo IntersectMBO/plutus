@@ -25,7 +25,7 @@ import Evaluation.Builtins.Common (typecheckAnd, typecheckEvaluateCek, typecheck
                                    typecheckReadKnownCek)
 import Evaluation.Builtins.Conversion qualified as Conversion
 import Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
-import Evaluation.Builtins.Integer.ExpModIntegerProperties (test_expModInteger_properties)
+import Evaluation.Builtins.Integer.ExpModIntegerProperties (test_integer_exp_mod_properties)
 import Evaluation.Builtins.Integer.OrderProperties (test_integer_order_properties)
 import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
@@ -1219,6 +1219,17 @@ test_Bitwise_CIP0123 =
             ]
         ]
 
+test_integer_properties :: TestTree
+test_integer_properties =
+  testGroup "test_integer_properties"
+  [ test_integer_ring_properties
+  , test_integer_div_mod_properties
+  , test_integer_quot_rem_properties
+  , test_integer_order_properties
+  , test_integer_ring_properties
+  , test_integer_exp_mod_properties
+  ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -1255,12 +1266,7 @@ test_definition =
         , test_HashSizes
         , test_SignatureVerification
         , test_BLS12_381
-        , test_integer_ring_properties
-        , test_integer_div_mod_properties
-        , test_integer_quot_rem_properties
-        , test_integer_order_properties
-        , test_integer_ring_properties
-        , test_expModInteger_properties
+        , test_integer_properties
         , test_Other
         , test_Version
         , test_ConsByteString

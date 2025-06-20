@@ -7,9 +7,24 @@ where
 import Prelude hiding (and, not, or)
 
 import PlutusCore qualified as PLC
+import PlutusCore.Generators.QuickCheck.Builtin (AsArbitraryBuiltin (..))
 import PlutusCore.MkPlc (builtin, mkIterAppNoAnn, mkTyBuiltin, tyInst)
 
 import Evaluation.Builtins.Common
+
+import Test.QuickCheck (Gen, arbitrary)
+
+-- For property tests, we don't want to use the standard QuickCheck generator
+-- for Integers because that only produces values in [-99..99].  Here are some
+-- utilities to make it easier to use the better generator for
+-- AsArbitraryBuiltin Integer.
+type BigInteger = AsArbitraryBuiltin Integer
+
+biginteger :: BigInteger -> PlcTerm
+biginteger (AsArbitraryBuiltin n) = integer n
+
+arbitraryBigInteger :: Gen Integer
+arbitraryBigInteger = unAsArbitraryBuiltin <$> arbitrary
 
 -- Functions creating terms that are applications of various builtins, for
 -- convenience.
