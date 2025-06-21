@@ -44,12 +44,13 @@ instance AgdaUnparse UPLC.DefaultFun where
   agdaUnparse = usToHyphen . lowerInitialChar . show
 
 instance AgdaUnparse SimplifierStage where
-  agdaUnparse FloatDelay = "floatDelayT"
-  agdaUnparse ForceDelay = "forceDelayT"
-  agdaUnparse CaseOfCase = "caseOfCaseT"
-  agdaUnparse CaseReduce = "caseReduceT"
-  agdaUnparse Inline     = "inlineT"
-  agdaUnparse CSE        = "cseT"
+  agdaUnparse FloatDelay     = "floatDelayT"
+  agdaUnparse ForceDelay     = "forceDelayT"
+  agdaUnparse ForceCaseDelay = "forceCaseDelayT"
+  agdaUnparse CaseOfCase     = "caseOfCaseT"
+  agdaUnparse CaseReduce     = "caseReduceT"
+  agdaUnparse Inline         = "inlineT"
+  agdaUnparse CSE            = "cseT"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
