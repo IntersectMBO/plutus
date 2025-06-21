@@ -3,17 +3,13 @@
    ((\go xs -> go 5 xs)
       ((\s -> s s)
          (\s ds ds ->
-            force
-              (case
-                 ds
-                 [ (delay ((\x -> error) (force trace "PT7" (constr 0 []))))
-                 , (\x xs ->
-                      delay
-                        (force
-                           (force ifThenElse
-                              (equalsInteger 0 ds)
-                              (delay x)
-                              (delay
-                                 ((\x -> s s x)
-                                    (subtractInteger ds 1)
-                                    xs))))) ])))))
+            case
+              ds
+              [ ((\x -> error) (force trace "PT7" (constr 0 [])))
+              , (\x xs ->
+                   force
+                     (force ifThenElse
+                        (equalsInteger 0 ds)
+                        (delay x)
+                        (delay
+                           ((\x -> s s x) (subtractInteger ds 1) xs)))) ]))))

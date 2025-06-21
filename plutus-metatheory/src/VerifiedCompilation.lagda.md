@@ -83,6 +83,7 @@ data Transformation : SimplifierTag → Relation where
   -- FIXME: Inline currently rejects some valid translations so is disabled.
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
+  forceCaseDelayNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
 data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
   empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
@@ -102,6 +103,7 @@ isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDela
 isTransformation? tag ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
 ... | proof p = proof (isFD p)
+isTransformation? tag ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
 isTransformation? tag ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
 ... | proof p = proof (isCoC p)

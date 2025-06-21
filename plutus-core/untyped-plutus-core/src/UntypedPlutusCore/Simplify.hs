@@ -22,6 +22,7 @@ import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
+import UntypedPlutusCore.Transform.ForceCaseDelay (forceCaseDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (InlineHints (..), inline)
 import UntypedPlutusCore.Transform.Simplifier
@@ -96,6 +97,7 @@ termSimplifier opts builtinSemanticsVariant =
       SimplifierT name uni fun a m (Term name uni fun a)
     simplifyStep _ =
         floatDelay
+        >=> forceCaseDelay
         >=> case (eqT @uni @PLC.DefaultUni, eqT @fun @DefaultFun) of
             (Just Refl, Just Refl) -> forceDelay builtinSemanticsVariant
             _                      -> pure

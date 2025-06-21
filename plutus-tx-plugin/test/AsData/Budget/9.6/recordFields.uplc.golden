@@ -12,20 +12,16 @@
                              (addInteger
                                 (addInteger (addInteger cse cse) cse)
                                 cse)
-                             (force
-                                (case
-                                   (lessThanInteger
-                                      (addInteger cse cse)
-                                      (addInteger cse cse))
-                                   [ (delay (addInteger cse cse))
-                                   , (delay (addInteger cse cse)) ])))
-                          (force
                              (case
                                 (lessThanInteger
                                    (addInteger cse cse)
                                    (addInteger cse cse))
-                                [ (delay (addInteger cse cse))
-                                , (delay (addInteger cse cse)) ])))
+                                [(addInteger cse cse), (addInteger cse cse)]))
+                          (case
+                             (lessThanInteger
+                                (addInteger cse cse)
+                                (addInteger cse cse))
+                             [(addInteger cse cse), (addInteger cse cse)]))
                        (\x y ->
                           force ifThenElse
                             (lessThanInteger x y)

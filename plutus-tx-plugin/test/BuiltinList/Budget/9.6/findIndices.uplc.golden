@@ -16,13 +16,10 @@
                            ((\x xs ->
                                (\indices ->
                                   force
-                                    (force
-                                       (force ifThenElse
-                                          (equalsInteger (modInteger x 2) 0)
-                                          (delay (delay indices))
-                                          (delay
-                                             (delay
-                                                (force mkCons i indices))))))
+                                    (force ifThenElse
+                                       (equalsInteger (modInteger x 2) 0)
+                                       (delay indices)
+                                       (delay (force mkCons i indices))))
                                  (force (go (delay (\x -> x)))
                                     (addInteger i 1)
                                     xs))

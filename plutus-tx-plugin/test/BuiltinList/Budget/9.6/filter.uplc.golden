@@ -16,11 +16,10 @@
                            ((\x xs ->
                                (\xs ->
                                   force
-                                    (force
-                                       (force ifThenElse
-                                          (equalsInteger (modInteger x 2) 0)
-                                          (delay (delay (force mkCons x xs)))
-                                          (delay (delay xs)))))
+                                    (force ifThenElse
+                                       (equalsInteger (modInteger x 2) 0)
+                                       (delay (force mkCons x xs))
+                                       (delay xs)))
                                  (force (go (delay (\x -> x))) xs))
                               (force headList xs)
                               (force tailList xs))))))
