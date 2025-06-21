@@ -1,1 +1,1 @@
-case scrut [1]
+\scrut -> case scrut [1]

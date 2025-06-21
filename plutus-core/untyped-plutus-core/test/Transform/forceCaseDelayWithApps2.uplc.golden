@@ -1,1 +1,1 @@
-case scrut [(\x -> 1), 2]
+\scrut -> case scrut [(\x -> 1), 2]

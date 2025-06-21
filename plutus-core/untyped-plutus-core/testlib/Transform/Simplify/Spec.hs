@@ -430,7 +430,10 @@ forceCaseDelayNoApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceCaseDelayNoApps1 = runQuote $ do
   scrut <- freshName "scrut"
   let one = mkConstant @Integer () 1
-      term = Force () $ Case () (Var () scrut) (V.fromList [Delay () one])
+      term =
+        LamAbs () scrut
+        $ Force ()
+        $ Case () (Var () scrut) (V.fromList [Delay () one])
   pure term
 
 forceCaseDelayWithApps1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -439,7 +442,8 @@ forceCaseDelayWithApps1 = runQuote $ do
   x <- freshName "x"
   let one = mkConstant @Integer () 1
       term =
-        Force ()
+        LamAbs () scrut
+        $ Force ()
         $ Case ()
           (Var () scrut)
           (V.fromList [LamAbs () x $ Delay () one])
@@ -451,7 +455,8 @@ forceCaseDelayNoApps2 = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        Force ()
+        LamAbs () scrut
+        $ Force ()
         $ Case ()
           (Var () scrut)
           (V.fromList [Delay () one, Delay () two])
@@ -464,7 +469,8 @@ forceCaseDelayWithApps2 = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        Force ()
+        LamAbs () scrut
+        $ Force ()
         $ Case ()
           (Var () scrut)
           (V.fromList [LamAbs () x $ Delay () one, Delay () two])
@@ -476,7 +482,8 @@ forceCaseDelayNoApps2Fail = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        Force ()
+        LamAbs () scrut
+        $ Force ()
         $ Case ()
           (Var () scrut)
           (V.fromList [Delay () one, two])
@@ -490,7 +497,8 @@ forceCaseDelayWithApps2Fail = runQuote $ do
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       term =
-        Force ()
+        LamAbs () scrut
+        $ Force ()
         $ Case ()
           (Var () scrut)
           (V.fromList
