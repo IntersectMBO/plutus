@@ -15,20 +15,14 @@
             (\s arg ->
                delay
                  (\ds ds ->
-                    force
-                      (case
-                         ds
-                         [ (delay (constr 0 []))
-                         , (\x xs ->
-                              delay
-                                (force
-                                   (case
-                                      (ds x)
-                                      [ (delay
-                                           (force (s s (delay (\x -> x)))
-                                              ds
-                                              xs))
-                                      , (delay (constr 1 [])) ]))) ])))
+                    case
+                      ds
+                      [ (constr 0 [])
+                      , (\x xs ->
+                           case
+                             (ds x)
+                             [ (force (s s (delay (\x -> x))) ds xs)
+                             , (constr 1 []) ]) ]))
             (delay (\x -> x))))
       ((\s -> s s)
          (\s n ->

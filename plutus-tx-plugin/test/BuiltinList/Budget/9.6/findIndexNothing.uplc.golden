@@ -15,15 +15,13 @@
                         (delay
                            ((\xs ->
                                force
-                                 (force
-                                    (force ifThenElse
-                                       (equalsInteger (force headList xs) 99)
-                                       (delay (delay (constr 0 [i])))
-                                       (delay
-                                          (delay
-                                             (force (go (delay (\x -> x)))
-                                                (addInteger i 1)
-                                                xs))))))
+                                 (force ifThenElse
+                                    (equalsInteger (force headList xs) 99)
+                                    (delay (constr 0 [i]))
+                                    (delay
+                                       (force (go (delay (\x -> x)))
+                                          (addInteger i 1)
+                                          xs))))
                               (force tailList xs))))))
            (delay (\x -> x)))
         0

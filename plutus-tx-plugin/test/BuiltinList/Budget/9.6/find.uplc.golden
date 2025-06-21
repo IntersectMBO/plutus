@@ -20,13 +20,10 @@
                                 (delay (constr 1 []))
                                 (delay
                                    ((\x xs ->
-                                       force
-                                         (case
-                                            (p x)
-                                            [ (delay (constr 0 [x]))
-                                            , (delay
-                                                 (force (go (delay (\x -> x)))
-                                                    xs)) ]))
+                                       case
+                                         (p x)
+                                         [ (constr 0 [x])
+                                         , (force (go (delay (\x -> x))) xs) ])
                                       (force headList xs)
                                       (force tailList xs))))))
                    (delay (\x -> x)))))

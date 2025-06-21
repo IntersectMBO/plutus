@@ -3,17 +3,15 @@
    ((\s ->
        s s)
       (\s i ds ->
-         force
-           (case
-              ds
-              [ (delay (constr 1 []))
-              , (\x xs ->
-                   delay
-                     (force
-                        (force ifThenElse
-                           (lessThanEqualsInteger 10 x)
-                           (delay ((\x -> s s x) (addInteger 1 i) xs))
-                           (delay (constr 0 [i]))))) ]))
+         case
+           ds
+           [ (constr 1 [])
+           , (\x xs ->
+                force
+                  (force ifThenElse
+                     (lessThanEqualsInteger 10 x)
+                     (delay ((\x -> s s x) (addInteger 1 i) xs))
+                     (delay (constr 0 [i])))) ])
       0
       (constr 1
          [ 1
