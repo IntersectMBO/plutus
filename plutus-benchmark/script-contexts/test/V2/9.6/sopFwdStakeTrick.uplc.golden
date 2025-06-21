@@ -667,62 +667,49 @@
                                                                                 ds ->
                                                                                  (\obsScriptCred' ->
                                                                                     (\go ->
-                                                                                       (\cse ->
-                                                                                          force
-                                                                                            (case
-                                                                                               (cse
-                                                                                                  a)
-                                                                                               [ (delay
-                                                                                                    (constr 0
-                                                                                                       [  ]))
-                                                                                               , (delay
-                                                                                                    (force
-                                                                                                       (case
-                                                                                                          (cse
-                                                                                                             a)
-                                                                                                          [ (delay
-                                                                                                               (constr 0
-                                                                                                                  [  ]))
-                                                                                                          , (delay
-                                                                                                               (go
-                                                                                                                  ds)) ]))) ]))
+                                                                                       case
                                                                                          (`$fEqStakingCredential_$c==`
-                                                                                            obsScriptCred'))
+                                                                                            obsScriptCred'
+                                                                                            a)
+                                                                                         [ (constr 0
+                                                                                              [  ])
+                                                                                         , (case
+                                                                                              (`$fEqStakingCredential_$c==`
+                                                                                                 obsScriptCred'
+                                                                                                 a)
+                                                                                              [ (constr 0
+                                                                                                   [  ])
+                                                                                              , (go
+                                                                                                   ds) ]) ])
                                                                                       ((\s ->
                                                                                           s
                                                                                             s)
                                                                                          (\s
                                                                                            ds ->
-                                                                                            force
-                                                                                              (case
-                                                                                                 ds
-                                                                                                 [ (delay
-                                                                                                      ((\x ->
-                                                                                                          error)
-                                                                                                         (force
-                                                                                                            trace
-                                                                                                            "not found"
-                                                                                                            (constr 0
-                                                                                                               [  ]))))
-                                                                                                 , (\ds
-                                                                                                     xs' ->
-                                                                                                      delay
-                                                                                                        (case
-                                                                                                           ds
-                                                                                                           [ (\c'
-                                                                                                               i ->
-                                                                                                                force
-                                                                                                                  (case
-                                                                                                                     (`$fEqStakingCredential_$c==`
-                                                                                                                        c'
-                                                                                                                        obsScriptCred')
-                                                                                                                     [ (delay
-                                                                                                                          (constr 0
-                                                                                                                             [  ]))
-                                                                                                                     , (delay
-                                                                                                                          (s
-                                                                                                                             s
-                                                                                                                             xs')) ])) ])) ]))))
+                                                                                            case
+                                                                                              ds
+                                                                                              [ ((\x ->
+                                                                                                    error)
+                                                                                                   (force
+                                                                                                      trace
+                                                                                                      "not found"
+                                                                                                      (constr 0
+                                                                                                         [  ])))
+                                                                                              , (\ds
+                                                                                                  xs' ->
+                                                                                                   case
+                                                                                                     ds
+                                                                                                     [ (\c'
+                                                                                                         i ->
+                                                                                                          case
+                                                                                                            (`$fEqStakingCredential_$c==`
+                                                                                                               c'
+                                                                                                               obsScriptCred')
+                                                                                                            [ (constr 0
+                                                                                                                 [  ])
+                                                                                                            , (s
+                                                                                                                 s
+                                                                                                                 xs') ]) ]) ])))
                                                                                    (`$fUnsafeFromDataStakingCredential_$cunsafeFromBuiltinData`
                                                                                       obsScriptCred)))))))) ]) ])
                                           (\ds
