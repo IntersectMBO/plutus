@@ -34,6 +34,11 @@ data CostModel machinecosts builtincosts =
 makeLenses ''CostModel
 
 -- | The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.
+--
+-- 'CaserBuiltin' isn't included, because it only explicitly depends on the protocol version and not
+-- the language version (even though there's an implicit dependency on the language version: older
+-- languages don't support 'Case' in general, but it's safe to ignore that, because support for
+-- 'Case' is controlled by the AST version, which is a separate check during deserialisation).
 data MachineVariantParameters machineCosts fun val =
     MachineVariantParameters {
       machineCosts    :: machineCosts

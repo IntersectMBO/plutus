@@ -32,22 +32,18 @@
                                               (constr 1 [])
                                               (\x xs ->
                                                  force
-                                                   (force
-                                                      (force ifThenElse
-                                                         (lessThanEqualsInteger
-                                                            x
-                                                            y)
-                                                         (delay
-                                                            (delay
-                                                               (constr 0 [])))
-                                                         (delay
-                                                            (delay
-                                                               (force
-                                                                  (go
-                                                                     (delay
-                                                                        (\x ->
-                                                                           x)))
-                                                                  xs))))))))
+                                                   (case
+                                                      (lessThanEqualsInteger
+                                                         x
+                                                         y)
+                                                      [ (delay
+                                                           (force
+                                                              (go
+                                                                 (delay
+                                                                    (\x -> x)))
+                                                              xs))
+                                                      , (delay
+                                                           (constr 0 [])) ]))))
                                       (delay (\x -> x)))
                                    xs)
                                 [ (delay (force (go (delay (\x -> x))) ys xs))

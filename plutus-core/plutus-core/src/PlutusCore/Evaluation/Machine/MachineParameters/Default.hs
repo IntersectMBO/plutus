@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -ddump-prep -ddump-to-file -dsuppress-all -dno-suppress-type-signatures -dppr-case-as-let -fforce-recomp -dumpdir /home/effectfully/code/iohk/plutus/junk/GHC-Core-dumps #-}
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
 -- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
 -- we need to be able to visually inspect, hence we dedicate a separate file to it.

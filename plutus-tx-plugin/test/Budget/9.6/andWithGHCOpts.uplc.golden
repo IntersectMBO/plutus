@@ -2,13 +2,12 @@
    1.1.0
    ((\x y ->
        force
-         (force ifThenElse
+         (case
             (lessThanInteger x 3)
-            (delay
-               (force ifThenElse
-                  (lessThanInteger y 3)
-                  (constr 0 [])
-                  (constr 1 [])))
-            (delay (constr 1 []))))
+            [ (delay (constr 1 []))
+            , (delay
+                 (case
+                    (lessThanInteger y 3)
+                    [(constr 1 []), (constr 0 [])])) ]))
       4
       4))

@@ -4,7 +4,8 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let

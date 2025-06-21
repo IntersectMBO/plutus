@@ -428,7 +428,7 @@ compileMarkedExpr locStr codeTy origE = do
                 , coDatatypeStyle =
                     if _posPlcTargetVersion opts < PLC.plcVersion110
                       then PIR.ScottEncoding
-                      else PIR.SumsOfProducts
+                      else PIR._dcoStyle $ _posDatatypes opts
                 , coRemoveTrace = _posRemoveTrace opts
                 , coInlineFix = _posInlineFix opts
                 }

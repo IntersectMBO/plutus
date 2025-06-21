@@ -23,6 +23,7 @@ import Control.Applicative (many, optional, (<|>))
 import Control.Exception
 import Control.Lens
 import Data.Bifunctor (first)
+import Data.Coerce (coerce)
 import Data.Either.Validation
 import Data.Foldable (foldl', toList)
 import Data.List qualified as List
@@ -243,7 +244,14 @@ pluginOptions =
           )
     , let k = "datatypes"
           desc = "Set datatype encoding style"
-       in (k, PluginOption typeRep (readOption k) posDatatypes desc [])
+       in ( k
+          , PluginOption
+              typeRep
+              (coerce <$> readOption @PIR.DatatypeStyle k)
+              posDatatypes
+              desc
+              []
+          )
     , let k = "max-simplifier-iterations-pir"
           desc = "Set the max iterations for the PIR simplifier"
        in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])

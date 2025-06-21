@@ -15,13 +15,11 @@
                         (delay
                            ((\xs ->
                                force
-                                 (force
-                                    (force ifThenElse
-                                       (force headList xs)
-                                       (delay
-                                          (delay
-                                             (force (go (delay (\x -> x))) xs)))
-                                       (delay (delay (constr 1 []))))))
+                                 (case
+                                    (force headList xs)
+                                    [ (delay (constr 1 []))
+                                    , (delay
+                                         (force (go (delay (\x -> x))) xs)) ]))
                               (force tailList xs))))))
            (delay (\x -> x)))
         xs))

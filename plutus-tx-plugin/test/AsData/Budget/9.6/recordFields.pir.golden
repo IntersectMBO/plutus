@@ -54,7 +54,7 @@ let
     False : Bool
   !lessThanInteger : integer -> integer -> Bool
     = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) True False
+        case Bool (lessThanInteger x y) [False, True]
 in
 \(d : data) ->
   let

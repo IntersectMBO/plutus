@@ -42,7 +42,8 @@ let
     True : Bool
     False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~equalsInteger : integer -> integer -> Bool
     = \(x : integer) ->
         let

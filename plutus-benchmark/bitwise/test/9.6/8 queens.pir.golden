@@ -9,7 +9,7 @@
     !selectByteString : integer -> bytestring -> integer
       = \(which : integer) (bs : bytestring) ->
           Bool_match
-            (ifThenElse {Bool} (lessThanEqualsInteger which 0) True False)
+            (case Bool (lessThanEqualsInteger which 0) [False, True])
             {all dead. integer}
             (/\dead -> findFirstSetBit bs)
             (/\dead ->
@@ -17,7 +17,7 @@
                  !i : integer = selectByteString (subtractInteger which 1) bs
                in
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger -1 i) True False)
+                 (case Bool (equalsInteger -1 i) [False, True])
                  {all dead. integer}
                  (/\dead -> -1)
                  (/\dead ->
@@ -80,7 +80,7 @@
            (right : bytestring)
            (control : bytestring) ->
             Bool_match
-              (ifThenElse {Bool} (equalsInteger selectIx dim) True False)
+              (case Bool (equalsInteger selectIx dim) [False, True])
               {all dead. List (Tuple2 integer integer)}
               (/\dead -> Nil {Tuple2 integer integer})
               (/\dead ->
@@ -88,16 +88,12 @@
                    !available : integer = selectByteString selectIx control
                  in
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger -1 available) True False)
+                   (case Bool (equalsInteger -1 available) [False, True])
                    {all dead. List (Tuple2 integer integer)}
                    (/\dead -> Nil {Tuple2 integer integer})
                    (/\dead ->
                       Bool_match
-                        (ifThenElse
-                           {Bool}
-                           (equalsInteger row lastRow)
-                           True
-                           False)
+                        (case Bool (equalsInteger row lastRow) [False, True])
                         {all dead. List (Tuple2 integer integer)}
                         (/\dead ->
                            (let
@@ -198,16 +194,12 @@
       !bytesNeeded : integer = quotientInteger dim 8
     in
     Bool_match
-      (ifThenElse {Bool} (lessThanInteger dim 8) True False)
+      (case Bool (lessThanInteger dim 8) [False, True])
       {all dead. List (Tuple2 integer integer)}
       (/\dead -> Nil {Tuple2 integer integer})
       (/\dead ->
          Bool_match
-           (ifThenElse
-              {Bool}
-              (equalsInteger 0 (remainderInteger dim 8))
-              True
-              False)
+           (case Bool (equalsInteger 0 (remainderInteger dim 8)) [False, True])
            {all dead. List (Tuple2 integer integer)}
            (/\dead ->
               let

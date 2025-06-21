@@ -9,22 +9,22 @@
               (delay
                  (\`$dMkNil` n l ->
                     force
-                      (force ifThenElse
+                      (case
                          (lessThanEqualsInteger n 0)
-                         (delay `$dMkNil`)
-                         (delay
-                            (force
-                               (force (force chooseList)
-                                  l
-                                  (delay `$dMkNil`)
-                                  (delay
-                                     ((\xs ->
-                                         force mkCons
-                                           (force headList l)
-                                           (force
-                                              (force (take (delay (\x -> x))))
-                                              `$dMkNil`
-                                              (subtractInteger n 1)
-                                              xs))
-                                        (force tailList l))))))))))
+                         [ (delay
+                              (force
+                                 (force (force chooseList)
+                                    l
+                                    (delay `$dMkNil`)
+                                    (delay
+                                       ((\xs ->
+                                           force mkCons
+                                             (force headList l)
+                                             (force
+                                                (force (take (delay (\x -> x))))
+                                                `$dMkNil`
+                                                (subtractInteger n 1)
+                                                xs))
+                                          (force tailList l))))))
+                         , (delay `$dMkNil`) ]))))
          (delay (\x -> x)))))

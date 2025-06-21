@@ -15,7 +15,8 @@ let
             (/\dead -> f (headList {a} xs) (tailList {a} xs))
             {r}
   !drop : all a. integer -> list a -> list a = dropList
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanInteger : integer -> integer -> bool = lessThanInteger
   data Unit | Unit_match where
     Unit : Unit
