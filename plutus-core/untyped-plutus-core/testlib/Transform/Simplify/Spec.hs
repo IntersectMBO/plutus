@@ -482,6 +482,24 @@ forceCaseDelayNoApps2Fail = runQuote $ do
           (V.fromList [Delay () one, two])
   pure term
 
+forceCaseDelayWithApps2Fail :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseDelayWithApps2Fail = runQuote $ do
+  scrut <- freshName "scrut"
+  x <- freshName "x"
+  y <- freshName "y"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      term =
+        Force ()
+        $ Case ()
+          (Var () scrut)
+          (V.fromList
+            [ LamAbs () x $ LamAbs () y $ Delay () one
+            , LamAbs () x two
+            ]
+          )
+  pure term
+
 -- | This is the first example in Note [CSE].
 cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 cse1 = runQuote $ do
@@ -573,6 +591,7 @@ testSimplifyInputs =
   , ("forceCaseDelayNoApps2", forceCaseDelayNoApps2)
   , ("forceCaseDelayWithApps2", forceCaseDelayWithApps2)
   , ("forceCaseDelayNoApps2Fail", forceCaseDelayNoApps2Fail)
+  , ("forceCaseDelayWithApps2Fail", forceCaseDelayWithApps2Fail)
   ]
 
 testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
