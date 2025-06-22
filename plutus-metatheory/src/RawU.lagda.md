@@ -57,7 +57,6 @@ open B.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π
      using (⊢♯2TyNe♯;sig2type;SigTy;sigTy2type;convSigTy) public
 open import Algorithmic using (⟦_⟧)
 
-
 {-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import Raw #-}
@@ -116,6 +115,52 @@ data Tag : Set → Set where
                                                            | TagBLS12_381_G2_Element
                                                            | TagBLS12_381_MlResult)
 #-}
+
+```
+## Raw syntax
+
+This version is not intrinsically well-scoped. It's an easy to work
+with rendering of the untyped plutus-core syntax.
+
+##  Agda-Style universes
+
+In the rest of the formalisation we use the following representation of type tags.
+
+```
+TyTag : Set
+TyTag = 0 ⊢♯
+```
+
+TyTags can be given an interpretation as
+an Agda type.
+
+```
+⟦_⟧tag : 0 ⊢♯ → Set
+⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧
+
+```
+
+Equality of `TyTag`s is decidable
+
+```
+decTyTag : DecidableEquality TyTag
+decTyTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl }) (decAtomicTyCon x y)
+decTyTag (atomic _) (list _) = no λ()
+decTyTag (atomic _) (pair _ _) = no λ()
+decTyTag (atomic _) (array _) = no λ()
+decTyTag (list _) (atomic _) = no λ()
+decTyTag (list x) (list y) = dcong list (λ { refl → refl }) (decTyTag x y)
+decTyTag (list x) (array y) = no λ ()
+decTyTag (list _) (pair _ _) = no λ()
+decTyTag (array _) (pair _ _) = no λ()
+decTyTag (array _) (atomic _) = no λ()
+decTyTag (array x) (list y) = no λ ()
+decTyTag (array x) (array y) = dcong array (λ { refl → refl }) (decTyTag x y)
+decTyTag (pair _ _) (atomic _) = no λ()
+decTyTag (pair _ _) (list _) = no λ()
+decTyTag (pair _ _) (array _) = no λ()
+decTyTag (pair x x') (pair y y') = dcong₂ pair (λ {refl → refl ,, refl}) (decTyTag x y) (decTyTag x' y')
+
 ```
 
 ## Term constants
@@ -139,22 +184,26 @@ decTagCon' unit ⊤ unit ⊤                                = true
 decTagCon' pdata d pdata d'                              = eqDATA d d'
 decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTagCon' t₁ x₁ u₁ y₁
                                                          ∧ decTagCon' t₂ x₂ u₂ y₂
-decTagCon' (list t) [] (list t') []                      = true -- TODO: check that the tags t and t' are equal
+decTagCon' (list t) [] (list t') []                      = true -- FIXME: Should compare tags
 decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y
                                                          ∧ decTagCon' (list t) xs (list t') ys
+decTagCon' (array t) x (array t') y = false -- FIXME: eqArray
 decTagCon' _ _ _ _                                       = false
 
 -- Comparison of TagCon. Written with an auxiliary function to pass the termination checker.
 decTagCon : (C C' : TagCon) → Bool
 decTagCon (tagCon t x) (tagCon t' y) = decTagCon' t x t' y
 
-```
-## Raw syntax
-
-This version is not intrinsically well-scoped. It's an easy to work
-with rendering of the untyped plutus-core syntax.
 
 ```
+
+Again term constants are a pair of a tag, and its meaning, except
+this time the meaning is given by the semantic function ⟦_⟧tag.
+
+```
+data TmCon : Set where
+  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
+
 data Untyped : Set where
   UVar : ℕ → Untyped
   ULambda : Untyped → Untyped
@@ -169,54 +218,7 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import FFI.Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
-```
 
-##  Agda-Style universes
-
-In the rest of the formalisation we use the following representation of type tags.
-
-```
-TyTag : Set
-TyTag = 0 ⊢♯
-```
-
-TyTags can be given an interpretation as
-an Agda type.
-
-```
-⟦_⟧tag : 0 ⊢♯ → Set
-⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧
-```
-
-
-Equality of `TyTag`s is decidable
-
-```
-decTag : DecidableEquality TyTag
-decTag (atomic x) (atomic y) = dcong atomic (λ { refl  → refl }) (decAtomicTyCon x y)
-decTag (atomic _) (list _) = no λ()
-decTag (atomic _) (pair _ _) = no λ()
-decTag (atomic _) (array _) = no λ()
-decTag (list _) (atomic _) = no λ()
-decTag (list x) (list y) = dcong list (λ { refl → refl }) (decTag x y)
-decTag (list x) (array y) = no λ ()
-decTag (list _) (pair _ _) = no λ()
-decTag (array _) (pair _ _) = no λ()
-decTag (array _) (atomic _) = no λ()
-decTag (array x) (list y) = no λ ()
-decTag (array x) (array y) = dcong array (λ { refl → refl }) (decTag x y)
-decTag (pair _ _) (atomic _) = no λ()
-decTag (pair _ _) (list _) = no λ()
-decTag (pair _ _) (array _) = no λ()
-decTag (pair x x') (pair y y') = dcong₂ pair (λ {refl → refl ,, refl}) (decTag x y) (decTag x' y')
-```
-
-Again term constants are a pair of a tag, and its meaning, except
-this time the meaning is given by the semantic function ⟦_⟧tag.
-
-```
-data TmCon : Set where
-  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
 ```
 
 ## Conversion between universe representations

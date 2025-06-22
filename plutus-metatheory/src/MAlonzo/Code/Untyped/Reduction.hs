@@ -2225,7 +2225,7 @@ d_refl'45''8773'_1218 v0
 d_integer_1220 :: MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4
 d_integer_1220
   = coe
-      MAlonzo.Code.RawU.du_tag2TyTag_224
+      MAlonzo.Code.RawU.du_tag2TyTag_232
       (coe MAlonzo.Code.RawU.C_integer_30)
 -- Untyped.Reduction.con-integer
 d_con'45'integer_1224 ::
@@ -2236,7 +2236,7 @@ du_con'45'integer_1224 ::
 du_con'45'integer_1224 v0
   = coe
       MAlonzo.Code.Untyped.C_con_28
-      (coe MAlonzo.Code.RawU.C_tmCon_220 (coe d_integer_1220) (coe v0))
+      (coe MAlonzo.Code.RawU.C_tmCon_206 (coe d_integer_1220) (coe v0))
 -- Untyped.Reduction.ex1
 d_ex1_1236 :: MAlonzo.Code.Untyped.T__'8866'_14
 d_ex1_1236

@@ -36,7 +36,7 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
             using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
-open import RawU using (TmCon;tmCon;TyTag;decTag;⟦_⟧tag)
+open import RawU using (TmCon;tmCon;TyTag;decTyTag;⟦_⟧tag)
 ```
 
 ```
@@ -340,7 +340,7 @@ BUILTIN chooseList = λ
   ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
-BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts
+BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTyTag t ts
 ... | yes refl = inj₂ (V-con (list ts) (x ∷ xs))
 ... | no _     = inj₁ userError
 BUILTIN mkCons _ = inj₁ userError

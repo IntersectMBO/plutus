@@ -263,13 +263,6 @@ postulate
 {-# COMPILE GHC listToArray = \() -> Strict.fromList #-}
 {-# COMPILE GHC indexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
 
--- This uses the same mechanism as eqBytestring above.
--- This is only used in the decidable equality function which also
--- uses `refl` to unify the two sides and defacto confirms or refutes
--- structural equality.
-eqArray : Array A → Array A → Bool
-eqArray _ _ = Bool.true
-{-# COMPILE GHC eqArray = \() -> (==) #-}
 
 ```
 ## DATA

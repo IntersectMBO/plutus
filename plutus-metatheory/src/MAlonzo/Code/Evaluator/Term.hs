@@ -139,22 +139,22 @@ d_convTy_42 = convT
 d_unconvTy_44 :: MAlonzo.Code.Raw.T_RawTy_2 -> T_Type_16
 d_unconvTy_44 = unconvT 0
 -- Evaluator.Term.convTmU
-d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_150
+d_convTmU_46 :: T_TermU_24 -> MAlonzo.Code.RawU.T_Untyped_208
 d_convTmU_46 = U.conv
 -- Evaluator.Term.unconvTmU
-d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_150 -> T_TermU_24
+d_unconvTmU_48 :: MAlonzo.Code.RawU.T_Untyped_208 -> T_TermU_24
 d_unconvTmU_48 = U.uconv 0
 -- Evaluator.Term.checkKindX
 checkKindAgda ::
   T_Type_16 ->
-  MAlonzo.Code.Utils.T_Kind_650 ->
+  MAlonzo.Code.Utils.T_Kind_648 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
     MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
 checkKindAgda = coe d_checkKindX_50
 d_checkKindX_50 ::
   T_Type_16 ->
-  MAlonzo.Code.Utils.T_Kind_650 ->
+  MAlonzo.Code.Utils.T_Kind_648 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
     MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
@@ -215,13 +215,13 @@ inferKindAgda ::
   T_Type_16 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Utils.T_Kind_650
+    MAlonzo.Code.Utils.T_Kind_648
 inferKindAgda = coe d_inferKind'8709'_68
 d_inferKind'8709'_68 ::
   T_Type_16 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
-    MAlonzo.Code.Utils.T_Kind_650
+    MAlonzo.Code.Utils.T_Kind_648
 d_inferKind'8709'_68 v0
   = coe
       MAlonzo.Code.Utils.du_eitherBind_42
@@ -368,7 +368,7 @@ d_inferType'8709'_92 v0
                                       (coe
                                          MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26
                                          (coe MAlonzo.Code.Type.C_'8709'_4)
-                                         (coe MAlonzo.Code.Utils.C_'42'_652) (coe v3)))))
+                                         (coe MAlonzo.Code.Utils.C_'42'_650) (coe v3)))))
                       _ -> MAlonzo.RTE.mazUnreachableError))))
 -- Evaluator.Term.checkType∅
 checkTypeAgda ::
@@ -412,7 +412,7 @@ d_checkType'8709'_104 v0 v1
                  (coe
                     MAlonzo.Code.Check.d_checkKind_554
                     (coe MAlonzo.Code.Type.C_'8709'_4) (coe v2)
-                    (coe MAlonzo.Code.Utils.C_'42'_652)))
+                    (coe MAlonzo.Code.Utils.C_'42'_650)))
               (coe
                  (\ v3 ->
                     coe

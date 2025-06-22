@@ -242,7 +242,7 @@ du_stepC_70 v0 v1
                        (coe MAlonzo.Code.Cost.Base.d_ε_60 (coe v0)))
              MAlonzo.Code.Untyped.C_con_28 v6
                -> case coe v6 of
-                    MAlonzo.Code.RawU.C_tmCon_220 v7 v8
+                    MAlonzo.Code.RawU.C_tmCon_206 v7 v8
                       -> coe
                            MAlonzo.Code.Utils.du__'62''62'__214
                            (coe

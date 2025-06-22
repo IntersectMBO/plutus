@@ -112,7 +112,7 @@ d_deBruijnifyU_30 ::
 d_deBruijnifyU_30
   = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm
 -- Evaluator.Program.convPU
-d_convPU_32 :: T_ProgramU_28 -> MAlonzo.Code.RawU.T_Untyped_150
+d_convPU_32 :: T_ProgramU_28 -> MAlonzo.Code.RawU.T_Untyped_208
 d_convPU_32 = U.convP
 -- Evaluator.Program.BudgetMode
 d_BudgetMode_36 a0 = ()
@@ -1104,5 +1104,5 @@ d_typeCheckProgramN_220 v0
                                       (coe
                                          MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26
                                          (coe MAlonzo.Code.Type.C_'8709'_4)
-                                         (coe MAlonzo.Code.Utils.C_'42'_652) (coe v3)))))
+                                         (coe MAlonzo.Code.Utils.C_'42'_650) (coe v3)))))
                       _ -> MAlonzo.RTE.mazUnreachableError))))

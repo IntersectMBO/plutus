@@ -49,7 +49,7 @@ d_prettyPrintTy_8 ::
 d_prettyPrintTy_8 = display @T.Text . unconvT 0
 -- Evaluator.Base.prettyPrintUTm
 d_prettyPrintUTm_10 ::
-  MAlonzo.Code.RawU.T_Untyped_150 ->
+  MAlonzo.Code.RawU.T_Untyped_208 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6
 d_prettyPrintUTm_10 = display @T.Text . U.uconv 0
 -- Evaluator.Base.ERROR
@@ -112,7 +112,7 @@ d_uglyTypeError_24 v0
                    (coe MAlonzo.Code.Scoped.Extrication.d_len'8902'_4 (coe v1))
                    (coe
                       MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26 (coe v1)
-                      (coe MAlonzo.Code.Utils.C_'42'_652) (coe v2))))
+                      (coe MAlonzo.Code.Utils.C_'42'_650) (coe v2))))
       MAlonzo.Code.Check.C_IndexOutOfBounds_82 v1 v2
         -> coe ("IndexOutOfBounds" :: Data.Text.Text)
       MAlonzo.Code.Check.C_TooManyConstrArgs_84

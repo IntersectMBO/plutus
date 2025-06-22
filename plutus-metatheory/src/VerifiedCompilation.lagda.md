@@ -48,7 +48,7 @@ import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
 open import Data.Empty using (⊥)
-open import VerifiedCompilation.Equality using (DecEq)
+open import Untyped.Equality using (DecEq)
 open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
