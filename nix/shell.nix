@@ -8,8 +8,9 @@ let
     cabal = "3.12.1.0";
     cabal-fmt = "latest";
     haskell-language-server = "latest";
-    fourmolu = "latest";
-    hlint = "latest";
+    # fourmolu 0.18.0.0 and hlint 3.10 require GHC >=9.8
+    fourmolu = "0.17.0.0";
+    hlint = "3.8";
     stylish-haskell = "latest";
   };
 
