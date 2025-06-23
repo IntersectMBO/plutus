@@ -89,6 +89,7 @@ library
     , plutus-core:plutus-ir
     , plutus-metatheory
     , plutus-tx              ^>=1.47
+    , pretty-simple
     , prettyprinter
     , template-haskell
     , text
