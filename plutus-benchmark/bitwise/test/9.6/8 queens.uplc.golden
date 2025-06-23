@@ -5,142 +5,132 @@
          dim ->
           (\dim ->
              (\lastRow ->
-                (\writeBits ->
-                   (\go ->
-                      (\bytesNeeded ->
-                         force
-                           (force ifThenElse
-                              (lessThanInteger dim 8)
-                              (delay (constr 0 []))
-                              (delay
-                                 (force
-                                    (force ifThenElse
-                                       (equalsInteger
-                                          0
-                                          (remainderInteger dim 8))
-                                       (delay
-                                          ((\cse ->
-                                              go
-                                                0
-                                                0
-                                                cse
-                                                cse
-                                                cse
-                                                (replicateByte bytesNeeded 255))
-                                             (replicateByte bytesNeeded 0)))
-                                       (delay (constr 0 [])))))))
-                        (quotientInteger dim 8))
-                     ((\s ->
-                         s s)
-                        (\s
-                          selectIx
-                          row
-                          down
-                          left
-                          right
-                          control ->
-                           force
-                             (force
-                                ifThenElse
-                                (equalsInteger selectIx dim)
-                                (delay (constr 0 []))
-                                (delay
-                                   ((\available ->
-                                       force
-                                         (force
-                                            ifThenElse
-                                            (equalsInteger -1 available)
-                                            (delay (constr 0 []))
-                                            (delay
+                (\go ->
+                   (\bytesNeeded ->
+                      force
+                        (force ifThenElse
+                           (lessThanInteger dim 8)
+                           (delay (constr 0 []))
+                           (delay
+                              (force
+                                 (force ifThenElse
+                                    (equalsInteger 0 (remainderInteger dim 8))
+                                    (delay
+                                       ((\cse ->
+                                           go
+                                             0
+                                             0
+                                             cse
+                                             cse
+                                             cse
+                                             (replicateByte bytesNeeded 255))
+                                          (replicateByte bytesNeeded 0)))
+                                    (delay (constr 0 [])))))))
+                     (quotientInteger dim 8))
+                  ((\s ->
+                      s s)
+                     (\s
+                       selectIx
+                       row
+                       down
+                       left
+                       right
+                       control ->
+                        force
+                          (force
+                             ifThenElse
+                             (equalsInteger selectIx dim)
+                             (delay (constr 0 []))
+                             (delay
+                                ((\available ->
+                                    force
+                                      (force
+                                         ifThenElse
+                                         (equalsInteger -1 available)
+                                         (delay (constr 0 []))
+                                         (delay
+                                            (force
                                                (force
-                                                  (force
-                                                     ifThenElse
-                                                     (equalsInteger row lastRow)
-                                                     (delay
-                                                        (constr 1
-                                                           [ (constr 0
-                                                                [ row
-                                                                , available ])
-                                                           , (constr 0 []) ]))
-                                                     (delay
-                                                        ((\newRow ->
-                                                            (\cse ->
-                                                               (\newRight ->
-                                                                  (\newLeft ->
-                                                                     (\newDown ->
-                                                                        (\newControl ->
-                                                                           (\cse ->
-                                                                              (\cse ->
-                                                                                 force
-                                                                                   (case
-                                                                                      cse
-                                                                                      [ (delay
-                                                                                           (cse
-                                                                                              (addInteger
-                                                                                                 1
-                                                                                                 selectIx)
-                                                                                              row
-                                                                                              down
-                                                                                              left
-                                                                                              right
-                                                                                              control))
-                                                                                      , (\ipv
-                                                                                          ipv ->
-                                                                                           delay
-                                                                                             (constr 1
-                                                                                                [ (constr 0
-                                                                                                     [ row
-                                                                                                     , available ])
-                                                                                                , cse ])) ]))
-                                                                                (cse
-                                                                                   0
-                                                                                   newRow
-                                                                                   newDown
-                                                                                   newLeft
-                                                                                   newRight
-                                                                                   newControl))
-                                                                             (s
-                                                                                s))
-                                                                          (complementByteString
+                                                  ifThenElse
+                                                  (equalsInteger row lastRow)
+                                                  (delay
+                                                     (constr 1
+                                                        [ (constr 0
+                                                             [row, available])
+                                                        , (constr 0 []) ]))
+                                                  (delay
+                                                     ((\newRow ->
+                                                         (\cse ->
+                                                            (\newRight ->
+                                                               (\newLeft ->
+                                                                  (\newDown ->
+                                                                     (\newControl ->
+                                                                        case
+                                                                          (s
+                                                                             s
+                                                                             0
+                                                                             newRow
+                                                                             newDown
+                                                                             newLeft
+                                                                             newRight
+                                                                             newControl)
+                                                                          [ (s
+                                                                               s
+                                                                               (addInteger
+                                                                                  1
+                                                                                  selectIx)
+                                                                               row
+                                                                               down
+                                                                               left
+                                                                               right
+                                                                               control)
+                                                                          , (\ipv
+                                                                              ipv ->
+                                                                               constr 1
+                                                                                 [ (constr 0
+                                                                                      [ row
+                                                                                      , available ])
+                                                                                 , (s
+                                                                                      s
+                                                                                      0
+                                                                                      newRow
+                                                                                      newDown
+                                                                                      newLeft
+                                                                                      newRight
+                                                                                      newControl) ]) ])
+                                                                       (complementByteString
+                                                                          (orByteString
+                                                                             False
+                                                                             newDown
                                                                              (orByteString
                                                                                 False
-                                                                                newDown
-                                                                                (orByteString
-                                                                                   False
-                                                                                   newLeft
-                                                                                   newRight))))
-                                                                       (writeBits
-                                                                          down
-                                                                          cse
-                                                                          (constr 0
-                                                                             [  ])))
-                                                                    (shiftByteString
-                                                                       (writeBits
-                                                                          left
-                                                                          cse
-                                                                          (constr 0
-                                                                             [  ]))
-                                                                       1))
+                                                                                newLeft
+                                                                                newRight))))
+                                                                    (writeBits
+                                                                       down
+                                                                       cse
+                                                                       True))
                                                                  (shiftByteString
                                                                     (writeBits
-                                                                       right
+                                                                       left
                                                                        cse
-                                                                       (constr 0
-                                                                          []))
-                                                                    -1))
+                                                                       True)
+                                                                    1))
+                                                              (shiftByteString
+                                                                 (writeBits
+                                                                    right
+                                                                    cse
+                                                                    True)
+                                                                 -1))
+                                                           (goList
                                                               (constr 1
                                                                  [ available
                                                                  , (constr 0
-                                                                      []) ]))
-                                                           (addInteger
-                                                              1
-                                                              row))))))))
-                                      (selectByteString selectIx control)))))))
-                  (\bs ixes bit ->
-                     writeBits
-                       bs
-                       (goList ixes)
-                       (force (case bit [(delay True), (delay False)]))))
+                                                                      []) ])))
+                                                        (addInteger
+                                                           1
+                                                           row))))))))
+                                   (selectByteString selectIx control)))))))
                (subtractInteger dim 1))
             (unIData dim))
          ((\s -> s s)
