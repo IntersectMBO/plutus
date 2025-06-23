@@ -133,11 +133,10 @@ $$
 by
 $$
 \D_n(b_{n-1}\cdots{b_0} \cdot s)= (s,\sum^{n-1}_{i=0}b_i2^i).
-$$ As in Appendix~\ref{appendix:data-cbor-encoding}, $\Nab{a}{b}$
-denotes the closed interval of integers $\{n \in \Z : a \leq n \leq b\}$.  Note
-that $n$ here is a variable (not a fixed label) so we are defining whole
-families of encoders $\E_1, \E_2, \E_3, \ldots$ and and decoders $\D_1, \D_2,
-\D_3\ldots$.
+$$ As in Appendix~\ref{appendix:data-cbor-encoding}, $\Nab{a}{b}$ denotes the
+closed interval of integers $\{n \in \Z : a \leq n \leq b\}$.  Note that $n$
+here is a variable (not a fixed label) so we are defining whole families of
+encoders $\E_1, \E_2, \E_3, \ldots$ and decoders $\D_1, \D_2, \D_3\ldots$.
 
 
 \subsection{Lists}
@@ -380,6 +379,7 @@ $$
 \noindent
 
 \subsection{Terms}
+\label{sec:flat-term-encodings}
 Plutus Core terms are encoded by emitting a 4-bit tag identifying the type of
 the term (see Table~\ref{table:term-tags}; recall that \texttt{[]} denotes
 application) then emitting the encodings for any subterms.  We currently only
@@ -422,7 +422,7 @@ names, types, and constants) which will be defined later.
 &  \Eterm(s, \Force{t})        &&= \Eterm(s \cdot \bits{0101}, t) \\
 &  \Eterm(s, \Error)           &&= s \cdot \bits{0110} \\
 &  \Eterm(s, \Builtin{b})      &&= \Ebuiltin(s \cdot \bits{0111}, b) \\
-&  \Eterm(s, \Constr{i}{l})      &&= \Elist_{\mathsf{term}}(\E_{64}(s \cdot \bits{1000}, i), l) \\
+&  \Eterm(s, \Constr{i}{l})    &&= \Elist_{\mathsf{term}}(\E_{\N}(s \cdot \bits{1000}, i), l) \\
 &  \Eterm(s, \Kase{u}{l})      &&= \Elist_{\mathsf{term}}(\Eterm(s \cdot \bits{1001}, u), l)
 \end{alignat*}
 
@@ -447,13 +447,16 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', \Builtin{b}) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
-  \Dterm(\bits{1000} \cdot s)  &= (s', \Constr{i}{l}) &&\quad \text{if } \D_{64}(s) = (s', i) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
+  \Dterm(\bits{1000} \cdot s)  &= (s'', \Constr{i}{l}) &&\quad \text{if } \D_{\N}(s) = (s', i)\ \text{and}\ i < 2^{64} &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
   \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
 \paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
 with a version less than 1.1.0 and an input of the form $\bits{1000} \cdot s$ or
-$\bits{1001} \cdot s$ is encountered.
+$\bits{1001} \cdot s$ is encountered.  It should also fail when decoding a
+\texttt{constr} term if a tag is encountered which is greater than or equal to
+$2^{64}$ (this enforces the 64-bit limitation mentioned in the paragraph headed
+\textbf{Constructor tags} in Section~\ref{sec:grammar-notes}).
 
 \subsection{Built-in types}
 Constants from built-in types are essentially encoded by emitting a sequence of

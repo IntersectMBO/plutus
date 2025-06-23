@@ -1,1 +1,1 @@
-(program 1.0.0 (lam u (con data (I 4))))
+(program 1.0.0 (lam u-0 (con data (I 4))))
