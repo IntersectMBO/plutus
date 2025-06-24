@@ -1,0 +1,10 @@
+CPU:              31_513_557
+Memory:                9_813
+Size:                    149
+
+Trace: <empty>
+
+(con
+  string
+  "nestedLinear:test/Plugin/CallStack/Spec.hs:63:1-63:12\n\\-nestedLinear2:test/Plugin/CallStack/Spec.hs:64:1-64:13\n\\-nestedLinear3:test/Plugin/CallStack/Spec.hs:65:1-65:13\n\\-nestedLinear4:test/Plugin/CallStack/Spec.hs:66:1-66:13"
+)

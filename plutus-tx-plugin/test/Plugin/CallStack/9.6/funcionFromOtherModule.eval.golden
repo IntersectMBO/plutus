@@ -1,0 +1,10 @@
+CPU:              32_911_256
+Memory:               15_928
+Size:                    187
+
+Trace: <empty>
+
+(con
+  string
+  "functionFromOtherModule:test/Plugin/CallStack/Spec.hs:85:1-85:23\n\\-wraps:test/Plugin/CallStack/OtherModule.hs:10:1-10:5\n\\-errorWhenTrue:test/Plugin/CallStack/OtherModule.hs:6:1-6:13"
+)

@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module PlutusTx.Compiler.Trace where
 
@@ -46,8 +45,8 @@ traceCompilationStep
   -- ^ The compilation action
   -> m a
 traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
-  CompileState nextStep prevSteps <- get
-  put $ CompileState (nextStep + 1) (nextStep : prevSteps)
+  compileState@(CompileState{csNextStep = nextStep, csPreviousSteps = prevSteps}) <- get
+  put $ compileState {csNextStep = (nextStep + 1), csPreviousSteps = (nextStep : prevSteps)}
   let mbParentStep = listToMaybe prevSteps
   s <- sdToStr sd
   traceM $
@@ -62,5 +61,6 @@ traceCompilationStep sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
       <> show nextStep
       <> maybe "" (\parentStep -> ", Returning to step " <> show parentStep) mbParentStep
       <> ">"
-  modify' $ \(CompileState nextStep' prevSteps') -> CompileState nextStep' (drop 1 prevSteps')
+  modify' $ \compileState'@(CompileState {csPreviousSteps = prevSteps'}) ->
+    compileState' {csPreviousSteps = drop 1 prevSteps'}
   pure res

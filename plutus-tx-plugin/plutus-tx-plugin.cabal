@@ -150,6 +150,8 @@ test-suite plutus-tx-plugin-tests
     List.Spec
     Optimization.Spec
     Plugin.Basic.Spec
+    Plugin.CallStack.OtherModule
+    Plugin.CallStack.Spec
     Plugin.Coverage.Spec
     Plugin.Data.Spec
     Plugin.Debug.Spec

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.Trace (
@@ -6,6 +7,7 @@ module PlutusTx.Trace (
   traceIfFalse,
   traceIfTrue,
   traceBool,
+  callStack,
 ) where
 
 import PlutusTx.Bool
@@ -32,3 +34,8 @@ evaluates to 'True' or 'False'.
 traceBool :: BuiltinString -> BuiltinString -> Bool -> Bool
 traceBool trueLabel falseLabel c = if c then trace trueLabel True else trace falseLabel False
 {-# INLINEABLE traceBool #-}
+
+-- | Log the callstack and then terminate the evaluation with an error.
+callStack :: Builtins.BuiltinString
+callStack = "<CallStack>"
+{-# NOINLINE callStack #-}

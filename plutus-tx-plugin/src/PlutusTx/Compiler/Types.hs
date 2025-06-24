@@ -17,13 +17,14 @@ import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes
 
+import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Transform.RewriteRules qualified as PIR
 
+import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 
 import GHC qualified
@@ -46,10 +47,11 @@ type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions
-  { coProfile     :: ProfileOpts
-  , coCoverage    :: CoverageOpts
-  , coRemoveTrace :: Bool
-  , coInlineFix   :: Bool
+  { coProfile           :: ProfileOpts
+  , coCoverage          :: CoverageOpts
+  , coRemoveTrace       :: Bool
+  , coInlineFix         :: Bool
+  , coGenerateCallStack :: Bool
   }
 
 data CompileContext uni fun = CompileContext
@@ -69,15 +71,36 @@ data CompileContext uni fun = CompileContext
   }
 
 data CompileState = CompileState
-  { csNextStep      :: Int
+  { csNextStep       :: Int
   {- ^ The ID of the next step to be taken by the PlutusTx compiler.
   This is used when generating debug traces.
   -}
-  , csPreviousSteps :: [Int]
+  , csPreviousSteps  :: [Int]
   {- ^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
   the current point. This is used when generating debug traces.
   -}
+  , csCallStackNames :: [PIR.Name]
+  {- ^ The callstack variables bound at the current state. The first element represents the
+  most recent callstack.
+  -}
+  , csCallStackDeps  :: Set LexName
+  {- ^ Set of names that requires callstack. A name being in this set indicates that their
+  corresponding term is modified to have extra string argument and need to apply callstack
+  before using the function.
+  -}
   }
+
+lastCallStackName :: MonadState CompileState m => m (Maybe (PIR.Name))
+lastCallStackName = do
+  names <- gets csCallStackNames
+  pure $ case names of
+    []    -> Nothing
+    (x:_) -> Just x
+
+insertCallStackDeps :: MonadState CompileState m => LexName -> m ()
+insertCallStackDeps name =
+  modify' $ \compileState@(CompileState {csCallStackDeps = fns}) ->
+    compileState {csCallStackDeps = Set.insert name fns}
 
 -- | Verbosity level of the Plutus Tx compiler.
 data Verbosity
