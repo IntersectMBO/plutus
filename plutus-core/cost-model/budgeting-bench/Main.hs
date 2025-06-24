@@ -1,4 +1,5 @@
 -- See CostModelGeneration.md
+{-# OPTIONS_GHC -Wno-deprecations #-}
 module Main (main) where
 
 import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
@@ -20,7 +21,7 @@ import Benchmarks.Unit qualified
 
 import Criterion.Main
 import Criterion.Types as C
-import System.Random (getStdGen)
+import System.Random (RandomGen (next, split), StdGen, getStdGen, mkStdGen)
 
 ---------------- Miscellaneous ----------------
 
@@ -42,28 +43,38 @@ import System.Random (getStdGen)
 main :: IO ()
 main = do
   -- We use the initial state of gen repeatedly below, but that doesn't matter.
-  gen <- System.Random.getStdGen
+  genEphemeral <- System.Random.getStdGen
+  let seed = extractSeed genEphemeral
+  putStrLn $ "Using RNG seed: " ++ show seed
+
+  let reusedGen = System.Random.mkStdGen seed
 
   criterionMainWith
        Start
        defaultConfig $
            Benchmarks.Bitwise.makeBenchmarks
-        <> Benchmarks.Bool.makeBenchmarks        gen
-        <> Benchmarks.ByteStrings.makeBenchmarks gen
-        <> Benchmarks.Crypto.makeBenchmarks      gen
-        <> Benchmarks.Data.makeBenchmarks        gen
-        <> Benchmarks.Integers.makeBenchmarks    gen
-        <> Benchmarks.Lists.makeBenchmarks       gen
-        <> Benchmarks.Arrays.makeBenchmarks      gen
-        <> Benchmarks.Misc.makeBenchmarks        gen
-        <> Benchmarks.Pairs.makeBenchmarks       gen
-        <> Benchmarks.Strings.makeBenchmarks     gen
-        <> Benchmarks.Tracing.makeBenchmarks     gen
-        <> Benchmarks.Unit.makeBenchmarks        gen
+        <> Benchmarks.Bool.makeBenchmarks        reusedGen
+        <> Benchmarks.ByteStrings.makeBenchmarks reusedGen
+        <> Benchmarks.Crypto.makeBenchmarks      reusedGen
+        <> Benchmarks.Data.makeBenchmarks        reusedGen
+        <> Benchmarks.Integers.makeBenchmarks    reusedGen
+        <> Benchmarks.Lists.makeBenchmarks       reusedGen
+        <> Benchmarks.Arrays.makeBenchmarks      reusedGen
+        <> Benchmarks.Misc.makeBenchmarks        reusedGen
+        <> Benchmarks.Pairs.makeBenchmarks       reusedGen
+        <> Benchmarks.Strings.makeBenchmarks     reusedGen
+        <> Benchmarks.Tracing.makeBenchmarks     reusedGen
+        <> Benchmarks.Unit.makeBenchmarks        reusedGen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
   criterionMainWith
        Continue
        (defaultConfig { C.timeLimit = 30 }) $
-       Benchmarks.Nops.makeBenchmarks gen
+       Benchmarks.Nops.makeBenchmarks reusedGen
+
+-- Hacky way to get a reproducible seed from StdGen
+extractSeed :: StdGen -> Int
+extractSeed gen =
+  let (g1, _) = split gen
+  in fst (next g1)
