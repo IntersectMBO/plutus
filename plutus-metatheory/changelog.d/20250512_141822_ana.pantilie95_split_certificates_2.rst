@@ -1,4 +1,0 @@
-Changed
--------
-
-- Certificates now are generated as Agda projects, and the UPLC ASTs are deduplicated to greatly reduce the size of the certificates.

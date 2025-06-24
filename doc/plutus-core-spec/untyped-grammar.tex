@@ -72,8 +72,8 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \appU{M}{N}                     & \textrm{function application}\\
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
-                        &        &     & \constr{k}{M_0 \ldots M_{m-1}}   & \textrm{constructor with tag $k$ and $m$ arguments}\\
-                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}     & \textrm{case analysis with $m$ alternatives}\\
+                        &        &     & \constr{k}{M_1 \ldots M_m}      & \textrm{constructor with tag $k$ and $m$ arguments ($m \geq 0$)}\\
+                        &        &     & \kase{M}{N_1 \ldots N_n}        & \textrm{case analysis with $n$ alternatives ($n \geq 0$)}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
 
@@ -122,22 +122,29 @@ $\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to a
   $N_k\mathtt{]}$,
 and tools may also use this as concrete syntax.
 
-\paragraph{Constructors and case analysis}
-Plutus Core supports creating structured data using $\keyword{constr}$ and deconstructing
-it using $\keyword{case}$. Both of these terms are unusual in that they have (possibly
-empty) lists of children: $\keyword{constr}$ has the (0-based) \emph{tag} and then a list of arguments;
-$\keyword{case}$ has a scrutinee and then a list of case branches. Their behaviour is mostly
-straightforward: $\keyword{constr}$ evaluates its arguments and forms a value; $\keyword{case}$
-evaluates the scrutinee into a $\keyword{constr}$ value, selects the branch corresponding to
-the tag on the value, and then applies that to the arguments in the value. The only thing
-to note is that $\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
-applying (and hence evaluating) the one that is eventually selected.
+\paragraph{Constructors and case analysis.}
+Plutus Core supports creating structured data using $\keyword{constr}$ and
+deconstructing it using $\keyword{case}$. Both of these terms are unusual in
+that they have (possibly empty) lists of children: $\keyword{constr}$ has the
+(0-based) \emph{tag} and then a list of arguments; $\keyword{case}$ has a
+scrutinee and then a list of case branches. The behaviour of $\keyword{constr}$
+and $\keyword{case}$ is mostly straightforward: $\keyword{constr}$ evaluates its
+arguments and forms a value; $\keyword{case}$ evaluates the scrutinee into a
+$\keyword{constr}$ value, selects the branch corresponding to the tag on the
+value (if the tag is $k$ and the branches are $N_1, \ldots, N_n$ then it selects
+$N_{k+1}$, with an error occurring if $k$ does not lie between 0 and $n-1$), and
+then applies that to the arguments in the value. Note that $\keyword{case}$ does
+\emph{not} strictly evaluate the case branches, only applying (and hence
+evaluating) the one that is eventually selected.  The list of branches in
+$\keyword{case}$ is allowed to be empty, but in that case there will be an error
+if it is ever applied to a scrutinee.
 
-\paragraph{Constructor tags}
-Constructor tags can in principle be any natural number. In practice, since they cannot
-be dynamically constructed, we can limit them to a fixed size without having to worry
-about overflow. So we limit them to 64 bits, although this is currently only enforced in
-the binary format (Appendix~\ref{appendix:flat-serialisation}).
+\paragraph{Constructor tags.}
+Constructor tags can in principle be any natural number. In practice, since they
+cannot be dynamically constructed, we can limit them to a fixed size without
+having to worry about overflow. So we limit them to 64 bits, although this is
+currently only enforced in the binary format (see
+Section~\ref{sec:flat-term-encodings}).
 
 \paragraph{Built-in types and functions.} The language is parameterised by a set $\Uni$ of
 \textit{built-in types} (we sometimes refer to $\Uni$ as the \textit{universe})
@@ -165,7 +172,7 @@ the bound variable, so that all $\lambda$-expressions are of the form
 \texttt{(lam 0 $M$)}; other variables (ie, those not appearing immediately after
 a \texttt{lam} binder) are represented by natural number greater than zero.
 
-\paragraph{Lists in constructor and case terms}
+\paragraph{Lists in constructor and case terms.}
 The grammar defines constructor and case terms to have a variable number of
 subterms written in sequence with no delimiters. This corresponds to the
 concrete syntax, e.g. we write $\constr{0}{t_1\ t_2\ t_3}$. However, in the

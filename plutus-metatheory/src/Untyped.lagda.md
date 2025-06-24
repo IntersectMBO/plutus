@@ -28,7 +28,7 @@ open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
-open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
+open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon;⟦_⟧tag)
 open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
@@ -72,18 +72,25 @@ uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
 uglyTmCon : TmCon → String
+
+{-# TERMINATING #-}
+uglyTmConList : (t : TyTag) → ⟦ list t ⟧tag → String
+uglyTmConList t [] = ""
+uglyTmConList t (x ∷ []) = uglyTmCon (tmCon t x)
+uglyTmConList t (x ∷ l ∷ ls) = uglyTmCon (tmCon t x) ++ " , " ++ (uglyTmConList t (l ∷ ls))
+
 uglyTmCon (tmCon integer x)              = "(integer " ++ show x ++ ")"
 uglyTmCon (tmCon bytestring x)           = "bytestring"
 uglyTmCon (tmCon unit _)                 = "()"
 uglyTmCon (tmCon string s)               = "(string " ++ s ++ ")"
-uglyTmCon (tmCon bool false)             = "(bool " ++ "false" ++ ")"
-uglyTmCon (tmCon bool true)              = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon bool false)             = "(bool false)"
+uglyTmCon (tmCon bool true)              = "(bool true)"
 uglyTmCon (tmCon pdata d)                = uglyDATA d
 uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME
-uglyTmCon (tmCon (pair t u) (x , y))     = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
-uglyTmCon (tmCon (list t) xs)            = "(list [ something ])"
+uglyTmCon (tmCon (pair t u) (x , y))     = "(pair (" ++ uglyTmCon (tmCon t x) ++ " , " ++ uglyTmCon (tmCon u y) ++ ") )"
+uglyTmCon (tmCon (list t) xs)            = "(list [ " ++ (uglyTmConList t xs) ++ " ])"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
@@ -95,6 +102,9 @@ postulate showNat : ℕ → String
 uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
+-- FIXME: This is boring but we should fill it in
+-- if we are going to start using this
+-- https://github.com/IntersectMBO/plutus-private/issues/1621
 
 uglyList : ∀{X} → L.List (X ⊢) → String
 uglyList' : ∀{X} → L.List (X ⊢) → String

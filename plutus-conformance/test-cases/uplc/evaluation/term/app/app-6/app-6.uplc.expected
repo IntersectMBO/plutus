@@ -1,1 +1,1 @@
-(program 1.0.0 (lam y y))
+(program 1.0.0 (lam y-0 y-0))
