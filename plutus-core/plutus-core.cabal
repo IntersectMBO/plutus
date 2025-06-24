@@ -943,7 +943,6 @@ executable cost-model-budgeting-bench
     , QuickCheck
     , quickcheck-instances
     , random
-    , split
     , text
     , time
     , vector
