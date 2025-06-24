@@ -102,14 +102,14 @@ isScramblable (PLC.Some (PLC.ValueOf uni0 x0)) = go uni0 x0 where
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do
-    original <- display <$> runAstGen (discardIfAnyConstant (not . isScramblable) genProgram)
+    original <- display <$> runAstGen (regenConstantsUntil isScramblable =<< genProgram)
     scrambled <- aroundSeparators splice original
     return (original, scrambled)
 
 propRoundTrip :: Property
 propRoundTrip = property $ do
     code <- display <$>
-        forAllWith display (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
+        forAllWith display (runAstGen $ regenConstantsUntil isSerialisable =<< genProgram)
     let backward = fmap (display . prog)
         forward = fmap PrettyProg . parseProg
     tripping code forward backward
@@ -118,7 +118,7 @@ propRoundTrip = property $ do
 propTermSrcSpan :: Property
 propTermSrcSpan = property $ do
     code <- display . _progTerm <$>
-        forAllWith display (runAstGen $ discardIfAnyConstant (not . isSerialisable) genProgram)
+        forAllWith display (runAstGen $ regenConstantsUntil isSerialisable =<< genProgram)
     let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
     trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
     case parseTerm (code <> trailingSpaces) of

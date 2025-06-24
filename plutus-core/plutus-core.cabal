@@ -460,7 +460,6 @@ library untyped-plutus-core-testlib
     Evaluation.Machines
     Evaluation.Regressions
     Flat.Spec
-    Generators.Lib
     Generators.Spec
     Scoping.Spec
     Transform.CaseOfCase.Spec
@@ -552,7 +551,6 @@ library plutus-ir
     PlutusIR.Transform.RewriteRules.CommuteFnWithConst
     PlutusIR.Transform.RewriteRules.RemoveTrace
     PlutusIR.Transform.StrictifyBindings
-    PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
     PlutusIR.Transform.Unwrap
     PlutusIR.TypeCheck
@@ -801,7 +799,7 @@ library plutus-core-testlib
     PlutusIR.Pass.Test
     PlutusIR.Test
     Test.Tasty.Extras
-    UntypedPlutusCore.Generators.Hedgehog
+    UntypedPlutusCore.Generators.Hedgehog.AST
     UntypedPlutusCore.Test.DeBruijn.Bad
     UntypedPlutusCore.Test.DeBruijn.Good
 
