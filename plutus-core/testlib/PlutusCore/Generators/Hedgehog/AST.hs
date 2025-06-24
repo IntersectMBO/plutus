@@ -71,6 +71,9 @@ regenConstantUntil p = go $ \_ -> Nothing where
         | p val = pure $ ret val
         | otherwise = genConstant >>= go Just
 
+-- | Replace all constants in a program failing the given predicate with newly generated ones that
+-- are guaranteed to satisfy the predicate (if such constants cannot be generated, this generator
+-- will fail).
 regenConstantsUntil
   :: MonadGen m
   => (Some (ValueOf DefaultUni) -> Bool)
