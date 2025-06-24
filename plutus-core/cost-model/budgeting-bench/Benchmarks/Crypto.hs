@@ -24,7 +24,6 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
 
 import Criterion.Main (Benchmark, bgroup)
 import Data.ByteString (ByteString, empty)
-import Data.List.Split (chunksOf)
 import Hedgehog qualified as H (Seed)
 import System.Random (StdGen)
 
@@ -153,12 +152,6 @@ g1inputsA = fmap randomG1Element byteStringsA
 g1inputsB :: [G1.Element]
 g1inputsB = fmap randomG1Element byteStringsB
 
-mkG1MultiInputLists :: Int -> Int -> [[G1.Element]]
-mkG1MultiInputLists numLists listLength =
-    chunksOf listLength $
-      fmap randomG1Element $
-        listOfByteStringsOfLength (numLists * listLength) 20
-
 -- Random elements in G2
 randomG2Element :: ByteString -> G2.Element
 randomG2Element s =
@@ -171,12 +164,6 @@ g2inputsA = fmap randomG2Element byteStringsA
 
 g2inputsB :: [G2.Element]
 g2inputsB = fmap randomG2Element byteStringsB
-
-mkG2MultiInputLists :: Int -> Int -> [[G2.Element]]
-mkG2MultiInputLists numLists listLength =
-    chunksOf listLength $
-      fmap randomG2Element $
-        listOfByteStringsOfLength (numLists * listLength) 20
 
 -- Random values of type MlResult.  The only way we can manufacture values of
 -- this type is by using millerLoop, which should always succeed on the inputs
@@ -209,7 +196,7 @@ benchBls12_381_G1_scalarMul multipliers =
 benchBls12_381_G1_multiScalarMul :: [[Integer]] -> Benchmark
 benchBls12_381_G1_multiScalarMul scalarLists =
     let name = Bls12_381_G1_multiScalarMul
-        g1Lists = mkG1MultiInputLists (length scalarLists) (length $ head scalarLists)
+        g1Lists = [ fmap randomG1Element (listOfByteStringsOfLength (length scalars) 20) | scalars <- scalarLists ]
     in createTwoTermBuiltinBenchElementwise name [] (zip scalarLists g1Lists)
 -- linear in size of the minimum of both lists
 
@@ -264,7 +251,7 @@ benchBls12_381_G2_scalarMul multipliers =
 benchBls12_381_G2_multiScalarMul :: [[Integer]] -> Benchmark
 benchBls12_381_G2_multiScalarMul scalarLists =
     let name = Bls12_381_G2_multiScalarMul
-        g2Lists = mkG2MultiInputLists (length scalarLists) (length $ head scalarLists)
+        g2Lists = [ fmap randomG2Element (listOfByteStringsOfLength (length scalars) 20) | scalars <- scalarLists ]
     in createTwoTermBuiltinBenchElementwise name [] (zip scalarLists g2Lists)
 -- linear in size of the minimum of both lists
 
