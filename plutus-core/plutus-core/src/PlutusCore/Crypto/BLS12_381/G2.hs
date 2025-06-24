@@ -16,6 +16,7 @@ module PlutusCore.Crypto.BLS12_381.G2
     , compressed_generator
     , memSizeBytes
     , compressedSizeBytes
+    , multiScalarMul
     ) where
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
@@ -127,3 +128,10 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve2)
 -- | Compressed size of a G2 point (96 bytes)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve2)
+
+-- | Multi-scalar multiplication of G2 points.
+-- Uses MSM when the number of pairs exceeds a threshold (currently 10).
+-- Below this, a naive approach (repeated add/mul) is faster.
+-- The threshold should be determined by the costing benchmarked.
+multiScalarMul :: [Integer] -> [Element] -> Element
+multiScalarMul = coerce (\s p -> BlstBindings.blsMSM @BlstBindings.Curve2 10 (zip s p))
