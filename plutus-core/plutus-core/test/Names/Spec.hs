@@ -26,8 +26,7 @@ import PlutusCore.Test (BindingRemoval (BindingRemovalNotOk), Prerename (Prerena
 import Control.Monad.Except (modifyError)
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
-import Hedgehog (Gen, Property, assert, forAll, property, tripping, (/==), (===))
-import Hedgehog.Gen qualified as Gen
+import Hedgehog (Gen, Property, forAll, property, tripping, (/==), (===))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
