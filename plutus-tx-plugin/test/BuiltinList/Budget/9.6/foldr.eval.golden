@@ -1,5 +1,6 @@
-CPU:              10_875_244
-Memory:               43_312
-Size:                     82
+CPU:                10_875_244
+Memory:                 43_312
+Term Size:                  82
+Flat Size:                 245
 
 (con integer 55)

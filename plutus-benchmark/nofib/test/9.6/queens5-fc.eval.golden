@@ -1,6 +1,7 @@
-CPU:         137_974_261_782
-Memory:          812_282_055
-Size:                  2_036
+CPU:           137_974_261_782
+Memory:            812_282_055
+Term Size:               2_036
+Flat Size:               8_017
 
 (constr
   1

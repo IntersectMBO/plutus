@@ -1,5 +1,6 @@
-CPU:             283_401_783
-Memory:            1_166_329
-Size:                    168
+CPU:               283_401_783
+Memory:              1_166_329
+Term Size:                 168
+Flat Size:               1_014
 
 (con integer 5050)

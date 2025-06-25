@@ -1,5 +1,6 @@
-CPU:                 811_937
-Memory:                4_901
-Size:                     65
+CPU:                   811_937
+Memory:                  4_901
+Term Size:                  65
+Flat Size:                 160
 
 (constr 0 (con integer 0))

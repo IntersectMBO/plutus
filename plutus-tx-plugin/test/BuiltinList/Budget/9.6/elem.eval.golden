@@ -1,5 +1,6 @@
-CPU:              19_491_614
-Memory:               83_478
-Size:                    100
+CPU:                19_491_614
+Memory:                 83_478
+Term Size:                 100
+Flat Size:                 293
 
 (constr 0 (constr 0) (constr 1))

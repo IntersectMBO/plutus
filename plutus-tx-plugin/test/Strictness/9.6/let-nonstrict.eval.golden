@@ -1,5 +1,6 @@
-CPU:                 237_390
-Memory:                1_301
-Size:                     23
+CPU:                   237_390
+Memory:                  1_301
+Term Size:                  23
+Flat Size:                  58
 
 (con integer 1)

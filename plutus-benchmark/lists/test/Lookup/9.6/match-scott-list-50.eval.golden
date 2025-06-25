@@ -1,5 +1,6 @@
-CPU:           1_670_986_650
-Memory:            7_976_150
-Size:                    546
+CPU:             1_670_986_650
+Memory:              7_976_150
+Term Size:                 546
+Flat Size:               1_353
 
 (con integer 3775)

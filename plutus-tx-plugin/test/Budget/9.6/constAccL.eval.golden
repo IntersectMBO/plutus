@@ -1,5 +1,6 @@
-CPU:             753_728_937
-Memory:            3_807_101
-Size:                     65
+CPU:               753_728_937
+Memory:              3_807_101
+Term Size:                  65
+Flat Size:                 197
 
 (con integer 42)

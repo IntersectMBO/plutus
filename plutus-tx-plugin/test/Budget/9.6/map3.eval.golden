@@ -1,6 +1,7 @@
-CPU:             186_059_840
-Memory:              563_917
-Size:                    755
+CPU:               186_059_840
+Memory:                563_917
+Term Size:                 755
+Flat Size:               2_525
 
 (constr
   1

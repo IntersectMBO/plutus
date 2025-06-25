@@ -1,5 +1,6 @@
-CPU:             918_840_937
-Memory:            4_208_501
-Size:                     63
+CPU:               918_840_937
+Memory:              4_208_501
+Term Size:                  63
+Flat Size:                 182
 
 (con integer 500500)

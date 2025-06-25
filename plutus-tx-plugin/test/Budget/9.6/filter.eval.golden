@@ -1,6 +1,7 @@
-CPU:               6_866_730
-Memory:               31_520
-Size:                     61
+CPU:                 6_866_730
+Memory:                 31_520
+Term Size:                  61
+Flat Size:                 154
 
 (constr
   1

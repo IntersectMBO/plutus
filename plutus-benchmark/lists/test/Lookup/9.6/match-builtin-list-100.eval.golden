@@ -1,5 +1,6 @@
-CPU:          13_630_325_294
-Memory:           57_344_332
-Size:                    147
+CPU:            13_630_325_294
+Memory:             57_344_332
+Term Size:                 147
+Flat Size:               1_179
 
 (con integer 15050)

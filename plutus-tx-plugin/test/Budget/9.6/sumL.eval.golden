@@ -1,5 +1,6 @@
-CPU:           1_014_984_937
-Memory:            4_809_401
-Size:                     77
+CPU:             1_014_984_937
+Memory:              4_809_401
+Term Size:                  77
+Flat Size:                 241
 
 (con integer 500500)

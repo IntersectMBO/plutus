@@ -1,5 +1,6 @@
-CPU:               4_068_138
-Memory:               20_416
-Size:                     78
+CPU:                 4_068_138
+Memory:                 20_416
+Term Size:                  78
+Flat Size:                 232
 
 (con data (I 6))

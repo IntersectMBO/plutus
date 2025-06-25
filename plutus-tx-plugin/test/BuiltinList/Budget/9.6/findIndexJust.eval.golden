@@ -1,5 +1,6 @@
-CPU:               4_840_284
-Memory:               20_094
-Size:                     98
+CPU:                 4_840_284
+Memory:                 20_094
+Term Size:                  98
+Flat Size:                 273
 
 (constr 0 (con integer 3))

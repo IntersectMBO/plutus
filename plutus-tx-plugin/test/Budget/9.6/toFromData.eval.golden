@@ -1,5 +1,6 @@
-CPU:               6_732_521
-Memory:               24_432
-Size:                    284
+CPU:                 6_732_521
+Memory:                 24_432
+Term Size:                 284
+Flat Size:                 686
 
 (constr 1 (constr 0 (constr 0 (constr 0) (con integer 1) (constr 1))))

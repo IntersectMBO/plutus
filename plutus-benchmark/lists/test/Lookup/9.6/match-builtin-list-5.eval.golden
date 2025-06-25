@@ -1,5 +1,6 @@
-CPU:              50_027_604
-Memory:              212_662
-Size:                    147
+CPU:                50_027_604
+Memory:                212_662
+Term Size:                 147
+Flat Size:                 575
 
 (con integer 40)
