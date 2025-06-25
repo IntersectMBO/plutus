@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name:          plutus-metatheory
-version:       1.47.0.0
+version:       1.48.0.0
 synopsis:      Command line tool for running plutus core programs
 homepage:      https://github.com/IntersectMBO/plutus
 license:       Apache-2.0
@@ -79,7 +79,7 @@ library
     , memory
     , mtl
     , optparse-applicative
-    , plutus-core                      ^>=1.47
+    , plutus-core                      ^>=1.48
     , plutus-core:plutus-core-execlib
     , process
     , text
@@ -392,7 +392,7 @@ test-suite test-NEAT
     , base
     , lazy-search
     , mtl
-    , plutus-core                      ^>=1.47
+    , plutus-core                      ^>=1.48
     , plutus-core:plutus-core-testlib
     , plutus-metatheory
     , size-based
