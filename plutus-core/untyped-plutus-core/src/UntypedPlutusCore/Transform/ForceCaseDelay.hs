@@ -6,6 +6,7 @@ Often, the following pattern occurs in UPLC terms:
 > force (case scrut [\x1... -> delay term_1, ..., \x1... -> delay term_m])
 
 It's sound to remove the 'force' and the 'delay's, as long as the original term is "well-formed".
+Note that the lambda abstraction may be missing, and we consider that case as well.
 
 Intuitively, what we mean by "well-formed" is that the term does not evaluate to bottom unless
 the user intended it to (i.e. by introducing an 'error' subterm).
