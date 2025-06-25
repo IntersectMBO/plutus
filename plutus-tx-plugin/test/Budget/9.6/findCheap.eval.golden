@@ -1,5 +1,6 @@
-CPU:                 919_986
-Memory:                5_102
-Size:                     57
+CPU:                   919_986
+Memory:                  5_102
+Term Size:                  57
+Flat Size:                 134
 
 (constr 0 (con integer 1))

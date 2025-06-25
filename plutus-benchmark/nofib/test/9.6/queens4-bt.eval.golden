@@ -1,6 +1,7 @@
-CPU:           4_302_046_267
-Memory:           22_978_130
-Size:                  2_067
+CPU:             4_302_046_267
+Memory:             22_978_130
+Term Size:               2_067
+Flat Size:               8_039
 
 (constr
   1

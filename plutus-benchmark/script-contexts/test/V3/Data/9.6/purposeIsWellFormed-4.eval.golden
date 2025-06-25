@@ -1,5 +1,6 @@
-CPU:              38_049_927
-Memory:              136_213
-Size:                  2_273
+CPU:                38_049_927
+Memory:                136_213
+Term Size:               2_273
+Flat Size:               6_950
 
 (con unit ())

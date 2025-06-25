@@ -1,5 +1,6 @@
-CPU:               3_878_050
-Memory:               17_462
-Size:                    146
+CPU:                 3_878_050
+Memory:                 17_462
+Term Size:                 146
+Flat Size:                 469
 
 (constr 0 (con integer 1))

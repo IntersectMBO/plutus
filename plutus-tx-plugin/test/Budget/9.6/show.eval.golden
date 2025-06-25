@@ -1,5 +1,6 @@
-CPU:           1_358_901_555
-Memory:            5_829_124
-Size:                    859
+CPU:             1_358_901_555
+Memory:              5_829_124
+Term Size:                 859
+Flat Size:               2_815
 
 (con integer -2469135780)

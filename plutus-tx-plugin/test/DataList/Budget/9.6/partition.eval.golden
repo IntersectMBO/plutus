@@ -1,6 +1,7 @@
-CPU:              14_295_614
-Memory:               58_252
-Size:                     76
+CPU:                14_295_614
+Memory:                 58_252
+Term Size:                  76
+Flat Size:                 225
 
 (constr
   0

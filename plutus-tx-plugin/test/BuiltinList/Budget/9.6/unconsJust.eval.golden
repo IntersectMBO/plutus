@@ -1,5 +1,6 @@
-CPU:                 665_907
-Memory:                2_496
-Size:                     24
+CPU:                   665_907
+Memory:                  2_496
+Term Size:                  24
+Flat Size:                  58
 
 (constr 0 (constr 0 (con integer 1) (con (list integer) [2,3,4,5,6,7,8,9,10])))

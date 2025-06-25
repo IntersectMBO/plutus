@@ -1,5 +1,6 @@
-CPU:               3_092_180
-Memory:               13_120
-Size:                     61
+CPU:                 3_092_180
+Memory:                 13_120
+Term Size:                  61
+Flat Size:                 171
 
 (con integer 10)

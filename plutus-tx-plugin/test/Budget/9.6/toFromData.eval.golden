@@ -1,5 +1,6 @@
-CPU:               7_980_913
-Memory:               28_440
-Size:                    320
+CPU:                 7_980_913
+Memory:                 28_440
+Term Size:                 320
+Flat Size:                 709
 
 (constr 1 (constr 0 (constr 0 (constr 0) (con integer 1) (constr 1))))

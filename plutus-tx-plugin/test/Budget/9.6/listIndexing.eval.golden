@@ -1,5 +1,6 @@
-CPU:               5_004_432
-Memory:               23_422
-Size:                     82
+CPU:                 5_004_432
+Memory:                 23_422
+Term Size:                  82
+Flat Size:                 235
 
 (con data (I 6))

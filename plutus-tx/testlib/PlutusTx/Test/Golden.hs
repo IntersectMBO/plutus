@@ -75,8 +75,11 @@ goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
   nestedGoldenVsDocM name ".budget" $ ppCatch $ do
     budget <- runUPlcBudget [compiledCode]
-    size <- UPLC.programSize <$> toUPlc compiledCode
-    pure (render @Text (prettyBudget budget size))
+    uplc <- toUPlc compiledCode
+    let
+      termSize = UPLC.programSize uplc
+      flatSize = UPLC.serialisedSize $ UPLC.UnrestrictedProgram uplc
+    pure (render @Text (prettyBudget budget termSize flatSize))
 
 goldenBundle
   :: TestName
@@ -164,10 +167,14 @@ goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
     (termRes, budget) <- runPlcCekBudget compiledCode
-    size <- UPLC.programSize <$> toUPlc compiledCode
+    uplc <- toUPlc compiledCode
+    let
+      termSize = UPLC.programSize uplc
+      flatSize = UPLC.serialisedSize $ UPLC.UnrestrictedProgram uplc
+
     let contents =
           vsep
-            [ prettyBudget budget size
+            [ prettyBudget budget termSize flatSize
             , mempty
             , prettyPlcClassicSimple termRes
             ]
@@ -180,12 +187,25 @@ goldenEvalCekLog name value =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace value)
 
-prettyBudget :: PLC.ExBudget -> Size -> Doc ann
-prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) (Size size) =
+{- |
+This function formats budget and size information.
+
+
+Given a UPLC program, there are two quantification of "size": Term size and Flat size.
+Term Size measures AST nodes of the given UPLC program. Flat Size measures the number
+of bytes when the given program serialized into bytestring using binary flat encoding format.
+
+Cost of storing smart contract onchain is partially determined by the Flat size. So it
+is useful to have Flat size measurement in case we adopt new or introduce optimizations
+to the flat encoding format.
+-}
+prettyBudget :: PLC.ExBudget -> Size -> Integer -> Doc ann
+prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) (Size termSize) flatSize =
   vsep
-    [ fill 8 "CPU:" <+> prettyIntRightAligned (fromSatInt @Int cpu)
-    , fill 8 "Memory:" <+> prettyIntRightAligned (fromSatInt @Int mem)
-    , fill 8 "Size:" <+> prettyIntRightAligned size
+    [ fill 10 "CPU:" <+> prettyIntRightAligned (fromSatInt @Int cpu)
+    , fill 10 "Memory:" <+> prettyIntRightAligned (fromSatInt @Int mem)
+    , fill 10 "Term Size:" <+> prettyIntRightAligned termSize
+    , fill 10 "Flat Size:" <+> prettyIntRightAligned flatSize
     ]
  where
   prettyIntRightAligned :: (Integral i) => i -> Doc ann

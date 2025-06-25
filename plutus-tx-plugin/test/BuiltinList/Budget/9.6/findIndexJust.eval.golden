@@ -1,5 +1,6 @@
-CPU:               5_592_480
-Memory:               22_898
-Size:                    105
+CPU:                 5_592_480
+Memory:                 22_898
+Term Size:                 105
+Flat Size:                 276
 
 (constr 0 (con integer 3))

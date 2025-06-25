@@ -1,5 +1,6 @@
-CPU:           1_075_045_986
-Memory:            4_710_002
-Size:                     67
+CPU:             1_075_045_986
+Memory:              4_710_002
+Term Size:                  67
+Flat Size:                 184
 
 (con integer 500500)

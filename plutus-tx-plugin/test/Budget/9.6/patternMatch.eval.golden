@@ -1,5 +1,6 @@
-CPU:                  32_100
-Memory:                  300
-Size:                      2
+CPU:                    32_100
+Memory:                    300
+Term Size:                   2
+Flat Size:                   8
 
 (constr 0 (con integer 3))

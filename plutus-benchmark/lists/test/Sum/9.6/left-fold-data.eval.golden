@@ -1,5 +1,6 @@
-CPU:             309_967_632
-Memory:            1_237_030
-Size:                    173
+CPU:               309_967_632
+Memory:              1_237_030
+Term Size:                 173
+Flat Size:               1_005
 
 (con integer 5050)

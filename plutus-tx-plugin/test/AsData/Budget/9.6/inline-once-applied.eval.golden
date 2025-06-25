@@ -1,5 +1,6 @@
-CPU:                 965_630
-Memory:                3_110
-Size:                     30
+CPU:                   965_630
+Memory:                  3_110
+Term Size:                  30
+Flat Size:                  68
 
 (con integer 48)

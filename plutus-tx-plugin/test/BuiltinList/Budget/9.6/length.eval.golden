@@ -1,5 +1,6 @@
-CPU:              11_355_244
-Memory:               46_312
-Size:                     85
+CPU:                11_355_244
+Memory:                 46_312
+Term Size:                  85
+Flat Size:                 251
 
 (con integer 10)

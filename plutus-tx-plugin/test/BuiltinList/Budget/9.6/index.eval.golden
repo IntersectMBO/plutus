@@ -1,5 +1,6 @@
-CPU:               1_441_742
-Memory:                5_802
-Size:                     72
+CPU:                 1_441_742
+Memory:                  5_802
+Term Size:                  72
+Flat Size:                 205
 
 (con integer 6)

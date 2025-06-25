@@ -1,5 +1,6 @@
-CPU:               1_196_851
-Memory:                4_362
-Size:                     80
+CPU:                 1_196_851
+Memory:                  4_362
+Term Size:                  80
+Flat Size:                 189
 
 (con integer 1)

@@ -1,5 +1,6 @@
-CPU:           8_116_454_900
-Memory:           36_124_200
-Size:                    954
+CPU:             8_116_454_900
+Memory:             36_124_200
+Term Size:                 954
+Flat Size:               2_343
 
 (con integer 15050)

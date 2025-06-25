@@ -1,5 +1,6 @@
-CPU:                 967_986
-Memory:                5_402
-Size:                     69
+CPU:                   967_986
+Memory:                  5_402
+Term Size:                  69
+Flat Size:                 163
 
 (constr 0 (con integer 0))
