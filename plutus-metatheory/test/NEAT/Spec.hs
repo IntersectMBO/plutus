@@ -4,6 +4,7 @@ module Main where
 import Control.Monad (unless)
 import Control.Monad.Except (ExceptT (..), catchError, liftEither, withExceptT)
 import Data.Coolean
+import Data.Default.Class (def)
 import Data.Either
 import Data.List
 import PlutusCore
@@ -104,7 +105,7 @@ prop_Term tyG tmG = do
 
   -- 2. run production CK against metatheory CK
   tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def tm `catchError` handleError ty
   tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
     liftEither $ runTCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK

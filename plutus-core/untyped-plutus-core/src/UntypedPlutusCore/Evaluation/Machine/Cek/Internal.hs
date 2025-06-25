@@ -417,7 +417,7 @@ type GivenCekReqs uni fun ann s =
     )
 
 data CekUserError
-    = CaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
+    = CekCaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
     | CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
@@ -521,7 +521,7 @@ instance ThrowableBuiltins uni fun =>
                     Nothing
 
 instance Pretty CekUserError where
-    pretty (CaseBuiltinError err) = vcat
+    pretty (CekCaseBuiltinError err) = vcat
         [ "'case' over a value of a built-in type failed with"
         , pretty err
         ]
@@ -805,7 +805,7 @@ enterComputeCek = computeCek
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-            Left err  -> throwErrorDischarged (OperationalError $ CaseBuiltinError err) e
+            Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
             Right res -> computeCek ctx env res
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 

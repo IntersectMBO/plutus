@@ -390,6 +390,7 @@ test-suite test-NEAT
   hs-source-dirs: test/NEAT
   build-depends:
     , base
+    , data-default-class
     , lazy-search
     , mtl
     , plutus-core                      ^>=1.47

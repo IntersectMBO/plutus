@@ -233,7 +233,7 @@ runTPlc values = do
           (unsafeFromRight .* TPLC.applyProgram)
           ps
   liftEither . first toException . TPLC.splitStructuralOperational $
-    TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntimeForTesting t
+    TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntimeForTesting def t
 
 -- | An evaluation failure plus the final budget and logs.
 data EvaluationExceptionWithLogsAndBudget err =
