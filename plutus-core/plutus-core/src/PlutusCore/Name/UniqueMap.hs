@@ -6,6 +6,7 @@
 
 module PlutusCore.Name.UniqueMap (
   UniqueMap (..),
+  emptyUniqueMap,
   insertByUnique,
   insertByName,
   singletonByName,
@@ -37,7 +38,10 @@ newtype UniqueMap unique a = UniqueMap
   { unUniqueMap :: IM.IntMap a
   }
   deriving stock (Show, Eq)
-  deriving newtype (Semigroup, Monoid, Functor, Foldable)
+  deriving newtype (Functor, Foldable)
+
+emptyUniqueMap :: UniqueMap unique a
+emptyUniqueMap = UniqueMap mempty
 
 -- | Insert a value @a@ by a @unique@.
 insertByUnique ::
@@ -54,7 +58,7 @@ insertByName = insertByUnique . view unique
 
 -- | Create the singleton map of the @unique@ of a @name@ and a value @a@.
 singletonByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a
-singletonByName n a = insertByName n a mempty
+singletonByName n a = insertByName n a emptyUniqueMap
 
 -- | Insert a named value @a@ by the index of the @unique@ of the @name@.
 insertNamed ::
@@ -83,7 +87,7 @@ fromFoldable ::
   (i -> a -> UniqueMap unique a -> UniqueMap unique a) ->
   f (i, a) ->
   UniqueMap unique a
-fromFoldable ins = List.foldl' (flip $ uncurry ins) mempty
+fromFoldable ins = List.foldl' (flip $ uncurry ins) emptyUniqueMap
 
 -- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
 fromUniques :: (Foldable f) => (Coercible Unique unique) => f (unique, a) -> UniqueMap unique a

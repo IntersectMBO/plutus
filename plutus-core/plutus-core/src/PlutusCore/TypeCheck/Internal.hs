@@ -25,7 +25,7 @@ import PlutusCore.Error (ExpectedShapeOr (ExpectedExact, ExpectedShape),
 import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
 import PlutusCore.Name.Unique (HasText (theText), Name (Name), Named (Named), TermUnique,
                                TyName (TyName), TypeUnique, theUnique)
-import PlutusCore.Name.UniqueMap (UniqueMap, insertNamed, lookupName)
+import PlutusCore.Name.UniqueMap (UniqueMap, emptyUniqueMap, insertNamed, lookupName)
 import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
 import PlutusCore.Quote (MonadQuote (liftQuote), freshTyName)
@@ -227,7 +227,7 @@ type MonadTypeCheckPlc uni fun ann m =
 -- config, so that the kinder checker can be run with an empty config (such as @()@) and access to
 -- a 'TypeCheckConfig' is not needed.
 runTypeCheckM :: cfg -> TypeCheckT uni fun cfg m a -> m a
-runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
+runTypeCheckM config a = runReaderT a $ TypeCheckEnv config emptyUniqueMap emptyUniqueMap
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
 withTyVar :: TyName -> Kind () -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a

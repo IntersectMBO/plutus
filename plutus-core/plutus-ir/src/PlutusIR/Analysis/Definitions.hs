@@ -14,6 +14,7 @@ import Control.Monad.State (MonadState, execStateT)
 import Control.Monad.Writer (MonadWriter, runWriterT)
 import PlutusCore.Error (UniqueError)
 import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap (emptyUniqueMap)
 import PlutusIR.Core.Plated
 import PlutusIR.Core.Type
 
@@ -98,4 +99,4 @@ runTermDefs
         Monad m)
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
-runTermDefs = runWriterT . flip execStateT mempty . termDefs
+runTermDefs = runWriterT . flip execStateT emptyUniqueMap . termDefs

@@ -129,12 +129,6 @@ instance Wrapped (RL a)
 instance HasUnique name unique => HasUnique (LR name) (LR unique)
 instance HasUnique name unique => HasUnique (RL name) (RL unique)
 
-instance Semigroup a => Semigroup (Bilateral a) where
-    Bilateral l1 r1 <> Bilateral l2 r2 = Bilateral (l1 <> l2) (r1 <> r2)
-
-instance Monoid a => Monoid (Bilateral a) where
-    mempty = Bilateral mempty mempty
-
 -- To rename from left to right is to update the left renaming.
 instance HasRenaming ren unique => HasRenaming (Bilateral ren) (LR unique) where
     renaming = bilateralL . renaming . coerced @(Renaming unique)
@@ -150,8 +144,8 @@ type EqRename ren = RenameT (Bilateral ren) Maybe ()
 type ScopedEqRename = EqRename ScopedRenaming
 
 -- | Run an 'EqRename' computation.
-runEqRename :: Monoid ren => EqRename ren -> Bool
-runEqRename = isJust . runRenameT
+runEqRename :: ren -> EqRename ren -> Bool
+runEqRename emp = isJust . runRenameT (Bilateral emp emp)
 
 -- See Note [Modulo alpha].
 -- | Record that two names map to each other.

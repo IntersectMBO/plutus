@@ -84,14 +84,12 @@ A map of unprocessed variable and its substitution range.
 -}
 newtype TermEnv name uni fun a = TermEnv
   {_unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a)}
-  deriving newtype (Semigroup, Monoid)
 
 {-| Wrapper of term substitution so that it's similar to the PIR inliner.
 See Note [Differences from PIR inliner] 1
 -}
 newtype Subst name uni fun a = Subst {_termEnv :: TermEnv name uni fun a}
   deriving stock (Generic)
-  deriving newtype (Semigroup, Monoid)
 
 makeLenses ''TermEnv
 makeLenses ''Subst
@@ -117,11 +115,8 @@ data S name uni fun a = S
 
 makeLenses ''S
 
-instance Semigroup (S name uni fun a) where
-  S a1 b1 <> S a2 b2 = S (a1 <> a2) (b1 <> b2)
-
-instance Monoid (S name uni fun a) where
-  mempty = S mempty mempty
+emptyS :: S name uni fun a
+emptyS = S (Subst $ TermEnv UMap.emptyUniqueMap) UMap.emptyUniqueMap
 
 type ExternalConstraints name uni fun m =
   ( HasUnique name TermUnique
@@ -216,7 +211,7 @@ inline
   t = do
     result <-
       liftQuote $
-        flip evalStateT mempty $
+        flip evalStateT emptyS $
           runReaderT
             (processTerm t)
             InlineInfo

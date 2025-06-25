@@ -18,12 +18,6 @@ data VarsInfo tyname name uni a = VarsInfo
   , typeVarInfoMap :: PLC.UniqueMap PLC.TypeUnique (TyVarInfo tyname name uni a)
   }
 
-instance Semigroup (VarsInfo tyname name uni a) where
-  (VarsInfo t ty) <> (VarsInfo t' ty') = VarsInfo (t <> t') (ty <> ty')
-
-instance Monoid (VarsInfo tyname name uni a) where
-  mempty = VarsInfo mempty mempty
-
 -- | Lookup the 'VarInfo' for a 'name'.
 lookupVarInfo ::
   (PLC.HasUnique name PLC.TermUnique)
@@ -84,25 +78,29 @@ termVarInfo ::
   , PLC.HasUnique tyname PLC.TypeUnique)
   => Term tyname name uni fun a
   -> VarsInfo tyname name uni a
-termVarInfo = \case
-  Let _ _ bs t   -> foldMap bindingVarInfo bs <> termVarInfo t
-  LamAbs _ n ty t ->
-    VarsInfo (UMap.insertByName n (NormalVar Strict ty Nothing) mempty) mempty
-    <> termVarInfo t
-  TyAbs _ n _ t   ->
-    VarsInfo mempty (UMap.insertByName n NormalTyVar mempty)
-    <> termVarInfo t
-  -- No binders
-  t@(Apply{})    -> foldMapOf termSubterms termVarInfo t
-  t@(TyInst{})   -> foldMapOf termSubterms termVarInfo t
-  t@(IWrap{})    -> foldMapOf termSubterms termVarInfo t
-  t@(Unwrap{})   -> foldMapOf termSubterms termVarInfo t
-  t@(Constr{})   -> foldMapOf termSubterms termVarInfo t
-  t@(Case{})     -> foldMapOf termSubterms termVarInfo t
-  t@(Var{})      -> foldMapOf termSubterms termVarInfo t
-  t@(Constant{}) -> foldMapOf termSubterms termVarInfo t
-  t@(Error{})    -> foldMapOf termSubterms termVarInfo t
-  t@(Builtin{})  -> foldMapOf termSubterms termVarInfo t
+termVarInfo = undefined
+
+-- \case
+--   Let _ _ bs t   -> foldMap bindingVarInfo bs <> termVarInfo t
+--   LamAbs _ n ty t ->
+--     VarsInfo
+--       (UMap.insertByName n (NormalVar Strict ty Nothing) UMap.emptyUniqueMap)
+--       UMap.emptyUniqueMap
+--     <> termVarInfo t
+--   TyAbs _ n _ t   ->
+--     VarsInfo UMap.emptyUniqueMap (UMap.insertByName n NormalTyVar UMap.emptyUniqueMap)
+--     <> termVarInfo t
+--   -- No binders
+--   t@(Apply{})    -> foldMapOf termSubterms termVarInfo t
+--   t@(TyInst{})   -> foldMapOf termSubterms termVarInfo t
+--   t@(IWrap{})    -> foldMapOf termSubterms termVarInfo t
+--   t@(Unwrap{})   -> foldMapOf termSubterms termVarInfo t
+--   t@(Constr{})   -> foldMapOf termSubterms termVarInfo t
+--   t@(Case{})     -> foldMapOf termSubterms termVarInfo t
+--   t@(Var{})      -> foldMapOf termSubterms termVarInfo t
+--   t@(Constant{}) -> foldMapOf termSubterms termVarInfo t
+--   t@(Error{})    -> foldMapOf termSubterms termVarInfo t
+--   t@(Builtin{})  -> foldMapOf termSubterms termVarInfo t
 
 datatypeMatcherArity :: Datatype tyname uni fun a -> Arity
 datatypeMatcherArity (Datatype _ _ tyvars _ constrs)=
@@ -128,25 +126,25 @@ bindingVarInfo ::
   , PLC.HasUnique tyname PLC.TypeUnique)
   => Binding tyname name uni fun a
   -> VarsInfo tyname name uni a
-bindingVarInfo = \case
+bindingVarInfo = undefined {- \case
   -- TODO: arity for term bindings
   TermBind _ s (VarDecl _ n ty) t ->
-    VarsInfo (UMap.insertByName n (NormalVar s ty Nothing) mempty) mempty
+    VarsInfo (UMap.insertByName n (NormalVar s ty Nothing) UMap.emptyUniqueMap) UMap.emptyUniqueMap
     <> termVarInfo t
   TypeBind _ (TyVarDecl _ n _) _ ->
-    VarsInfo mempty (UMap.insertByName n NormalTyVar mempty)
+    VarsInfo UMap.emptyUniqueMap (UMap.insertByName n NormalTyVar UMap.emptyUniqueMap)
   DatatypeBind _ d@(Datatype _ (TyVarDecl _ tyname _) _ matcher constrs) ->
     let
       dtInfo =
         let info = DatatypeTyVar d
-        in VarsInfo mempty (UMap.insertByName tyname info mempty)
+        in VarsInfo UMap.emptyUniqueMap (UMap.insertByName tyname info UMap.emptyUniqueMap)
       matcherInfo =
         let info = DatatypeMatcher tyname
-        in VarsInfo (UMap.insertByName matcher info mempty) mempty
+        in VarsInfo (UMap.insertByName matcher info UMap.emptyUniqueMap) UMap.emptyUniqueMap
       constrInfo i (VarDecl _ n _) =
         let info = DatatypeConstructor i tyname
         in VarsInfo (UMap.insertByName n info mempty) mempty
-    in dtInfo <> matcherInfo <> ifoldMap constrInfo constrs
+    in dtInfo <> matcherInfo <> ifoldMap constrInfo constrs -}
 
 -- | Get the arities of the constructors for the given datatype name.
 getConstructorArities

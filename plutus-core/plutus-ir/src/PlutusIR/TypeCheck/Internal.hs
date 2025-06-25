@@ -39,6 +39,7 @@ import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
+import PlutusCore.Name.UniqueMap (emptyUniqueMap)
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 
 import Control.Monad (when)
@@ -442,7 +443,7 @@ withNoEscapingTypes = local $ set (tceTypeCheckConfig.pirConfigAllowEscape) NoEs
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
 -- Differs from its PLC version in that is passes an extra env flag 'YesEscape'.
 runTypeCheckM :: PirTCConfig uni fun -> PirTCEnv uni fun m a -> m a
-runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
+runTypeCheckM config a = runReaderT a $ TypeCheckEnv config emptyUniqueMap emptyUniqueMap
 
 -- Helpers
 ----------
