@@ -1,5 +1,6 @@
-CPU:                  16_100
-Memory:                  200
-Size:                      1
+CPU:                    16_100
+Memory:                    200
+Term Size:                   1
+Flat Size:                   5
 
 (constr 1)

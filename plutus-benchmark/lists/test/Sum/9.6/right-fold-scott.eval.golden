@@ -1,5 +1,6 @@
-CPU:              74_648_900
-Memory:              403_600
-Size:                    266
+CPU:                74_648_900
+Memory:                403_600
+Term Size:                 266
+Flat Size:                 678
 
 (con integer 5050)

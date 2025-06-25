@@ -1,6 +1,7 @@
-CPU:             194_866_927
-Memory:              589_080
-Size:                    772
+CPU:               194_866_927
+Memory:                589_080
+Term Size:                 772
+Flat Size:               2_536
 
 (constr
   1

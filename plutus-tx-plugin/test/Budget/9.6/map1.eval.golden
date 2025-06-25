@@ -1,6 +1,7 @@
-CPU:             255_988_667
-Memory:              642_158
-Size:                    384
+CPU:               255_988_667
+Memory:                642_158
+Term Size:                 384
+Flat Size:               1_144
 
 (constr
   0

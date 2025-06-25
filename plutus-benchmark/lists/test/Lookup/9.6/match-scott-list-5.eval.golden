@@ -1,5 +1,6 @@
-CPU:              31_269_190
-Memory:              145_040
-Size:                    194
+CPU:                31_269_190
+Memory:                145_040
+Term Size:                 194
+Flat Size:                 598
 
 (con integer 40)

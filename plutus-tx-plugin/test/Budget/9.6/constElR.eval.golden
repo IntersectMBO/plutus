@@ -1,5 +1,6 @@
-CPU:             909_789_986
-Memory:            4_307_702
-Size:                     61
+CPU:               909_789_986
+Memory:              4_307_702
+Term Size:                  61
+Flat Size:                 162
 
 (con integer 1)

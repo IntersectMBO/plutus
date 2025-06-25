@@ -1,5 +1,6 @@
-CPU:           3_885_192_144
-Memory:           15_954_832
-Size:                    151
+CPU:             3_885_192_144
+Memory:             15_954_832
+Term Size:                 151
+Flat Size:                 798
 
 (con integer 3775)

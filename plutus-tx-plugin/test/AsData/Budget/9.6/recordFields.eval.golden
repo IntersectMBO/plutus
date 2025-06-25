@@ -1,5 +1,6 @@
-CPU:              10_360_646
-Memory:               37_390
-Size:                    197
+CPU:                10_360_646
+Memory:                 37_390
+Term Size:                 197
+Flat Size:                 622
 
 (con integer 220)

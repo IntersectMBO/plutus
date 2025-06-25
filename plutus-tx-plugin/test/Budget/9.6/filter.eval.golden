@@ -1,6 +1,7 @@
-CPU:               8_427_220
-Memory:               36_530
-Size:                     65
+CPU:                 8_427_220
+Memory:                 36_530
+Term Size:                  65
+Flat Size:                 157
 
 (constr
   1

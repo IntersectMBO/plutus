@@ -1,5 +1,6 @@
-CPU:           2_084_516_500
-Memory:            9_303_800
-Size:                    554
+CPU:             2_084_516_500
+Memory:              9_303_800
+Term Size:                 554
+Flat Size:               1_359
 
 (con integer 3775)
