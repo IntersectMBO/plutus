@@ -5,11 +5,10 @@
 module PlutusBenchmark.Coop.Utils where
 
 import PlutusTx.Prelude
-import Prelude ()
+import Prelude (undefined)
 
 import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3
-import PlutusLedgerApi.V3.MintValue
+import PlutusLedgerApi.V2
 import PlutusTx.AssocMap
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins.Internal qualified as BI
@@ -22,15 +21,16 @@ findOwnInput inputs oref =
     Just x  -> x
 
 mustBurnOwnSingletonValue :: ScriptContext -> BuiltinUnit
-mustBurnOwnSingletonValue (ScriptContext (TxInfo {..}) _ (SpendingScript oref _)) =
+mustBurnOwnSingletonValue (ScriptContext (TxInfo {..}) (Spending oref)) =
   let (TxInInfo _ (TxOut {txOutValue = ownInputValue})) = findOwnInput txInfoInputs oref
   in case flattenValue ownInputValue of
     [_ada, (cs, tk, q)] ->
-      if valueOf (mintValueToValue txInfoMint) cs tk == negate q
+      if valueOf txInfoMint cs tk == negate q
       then BI.unitval
       else traceError "Must burn the all of the single asset this utxo was holding"
     _ -> traceError "The UTXO should exactly have one assets besides Lovelace"
 mustBurnOwnSingletonValue _ = traceError "Only spending purpose is supported"
+{-# INLINE mustBurnOwnSingletonValue #-}
 
 resolveDatum :: forall a. UnsafeFromData a => Map DatumHash Datum -> OutputDatum -> a
 resolveDatum datums outputDatum =
@@ -56,6 +56,10 @@ hashInput (TxInInfo (TxOutRef (TxId hash) idx) _)
 errorIfFalse :: BuiltinString -> Bool -> BuiltinUnit
 errorIfFalse msg False = traceError msg
 errorIfFalse _ True    = BI.unitval
+
+errorIfTrue :: BuiltinString -> Bool -> BuiltinUnit
+errorIfTrue msg True = traceError msg
+errorIfTrue _ False  = BI.unitval
 
 hasCurrency :: CurrencySymbol -> Value -> Bool
 hasCurrency cs (Value val) = AssocMap.member cs val
