@@ -87,7 +87,7 @@ library
     , mtl
     , plutus-core            ^>=1.48
     , plutus-core:plutus-ir
-    , plutus-metatheory
+    , plutus-metatheory      ^>=1.48
     , plutus-tx              ^>=1.48
     , prettyprinter
     , template-haskell

@@ -577,7 +577,7 @@ library agda-internal
     , base               >=4.9   && <5
     , criterion
     , plutus-core        ^>=1.48
-    , plutus-metatheory
+    , plutus-metatheory  ^>=1.48
 
 benchmark validation-agda-cek
   import:         lang, ghc-version-support, os-support,

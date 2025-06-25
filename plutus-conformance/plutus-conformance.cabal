@@ -106,5 +106,5 @@ test-suite agda-conformance
     , base                >=4.9   && <5
     , plutus-conformance
     , plutus-core         ^>=1.48
-    , plutus-metatheory
+    , plutus-metatheory   ^>=1.48
     , transformers

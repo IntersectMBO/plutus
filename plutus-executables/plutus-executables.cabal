@@ -111,7 +111,7 @@ executable uplc
     , optparse-applicative
     , plutus-core                      ^>=1.48
     , plutus-core:plutus-core-execlib
-    , plutus-metatheory
+    , plutus-metatheory                ^>=1.48
     , prettyprinter
     , serialise
     , split
@@ -125,7 +125,7 @@ test-suite test-simple
   build-depends:
     , base
     , extra
-    , plutus-metatheory
+    , plutus-metatheory  ^>=1.48
     , process
 
   build-tool-depends:
@@ -142,7 +142,7 @@ test-suite test-detailed
     , directory
     , extra
     , plutus-core        ^>=1.48
-    , plutus-metatheory
+    , plutus-metatheory  ^>=1.48
     , process
     , tasty
     , tasty-hunit

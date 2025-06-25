@@ -380,7 +380,7 @@ executable plc-agda
   main-is:        Main.hs
   build-depends:
     , base
-    , plutus-metatheory
+    , plutus-metatheory  ^>=1.48
 
 test-suite test-NEAT
   import:         lang, os-support, ghc-version-support
@@ -394,7 +394,7 @@ test-suite test-NEAT
     , mtl
     , plutus-core                      ^>=1.48
     , plutus-core:plutus-core-testlib
-    , plutus-metatheory
+    , plutus-metatheory                ^>=1.48
     , size-based
     , Stream
     , tasty
@@ -416,7 +416,7 @@ test-suite test-certifier
     , plutus-core
     , plutus-core:plutus-core-testlib
     , plutus-core:untyped-plutus-core-testlib
-    , plutus-metatheory
+    , plutus-metatheory                        ^>=1.48
     , process
     , tasty
     , tasty-hunit
