@@ -1,5 +1,6 @@
-CPU:                 510_574
-Memory:                1_728
-Size:                     15
+CPU:                   510_574
+Memory:                  1_728
+Term Size:                  15
+Flat Size:                  38
 
 (con integer 10)

@@ -6,9 +6,5 @@
            ds
            [ (constr 1 [])
            , (\x xs ->
-                force
-                  (force ifThenElse
-                     (lessThanEqualsInteger 1 x)
-                     (delay (s s xs))
-                     (delay (constr 0 [])))) ])
+                case (lessThanEqualsInteger 1 x) [(constr 0 []), (s s xs)]) ])
       (constr 0 [])))

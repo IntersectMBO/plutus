@@ -16,11 +16,9 @@
                            ((\xs ->
                                case
                                  ((\x ->
-                                     force
-                                       (force ifThenElse
-                                          (equalsInteger (modInteger x 2) 0)
-                                          (delay (constr 1 []))
-                                          (delay (constr 0 [x]))))
+                                     case
+                                       (equalsInteger (modInteger x 2) 0)
+                                       [(constr 0 [x]), (constr 1 [])])
                                     (force headList xs))
                                  [ (\y ->
                                       force mkCons

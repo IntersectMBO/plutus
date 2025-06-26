@@ -6,6 +6,7 @@
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
 
+{-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ConstraintKinds          #-}
@@ -20,6 +21,7 @@
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TupleSections            #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -58,7 +60,8 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
-import Data.Vector.Strict (Vector)
+import Data.Vector qualified as Vector
+import Data.Vector.Strict qualified as Strict (Vector)
 import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
@@ -106,7 +109,7 @@ data DefaultUni a where
     DefaultUniString :: DefaultUni (Esc Text)
     DefaultUniUnit :: DefaultUni (Esc ())
     DefaultUniBool :: DefaultUni (Esc Bool)
-    DefaultUniProtoArray :: DefaultUni (Esc Vector)
+    DefaultUniProtoArray :: DefaultUni (Esc Strict.Vector)
     DefaultUniProtoList :: DefaultUni (Esc [])
     DefaultUniProtoPair :: DefaultUni (Esc (,))
     DefaultUniApply :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
@@ -261,7 +264,7 @@ instance DefaultUni `Contains` Bool where
     knownUni = DefaultUniBool
 instance DefaultUni `Contains` [] where
     knownUni = DefaultUniProtoList
-instance DefaultUni `Contains` Vector where
+instance DefaultUni `Contains` Strict.Vector where
     knownUni = DefaultUniProtoArray
 instance DefaultUni `Contains` (,) where
     knownUni = DefaultUniProtoPair
@@ -286,8 +289,8 @@ instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
     KnownTypeAst tyname DefaultUni Bool
 instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
     KnownTypeAst tyname DefaultUni [a]
-instance KnownBuiltinTypeAst tyname DefaultUni (Vector a) =>
-    KnownTypeAst tyname DefaultUni (Vector a)
+instance KnownBuiltinTypeAst tyname DefaultUni (Strict.Vector a) =>
+    KnownTypeAst tyname DefaultUni (Strict.Vector a)
 instance KnownBuiltinTypeAst tyname DefaultUni (a, b) =>
     KnownTypeAst tyname DefaultUni (a, b)
 instance KnownBuiltinTypeAst tyname DefaultUni Data =>
@@ -313,8 +316,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     ReadKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    ReadKnownIn DefaultUni term (Vector a)
+instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
+    ReadKnownIn DefaultUni term (Strict.Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     ReadKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -338,8 +341,8 @@ instance KnownBuiltinTypeIn DefaultUni term Data =>
     MakeKnownIn DefaultUni term Data
 instance KnownBuiltinTypeIn DefaultUni term [a] =>
     MakeKnownIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (Vector a) =>
-    MakeKnownIn DefaultUni term (Vector a)
+instance KnownBuiltinTypeIn DefaultUni term (Strict.Vector a) =>
+    MakeKnownIn DefaultUni term (Strict.Vector a)
 instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     MakeKnownIn DefaultUni term (a, b)
 instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
@@ -518,6 +521,37 @@ instance KnownBuiltinTypeIn DefaultUni term Integer => ReadKnownIn DefaultUni te
                  ]
     {-# INLINE readKnown #-}
 
+outOfBoundsErr :: Pretty a => a -> Vector.Vector term -> Text
+outOfBoundsErr x branches = fold
+    [ "'case "
+    , display x
+    , "' is out of bounds for the given number of branches: "
+    , display $ Vector.length branches
+    ]
+
+instance AnnotateCaseBuiltin DefaultUni where
+    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
+        DefaultUniBool    -> Right $ map (, []) branches
+        DefaultUniInteger -> Right $ map (, []) branches
+        _                 -> Left $ display uni <> " isn't supported in 'case'"
+
+instance CaseBuiltin DefaultUni where
+    caseBuiltin (Some (ValueOf uni x)) branches = case uni of
+        DefaultUniBool -> case x of
+            -- We allow there to be only one branch as long as the scrutinee is 'False'.
+            -- This is strictly to save size by not having the 'True' branch if it was gonna be
+            -- 'Error' anyway.
+            False | len == 1 || len == 2 -> Right $ branches Vector.! 0
+            True  |             len == 2 -> Right $ branches Vector.! 1
+            _                            -> Left  $ outOfBoundsErr x branches
+        DefaultUniInteger
+            | 0 <= x && x < toInteger len -> Right $ branches Vector.! fromInteger x
+            | otherwise                   -> Left  $ outOfBoundsErr x branches
+        _ -> Left $ display uni <> " isn't supported in 'case'"
+      where
+        !len = Vector.length branches
+    {-# INLINE caseBuiltin #-}
+
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
@@ -534,7 +568,7 @@ instance Closed DefaultUni where
         , constr `Permits` ()
         , constr `Permits` Bool
         , constr `Permits` []
-        , constr `Permits` Vector
+        , constr `Permits` Strict.Vector
         , constr `Permits` (,)
         , constr `Permits` Data
         , constr `Permits` BLS12_381.G1.Element

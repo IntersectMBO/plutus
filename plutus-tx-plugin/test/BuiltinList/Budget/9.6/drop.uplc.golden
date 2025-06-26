@@ -8,21 +8,19 @@
             delay
               (delay
                  (\`$dMkNil` n l ->
-                    force
-                      (force ifThenElse
-                         (lessThanEqualsInteger n 0)
-                         (delay l)
-                         (delay
-                            (force
-                               (force (force chooseList)
-                                  l
-                                  (delay `$dMkNil`)
-                                  (delay
-                                     ((\ds xs ->
-                                         force (force (drop (delay (\x -> x))))
-                                           `$dMkNil`
-                                           (subtractInteger n 1)
-                                           xs)
-                                        (force headList l)
-                                        (force tailList l))))))))))
+                    case
+                      (lessThanEqualsInteger n 0)
+                      [ (force
+                           (force (force chooseList)
+                              l
+                              (delay `$dMkNil`)
+                              (delay
+                                 ((\ds xs ->
+                                     force (force (drop (delay (\x -> x))))
+                                       `$dMkNil`
+                                       (subtractInteger n 1)
+                                       xs)
+                                    (force headList l)
+                                    (force tailList l)))))
+                      , l ])))
          (delay (\x -> x)))))

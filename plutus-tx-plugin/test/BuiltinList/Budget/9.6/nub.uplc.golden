@@ -31,16 +31,12 @@
                                            (caseList'
                                               (constr 1 [])
                                               (\x xs ->
-                                                 force
-                                                   (force ifThenElse
-                                                      (equalsInteger x y)
-                                                      (delay (constr 0 []))
-                                                      (delay
-                                                         (force
-                                                            (go
-                                                               (delay
-                                                                  (\x -> x)))
-                                                            xs))))))
+                                                 case
+                                                   (equalsInteger x y)
+                                                   [ (force
+                                                        (go (delay (\x -> x)))
+                                                        xs)
+                                                   , (constr 0 []) ])))
                                       (delay (\x -> x)))
                                    xs)
                                 [ (force (go (delay (\x -> x))) ys xs)

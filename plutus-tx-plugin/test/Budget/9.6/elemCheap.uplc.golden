@@ -6,12 +6,7 @@
          case
            ds
            [ (constr 1 [])
-           , (\x xs ->
-                force
-                  (force ifThenElse
-                     (equalsInteger 1 x)
-                     (delay (constr 0 []))
-                     (delay (s s xs)))) ])
+           , (\x xs -> case (equalsInteger 1 x) [(s s xs), (constr 0 [])]) ])
       (constr 1
          [ 1
          , (constr 1

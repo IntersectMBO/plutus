@@ -1,30 +1,33 @@
 (program
    1.1.0
    (\xs ->
-      (\greaterThanEqualsInteger ->
-         (\cse ->
-            constr 0
-              [ (cse (\v -> greaterThanEqualsInteger v 8) xs)
-              , (cse (\v -> greaterThanEqualsInteger v 12) xs) ])
-           (\p ->
-              force
-                ((\f ->
-                    (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-                      (\s -> f (\x -> s s x)))
-                   (\go arg ->
-                      delay
-                        (\xs ->
-                           force
-                             (force (force chooseList)
-                                xs
-                                (delay (constr 1 []))
-                                (delay
-                                   ((\xs ->
-                                       case
-                                         (p (force headList xs))
-                                         [ (constr 0 [])
-                                         , (force (go (delay (\x -> x))) xs) ])
-                                      (force tailList xs))))))
-                   (delay (\x -> x)))))
-        (\x y ->
-           force ifThenElse (lessThanInteger x y) (constr 1 []) (constr 0 []))))
+      (\cse ->
+         constr 0
+           [ (cse
+                (\v ->
+                   case (lessThanInteger v 8) [(constr 0 []), (constr 1 [])])
+                xs)
+           , (cse
+                (\v ->
+                   case (lessThanInteger v 12) [(constr 0 []), (constr 1 [])])
+                xs) ])
+        (\p ->
+           force
+             ((\f ->
+                 (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+                   (\s -> f (\x -> s s x)))
+                (\go arg ->
+                   delay
+                     (\xs ->
+                        force
+                          (force (force chooseList)
+                             xs
+                             (delay (constr 1 []))
+                             (delay
+                                ((\xs ->
+                                    case
+                                      (p (force headList xs))
+                                      [ (constr 0 [])
+                                      , (force (go (delay (\x -> x))) xs) ])
+                                   (force tailList xs))))))
+                (delay (\x -> x))))))

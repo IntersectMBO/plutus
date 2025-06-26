@@ -119,7 +119,7 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
     prettyBy _      NonConstrScrutinizedMachineError =
-        "A non-constructor value was scrutinized in a case expression"
+        "A non-constructor/non-builtin value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranchMachineError i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
     prettyBy _      (PanicMachineError err) = vcat

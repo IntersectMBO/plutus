@@ -425,6 +425,10 @@ compileMarkedExpr locStr codeTy origE = do
               CompileOptions
                 { coProfile = _posProfile opts
                 , coCoverage = coverage
+                , coDatatypeStyle =
+                    if _posPlcTargetVersion opts < PLC.plcVersion110
+                      then PIR.ScottEncoding
+                      else PIR._dcoStyle $ _posDatatypes opts
                 , coRemoveTrace = _posRemoveTrace opts
                 , coInlineFix = _posInlineFix opts
                 }
@@ -487,10 +491,10 @@ runCompiler moduleName opts expr = do
   -- Plc configuration
   plcTcConfig <-
     modifyError (NoContext . PIRError . PIR.PLCTypeError) $
-    PLC.getDefTypeCheckConfig PIR.noProvenance
+      PLC.getDefTypeCheckConfig PIR.noProvenance
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
   let plcVersion = opts ^. posPlcTargetVersion
-
-  let hints = UPLC.InlineHints $ \ann _ -> case ann of
+      hints = UPLC.InlineHints $ \ann _ -> case ann of
         -- See Note [The problem of inlining destructors]
         -- We want to inline destructors, but even in UPLC our inlining heuristics
         -- aren't quite smart enough to tell that they're good inlining candidates,
@@ -555,16 +559,7 @@ runCompiler moduleName opts expr = do
             (PIR.ccOpts . PIR.coCaseOfCaseConservative)
             (opts ^. posCaseOfCaseConservative)
           & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
-          -- We could make this configurable with an option, but:
-          -- 1. The only other choice you can make is new version + Scott encoding, and
-          -- there's really no reason to pick that
-          -- 2. This is consistent with what we do in Lift
-          & set
-            (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle)
-            ( if plcVersion < PLC.plcVersion110
-                then PIR.ScottEncoding
-                else PIR.SumsOfProducts
-            )
+          & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) datatypeStyle
           -- TODO: ensure the same as the one used in the plugin
           & set PIR.ccBuiltinsInfo def
           & set PIR.ccBuiltinCostModel def

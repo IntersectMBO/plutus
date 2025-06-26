@@ -211,6 +211,9 @@ returnCek (FrameCases ann env cs ctx) e = case e of
               let ctx' = transferArgStack ann args ctx
               in computeCek ctx' env t
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+    VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
+        Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+        Right res -> pure $ Computing ctx env res
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
@@ -342,11 +345,16 @@ mkCekTrans
     -> EmitterMode uni fun
     -> Slippage
     -> m (CekTrans uni fun ann s, ExBudgetInfo cost uni fun s)
-mkCekTrans (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) slippage = do
+mkCekTrans
+        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (ExBudgetMode getExBudgetInfo)
+        (EmitterMode getEmitterMode)
+        slippage = do
     exBudgetInfo@ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetCumulative} <- liftPrim getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit} <- liftPrim $ getEmitterMode _exBudgetModeGetCumulative
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
+        ?cekCaserBuiltin = caser
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -453,7 +461,7 @@ returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine an
 --
 -- and proceed with the returning phase of the CEK machine.
 evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
+    :: (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => ann
     -> Context uni fun ann
     -> fun

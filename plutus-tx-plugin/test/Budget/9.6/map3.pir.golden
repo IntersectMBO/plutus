@@ -37,11 +37,10 @@ letrec
                      nilCase
                      (\(hd : pair data data) ->
                         Bool_match
-                          (ifThenElse
-                             {Bool}
+                          (case
+                             Bool
                              (equalsData k (fstPair {data} {data} hd))
-                             True
-                             False)
+                             [False, True])
                           {all dead.
                              list (pair data data) -> list (pair data data)}
                           (/\dead -> mkCons {pair data data} (mkPairData k v))
@@ -95,11 +94,10 @@ let
                   (Nothing {data})
                   (\(hd : pair data data) ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsData k (fstPair {data} {data} hd))
-                          True
-                          False)
+                          [False, True])
                        {all dead. list (pair data data) -> Maybe data}
                        (/\dead ->
                           \(ds : list (pair data data)) ->
@@ -387,19 +385,19 @@ in
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 index) True False)
+            (case Bool (equalsInteger 0 index) [False, True])
             {all dead. These integer integer}
             (/\dead ->
                This {integer} {integer} (unIData (headList {data} args)))
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 1 index) True False)
+                 (case Bool (equalsInteger 1 index) [False, True])
                  {all dead. These integer integer}
                  (/\dead ->
                     That {integer} {integer} (unIData (headList {data} args)))
                  (/\dead ->
                     Bool_match
-                      (ifThenElse {Bool} (equalsInteger 2 index) True False)
+                      (case Bool (equalsInteger 2 index) [False, True])
                       {all dead. These integer integer}
                       (/\dead ->
                          These

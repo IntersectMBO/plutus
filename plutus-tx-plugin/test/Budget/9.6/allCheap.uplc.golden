@@ -7,11 +7,7 @@
            ds
            [ (constr 0 [])
            , (\x xs ->
-                force
-                  (force ifThenElse
-                     (lessThanEqualsInteger 1 x)
-                     (delay (constr 1 []))
-                     (delay (s s xs)))) ])
+                case (lessThanEqualsInteger 1 x) [(s s xs), (constr 1 [])]) ])
       (constr 1
          [ 1
          , (constr 1

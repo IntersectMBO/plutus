@@ -8,27 +8,19 @@
                   (\y ->
                      (\z ->
                         (\w ->
-                           (\lessThanInteger ->
-                              addInteger
-                                (addInteger
-                                   (addInteger
-                                      (addInteger (addInteger x y) z)
-                                      w)
-                                   (case
-                                      (lessThanInteger
-                                         (addInteger y z)
-                                         (addInteger x w))
-                                      [(addInteger x z), (addInteger y w)]))
+                           addInteger
+                             (addInteger
+                                (addInteger (addInteger (addInteger x y) z) w)
                                 (case
                                    (lessThanInteger
-                                      (addInteger z y)
-                                      (addInteger w x))
-                                   [(addInteger z x), (addInteger w y)]))
-                             (\x y ->
-                                force ifThenElse
-                                  (lessThanInteger x y)
-                                  (constr 0 [])
-                                  (constr 1 [])))
+                                      (addInteger y z)
+                                      (addInteger x w))
+                                   [(addInteger y w), (addInteger x z)]))
+                             (case
+                                (lessThanInteger
+                                   (addInteger z y)
+                                   (addInteger w x))
+                                [(addInteger w y), (addInteger z x)]))
                           (unIData (force headList (force tailList l))))
                        (unIData (force headList l)))
                     (unIData (force headList l)))

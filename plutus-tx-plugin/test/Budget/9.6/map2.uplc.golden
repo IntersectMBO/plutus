@@ -39,21 +39,20 @@
                                                        caseList'
                                                          (constr 1 [])
                                                          (\hd ->
-                                                            force
-                                                              ifThenElse
+                                                            case
                                                               (equalsData
                                                                  k'
                                                                  (force
                                                                     (force
                                                                        fstPair)
                                                                     hd))
-                                                              (\ds ->
-                                                                 constr 0
-                                                                   [ (force
-                                                                        (force
-                                                                           sndPair)
-                                                                        hd) ])
-                                                              (\x -> s s x)))
+                                                              [ (\x -> s s x)
+                                                              , (\ds ->
+                                                                   constr 0
+                                                                     [ (force
+                                                                          (force
+                                                                             sndPair)
+                                                                          hd) ]) ]))
                                                     nt)
                                                  [ (\r ->
                                                       force mkCons
@@ -83,14 +82,15 @@
                                                     caseList'
                                                       (constr 1 [])
                                                       (\hd ->
-                                                         force ifThenElse
+                                                         case
                                                            (equalsData
                                                               k
                                                               (force
                                                                  (force fstPair)
                                                                  hd))
-                                                           (\ds -> constr 0 [])
-                                                           (\x -> s s x)))
+                                                           [ (\x -> s s x)
+                                                           , (\ds ->
+                                                                constr 0 []) ]))
                                                  nt)
                                               (force (force fstPair) hd))
                                            [tl', (force mkCons hd tl')])

@@ -14,11 +14,9 @@
                         (delay xs)
                         (delay
                            ((\xs' ->
-                               force
-                                 (force ifThenElse
-                                    (lessThanInteger (force headList xs) 5)
-                                    (delay (force (go (delay (\x -> x))) xs'))
-                                    (delay xs)))
+                               case
+                                 (lessThanInteger (force headList xs) 5)
+                                 [xs, (force (go (delay (\x -> x))) xs')])
                               (force tailList xs))))))
            (delay (\x -> x)))
         xs))

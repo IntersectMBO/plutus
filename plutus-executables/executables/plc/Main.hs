@@ -202,7 +202,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   prog <- readProgram ifmt inp
-  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
+  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar) def
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
     Right v  ->

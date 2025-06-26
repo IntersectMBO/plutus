@@ -11,8 +11,9 @@ import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
                                                           defaultCekMachineCostsForTesting)
-import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters,
-                                                        mkMachineParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
+                                                        mkMachineVariantParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.MkPlc (mkConstant, mkIterApp)
 import PlutusCore.Pretty
 import PlutusCore.Quote (freshName, runQuote)
@@ -22,7 +23,7 @@ import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..))
 import UntypedPlutusCore.Core qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, CekValue, EvaluationResult (..),
+import UntypedPlutusCore.Evaluation.Machine.Cek (CekMachineCosts, EvaluationResult (..),
                                                  evaluateCek, noEmitter,
                                                  unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
@@ -128,11 +129,14 @@ evaluateUplc
   -> EvaluationResult (UPLC.Term Name DefaultUni DefaultFun ())
 evaluateUplc = unsafeSplitStructuralOperational . fst <$> evaluateCek noEmitter machineParameters
  where
-  costModel :: CostModel CekMachineCosts BuiltinCostModel =
-    CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
-  machineParameters
-    :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
-      mkMachineParameters def costModel -- TODO: proper semantic variant. What should def be?
+  costModel :: CostModel CekMachineCosts BuiltinCostModel
+  costModel =
+      CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
+
+  machineParameters :: DefaultMachineParameters
+  machineParameters =
+      -- TODO: proper semantic variant. What should def be?
+      MachineParameters def $ mkMachineVariantParameters def costModel
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =
