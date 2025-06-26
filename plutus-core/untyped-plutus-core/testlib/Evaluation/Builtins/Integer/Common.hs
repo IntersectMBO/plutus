@@ -22,7 +22,9 @@ import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, oneof)
 -}
 arbitraryBigInteger :: Gen Integer
 arbitraryBigInteger =
-  oneof [unAsArbitraryBuiltin <$> arbitrary, choose (-b, b)]
+  oneof [ unAsArbitraryBuiltin <$> arbitrary
+        , choose (-b, b)
+        ]
   where b = (2::Integer)^(400::Integer)
 
 newtype BigInteger = BigInteger Integer
