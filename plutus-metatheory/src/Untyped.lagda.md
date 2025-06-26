@@ -89,8 +89,9 @@ uglyTmCon (tmCon pdata d)                = uglyDATA d
 uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
 uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME
-uglyTmCon (tmCon (pair t u) (x , y))     = "(pair (" ++ uglyTmCon (tmCon t x) ++ " , " ++ uglyTmCon (tmCon u y) ++ ") )"
+uglyTmCon (tmCon (array t) xs)            = "(array [ something ])" -- FIXME: https://github.com/IntersectMBO/plutus-private/issues/1603
 uglyTmCon (tmCon (list t) xs)            = "(list [ " ++ (uglyTmConList t xs) ++ " ])"
+uglyTmCon (tmCon (pair t u) (x , y))     = "(pair (" ++ uglyTmCon (tmCon t x) ++ " , " ++ uglyTmCon (tmCon u y) ++ ") )"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 

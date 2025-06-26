@@ -21,9 +21,9 @@ import qualified MAlonzo.Code.Data.Irrelevant
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
+import qualified MAlonzo.Code.Untyped.Equality
 import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
-import qualified MAlonzo.Code.VerifiedCompilation.Equality
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
@@ -34,20 +34,20 @@ newtype T_UCSE_4
 -- VerifiedCompilation.UCSE.UntypedCSE
 d_UntypedCSE_26 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
 d_UntypedCSE_26 = erased
 -- VerifiedCompilation.UCSE.isUntypedCSE?
 d_isUntypedCSE'63'_32 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
 d_isUntypedCSE'63'_32 ~v0 v1 = du_isUntypedCSE'63'_32 v1
 du_isUntypedCSE'63'_32 ::
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
@@ -60,13 +60,13 @@ du_isUntypedCSE'63'_32 v0
 -- VerifiedCompilation.UCSE.isUCSE?
 d_isUCSE'63'_38 ::
   () ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
 d_isUCSE'63'_38 ~v0 v1 v2 v3 = du_isUCSE'63'_38 v1 v2 v3
 du_isUCSE'63'_38 ::
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_26
@@ -138,7 +138,7 @@ d_'46'extendedlambda0_54 ::
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isApp_142 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda0_54 = erased
@@ -147,7 +147,7 @@ d_'46'extendedlambda1_86 ::
   () ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Equality.T_DecEq_6 ->
+  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
