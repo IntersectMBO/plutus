@@ -451,7 +451,12 @@ library untyped-plutus-core-testlib
     Evaluation.Builtins.Conversion
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
-    Evaluation.Builtins.Integer.ExpModInteger
+    Evaluation.Builtins.Integer.Common
+    Evaluation.Builtins.Integer.DivModProperties
+    Evaluation.Builtins.Integer.ExpModIntegerProperties
+    Evaluation.Builtins.Integer.OrderProperties
+    Evaluation.Builtins.Integer.QuotRemProperties
+    Evaluation.Builtins.Integer.RingProperties
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
     Evaluation.Debug

@@ -12,6 +12,7 @@ module Evaluation.Builtins.Common
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
+    , PlcType
     , PlcTerm
     , UplcTerm
     , CekResult (..)
@@ -21,6 +22,7 @@ module Evaluation.Builtins.Common
     , ok
     , fails
     , evalOkEq
+    , evalOkTrue
     , integer
     , bytestring
     , zero
@@ -120,6 +122,7 @@ typecheckReadKnownCek semvar =
 
 -- TPLC/UPLC utilities
 
+type PlcType = TPLC.Type TPLC.TyName TPLC.DefaultUni ()
 type PlcTerm  = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
 type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
@@ -190,5 +193,7 @@ evalOkEq t1 t2 =
       r@(CekSuccess _) -> r === evalTerm t2
       _                -> property False
 
+evalOkTrue :: PlcTerm -> Property
+evalOkTrue t = evalOkEq t true
 
 
