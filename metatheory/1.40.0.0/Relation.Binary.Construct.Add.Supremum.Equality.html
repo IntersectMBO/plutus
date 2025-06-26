@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Binary.Construct.Add.Supremum.Equality</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- A pointwise lifting of a relation to incorporate a new supremum.</a>
+<a id="174" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="248" class="Symbol">{-#</a> <a id="252" class="Keyword">OPTIONS</a> <a id="260" class="Pragma">--cubical-compatible</a> <a id="281" class="Pragma">--safe</a> <a id="288" class="Symbol">#-}</a>
+
+<a id="293" class="Comment">-- This module is designed to be used with</a>
+<a id="336" class="Comment">-- Relation.Nullary.Construct.Add.Supremum</a>
+
+<a id="380" class="Keyword">open</a> <a id="385" class="Keyword">import</a> <a id="392" href="Relation.Binary.Core.html" class="Module">Relation.Binary.Core</a> <a id="413" class="Keyword">using</a> <a id="419" class="Symbol">(</a><a id="420" href="Relation.Binary.Core.html#896" class="Function">Rel</a><a id="423" class="Symbol">)</a>
+
+<a id="426" class="Keyword">module</a> <a id="433" href="Relation.Binary.Construct.Add.Supremum.Equality.html" class="Module">Relation.Binary.Construct.Add.Supremum.Equality</a>
+  <a id="483" class="Symbol">{</a><a id="484" href="Relation.Binary.Construct.Add.Supremum.Equality.html#484" class="Bound">a</a> <a id="486" href="Relation.Binary.Construct.Add.Supremum.Equality.html#486" class="Bound">ℓ</a><a id="487" class="Symbol">}</a> <a id="489" class="Symbol">{</a><a id="490" href="Relation.Binary.Construct.Add.Supremum.Equality.html#490" class="Bound">A</a> <a id="492" class="Symbol">:</a> <a id="494" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="498" href="Relation.Binary.Construct.Add.Supremum.Equality.html#484" class="Bound">a</a><a id="499" class="Symbol">}</a> <a id="501" class="Symbol">(</a><a id="502" href="Relation.Binary.Construct.Add.Supremum.Equality.html#502" class="Bound Operator">_≈_</a> <a id="506" class="Symbol">:</a> <a id="508" href="Relation.Binary.Core.html#896" class="Function">Rel</a> <a id="512" href="Relation.Binary.Construct.Add.Supremum.Equality.html#490" class="Bound">A</a> <a id="514" href="Relation.Binary.Construct.Add.Supremum.Equality.html#486" class="Bound">ℓ</a><a id="515" class="Symbol">)</a> <a id="517" class="Keyword">where</a>
+
+<a id="524" class="Keyword">open</a> <a id="529" class="Keyword">import</a> <a id="536" href="Relation.Binary.Construct.Add.Point.Equality.html" class="Module">Relation.Binary.Construct.Add.Point.Equality</a> <a id="581" href="Relation.Binary.Construct.Add.Supremum.Equality.html#502" class="Bound Operator">_≈_</a> <a id="585" class="Keyword">public</a>
+  <a id="594" class="Keyword">renaming</a>
+  <a id="605" class="Symbol">(</a><a id="606" href="Relation.Binary.Construct.Add.Point.Equality.html#1082" class="Datatype Operator">_≈∙_</a>                 <a id="627" class="Symbol">to</a> <a id="630" class="Datatype Operator">_≈⁺_</a>
+  <a id="637" class="Symbol">;</a> <a id="639" href="Relation.Binary.Construct.Add.Point.Equality.html#1121" class="InductiveConstructor">∙≈∙</a>                 <a id="659" class="Symbol">to</a> <a id="662" class="InductiveConstructor">⊤⁺≈⊤⁺</a>
+  <a id="670" class="Symbol">;</a> <a id="672" href="Relation.Binary.Construct.Add.Point.Equality.html#1379" class="Function">≈∙-refl</a>             <a id="692" class="Symbol">to</a> <a id="695" class="Function">≈⁺-refl</a>
+  <a id="705" class="Symbol">;</a> <a id="707" href="Relation.Binary.Construct.Add.Point.Equality.html#1486" class="Function">≈∙-sym</a>              <a id="727" class="Symbol">to</a> <a id="730" class="Function">≈⁺-sym</a>
+  <a id="739" class="Symbol">;</a> <a id="741" href="Relation.Binary.Construct.Add.Point.Equality.html#1591" class="Function">≈∙-trans</a>            <a id="761" class="Symbol">to</a> <a id="764" class="Function">≈⁺-trans</a>
+  <a id="775" class="Symbol">;</a> <a id="777" href="Relation.Binary.Construct.Add.Point.Equality.html#1730" class="Function">≈∙-dec</a>              <a id="797" class="Symbol">to</a> <a id="800" class="Function">≈⁺-dec</a>
+  <a id="809" class="Symbol">;</a> <a id="811" href="Relation.Binary.Construct.Add.Point.Equality.html#1934" class="Function">≈∙-irrelevant</a>       <a id="831" class="Symbol">to</a> <a id="834" class="Function">≈⁺-irrelevant</a>
+  <a id="850" class="Symbol">;</a> <a id="852" href="Relation.Binary.Construct.Add.Point.Equality.html#2080" class="Function">≈∙-substitutive</a>     <a id="872" class="Symbol">to</a> <a id="875" class="Function">≈⁺-substitutive</a>
+  <a id="893" class="Symbol">;</a> <a id="895" href="Relation.Binary.Construct.Add.Point.Equality.html#2328" class="Function">≈∙-isEquivalence</a>    <a id="915" class="Symbol">to</a> <a id="918" class="Function">≈⁺-isEquivalence</a>
+  <a id="937" class="Symbol">;</a> <a id="939" href="Relation.Binary.Construct.Add.Point.Equality.html#2549" class="Function">≈∙-isDecEquivalence</a> <a id="959" class="Symbol">to</a> <a id="962" class="Function">≈⁺-isDecEquivalence</a>
+  <a id="984" class="Symbol">)</a>
+</pre></body></html>
