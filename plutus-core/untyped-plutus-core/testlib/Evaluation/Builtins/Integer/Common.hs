@@ -12,19 +12,27 @@ import PlutusCore.MkPlc (builtin, mkIterAppNoAnn, mkTyBuiltin, tyInst)
 
 import Evaluation.Builtins.Common
 
-import Test.QuickCheck (Gen, arbitrary)
+import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, oneof)
 
--- For property tests, we don't want to use the standard QuickCheck generator
--- for Integers because that only produces values in [-99..99].  Here are some
--- utilities to make it easier to use the better generator for
--- AsArbitraryBuiltin Integer.
-type BigInteger = AsArbitraryBuiltin Integer
+{- We don't want to use the standard QuickCheck generator for Integers in these
+   prooperty tests because that only produces values in [-99..99].  Instead we
+   mix the better generator for AsArbitraryBuiltin Integer and one which
+   produces Integers up to 400 bits.  The name `BigInteger` is maybe slightly
+   misleading but it has the merit of being relatively short.
+-}
+arbitraryBigInteger :: Gen Integer
+arbitraryBigInteger =
+  oneof [unAsArbitraryBuiltin <$> arbitrary, choose (-b, b)]
+  where b = (2::Integer)^(400::Integer)
+
+newtype BigInteger = BigInteger Integer
+  deriving newtype (Show, Eq, Ord, Num)
+
+instance Arbitrary BigInteger where
+   arbitrary = BigInteger <$> arbitraryBigInteger
 
 biginteger :: BigInteger -> PlcTerm
-biginteger (AsArbitraryBuiltin n) = integer n
-
-arbitraryBigInteger :: Gen Integer
-arbitraryBigInteger = unAsArbitraryBuiltin <$> arbitrary
+biginteger (BigInteger n) = integer n
 
 -- Functions creating terms that are applications of various builtins, for
 -- convenience.
