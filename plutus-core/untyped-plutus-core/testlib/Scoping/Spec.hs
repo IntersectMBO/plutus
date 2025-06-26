@@ -1,10 +1,11 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Scoping.Spec where
 
-import Generators (genProgram, genTerm)
-
-import UntypedPlutusCore (_soInlineHints, _soPreserveLogging, defaultSimplifyOpts)
+import UntypedPlutusCore
+import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, genTerm, mangleNames, runAstGen)
 import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
 import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
@@ -13,13 +14,54 @@ import UntypedPlutusCore.Transform.Cse (cse)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
 import UntypedPlutusCore.Transform.ForceDelay (forceDelay)
 import UntypedPlutusCore.Transform.Inline (inline)
-import UntypedPlutusCore.Transform.Simplifier (evalSimplifierT)
 
-import PlutusCore.Default.Builtins (DefaultFun)
+import PlutusCore.Generators.Hedgehog.Utils
+import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Test qualified as T
 
+import Hedgehog
 import Test.Tasty
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
+
+test_mangle :: TestTree
+test_mangle =
+  testPropertyNamed "equality does not survive mangling" "equality_mangling" $
+      withDiscards 1000000 . T.mapTestLimitAtLeast 300 (`div` 3) . property $ do
+          (term, termMangled) <- forAll . runAstGen $ do
+            term <- genTerm
+            (,) term <$> mangleNames term
+          term /== termMangled
+          termMangled /== term
+
+-- | Test equality of a program and its renamed version, given a renamer.
+prop_equalityFor
+  :: program ~ Program Name DefaultUni DefaultFun ()
+  => (program -> Quote program)
+  -> Property
+prop_equalityFor ren = property $ do
+  prog <- forAllPretty $ runAstGen genProgram
+  let progRen = runQuote $ ren prog
+  progRen === prog
+  prog === progRen
+
+test_equalityRename :: TestTree
+test_equalityRename =
+  testPropertyNamed "equality survives renaming" "equality_renaming" $
+    prop_equalityFor rename
+
+test_equalityBrokenRename :: TestTree
+test_equalityBrokenRename =
+  testCase "equality does not survive wrong renaming" $
+    T.checkFails . prop_equalityFor $
+      T.brokenRename markNonFreshProgram renameProgramM
+
+test_equalityNoMarkRename :: TestTree
+test_equalityNoMarkRename =
+  testCase "equality does not survive renaming without marking" $
+    T.checkFails . prop_equalityFor $
+      T.noMarkRename renameProgramM
 
 -- See Note [Scoping tests API].
 test_names :: TestTree
@@ -65,4 +107,8 @@ test_names = testGroup "names"
             (_soPreserveLogging defaultSimplifyOpts)
             (_soInlineHints defaultSimplifyOpts)
             maxBound )
+    , test_mangle
+    , test_equalityRename
+    , test_equalityBrokenRename
+    , test_equalityNoMarkRename
     ]

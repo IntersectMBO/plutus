@@ -43,6 +43,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 import Control.Monad (unless)
 import Control.Monad.Except (ExceptT, catchError, liftEither, runExceptT, throwError, withExceptT)
 import Control.Search (Enumerable (..), Options (..), search')
+import Data.Default.Class (def)
 import Data.Maybe
 import Data.Stream qualified as Stream
 import Data.Tagged
@@ -144,7 +145,7 @@ prop_typePreservation tyG tmG = do
   -- Check if the converted term, when evaluated by CK, still has the same type:
 
   tmCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
 -- |Property: check if both the typed CK and untyped CEK machines produce the same output
@@ -162,7 +163,7 @@ prop_agree_termEval tyG tmG = do
 
   -- run typed CK on input
   tmCk <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting tm `catchError` handleError ty
+    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def tm `catchError` handleError ty
 
   -- erase CK output
   let tmUCk = eraseTerm tmCk

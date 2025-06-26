@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
-{-# LANGUAGE ViewPatterns #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
@@ -11,10 +10,7 @@ module PlutusBenchmark.Common
     , toAnonDeBruijnTerm
     , toNamedDeBruijnTerm
     , compiledCodeToTerm
-    , haskellValueToTerm
     , benchProgramCek
-    , unsafeRunTermCek
-    , runTermCek
     , cekResultMatchesHaskellValue
     , mkEvalCtx
     , mkMostRecentEvalCtx
@@ -37,12 +33,14 @@ import PlutusBenchmark.ProtocolParameters as PP
 import PlutusLedgerApi.Common qualified as LedgerApi
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import PlutusTx.Test.Util.Compiled
+import PlutusTx.Test.Util.Compiled (Program, Term, cekResultMatchesHaskellValue, compiledCodeToTerm,
+                                    toAnonDeBruijnProg, toAnonDeBruijnTerm, toNamedDeBruijnTerm)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -100,6 +98,7 @@ mkEvalCtx ll semvar =
             let errOrCtx =
                     LedgerApi.mkDynEvaluationContext
                         ll
+                        (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
                         [semvar]
                         (const semvar)
                         p

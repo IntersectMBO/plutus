@@ -26,6 +26,7 @@ module UntypedPlutusCore.Core.Type
     ) where
 
 import Control.Lens
+import Control.Monad.Except
 import PlutusPrelude
 
 import Data.Vector
@@ -53,6 +54,19 @@ once per program, so it's not too big a deal if it doesn't get a tag.
 
 See the GHC Notes "Tagging big families" and "Double switching for big families" in
 GHC.StgToCmm.Expr for more details.
+-}
+
+{- Note [Supported case-expressions]
+Originally 'Case' was introduced to only work with 'Constr', which together create the
+sums-of-products approach to representing data types.
+
+However in https://github.com/IntersectMBO/plutus/issues/6602 we decided that the best way to
+speed up processing values of built-in types is to extend 'Case' such that it supports pattern
+matching on those.
+
+Currently, 'Case' only supports booleans and integers, but we plan to extend it to lists and data.
+
+See the @CaseBuiltin DefaultUni@ instance for how casing behaves for supported built-in types.
 -}
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
@@ -83,9 +97,9 @@ data Term name uni fun ann
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
     -- TODO: worry about overflow, maybe use an Integer
-    -- TODO: try spine-strict list or strict list or vector
     -- See Note [Constr tag type]
     | Constr !ann !Word64 ![Term name uni fun ann]
+    -- See Note [Supported case-expressions].
     | Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
     deriving stock (Functor, Generic)
 
@@ -128,7 +142,7 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
 
 instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant (Constant _ val) = pure val
-    asConstant _                = TPLC.throwNotAConstant
+    asConstant _                = throwError TPLC.notAConstant
 
     fromConstant = Constant ()
 

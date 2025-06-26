@@ -1,14 +1,22 @@
 (program
    1.1.0
-   (\v ->
-      (\l ->
-         force
-           (force (force chooseList)
-              l
-              (delay
-                 (\_ann -> (\x -> error) (force trace "PT22" (constr 0 []))))
-              (delay
-                 ((\x xs ds eta -> x) (force headList l) (force tailList l))))
-           (constr 0 [])
-           (constr 0 []))
-        (force dropList 5 v)))
+   (\xs ->
+      force
+        ((\traceError ->
+            case
+              (lessThanInteger 5 0)
+              [ (delay
+                   ((\l ->
+                       force
+                         (force (force chooseList)
+                            l
+                            (delay (\_ann -> traceError "PT22"))
+                            (delay
+                               ((\x xs ds _ann -> x)
+                                  (force headList l)
+                                  (force tailList l))))
+                         (constr 0 [])
+                         (constr 0 []))
+                      (force dropList 5 xs)))
+              , (delay (traceError "PT21")) ])
+           (\str -> (\x -> error) (force trace str (constr 0 []))))))

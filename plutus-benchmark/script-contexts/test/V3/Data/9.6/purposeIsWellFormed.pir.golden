@@ -2,337 +2,6 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-in
-letrec
-  data (List :: * -> *) a | List_match where
-    Nil : List a
-    Cons : a -> List a -> List a
-in
-let
-  !mapQuantity : integer -> List integer
-    = \(x : integer) ->
-        (let
-            a = List integer
-          in
-          \(c : integer -> a -> a) (n : a) ->
-            Bool_match
-              (ifThenElse {Bool} (lessThanEqualsInteger x 0) False True)
-              {all dead. a}
-              (/\dead -> c x n)
-              (/\dead -> n)
-              {all dead. dead})
-          (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
-          (Nil {integer})
-  !concatMap : all a b. (a -> List b) -> List a -> List b
-    = /\a b ->
-        \(f : a -> List b) ->
-          letrec
-            !go : List a -> List b
-              = \(ds : List a) ->
-                  List_match
-                    {a}
-                    ds
-                    {all dead. List b}
-                    (/\dead -> Nil {b})
-                    (\(x : a) (xs : List a) ->
-                       /\dead ->
-                         let
-                           !ys : List b = go xs
-                         in
-                         letrec
-                           !go : List b -> List b
-                             = \(ds : List b) ->
-                                 List_match
-                                   {b}
-                                   ds
-                                   {all dead. List b}
-                                   (/\dead -> ys)
-                                   (\(x : b) (xs : List b) ->
-                                      /\dead -> Cons {b} x (go xs))
-                                   {all dead. dead}
-                         in
-                         let
-                           !l : List b = f x
-                         in
-                         go l)
-                    {all dead. dead}
-          in
-          \(eta : List a) -> go eta
-  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(z : r) (f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
-  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-    Tuple2 : a -> b -> Tuple2 a b
-  !toSOPList :
-     all k a.
-       (\a -> data -> a) k ->
-       (\a -> data -> a) a ->
-       (\k a -> list (pair data data)) k a ->
-       List (Tuple2 k a)
-    = /\k a ->
-        \(`$dUnsafeFromData` : (\a -> data -> a) k)
-         (`$dUnsafeFromData` : (\a -> data -> a) a)
-         (d : (\k a -> list (pair data data)) k a) ->
-          letrec
-            !go : list (pair data data) -> List (Tuple2 k a)
-              = caseList'
-                  {pair data data}
-                  {List (Tuple2 k a)}
-                  (Nil {Tuple2 k a})
-                  (\(hd : pair data data) (tl : list (pair data data)) ->
-                     Cons
-                       {Tuple2 k a}
-                       (Tuple2
-                          {k}
-                          {a}
-                          (`$dUnsafeFromData` (fstPair {data} {data} hd))
-                          (`$dUnsafeFromData` (sndPair {data} {data} hd)))
-                       (go tl))
-          in
-          go d
-in
-letrec
-  !goList : List (Tuple2 data data) -> list (pair data data)
-    = \(ds : List (Tuple2 data data)) ->
-        List_match
-          {Tuple2 data data}
-          ds
-          {list (pair data data)}
-          []
-          (\(d : Tuple2 data data) (ds : List (Tuple2 data data)) ->
-             mkCons
-               {pair data data}
-               (Tuple2_match
-                  {data}
-                  {data}
-                  d
-                  {pair data data}
-                  (\(d : data) (d : data) -> mkPairData d d))
-               (goList ds))
-in
-let
-  !unsafeFromSOPList :
-     all k a.
-       (\a -> a -> data) k ->
-       (\a -> a -> data) a ->
-       List (Tuple2 k a) ->
-       (\k a -> list (pair data data)) k a
-    = /\k a ->
-        \(`$dToData` : (\a -> a -> data) k)
-         (`$dToData` : (\a -> a -> data) a) ->
-          letrec
-            !go : List (Tuple2 k a) -> List (Tuple2 data data)
-              = \(ds : List (Tuple2 k a)) ->
-                  List_match
-                    {Tuple2 k a}
-                    ds
-                    {all dead. List (Tuple2 data data)}
-                    (/\dead -> Nil {Tuple2 data data})
-                    (\(x : Tuple2 k a) (xs : List (Tuple2 k a)) ->
-                       /\dead ->
-                         Cons
-                           {Tuple2 data data}
-                           (Tuple2_match
-                              {k}
-                              {a}
-                              x
-                              {Tuple2 data data}
-                              (\(k : k) (a : a) ->
-                                 Tuple2
-                                   {data}
-                                   {data}
-                                   (`$dToData` k)
-                                   (`$dToData` a)))
-                           (go xs))
-                    {all dead. dead}
-          in
-          \(eta : List (Tuple2 k a)) -> goList (go eta)
-in
-letrec
-  !go :
-     List
-       (Tuple2
-          bytestring
-          ((\k a -> list (pair data data)) bytestring integer)) ->
-     List
-       (Tuple2 bytestring ((\k a -> list (pair data data)) bytestring integer))
-    = \(ds :
-          List
-            (Tuple2
-               bytestring
-               ((\k a -> list (pair data data)) bytestring integer))) ->
-        List_match
-          {Tuple2
-             bytestring
-             ((\k a -> list (pair data data)) bytestring integer)}
-          ds
-          {all dead.
-             List
-               (Tuple2
-                  bytestring
-                  ((\k a -> list (pair data data)) bytestring integer))}
-          (/\dead ->
-             Nil
-               {Tuple2
-                  bytestring
-                  ((\k a -> list (pair data data)) bytestring integer)})
-          (\(x :
-               Tuple2
-                 bytestring
-                 ((\k a -> list (pair data data)) bytestring integer))
-            (xs :
-               List
-                 (Tuple2
-                    bytestring
-                    ((\k a -> list (pair data data)) bytestring integer))) ->
-             /\dead ->
-               Tuple2_match
-                 {bytestring}
-                 {(\k a -> list (pair data data)) bytestring integer}
-                 x
-                 {List
-                    (Tuple2
-                       bytestring
-                       ((\k a -> list (pair data data)) bytestring integer))}
-                 (\(currency : bytestring)
-                   (tokenQuantities :
-                      (\k a -> list (pair data data)) bytestring integer) ->
-                    List_match
-                      {Tuple2 bytestring integer}
-                      (concatMap
-                         {Tuple2 bytestring integer}
-                         {Tuple2 bytestring integer}
-                         (\(eta : Tuple2 bytestring integer) ->
-                            Tuple2_match
-                              {bytestring}
-                              {integer}
-                              eta
-                              {List (Tuple2 bytestring integer)}
-                              (\(c : bytestring) ->
-                                 letrec
-                                   !go :
-                                      List integer ->
-                                      List (Tuple2 bytestring integer)
-                                     = \(ds : List integer) ->
-                                         List_match
-                                           {integer}
-                                           ds
-                                           {all dead.
-                                              List (Tuple2 bytestring integer)}
-                                           (/\dead ->
-                                              Nil {Tuple2 bytestring integer})
-                                           (\(x : integer)
-                                             (xs : List integer) ->
-                                              /\dead ->
-                                                Cons
-                                                  {Tuple2 bytestring integer}
-                                                  (Tuple2
-                                                     {bytestring}
-                                                     {integer}
-                                                     c
-                                                     x)
-                                                  (go xs))
-                                           {all dead. dead}
-                                 in
-                                 \(a : integer) -> go (mapQuantity a)))
-                         (toSOPList
-                            {bytestring}
-                            {integer}
-                            unBData
-                            unIData
-                            tokenQuantities))
-                      {all dead.
-                         List
-                           (Tuple2
-                              bytestring
-                              ((\k a -> list (pair data data))
-                                 bytestring
-                                 integer))}
-                      (/\dead -> go xs)
-                      (\(ipv : Tuple2 bytestring integer)
-                        (ipv : List (Tuple2 bytestring integer)) ->
-                         /\dead ->
-                           Cons
-                             {Tuple2
-                                bytestring
-                                ((\k a -> list (pair data data))
-                                   bytestring
-                                   integer)}
-                             (Tuple2
-                                {bytestring}
-                                {(\k a -> list (pair data data))
-                                   bytestring
-                                   integer}
-                                currency
-                                (unsafeFromSOPList
-                                   {bytestring}
-                                   {integer}
-                                   bData
-                                   (\(i : integer) -> iData i)
-                                   (concatMap
-                                      {Tuple2 bytestring integer}
-                                      {Tuple2 bytestring integer}
-                                      (\(eta : Tuple2 bytestring integer) ->
-                                         Tuple2_match
-                                           {bytestring}
-                                           {integer}
-                                           eta
-                                           {List (Tuple2 bytestring integer)}
-                                           (\(c : bytestring) ->
-                                              letrec
-                                                !go :
-                                                   List integer ->
-                                                   List
-                                                     (Tuple2 bytestring integer)
-                                                  = \(ds : List integer) ->
-                                                      List_match
-                                                        {integer}
-                                                        ds
-                                                        {all dead.
-                                                           List
-                                                             (Tuple2
-                                                                bytestring
-                                                                integer)}
-                                                        (/\dead ->
-                                                           Nil
-                                                             {Tuple2
-                                                                bytestring
-                                                                integer})
-                                                        (\(x : integer)
-                                                          (xs : List integer) ->
-                                                           /\dead ->
-                                                             Cons
-                                                               {Tuple2
-                                                                  bytestring
-                                                                  integer}
-                                                               (Tuple2
-                                                                  {bytestring}
-                                                                  {integer}
-                                                                  c
-                                                                  x)
-                                                               (go xs))
-                                                        {all dead. dead}
-                                              in
-                                              \(a : integer) ->
-                                                go (mapQuantity a)))
-                                      (toSOPList
-                                         {bytestring}
-                                         {integer}
-                                         unBData
-                                         unIData
-                                         tokenQuantities))))
-                             (go xs))
-                      {all dead. dead}))
-          {all dead. dead}
-in
-let
   !`$fEqCredential_$c==` : data -> data -> Bool
     = \(ds : data) (ds : data) ->
         let
@@ -342,26 +11,24 @@ let
                   !tup : pair integer (list data) = unConstrData ds
                 in
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      let
                        !tup : pair integer (list data) = unConstrData ds
                      in
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead ->
-                          ifThenElse
-                            {Bool}
+                          case
+                            Bool
                             (equalsByteString
                                (unBData
                                   (headList
@@ -371,8 +38,7 @@ let
                                   (headList
                                      {data}
                                      (sndPair {integer} {list data} tup))))
-                            True
-                            False)
+                            [False, True])
                        (/\dead -> False)
                        {all dead. dead})
                   (/\dead -> False)
@@ -380,26 +46,24 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
-                  ifThenElse
-                    {Bool}
+                  case
+                    Bool
                     (equalsByteString
                        (unBData
                           (headList {data} (sndPair {integer} {list data} tup)))
@@ -407,8 +71,7 @@ let
                           (headList
                              {data}
                              (sndPair {integer} {list data} tup))))
-                    True
-                    False)
+                    [False, True])
                (/\dead -> fail ())
                {all dead. dead})
           (/\dead -> fail ())
@@ -419,44 +82,40 @@ let
           !fail : unit -> Bool
             = \(ds : unit) ->
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger
                         2
                         (fstPair {integer} {list data} (unConstrData ds)))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
-                     ifThenElse
-                       {Bool}
+                     case
+                       Bool
                        (equalsInteger
                           2
                           (fstPair {integer} {list data} (unConstrData ds)))
-                       True
-                       False)
+                       [False, True])
                   (/\dead -> False)
                   {all dead. dead}
           !fail : unit -> Bool
             = \(ds : unit) ->
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger
                         1
                         (fstPair {integer} {list data} (unConstrData ds)))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger
                              1
                              (fstPair {integer} {list data} (unConstrData ds)))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead -> True)
                        (/\dead -> fail ())
@@ -466,22 +125,20 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
                   `$fEqCredential_$c==`
@@ -499,11 +156,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 2 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -528,11 +184,7 @@ let
                        ds
                        (\(a' : bytestring) (b' : data) ->
                           Bool_match
-                            (ifThenElse
-                               {Bool}
-                               (equalsByteString a a')
-                               True
-                               False)
+                            (case Bool (equalsByteString a a') [False, True])
                             {all dead. Bool}
                             (/\dead -> `$fEqDRep0_$c==` b b')
                             (/\dead -> False)
@@ -545,22 +197,20 @@ let
                   !tup : pair integer (list data) = unConstrData ds
                 in
                 Bool_match
-                  (ifThenElse
-                     {Bool}
+                  (case
+                     Bool
                      (equalsInteger 1 (fstPair {integer} {list data} tup))
-                     True
-                     False)
+                     [False, True])
                   {all dead. Bool}
                   (/\dead ->
                      let
                        !tup : pair integer (list data) = unConstrData ds
                      in
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsInteger 1 (fstPair {integer} {list data} tup))
-                          True
-                          False)
+                          [False, True])
                        {all dead. Bool}
                        (/\dead ->
                           `$fEqDRep0_$c==`
@@ -577,26 +227,24 @@ let
           !tup : pair integer (list data) = unConstrData ds
         in
         Bool_match
-          (ifThenElse
-             {Bool}
+          (case
+             Bool
              (equalsInteger 0 (fstPair {integer} {list data} tup))
-             True
-             False)
+             [False, True])
           {all dead. Bool}
           (/\dead ->
              let
                !tup : pair integer (list data) = unConstrData ds
              in
              Bool_match
-               (ifThenElse
-                  {Bool}
+               (case
+                  Bool
                   (equalsInteger 0 (fstPair {integer} {list data} tup))
-                  True
-                  False)
+                  [False, True])
                {all dead. Bool}
                (/\dead ->
-                  ifThenElse
-                    {Bool}
+                  case
+                    Bool
                     (equalsByteString
                        (unBData
                           (headList {data} (sndPair {integer} {list data} tup)))
@@ -604,8 +252,7 @@ let
                           (headList
                              {data}
                              (sndPair {integer} {list data} tup))))
-                    True
-                    False)
+                    [False, True])
                (/\dead -> fail ())
                {all dead. dead})
           (/\dead -> fail ())
@@ -618,11 +265,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 9 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -639,11 +285,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 2 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -659,11 +304,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 4 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -684,11 +328,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 3 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -719,12 +362,12 @@ let
             !args : list data = sndPair {integer} {list data} tup
           in
           Bool_match
-            (ifThenElse {Bool} (equalsInteger 1 index) True False)
+            (case Bool (equalsInteger 1 index) [False, True])
             {all dead. Maybe a}
             (/\dead -> Nothing {a})
             (/\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 index) True False)
+                 (case Bool (equalsInteger 0 index) [False, True])
                  {all dead. Maybe a}
                  (/\dead ->
                     Just {a} (`$dUnsafeFromData` (headList {data} args)))
@@ -741,11 +384,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 0 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -767,11 +409,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 6 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -792,11 +433,10 @@ let
             !tup : pair integer (list data) = unConstrData scrut
           in
           Bool_match
-            (ifThenElse
-               {Bool}
+            (case
+               Bool
                (equalsInteger 1 (fstPair {integer} {list data} tup))
-               True
-               False)
+               [False, True])
             {all dead. r}
             (/\dead ->
                let
@@ -812,6 +452,16 @@ let
             {all dead. dead}
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   !filter :
      all a.
        (\a -> data -> a) a ->
@@ -862,23 +512,58 @@ let
                   False
                   (\(hd : pair data data) ->
                      Bool_match
-                       (ifThenElse
-                          {Bool}
+                       (case
+                          Bool
                           (equalsData
                              (`$dToData` ds)
                              (fstPair {data} {data} hd))
-                          True
-                          False)
+                          [False, True])
                        {all dead. list (pair data data) -> Bool}
                        (/\dead -> \(ds : list (pair data data)) -> True)
                        (/\dead -> go)
                        {all dead. dead})
           in
           go ds
+  !mapMaybe :
+     all k a b.
+       (\a -> data -> a) a ->
+       (\a -> a -> data) b ->
+       (a -> Maybe b) ->
+       (\k a -> list (pair data data)) k a ->
+       (\k a -> list (pair data data)) k b
+    = /\k a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dToData` : (\a -> a -> data) b)
+         (f : a -> Maybe b) ->
+          letrec
+            !go : list (pair data data) -> list (pair data data)
+              = caseList'
+                  {pair data data}
+                  {list (pair data data)}
+                  []
+                  (\(hd : pair data data) ->
+                     Maybe_match
+                       {b}
+                       (f (`$dUnsafeFromData` (sndPair {data} {data} hd)))
+                       {all dead.
+                          list (pair data data) -> list (pair data data)}
+                       (\(v' : b) ->
+                          /\dead ->
+                            \(eta : list (pair data data)) ->
+                              mkCons
+                                {pair data data}
+                                (mkPairData
+                                   (fstPair {data} {data} hd)
+                                   (`$dToData` v'))
+                                (go eta))
+                       (/\dead -> go)
+                       {all dead. dead})
+          in
+          go
   !null : all a. (\a -> list data) a -> Bool
     = /\a ->
         \(eta : (\a -> list data) a) ->
-          ifThenElse {Bool} (nullList {data} eta) True False
+          case Bool (nullList {data} eta) [False, True]
   !txOutRefId : data -> bytestring
     = \(ds : data) ->
         unBData
@@ -908,11 +593,10 @@ in
       !tup : pair integer (list data) = unConstrData scriptInfo
     in
     Bool_match
-      (ifThenElse
-         {Bool}
+      (case
+         Bool
          (equalsInteger 0 (fstPair {integer} {list data} tup))
-         True
-         False)
+         [False, True])
       {all dead. Bool}
       (/\dead ->
          (let
@@ -945,29 +629,57 @@ in
                      bytestring
                      ((\k a -> list (pair data data)) bytestring integer)) ->
                  ds))
-           (unsafeFromSOPList
+           (mapMaybe
               {bytestring}
               {(\k a -> list (pair data data)) bytestring integer}
-              bData
+              {(\k a -> list (pair data data)) bytestring integer}
+              (\(eta : data) -> unMapData eta)
               (\(ds : (\k a -> list (pair data data)) bytestring integer) ->
                  mapData ds)
-              (go
-                 (toSOPList
-                    {bytestring}
-                    {(\k a -> list (pair data data)) bytestring integer}
-                    unBData
-                    (\(eta : data) -> unMapData eta)
-                    (unMapData (headList {data} l))))))
+              (\(map : (\k a -> list (pair data data)) bytestring integer) ->
+                 let
+                   !l : list (pair data data)
+                     = mapMaybe
+                         {bytestring}
+                         {integer}
+                         {integer}
+                         unIData
+                         (\(i : integer) -> iData i)
+                         (\(x : integer) ->
+                            Bool_match
+                              (case
+                                 Bool
+                                 (lessThanEqualsInteger x 0)
+                                 [True, False])
+                              {all dead. Maybe integer}
+                              (/\dead -> Just {integer} x)
+                              (/\dead -> Nothing {integer})
+                              {all dead. dead})
+                         map
+                 in
+                 Bool_match
+                   (case Bool (nullList {pair data data} l) [False, True])
+                   {all dead.
+                      Maybe
+                        ((\k a -> list (pair data data)) bytestring integer)}
+                   (/\dead ->
+                      Nothing
+                        {(\k a -> list (pair data data)) bytestring integer})
+                   (/\dead ->
+                      Just
+                        {(\k a -> list (pair data data)) bytestring integer}
+                        l)
+                   {all dead. dead})
+              (unMapData (headList {data} l))))
       (/\dead ->
          let
            !tup : pair integer (list data) = unConstrData scriptInfo
          in
          Bool_match
-           (ifThenElse
-              {Bool}
+           (case
+              Bool
               (equalsInteger 1 (fstPair {integer} {list data} tup))
-              True
-              False)
+              [False, True])
            {all dead. Bool}
            (/\dead ->
               let
@@ -1004,20 +716,18 @@ in
                              !l : data = headList {data} l
                            in
                            Bool_match
-                             (ifThenElse
-                                {Bool}
+                             (case
+                                Bool
                                 (equalsByteString (txOutRefId l) (txOutRefId v))
-                                True
-                                False)
+                                [False, True])
                              {all dead. Bool}
                              (/\dead ->
-                                ifThenElse
-                                  {Bool}
+                                case
+                                  Bool
                                   (equalsInteger
                                      (txOutRefIdx l)
                                      (txOutRefIdx v))
-                                  True
-                                  False)
+                                  [False, True])
                              (/\dead -> False)
                              {all dead. dead})
                         (unListData (headList {data} l))))
@@ -1027,11 +737,10 @@ in
                 !tup : pair integer (list data) = unConstrData scriptInfo
               in
               Bool_match
-                (ifThenElse
-                   {Bool}
+                (case
+                   Bool
                    (equalsInteger 2 (fstPair {integer} {list data} tup))
-                   True
-                   False)
+                   [False, True])
                 {all dead. Bool}
                 (/\dead ->
                    member
@@ -1045,11 +754,10 @@ in
                      !tup : pair integer (list data) = unConstrData scriptInfo
                    in
                    Bool_match
-                     (ifThenElse
-                        {Bool}
+                     (case
+                        Bool
                         (equalsInteger 3 (fstPair {integer} {list data} tup))
-                        True
-                        False)
+                        [False, True])
                      {all dead. Bool}
                      (/\dead ->
                         let
@@ -1076,16 +784,15 @@ in
                                             = unConstrData eta
                                         in
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger
                                                 10
                                                 (fstPair
                                                    {integer}
                                                    {list data}
                                                    tup))
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
                                              let
@@ -1093,16 +800,15 @@ in
                                                  = unConstrData v
                                              in
                                              Bool_match
-                                               (ifThenElse
-                                                  {Bool}
+                                               (case
+                                                  Bool
                                                   (equalsInteger
                                                      10
                                                      (fstPair
                                                         {integer}
                                                         {list data}
                                                         tup))
-                                                  True
-                                                  False)
+                                                  [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
@@ -1157,11 +863,10 @@ in
                                                     (`$fEqCredential_$c==` a a')
                                                     {all dead. Bool}
                                                     (/\dead ->
-                                                       ifThenElse
-                                                         {Bool}
+                                                       case
+                                                         Bool
                                                          (equalsInteger b b')
-                                                         True
-                                                         False)
+                                                         [False, True])
                                                     (/\dead -> False)
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
@@ -1173,16 +878,15 @@ in
                                             = unConstrData eta
                                         in
                                         Bool_match
-                                          (ifThenElse
-                                             {Bool}
+                                          (case
+                                             Bool
                                              (equalsInteger
                                                 5
                                                 (fstPair
                                                    {integer}
                                                    {list data}
                                                    tup))
-                                             True
-                                             False)
+                                             [False, True])
                                           {all dead. Bool}
                                           (/\dead ->
                                              let
@@ -1190,16 +894,15 @@ in
                                                  = unConstrData v
                                              in
                                              Bool_match
-                                               (ifThenElse
-                                                  {Bool}
+                                               (case
+                                                  Bool
                                                   (equalsInteger
                                                      5
                                                      (fstPair
                                                         {integer}
                                                         {list data}
                                                         tup))
-                                                  True
-                                                  False)
+                                                  [False, True])
                                                {all dead. Bool}
                                                (/\dead ->
                                                   `$fEqCredential_$c==`
@@ -1233,11 +936,10 @@ in
                                                     (`$fEqCredential_$c==` a a')
                                                     {all dead. Bool}
                                                     (/\dead ->
-                                                       ifThenElse
-                                                         {Bool}
+                                                       case
+                                                         Bool
                                                          (equalsInteger b b')
-                                                         True
-                                                         False)
+                                                         [False, True])
                                                     (/\dead -> False)
                                                     {all dead. dead})
                                                (\(void : unit) -> fail ()))
@@ -1266,13 +968,12 @@ in
                                                             b')
                                                          {all dead. Bool}
                                                          (/\dead ->
-                                                            ifThenElse
-                                                              {Bool}
+                                                            case
+                                                              Bool
                                                               (equalsInteger
                                                                  c
                                                                  c')
-                                                              True
-                                                              False)
+                                                              [False, True])
                                                          (/\dead -> False)
                                                          {all dead. dead})
                                                     (/\dead -> False)
@@ -1330,13 +1031,13 @@ in
                                                                 (\(a :
                                                                      integer) ->
                                                                    /\dead ->
-                                                                     ifThenElse
-                                                                       {Bool}
+                                                                     case
+                                                                       Bool
                                                                        (equalsInteger
                                                                           a
                                                                           a)
-                                                                       True
-                                                                       False)
+                                                                       [ False
+                                                                       , True ])
                                                                 (/\dead ->
                                                                    False)
                                                                 {all dead.
@@ -1382,13 +1083,12 @@ in
                                                         {all dead. Bool}
                                                         (\(a : integer) ->
                                                            /\dead ->
-                                                             ifThenElse
-                                                               {Bool}
+                                                             case
+                                                               Bool
                                                                (equalsInteger
                                                                   a
                                                                   a)
-                                                               True
-                                                               False)
+                                                               [False, True])
                                                         (/\dead -> False)
                                                         {all dead. dead})
                                                  (/\dead ->
@@ -1412,13 +1112,12 @@ in
                             = unConstrData scriptInfo
                         in
                         Bool_match
-                          (ifThenElse
-                             {Bool}
+                          (case
+                             Bool
                              (equalsInteger
                                 4
                                 (fstPair {integer} {list data} tup))
-                             True
-                             False)
+                             [False, True])
                           {all dead. Bool}
                           (/\dead ->
                              member
@@ -1448,13 +1147,12 @@ in
                                  = unConstrData scriptInfo
                              in
                              Bool_match
-                               (ifThenElse
-                                  {Bool}
+                               (case
+                                  Bool
                                   (equalsInteger
                                      5
                                      (fstPair {integer} {list data} tup))
-                                  True
-                                  False)
+                                  [False, True])
                                {all dead. Bool}
                                (/\dead ->
                                   let

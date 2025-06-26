@@ -19,6 +19,7 @@ import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
 import PlutusPrelude
 
+import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL (readFile)
 import Flat (unflat)
 import Options.Applicative
@@ -176,7 +177,7 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt outp printMode nameFormat) = do
   prog <- readProgram fmt inp
-  case PLC.runQuoteT $ do
+  case PLC.runQuoteT $ modifyError PLC.TypeErrorE $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
     PLC.inferTypeOfProgram tcConfig (void prog)
     of
@@ -201,7 +202,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode _) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt outp printMode nameFormat semvar) = do
   prog <- readProgram ifmt inp
-  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
+  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar) def
       term = void $ prog ^. PLC.progTerm
   case evaluate term of
     Right v  ->

@@ -40,12 +40,15 @@ import Control.Lens ((^?))
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
+import Data.Bifunctor
 import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.List.Extras (wix)
 import Data.STRef
 import Data.Text (Text)
+import Data.Vector qualified as Vector
 import Data.Word
+import Prettyprinter (vcat)
 import Universe
 
 infix 4 |>, <|
@@ -76,6 +79,7 @@ ckValueToTerm = \case
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
+    , ckCaserBuiltin  :: CaserBuiltin uni
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
@@ -84,8 +88,9 @@ data CkEnv uni fun s = CkEnv
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
-data CkUserError =
-    CkEvaluationFailure -- Error has been called or a builtin application has failed
+data CkUserError
+    = CkCaseBuiltinError Text  -- ^ 'Case' over a value of a built-in type failed.
+    | CkEvaluationFailure      -- Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
@@ -98,14 +103,19 @@ type CkM uni fun s =
         (ExceptT (CkEvaluationException uni fun)
             (ST s))
 
-instance AsEvaluationFailure CkUserError where
-    _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
-
-instance AsUnliftingError CkUserError where
-    _UnliftingError = _UnliftingErrorVia CkEvaluationFailure
-
 instance Pretty CkUserError where
+    pretty (CkCaseBuiltinError err) = vcat
+        [ "'case' over a value of a built-in type failed with"
+        , pretty err
+        ]
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
+
+instance BuiltinErrorToEvaluationError (MachineError fun) CkUserError where
+  builtinErrorToEvaluationError (BuiltinUnliftingEvaluationError err) =
+    bimap UnliftingMachineError (const CkEvaluationFailure) (unUnliftingEvaluationError err)
+  builtinErrorToEvaluationError BuiltinEvaluationFailure =
+    OperationalError CkEvaluationFailure
+  {-# INLINE builtinErrorToEvaluationError #-}
 
 -- The 'DList' is just be consistent with the CEK machine (see Note [DList-based emitting]).
 emitCkM :: DList Text -> CkM uni fun s ()
@@ -119,7 +129,7 @@ type instance UniOf (CkValue uni fun) = uni
 
 instance HasConstant (CkValue uni fun) where
     asConstant (VCon val) = pure val
-    asConstant _          = throwNotAConstant
+    asConstant _          = throwError notAConstant
 
     fromConstant = VCon
 
@@ -144,12 +154,13 @@ instance ExMemoryUsage (CkValue uni fun) where
 
 runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Bool
     -> (forall s. CkM uni fun s a)
     -> (Either (CkEvaluationException uni fun) a, [Text])
-runCkM runtime emitting a = runST $ do
+runCkM runtime caser emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    errOrRes <- runExceptT . runReaderT a $ CkEnv runtime mayLogsRef
+    errOrRes <- runExceptT . runReaderT a $ CkEnv runtime caser mayLogsRef
     logs <- case mayLogsRef of
         Nothing      -> pure []
         Just logsRef -> DList.toList <$> readSTRef logsRef
@@ -187,9 +198,9 @@ stack |> Constr _ ty i es               = case es of
     t : ts -> FrameConstr ty i ts [] : stack |> t
 stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
 _     |> err@Error{}             =
-    throwingWithCause _OperationalError CkEvaluationFailure $ void err
+    throwErrorWithCause (OperationalError CkEvaluationFailure) $ void err
 _     |> var@Var{}               =
-    throwingWithCause _StructuralError OpenTermEvaluatedMachineError var
+    throwErrorWithCause (StructuralError OpenTermEvaluatedMachineError) var
 
 -- FIXME: make sure that the specification is up to date and that this matches.
 -- Tracked by https://github.com/IntersectMBO/plutus-private/issues/1552.
@@ -217,7 +228,7 @@ FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _               ->
-        throwingWithCause _StructuralError NonWrapUnwrappedMachineError $ ckValueToTerm wrapped
+        throwErrorWithCause (StructuralError NonWrapUnwrappedMachineError) $ ckValueToTerm wrapped
 FrameConstr ty i todo done : stack <| e =
     let done' = e:done
     in case todo of
@@ -230,8 +241,14 @@ FrameCase cs : stack <| e = case e of
             go [] s         = s
             go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
         Nothing ->
-            throwingWithCause _StructuralError (MissingCaseBranchMachineError i) $ ckValueToTerm e
-    _ -> throwingWithCause _StructuralError NonConstrScrutinizedMachineError $ ckValueToTerm e
+            throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) $ ckValueToTerm e
+    VCon val -> do
+        caser <- asks ckCaserBuiltin
+        case unCaserBuiltin caser val $ Vector.fromList cs of
+            Left err  ->
+                throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
+            Right res -> stack |> res
+    _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
 --
@@ -290,9 +307,9 @@ instantiateEvaluate stack ty (VBuiltin term runtime) = do
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
         BuiltinExpectForce runtime' -> evalBuiltinApp stack term' runtime'
-        _ -> throwingWithCause _StructuralError BuiltinTermArgumentExpectedMachineError term'
+        _ -> throwErrorWithCause (StructuralError BuiltinTermArgumentExpectedMachineError) term'
 instantiateEvaluate _ _ val =
-    throwingWithCause _StructuralError NonPolymorphicInstantiationMachineError $ ckValueToTerm val
+    throwErrorWithCause (StructuralError NonPolymorphicInstantiationMachineError) $ ckValueToTerm val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a lambda, then perform substitution and proceed.
@@ -315,35 +332,39 @@ applyEvaluate stack (VBuiltin term runtime) arg = do
         BuiltinExpectArgument f -> do
             evalBuiltinApp stack term' $ f arg
         _ ->
-            throwingWithCause _StructuralError UnexpectedBuiltinTermArgumentMachineError term'
+            throwErrorWithCause (StructuralError UnexpectedBuiltinTermArgumentMachineError) term'
 applyEvaluate _ val _ =
-    throwingWithCause _StructuralError NonFunctionalApplicationMachineError $ ckValueToTerm val
+    throwErrorWithCause (StructuralError NonFunctionalApplicationMachineError) $ ckValueToTerm val
 
 runCk
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Bool
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
-runCk runtime emitting term = runCkM runtime emitting $ [] |> term
+runCk runtime caser emitting term = runCkM runtime caser emitting $ [] |> term
 
 -- | Evaluate a term using the CK machine with logging enabled.
 evaluateCk
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
-evaluateCk runtime = runCk runtime True
+evaluateCk runtime caser = runCk runtime caser True
 
 -- | Evaluate a term using the CK machine with logging disabled.
 evaluateCkNoEmit
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
-evaluateCkNoEmit runtime = fst . runCk runtime False
+evaluateCkNoEmit runtime caser = fst . runCk runtime caser False
 
 -- | Unlift a value using the CK machine.
 readKnownCk
     :: ReadKnown (Term TyName Name uni fun ()) a
     => BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
-readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnownSelf
+readKnownCk runtime caser = evaluateCkNoEmit runtime caser >=> readKnownSelf

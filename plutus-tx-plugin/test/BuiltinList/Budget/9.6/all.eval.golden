@@ -1,5 +1,6 @@
-cpu: 14535700
-mem: 62410
-size: 86
+CPU:                12_707_161
+Memory:                 56_199
+Term Size:                 111
+Flat Size:                 324
 
 (constr 0 (constr 1) (constr 0))

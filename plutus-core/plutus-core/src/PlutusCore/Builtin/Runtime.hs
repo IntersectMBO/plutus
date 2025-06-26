@@ -61,14 +61,32 @@ instance NFData (BuiltinRuntime val) where
     -- this to WHNF to get it forced to NF.
     rnf = rwhnf
 
+{- Note [DO NOT newtype-wrap functions]
+If you put a functional type into a @newtype@ rather than strict @data@, the GHC optimizer will be
+able to see through it and will feel compelled to rearrange lambdas and case-expressions as it sees
+fit, which it often does incorrectly due to @-fpedantic-bottoms@ not being enabled by default.
+
+We've had a very confusing case of GHC turning
+
+    case y of
+        y' -> \x -> z
+
+into
+
+    \x -> case y of
+        y' -> z
+
+and ruining carefully set up optimizations
+(see https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606).
+
+Even strict @data@ is slower than @newtype@, but in practice GHC is going to
+worker-wrapper-transform such code making it as efficient as the @newtype@ version.
+
+So you should never newtype-wrap functions, use strict @data@ instead.
+-}
+
+-- See Note [DO NOT newtype-wrap functions].
 -- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.
--- We use @data@ rather than @newtype@, because GHC is able to see through @newtype@s and may break
--- carefully set up optimizations, see
--- https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606
---
--- Using @data@ may make things more expensive, however it was verified at the time of writing that
--- the wrapper is removed before the CEK machine starts, leaving the stored function to be used
--- directly.
 --
 -- In order for lookups to be efficient the 'BuiltinRuntime's need to be cached, i.e. pulled out
 -- of the function statically. See 'makeBuiltinMeaning' for how we achieve that.

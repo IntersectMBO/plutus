@@ -17,6 +17,7 @@ import PlutusCore.Generators.Hedgehog.Test
 import PlutusCore.Pretty
 import PlutusCore.Test
 
+import Data.Default.Class (def)
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
@@ -37,5 +38,5 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntimeForTesting
+    [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def
     ]

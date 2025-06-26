@@ -18,11 +18,9 @@ module PlutusCore.TypeCheck.Internal
     , MonadNormalizeType
     ) where
 
-import PlutusCore.Builtin.KnownKind (ToKind, kindOfBuiltinType)
-import PlutusCore.Builtin.Result (throwing)
+import PlutusCore.Builtin
 import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
-import PlutusCore.Error (AsTypeError (_TypeError), ExpectedShapeOr (ExpectedExact, ExpectedShape),
-                         TypeError (FreeTypeVariableE, FreeVariableE, KindMismatch, NameMismatch, TyNameMismatch, TypeMismatch, UnknownBuiltinFunctionE))
+import PlutusCore.Error (ExpectedShapeOr (ExpectedExact, ExpectedShape), TypeError (..))
 import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
 import PlutusCore.Name.Unique (HasText (theText), Name (Name), Named (Named), TermUnique,
                                TyName (TyName), TypeUnique, theUnique)
@@ -35,7 +33,7 @@ import PlutusPrelude (Lens', lens, over, view, void, zipExact, (<<$>>), (<<*>>),
 
 import Control.Lens (Ixed (ix), makeClassy, makeLenses, preview, (^?))
 import Control.Monad (when)
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except (MonadError, throwError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
@@ -194,23 +192,28 @@ type TypeCheckT uni fun cfg m = ReaderT (TypeCheckEnv uni fun cfg) m
 -- | The constraints that are required for kind checking.
 type MonadKindCheck err term uni fun ann m =
     ( MonadError err m                  -- Kind/type checking can fail
-    , AsTypeError err term uni fun ann  -- with a 'TypeError'.
     , ToKind uni                        -- For getting the kind of a built-in type.
     )
 
 -- | The general constraints that are required for type checking a Plutus AST.
 type MonadTypeCheck err term uni fun ann m =
-    ( MonadKindCheck err term uni fun ann m  -- Kind checking is run during type checking
-                                             -- (this includes the constraint for throwing errors).
+    ( MonadKindCheck err term uni fun ann m  -- Kind checking is run during type checking (this
+                                             -- includes the constraint for throwing errors).
     , Norm.MonadNormalizeType uni m          -- Type lambdas open up type computation.
+    , AnnotateCaseBuiltin uni
     , GEq uni                                -- For checking equality of built-in types.
-    , Ix fun                                 -- For indexing into the precomputed array of types of
-                                             -- built-in functions.
+    , Ix fun                                 -- For indexing into the precomputed array of
+                                             -- types of built-in functions.
     )
 
+-- | The PLC type error type.
+type TypeErrorPlc uni fun ann = TypeError (Term TyName Name uni fun ()) uni fun ann
+
 -- | The constraints that are required for type checking Plutus Core.
-type MonadTypeCheckPlc err uni fun ann m =
-    MonadTypeCheck err (Term TyName Name uni fun ()) uni fun ann m
+type MonadTypeCheckPlc uni fun ann m =
+    MonadTypeCheck
+      (TypeErrorPlc uni fun ann)
+      (Term TyName Name uni fun ()) uni fun ann m
 
 -- #########################
 -- ## Auxiliary functions ##
@@ -232,14 +235,14 @@ withTyVar name = local . over tceTyVarKinds . insertNamed name
 
 -- | Look up the type of a built-in function.
 lookupBuiltinM
-    :: (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann -> fun -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupBuiltinM ann fun = do
     BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
     -- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array
     -- safely.
     case preview (ix fun) arr of
-        Nothing -> throwing _TypeError $ UnknownBuiltinFunctionE ann fun
+        Nothing -> throwError $ UnknownBuiltinFunctionE ann fun
         Just ty -> liftDupable ty
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
@@ -252,33 +255,33 @@ withVar name = local . over tceVarTypes . insertNamed name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
-    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
+    :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
     env <- ask
     let handleNameMismatches = env ^. tceTypeCheckConfig . kccHandleNameMismatches
     case lookupName name $ _tceTyVarKinds env of
-        Nothing                    -> throwing _TypeError $ FreeTypeVariableE ann name
+        Nothing                    -> throwError $ FreeTypeVariableE ann name
         Just (Named nameOrig kind) ->
             if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
                 then pure kind
-                else throwing _TypeError $
+                else throwError $
                         TyNameMismatch ann (TyName . Name nameOrig $ name ^. theUnique) name
 
 -- | Look up a term variable in the current context.
 lookupVarM
-    :: (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    :: (MonadTypeCheck (TypeError term uni fun ann) term uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
     env <- ask
     let handleNameMismatches =
             env ^. tceTypeCheckConfig . tccKindCheckConfig . kccHandleNameMismatches
     case lookupName name $ _tceVarTypes env of
-        Nothing                  -> throwing _TypeError $ FreeVariableE ann name
+        Nothing                  -> throwError $ FreeVariableE ann name
         Just (Named nameOrig ty) ->
             if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
                 then liftDupable ty
-                else throwing _TypeError $
+                else throwError $
                         NameMismatch ann (Name nameOrig $ name ^. theUnique) name
 
 -- ########################
@@ -307,7 +310,7 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
+    :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
     => Type TyName uni ann -> TypeCheckT uni fun cfg m (Kind ())
 
 -- b :: k
@@ -340,7 +343,7 @@ inferKindM (TyApp ann fun arg)     = do
             pure cod
         _ -> do
             let expectedKindArrow = ExpectedShape "fun k l" ["k", "l"]
-            throwing _TypeError $ KindMismatch ann (void fun) expectedKindArrow funKind
+            throwError $ KindMismatch ann (void fun) expectedKindArrow funKind
 
 -- [check| G !- a :: *]    [check| G !- b :: *]
 -- --------------------------------------------
@@ -377,7 +380,7 @@ inferKindM (TySOP ann tyls)        = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
+    :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> Type TyName uni ann -> Kind () -> TypeCheckT uni fun cfg m ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
@@ -385,7 +388,7 @@ checkKindM
 -- [check| G !- ty : k]
 checkKindM ann ty k = do
     tyK <- inferKindM ty
-    when (tyK /= k) $ throwing _TypeError (KindMismatch ann (void ty) (ExpectedExact k) tyK)
+    when (tyK /= k) $ throwError (KindMismatch ann (void ty) (ExpectedExact k) tyK)
 
 -- ###################
 -- ## Type checking ##
@@ -421,7 +424,7 @@ unfoldIFixOf pat arg k = do
 -- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    :: (MonadTypeCheckPlc uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => Term TyName Name uni fun ann -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 
 -- c : vTy
@@ -470,7 +473,7 @@ inferTypeM (Apply ann fun arg) = do
             pure $ Normalized vCod
         _ -> do
             let expectedTyFun = ExpectedShape "fun k l" ["k", "l"]
-            throwing _TypeError (TypeMismatch ann (void fun) expectedTyFun vFunTy)
+            throwError (TypeMismatch ann (void fun) expectedTyFun vFunTy)
 
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
@@ -484,7 +487,7 @@ inferTypeM (TyInst ann body ty) = do
             substNormalizeTypeM vTy n vCod
         _ -> do
             let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
-            throwing _TypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
+            throwError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
 
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
@@ -510,7 +513,7 @@ inferTypeM (Unwrap ann term) = do
             unfoldIFixOf (Normalized vPat) (Normalized vArg) k
         _                  -> do
             let expectedTyIFix = ExpectedShape "ifix pat arg" ["pat", "arg"]
-            throwing _TypeError (TypeMismatch ann (void term) expectedTyIFix vTermTy)
+            throwError (TypeMismatch ann (void term) expectedTyIFix vTermTy)
 
 -- [check| G !- ty :: *]    ty ~> vTy
 -- ----------------------------------
@@ -543,11 +546,11 @@ inferTypeM t@(Constr ann resTy i args) = do
                 Just ps -> for_ ps $ \(arg, pTy) -> checkTypeM ann arg (Normalized pTy)
                 -- the number of args does not match the number of types in the i'th SOP
                 -- alternative
-                Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+                Nothing -> throwError (TypeMismatch ann (void t) expectedSop vResTy)
             -- result type does not contain an i'th sum alternative
-            Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+            Nothing -> throwError (TypeMismatch ann (void t) expectedSop vResTy)
         -- result type is not a SOP type
-        _ -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+        _ -> throwError (TypeMismatch ann (void t) expectedSop vResTy)
 
     pure vResTy
 
@@ -557,24 +560,30 @@ inferTypeM t@(Constr ann resTy i args) = do
 -- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
 -- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
-inferTypeM (Case ann resTy scrut cases) = do
+inferTypeM (Case ann resTy scrut branches) = do
     vResTy <- normalizeTypeM $ void resTy
     vScrutTy <- inferTypeM scrut
 
     -- We don't know exactly what to expect, we only know that it should
     -- be a SOP with the right number of sum alternatives
-    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length cases - 1]
+    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length branches - 1]
         expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
     case unNormalized vScrutTy of
-        TySOP _ sTys -> case zipExact cases sTys of
-            Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+        TySOP _ sTys -> case zipExact branches sTys of
+            Just branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
-            -- for the number of cases
-            Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+            -- for the number of branches
+            Nothing -> throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        TyBuiltin _ someUni -> case annotateCaseBuiltin someUni branches of
+            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
+                vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
+                -- made of sub-parts of a normalized type, so normalized
+                checkTypeM ann c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))
+            Left err -> throwError $ UnsupportedCaseBuiltin ann err
         -- scrutinee does not have a SOP type at all
-        _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        _ -> throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 
     -- If we got through all that, then every case type is correct, including that
     -- they all result in vResTy, so we can safely conclude that that is the type of the
@@ -585,7 +594,7 @@ inferTypeM (Case ann resTy scrut cases) = do
 -- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    :: (MonadTypeCheckPlc uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
@@ -598,4 +607,4 @@ checkTypeM ann term vTy = do
     vTermTy <- inferTypeM term
     when (vTermTy /= vTy) $ do
         let expectedVTy = ExpectedExact $ unNormalized vTy
-        throwing _TypeError $ TypeMismatch ann (void term) expectedVTy vTermTy
+        throwError $ TypeMismatch ann (void term) expectedVTy vTermTy

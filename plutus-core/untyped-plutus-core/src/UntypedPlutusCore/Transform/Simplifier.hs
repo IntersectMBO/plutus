@@ -58,6 +58,7 @@ execSimplifier = runIdentity . execSimplifierT
 data SimplifierStage
   = FloatDelay
   | ForceDelay
+  | ForceCaseDelay
   | CaseOfCase
   | CaseReduce
   | Inline

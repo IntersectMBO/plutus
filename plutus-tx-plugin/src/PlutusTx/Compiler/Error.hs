@@ -24,9 +24,7 @@ import PlutusIR.Compiler qualified as PIR
 import Language.Haskell.TH qualified as TH
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
-import PlutusIR qualified as PIR
 
-import Control.Lens
 import Control.Monad.Except
 
 import Data.Text qualified as T
@@ -37,8 +35,6 @@ the priority of the context when displaying it. Lower numbers are more prioritis
 -}
 data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
   deriving stock Functor
-
-makeClassyPrisms ''WithContext
 
 type CompileError uni fun ann = WithContext T.Text (Error uni fun ann)
 
@@ -76,34 +72,9 @@ data Error uni fun a
   | FreeVariableError !T.Text
   | InvalidMarkerError !String
   | CoreNameLookupError !TH.Name
-makeClassyPrisms ''Error
 
 instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty a) => PP.Pretty (Error uni fun a) where
   pretty = PLC.prettyPlcClassicSimple
-
-instance
-  (uni1 ~ uni2, b ~ PIR.Provenance a)
-  => PLC.AsTypeError (CompileError uni1 fun a) (PIR.Term PIR.TyName PIR.Name uni2 fun ()) uni2 fun b
-  where
-  _TypeError = _NoContext . _PIRError . PIR._TypeError
-
-instance
-  (uni1 ~ uni2, b ~ PIR.Provenance a)
-  => PIR.AsTypeErrorExt (CompileError uni1 fun a) uni2 b
-  where
-  _TypeErrorExt = _NoContext . _PIRError . PIR._TypeErrorExt
-
-instance (uni1 ~ uni2) => PLC.AsNormCheckError (CompileError uni1 fun a) PLC.TyName PLC.Name uni2 fun a where
-  _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError
-
-instance PLC.AsUniqueError (CompileError uni fun a) a where
-  _UniqueError = _NoContext . _PLCError . PLC._UniqueError
-
-instance
-  (uni1 ~ uni2, b ~ PIR.Provenance a)
-  => PIR.AsError (CompileError uni1 fun a) uni2 fun b
-  where
-  _Error = _NoContext . _PIRError
 
 instance
   (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty a)

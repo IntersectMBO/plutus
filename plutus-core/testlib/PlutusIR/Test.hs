@@ -30,6 +30,7 @@ import PlutusCore.Core qualified as PLC
 import PlutusCore.DeBruijn qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
@@ -53,6 +54,7 @@ import Prettyprinter.Render.Text
 instance
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Pretty a
@@ -69,7 +71,9 @@ instance
 
 instance
   ( PLC.GEq uni
+  , uni `PLC.Everywhere` Eq
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , PLC.PrettyUni uni
   , Pretty fun
   , Hashable fun
@@ -110,6 +114,7 @@ asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 compileWithOpts ::
   ( PLC.GEq uni
   , PLC.Typecheckable uni fun
+  , PLC.CaseBuiltin uni
   , Ord a
   , PLC.AnnInline a
   , PLC.PrettyUni uni
@@ -125,7 +130,7 @@ compileWithOpts ::
     (PIR.Error uni fun (PIR.Provenance a))
     (PLC.Program PIR.TyName PIR.Name uni fun (PIR.Provenance a))
 compileWithOpts optsMod pir = do
-  tcConfig <- PLC.getDefTypeCheckConfig noProvenance
+  tcConfig <- modifyError PIR.PLCTypeError $ PLC.getDefTypeCheckConfig noProvenance
   let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
   flip runReaderT pirCtx $ runQuoteT $ do
     compiled <- compileProgram pir
@@ -133,8 +138,7 @@ compileWithOpts optsMod pir = do
     -- and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR
     -- error by wrapping with PIR._PLCError
-    plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled
-    liftEither $ first (view (re _PLCError)) plcConcrete
+    _plcConcrete <- modifyError (PLCError . PLC.TypeErrorE) $ PLC.inferTypeOfProgram tcConfig compiled
     pure compiled
 
 withGoldenFileM :: String -> (T.Text -> IO T.Text) -> TestNested
@@ -235,5 +239,5 @@ goldenTypeFromPir x =
   goldenPirM $ \ast -> ppCatch prettyPlcReadable $
     withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
       runQuoteT $ do
-        tcConfig <- getDefTypeCheckConfig x
+        tcConfig <- modifyError (PLCError . PLC.TypeErrorE) $ getDefTypeCheckConfig x
         inferType tcConfig ast

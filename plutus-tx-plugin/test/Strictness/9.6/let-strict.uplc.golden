@@ -1,8 +1,4 @@
 (program
    1.1.0
    (\m ->
-      force
-        (force ifThenElse
-           (lessThanInteger m 0)
-           (delay ((\cse -> addInteger cse cse) (error m)))
-           (delay m))))
+      case (lessThanInteger m 0) [m, ((\cse -> addInteger cse cse) (error m))]))

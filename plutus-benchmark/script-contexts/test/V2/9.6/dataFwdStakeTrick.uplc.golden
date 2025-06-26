@@ -5,49 +5,32 @@
          (\wdrlAtZero ->
             (\rest ->
                (\wdrlAtOne ->
-                  force
-                    (force ifThenElse
-                       (equalsData obsScriptCred wdrlAtZero)
-                       (delay (constr 0 []))
-                       (delay
-                          (force
-                             (force ifThenElse
-                                (equalsData obsScriptCred wdrlAtOne)
-                                (delay (constr 0 []))
-                                (delay
-                                   (force
-                                      (case
-                                         ((\s -> s s)
-                                            (\s xs ->
-                                               force
-                                                 (force (force chooseList)
-                                                    xs
-                                                    (delay (constr 1 []))
-                                                    (delay
-                                                       (force
-                                                          (force ifThenElse
-                                                             (equalsData
-                                                                obsScriptCred
-                                                                (force
-                                                                   (force
-                                                                      fstPair)
-                                                                   (force
-                                                                      headList
-                                                                      xs)))
-                                                             (delay
-                                                                (constr 0 []))
-                                                             (delay
-                                                                ((\x -> s s x)
-                                                                   (force
-                                                                      tailList
-                                                                      xs))))))))
-                                            rest)
-                                         [ (delay (constr 0 []))
-                                         , (delay
-                                              ((\x -> error)
-                                                 (force trace
-                                                    "not found"
-                                                    (constr 0 [])))) ]))))))))
+                  case
+                    (equalsData obsScriptCred wdrlAtZero)
+                    [ (case
+                         (equalsData obsScriptCred wdrlAtOne)
+                         [ (case
+                              ((\s -> s s)
+                                 (\s xs ->
+                                    force
+                                      (force (force chooseList)
+                                         xs
+                                         (delay (constr 1 []))
+                                         (delay
+                                            (case
+                                               (equalsData
+                                                  obsScriptCred
+                                                  (force (force fstPair)
+                                                     (force headList xs)))
+                                               [ ((\x -> s s x)
+                                                    (force tailList xs))
+                                               , (constr 0 []) ]))))
+                                 rest)
+                              [ (constr 0 [])
+                              , ((\x -> error)
+                                   (force trace "not found" (constr 0 []))) ])
+                         , (constr 0 []) ])
+                    , (constr 0 []) ])
                  (force (force fstPair) (force headList rest)))
               (force tailList ds))
            (force (force fstPair) (force headList ds)))

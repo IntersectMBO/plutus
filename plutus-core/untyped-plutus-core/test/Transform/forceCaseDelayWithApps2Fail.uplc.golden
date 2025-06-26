@@ -1,0 +1,1 @@
+\scrut -> force (case scrut [(\x y -> delay 1), (\x -> 2)])

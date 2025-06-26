@@ -16,17 +16,20 @@ module PlutusCore.Parser
 import PlutusCore.Annotation
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
-import PlutusCore.Error (AsParserErrorBundle, ParserError (..))
+import PlutusCore.Error (ParserError (..), ParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name.Unique (Name, TyName)
 import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
+import PlutusCore.Version
 
+import Control.Monad (when)
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
-import PlutusCore.Version
+import Data.Word (Word64)
+
 import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -78,9 +81,13 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- Constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many term
+      let maxTag = fromIntegral (maxBound :: Word64)
+      ty <- symbol "constr" *> pType
+      tag :: Integer <- lexeme Lex.decimal
+      args <- many term
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-      pure res
+      when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+      pure $ Constr sp ty (fromIntegral tag) args
 
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
@@ -114,7 +121,7 @@ term = leadingWhitespace go
 -- "test" to the parser as the name of the input stream; to supply a name
 -- explicity, use `parse program <name> <input>`.
 parseProgram ::
-    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    (MonadError ParserErrorBundle m, MonadQuote m)
     => Text
     -> m (Program TyName Name DefaultUni DefaultFun SrcSpan)
 parseProgram = parseGen program
@@ -132,12 +139,12 @@ program = leadingWhitespace go
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad
 -- must be capable of handling any parse errors.
-parseTerm :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
+parseTerm :: (MonadError ParserErrorBundle m, MonadQuote m) =>
     Text -> m (Term TyName Name DefaultUni DefaultFun SrcSpan)
 parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad
 -- must be capable of handling any parse errors.
-parseType :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
+parseType :: (MonadError ParserErrorBundle m, MonadQuote m) =>
     Text -> m (Type TyName DefaultUni SrcSpan)
 parseType = parseGen pType

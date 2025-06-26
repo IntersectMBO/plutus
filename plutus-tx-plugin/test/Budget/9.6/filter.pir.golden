@@ -22,11 +22,7 @@ letrec
                  !xs : List integer = go xs
                in
                Bool_match
-                 (ifThenElse
-                    {Bool}
-                    (equalsInteger 0 (modInteger x 2))
-                    True
-                    False)
+                 (case Bool (equalsInteger 0 (modInteger x 2)) [False, True])
                  {all dead. List integer}
                  (/\dead -> Cons {integer} x xs)
                  (/\dead -> xs)

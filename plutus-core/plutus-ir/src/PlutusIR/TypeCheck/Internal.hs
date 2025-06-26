@@ -30,10 +30,12 @@ import PlutusIR.Compiler.Datatype
 import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
+import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
+import PlutusCore.Builtin (annotateCaseBuiltin)
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
@@ -41,7 +43,7 @@ import PlutusCore.MkPlc (mkIterTyFun)
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 
 import Control.Monad (when)
-import Control.Monad.Error.Lens
+import Control.Monad.Except
 import Data.Text qualified as Text
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
@@ -104,9 +106,8 @@ when typechecking inside a let termbind's rhs term.
 type PirTCEnv uni fun m = TypeCheckT uni fun (PirTCConfig uni fun) m
 
 -- | The constraints that are required for type checking Plutus IR.
-type MonadTypeCheckPir err uni fun ann m =
-    ( MonadTypeCheck err (Term TyName Name uni fun ()) uni fun ann m
-    , AsTypeErrorExt err uni ann  -- Plutus IR has additional type errors, see 'TypeErrorExt'.
+type MonadTypeCheckPir uni fun ann m =
+    ( MonadTypeCheck (PIR.Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann m
     )
 
 -- ###########################
@@ -118,7 +119,7 @@ type MonadTypeCheckPir err uni fun ann m =
 -- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: MonadTypeCheckPir err uni fun ann m
+    :: MonadTypeCheckPir uni fun ann m
     => ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
@@ -131,14 +132,14 @@ checkTypeM ann term vTy = do
     vTermTy <- inferTypeM term
     when (vTermTy /= vTy) $ do
         let expectedVTy = ExpectedExact $ unNormalized vTy
-        throwing _TypeError $ TypeMismatch ann (void term) expectedVTy vTermTy
+        throwError $ PLCTypeError $ TypeMismatch ann (void term) expectedVTy vTermTy
 
 -- See Note [Global uniqueness in the type checker].
 -- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: forall err m uni fun ann.
-       MonadTypeCheckPir err uni fun ann m
+    :: forall m uni fun ann.
+       MonadTypeCheckPir uni fun ann m
     => Term TyName Name uni fun ann -> PirTCEnv uni fun m (Normalized (Type TyName uni ()))
 -- c : vTy
 -- -------------------------
@@ -151,20 +152,20 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
 inferTypeM (Builtin ann bn)         =
-    lookupBuiltinM ann bn
+    mapReaderT (modifyError PLCTypeError) $ lookupBuiltinM ann bn
 
 -- [infer| G !- v : ty]    ty ~> vTy
 -- ---------------------------------
 -- [infer| G !- var v : vTy]
 inferTypeM (Var ann name)           =
-    lookupVarM ann name
+    mapReaderT (modifyError PLCTypeError) $ lookupVarM ann name
 
 -- [check| G !- dom :: *]    dom ~> vDom    [infer| G , n : dom !- body : vCod]
 -- ----------------------------------------------------------------------------
 -- [infer| G !- lam n dom body : vDom -> vCod]
 inferTypeM (LamAbs ann n dom body)  = do
-    checkKindM ann dom $ Type ()
-    vDom <- normalizeTypeM $ void dom
+    mapReaderT (modifyError PLCTypeError) $ checkKindM ann dom $ Type ()
+    vDom <- mapReaderT (modifyError PLCTypeError) $ normalizeTypeM $ void dom
     TyFun () <<$>> pure vDom <<*>> withVar n vDom (inferTypeM body)
 
 -- [infer| G , n :: nK !- body : vBodyTy]
@@ -186,7 +187,7 @@ inferTypeM (Apply ann fun arg)      = do
             pure $ Normalized vCod
         _ -> do
             let expectedTyFun = ExpectedShape "fun k l" ["k", "l"]
-            throwing _TypeError $ TypeMismatch ann (void fun) expectedTyFun vFunTy
+            throwError $ PLCTypeError $ TypeMismatch ann (void fun) expectedTyFun vFunTy
 
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
@@ -195,20 +196,20 @@ inferTypeM (TyInst ann body ty)     = do
     vBodyTy <- inferTypeM body
     case unNormalized vBodyTy of
         TyForall _ n nK vCod -> do
-            checkKindM ann ty nK
+            mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty nK
             vTy <- normalizeTypeM $ void ty
             substNormalizeTypeM vTy n vCod
         _ -> do
             let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
-            throwing _TypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
+            throwError $ PLCTypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
 
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
 -- -----------------------------------------------------------------------------------------------
 -- [infer| G !- iwrap pat arg term : ifix vPat vArg]
 inferTypeM (IWrap ann pat arg term) = do
-    k <- inferKindM arg
-    checkKindM ann pat $ toPatFuncKind k
+    k <- mapReaderT (modifyError PLCTypeError) $ inferKindM arg
+    mapReaderT (modifyError PLCTypeError) $ checkKindM ann pat $ toPatFuncKind k
     vPat <- normalizeTypeM $ void pat
     vArg <- normalizeTypeM $ void arg
     checkTypeM ann term =<< unfoldIFixOf vPat vArg k
@@ -221,18 +222,18 @@ inferTypeM (Unwrap ann term)        = do
     vTermTy <- inferTypeM term
     case unNormalized vTermTy of
         TyIFix _ vPat vArg -> do
-            k <- inferKindM $ ann <$ vArg
+            k <- mapReaderT (modifyError PLCTypeError) $ inferKindM $ ann <$ vArg
             -- Subparts of a normalized type, so normalized.
             unfoldIFixOf (Normalized vPat) (Normalized vArg) k
         _                  -> do
             let expectedTyIFix = ExpectedShape "ifix pat arg" ["pat", "arg"]
-            throwing _TypeError (TypeMismatch ann (void term) expectedTyIFix vTermTy)
+            throwError $ PLCTypeError (TypeMismatch ann (void term) expectedTyIFix vTermTy)
 
 -- [check| G !- ty :: *]    ty ~> vTy
 -- ----------------------------------
 -- [infer| G !- error ty : vTy]
 inferTypeM (Error ann ty)           = do
-    checkKindM ann ty $ Type ()
+    mapReaderT (modifyError PLCTypeError) $ checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
 
 -- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
@@ -257,11 +258,11 @@ inferTypeM t@(Constr ann resTy i args) = do
                 Just ps -> for_ ps $ \(arg, pTy) -> checkTypeM ann arg (Normalized pTy)
                 -- the number of args does not match the number of types in the i'th SOP
                 -- alternative
-                Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+                Nothing -> throwError $ PLCTypeError (TypeMismatch ann (void t) expectedSop vResTy)
             -- result type does not contain an i'th sum alternative
-            Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+            Nothing -> throwError $ PLCTypeError (TypeMismatch ann (void t) expectedSop vResTy)
         -- result type is not a SOP type
-        _ -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+        _ -> throwError $ PLCTypeError (TypeMismatch ann (void t) expectedSop vResTy)
 
     pure vResTy
 
@@ -271,24 +272,30 @@ inferTypeM t@(Constr ann resTy i args) = do
 -- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
 -- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
-inferTypeM (Case ann resTy scrut cases) = do
+inferTypeM (Case ann resTy scrut branches) = do
     vResTy <- normalizeTypeM $ void resTy
     vScrutTy <- inferTypeM scrut
 
     -- We don't know exactly what to expect, we only know that it should
     -- be a SOP with the right number of sum alternatives
-    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length cases - 1]
+    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length branches - 1]
         expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
     case unNormalized vScrutTy of
-        TySOP _ sTys -> case zipExact cases sTys of
-            Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+        TySOP _ sTys -> case zipExact branches sTys of
+            Just branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) ->
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
-            -- for the number of cases
-            Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+            -- for the number of branches
+            Nothing -> throwError $ PLCTypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        TyBuiltin _ someUni -> case annotateCaseBuiltin someUni branches of
+            Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
+                vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
+                -- made of sub-parts of a normalized type, so normalized
+                checkTypeM ann c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))
+            Left err -> throwError $ PLCTypeError (UnsupportedCaseBuiltin ann err)
         -- scrutinee does not have a SOP type at all
-        _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        _ -> throwError $ PLCTypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 
     -- If we got through all that, then every case type is correct, including that
     -- they all result in vResTy, so we can safely conclude that that is the type of the
@@ -359,11 +366,11 @@ inferTypeM (Let ann r@Rec bs inTerm) = do
 checkKindFromBinding(G,b)
 -}
 checkKindFromBinding
-    :: forall err m uni fun ann.
-       MonadKindCheck err (Term TyName Name uni fun ()) uni fun ann m
+    :: forall m uni fun ann.
+       MonadTypeCheckPir uni fun ann m
     => Binding TyName Name uni fun ann
     -> PirTCEnv uni fun m ()
-checkKindFromBinding = \case
+checkKindFromBinding = mapReaderT (modifyError PLCTypeError) . \case
     -- For a type binding, correct means that the the RHS is indeed kinded by the declared kind.
     TypeBind _ (TyVarDecl ann _ k) rhs ->
         checkKindM ann rhs $ void k
@@ -391,8 +398,8 @@ checkKindFromBinding = \case
 checkTypeFromBinding(G,b)
 -}
 checkTypeFromBinding
-    :: forall err m uni fun ann.
-       MonadTypeCheckPir err uni fun ann m
+    :: forall m uni fun ann.
+       MonadTypeCheckPir uni fun ann m
     => Recursivity -> Binding TyName Name uni fun ann -> PirTCEnv uni fun m ()
 checkTypeFromBinding recurs = \case
     TypeBind{} -> pure () -- no types to check
@@ -409,7 +416,7 @@ checkTypeFromBinding recurs = \case
            -- We earlier checked that datacons' type is *-kinded (using checkKindBinding), but this is not enough:
            -- we must also check that its result type is EXACTLY `[[TypeCon tyarg1] ... tyargn]` (ignoring annotations)
            when (void (PLC.funTyResultType ty) /= void appliedTyCon) .
-               throwing _TypeErrorExt $ MalformedDataConstrResType ann appliedTyCon
+               throwError $ PIRTypeError $ MalformedDataConstrResType ann appliedTyCon
 
        -- if nonrec binding, make sure that type-constructor is not part of the data-constructor's argument types.
        checkNonRecScope :: Type TyName uni ann -> PirTCEnv uni fun m ()
@@ -419,17 +426,17 @@ checkTypeFromBinding recurs = \case
                -- now we make sure that dataconstructor is not self-recursive, i.e. funargs don't contain tycon
                withTyVarDecls tyargs $ -- tycon not in scope here
                       -- OPTIMIZE: we use inferKind for scope-checking, but a simple ADT-traversal would suffice
-                      for_ (PLC.funTyArgs ty) inferKindM
+                      mapReaderT (modifyError PLCTypeError) $ for_ (PLC.funTyArgs ty) inferKindM
 
 -- | Check that the in-Term's inferred type of a Let has kind *.
 -- Skip this check at the top-level, to allow top-level types to escape; see Note [PIR vs Paper Escaping Types Difference].
 checkStarInferred
-    :: MonadKindCheck err (Term TyName Name uni fun ()) uni fun ann m
+    :: MonadTypeCheckPir uni fun ann m
     => ann -> Normalized (Type TyName uni ()) -> PirTCEnv uni fun m ()
 checkStarInferred ann t = do
     allowEscape <- view $ tceTypeCheckConfig . pirConfigAllowEscape
     case allowEscape of
-        NoEscape  -> checkKindM ann (ann <$ unNormalized t) $ Type ()
+        NoEscape  -> mapReaderT (modifyError PLCTypeError) $ checkKindM ann (ann <$ unNormalized t) $ Type ()
         -- NOTE: we completely skip the check in case of toplevel because we would need an *final, extended Gamma environment*
         -- to run the kind-check in, but we cannot easily get that since we are using a Reader for environments and not State
         YesEscape -> pure ()

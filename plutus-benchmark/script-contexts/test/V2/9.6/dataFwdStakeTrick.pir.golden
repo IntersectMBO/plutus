@@ -38,12 +38,12 @@ in
     !wdrlAtOne : data = fstPair {data} {data} (headList {pair data data} rest)
   in
   Bool_match
-    (ifThenElse {Bool} (equalsData obsScriptCred wdrlAtZero) True False)
+    (case Bool (equalsData obsScriptCred wdrlAtZero) [False, True])
     {all dead. Unit}
     (/\dead -> Unit)
     (/\dead ->
        Bool_match
-         (ifThenElse {Bool} (equalsData obsScriptCred wdrlAtOne) True False)
+         (case Bool (equalsData obsScriptCred wdrlAtOne) [False, True])
          {all dead. Unit}
          (/\dead -> Unit)
          (/\dead ->
@@ -71,11 +71,10 @@ in
                    in
                    go)
                  (\(x : pair data data) ->
-                    ifThenElse
-                      {Bool}
+                    case
+                      Bool
                       (equalsData obsScriptCred (fstPair {data} {data} x))
-                      True
-                      False)
+                      [False, True])
                  rest)
               {all dead. Unit}
               (/\dead -> Unit)

@@ -37,10 +37,8 @@ let
       modules = [
         {
           packages = {
-            plutus-executables.components.tests.test-certifier.postInstall = '' 
-              wrapProgram $out/bin/test-certifier \
-                --prefix "PATH" ":" "${metatheory.agda-with-stdlib-and-metatheory}/bin"
-            '';
+            plutus-executables.components.tests.test-certifier.build-tools =
+              [ metatheory.agda-with-stdlib-and-metatheory ];
 
             plutus-core.components.benchmarks.update-cost-model.build-tools =
               [ r-with-packages ];
@@ -91,7 +89,6 @@ let
             plutus-metatheory.ghcOptions = [ "-Werror" ];
             plutus-tx.ghcOptions = [ "-Werror" ];
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-            plutus-tx-test-util.ghcOptions = [ "-Werror" ];
           };
         }
       ];

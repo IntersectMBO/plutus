@@ -39,6 +39,7 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 
 import Codec.Serialise (serialise)
 import Control.Monad (unless)
+import Control.Monad.Except (throwError)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
@@ -178,13 +179,14 @@ data DefaultFun
     | Ripemd_160
     -- Batch 6
     | ExpModInteger
-    | CaseList
-    | CaseData
     | DropList
     -- Arrays
     | LengthOfArray
     | ListToArray
     | IndexArray
+    -- Case
+    | CaseList
+    | CaseData
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -773,7 +775,7 @@ check that the value inside of it is a list (by matching on the type tag):
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) = do
                 case uniListA of
                     DefaultUniList _ -> pure $ null xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -794,7 +796,7 @@ Here's a similar built-in function:
                     DefaultUniPair uniA _ ->              -- [1]
                         pure . fromValueOf uniA $ fst xy  -- [2]
                     _ ->
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -814,7 +816,7 @@ manual unlifting for arguments having non-monomorphized polymorphic built-in typ
                     DefaultUniList _ -> pure $ case xs of
                         []    -> a
                         _ : _ -> b
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
@@ -838,9 +840,9 @@ Our final example is this:
                     DefaultUniList uniA' -> case uniA `geq` uniA' of       -- [1]
                         Just Refl ->                                       -- [2]
                             pure . fromValueOf uniListA $ x : xs           -- [3]
-                        _ -> throwing _StructuralUnliftingError
+                        _ -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1001,7 +1003,7 @@ Here's how we can define it as a built-in function using 'headSpine':
                         []     -> headSpine z []                                             -- [1]
                         x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
                     _ ->
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE caseListDenotation #-}
         in makeBuiltinMeaning
             caseListDenotation
@@ -1452,7 +1454,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
                     _                     ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE fstPairDenotation #-}
         in makeBuiltinMeaning
             fstPairDenotation
@@ -1465,7 +1467,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
                     _                     ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a pair but got something else"
+                        throwError $ structuralUnliftingError "Expected a pair but got something else"
             {-# INLINE sndPairDenotation #-}
         in makeBuiltinMeaning
             sndPairDenotation
@@ -1481,30 +1483,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                         _ : _ -> b
                     _ ->
                         -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE chooseListDenotation #-}
         in makeBuiltinMeaning
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
-
-    toBuiltinMeaning _ver CaseList =
-        let caseListDenotation
-                :: Opaque val (LastArg a b)
-                -> Opaque val (a -> [a] -> b)
-                -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
-            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
-                case uniListA of
-                    DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
-                    _ ->
-                        -- See Note [Structural vs operational errors within builtins].
-                        throwing _StructuralUnliftingError "Expected a list but got something else"
-            {-# INLINE caseListDenotation #-}
-        in makeBuiltinMeaning
-            caseListDenotation
-            (runCostingFunThreeArguments . unimplementedCostingFun)
 
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
@@ -1516,9 +1499,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 case uniListA of
                     DefaultUniList uniA' -> case uniA `geq` uniA' of
                         Just Refl -> pure . fromValueOf uniListA $ x : xs
-                        _         -> throwing _StructuralUnliftingError
+                        _         -> throwError $ structuralUnliftingError
                             "The type of the value does not match the type of elements in the list"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE mkConsDenotation #-}
         in makeBuiltinMeaning
             mkConsDenotation
@@ -1531,7 +1514,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     DefaultUniList uniA -> case xs of
                         []    -> fail "Expected a non-empty list but got an empty one"
                         x : _ -> pure $ fromValueOf uniA x
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE headListDenotation #-}
         in makeBuiltinMeaning
             headListDenotation
@@ -1545,7 +1528,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                       case xs of
                         []      -> fail "Expected a non-empty list but got an empty one"
                         _ : xs' -> pure $ fromValueOf uniListA xs'
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE tailListDenotation #-}
         in makeBuiltinMeaning
             tailListDenotation
@@ -1556,7 +1539,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullListDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
                 case uniListA of
                     DefaultUniList _uniA -> pure $ null xs
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE nullListDenotation #-}
         in makeBuiltinMeaning
             nullListDenotation
@@ -2035,26 +2018,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             expModIntegerDenotation
             (runCostingFunThreeArguments . paramExpModInteger)
 
-    toBuiltinMeaning _ver CaseData =
-        let caseDataDenotation
-                :: Opaque val (Integer -> [Data] -> b)
-                -> Opaque val ([(Data, Data)] -> b)
-                -> Opaque val ([Data] -> b)
-                -> Opaque val (Integer -> b)
-                -> Opaque val (BS.ByteString -> b)
-                -> Data
-                -> Opaque (HeadSpine val) b
-            caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
-            {-# INLINE caseDataDenotation #-}
-        in makeBuiltinMeaning
-            caseDataDenotation
-            (runCostingFunSixArguments . unimplementedCostingFun)
-
     toBuiltinMeaning _semvar DropList =
         let dropListDenotation
                 :: IntegerCostedLiterally -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
@@ -2097,9 +2060,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                             IP _ -> case drop maxBound xs of
                                [] -> pure []
                                _ ->
-                                   throwing _StructuralUnliftingError
+                                   throwError $ structuralUnliftingError
                                        "Panic: unreachable clause executed"
-                    _ -> throwing _StructuralUnliftingError "Expected a list but got something else"
+                    _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE dropListDenotation #-}
         in makeBuiltinMeaning
             dropListDenotation
@@ -2110,7 +2073,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
             case uni of
               DefaultUniArray _uniA -> pure $ Vector.length vec
-              _ -> throwing _StructuralUnliftingError "Expected an array but got something else"
+              _ -> throwError $ structuralUnliftingError "Expected an array but got something else"
           {-# INLINE lengthOfArrayDenotation #-}
         in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . paramLengthOfArray)
 
@@ -2119,7 +2082,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
             case uniListA of
               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
-              _ -> throwing _StructuralUnliftingError  "Expected a list but got something else"
+              _ -> throwError $ structuralUnliftingError  "Expected a list but got something else"
           {-# INLINE listToArrayDenotation #-}
         in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
 
@@ -2135,9 +2098,48 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     -- See Note [Structural vs operational errors within builtins].
                     -- The arguments are going to be printed in the "cause" part of the error
                     -- message, so we don't need to repeat them here.
-                throwing _StructuralUnliftingError "Expected an array but got something else"
+                throwError $ structuralUnliftingError "Expected an array but got something else"
           {-# INLINE indexArrayDenotation #-}
         in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
+
+    toBuiltinMeaning _ver CaseList =
+        let caseListDenotation
+                :: Opaque val (LastArg a b)
+                -> Opaque val (a -> [a] -> b)
+                -> SomeConstant uni [a]
+                -> BuiltinResult (Opaque (HeadSpine val) b)
+            caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
+                case uniListA of
+                    DefaultUniList uniA -> pure $ case xs0 of
+                        []     -> headSpine z []
+                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                    _ ->
+                        -- See Note [Structural vs operational errors within builtins].
+                        throwError $ structuralUnliftingError "Expected a list but got something else"
+            {-# INLINE caseListDenotation #-}
+        in makeBuiltinMeaning
+            caseListDenotation
+            (runCostingFunThreeArguments . unimplementedCostingFun)
+
+    toBuiltinMeaning _ver CaseData =
+        let caseDataDenotation
+                :: Opaque val (Integer -> [Data] -> b)
+                -> Opaque val ([(Data, Data)] -> b)
+                -> Opaque val ([Data] -> b)
+                -> Opaque val (Integer -> b)
+                -> Opaque val (BS.ByteString -> b)
+                -> Data
+                -> Opaque (HeadSpine val) b
+            caseDataDenotation fConstr fMap fList fI fB = \case
+                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpine fMap [fromValue es]
+                List ds     -> headSpine fList [fromValue ds]
+                I i         -> headSpine fI [fromValue i]
+                B b         -> headSpine fB [fromValue b]
+            {-# INLINE caseDataDenotation #-}
+        in makeBuiltinMeaning
+            caseDataDenotation
+            (runCostingFunSixArguments . unimplementedCostingFun)
 
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
@@ -2281,111 +2283,111 @@ instance Flat DefaultFun where
 
               ExpModInteger                   -> 87
 
-              CaseList                        -> 88
-              CaseData                        -> 89
+              DropList                        -> 88
 
-              DropList                        -> 90
+              LengthOfArray                   -> 89
+              ListToArray                     -> 90
+              IndexArray                      -> 91
 
-              LengthOfArray                   -> 91
-              ListToArray                     -> 92
-              IndexArray                      -> 93
+              CaseList                        -> 126
+              CaseData                        -> 127
 
     decode = go =<< decodeBuiltin
-        where go 0  = pure AddInteger
-              go 1  = pure SubtractInteger
-              go 2  = pure MultiplyInteger
-              go 3  = pure DivideInteger
-              go 4  = pure QuotientInteger
-              go 5  = pure RemainderInteger
-              go 6  = pure ModInteger
-              go 7  = pure EqualsInteger
-              go 8  = pure LessThanInteger
-              go 9  = pure LessThanEqualsInteger
-              go 10 = pure AppendByteString
-              go 11 = pure ConsByteString
-              go 12 = pure SliceByteString
-              go 13 = pure LengthOfByteString
-              go 14 = pure IndexByteString
-              go 15 = pure EqualsByteString
-              go 16 = pure LessThanByteString
-              go 17 = pure LessThanEqualsByteString
-              go 18 = pure Sha2_256
-              go 19 = pure Sha3_256
-              go 20 = pure Blake2b_256
-              go 21 = pure VerifyEd25519Signature
-              go 22 = pure AppendString
-              go 23 = pure EqualsString
-              go 24 = pure EncodeUtf8
-              go 25 = pure DecodeUtf8
-              go 26 = pure IfThenElse
-              go 27 = pure ChooseUnit
-              go 28 = pure Trace
-              go 29 = pure FstPair
-              go 30 = pure SndPair
-              go 31 = pure ChooseList
-              go 32 = pure MkCons
-              go 33 = pure HeadList
-              go 34 = pure TailList
-              go 35 = pure NullList
-              go 36 = pure ChooseData
-              go 37 = pure ConstrData
-              go 38 = pure MapData
-              go 39 = pure ListData
-              go 40 = pure IData
-              go 41 = pure BData
-              go 42 = pure UnConstrData
-              go 43 = pure UnMapData
-              go 44 = pure UnListData
-              go 45 = pure UnIData
-              go 46 = pure UnBData
-              go 47 = pure EqualsData
-              go 48 = pure MkPairData
-              go 49 = pure MkNilData
-              go 50 = pure MkNilPairData
-              go 51 = pure SerialiseData
-              go 52 = pure VerifyEcdsaSecp256k1Signature
-              go 53 = pure VerifySchnorrSecp256k1Signature
-              go 54 = pure Bls12_381_G1_add
-              go 55 = pure Bls12_381_G1_neg
-              go 56 = pure Bls12_381_G1_scalarMul
-              go 57 = pure Bls12_381_G1_equal
-              go 58 = pure Bls12_381_G1_compress
-              go 59 = pure Bls12_381_G1_uncompress
-              go 60 = pure Bls12_381_G1_hashToGroup
-              go 61 = pure Bls12_381_G2_add
-              go 62 = pure Bls12_381_G2_neg
-              go 63 = pure Bls12_381_G2_scalarMul
-              go 64 = pure Bls12_381_G2_equal
-              go 65 = pure Bls12_381_G2_compress
-              go 66 = pure Bls12_381_G2_uncompress
-              go 67 = pure Bls12_381_G2_hashToGroup
-              go 68 = pure Bls12_381_millerLoop
-              go 69 = pure Bls12_381_mulMlResult
-              go 70 = pure Bls12_381_finalVerify
-              go 71 = pure Keccak_256
-              go 72 = pure Blake2b_224
-              go 73 = pure IntegerToByteString
-              go 74 = pure ByteStringToInteger
-              go 75 = pure AndByteString
-              go 76 = pure OrByteString
-              go 77 = pure XorByteString
-              go 78 = pure ComplementByteString
-              go 79 = pure ReadBit
-              go 80 = pure WriteBits
-              go 81 = pure ReplicateByte
-              go 82 = pure ShiftByteString
-              go 83 = pure RotateByteString
-              go 84 = pure CountSetBits
-              go 85 = pure FindFirstSetBit
-              go 86 = pure Ripemd_160
-              go 87 = pure ExpModInteger
-              go 88 = pure CaseList
-              go 89 = pure CaseData
-              go 90 = pure DropList
-              go 91 = pure LengthOfArray
-              go 92 = pure ListToArray
-              go 93 = pure IndexArray
-              go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
+        where go 0   = pure AddInteger
+              go 1   = pure SubtractInteger
+              go 2   = pure MultiplyInteger
+              go 3   = pure DivideInteger
+              go 4   = pure QuotientInteger
+              go 5   = pure RemainderInteger
+              go 6   = pure ModInteger
+              go 7   = pure EqualsInteger
+              go 8   = pure LessThanInteger
+              go 9   = pure LessThanEqualsInteger
+              go 10  = pure AppendByteString
+              go 11  = pure ConsByteString
+              go 12  = pure SliceByteString
+              go 13  = pure LengthOfByteString
+              go 14  = pure IndexByteString
+              go 15  = pure EqualsByteString
+              go 16  = pure LessThanByteString
+              go 17  = pure LessThanEqualsByteString
+              go 18  = pure Sha2_256
+              go 19  = pure Sha3_256
+              go 20  = pure Blake2b_256
+              go 21  = pure VerifyEd25519Signature
+              go 22  = pure AppendString
+              go 23  = pure EqualsString
+              go 24  = pure EncodeUtf8
+              go 25  = pure DecodeUtf8
+              go 26  = pure IfThenElse
+              go 27  = pure ChooseUnit
+              go 28  = pure Trace
+              go 29  = pure FstPair
+              go 30  = pure SndPair
+              go 31  = pure ChooseList
+              go 32  = pure MkCons
+              go 33  = pure HeadList
+              go 34  = pure TailList
+              go 35  = pure NullList
+              go 36  = pure ChooseData
+              go 37  = pure ConstrData
+              go 38  = pure MapData
+              go 39  = pure ListData
+              go 40  = pure IData
+              go 41  = pure BData
+              go 42  = pure UnConstrData
+              go 43  = pure UnMapData
+              go 44  = pure UnListData
+              go 45  = pure UnIData
+              go 46  = pure UnBData
+              go 47  = pure EqualsData
+              go 48  = pure MkPairData
+              go 49  = pure MkNilData
+              go 50  = pure MkNilPairData
+              go 51  = pure SerialiseData
+              go 52  = pure VerifyEcdsaSecp256k1Signature
+              go 53  = pure VerifySchnorrSecp256k1Signature
+              go 54  = pure Bls12_381_G1_add
+              go 55  = pure Bls12_381_G1_neg
+              go 56  = pure Bls12_381_G1_scalarMul
+              go 57  = pure Bls12_381_G1_equal
+              go 58  = pure Bls12_381_G1_compress
+              go 59  = pure Bls12_381_G1_uncompress
+              go 60  = pure Bls12_381_G1_hashToGroup
+              go 61  = pure Bls12_381_G2_add
+              go 62  = pure Bls12_381_G2_neg
+              go 63  = pure Bls12_381_G2_scalarMul
+              go 64  = pure Bls12_381_G2_equal
+              go 65  = pure Bls12_381_G2_compress
+              go 66  = pure Bls12_381_G2_uncompress
+              go 67  = pure Bls12_381_G2_hashToGroup
+              go 68  = pure Bls12_381_millerLoop
+              go 69  = pure Bls12_381_mulMlResult
+              go 70  = pure Bls12_381_finalVerify
+              go 71  = pure Keccak_256
+              go 72  = pure Blake2b_224
+              go 73  = pure IntegerToByteString
+              go 74  = pure ByteStringToInteger
+              go 75  = pure AndByteString
+              go 76  = pure OrByteString
+              go 77  = pure XorByteString
+              go 78  = pure ComplementByteString
+              go 79  = pure ReadBit
+              go 80  = pure WriteBits
+              go 81  = pure ReplicateByte
+              go 82  = pure ShiftByteString
+              go 83  = pure RotateByteString
+              go 84  = pure CountSetBits
+              go 85  = pure FindFirstSetBit
+              go 86  = pure Ripemd_160
+              go 87  = pure ExpModInteger
+              go 88  = pure DropList
+              go 89  = pure LengthOfArray
+              go 90  = pure ListToArray
+              go 91  = pure IndexArray
+              go 126 = pure CaseList
+              go 127 = pure CaseData
+              go t   = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
 

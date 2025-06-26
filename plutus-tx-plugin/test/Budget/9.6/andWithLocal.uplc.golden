@@ -1,15 +1,9 @@
 (program
    1.1.0
    ((\x y ->
-       force
-         ((\lessThanInteger ->
-             case
-               (lessThanInteger x 3)
-               [(delay (lessThanInteger y 3)), (delay (constr 1 []))])
-            (\x y ->
-               force ifThenElse
-                 (lessThanInteger x y)
-                 (constr 0 [])
-                 (constr 1 []))))
+       case
+         (lessThanInteger x 3)
+         [ (constr 1 [])
+         , (case (lessThanInteger y 3) [(constr 1 []), (constr 0 [])]) ])
       4
       4))

@@ -52,7 +52,19 @@ If evaluation fails with an error, the expected output will show "evaluation fai
 
 #### An untyped plutus core program
 
-This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
+This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.  An evaluator need not produce a program which is precisely syntactically identical to the expected output, but the two should be equal up to whitespace and α-equivalence (ie, renaming of variables).  Thus
+```
+lam x (lam y x))
+```
+and
+```
+(
+
+      lam var1          (  lam    VARIABLE_1707
+var1            )
+   )
+```
+are considered to be equal.
 
 ### Testing alternative implementations
 
@@ -72,9 +84,9 @@ data UplcEvaluator =
 runUplcEvalTests :: UplcEvaluator -> (FilePath -> Bool) -> (FilePath -> Bool) -> IO ()
 ```
 
-Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return a `Maybe UplcProg`, or a `Maybe (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired. 
+Users can call this function with their own `UplcEvaluatorFun`, which should evaluate a UPLC program and return a `Maybe UplcProg`, or a `Maybe (UplcProg, ExBudget)` if the budget tests are to be performed as well. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.  The two arguments of type `FilePath -> Bool` allow selected evaluation and budget tests (the ones for which the function returns `True`) to be ignored if desired.  Note that [Name](https://github.com/IntersectMBO/plutus/blob/f02a8d77cb4f1167dff7f86279f641127873cc0a/plutus-core/plutus-core/src/PlutusCore/Name/Unique.hs#L56) objects contain `Unique` values which wrap an `Int`: these are used to disambiguate duplicated names, and in the conformance tests equality of `Unique` IDs is used to check that programs are identical up to α-equivalence.  `Unique` IDs are generated automatically when a textual program is loaded and are included in the names of variables (eg, `x-182`) in the expected results of the tests.
 
-<!-- 
+<!--
 ### Type checker
 
 The type checker synthesizes the kind of a given type and the type of a given term. This does not involve any form of inference as Plutus Core is already fully typed. It merely checks the consistency of all variable declarations and the well-formedness of types and terms, while deriving the kind or type of the given type or term.

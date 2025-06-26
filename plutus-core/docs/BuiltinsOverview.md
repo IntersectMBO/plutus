@@ -402,7 +402,7 @@ Here's an example instance (where `Term` is the type of TPLC terms):
 ```haskell
 instance HasConstant (Term TyName Name uni fun ()) where
     asConstant (Constant _ val) = pure val
-    asConstant _                = throwNotAConstant
+    asConstant _                = throwError notAConstant
 ```
 
 Unlifting of constants then is just a matter of unwrapping a value as a constant and checking that the constant is of the right type, which is what the default implementation of `readKnown` does:
@@ -452,5 +452,5 @@ instance
         ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (BuiltinResult a) where
-    readKnown _ = throwUnderTypeError
+    readKnown _ = throwError underTypeError
 ```

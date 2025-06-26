@@ -26,7 +26,7 @@ import PlutusCore.Examples.Everything (examples)
 import PlutusCore.StdLib.Everything (stdLib)
 
 import Control.Monad (unless)
-import Control.Monad.Except (MonadError, runExcept)
+import Control.Monad.Except
 import Data.Text qualified as Text
 import Test.Tasty
 import Test.Tasty.Extras
@@ -36,7 +36,7 @@ kindcheck
     :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
     => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind defKindCheckConfig ty
+    _ <- runQuoteT $ modifyError TypeErrorE $ inferKind defKindCheckConfig ty
     return ty
 
 typecheck
@@ -44,7 +44,7 @@ typecheck
     => BuiltinSemanticsVariant fun
     -> Term TyName Name uni fun ()
     -> m (Normalized (Type TyName uni ()))
-typecheck semvar term = runQuoteT $ do
+typecheck semvar term = runQuoteT $ modifyError TypeErrorE $ do
     tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
     inferType tcConfig term
 
@@ -164,7 +164,7 @@ type instance UniOf Val = DefaultUni
 instance ExMemoryUsage Val where
     memoryUsage = error "Not supposed to be executed"
 instance HasConstant Val where
-    asConstant _ = throwNotAConstant
+    asConstant _ = throwError notAConstant
     fromConstant _ = Val
 
 -- | Return the last element of the list that is smaller than or equal to the given one.
