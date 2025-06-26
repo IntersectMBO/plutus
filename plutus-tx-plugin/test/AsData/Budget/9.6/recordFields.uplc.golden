@@ -9,20 +9,16 @@
                      addInteger
                        (addInteger
                           (addInteger (addInteger (addInteger cse cse) cse) cse)
-                          (force
-                             (case
-                                (lessThanInteger
-                                   (addInteger cse cse)
-                                   (addInteger cse cse))
-                                [ (delay (addInteger cse cse))
-                                , (delay (addInteger cse cse)) ])))
-                       (force
                           (case
                              (lessThanInteger
                                 (addInteger cse cse)
                                 (addInteger cse cse))
-                             [ (delay (addInteger cse cse))
-                             , (delay (addInteger cse cse)) ])))
+                             [(addInteger cse cse), (addInteger cse cse)]))
+                       (case
+                          (lessThanInteger
+                             (addInteger cse cse)
+                             (addInteger cse cse))
+                          [(addInteger cse cse), (addInteger cse cse)]))
                     (cse (\ds ds ds ds -> ds) (\void -> error)))
                  (cse (\ds ds ds ds -> ds) (\void -> error)))
               (cse (\ds ds ds ds -> ds) (\void -> error)))

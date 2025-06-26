@@ -1,29 +1,25 @@
 (program
    1.1.0
    (\xs ->
-      force
-        (case
-           (force
-              ((\f ->
-                  (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-                    (\s -> f (\x -> s s x)))
-                 (\go arg ->
-                    delay
-                      (\xs ->
-                         force
-                           (force (force chooseList)
-                              xs
-                              (delay (constr 1 []))
-                              (delay
-                                 ((\xs ->
-                                     force
-                                       (case
-                                          (equalsInteger 42 (force headList xs))
-                                          [ (delay
-                                               (force (go (delay (\x -> x)))
-                                                  xs))
-                                          , (delay (constr 0 [])) ]))
-                                    (force tailList xs))))))
-                 (delay (\x -> x)))
-              xs)
-           [(delay (constr 1 [])), (delay (constr 0 []))])))
+      case
+        (force
+           ((\f ->
+               (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+                 (\s -> f (\x -> s s x)))
+              (\go arg ->
+                 delay
+                   (\xs ->
+                      force
+                        (force (force chooseList)
+                           xs
+                           (delay (constr 1 []))
+                           (delay
+                              ((\xs ->
+                                  case
+                                    (equalsInteger 42 (force headList xs))
+                                    [ (force (go (delay (\x -> x))) xs)
+                                    , (constr 0 []) ])
+                                 (force tailList xs))))))
+              (delay (\x -> x)))
+           xs)
+        [(constr 1 []), (constr 0 [])]))

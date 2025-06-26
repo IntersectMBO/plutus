@@ -10,9 +10,8 @@
                  (delay
                     ((\x ->
                         (\eta ->
-                           force
-                             (case
-                                (lessThanInteger (unIData x) 8)
-                                [(delay (constr 0 [])), (delay (s s eta))]))
+                           case
+                             (lessThanInteger (unIData x) 8)
+                             [(constr 0 []), (s s eta)])
                           (force tailList ds))
                        (force headList ds))))))))

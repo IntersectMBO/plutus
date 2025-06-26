@@ -14,12 +14,10 @@
                         (delay (constr 0 []))
                         (delay
                            ((\xs ->
-                               force
-                                 (case
-                                    (force headList xs)
-                                    [ (delay (constr 1 []))
-                                    , (delay
-                                         (force (go (delay (\x -> x))) xs)) ]))
+                               case
+                                 (force headList xs)
+                                 [ (constr 1 [])
+                                 , (force (go (delay (\x -> x))) xs) ])
                               (force tailList xs))))))
            (delay (\x -> x)))
         xs))

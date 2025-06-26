@@ -16,11 +16,9 @@
                              (delay (constr 1 []))
                              (delay
                                 ((\xs ->
-                                    force
-                                      (case
-                                         (equalsInteger a (force headList xs))
-                                         [ (delay
-                                              (force (go (delay (\x -> x))) xs))
-                                         , (delay (constr 0 [])) ]))
+                                    case
+                                      (equalsInteger a (force headList xs))
+                                      [ (force (go (delay (\x -> x))) xs)
+                                      , (constr 0 []) ])
                                    (force tailList xs))))))
                 (delay (\x -> x))))))

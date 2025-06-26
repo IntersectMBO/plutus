@@ -9,18 +9,12 @@
                      (\wdrlAtZero ->
                         (\rest ->
                            (\wdrlAtOne ->
-                              force
-                                (case
-                                   (equalsData r_stake_cred wdrlAtZero)
-                                   [ (delay
-                                        (force
-                                           (case
-                                              (equalsData
-                                                 r_stake_cred
-                                                 wdrlAtOne)
-                                              [ (delay (force lookForCred rest))
-                                              , (delay (constr 0 [])) ])))
-                                   , (delay (constr 0 [])) ]))
+                              case
+                                (equalsData r_stake_cred wdrlAtZero)
+                                [ (case
+                                     (equalsData r_stake_cred wdrlAtOne)
+                                     [(force lookForCred rest), (constr 0 [])])
+                                , (constr 0 []) ])
                              (force (force fstPair) (force headList rest)))
                           (force tailList wdrl))
                        (force (force fstPair) (force headList wdrl)))
@@ -72,11 +66,7 @@
                                          (force tailList l))))
                                 (constr 0 [])))
                       (\p tl ->
-                         force
-                           (case
-                              (equalsData
-                                 r_stake_cred
-                                 (force (force fstPair) p))
-                              [ (delay
-                                   (force (lookForCred (delay (\x -> x))) tl))
-                              , (delay (constr 0 [])) ]))))))))
+                         case
+                           (equalsData r_stake_cred (force (force fstPair) p))
+                           [ (force (lookForCred (delay (\x -> x))) tl)
+                           , (constr 0 []) ])))))))

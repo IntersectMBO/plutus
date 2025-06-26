@@ -4,145 +4,114 @@
        (\tup ->
           (\index ->
              (\args ->
-                force
-                  (case
-                     (equalsInteger 0 index)
-                     [ (delay
-                          (force
-                             (case
-                                (equalsInteger 1 index)
-                                [ (delay (traceError "PT1"))
-                                , (delay
-                                     (constr 1
-                                        [ ((\tup ->
-                                              (\index ->
-                                                 (\args ->
-                                                    force
-                                                      (case
-                                                         (equalsInteger 1 index)
-                                                         [ (delay
-                                                              (force
-                                                                 (case
-                                                                    (equalsInteger
-                                                                       0
-                                                                       index)
-                                                                    [ (delay
-                                                                         (traceError
-                                                                            "PT1"))
-                                                                    , (delay
-                                                                         (constr 0
-                                                                            [ ((\tup ->
-                                                                                  (\index ->
-                                                                                     (\args ->
-                                                                                        force
-                                                                                          (case
+                case
+                  (equalsInteger 0 index)
+                  [ (case
+                       (equalsInteger 1 index)
+                       [ (traceError "PT1")
+                       , (constr 1
+                            [ ((\tup ->
+                                  (\index ->
+                                     (\args ->
+                                        case
+                                          (equalsInteger 1 index)
+                                          [ (case
+                                               (equalsInteger 0 index)
+                                               [ (traceError "PT1")
+                                               , (constr 0
+                                                    [ ((\tup ->
+                                                          (\index ->
+                                                             (\args ->
+                                                                case
+                                                                  (equalsInteger
+                                                                     0
+                                                                     index)
+                                                                  [ (traceError
+                                                                       "PT1")
+                                                                  , ((\l ->
+                                                                        constr 0
+                                                                          [ ((\tup ->
+                                                                                (\index ->
+                                                                                   (\args ->
+                                                                                      case
+                                                                                        (equalsInteger
+                                                                                           0
+                                                                                           index)
+                                                                                        [ (case
                                                                                              (equalsInteger
-                                                                                                0
+                                                                                                1
                                                                                                 index)
-                                                                                             [ (delay
-                                                                                                  (traceError
-                                                                                                     "PT1"))
-                                                                                             , (delay
-                                                                                                  ((\l ->
-                                                                                                      constr 0
-                                                                                                        [ ((\tup ->
-                                                                                                              (\index ->
-                                                                                                                 (\args ->
-                                                                                                                    force
-                                                                                                                      (case
-                                                                                                                         (equalsInteger
-                                                                                                                            0
-                                                                                                                            index)
-                                                                                                                         [ (delay
-                                                                                                                              (force
-                                                                                                                                 (case
-                                                                                                                                    (equalsInteger
-                                                                                                                                       1
-                                                                                                                                       index)
-                                                                                                                                    [ (delay
-                                                                                                                                         (traceError
-                                                                                                                                            "PT1"))
-                                                                                                                                    , (delay
-                                                                                                                                         (constr 0
-                                                                                                                                            [  ])) ])))
-                                                                                                                         , (delay
-                                                                                                                              (constr 1
-                                                                                                                                 [  ])) ]))
-                                                                                                                   (force
-                                                                                                                      (force
-                                                                                                                         sndPair)
-                                                                                                                      tup))
-                                                                                                                (force
-                                                                                                                   (force
-                                                                                                                      fstPair)
-                                                                                                                   tup))
-                                                                                                             (unConstrData
-                                                                                                                (force
-                                                                                                                   headList
-                                                                                                                   args)))
-                                                                                                        , (unIData
-                                                                                                             (force
-                                                                                                                headList
-                                                                                                                l))
-                                                                                                        , ((\tup ->
-                                                                                                              (\index ->
-                                                                                                                 (\args ->
-                                                                                                                    force
-                                                                                                                      (case
-                                                                                                                         (equalsInteger
-                                                                                                                            0
-                                                                                                                            index)
-                                                                                                                         [ (delay
-                                                                                                                              (force
-                                                                                                                                 (case
-                                                                                                                                    (equalsInteger
-                                                                                                                                       1
-                                                                                                                                       index)
-                                                                                                                                    [ (delay
-                                                                                                                                         (traceError
-                                                                                                                                            "PT1"))
-                                                                                                                                    , (delay
-                                                                                                                                         (constr 0
-                                                                                                                                            [  ])) ])))
-                                                                                                                         , (delay
-                                                                                                                              (constr 1
-                                                                                                                                 [  ])) ]))
-                                                                                                                   (force
-                                                                                                                      (force
-                                                                                                                         sndPair)
-                                                                                                                      tup))
-                                                                                                                (force
-                                                                                                                   (force
-                                                                                                                      fstPair)
-                                                                                                                   tup))
-                                                                                                             (unConstrData
-                                                                                                                (force
-                                                                                                                   headList
-                                                                                                                   (force
-                                                                                                                      tailList
-                                                                                                                      l)))) ])
-                                                                                                     (force
-                                                                                                        tailList
-                                                                                                        args))) ]))
-                                                                                       (force
-                                                                                          (force
-                                                                                             sndPair)
-                                                                                          tup))
-                                                                                    (force
-                                                                                       (force
-                                                                                          fstPair)
-                                                                                       tup))
-                                                                                 (unConstrData
-                                                                                    (force
-                                                                                       headList
-                                                                                       args))) ])) ])))
-                                                         , (delay
-                                                              (constr 1 [])) ]))
-                                                   (force (force sndPair) tup))
-                                                (force (force fstPair) tup))
-                                             (unConstrData
-                                                (force headList args))) ])) ])))
-                     , (delay (constr 0 [(unIData (force headList args))])) ]))
+                                                                                             [ (traceError
+                                                                                                  "PT1")
+                                                                                             , (constr 0
+                                                                                                  [  ]) ])
+                                                                                        , (constr 1
+                                                                                             [  ]) ])
+                                                                                     (force
+                                                                                        (force
+                                                                                           sndPair)
+                                                                                        tup))
+                                                                                  (force
+                                                                                     (force
+                                                                                        fstPair)
+                                                                                     tup))
+                                                                               (unConstrData
+                                                                                  (force
+                                                                                     headList
+                                                                                     args)))
+                                                                          , (unIData
+                                                                               (force
+                                                                                  headList
+                                                                                  l))
+                                                                          , ((\tup ->
+                                                                                (\index ->
+                                                                                   (\args ->
+                                                                                      case
+                                                                                        (equalsInteger
+                                                                                           0
+                                                                                           index)
+                                                                                        [ (case
+                                                                                             (equalsInteger
+                                                                                                1
+                                                                                                index)
+                                                                                             [ (traceError
+                                                                                                  "PT1")
+                                                                                             , (constr 0
+                                                                                                  [  ]) ])
+                                                                                        , (constr 1
+                                                                                             [  ]) ])
+                                                                                     (force
+                                                                                        (force
+                                                                                           sndPair)
+                                                                                        tup))
+                                                                                  (force
+                                                                                     (force
+                                                                                        fstPair)
+                                                                                     tup))
+                                                                               (unConstrData
+                                                                                  (force
+                                                                                     headList
+                                                                                     (force
+                                                                                        tailList
+                                                                                        l)))) ])
+                                                                       (force
+                                                                          tailList
+                                                                          args)) ])
+                                                               (force
+                                                                  (force
+                                                                     sndPair)
+                                                                  tup))
+                                                            (force
+                                                               (force fstPair)
+                                                               tup))
+                                                         (unConstrData
+                                                            (force headList
+                                                               args))) ]) ])
+                                          , (constr 1 []) ])
+                                       (force (force sndPair) tup))
+                                    (force (force fstPair) tup))
+                                 (unConstrData (force headList args))) ]) ])
+                  , (constr 0 [(unIData (force headList args))]) ])
                (force (force sndPair) tup))
             (force (force fstPair) tup))
          (unConstrData

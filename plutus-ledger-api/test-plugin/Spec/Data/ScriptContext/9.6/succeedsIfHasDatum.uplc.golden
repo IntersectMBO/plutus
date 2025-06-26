@@ -5,42 +5,28 @@
         ((\traceError ->
             case
               ((\tup ->
-                  force
-                    (case
-                       (equalsInteger 1 (force (force fstPair) tup))
-                       [ (delay (constr 1 []))
-                       , (delay
-                            (force
-                               (case
-                                  ((\tup ->
-                                      (\index ->
-                                         (\args ->
-                                            force
-                                              (case
-                                                 (equalsInteger 1 index)
-                                                 [ (delay
-                                                      (force
-                                                         (case
-                                                            (equalsInteger
-                                                               0
-                                                               index)
-                                                            [ (delay
-                                                                 (traceError
-                                                                    "PT1"))
-                                                            , (delay
-                                                                 (constr 0
-                                                                    [ (force
-                                                                         headList
-                                                                         args) ])) ])))
-                                                 , (delay (constr 1 [])) ]))
-                                           (force (force sndPair) tup))
-                                        (force (force fstPair) tup))
-                                     (unConstrData
-                                        (force headList
-                                           (force tailList
-                                              (force (force sndPair) tup)))))
-                                  [ (\ds -> delay (constr 0 []))
-                                  , (delay (constr 1 [])) ]))) ]))
+                  case
+                    (equalsInteger 1 (force (force fstPair) tup))
+                    [ (constr 1 [])
+                    , (case
+                         ((\tup ->
+                             (\index ->
+                                (\args ->
+                                   case
+                                     (equalsInteger 1 index)
+                                     [ (case
+                                          (equalsInteger 0 index)
+                                          [ (traceError "PT1")
+                                          , (constr 0
+                                               [(force headList args)]) ])
+                                     , (constr 1 []) ])
+                                  (force (force sndPair) tup))
+                               (force (force fstPair) tup))
+                            (unConstrData
+                               (force headList
+                                  (force tailList
+                                     (force (force sndPair) tup)))))
+                         [(\ds -> constr 0 []), (constr 1 [])]) ])
                  (unConstrData
                     (force headList
                        (force tailList

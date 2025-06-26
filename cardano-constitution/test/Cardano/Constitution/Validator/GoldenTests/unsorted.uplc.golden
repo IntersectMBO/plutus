@@ -42,100 +42,85 @@ program
                                                                                                                         (\cfg ->
                                                                                                                            (\fun
                                                                                                                              ds ->
-                                                                                                                              force
-                                                                                                                                (case
-                                                                                                                                   ((\ds ->
-                                                                                                                                       (\x ->
-                                                                                                                                          force
-                                                                                                                                            (case
-                                                                                                                                               (equalsInteger
-                                                                                                                                                  0
-                                                                                                                                                  x)
-                                                                                                                                               [ (delay
-                                                                                                                                                    (force
-                                                                                                                                                       (case
-                                                                                                                                                          (equalsInteger
-                                                                                                                                                             2
-                                                                                                                                                             x)
-                                                                                                                                                          [ (delay
-                                                                                                                                                               error)
-                                                                                                                                                          , (delay
-                                                                                                                                                               (constr 1
-                                                                                                                                                                  [  ])) ])))
-                                                                                                                                               , (delay
-                                                                                                                                                    (constr 0
-                                                                                                                                                       [ ((\d ->
-                                                                                                                                                             force
-                                                                                                                                                               caseData_go
-                                                                                                                                                               (unMapData
-                                                                                                                                                                  d))
+                                                                                                                              case
+                                                                                                                                ((\ds ->
+                                                                                                                                    (\x ->
+                                                                                                                                       case
+                                                                                                                                         (equalsInteger
+                                                                                                                                            0
+                                                                                                                                            x)
+                                                                                                                                         [ (case
+                                                                                                                                              (equalsInteger
+                                                                                                                                                 2
+                                                                                                                                                 x)
+                                                                                                                                              [ error
+                                                                                                                                              , (constr 1
+                                                                                                                                                   [  ]) ])
+                                                                                                                                         , (constr 0
+                                                                                                                                              [ ((\d ->
+                                                                                                                                                    force
+                                                                                                                                                      caseData_go
+                                                                                                                                                      (unMapData
+                                                                                                                                                         d))
+                                                                                                                                                   (force
+                                                                                                                                                      headList
+                                                                                                                                                      (force
+                                                                                                                                                         tailList
+                                                                                                                                                         (force
                                                                                                                                                             (force
-                                                                                                                                                               headList
-                                                                                                                                                               (force
-                                                                                                                                                                  tailList
-                                                                                                                                                                  (force
-                                                                                                                                                                     (force
-                                                                                                                                                                        sndPair)
-                                                                                                                                                                     ds)))) ])) ]))
+                                                                                                                                                               sndPair)
+                                                                                                                                                            ds)))) ]) ])
+                                                                                                                                      (force
                                                                                                                                          (force
-                                                                                                                                            (force
-                                                                                                                                               fstPair)
-                                                                                                                                            ds))
-                                                                                                                                      (unConstrData
+                                                                                                                                            fstPair)
+                                                                                                                                         ds))
+                                                                                                                                   (unConstrData
+                                                                                                                                      (force
+                                                                                                                                         headList
                                                                                                                                          (force
-                                                                                                                                            headList
+                                                                                                                                            tailList
                                                                                                                                             (force
                                                                                                                                                tailList
                                                                                                                                                (force
-                                                                                                                                                  tailList
                                                                                                                                                   (force
-                                                                                                                                                     (force
-                                                                                                                                                        sndPair)
-                                                                                                                                                     (unConstrData
-                                                                                                                                                        ((\si ->
-                                                                                                                                                            force
-                                                                                                                                                              (case
-                                                                                                                                                                 (equalsInteger
-                                                                                                                                                                    5
-                                                                                                                                                                    (force
-                                                                                                                                                                       (force
-                                                                                                                                                                          fstPair)
-                                                                                                                                                                       si))
-                                                                                                                                                                 [ (delay
-                                                                                                                                                                      error)
-                                                                                                                                                                 , (delay
-                                                                                                                                                                      (force
-                                                                                                                                                                         headList
-                                                                                                                                                                         (force
-                                                                                                                                                                            tailList
-                                                                                                                                                                            (force
-                                                                                                                                                                               (force
-                                                                                                                                                                                  sndPair)
-                                                                                                                                                                               si)))) ]))
-                                                                                                                                                           (unConstrData
+                                                                                                                                                     sndPair)
+                                                                                                                                                  (unConstrData
+                                                                                                                                                     ((\si ->
+                                                                                                                                                         case
+                                                                                                                                                           (equalsInteger
+                                                                                                                                                              5
                                                                                                                                                               (force
-                                                                                                                                                                 headList
+                                                                                                                                                                 (force
+                                                                                                                                                                    fstPair)
+                                                                                                                                                                 si))
+                                                                                                                                                           [ error
+                                                                                                                                                           , (force
+                                                                                                                                                                headList
+                                                                                                                                                                (force
+                                                                                                                                                                   tailList
+                                                                                                                                                                   (force
+                                                                                                                                                                      (force
+                                                                                                                                                                         sndPair)
+                                                                                                                                                                      si))) ])
+                                                                                                                                                        (unConstrData
+                                                                                                                                                           (force
+                                                                                                                                                              headList
+                                                                                                                                                              (force
+                                                                                                                                                                 tailList
                                                                                                                                                                  (force
                                                                                                                                                                     tailList
                                                                                                                                                                     (force
-                                                                                                                                                                       tailList
                                                                                                                                                                        (force
-                                                                                                                                                                          (force
-                                                                                                                                                                             sndPair)
-                                                                                                                                                                          (unConstrData
-                                                                                                                                                                             ds))))))))))))))
-                                                                                                                                   [ (\cparams ->
-                                                                                                                                        delay
-                                                                                                                                          (force
-                                                                                                                                             (case
-                                                                                                                                                (fun
-                                                                                                                                                   cparams)
-                                                                                                                                                [ (delay
-                                                                                                                                                     ())
-                                                                                                                                                , (delay
-                                                                                                                                                     error) ])))
-                                                                                                                                   , (delay
-                                                                                                                                        ()) ]))
+                                                                                                                                                                          sndPair)
+                                                                                                                                                                       (unConstrData
+                                                                                                                                                                          ds))))))))))))))
+                                                                                                                                [ (\cparams ->
+                                                                                                                                     case
+                                                                                                                                       (fun
+                                                                                                                                          cparams)
+                                                                                                                                       [ ()
+                                                                                                                                       , error ])
+                                                                                                                                , () ])
                                                                                                                              ((\go
                                                                                                                                 eta ->
                                                                                                                                  go
@@ -145,62 +130,50 @@ program
                                                                                                                                       s)
                                                                                                                                    (\s
                                                                                                                                      ds ->
-                                                                                                                                      force
-                                                                                                                                        (case
-                                                                                                                                           ds
-                                                                                                                                           [ (delay
-                                                                                                                                                (constr 0
-                                                                                                                                                   [  ]))
-                                                                                                                                           , (\x
-                                                                                                                                               xs ->
-                                                                                                                                                delay
-                                                                                                                                                  (force
-                                                                                                                                                     (case
-                                                                                                                                                        (case
-                                                                                                                                                           x
-                                                                                                                                                           [ (\ds
-                                                                                                                                                               actualValueData ->
-                                                                                                                                                                validateParamValue
-                                                                                                                                                                  ((\k ->
-                                                                                                                                                                      (\s ->
-                                                                                                                                                                         s
-                                                                                                                                                                           s)
-                                                                                                                                                                        (\s
-                                                                                                                                                                          ds ->
-                                                                                                                                                                           force
-                                                                                                                                                                             (case
-                                                                                                                                                                                ds
-                                                                                                                                                                                [ (delay
-                                                                                                                                                                                     error)
-                                                                                                                                                                                , (\ds
-                                                                                                                                                                                    xs' ->
-                                                                                                                                                                                     delay
-                                                                                                                                                                                       (case
-                                                                                                                                                                                          ds
-                                                                                                                                                                                          [ (\k'
-                                                                                                                                                                                              i ->
-                                                                                                                                                                                               force
-                                                                                                                                                                                                 (case
-                                                                                                                                                                                                    (equalsInteger
-                                                                                                                                                                                                       k
-                                                                                                                                                                                                       k')
-                                                                                                                                                                                                    [ (delay
-                                                                                                                                                                                                         (s
-                                                                                                                                                                                                            s
-                                                                                                                                                                                                            xs'))
-                                                                                                                                                                                                    , (delay
-                                                                                                                                                                                                         i) ])) ])) ])))
-                                                                                                                                                                     (unIData
-                                                                                                                                                                        ds)
-                                                                                                                                                                     cfg)
-                                                                                                                                                                  actualValueData) ])
-                                                                                                                                                        [ (delay
-                                                                                                                                                             (s
+                                                                                                                                      case
+                                                                                                                                        ds
+                                                                                                                                        [ (constr 0
+                                                                                                                                             [  ])
+                                                                                                                                        , (\x
+                                                                                                                                            xs ->
+                                                                                                                                             case
+                                                                                                                                               (case
+                                                                                                                                                  x
+                                                                                                                                                  [ (\ds
+                                                                                                                                                      actualValueData ->
+                                                                                                                                                       validateParamValue
+                                                                                                                                                         ((\k ->
+                                                                                                                                                             (\s ->
                                                                                                                                                                 s
-                                                                                                                                                                xs))
-                                                                                                                                                        , (delay
-                                                                                                                                                             (constr 1
-                                                                                                                                                                [  ])) ]))) ])))))
+                                                                                                                                                                  s)
+                                                                                                                                                               (\s
+                                                                                                                                                                 ds ->
+                                                                                                                                                                  case
+                                                                                                                                                                    ds
+                                                                                                                                                                    [ error
+                                                                                                                                                                    , (\ds
+                                                                                                                                                                        xs' ->
+                                                                                                                                                                         case
+                                                                                                                                                                           ds
+                                                                                                                                                                           [ (\k'
+                                                                                                                                                                               i ->
+                                                                                                                                                                                case
+                                                                                                                                                                                  (equalsInteger
+                                                                                                                                                                                     k
+                                                                                                                                                                                     k')
+                                                                                                                                                                                  [ (s
+                                                                                                                                                                                       s
+                                                                                                                                                                                       xs')
+                                                                                                                                                                                  , i ]) ]) ]))
+                                                                                                                                                            (unIData
+                                                                                                                                                               ds)
+                                                                                                                                                            cfg)
+                                                                                                                                                         actualValueData) ])
+                                                                                                                                               [ (s
+                                                                                                                                                    s
+                                                                                                                                                    xs)
+                                                                                                                                               , (constr 1
+                                                                                                                                                    [  ]) ]) ]))))
                                                                                                                           (constr 1
                                                                                                                              [ (constr 0
                                                                                                                                   [ 0
@@ -979,217 +952,186 @@ program
                              (\choose validateParamValue validateParamValues ->
                                 choose
                                   (\eta eta ->
-                                     force
-                                       (case
-                                          eta
-                                          [ (delay (constr 0 []))
-                                          , (\preds ->
-                                               delay
-                                                 (validatePreds
-                                                    (constr 0
-                                                       [ (\x y ->
-                                                            case
-                                                              (equalsInteger
-                                                                 x
-                                                                 y)
-                                                              [ (constr 1 [])
-                                                              , (constr 0 []) ])
-                                                       , `$fOrdInteger_$ccompare`
-                                                       , (\x y ->
-                                                            case
-                                                              (lessThanInteger
-                                                                 x
-                                                                 y)
-                                                              [ (constr 1 [])
-                                                              , (constr 0 []) ])
-                                                       , (\x y ->
-                                                            case
-                                                              (lessThanEqualsInteger
-                                                                 x
-                                                                 y)
-                                                              [ (constr 1 [])
-                                                              , (constr 0 []) ])
-                                                       , (\x y ->
-                                                            case
-                                                              (lessThanEqualsInteger
-                                                                 x
-                                                                 y)
-                                                              [ (constr 0 [])
-                                                              , (constr 1 []) ])
-                                                       , (\x y ->
-                                                            case
-                                                              (lessThanInteger
-                                                                 x
-                                                                 y)
-                                                              [ (constr 0 [])
-                                                              , (constr 1 []) ])
-                                                       , (\x y ->
-                                                            force
-                                                              (case
-                                                                 (lessThanEqualsInteger
-                                                                    x
-                                                                    y)
-                                                                 [ (delay x)
-                                                                 , (delay y) ]))
-                                                       , (\x y ->
-                                                            force
-                                                              (case
-                                                                 (lessThanEqualsInteger
-                                                                    x
-                                                                    y)
-                                                                 [ (delay y)
-                                                                 , (delay
-                                                                      x) ])) ])
-                                                    preds
-                                                    (unIData eta)))
-                                          , (\paramValues ->
-                                               delay
-                                                 (validateParamValues
-                                                    paramValues
-                                                    (unListData eta)))
-                                          , (\preds ->
-                                               delay
-                                                 (validatePreds
-                                                    (constr 0
-                                                       [ (\ds ds ->
-                                                            case
-                                                              ds
-                                                              [ (\n d ->
-                                                                   case
-                                                                     ds
-                                                                     [ (\n'
-                                                                         d' ->
-                                                                          force
-                                                                            (case
-                                                                               (equalsInteger
-                                                                                  n
-                                                                                  n')
-                                                                               [ (delay
-                                                                                    (constr 1
-                                                                                       [  ]))
-                                                                               , (delay
-                                                                                    (case
-                                                                                       (equalsInteger
-                                                                                          d
-                                                                                          d')
-                                                                                       [ (constr 1
-                                                                                            [  ])
-                                                                                       , (constr 0
-                                                                                            [  ]) ])) ])) ]) ])
-                                                       , (\ds ds ->
-                                                            case
-                                                              ds
-                                                              [ (\n d ->
-                                                                   case
-                                                                     ds
-                                                                     [ (\n'
-                                                                         d' ->
-                                                                          `$fOrdInteger_$ccompare`
-                                                                            (multiplyInteger
-                                                                               n
-                                                                               d')
-                                                                            (multiplyInteger
-                                                                               n'
-                                                                               d)) ]) ])
-                                                       , (\ds ds ->
-                                                            case
-                                                              ds
-                                                              [ (\n d ->
-                                                                   case
-                                                                     ds
-                                                                     [ (\n'
-                                                                         d' ->
-                                                                          case
-                                                                            (lessThanInteger
-                                                                               (multiplyInteger
-                                                                                  n
-                                                                                  d')
-                                                                               (multiplyInteger
-                                                                                  n'
-                                                                                  d))
-                                                                            [ (constr 1
-                                                                                 [  ])
-                                                                            , (constr 0
-                                                                                 [  ]) ]) ]) ])
-                                                       , `$fOrdRational0_$c<=`
-                                                       , (\ds ds ->
-                                                            case
-                                                              ds
-                                                              [ (\n d ->
-                                                                   case
-                                                                     ds
-                                                                     [ (\n'
-                                                                         d' ->
-                                                                          case
-                                                                            (lessThanEqualsInteger
-                                                                               (multiplyInteger
-                                                                                  n
-                                                                                  d')
-                                                                               (multiplyInteger
-                                                                                  n'
-                                                                                  d))
-                                                                            [ (constr 0
-                                                                                 [  ])
-                                                                            , (constr 1
-                                                                                 [  ]) ]) ]) ])
-                                                       , (\ds ds ->
-                                                            case
-                                                              ds
-                                                              [ (\n d ->
-                                                                   case
-                                                                     ds
-                                                                     [ (\n'
-                                                                         d' ->
-                                                                          case
-                                                                            (lessThanInteger
-                                                                               (multiplyInteger
-                                                                                  n
-                                                                                  d')
-                                                                               (multiplyInteger
-                                                                                  n'
-                                                                                  d))
-                                                                            [ (constr 0
-                                                                                 [  ])
-                                                                            , (constr 1
-                                                                                 [  ]) ]) ]) ])
-                                                       , (\x y ->
-                                                            force
-                                                              (case
-                                                                 (`$fOrdRational0_$c<=`
-                                                                    x
-                                                                    y)
-                                                                 [ (delay y)
-                                                                 , (delay x) ]))
-                                                       , (\x y ->
-                                                            force
-                                                              (case
-                                                                 (`$fOrdRational0_$c<=`
-                                                                    x
-                                                                    y)
-                                                                 [ (delay x)
-                                                                 , (delay
-                                                                      y) ])) ])
-                                                    preds
-                                                    ((\bl ->
-                                                        (\bl' ->
-                                                           case
-                                                             (force nullList
-                                                                (force tailList
-                                                                   bl'))
-                                                             [ (\ds -> error)
-                                                             , (\ds ->
-                                                                  unsafeRatio
-                                                                    (unIData
-                                                                       (force
-                                                                          headList
-                                                                          bl))
-                                                                    (unIData
-                                                                       (force
-                                                                          headList
-                                                                          bl'))) ]
-                                                             (constr 0 []))
-                                                          (force tailList bl))
-                                                       (unListData eta)))) ]))
+                                     case
+                                       eta
+                                       [ (constr 0 [])
+                                       , (\preds ->
+                                            validatePreds
+                                              (constr 0
+                                                 [ (\x y ->
+                                                      case
+                                                        (equalsInteger x y)
+                                                        [ (constr 1 [])
+                                                        , (constr 0 []) ])
+                                                 , `$fOrdInteger_$ccompare`
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanInteger x y)
+                                                        [ (constr 1 [])
+                                                        , (constr 0 []) ])
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanEqualsInteger
+                                                           x
+                                                           y)
+                                                        [ (constr 1 [])
+                                                        , (constr 0 []) ])
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanEqualsInteger
+                                                           x
+                                                           y)
+                                                        [ (constr 0 [])
+                                                        , (constr 1 []) ])
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanInteger x y)
+                                                        [ (constr 0 [])
+                                                        , (constr 1 []) ])
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanEqualsInteger
+                                                           x
+                                                           y)
+                                                        [x, y])
+                                                 , (\x y ->
+                                                      case
+                                                        (lessThanEqualsInteger
+                                                           x
+                                                           y)
+                                                        [y, x]) ])
+                                              preds
+                                              (unIData eta))
+                                       , (\paramValues ->
+                                            validateParamValues
+                                              paramValues
+                                              (unListData eta))
+                                       , (\preds ->
+                                            validatePreds
+                                              (constr 0
+                                                 [ (\ds ds ->
+                                                      case
+                                                        ds
+                                                        [ (\n d ->
+                                                             case
+                                                               ds
+                                                               [ (\n' d' ->
+                                                                    case
+                                                                      (equalsInteger
+                                                                         n
+                                                                         n')
+                                                                      [ (constr 1
+                                                                           [])
+                                                                      , (case
+                                                                           (equalsInteger
+                                                                              d
+                                                                              d')
+                                                                           [ (constr 1
+                                                                                [  ])
+                                                                           , (constr 0
+                                                                                [  ]) ]) ]) ]) ])
+                                                 , (\ds ds ->
+                                                      case
+                                                        ds
+                                                        [ (\n d ->
+                                                             case
+                                                               ds
+                                                               [ (\n' d' ->
+                                                                    `$fOrdInteger_$ccompare`
+                                                                      (multiplyInteger
+                                                                         n
+                                                                         d')
+                                                                      (multiplyInteger
+                                                                         n'
+                                                                         d)) ]) ])
+                                                 , (\ds ds ->
+                                                      case
+                                                        ds
+                                                        [ (\n d ->
+                                                             case
+                                                               ds
+                                                               [ (\n' d' ->
+                                                                    case
+                                                                      (lessThanInteger
+                                                                         (multiplyInteger
+                                                                            n
+                                                                            d')
+                                                                         (multiplyInteger
+                                                                            n'
+                                                                            d))
+                                                                      [ (constr 1
+                                                                           [])
+                                                                      , (constr 0
+                                                                           [  ]) ]) ]) ])
+                                                 , `$fOrdRational0_$c<=`
+                                                 , (\ds ds ->
+                                                      case
+                                                        ds
+                                                        [ (\n d ->
+                                                             case
+                                                               ds
+                                                               [ (\n' d' ->
+                                                                    case
+                                                                      (lessThanEqualsInteger
+                                                                         (multiplyInteger
+                                                                            n
+                                                                            d')
+                                                                         (multiplyInteger
+                                                                            n'
+                                                                            d))
+                                                                      [ (constr 0
+                                                                           [])
+                                                                      , (constr 1
+                                                                           [  ]) ]) ]) ])
+                                                 , (\ds ds ->
+                                                      case
+                                                        ds
+                                                        [ (\n d ->
+                                                             case
+                                                               ds
+                                                               [ (\n' d' ->
+                                                                    case
+                                                                      (lessThanInteger
+                                                                         (multiplyInteger
+                                                                            n
+                                                                            d')
+                                                                         (multiplyInteger
+                                                                            n'
+                                                                            d))
+                                                                      [ (constr 0
+                                                                           [])
+                                                                      , (constr 1
+                                                                           [  ]) ]) ]) ])
+                                                 , (\x y ->
+                                                      case
+                                                        (`$fOrdRational0_$c<=`
+                                                           x
+                                                           y)
+                                                        [y, x])
+                                                 , (\x y ->
+                                                      case
+                                                        (`$fOrdRational0_$c<=`
+                                                           x
+                                                           y)
+                                                        [x, y]) ])
+                                              preds
+                                              ((\bl ->
+                                                  (\bl' ->
+                                                     case
+                                                       (force nullList
+                                                          (force tailList bl'))
+                                                       [ (\ds -> error)
+                                                       , (\ds ->
+                                                            unsafeRatio
+                                                              (unIData
+                                                                 (force headList
+                                                                    bl))
+                                                              (unIData
+                                                                 (force headList
+                                                                    bl'))) ]
+                                                       (constr 0 []))
+                                                    (force tailList bl))
+                                                 (unListData eta))) ])
                                   (\ds ->
                                      case
                                        ds
@@ -1200,121 +1142,76 @@ program
                                        , (\paramValueHd
                                            paramValueTl
                                            actualValueData ->
-                                            force
-                                              (case
-                                                 (validateParamValue
-                                                    paramValueHd
-                                                    (force headList
-                                                       actualValueData))
-                                                 [ (delay
-                                                      (validateParamValues
-                                                         paramValueTl
-                                                         (force tailList
-                                                            actualValueData)))
-                                                 , (delay
-                                                      (constr 1 [])) ])) ]))))))
+                                            case
+                                              (validateParamValue
+                                                 paramValueHd
+                                                 (force headList
+                                                    actualValueData))
+                                              [ (validateParamValues
+                                                   paramValueTl
+                                                   (force tailList
+                                                      actualValueData))
+                                              , (constr 1 []) ]) ]))))))
                  ((\s -> s s)
                     (\s n d ->
-                       force
-                         (case
-                            (equalsInteger 0 d)
-                            [ (delay
-                                 (force
-                                    (case
-                                       (lessThanInteger d 0)
-                                       [ (delay
-                                            ((\gcd' ->
-                                                constr 0
-                                                  [ (quotientInteger n gcd')
-                                                  , (quotientInteger d gcd') ])
-                                               (euclid n d)))
-                                       , (delay
-                                            ((\x -> s s x)
-                                               (subtractInteger 0 n)
-                                               (subtractInteger 0 d))) ])))
-                            , (delay error) ]))))
+                       case
+                         (equalsInteger 0 d)
+                         [ (case
+                              (lessThanInteger d 0)
+                              [ ((\gcd' ->
+                                    constr 0
+                                      [ (quotientInteger n gcd')
+                                      , (quotientInteger d gcd') ])
+                                   (euclid n d))
+                              , ((\x -> s s x)
+                                   (subtractInteger 0 n)
+                                   (subtractInteger 0 d)) ])
+                         , error ])))
               ((\s -> s s)
                  (\s x y ->
-                    force
-                      (case
-                         (equalsInteger 0 y)
-                         [(delay (s s y (modInteger x y))), (delay x)]))))
+                    case (equalsInteger 0 y) [(s s y (modInteger x y)), x])))
            (\`$dOrd` ds ds ->
               (\s -> s s)
                 (\s ds ->
-                   force
-                     (case
-                        ds
-                        [ (delay (constr 0 []))
-                        , (\x xs ->
-                             delay
-                               (case
-                                  x
-                                  [ (\predKey expectedPredValues ->
-                                       (\meaning ->
-                                          (\s -> s s)
-                                            (\s ds ->
-                                               force
-                                                 (case
-                                                    ds
-                                                    [ (delay (s s xs))
-                                                    , (\x xs ->
-                                                         delay
-                                                           (force
-                                                              (case
-                                                                 (meaning x ds)
-                                                                 [ (delay
-                                                                      (s s xs))
-                                                                 , (delay
-                                                                      (constr 1
-                                                                         [  ])) ]))) ]))
-                                            expectedPredValues)
-                                         (force
-                                            (case
-                                               predKey
-                                               [ (delay
-                                                    (case
-                                                       `$dOrd`
-                                                       [ (\v v v v v v v v ->
-                                                            v) ]))
-                                               , (delay
-                                                    (case
-                                                       `$dOrd`
-                                                       [ (\v v v v v v v v ->
-                                                            v) ]))
-                                               , (delay
-                                                    (\x y ->
-                                                       force
-                                                         (case
-                                                            (case
-                                                               `$dOrd`
-                                                               [ (\v
-                                                                   v
-                                                                   v
-                                                                   v
-                                                                   v
-                                                                   v
-                                                                   v
-                                                                   v ->
-                                                                    v) ]
-                                                               x
-                                                               y)
-                                                            [ (delay
-                                                                 (constr 1 []))
-                                                            , (delay
-                                                                 (constr 0
-                                                                    [  ])) ]))) ]))) ])) ]))
+                   case
+                     ds
+                     [ (constr 0 [])
+                     , (\x xs ->
+                          case
+                            x
+                            [ (\predKey expectedPredValues ->
+                                 (\meaning ->
+                                    (\s -> s s)
+                                      (\s ds ->
+                                         case
+                                           ds
+                                           [ (s s xs)
+                                           , (\x xs ->
+                                                case
+                                                  (meaning x ds)
+                                                  [(s s xs), (constr 1 [])]) ])
+                                      expectedPredValues)
+                                   (case
+                                      predKey
+                                      [ (case `$dOrd` [(\v v v v v v v v -> v)])
+                                      , (case `$dOrd` [(\v v v v v v v v -> v)])
+                                      , (\x y ->
+                                           case
+                                             (case
+                                                `$dOrd`
+                                                [(\v v v v v v v v -> v)]
+                                                x
+                                                y)
+                                             [ (constr 1 [])
+                                             , (constr 0 []) ]) ])) ]) ])
                 ds))
         (\eta eta ->
-           force
-             (case
-                (equalsInteger eta eta)
-                [ (delay
-                     (force
-                        (case
-                           (lessThanEqualsInteger eta eta)
-                           [(delay (constr 1 [])), (delay (constr 2 []))])))
-                , (delay (constr 0 [])) ])))
+           case
+             (equalsInteger eta eta)
+             [ (case
+                  (lessThanEqualsInteger eta eta)
+                  [(constr 1 []), (constr 2 [])])
+             , (constr 0 []) ]))
      (\ds ds ->
         case
           ds

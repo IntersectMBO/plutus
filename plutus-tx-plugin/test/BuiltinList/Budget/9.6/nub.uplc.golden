@@ -13,50 +13,39 @@
                          caseList'
                            []
                            (\y ys ->
-                              force
-                                (case
-                                   (force
-                                      ((\f ->
-                                          (\s ->
-                                             f
-                                               (\x ->
-                                                  f
-                                                    (\x ->
-                                                       f
-                                                         (\x ->
-                                                            f (\x -> s s x) x)
-                                                         x)
-                                                    x))
-                                            (\s -> f (\x -> s s x)))
-                                         (\go arg ->
-                                            delay
-                                              (caseList'
-                                                 (constr 1 [])
-                                                 (\x xs ->
-                                                    force
-                                                      (case
-                                                         (equalsInteger x y)
-                                                         [ (delay
-                                                              (force
-                                                                 (go
-                                                                    (delay
-                                                                       (\x ->
-                                                                          x)))
-                                                                 xs))
-                                                         , (delay
-                                                              (constr 0
-                                                                 [])) ]))))
-                                         (delay (\x -> x)))
-                                      xs)
-                                   [ (delay
-                                        (force (go (delay (\x -> x))) ys xs))
-                                   , (delay
-                                        ((\cse ->
-                                            cse
-                                              (force (go (delay (\x -> x)))
-                                                 ys
-                                                 (cse xs)))
-                                           (force mkCons y))) ]))
+                              case
+                                (force
+                                   ((\f ->
+                                       (\s ->
+                                          f
+                                            (\x ->
+                                               f
+                                                 (\x ->
+                                                    f
+                                                      (\x -> f (\x -> s s x) x)
+                                                      x)
+                                                 x))
+                                         (\s -> f (\x -> s s x)))
+                                      (\go arg ->
+                                         delay
+                                           (caseList'
+                                              (constr 1 [])
+                                              (\x xs ->
+                                                 case
+                                                   (equalsInteger x y)
+                                                   [ (force
+                                                        (go (delay (\x -> x)))
+                                                        xs)
+                                                   , (constr 0 []) ])))
+                                      (delay (\x -> x)))
+                                   xs)
+                                [ (force (go (delay (\x -> x))) ys xs)
+                                , ((\cse ->
+                                      cse
+                                        (force (go (delay (\x -> x)))
+                                           ys
+                                           (cse xs)))
+                                     (force mkCons y)) ])
                            l))
                  (delay (\x -> x)))
               eta

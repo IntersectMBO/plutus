@@ -3,18 +3,15 @@
    ((\s ->
        s s)
       (\s ds ->
-         force
-           (case
-              ds
-              [ (delay (constr 0 []))
-              , (\x xs ->
-                   delay
-                     ((\xs ->
-                         force
-                           (case
-                              (equalsInteger 0 (modInteger x 2))
-                              [(delay xs), (delay (constr 1 [x, xs]))]))
-                        (s s xs))) ]))
+         case
+           ds
+           [ (constr 0 [])
+           , (\x xs ->
+                (\xs ->
+                   case
+                     (equalsInteger 0 (modInteger x 2))
+                     [xs, (constr 1 [x, xs])])
+                  (s s xs)) ])
       (constr 1
          [ 1
          , (constr 1

@@ -15,15 +15,9 @@
                         (delay
                            ((\x xs ->
                                (\indices ->
-                                  force
-                                    (case
-                                       (force
-                                          (case
-                                             (equalsInteger (modInteger x 2) 0)
-                                             [ (delay (constr 0 []))
-                                             , (delay (constr 1 [])) ]))
-                                       [ (delay (force mkCons i indices))
-                                       , (delay indices) ]))
+                                  case
+                                    (equalsInteger (modInteger x 2) 0)
+                                    [(force mkCons i indices), indices])
                                  (force (go (delay (\x -> x)))
                                     (addInteger i 1)
                                     xs))

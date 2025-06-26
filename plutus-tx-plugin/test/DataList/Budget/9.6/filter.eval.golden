@@ -1,6 +1,6 @@
-CPU:                11_010_487
-Memory:                 45_214
-Term Size:                  69
-Flat Size:                 217
+CPU:                10_690_487
+Memory:                 43_214
+Term Size:                  66
+Flat Size:                 216
 
 (con (list data) [I 8, I 9, I 10])

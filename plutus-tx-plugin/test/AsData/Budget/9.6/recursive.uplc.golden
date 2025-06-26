@@ -6,9 +6,6 @@
          (factorial z))
       ((\s -> s s)
          (\s x ->
-            force
-              (case
-                 (equalsInteger 0 x)
-                 [ (delay
-                      (multiplyInteger x ((\x -> s s x) (subtractInteger x 1))))
-                 , (delay 1) ])))))
+            case
+              (equalsInteger 0 x)
+              [(multiplyInteger x ((\x -> s s x) (subtractInteger x 1))), 1]))))

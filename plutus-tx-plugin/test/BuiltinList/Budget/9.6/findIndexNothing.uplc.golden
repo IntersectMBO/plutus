@@ -14,14 +14,12 @@
                         (delay (constr 1 []))
                         (delay
                            ((\xs ->
-                               force
-                                 (case
-                                    (equalsInteger (force headList xs) 99)
-                                    [ (delay
-                                         (force (go (delay (\x -> x)))
-                                            (addInteger i 1)
-                                            xs))
-                                    , (delay (constr 0 [i])) ]))
+                               case
+                                 (equalsInteger (force headList xs) 99)
+                                 [ (force (go (delay (\x -> x)))
+                                      (addInteger i 1)
+                                      xs)
+                                 , (constr 0 [i]) ])
                               (force tailList xs))))))
            (delay (\x -> x)))
         0

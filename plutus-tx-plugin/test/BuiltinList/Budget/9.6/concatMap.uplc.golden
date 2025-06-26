@@ -47,20 +47,13 @@
                                     (\go arg ->
                                        delay
                                          (\n ->
-                                            force
-                                              (case
-                                                 (lessThanEqualsInteger n 0)
-                                                 [ (delay
-                                                      (force mkCons
-                                                         x
-                                                         (force
-                                                            (go
-                                                               (delay
-                                                                  (\x -> x)))
-                                                            (subtractInteger
-                                                               n
-                                                               1))))
-                                                 , (delay []) ])))
+                                            case
+                                              (lessThanEqualsInteger n 0)
+                                              [ (force mkCons
+                                                   x
+                                                   (force (go (delay (\x -> x)))
+                                                      (subtractInteger n 1)))
+                                              , [] ]))
                                     (delay (\x -> x)))
                                  2))
                            (force (go (delay (\x -> x))) xs)))

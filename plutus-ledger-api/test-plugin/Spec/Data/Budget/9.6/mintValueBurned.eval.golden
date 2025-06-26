@@ -1,7 +1,7 @@
-CPU:                42_200_702
-Memory:                168_538
-Term Size:                 143
-Flat Size:                 587
+CPU:                40_568_702
+Memory:                158_338
+Term Size:                 131
+Flat Size:                 580
 
 (con
   (list (pair data data))

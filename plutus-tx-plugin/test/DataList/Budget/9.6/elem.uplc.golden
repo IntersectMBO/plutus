@@ -10,9 +10,6 @@
                  (delay
                     ((\h ->
                         (\t ->
-                           force
-                             (case
-                                (equalsData (I 8) h)
-                                [(delay (s s t)), (delay (constr 0 []))]))
+                           case (equalsData (I 8) h) [(s s t), (constr 0 [])])
                           (force tailList xs))
                        (force headList xs))))))))

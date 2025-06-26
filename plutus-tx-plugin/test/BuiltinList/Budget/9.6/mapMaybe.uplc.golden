@@ -14,29 +14,17 @@
                         (delay [])
                         (delay
                            ((\xs ->
-                               force
-                                 (case
-                                    ((\x ->
-                                        force
-                                          (case
-                                             (force
-                                                (case
-                                                   (equalsInteger
-                                                      (modInteger x 2)
-                                                      0)
-                                                   [ (delay (constr 0 []))
-                                                   , (delay (constr 1 [])) ]))
-                                             [ (delay (constr 0 [x]))
-                                             , (delay (constr 1 [])) ]))
-                                       (force headList xs))
-                                    [ (\y ->
-                                         delay
-                                           (force mkCons
-                                              y
-                                              (force (go (delay (\x -> x)))
-                                                 xs)))
-                                    , (delay
-                                         (force (go (delay (\x -> x))) xs)) ]))
+                               case
+                                 ((\x ->
+                                     case
+                                       (equalsInteger (modInteger x 2) 0)
+                                       [(constr 0 [x]), (constr 1 [])])
+                                    (force headList xs))
+                                 [ (\y ->
+                                      force mkCons
+                                        y
+                                        (force (go (delay (\x -> x))) xs))
+                                 , (force (go (delay (\x -> x))) xs) ])
                               (force tailList xs))))))
            (delay (\x -> x)))
         xs))
