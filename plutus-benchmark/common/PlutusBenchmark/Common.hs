@@ -33,6 +33,7 @@ import PlutusBenchmark.ProtocolParameters as PP
 import PlutusLedgerApi.Common qualified as LedgerApi
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -97,6 +98,7 @@ mkEvalCtx ll semvar =
             let errOrCtx =
                     LedgerApi.mkDynEvaluationContext
                         ll
+                        (\_ -> PLC.CaserBuiltin PLC.caseBuiltin)
                         [semvar]
                         (const semvar)
                         p

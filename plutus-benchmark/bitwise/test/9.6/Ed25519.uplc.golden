@@ -37,24 +37,22 @@
                                                                                         [ (\x
                                                                                             y ->
                                                                                              force
-                                                                                               (force
-                                                                                                  ifThenElse
+                                                                                               (case
                                                                                                   (equalsInteger
                                                                                                      x
                                                                                                      x)
-                                                                                                  (delay
-                                                                                                     (force
-                                                                                                        ifThenElse
-                                                                                                        (equalsInteger
-                                                                                                           y
-                                                                                                           y)
-                                                                                                        (constr 0
-                                                                                                           [  ])
-                                                                                                        (constr 1
-                                                                                                           [  ])))
-                                                                                                  (delay
-                                                                                                     (constr 1
-                                                                                                        [  ])))) ]) ])
+                                                                                                  [ (delay
+                                                                                                       (constr 1
+                                                                                                          [  ]))
+                                                                                                  , (delay
+                                                                                                       (case
+                                                                                                          (equalsInteger
+                                                                                                             y
+                                                                                                             y)
+                                                                                                          [ (constr 1
+                                                                                                               [  ])
+                                                                                                          , (constr 0
+                                                                                                               [  ]) ])) ])) ]) ])
                                                                               (edwards
                                                                                  nt
                                                                                  (scalarMult
@@ -975,7 +973,7 @@
                                                                                                                                                                                                                                                                                (case
                                                                                                                                                                                                                                                                                   ds
                                                                                                                                                                                                                                                                                   [ (\w
-                                                                                                                                                                                                                                                                                      rest ->
+                                                                                                                                                                                                                                                                                      cont ->
                                                                                                                                                                                                                                                                                        w) ]))
                                                                                                                                                                                                                                                                             (case
                                                                                                                                                                                                                                                                                ds
@@ -990,7 +988,7 @@
                                                                                                                                                                                                                                                                       (case
                                                                                                                                                                                                                                                                          ds
                                                                                                                                                                                                                                                                          [ (\w
-                                                                                                                                                                                                                                                                             cont ->
+                                                                                                                                                                                                                                                                             rest ->
                                                                                                                                                                                                                                                                               w) ])) ])
                                                                                                                                                                                                                                                             (next
                                                                                                                                                                                                                                                                ipv)) ])
@@ -1483,21 +1481,20 @@
                                                                                                       (\added ->
                                                                                                          force
                                                                                                            ((\g ->
-                                                                                                               force
-                                                                                                                 ifThenElse
+                                                                                                               case
                                                                                                                  (lessThanInteger
                                                                                                                     18446744073709551615
                                                                                                                     added)
-                                                                                                                 (delay
-                                                                                                                    (g
-                                                                                                                       (subtractInteger
-                                                                                                                          (subtractInteger
-                                                                                                                             added
-                                                                                                                             18446744073709551615)
-                                                                                                                          1)))
-                                                                                                                 (delay
-                                                                                                                    (g
-                                                                                                                       added)))
+                                                                                                                 [ (delay
+                                                                                                                      (g
+                                                                                                                         added))
+                                                                                                                 , (delay
+                                                                                                                      (g
+                                                                                                                         (subtractInteger
+                                                                                                                            (subtractInteger
+                                                                                                                               added
+                                                                                                                               18446744073709551615)
+                                                                                                                            1))) ])
                                                                                                               (integerToByteString
                                                                                                                  True
                                                                                                                  8)))
@@ -1513,19 +1510,18 @@
                                                                                         (\r ->
                                                                                            force
                                                                                              ((\`$j` ->
-                                                                                                 force
-                                                                                                   ifThenElse
+                                                                                                 case
                                                                                                    (lessThanEqualsInteger
                                                                                                       r
                                                                                                       -1)
-                                                                                                   (delay
-                                                                                                      (`$j`
-                                                                                                         (addInteger
-                                                                                                            1024
-                                                                                                            r)))
-                                                                                                   (delay
-                                                                                                      (`$j`
-                                                                                                         r)))
+                                                                                                   [ (delay
+                                                                                                        (`$j`
+                                                                                                           r))
+                                                                                                   , (delay
+                                                                                                        (`$j`
+                                                                                                           (addInteger
+                                                                                                              1024
+                                                                                                              r))) ])
                                                                                                 (\k ->
                                                                                                    appendByteString
                                                                                                      eta
@@ -1595,18 +1591,17 @@
                                                                                               , (constr 0
                                                                                                    [  ]) ])
                                                                                            xLSBVal)
-                                                                                        (force
-                                                                                           ifThenElse
+                                                                                        (case
                                                                                            (readBit
                                                                                               (integerToByteString
                                                                                                  False
                                                                                                  32
                                                                                                  x)
                                                                                               248)
-                                                                                           (constr 0
-                                                                                              [  ])
-                                                                                           (constr 1
-                                                                                              [  ]))) ])
+                                                                                           [ (constr 1
+                                                                                                [  ])
+                                                                                           , (constr 0
+                                                                                                [  ]) ])) ])
                                                                               (appendByteString
                                                                                  pubKey
                                                                                  message))))
@@ -1638,32 +1633,33 @@
                                                   p
                                                   e ->
                                                    force
-                                                     (force
-                                                        ifThenElse
+                                                     (case
                                                         (equalsInteger 0 e)
-                                                        (delay
-                                                           (constr 0 [0, 1]))
-                                                        (delay
-                                                           ((\nt ->
-                                                               (\nt ->
-                                                                  force
-                                                                    (case
-                                                                       (even e)
-                                                                       [ (delay
-                                                                            nt)
-                                                                       , (delay
-                                                                            (edwards
-                                                                               nt
-                                                                               p)) ]))
-                                                                 (edwards
-                                                                    nt
-                                                                    nt))
-                                                              (s
-                                                                 s
-                                                                 p
-                                                                 (divideInteger
-                                                                    e
-                                                                    2))))))))
+                                                        [ (delay
+                                                             ((\nt ->
+                                                                 (\nt ->
+                                                                    force
+                                                                      (case
+                                                                         (even
+                                                                            e)
+                                                                         [ (delay
+                                                                              nt)
+                                                                         , (delay
+                                                                              (edwards
+                                                                                 nt
+                                                                                 p)) ]))
+                                                                   (edwards
+                                                                      nt
+                                                                      nt))
+                                                                (s
+                                                                   s
+                                                                   p
+                                                                   (divideInteger
+                                                                      e
+                                                                      2))))
+                                                        , (delay
+                                                             (constr 0
+                                                                [0, 1])) ]))))
                                           (\ds
                                             ds ->
                                              case
@@ -1723,20 +1719,20 @@
                                        ((\s -> s s)
                                           (\s state next input ->
                                              force
-                                               (force ifThenElse
+                                               (case
                                                   (equalsInteger
                                                      0
                                                      (lengthOfByteString input))
-                                                  (delay state)
-                                                  (delay
-                                                     (case
-                                                        (next input state)
-                                                        [ (\ipv ipv ->
-                                                             s
+                                                  [ (delay
+                                                       (case
+                                                          (next input state)
+                                                          [ (\ipv ipv ->
                                                                s
-                                                               ipv
-                                                               next
-                                                               ipv) ]))))))
+                                                                 s
+                                                                 ipv
+                                                                 next
+                                                                 ipv) ]))
+                                                  , (delay state) ]))))
                                     (\bs ->
                                        (\yInt ->
                                           (\x ->
@@ -1772,10 +1768,10 @@
                                                                              57896044618658097711785492504343953926634992332820282019728792003956564819949
                                                                              x)
                                                                         , yInt ])) ]))) ]))
-                                               (force ifThenElse
+                                               (case
                                                   (readBit bs 7)
-                                                  (constr 0 [])
-                                                  (constr 1 [])))
+                                                  [ (constr 1 [])
+                                                  , (constr 0 []) ]))
                                             (xRecover yInt))
                                          (checkValid_f
                                             (writeBits
@@ -1791,8 +1787,7 @@
                                                    (\xB ->
                                                       force
                                                         ((\`$j` ->
-                                                            force
-                                                              ifThenElse
+                                                            case
                                                               (equalsInteger
                                                                  0
                                                                  (modInteger
@@ -1802,14 +1797,14 @@
                                                                           x)
                                                                        xx)
                                                                     57896044618658097711785492504343953926634992332820282019728792003956564819949))
-                                                              (delay
-                                                                 (`$j`
-                                                                    (constr 1
-                                                                       [])))
-                                                              (delay
-                                                                 (`$j`
-                                                                    (constr 0
-                                                                       []))))
+                                                              [ (delay
+                                                                   (`$j`
+                                                                      (constr 0
+                                                                         [])))
+                                                              , (delay
+                                                                   (`$j`
+                                                                      (constr 1
+                                                                         [  ]))) ])
                                                            (\cond ->
                                                               force
                                                                 ((\`$j` ->
@@ -1963,34 +1958,33 @@
                   ((\s -> s s)
                      (\s b' e m ->
                         force
-                          (force ifThenElse
+                          (case
                              (equalsInteger 0 e)
-                             (delay 1)
-                             (delay
-                                ((\reduced ->
-                                    (\t ->
-                                       force
-                                         (case
-                                            (even e)
-                                            [ (delay t)
-                                            , (delay
-                                                 (modInteger
-                                                    (multiplyInteger t b')
-                                                    m)) ]))
-                                      (modInteger
-                                         (multiplyInteger reduced reduced)
-                                         m))
-                                   (s s b' (divideInteger e 2) m)))))))
+                             [ (delay
+                                  ((\reduced ->
+                                      (\t ->
+                                         force
+                                           (case
+                                              (even e)
+                                              [ (delay t)
+                                              , (delay
+                                                   (modInteger
+                                                      (multiplyInteger t b')
+                                                      m)) ]))
+                                        (modInteger
+                                           (multiplyInteger reduced reduced)
+                                           m))
+                                     (s s b' (divideInteger e 2) m)))
+                             , (delay 1) ]))))
                (\bs ixes bit ->
                   writeBits
                     bs
                     (goList ixes)
                     (force (case bit [(delay True), (delay False)]))))
             (\n ->
-               force ifThenElse
+               case
                  (equalsInteger 0 (modInteger n 2))
-                 (constr 0 [])
-                 (constr 1 [])))
+                 [(constr 1 []), (constr 0 [])]))
          ((\s -> s s)
             (\s ds -> case ds [[], (\d ds -> force mkCons d (s s ds))])))
       (byteStringToInteger False)

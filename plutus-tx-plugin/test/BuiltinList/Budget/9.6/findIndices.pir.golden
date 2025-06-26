@@ -48,7 +48,8 @@ let
           in
           go 0
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !modInteger : integer -> integer -> integer = modInteger
   ~even : integer -> Bool
     = \(n : integer) ->

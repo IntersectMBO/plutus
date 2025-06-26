@@ -7,15 +7,12 @@
               ((\f ->
                   (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
                     (\s -> f (\x -> s s x)))
-                 (\go
-                   arg ->
+                 (\go arg ->
                     delay
-                      (\l
-                        xs ->
+                      (\l xs ->
                          caseList'
                            []
-                           (\y
-                             ys ->
+                           (\y ys ->
                               force
                                 (case
                                    (force
@@ -31,30 +28,24 @@
                                                          x)
                                                     x))
                                             (\s -> f (\x -> s s x)))
-                                         (\go
-                                           arg ->
+                                         (\go arg ->
                                             delay
                                               (caseList'
                                                  (constr 1 [])
-                                                 (\x
-                                                   xs ->
+                                                 (\x xs ->
                                                     force
-                                                      (force
-                                                         (force
-                                                            ifThenElse
-                                                            (equalsInteger x y)
-                                                            (delay
-                                                               (delay
-                                                                  (constr 0
-                                                                     [])))
-                                                            (delay
-                                                               (delay
-                                                                  (force
-                                                                     (go
-                                                                        (delay
-                                                                           (\x ->
-                                                                              x)))
-                                                                     xs))))))))
+                                                      (case
+                                                         (equalsInteger x y)
+                                                         [ (delay
+                                                              (force
+                                                                 (go
+                                                                    (delay
+                                                                       (\x ->
+                                                                          x)))
+                                                                 xs))
+                                                         , (delay
+                                                              (constr 0
+                                                                 [])) ]))))
                                          (delay (\x -> x)))
                                       xs)
                                    [ (delay

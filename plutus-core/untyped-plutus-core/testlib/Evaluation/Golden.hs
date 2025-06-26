@@ -30,6 +30,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Monad.Except
 import Data.Bifunctor
 import Data.ByteString.Lazy qualified as BSL
+import Data.Default.Class (Default (def))
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Test.Tasty
@@ -388,8 +389,11 @@ caseProd1 = runQuote $ do
 caseNoBranch :: Term TyName Name DefaultUni DefaultFun ()
 caseNoBranch = Case () integer tag1 []
 
+caseInteger :: Term TyName Name DefaultUni DefaultFun ()
+caseInteger = Case () integer (mkConstant @Integer () 1) []
+
 caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
-caseNonTag = Case () integer (mkConstant @Integer () 1) []
+caseNonTag = Case () integer (builtin () AddInteger) []
 
 -- | For testing that an accidental exception will get caught.
 headSingletonException :: Term TyName Name DefaultUni DefaultFun ()
@@ -408,7 +412,7 @@ goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> Te
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
     . bimap (fmap eraseTerm) eraseTerm
-    . evaluateCkNoEmit defaultBuiltinsRuntimeForTesting
+    . evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
@@ -433,7 +437,7 @@ goldenVsTypecheckedEvaluatedCK name term =
     -- that the term is well-typed before checking that the type of the result is the
     -- one stored in the golden file (we could simply check the two types for equality,
     -- but since we're doing golden testing in this file, why not do it here as well).
-    case (runTypecheck term, evaluateCkNoEmit defaultBuiltinsRuntimeForTesting term) of
+    case (runTypecheck term, evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def term) of
         (Right _, Right res) -> goldenVsTypechecked name res
         _                    -> testGroup name []
 
@@ -481,6 +485,7 @@ namesAndTests =
    , ("case4", case4)
    , ("caseProd1", caseProd1)
    , ("caseNoBranch", caseNoBranch)
+   , ("caseInteger", caseInteger)
    , ("caseNonTag", caseNonTag)
    ]
 

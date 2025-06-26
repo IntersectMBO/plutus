@@ -395,20 +395,30 @@ they don't actually take the context as an argument even at the source level.
 -}
 
 -- | Implicit parameter for the builtin runtime.
-type GivenCekRuntime uni fun ann = (?cekRuntime :: (BuiltinsRuntime fun (CekValue uni fun ann)))
+type GivenCekRuntime uni fun ann = (?cekRuntime :: BuiltinsRuntime fun (CekValue uni fun ann))
+type GivenCekCaserBuiltin uni = (?cekCaserBuiltin :: CaserBuiltin uni)
 -- | Implicit parameter for the log emitter reference.
 type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
-type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
+type GivenCekSpender uni fun s = (?cekBudgetSpender :: CekBudgetSpender uni fun s)
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekStepCounter s = (?cekStepCounter :: StepCounter CounterSize s)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekStepCounter s, GivenCekCosts)
+type GivenCekReqs uni fun ann s =
+    ( GivenCekRuntime uni fun ann
+    , GivenCekCaserBuiltin uni
+    , GivenCekEmitter uni fun s
+    , GivenCekSpender uni fun s
+    , GivenCekSlippage
+    , GivenCekStepCounter s
+    , GivenCekCosts
+    )
 
 data CekUserError
-    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+    = CekCaseBuiltinError Text -- ^ 'Case' over a value of a built-in type failed.
+    | CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
@@ -511,6 +521,10 @@ instance ThrowableBuiltins uni fun =>
                     Nothing
 
 instance Pretty CekUserError where
+    pretty (CekCaseBuiltinError err) = vcat
+        [ "'case' over a value of a built-in type failed with"
+        , pretty err
+        ]
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
         cat
           [ "The machine terminated part way through evaluation due to overspending the budget."
@@ -654,11 +668,16 @@ runCekM
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
+runCekM
+        (MachineParameters caser (MachineVariantParameters costs runtime))
+        (ExBudgetMode getExBudgetInfo)
+        (EmitterMode getEmitterMode)
+        a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
     ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
+        ?cekCaserBuiltin = caser
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
@@ -784,7 +803,10 @@ enterComputeCek = computeCek
         -- Otherwise, we can safely convert the index to an Int and use it
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
-            Nothing -> throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
+            Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
+            Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+            Right res -> computeCek ctx env res
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with

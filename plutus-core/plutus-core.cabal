@@ -233,6 +233,7 @@ library
     Data.Aeson.Flatten
     Data.Functor.Foldable.Monadic
     Data.Vector.Orphans
+    PlutusCore.Builtin.Case
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
@@ -471,6 +472,7 @@ library untyped-plutus-core-testlib
     , base16-bytestring
     , bytestring
     , cardano-crypto-class
+    , data-default-class
     , dlist
     , flat                             ^>=0.6
     , hedgehog

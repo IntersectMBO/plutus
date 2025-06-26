@@ -6,7 +6,7 @@
   \(x : integer) ->
     Bool_match
       (Bool_match
-         (ifThenElse {Bool} (lessThanInteger 0 x) True False)
+         (case Bool (lessThanInteger 0 x) [False, True])
          {all dead. Bool}
          (/\dead -> False)
          (/\dead -> True)

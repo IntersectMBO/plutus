@@ -62,6 +62,7 @@ import PlutusPrelude
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Annotation
+import PlutusCore.Builtin
 import PlutusCore.Check.Scoping
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
@@ -189,7 +190,9 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
 
 instance
   ( TPLC.Typecheckable uni fun
+  , CaseBuiltin uni
   , Hashable fun
+  , TPLC.GEq uni, TPLC.Closed uni, TPLC.Everywhere uni Eq
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
   toUPlc =
@@ -230,7 +233,7 @@ runTPlc values = do
           (unsafeFromRight .* TPLC.applyProgram)
           ps
   liftEither . first toException . TPLC.splitStructuralOperational $
-    TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntimeForTesting t
+    TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntimeForTesting def t
 
 -- | An evaluation failure plus the final budget and logs.
 data EvaluationExceptionWithLogsAndBudget err =

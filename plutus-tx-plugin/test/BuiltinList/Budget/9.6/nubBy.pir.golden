@@ -1,6 +1,7 @@
 let
   ~`$fMkNilInteger` : (\arep -> list arep) integer = []
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   data Bool | Bool_match where
     True : Bool

@@ -46,7 +46,9 @@ import Data.DList qualified as DList
 import Data.List.Extras (wix)
 import Data.STRef
 import Data.Text (Text)
+import Data.Vector qualified as Vector
 import Data.Word
+import Prettyprinter (vcat)
 import Universe
 
 infix 4 |>, <|
@@ -77,6 +79,7 @@ ckValueToTerm = \case
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
+    , ckCaserBuiltin  :: CaserBuiltin uni
     -- 'Nothing' means no logging. 'DList' is due to the fact that we need efficient append
     -- as we store logs as "latest go last".
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
@@ -85,8 +88,9 @@ data CkEnv uni fun s = CkEnv
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
-data CkUserError =
-    CkEvaluationFailure -- Error has been called or a builtin application has failed
+data CkUserError
+    = CkCaseBuiltinError Text  -- ^ 'Case' over a value of a built-in type failed.
+    | CkEvaluationFailure      -- Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
@@ -100,6 +104,10 @@ type CkM uni fun s =
             (ST s))
 
 instance Pretty CkUserError where
+    pretty (CkCaseBuiltinError err) = vcat
+        [ "'case' over a value of a built-in type failed with"
+        , pretty err
+        ]
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
 instance BuiltinErrorToEvaluationError (MachineError fun) CkUserError where
@@ -146,12 +154,13 @@ instance ExMemoryUsage (CkValue uni fun) where
 
 runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Bool
     -> (forall s. CkM uni fun s a)
     -> (Either (CkEvaluationException uni fun) a, [Text])
-runCkM runtime emitting a = runST $ do
+runCkM runtime caser emitting a = runST $ do
     mayLogsRef <- if emitting then Just <$> newSTRef DList.empty else pure Nothing
-    errOrRes <- runExceptT . runReaderT a $ CkEnv runtime mayLogsRef
+    errOrRes <- runExceptT . runReaderT a $ CkEnv runtime caser mayLogsRef
     logs <- case mayLogsRef of
         Nothing      -> pure []
         Just logsRef -> DList.toList <$> readSTRef logsRef
@@ -233,6 +242,12 @@ FrameCase cs : stack <| e = case e of
             go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
         Nothing ->
             throwErrorWithCause (StructuralError $ MissingCaseBranchMachineError i) $ ckValueToTerm e
+    VCon val -> do
+        caser <- asks ckCaserBuiltin
+        case unCaserBuiltin caser val $ Vector.fromList cs of
+            Left err  ->
+                throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
+            Right res -> stack |> res
     _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
@@ -323,29 +338,33 @@ applyEvaluate _ val _ =
 
 runCk
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Bool
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
-runCk runtime emitting term = runCkM runtime emitting $ [] |> term
+runCk runtime caser emitting term = runCkM runtime caser emitting $ [] |> term
 
 -- | Evaluate a term using the CK machine with logging enabled.
 evaluateCk
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
-evaluateCk runtime = runCk runtime True
+evaluateCk runtime caser = runCk runtime caser True
 
 -- | Evaluate a term using the CK machine with logging disabled.
 evaluateCkNoEmit
     :: BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
-evaluateCkNoEmit runtime = fst . runCk runtime False
+evaluateCkNoEmit runtime caser = fst . runCk runtime caser False
 
 -- | Unlift a value using the CK machine.
 readKnownCk
     :: ReadKnown (Term TyName Name uni fun ()) a
     => BuiltinsRuntime fun (CkValue uni fun)
+    -> CaserBuiltin uni
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
-readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnownSelf
+readKnownCk runtime caser = evaluateCkNoEmit runtime caser >=> readKnownSelf

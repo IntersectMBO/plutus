@@ -19,7 +19,7 @@ letrec
           (\(x : integer) (xs : List integer) ->
              /\dead ->
                Bool_match
-                 (ifThenElse {Bool} (equalsInteger 0 x) True False)
+                 (case Bool (equalsInteger 0 x) [False, True])
                  {all dead. Bool}
                  (/\dead -> False)
                  (/\dead -> go xs)

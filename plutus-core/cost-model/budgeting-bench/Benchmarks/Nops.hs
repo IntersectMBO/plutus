@@ -122,7 +122,7 @@ nopCostModel =
 
 nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
-    mkMachineParameters def $
+    MachineParameters def . mkMachineVariantParameters def $
         CostModel defaultCekMachineCostsForTesting nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc

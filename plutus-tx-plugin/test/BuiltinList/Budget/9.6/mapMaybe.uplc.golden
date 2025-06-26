@@ -18,14 +18,16 @@
                                  (case
                                     ((\x ->
                                         force
-                                          (force
-                                             (force ifThenElse
-                                                (equalsInteger
-                                                   (modInteger x 2)
-                                                   0)
-                                                (delay (delay (constr 1 [])))
-                                                (delay
-                                                   (delay (constr 0 [x]))))))
+                                          (case
+                                             (force
+                                                (case
+                                                   (equalsInteger
+                                                      (modInteger x 2)
+                                                      0)
+                                                   [ (delay (constr 0 []))
+                                                   , (delay (constr 1 [])) ]))
+                                             [ (delay (constr 0 [x]))
+                                             , (delay (constr 1 [])) ]))
                                        (force headList xs))
                                     [ (\y ->
                                          delay

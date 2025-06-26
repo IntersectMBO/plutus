@@ -48,17 +48,19 @@
                                        delay
                                          (\n ->
                                             force
-                                              (force ifThenElse
+                                              (case
                                                  (lessThanEqualsInteger n 0)
-                                                 (delay [])
-                                                 (delay
-                                                    (force mkCons
-                                                       x
-                                                       (force
-                                                          (go (delay (\x -> x)))
-                                                          (subtractInteger
-                                                             n
-                                                             1)))))))
+                                                 [ (delay
+                                                      (force mkCons
+                                                         x
+                                                         (force
+                                                            (go
+                                                               (delay
+                                                                  (\x -> x)))
+                                                            (subtractInteger
+                                                               n
+                                                               1))))
+                                                 , (delay []) ])))
                                     (delay (\x -> x)))
                                  2))
                            (force (go (delay (\x -> x))) xs)))

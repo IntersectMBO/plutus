@@ -124,6 +124,7 @@ data TypeError term uni fun ann
     | FreeTypeVariableE !ann !TyName
     | FreeVariableE !ann !Name
     | UnknownBuiltinFunctionE !ann !fun
+    | UnsupportedCaseBuiltin !ann !T.Text
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
@@ -269,6 +270,11 @@ instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
         , "having the same Unique"
         , pretty $ name1 ^. theUnique
         , "is attempted to be referenced"
+        ]
+    prettyBy _ (UnsupportedCaseBuiltin ann err) = hsep
+        [ "Unsupported 'case' of a value of a built-in type at"
+        , pretty ann <> ":"
+        , pretty err
         ]
 
 instance (PrettyUni uni, Pretty fun, Pretty ann) =>
