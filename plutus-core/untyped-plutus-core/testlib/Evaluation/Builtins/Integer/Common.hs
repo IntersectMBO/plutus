@@ -15,7 +15,7 @@ import Evaluation.Builtins.Common
 import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, oneof)
 
 {- We don't want to use the standard QuickCheck generator for Integers in these
-   prooperty tests because that only produces values in [-99..99].  Instead we
+   property tests because that only produces values in [-99..99].  Instead we
    mix the better generator for AsArbitraryBuiltin Integer and one which
    produces Integers up to 400 bits.  The name `BigInteger` is maybe slightly
    misleading but it has the merit of being relatively short.
