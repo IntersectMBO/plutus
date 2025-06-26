@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -26,15 +27,16 @@
 
 module LinearVesting where
 
-import PlutusLedgerApi.V3
 import PlutusTx
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
 
-import PlutusLedgerApi.V1.Value (AssetClass, assetClass, assetClassValueOf)
-import PlutusLedgerApi.V3.Contexts
-import PlutusTx.AssocMap qualified as Map
-import PlutusTx.List qualified as List
+import PlutusLedgerApi.Data.V3
+import PlutusLedgerApi.V1.Data.Value (AssetClass, assetClass, assetClassValueOf)
+import PlutusLedgerApi.V3.Data.Contexts (txSignedBy)
+import PlutusTx.Data.AssocMap qualified as Map
+import PlutusTx.Data.List (List)
+import PlutusTx.Data.List qualified as List
 
 data VestingDatum = VestingDatum
   { beneficiary              :: Address
@@ -58,12 +60,11 @@ $( PlutusTx.makeIsDataIndexed
      [('PartialUnlock, 0), ('FullUnlock, 1)]
  )
 
-countInputsAtScript :: ScriptHash -> [TxInInfo] -> Integer
+countInputsAtScript :: ScriptHash -> List TxInInfo -> Integer
 countInputsAtScript scriptHash = go 0
  where
-  go :: Integer -> [TxInInfo] -> Integer
-  go n [] = n
-  go n (txIn : txIns) =
+  go :: Integer -> List TxInInfo -> Integer
+  go n = List.caseList' n \txIn txIns ->
     case addressCredential (txOutAddress (txInInfoResolved txIn)) of
       ScriptCredential vh | vh == scriptHash -> go (n + 1) txIns
       _                                      -> go n txIns
@@ -209,7 +210,7 @@ testScriptContext =
           Interval
             (LowerBound (Finite 110) True)
             (UpperBound (Finite 1100) True)
-      , txInfoSignatories = [testBeneficiaryPKH]
+      , txInfoSignatories = List.singleton testBeneficiaryPKH
       , txInfoData = Map.empty
       , txInfoId = "058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145"
       }
