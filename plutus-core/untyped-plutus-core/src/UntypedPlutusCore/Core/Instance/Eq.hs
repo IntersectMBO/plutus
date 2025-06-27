@@ -24,7 +24,7 @@ import Data.Vector qualified as V
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
             Eq (Term Name uni fun ann) where
-    term1 == term2 = runEqRename $ eqTermM term1 term2
+    term1 == term2 = runEqRename emptyRenaming $ eqTermM term1 term2
 
 type HashableTermConstraints uni fun ann =
   ( GEq uni

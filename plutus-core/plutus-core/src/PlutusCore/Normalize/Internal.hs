@@ -17,7 +17,7 @@ import PlutusCore.Core.Plated (termSubterms, termSubtypes)
 import PlutusCore.Core.Type (Normalized (..), Term, Type (..))
 import PlutusCore.MkPlc (mkTyBuiltinOf)
 import PlutusCore.Name.Unique (HasUnique, TypeUnique (TypeUnique), Unique (Unique))
-import PlutusCore.Name.UniqueMap (UniqueMap, insertByName, lookupName)
+import PlutusCore.Name.UniqueMap (UniqueMap, emptyUniqueMap, insertByName, lookupName)
 import PlutusCore.Quote (MonadQuote)
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude (Alternative, over, (<<$>>), (<<*>>))
@@ -107,7 +107,7 @@ type MonadNormalizeType uni m =
 
 -- | Run a 'NormalizeTypeT' computation.
 runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -> m a
-runNormalizeTypeT = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT
+runNormalizeTypeT = flip runReaderT (NormalizeTypeEnv emptyUniqueMap) . unNormalizeTypeT
 
 -- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeT' computation.
 withExtendedTypeVarEnv ::

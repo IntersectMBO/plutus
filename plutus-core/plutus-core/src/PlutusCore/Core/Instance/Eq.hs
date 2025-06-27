@@ -23,12 +23,12 @@ import PlutusCore.Rename.Monad
 import Universe
 
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
-    ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
+    ty1 == ty2 = runEqRename @TypeRenaming emptyRenaming $ eqTypeM ty1 ty2
 
 instance
         ( GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann
         ) => Eq (Term TyName Name uni fun ann) where
-    term1 == term2 = runEqRename $ eqTermM term1 term2
+    term1 == term2 = runEqRename emptyScopedRenaming $ eqTermM term1 term2
 
 -- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
 -- b) We do not do equality "modulo starting index". E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
