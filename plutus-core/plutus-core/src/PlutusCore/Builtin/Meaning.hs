@@ -194,6 +194,11 @@ type family GetArgs a where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
+type GetResult :: GHC.Type -> GHC.Type
+type family GetResult a where
+    GetResult (_ -> b) = GetResult b
+    GetResult b        = b
+
 {- Note [Merging the denotation and the costing function]
 The runtime denotation of a builtin computes both the builtin application and its cost
 (see the docs of 'BuiltinRuntime' for details). Doing both at the same time has a number of benefits
@@ -232,7 +237,7 @@ class KnownMonotype val args res where
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toMonoF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+        :: ReadKnownM (FoldArgs args res, res -> FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a
@@ -256,7 +261,7 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
             builtinRuntimeFailure
-            (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
+            (\(x, toCost) -> BuiltinCostedResult (toCost x) $ makeKnown x)
     {-# INLINE toMonoF #-}
 
 {- Note [One-shotting runtime denotations]
@@ -324,7 +329,7 @@ instance
             -- catch it in tests.
             !x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
-            let !exY = exF x
+            let !exY = flip exF x
             pure (f x, exY)
     {-# INLINE toMonoF #-}
 
@@ -337,7 +342,7 @@ class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) va
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toPolyF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
+        :: ReadKnownM (FoldArgs args res, res -> FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
@@ -392,16 +397,17 @@ class MakeBuiltinMeaning a val where
     --
     -- 1. the denotation of the builtin
     -- 2. an uninstantiated costing function
-    makeBuiltinMeaning
+    makeCostedBuiltinMeaning
         :: a
-        -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
+        -> (cost -> GetResult a -> FoldArgs (GetArgs a) ExBudgetStream)
         -> BuiltinMeaning val cost
 instance
-        ( uni ~ UniOf val, binds ~ ToBinds uni '[] a, args ~ GetArgs a, a ~ FoldArgs args res
+        ( uni ~ UniOf val, binds ~ ToBinds uni '[] a
+        , args ~ GetArgs a, res ~ GetResult a, a ~ FoldArgs args res
         , ThrowOnBothEmpty binds args (IsBuiltin uni a) a
         , ElaborateFromTo uni 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where
-    makeBuiltinMeaning f toExF =
+    makeCostedBuiltinMeaning f toExF =
         BuiltinMeaning (knownPolytype @binds @val @args @res) f $ \cost ->
             -- In order to make the 'BuiltinRuntime' of a builtin cacheable we need to tell GHC to
             -- create a thunk for it, which we achieve by applying 'lazy' to the 'BuiltinRuntime'
@@ -413,7 +419,15 @@ instance
             lazy $ case toExF cost of
                 -- See Note [Optimizations of runCostingFun*] for why we use strict @case@.
                 !exF -> toPolyF @binds @val @args @res $ pure (f, exF)
-    {-# INLINE makeBuiltinMeaning #-}
+    {-# INLINE makeCostedBuiltinMeaning #-}
+
+makeBuiltinMeaning
+    :: MakeBuiltinMeaning a val
+    => a
+    -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
+    -> BuiltinMeaning val cost
+makeBuiltinMeaning f exF = makeCostedBuiltinMeaning f $ const . exF
+{-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
