@@ -33,6 +33,7 @@ module PlutusTx.Test.Golden (
 
   -- * Pretty-printing
   prettyBudget,
+  prettyCodeSize,
 ) where
 
 import Prelude
@@ -50,15 +51,15 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (Doc, Pretty (pretty), PrettyBy (prettyBy), PrettyConfigClassic,
                           PrettyConfigName, PrettyUni, Render (render), prettyClassicSimple,
                           prettyPlcClassicSimple, prettyReadable, prettyReadableSimple)
-import PlutusCore.Size (Size (..))
 import PlutusCore.Test (TestNested, ToUPlc (..), goldenSize, goldenTPlc, goldenUPlc,
                         goldenUPlcReadable, nestedGoldenVsDoc, nestedGoldenVsDocM, ppCatch, rethrow,
                         runUPlcBudget)
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), countAstNodes, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
 import PlutusTx.Test.Run.Uplc (runPlcCek, runPlcCekBudget, runPlcCekTrace)
+import PlutusTx.Test.Util.Compiled (countFlatBytes)
 import Prettyprinter (fill, vsep, (<+>))
 import Test.Tasty (TestName)
 import Test.Tasty.Extras ()
@@ -66,20 +67,21 @@ import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
 
 -- Value assertion tests
-goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
+goldenCodeGen :: (TH.Ppr a) => TestName -> TH.Q a -> TH.ExpQ
 goldenCodeGen name code = do
   c <- code
-  [| nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c) |]
+  [|nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c)|]
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do
   nestedGoldenVsDocM name ".budget" $ ppCatch $ do
     budget <- runUPlcBudget [compiledCode]
-    uplc <- toUPlc compiledCode
-    let
-      termSize = UPLC.programSize uplc
-      flatSize = UPLC.serialisedSize $ UPLC.UnrestrictedProgram uplc
-    pure (render @Text (prettyBudget budget termSize flatSize))
+    pure $
+      render @Text $
+        vsep
+          [ prettyBudget budget
+          , prettyCodeSize compiledCode
+          ]
 
 goldenBundle
   :: TestName
@@ -167,14 +169,10 @@ goldenEvalCekCatchBudget :: TestName -> CompiledCode a -> TestNested
 goldenEvalCekCatchBudget name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
     (termRes, budget) <- runPlcCekBudget compiledCode
-    uplc <- toUPlc compiledCode
-    let
-      termSize = UPLC.programSize uplc
-      flatSize = UPLC.serialisedSize $ UPLC.UnrestrictedProgram uplc
-
     let contents =
           vsep
-            [ prettyBudget budget termSize flatSize
+            [ prettyBudget budget
+            , prettyCodeSize compiledCode
             , mempty
             , prettyPlcClassicSimple termRes
             ]
@@ -187,9 +185,15 @@ goldenEvalCekLog name value =
   nestedGoldenVsDocM name ".eval" $
     prettyPlcClassicSimple . view _1 <$> rethrow (runPlcCekTrace value)
 
-{- |
-This function formats budget and size information.
+-- | Pretty-print an Execution Budget
+prettyBudget :: PLC.ExBudget -> Doc ann
+prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) =
+  vsep
+    [ fill 10 "CPU:" <+> prettyIntRightAligned (fromSatInt @Int cpu)
+    , fill 10 "Memory:" <+> prettyIntRightAligned (fromSatInt @Int mem)
+    ]
 
+{-| Pretty-print compiled code size
 
 Given a UPLC program, there are two quantification of "size": Term size and Flat size.
 Term Size measures AST nodes of the given UPLC program. Flat Size measures the number
@@ -199,25 +203,26 @@ Cost of storing smart contract onchain is partially determined by the Flat size.
 is useful to have Flat size measurement in case we adopt new or introduce optimizations
 to the flat encoding format.
 -}
-prettyBudget :: PLC.ExBudget -> Size -> Integer -> Doc ann
-prettyBudget (PLC.ExBudget (ExCPU cpu) (ExMemory mem)) (Size termSize) flatSize =
+prettyCodeSize :: CompiledCodeIn PLC.DefaultUni PLC.DefaultFun a -> Doc ann
+prettyCodeSize compiledCode =
   vsep
-    [ fill 10 "CPU:" <+> prettyIntRightAligned (fromSatInt @Int cpu)
-    , fill 10 "Memory:" <+> prettyIntRightAligned (fromSatInt @Int mem)
-    , fill 10 "Term Size:" <+> prettyIntRightAligned termSize
+    [ fill 10 "Term Size:" <+> prettyIntRightAligned termSize
     , fill 10 "Flat Size:" <+> prettyIntRightAligned flatSize
     ]
  where
-  prettyIntRightAligned :: (Integral i) => i -> Doc ann
-  prettyIntRightAligned =
-    pretty @String
-      . printf "%19s"
-      . reverse
-      . List.intercalate "_"
-      . chunksOf 3
-      . reverse
-      . show @Integer
-      . fromIntegral
-   where
-    chunksOf _ [] = []
-    chunksOf n xs = take n xs : chunksOf n (drop n xs)
+  termSize = countAstNodes compiledCode
+  flatSize = countFlatBytes compiledCode
+
+prettyIntRightAligned :: (Integral i) => i -> Doc ann
+prettyIntRightAligned =
+  pretty @String
+    . printf "%19s"
+    . reverse
+    . List.intercalate "_"
+    . chunksOf 3
+    . reverse
+    . show @Integer
+    . fromIntegral
+ where
+  chunksOf _ [] = []
+  chunksOf n xs = take n xs : chunksOf n (drop n xs)

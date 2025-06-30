@@ -1,6 +1,6 @@
 CPU:                16_567_684
 Memory:                 65_292
 Term Size:                 109
-Flat Size:                 322
+Flat Size:                 116
 
 (con (list integer) [0,2,4,6,8])
