@@ -53,5 +53,5 @@ parseDumpOptions =
            progDesc ("Print the current (and possibly undeployed) cost model parameters "
                      ++ " in the plutus repository in the order used in the protocol parameters.\n"
                      ++ "The purpose of this tool is to help with the deployment and verification "
-                     ++ "of updated cost model parameters. It MUST be kept up to date with the "
-                     ++ "EvaluationContext files in plututus-ledger-api."))
+                     ++ "of updated cost model parameters: it MUST be kept up to date with the "
+                     ++ "`mkEvaluationContext` functions in plututus-ledger-api."))
