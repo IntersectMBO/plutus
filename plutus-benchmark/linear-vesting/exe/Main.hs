@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Data.Text qualified as Text
-import LinearVesting (validatorCodeFullyApplied)
+import LinearVesting.Test (validatorCodeFullyApplied)
 import PlutusTx.Test (displayEvalResult, evaluateCompiledCode)
 
 main :: IO ()

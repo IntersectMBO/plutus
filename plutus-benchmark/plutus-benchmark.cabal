@@ -676,7 +676,10 @@ benchmark bitwise-bench
 library linear-vesting-internal
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  linear-vesting/src
-  exposed-modules: LinearVesting
+  exposed-modules:
+    LinearVesting.Test
+    LinearVesting.Validator
+
   build-depends:
     , base               >=4.9 && <5
     , plutus-ledger-api
