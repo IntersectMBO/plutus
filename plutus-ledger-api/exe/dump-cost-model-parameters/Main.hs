@@ -73,17 +73,21 @@ infoFor =
     PlutusV3 -> (PLC.DefaultFunSemanticsVariantC, paramNames @V3.ParamName)
 
 -- Return the current cost model parameters for a given LL version in the form
--- of a list of (name, value) pairs.
+-- of a list of (name, value) pairs ordered by name according to the relevant
+-- `ParamName` type.
 getParamsFor :: PlutusLedgerLanguage -> [(Text, Int64)]
 getParamsFor ll =
   let (semvar, paramNames) = infoFor ll
       params =
         case PLC.defaultCostModelParamsForVariant semvar of
-          Nothing -> error $ "Can't find default cost model parameters for " ++ show semvar
+          Nothing -> error $ "Can't find default cost model parameters for "
+                              ++ show semvar
           Just p  -> p
       lookupParam name =
         case Map.lookup name params of
-            Nothing -> error $ "No entry for " ++ show name ++ " in cost model for semantic variant " ++ show semvar
+            Nothing -> error $ "No entry for " ++ show name
+                               ++ " in cost model for semantic variant "
+                               ++ show semvar
             Just n  -> (name, n)
   in fmap lookupParam paramNames
 
