@@ -109,11 +109,13 @@ printParameters :: Format -> PlutusLedgerLanguage -> IO ()
 printParameters fmt ll =
   case fmt of
     Untagged -> do
-      printf "\n%s:\n" $ show ll
+      printf "%s:\n" $ show ll
       mapM_ (\(_,val) -> printf "  %-d\n" val) $ getParamsFor ll
+      printf "\n"
     Tagged -> do
-      printf "\n%s:\n" $ show ll
+      printf "%s:\n" $ show ll
       mapM_ (\(name,val) -> printf "  %-12d -- %s\n" val name) $ getParamsFor ll
+      printf "\n"
     JSON -> putJSON $ getParamsAsJSON ll
 
 -- Print the cost model parameters for all ledger languages.  For JSON we have
