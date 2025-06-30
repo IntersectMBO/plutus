@@ -12,11 +12,10 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default.Builtins qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 
-import PlutusLedgerApi.Common.ParamName
-import PlutusLedgerApi.Common.Versions (PlutusLedgerLanguage (..))
-import PlutusLedgerApi.V1.ParamName qualified as V1
-import PlutusLedgerApi.V2.ParamName qualified as V2
-import PlutusLedgerApi.V3.ParamName qualified as V3
+import PlutusLedgerApi.Common (IsParamName, PlutusLedgerLanguage (..), showParamName)
+import PlutusLedgerApi.V1 qualified as V1
+import PlutusLedgerApi.V2 qualified as V2
+import PlutusLedgerApi.V3 qualified as V3
 
 import Data.Aeson qualified as A (Object, ToJSON, Value (Array, Number))
 import Data.Aeson.Encode.Pretty (encodePretty)
@@ -42,7 +41,7 @@ infoFor =
   let paramNames :: forall a . IsParamName a => [Text]
       paramNames = fmap showParamName $ enumerate @a
   in \case
-    PlutusV1 -> (PLC.DefaultFunSemanticsVariantB, paramNames @V1.ParamName)  -- <-- Is there already a function that does the second thing?
+    PlutusV1 -> (PLC.DefaultFunSemanticsVariantB, paramNames @V1.ParamName)
     PlutusV2 -> (PLC.DefaultFunSemanticsVariantB, paramNames @V2.ParamName)
     PlutusV3 -> (PLC.DefaultFunSemanticsVariantC, paramNames @V3.ParamName)
 
