@@ -25,10 +25,14 @@ whichll =
          metavar "N" <>
          help "Print parameters for PlutusV<N> only"
         )
-   <|> flag  All All
+   <|> flag All All
+         -- This makes `All` the default: if the previous parser fails then we
+         -- arrive here and it returns `All` whether or not the option is
+         -- present on the command line.
         (short 'a' <>
          long "all" <>
-         help "Print parameters for all Plutus ledger language versions (default)")
+         help "Print parameters for all Plutus ledger language versions (default)"
+        )
 
 data Format = Untagged | Tagged | JSON
   deriving stock (Show)
