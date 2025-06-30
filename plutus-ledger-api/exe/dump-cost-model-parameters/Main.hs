@@ -30,8 +30,35 @@ import Data.Vector qualified as V (fromList)
 import Options.Applicative (execParser)
 import Text.Printf (printf)
 
--- COMMENT ABOUT WHAT THIS IS FOR.  Maybe get the help to say it too.
--- There's also the uplc option, but that sorts things.
+{- | This executable prints out the cost model parameters according to the various
+    `PlutusLedgerApi.V<n>.ParamName types`.  These determine both the cost model
+    parameters included in the protocol parameters (and hence which Plutus
+    builtins are available to each Plutus ledger language version) and the order
+    in which they occur.  The protocol parameters and the ledger both treat the
+    cost model parameters as ordered lists of integers and know nothing about
+    the names of the parameters (see
+    `cardano-ledger/libs/cardano-ledger-core/src/Cardano/Ledger/Plutus/CostModels.hs`
+    for how the ledger (and also cardano-api and cardano-cli) deals with cost
+    models), and the `ParamName` types provide the link between the lists of
+    parameters and the complex structure used to represent a cost model in
+    Plutus Core.  New cost models (possibly enabling new builtins) are
+    propagated to the chain by protocol updates which update the cost model
+    parameters, and this executable produces lists of cost model parameters in a
+    form suitable for inclusion in the protocol parameters, and so can be helpful
+    when we need to propose new parameters for use on the chain, and to check
+    that the on-chain parameters are as expected.  Note that this code deals
+    only with the cost model parameters in the current state of the `plutus`
+    repository, which may differ from those on the chain: specifically, the cost
+    model parameters dealt with by this code will often be those which are
+    expected to come into effect at the next hard fork and hence will be ahead
+    of those currently in use for new script executions on the chain.  The exact
+    structure of the cost model used by a particular ledger language is
+    determined by a _semantic variant_ which depends on both the ledger language
+    and the protocol version (see the `mkEvaluationContext` functions in the
+    various `EvaluationContext` files), and this code will need to be updated
+    if, for example, a new Plutus Ledger language is added or the structure of
+    the cost model used by an existing ledger language changes.
+-}
 
 -- Mapping of LL versions to semantic versions and parameter names for *the
 -- current state of the repository*.  This MUST be updated if the mappings in
@@ -105,8 +132,3 @@ main = do
   case lls of
     One ll -> printParameters fmt ll
     All    -> printAll fmt
-
--- See
--- cardano-ledger/libs/cardano-ledger-core/src/Cardano/Ledger/Plutus/CostModels.hs
--- for how the ledger deals with cost models.  This is used in cardano-cli and
--- cardano-api as well.
