@@ -29,7 +29,7 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
 import Prelude qualified as Haskell
 import Test.QuickCheck
@@ -107,8 +107,7 @@ scaleTestsBy factor =
   withMaxSuccess (100 Haskell.* factor) . mapSize (Haskell.* factor)
 
 cekProp :: CompiledCode Bool -> Property
-cekProp code =
-  cekResultMatchesHaskellValue (compiledCodeToTerm code) (===) True
+cekProp code = evaluationResultMatchesHaskell code (===) True
 
 instance Arbitrary CurrencySymbol where
   arbitrary = Haskell.fmap currencySymbol (arbitraryBuiltin @ByteString)

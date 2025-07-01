@@ -15,11 +15,12 @@ module UntypedPlutusCore.Parser
 
 import Prelude hiding (fail)
 
-import Control.Monad (fail, (<=<))
-import Control.Monad.Except (MonadError)
+import Control.Monad (fail, when, (<=<))
+import Control.Monad.Except
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
+import PlutusCore.Error qualified as PLC
 import PlutusPrelude (through)
 import Text.Megaparsec hiding (ParseError, State, parse)
 import Text.Megaparsec.Char.Lexer qualified as Lex
@@ -29,7 +30,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
 import Data.Vector qualified as V
-import PlutusCore.Error (AsParserErrorBundle)
+import Data.Word (Word64)
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 import PlutusCore.Version
@@ -75,9 +76,12 @@ errorTerm = withSpan $ \sp ->
 constrTerm :: Parser PTerm
 constrTerm = withSpan $ \sp ->
     inParens $ do
-      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> many term
+      let maxTag = fromIntegral (maxBound :: Word64)
+      tag :: Integer <- symbol "constr" *> lexeme Lex.decimal
+      args <- many term
       whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-      pure res
+      when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+      pure $ UPLC.Constr sp (fromIntegral tag) args
 
 caseTerm :: Parser PTerm
 caseTerm = withSpan $ \sp ->
@@ -117,7 +121,7 @@ program = leadingWhitespace go
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m PTerm
+parseTerm :: (MonadError PLC.ParserErrorBundle m, PLC.MonadQuote m) => Text -> m PTerm
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The
@@ -125,7 +129,7 @@ parseTerm = parseGen term
 -- "test" to the parser as the name of the input stream; to supply a name
 -- explicity, use `parse program <name> <input>`.`
 parseProgram ::
-    (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m)
+    (MonadError PLC.ParserErrorBundle m, PLC.MonadQuote m)
     => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 parseProgram = parseGen program
@@ -133,8 +137,11 @@ parseProgram = parseGen program
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
-    (AsParserErrorBundle e, PLC.AsUniqueError e SrcSpan, MonadError e m, PLC.MonadQuote m)
+    (MonadError (PLC.Error uni fun SrcSpan) m, PLC.MonadQuote m)
     => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram
+parseScoped =
+  through (modifyError PLC.UniqueCoherencyErrorE . checkProgram (const True))
+  <=< rename
+  <=< modifyError PLC.ParseErrorE . parseProgram

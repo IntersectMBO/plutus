@@ -16,12 +16,9 @@
 
 module PlutusCore.Evaluation.Error
     ( EvaluationError (..)
-    , AsEvaluationError (..)
     ) where
 
 import PlutusPrelude
-
-import PlutusCore.Evaluation.Result
 
 import Control.Lens
 import Data.Bifoldable
@@ -52,10 +49,6 @@ data EvaluationError structural operational
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
-mtraverse makeClassyPrisms
-    [ ''EvaluationError
-    ]
-
 instance Bifunctor EvaluationError where
     bimap f _ (StructuralError err)  = StructuralError $ f err
     bimap _ g (OperationalError err) = OperationalError $ g err
@@ -70,12 +63,6 @@ instance Bitraversable EvaluationError where
     bitraverse f _ (StructuralError err)  = StructuralError <$> f err
     bitraverse _ g (OperationalError err) = OperationalError <$> g err
     {-# INLINE bitraverse #-}
-
--- | A raw evaluation failure is always an operational error.
-instance AsEvaluationFailure operational =>
-        AsEvaluationFailure (EvaluationError structural operational) where
-    _EvaluationFailure = _OperationalError . _EvaluationFailure
-    {-# INLINE _EvaluationFailure #-}
 
 instance
         ( HasPrettyDefaults config ~ 'True

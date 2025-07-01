@@ -1,45 +1,72 @@
 let
+  ~v : integer = 12
+  ~v : integer = 8
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
+  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
+    = /\a r ->
+        \(z : r) (f : a -> list a -> r) (xs : list a) ->
+          chooseList
+            {a}
+            {all dead. r}
+            xs
+            (/\dead -> z)
+            (/\dead -> f (headList {a} xs) (tailList {a} xs))
+            {r}
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !find : all a. (a -> Bool) -> list a -> Maybe a
+  ~find : all a. (a -> Bool) -> list a -> Maybe a
     = /\a ->
         \(p : a -> Bool) ->
+          let
+            !p : a -> Bool = p
+          in
           letrec
-            !go : list a -> Maybe a
-              = (let
-                    r = Maybe a
-                  in
-                  \(z : r) (f : a -> list a -> r) (xs : list a) ->
-                    chooseList
-                      {a}
-                      {all dead. r}
-                      xs
-                      (/\dead -> z)
-                      (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                      {r})
+            ~go : list a -> Maybe a
+              = caseList'
+                  {a}
+                  {Maybe a}
                   (Nothing {a})
-                  (\(x : a) (xs : list a) ->
-                     Bool_match
-                       (p x)
-                       {all dead. Maybe a}
-                       (/\dead -> Just {a} x)
-                       (/\dead -> go xs)
-                       {all dead. dead})
+                  (\(x : a) ->
+                     let
+                       !x : a = x
+                     in
+                     \(xs : list a) ->
+                       let
+                         !xs : list a = xs
+                       in
+                       Bool_match
+                         (p x)
+                         {all dead. Maybe a}
+                         (/\dead -> Just {a} x)
+                         (/\dead -> go xs)
+                         {all dead. dead})
           in
           go
-  !greaterThanEqualsInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
-        ifThenElse {Bool} (lessThanInteger x y) False True
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  !lessThanInteger : integer -> integer -> bool = lessThanInteger
+  ~greaterThanEqualsInteger : integer -> integer -> Bool
+    = \(x : integer) ->
+        let
+          !x : integer = x
+        in
+        \(y : integer) ->
+          let
+            !y : integer = y
+          in
+          ifThenElse {Bool} (lessThanInteger x y) False True
 in
 \(xs : list integer) ->
+  let
+    !xs : list integer = xs
+  in
   Tuple2
     {Maybe integer}
     {Maybe integer}
-    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 8) xs)
-    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v 12) xs)
+    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)
+    (find {integer} (\(v : integer) -> greaterThanEqualsInteger v v) xs)

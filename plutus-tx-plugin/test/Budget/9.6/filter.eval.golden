@@ -1,6 +1,7 @@
-cpu: 8427220
-mem: 36530
-size: 65
+CPU:                 6_194_730
+Memory:                 27_320
+Term Size:                  55
+Flat Size:                 153
 
 (constr
   1

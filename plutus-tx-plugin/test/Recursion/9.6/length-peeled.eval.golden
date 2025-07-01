@@ -1,5 +1,6 @@
-cpu: 3524180
-mem: 15820
-size: 73
+CPU:                 3_524_180
+Memory:                 15_820
+Term Size:                  73
+Flat Size:                 211
 
 (con integer 10)

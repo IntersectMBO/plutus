@@ -11,7 +11,6 @@
 
 module PlutusTx.Plugin (plugin, plc) where
 
-import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
@@ -412,7 +411,7 @@ compileMarkedExpr locStr codeTy origE = do
            , 'useToOpaque
            , 'useFromOpaque
            , 'mkNilOpaque
-           , 'PlutusTx.Builtins.equalsInteger           
+           , 'PlutusTx.Builtins.equalsInteger
            ]
   modBreaks <- asks pcModuleModBreaks
   let coverage =
@@ -426,6 +425,10 @@ compileMarkedExpr locStr codeTy origE = do
               CompileOptions
                 { coProfile = _posProfile opts
                 , coCoverage = coverage
+                , coDatatypeStyle =
+                    if _posPlcTargetVersion opts < PLC.plcVersion110
+                      then PIR.ScottEncoding
+                      else PIR._dcoStyle $ _posDatatypes opts
                 , coRemoveTrace = _posRemoveTrace opts
                 , coInlineFix = _posInlineFix opts
                 }
@@ -486,10 +489,12 @@ runCompiler
   -> m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler moduleName opts expr = do
   -- Plc configuration
-  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+  plcTcConfig <-
+    modifyError (NoContext . PIRError . PIR.PLCTypeError) $
+      PLC.getDefTypeCheckConfig PIR.noProvenance
+  datatypeStyle <- asks $ coDatatypeStyle . ccOpts
   let plcVersion = opts ^. posPlcTargetVersion
-
-  let hints = UPLC.InlineHints $ \ann _ -> case ann of
+      hints = UPLC.InlineHints $ \ann _ -> case ann of
         -- See Note [The problem of inlining destructors]
         -- We want to inline destructors, but even in UPLC our inlining heuristics
         -- aren't quite smart enough to tell that they're good inlining candidates,
@@ -554,16 +559,7 @@ runCompiler moduleName opts expr = do
             (PIR.ccOpts . PIR.coCaseOfCaseConservative)
             (opts ^. posCaseOfCaseConservative)
           & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
-          -- We could make this configurable with an option, but:
-          -- 1. The only other choice you can make is new version + Scott encoding, and
-          -- there's really no reason to pick that
-          -- 2. This is consistent with what we do in Lift
-          & set
-            (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle)
-            ( if plcVersion < PLC.plcVersion110
-                then PIR.ScottEncoding
-                else PIR.SumsOfProducts
-            )
+          & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) datatypeStyle
           -- TODO: ensure the same as the one used in the plugin
           & set PIR.ccBuiltinsInfo def
           & set PIR.ccBuiltinCostModel def
@@ -597,37 +593,43 @@ runCompiler moduleName opts expr = do
     dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
   -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-  spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
+  spirP <-
+    flip runReaderT pirCtx $
+      modifyError (NoContext . PIRError) $
+        PIR.compileToReadable pirP
   when (opts ^. posDumpPir) . liftIO $
-    dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
+      dumpFlat (void spirP) "simplified PIR program" (moduleName ++ "_simplified.pir-flat")
 
   -- (Simplified) Pir -> Plc translation.
-  plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
+  plcP <- flip runReaderT pirCtx $
+    modifyError (NoContext . PIRError) $
+      PIR.compileReadableToPlc spirP
   when (opts ^. posDumpPlc) . liftIO $
-    dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
+      dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".tplc-flat")
 
   -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
   when (opts ^. posDoTypecheck) . void $
-    liftExcept $
-      PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
+      liftExcept $
+        modifyError PLC.TypeErrorE $
+          PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
   let optCertify = opts ^. posCertify
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   liftIO $ case optCertify of
-    Just certName -> do
-      result <- runCertifier $ mkCertifier simplTrace certName
-      case result of
-        Right certSuccess ->
-          hPutStrLn stderr $ prettyCertifierSuccess certSuccess
-        Left err ->
-          hPutStrLn stderr $ prettyCertifierError err
-    Nothing -> pure ()
-  dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+      Just certName -> do
+          result <- runCertifier $ mkCertifier simplTrace certName
+          case result of
+              Right certSuccess ->
+                  hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+              Left err ->
+                 hPutStrLn stderr $ prettyCertifierError err
+      Nothing -> pure ()
+  dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
-    dumpFlat
-      (UPLC.UnrestrictedProgram $ void dbP)
-      "untyped PLC program"
-      (moduleName ++ ".uplc-flat")
+      dumpFlat
+          (UPLC.UnrestrictedProgram $ void dbP)
+          "untyped PLC program"
+          (moduleName ++ ".uplc-flat")
   -- Discard the Provenance information at this point, just keep the SrcSpans
   -- TODO: keep it and do something useful with it
   pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
@@ -635,11 +637,7 @@ runCompiler moduleName opts expr = do
   -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it
   --  using our 'CompileError'
   liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun Ann) m b -> m b
-  liftExcept act = do
-    plcTcError <- runExceptT act
-    -- also wrap the PLC Error annotations into Original provenances, to match our expected
-    -- 'CompileError'
-    liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
+  liftExcept = modifyError (NoContext . PLCError)
 
   dumpFlat :: (Flat t) => t -> String -> String -> IO ()
   dumpFlat t desc fileName = do

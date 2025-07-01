@@ -22,13 +22,14 @@ open import Data.List.Relation.Binary.Pointwise using (Pointwise-≡⇒≡; ≡�
 data SimplifierTag : Set where
   floatDelayT : SimplifierTag
   forceDelayT : SimplifierTag
+  forceCaseDelayT : SimplifierTag
   caseOfCaseT : SimplifierTag
   caseReduceT : SimplifierTag
   inlineT : SimplifierTag
   cseT : SimplifierTag
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
+{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
 
 variable
   𝓁 𝓂 : Level

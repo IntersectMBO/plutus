@@ -11,8 +11,7 @@ module PlutusIR.Compiler.Types where
 
 import Control.Lens
 import Control.Monad (when)
-import Control.Monad.Error.Lens (throwing)
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Reader (MonadReader, local)
 import Data.Default.Class
 import Data.Text qualified as T
@@ -59,7 +58,14 @@ instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
 -- old Plutus Core language version.
 --
 -- See Note [Encoding of datatypes]
-data DatatypeStyle = ScottEncoding | SumsOfProducts
+data DatatypeStyle
+    = ScottEncoding
+    | SumsOfProducts
+    | BuiltinCasing
+      -- ^ A temporary data type style used to make a couple of V3 ledger-api-test tests pass
+      -- before we can support casing on values of built-in types in newer protocol versions and
+      -- merge this into 'SumsOfProducts' (which is what controls whether 'Case' is available or
+      -- not).
     deriving stock (Show, Read, Eq)
 
 instance Pretty DatatypeStyle where
@@ -67,12 +73,12 @@ instance Pretty DatatypeStyle where
 
 newtype DatatypeCompilationOpts = DatatypeCompilationOpts
     { _dcoStyle :: DatatypeStyle
-    } deriving stock (Show)
+    } deriving newtype (Show, Read, Pretty)
 
 makeLenses ''DatatypeCompilationOpts
 
 defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
-defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
+defaultDatatypeCompilationOpts = DatatypeCompilationOpts BuiltinCasing
 
 data CompilationOpts a = CompilationOpts {
     _coOptimize                         :: Bool
@@ -161,10 +167,11 @@ toDefaultCompilationCtx configPlc = CompilationCtx
        , _ccRewriteRules = def
        }
 
-validateOpts :: Compiling m e uni fun a => PLC.Version -> m ()
+validateOpts :: Compiling m uni fun a => PLC.Version -> m ()
 validateOpts v = do
   datatypes <- view (ccOpts . coDatatypes . dcoStyle)
-  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $ throwing _OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
+  when ((datatypes == SumsOfProducts || datatypes == BuiltinCasing) && v < PLC.plcVersion110) $
+    throwError $ OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -214,13 +221,12 @@ unwrap p r t = case r of
 type PIRTerm uni fun a = PIR.Term PIR.TyName PIR.Name uni fun (Provenance a)
 type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 
-type Compiling m e uni fun a =
+type Compiling m uni fun a =
     ( Monad m
     , MonadReader (CompilationCtx uni fun a) m
-    , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun (Provenance a)
-    , AsTypeErrorExt e uni (Provenance a)
-    , AsError e uni fun (Provenance a)
-    , MonadError e m
+    , MonadError (Error uni fun (Provenance a)) m
+    , PLC.AnnotateCaseBuiltin uni
+    , PLC.CaseBuiltin uni
     , MonadQuote m
     , Ord a
     , AnnInline a

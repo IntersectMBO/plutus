@@ -34,6 +34,17 @@ module PlutusLedgerApi.Common (
   Versions.ledgerLanguageIntroducedIn,
   Versions.ledgerLanguagesAvailableIn,
 
+  -- * Protocol Versions
+  Protocol.shelleyPV,
+  Protocol.allegraPV,
+  Protocol.maryPV,
+  Protocol.alonzoPV,
+  Protocol.vasilPV,
+  Protocol.valentinePV,
+  Protocol.changPV,
+  Protocol.plominPV,
+  Protocol.knownPVs,
+
   -- * Costing-related types
   PLC.ExBudget (..),
   PLC.ExCPU (..),
@@ -96,6 +107,7 @@ module PlutusLedgerApi.Common (
 
 import PlutusLedgerApi.Common.Eval qualified as Eval
 import PlutusLedgerApi.Common.ParamName qualified as ParamName
+import PlutusLedgerApi.Common.ProtocolVersions qualified as Protocol
 import PlutusLedgerApi.Common.SerialisedScript qualified as SerialisedScript
 import PlutusLedgerApi.Common.Versions qualified as Versions
 

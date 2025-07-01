@@ -22,7 +22,6 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Evaluation.Result (evaluationFailure)
 import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -123,7 +122,7 @@ nopCostModel =
 
 nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
-    mkMachineParameters def $
+    MachineParameters def . mkMachineVariantParameters def $
         CostModel defaultCekMachineCostsForTesting nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
@@ -137,7 +136,7 @@ infixr >:
 n >: k =
     case n of
       SomeConstant (Some (ValueOf DefaultUniInteger _)) -> k
-      _                                                 -> evaluationFailure
+      _                                                 -> builtinResultFailure
 {-# INLINE (>:) #-}
 
 {- | The meanings of the builtins.  Each one takes a number of arguments and

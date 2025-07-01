@@ -17,7 +17,6 @@
 
 module PlutusCore.Builtin.KnownType
     ( BuiltinError
-    , throwBuiltinErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
     , BuiltinResult (..)
@@ -39,10 +38,11 @@ import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Evaluation.ErrorWithCause
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import Control.Monad.Except
 import Data.Either.Extras
 import Data.Functor.Identity
 import Data.String
@@ -276,7 +276,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> throwing _UnliftingEvaluationError $ typeMismatchError uniExp uniAct
+            Nothing   -> throwError $ BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
@@ -363,9 +363,9 @@ makeKnownOrFail x = case makeKnown x of
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: (ReadKnown val a, AsUnliftingEvaluationError err, AsEvaluationFailure err)
-    => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
+    :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
+    => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
+readKnownSelf val = fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
@@ -382,21 +382,21 @@ instance
         ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (BuiltinResult a) where
-    readKnown _ = throwUnderTypeError
+    readKnown _ = throwError underTypeError
     {-# INLINE readKnown #-}
 
 instance
         ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
         , uni ~ UniOf val
         ) => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown _ = throwUnderTypeError
+    makeKnown _ = throwError underTypeError
     {-# INLINE makeKnown #-}
 
 instance
         ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwUnderTypeError
+    readKnown _ = throwError underTypeError
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where

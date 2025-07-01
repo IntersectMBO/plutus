@@ -8,31 +8,19 @@
                   (\y ->
                      (\z ->
                         (\w ->
-                           (\lessThanInteger ->
-                              addInteger
-                                (addInteger
-                                   (addInteger
-                                      (addInteger (addInteger x y) z)
-                                      w)
-                                   (force
-                                      (case
-                                         (lessThanInteger
-                                            (addInteger y z)
-                                            (addInteger x w))
-                                         [ (delay (addInteger x z))
-                                         , (delay (addInteger y w)) ])))
-                                (force
-                                   (case
-                                      (lessThanInteger
-                                         (addInteger z y)
-                                         (addInteger w x))
-                                      [ (delay (addInteger z x))
-                                      , (delay (addInteger w y)) ])))
-                             (\x y ->
-                                force ifThenElse
-                                  (lessThanInteger x y)
-                                  (constr 0 [])
-                                  (constr 1 [])))
+                           addInteger
+                             (addInteger
+                                (addInteger (addInteger (addInteger x y) z) w)
+                                (case
+                                   (lessThanInteger
+                                      (addInteger y z)
+                                      (addInteger x w))
+                                   [(addInteger y w), (addInteger x z)]))
+                             (case
+                                (lessThanInteger
+                                   (addInteger z y)
+                                   (addInteger w x))
+                                [(addInteger w y), (addInteger z x)]))
                           (unIData (force headList (force tailList l))))
                        (unIData (force headList l)))
                     (unIData (force headList l)))

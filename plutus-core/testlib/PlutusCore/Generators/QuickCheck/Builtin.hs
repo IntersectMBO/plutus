@@ -278,7 +278,7 @@ instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
 -- the 'Arbitrary' class and the logic for handling elements from 'ArbitraryBuiltin'.
 newtype AsArbitraryBuiltin a = AsArbitraryBuiltin
     { unAsArbitraryBuiltin :: a
-    } deriving newtype (Show)
+    } deriving newtype (Show, Eq, Ord, Num)
 
 instance ArbitraryBuiltin a => Arbitrary (AsArbitraryBuiltin a) where
     arbitrary = coerce $ arbitraryBuiltin @a

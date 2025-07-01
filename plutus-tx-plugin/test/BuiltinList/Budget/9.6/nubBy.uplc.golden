@@ -1,0 +1,53 @@
+(program
+   1.1.0
+   (\xs ->
+      force
+        ((\f ->
+            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+              (\s -> f (\x -> s s x)))
+           (\go arg ->
+              delay
+                (\l xs ->
+                   (\cse ->
+                      cse
+                        []
+                        (\y ys ->
+                           case
+                             (force
+                                ((\f ->
+                                    (\s ->
+                                       f
+                                         (\x ->
+                                            f
+                                              (\x ->
+                                                 f (\x -> f (\x -> s s x) x) x)
+                                              x))
+                                      (\s -> f (\x -> s s x)))
+                                   (\go arg ->
+                                      delay
+                                        (cse
+                                           (constr 1 [])
+                                           (\x xs ->
+                                              case
+                                                (lessThanEqualsInteger x y)
+                                                [ (force (go (delay (\x -> x)))
+                                                     xs)
+                                                , (constr 0 []) ])))
+                                   (delay (\x -> x)))
+                                xs)
+                             [ (force (go (delay (\x -> x))) ys xs)
+                             , ((\cse ->
+                                   cse
+                                     (force (go (delay (\x -> x))) ys (cse xs)))
+                                  (force mkCons y)) ])
+                        l)
+                     (\z f xs ->
+                        force
+                          (force (force chooseList)
+                             xs
+                             (delay z)
+                             (delay
+                                (f (force headList xs) (force tailList xs)))))))
+           (delay (\x -> x)))
+        xs
+        []))

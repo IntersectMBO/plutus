@@ -6,7 +6,7 @@ module PlutusIR.Transform.StrictLetRec.Tests.Lib where
 
 import PlutusPrelude
 
-import Control.Monad.Except (runExceptT)
+import Control.Monad.Except
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Reader (runReaderT)
 import Data.Text (Text)
@@ -15,11 +15,13 @@ import PlutusCore (Name, SrcSpan, latestVersion)
 import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Error qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModelForTesting,
                                                           defaultCekMachineCostsForTesting)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters (..),
-                                                        mkMachineParameters)
+                                                        mkMachineVariantParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default (DefaultMachineParameters)
 import PlutusCore.Parser qualified as PC
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.TypeCheck qualified as PLC
@@ -29,8 +31,8 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core qualified as PIR
 import PlutusIR.Parser (pTerm)
 import UntypedPlutusCore.Core qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CekValue, EvaluationResult (..), evaluateCek,
-                                                 logEmitter, unsafeSplitStructuralOperational)
+import UntypedPlutusCore.Evaluation.Machine.Cek (EvaluationResult (..), evaluateCek, logEmitter,
+                                                 unsafeSplitStructuralOperational)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
 pirTermFromFile
@@ -41,7 +43,7 @@ pirTermFromFile file = do
   contents <- liftIO $ Text.readFile file
   PC.parseGen pTerm contents
     & runQuoteT
-    & handlePirErrorByFailing @SrcSpan
+    & handlePirErrorByFailing @SrcSpan . modifyError (PIR.PLCError . PLC.ParseErrorE)
 
 pirTermAsProgram :: PIR.Term tyname name uni fun () -> PIR.Program tyname name uni fun ()
 pirTermAsProgram = PIR.Program () latestVersion
@@ -86,18 +88,20 @@ evaluateUplcProgramWithTraces uplcProg =
   first unsafeSplitStructuralOperational $
     evaluateCek logEmitter machineParameters (uplcProg ^. UPLC.progTerm)
  where
-  costModel :: CostModel CekMachineCosts BuiltinCostModel =
-    CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
-  machineParameters
-    :: MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ()) =
-      mkMachineParameters def costModel
+  costModel :: CostModel CekMachineCosts BuiltinCostModel
+  costModel =
+      CostModel defaultCekMachineCostsForTesting defaultBuiltinCostModelForTesting
+
+  machineParameters :: DefaultMachineParameters
+  machineParameters =
+      MachineParameters def $ mkMachineVariantParameters def costModel
 
 defaultCompilationCtx
   :: Either
       (PIR.Error DefaultUni DefaultFun (Provenance ()))
       (PIR.CompilationCtx DefaultUni DefaultFun a)
 defaultCompilationCtx = do
-  pirTcConfig <- PLC.getDefTypeCheckConfig noProvenance
+  pirTcConfig <- modifyError (PIR.PLCError . PLC.TypeErrorE) $ PLC.getDefTypeCheckConfig noProvenance
   pure $ toDefaultCompilationCtx pirTcConfig
 
 handlePirErrorByFailing

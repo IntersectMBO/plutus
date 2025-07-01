@@ -113,9 +113,9 @@ $\lamU{x}{N}$.%
 
     % case (constr i vs) cs -> [c_i vs]
     \begin{prooftree}
-        \AxiomC{$0 \leq i \leq m$}
+        \AxiomC{$0 \leq i \leq n-1$}
         % \RightLabel{\textsf{case-of-constr}}
-        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{U_0 \ldots U_m}}{\app{U_i}{\repetition{V}}}$}
+        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{U_1 \ldots U_n}}{\app{U_{i+1}}{\repetition{V}}}$}
     \end{prooftree}
 
     % Saturated force

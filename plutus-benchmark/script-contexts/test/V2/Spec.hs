@@ -4,21 +4,17 @@
 
 module V2.Spec (allTests) where
 
-import Data.Text qualified as Text
-
-import Test.Tasty
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
-import Test.Tasty.HUnit
+import Test.Tasty.HUnit (testCase)
 
-import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
 import PlutusBenchmark.V2.Data.ScriptContexts qualified as Data.SC
 import PlutusBenchmark.V2.ScriptContexts qualified as SOP.SC
 
-import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
 import PlutusTx qualified
 import PlutusTx.Plugin ()
 import PlutusTx.Test qualified as Tx
+import PlutusTx.Test.Run.Code (assertEvaluatesSuccessfully, assertEvaluatesWithError)
 
 -- Make a set of golden tests with results stored in subdirectories determined
 -- by the GHC version.
@@ -28,29 +24,12 @@ runTestGhcSOP = runTestNested ["script-contexts", "test", "V2"] . pure . testNes
 runTestGhcData :: [TestNested] -> TestTree
 runTestGhcData = runTestNested ["script-contexts", "test", "V2", "Data"] . pure . testNestedGhc
 
-assertSucceeded :: Term -> Assertion
-assertSucceeded t =
-    case runTermCek t of
-        (Right _, _)  -> pure ()
-        (Left err, logs) -> assertFailure . Text.unpack . Text.intercalate "\n" $
-            [ render (prettyPlcClassicSimple err)
-            , "Cek logs:"
-            ] ++ logs
-
-assertFailed :: Term -> Assertion
-assertFailed t =
-    -- Using `unsafeRunTermCek` here, so that only user errors make the test pass.
-    -- Machine errors still make the test fail.
-    case unsafeRunTermCek t of
-        EvaluationFailure   -> pure ()
-        EvaluationSuccess _ -> assertFailure "Evaluation succeeded unexpectedly"
-
 testCheckSOPSc1 :: TestTree
 testCheckSOPSc1 = testGroup "checkScriptContext1"
-    [ testCase "succeed on 4" . assertSucceeded $
-        compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
-    , testCase "fails on 5" . assertFailed $
-        compiledCodeToTerm $ SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+        SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 4)
+    , testCase "fails on 5" . assertEvaluatesWithError $
+        SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 5)
     , runTestGhcSOP [ Tx.goldenSize "checkScriptContext1" $
                         SOP.SC.mkCheckScriptContext1Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
@@ -64,10 +43,10 @@ testCheckSOPSc1 = testGroup "checkScriptContext1"
 
 testCheckDataSc1 :: TestTree
 testCheckDataSc1 = testGroup "checkScriptContext1"
-    [ testCase "succeed on 4" . assertSucceeded $
-        compiledCodeToTerm $ Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
-    , testCase "fails on 5" . assertFailed $
-        compiledCodeToTerm $ Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+        Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 4)
+    , testCase "fails on 5" . assertEvaluatesWithError $
+        Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 5)
     , runTestGhcData [ Tx.goldenSize "checkScriptContext1" $
                         Data.SC.mkCheckScriptContext1Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext1" $
@@ -81,10 +60,10 @@ testCheckDataSc1 = testGroup "checkScriptContext1"
 
 testCheckSOPSc2 :: TestTree
 testCheckSOPSc2 = testGroup "checkScriptContext2"
-    [ testCase "succeed on 4" . assertSucceeded $
-          compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
-    , testCase "succeed on 5" . assertSucceeded $
-          compiledCodeToTerm $ SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+          SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 4)
+    , testCase "succeed on 5" . assertEvaluatesSuccessfully $
+          SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 5)
     , runTestGhcSOP [ Tx.goldenSize "checkScriptContext2" $
                         SOP.SC.mkCheckScriptContext2Code (SOP.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $
@@ -98,10 +77,10 @@ testCheckSOPSc2 = testGroup "checkScriptContext2"
 
 testCheckDataSc2 :: TestTree
 testCheckDataSc2 = testGroup "checkScriptContext2"
-    [ testCase "succeed on 4" . assertSucceeded $
-          compiledCodeToTerm $ Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
-    , testCase "succeed on 5" . assertSucceeded $
-          compiledCodeToTerm $ Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 5)
+    [ testCase "succeed on 4" . assertEvaluatesSuccessfully $
+          Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 4)
+    , testCase "succeed on 5" . assertEvaluatesSuccessfully $
+          Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 5)
     , runTestGhcData [ Tx.goldenSize "checkScriptContext2" $
                         Data.SC.mkCheckScriptContext2Code (Data.SC.mkScriptContext 1)
                    , Tx.goldenPirReadable "checkScriptContext2" $

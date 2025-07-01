@@ -9,10 +9,11 @@ import PlutusIR.Error
 import PlutusIR.TypeCheck qualified as TC
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin (AnnotateCaseBuiltin)
 import PlutusCore.Name.Unique
 
 import Control.Monad (void, when)
-import Control.Monad.Except (ExceptT, MonadError, throwError)
+import Control.Monad.Except
 import Control.Monad.Trans.Class (lift)
 import Data.Foldable
 import Data.Text (Text)
@@ -41,7 +42,7 @@ data BiCondition tyname name uni fun a where
     -> BiCondition tyname name uni fun a
 
 checkCondition
-  :: MonadError (Error uni fun a) m
+  :: (MonadError (Error uni fun a) m, AnnotateCaseBuiltin uni)
   => Condition tyname name uni fun a
   -> Term tyname name uni fun a
   -> m ()
@@ -50,13 +51,15 @@ checkCondition c t = case c of
     -- Typechecking requires globally unique names
     renamed <- PLC.rename t
     TC.inferType tcconfig renamed
-  GloballyUniqueNames -> void $ Uniques.checkTerm (const True) t
+  GloballyUniqueNames ->
+    void $ modifyError (PLCError . PLC.UniqueCoherencyErrorE) $
+      Uniques.checkTerm (const True) t
   Custom f -> case f t of
     Just (a, e) -> throwError $ CompilationError a e
     Nothing     -> pure ()
 
 checkBiCondition
-  :: MonadError (Error uni fun a) m
+  :: (MonadError (Error uni fun a) m, AnnotateCaseBuiltin uni)
   => BiCondition tyname name uni fun a
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
@@ -94,7 +97,7 @@ hoistPass f p = case p of
   NoOpPass               -> NoOpPass
 
 runPass
-  :: Monad m
+  :: (Monad m, AnnotateCaseBuiltin uni)
   => (String -> m ())
   -> Bool
   -> Pass m tyname name uni fun a
@@ -141,7 +144,7 @@ renamePass =
 -- | A pass that does typechecking, useful when you want to do it explicitly
 -- and not as part of a precondition check.
 typecheckPass
-  :: (TC.MonadTypeCheckPir err uni fun a m, Ord a)
+  :: (TC.MonadTypeCheckPir uni fun a m, Ord a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
 typecheckPass tcconfig = NamedPass "typechecking" $ Pass run [GloballyUniqueNames] []

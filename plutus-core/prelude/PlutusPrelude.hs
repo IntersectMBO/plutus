@@ -59,6 +59,7 @@ module PlutusPrelude
     , set
     , (%~)
     , over
+    , purely
     , (<^>)
     -- * Debugging
     , traceShowId
@@ -68,7 +69,7 @@ module PlutusPrelude
     -- * Custom functions
     , (<<$>>)
     , (<<*>>)
-    , mtraverse
+    , forJoin
     , foldMapM
     , reoption
     , enumerate
@@ -97,9 +98,7 @@ module PlutusPrelude
     , allSame
     , distinct
     , unsafeFromRight
-    , tryError
     , addTheRest
-    , modifyError
     , lowerInitialChar
     ) where
 
@@ -108,9 +107,9 @@ import Control.Arrow ((&&&), (>>>))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
-import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
+import Control.Lens (Fold, Identity, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>),
+                     (^.))
 import Control.Monad
-import Control.Monad.Except (ExceptT, MonadError, catchError, runExceptT, throwError)
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
@@ -124,6 +123,7 @@ import Data.Functor (($>))
 #if ! MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
+import Data.Functor.Identity (Identity (..))
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -192,8 +192,8 @@ coerceRes = coerce
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
 
-mtraverse :: (Monad m, Traversable m, Applicative f) => (a -> f (m b)) -> m a -> f (m b)
-mtraverse f a = join <$> traverse f a
+forJoin :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
+forJoin a f = join <$> for a f
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
@@ -239,6 +239,9 @@ printPretty = print . pretty
 showText :: Show a => a -> T.Text
 showText = T.pack . show
 
+purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
+purely = coerce
+
 -- | Compose two folds to make them run in parallel. The results are concatenated.
 (<^>) :: Fold s a -> Fold s a -> Fold s a
 (f1 <^> f2) g s = f1 g s *> f2 g s
@@ -260,13 +263,6 @@ unsafeFromRight (Left e)  = error $ show e
 timesA :: Natural -> (a -> a) -> a -> a
 timesA = ala Endo . stimes
 
--- | A 'MonadError' version of 'try'.
---
--- TODO: remove when we switch to mtl>=2.3
-tryError :: MonadError e m => m a -> m (Either e a)
-tryError a = (Right <$> a) `catchError` (pure . Left)
-{-# INLINE tryError #-}
-
 -- | Pair each element of the given list with all the other elements.
 --
 -- >>> addTheRest "abcd"
@@ -274,15 +270,6 @@ tryError a = (Right <$> a) `catchError` (pure . Left)
 addTheRest :: [a] -> [(a, [a])]
 addTheRest []     = []
 addTheRest (x:xs) = (x, xs) : map (fmap (x :)) (addTheRest xs)
-
-{- A different 'MonadError' analogue to the 'withExceptT' function.
-Modify the value (and possibly the type) of an error in an @ExceptT@-transformed
-monad, while stripping the @ExceptT@ layer.
-
-TODO: remove when we switch to mtl>=2.3.1
--}
-modifyError :: MonadError e' m => (e -> e') -> ExceptT e m a -> m a
-modifyError f m = runExceptT m >>= either (throwError . f) pure
 
 allSame :: Eq a => [a] -> Bool
 allSame []     = True

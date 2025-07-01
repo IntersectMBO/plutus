@@ -26,7 +26,7 @@ import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Data.List qualified as List
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test.Util.Compiled (cekResultMatchesHaskellValue, compiledCodeToTerm)
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
 import Prelude qualified as Haskell
 import Test.QuickCheck qualified as QC
@@ -148,5 +148,4 @@ scaleTestsBy factor =
   QC.withMaxSuccess (100 Haskell.* factor) . QC.mapSize (Haskell.* factor)
 
 cekProp :: CompiledCode Bool -> Property
-cekProp code =
-  cekResultMatchesHaskellValue (compiledCodeToTerm code) (===) True
+cekProp code = evaluationResultMatchesHaskell code (===) True

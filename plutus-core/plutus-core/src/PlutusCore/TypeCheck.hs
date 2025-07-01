@@ -7,6 +7,7 @@ module PlutusCore.TypeCheck
     ( ToKind
     , MonadKindCheck
     , MonadTypeCheck
+    , TypeErrorPlc
     , Typecheckable
     -- * Configuration.
     , BuiltinTypes (..)
@@ -30,6 +31,7 @@ import PlutusPrelude
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
+import PlutusCore.Error
 import PlutusCore.Name.Unique
 import PlutusCore.Normalize
 import PlutusCore.Quote
@@ -43,7 +45,8 @@ import PlutusCore.TypeCheck.Internal
 -- instantiated and builtins don't. Another reason is that 'Typecheckable' is not required during
 -- type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular
 -- argument to the worker of the type checker.
-type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
+type Typecheckable uni fun =
+    (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun, AnnotateCaseBuiltin uni)
 
 -- | The default kind checking config.
 defKindCheckConfig :: KindCheckConfig
@@ -52,7 +55,7 @@ defKindCheckConfig = KindCheckConfig DetectNameMismatches
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
-    :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
+    :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
     => BuiltinSemanticsVariant fun
     -> ann
     -> m (BuiltinTypes uni fun)
@@ -64,14 +67,14 @@ builtinMeaningsToTypes semvar ann =
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig
-    :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
+    :: (MonadKindCheck (TypeError term uni fun ann) term uni fun ann m, Typecheckable uni fun)
     => ann -> m (TypeCheckConfig uni fun)
 getDefTypeCheckConfig ann =
     TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes def ann
 
 -- | Infer the kind of a type.
 inferKind
-    :: MonadKindCheck err term uni fun ann m
+    :: MonadKindCheck (TypeError term uni fun ann) term uni fun ann m
     => KindCheckConfig -> Type TyName uni ann -> m (Kind ())
 inferKind config = runTypeCheckM config . inferKindM
 
@@ -79,13 +82,13 @@ inferKind config = runTypeCheckM config . inferKindM
 -- Infers the kind of the type and checks that it's equal to the given kind
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
-    :: MonadKindCheck err term uni fun ann m
+    :: MonadKindCheck (TypeError term uni fun ann) term uni fun ann m
     => KindCheckConfig -> ann -> Type TyName uni ann -> Kind () -> m ()
 checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType
-    :: MonadTypeCheckPlc err uni fun ann m
+    :: MonadTypeCheckPlc uni fun ann m
     => TypeCheckConfig uni fun
     -> Term TyName Name uni fun ann
     -> m (Normalized (Type TyName uni ()))
@@ -95,7 +98,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- Infers the type of the term and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
-    :: MonadTypeCheckPlc err uni fun ann m
+    :: MonadTypeCheckPlc uni fun ann m
     => TypeCheckConfig uni fun
     -> ann
     -> Term TyName Name uni fun ann
@@ -107,7 +110,7 @@ checkType config ann term ty = do
 
 -- | Infer the type of a program.
 inferTypeOfProgram
-    :: MonadTypeCheckPlc err uni fun ann m
+    :: MonadTypeCheckPlc uni fun ann m
     => TypeCheckConfig uni fun
     -> Program TyName Name uni fun ann
     -> m (Normalized (Type TyName uni ()))
@@ -117,7 +120,7 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
-    :: MonadTypeCheckPlc err uni fun ann m
+    :: MonadTypeCheckPlc uni fun ann m
     => TypeCheckConfig uni fun
     -> ann
     -> Program TyName Name uni fun ann

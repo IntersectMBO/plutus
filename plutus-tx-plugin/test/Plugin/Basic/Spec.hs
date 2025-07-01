@@ -49,7 +49,7 @@ basic =
       , goldenPirReadable "defaultCaseDuplication" defaultCaseDuplication
       , goldenPirReadable "defaultCaseDuplicationNested" defaultCaseDuplicationNested
       , goldenPirReadable "integerPatternMatch" integerPatternMatch
-      , goldenPirReadable "integerCase" integerCase      
+      , goldenPirReadable "integerCase" integerCase
       ]
 
 monoId :: CompiledCode (Integer -> Integer)

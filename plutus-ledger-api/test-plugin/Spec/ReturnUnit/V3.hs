@@ -9,6 +9,8 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE ViewPatterns          #-}
 
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=SumsOfProducts #-}
+
 module Spec.ReturnUnit.V3 where
 
 import PlutusLedgerApi.Common.Versions

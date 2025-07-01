@@ -1,5 +1,6 @@
-cpu: 64100
-mem: 500
-size: 4
+CPU:                    64_100
+Memory:                    500
+Term Size:                   4
+Flat Size:                 191
 
 (constr 0)

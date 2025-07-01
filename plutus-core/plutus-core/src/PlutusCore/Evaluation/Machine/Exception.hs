@@ -16,20 +16,18 @@
 
 module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
-    , AsUnliftingError (..)
     , BuiltinError (..)
     , MachineError (..)
-    , AsMachineError (..)
     , EvaluationError (..)
-    , AsEvaluationError (..)
     , ErrorWithCause (..)
     , EvaluationException
-    , throwNotAConstant
-    , throwing
-    , throwing_
-    , throwingWithCause
+    , notAConstant
+    , throwErrorWithCause
     , splitStructuralOperational
     , unsafeSplitStructuralOperational
+    , BuiltinErrorToEvaluationError
+    , builtinErrorToEvaluationError
+    , throwBuiltinErrorWithCause
     ) where
 
 import PlutusPrelude
@@ -39,7 +37,7 @@ import PlutusCore.Evaluation.ErrorWithCause
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Control.Lens
+import Control.Monad.Except
 import Data.Either.Extras
 import Data.Word (Word64)
 import Prettyprinter
@@ -68,14 +66,6 @@ data MachineError fun
       -- ^ A GHC exception was thrown.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
-
-mtraverse makeClassyPrisms
-    [ ''MachineError
-    ]
-
-instance AsUnliftingError (MachineError fun) where
-    _UnliftingError = _UnliftingMachineError
-    {-# INLINE _UnliftingError #-}
 
 type EvaluationException structural operational =
     ErrorWithCause (EvaluationError structural operational)
@@ -129,10 +119,25 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
     prettyBy _      NonConstrScrutinizedMachineError =
-        "A non-constructor value was scrutinized in a case expression"
+        "A non-constructor/non-builtin value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranchMachineError i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
     prettyBy _      (PanicMachineError err) = vcat
         [ "Panic: a GHC exception was thrown, please report this as a bug."
         , "The error: " <+> pretty err
         ]
+
+class BuiltinErrorToEvaluationError structural operational where
+  builtinErrorToEvaluationError :: BuiltinError -> EvaluationError structural operational
+
+-- | Attach a @cause@ to a 'BuiltinError' and throw that.
+-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+-- happy path, hence this function must not force its first argument.
+-- TODO: wrap @cause@ in 'Lazy' once we have it.
+throwBuiltinErrorWithCause
+    :: ( MonadError (EvaluationException structural operational cause) m
+       , BuiltinErrorToEvaluationError structural operational
+       )
+    => cause -> BuiltinError -> m void
+throwBuiltinErrorWithCause cause e = throwErrorWithCause (builtinErrorToEvaluationError e) cause
+{-# INLINE throwBuiltinErrorWithCause #-}

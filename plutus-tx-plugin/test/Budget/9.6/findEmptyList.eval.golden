@@ -1,5 +1,6 @@
-cpu: 224100
-mem: 1500
-size: 37
+CPU:                   192_100
+Memory:                  1_300
+Term Size:                  27
+Flat Size:                  87
 
 (constr 1)
