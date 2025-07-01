@@ -670,7 +670,6 @@ benchmark bitwise-bench
     , criterion
     , plutus-benchmark-common
     , plutus-tx                ^>=1.48
-    , text
 
 ------------------ linear vesting -------------------
 
@@ -695,6 +694,7 @@ executable linear-vesting
     , base                         >=4.9 && <5
     , linear-vesting-internal
     , plutus-tx:plutus-tx-testlib
+    , text
 
 ------------------ Cardano Open Oracle Protocol -------------------        
 library coop

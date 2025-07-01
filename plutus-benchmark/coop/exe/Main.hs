@@ -1,9 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
 {-
 This module itself won't run any benchmark on it's own. It will only generate `.flat` file, if missing,
@@ -12,7 +9,6 @@ in `validation/data` directory for `validation` benchmark runner to run COOP scr
 
 module Main where
 
-import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Flat (flat, unflat)
 import System.Directory
@@ -26,9 +22,7 @@ import PlutusLedgerApi.V1.Value
 import PlutusLedgerApi.V2
 import PlutusTx
 import PlutusTx.Code
-import PlutusTx.Prelude qualified as PTx
 import PlutusTx.Test.Util.Apply
-import PlutusTx.TH
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusBenchmark.Common
@@ -80,8 +74,8 @@ createIfNotExists name term = do
   p <- getScriptDirectory
   let
     fullName = p </> name <.> "flat"
-    eraseName (UPLC.Program ann ver term) =
-      () <$ UPLC.Program ann ver (UPLC.termMapNames UPLC.unNameDeBruijn term)
+    eraseName (UPLC.Program ann ver t) =
+      () <$ UPLC.Program ann ver (UPLC.termMapNames UPLC.unNameDeBruijn t)
   termAsBS <-
     case term of
       SerializedCode bs _ _     ->
@@ -157,5 +151,5 @@ main = do
              runGen (genCorrectAuthMpBurningCtx authCs))
       ]
 
-  traverse (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show i) <$> [1..]) scripts)
+  _ <- traverse (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1..]) scripts)
   pure ()
