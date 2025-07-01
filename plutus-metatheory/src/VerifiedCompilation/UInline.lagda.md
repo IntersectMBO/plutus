@@ -23,12 +23,43 @@ open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 import RawU
-open import Data.List using (List; []; _∷_)
-open import Data.Nat using (ℕ)
+open import Data.List using (List; []; _∷_; sum; map)
+open import Data.Nat using (ℕ; _+_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 
 ```
 ## Translation Relation
+
+(λ ( f · (` 0) )) · b
+==>
+(f · b)
+
+(λ ((` 0) · x)) · (λ (f (`0))) -- before1
+==>
+((λ (f (`0))) · x) -- a1/b2
+==>
+(f x) -- after2
+
+
+(λ ((f (` 0)) · (g (` 0)))) · b
+= partial =>
+(λ ((f (` 0)) · (g b))) · b
+
+(λ ((f (` 0)) · (g (` 0)))) · b
+= complete =>
+(f b) · (g b)
+
+(λ N) · M
+==>
+LET M N
+
+LET M N[`0]
+==>
+LET M N[M]
+
+LET M N
+= (` 0) not in N =>
+N
 
 Abstractly, inlining is much like β-reduction - where a term is applied to a
 lambda, the term is substituted in. However, the UPLC compiler's inliner
@@ -80,6 +111,24 @@ get (b , v) nothing = just v
 get (b , v) (just x) with get b x
 ... | nothing = nothing
 ... | just v₁ = just (weaken v₁)
+```
+To remove unused names we need to count the usage of a "name"
+(really a de Brujin index).
+```
+{-# TERMINATING #-}
+usage : {X : Set} {{ _ : DecEq X}} → X → X ⊢ → ℕ
+usage v (` x) with v ≟ x
+... | yes refl = 1
+... | no _ = 0
+usage v (ƛ t) = usage (just v) t
+usage v (t · t₁) = (usage v t) + (usage v t₁)
+usage v (force t) = usage v t
+usage v (delay t) = usage v t
+usage v (con x) =  0
+usage v (constr i xs) = sum (map (usage v) xs)
+usage v (case t ts) = (usage v t) + sum (map (usage v) ts)
+usage v (builtin b) = 0
+usage v error = 0
 
 ```
 # Decidable Inline Type
@@ -99,23 +148,47 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
   sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
           → (get b v) ≡ just t
           → Inlined e b t t'
-          → Inlined e b (` v) t'
-
+          → Inlined e b (` v) t
+{-
   complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Inlined (v ∷ e) b t₁ t₂
           → Inlined e b (t₁ · v) t₂
   partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
+  -}
+  _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
           → Inlined (v₂ ∷ e) b t₁ t₂
-          → Inlined e b v₁ v₂
+          → Inlined [] b v₁ v₂
           → Inlined e b (t₁ · v₁) (t₂ · v₂)
 
-  ƛb : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X}  {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
+  ƛb : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
           → Inlined (listWeaken e) (bind b v) t₁ t₂
           → Inlined (v ∷ e) b (ƛ t₁) (ƛ t₂)
-  -- Binding on only the "before" term requires weakening the "after" term to match scopes.
+
+  clean : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t : Maybe X ⊢} {t' v : X ⊢}
+          → { usage nothing t ≡ 0 }
+          → Inlined e b t t'
+          → Inlined e b ((ƛ t) · v) t'
+
+{-
+-- Binding on only the "before" term requires weakening the "after" term to match scopes.
   ƛ+ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
           → Inlined (listWeaken e) (bind b v) t₁ (weaken t₂)
           → Inlined (v ∷ e) b (ƛ t₁) t₂
+          -}
+```
+[] □ (λ (` 0) · (` 1)) · (` 1) ==?==> (` 1) · (` 0)
+- complete -->
+[(` 1)] □ (λ (` 0) · (` 1)) ==?==> (` 1) · (` 0)
+- ƛ+ -->
+[] (□ , (` 2)) (` 0) · (` 1) ==?==> (` 2) · (` 1)
+- left ->
+[] (□ , (` 2)) (` 0) ==?==> (` 2)
+- sub ->
+(get (□ , (` 2))
+
+==>
+(` 1) · (` 0)
+```
 
   -- We can't recurse through Translation because it will become non-terminating,
   -- so traversing other AST nodes is done below.
@@ -162,8 +235,18 @@ instance
 
 ```
 "Complete" inlining is just substitution in the same way as β-reduction.
+
+[ (\a -> a) 1 ] becomes just 1
 ```
-open import VerifiedCompilation.UntypedTranslation using (match; istranslation; app; ƛ)
+simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) (con One)
+simple = {!!} --complete (ƛ+ (sub refl))
+```
+
+Nearly as simple, but now both sides end up with application structure:
+
+[(\x y -> [ x y ]) a b ]  becomes [ a b ]
+
+```
 beforeEx1 : Vars ⊢
 beforeEx1 = (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b))
 
@@ -171,8 +254,7 @@ afterEx1 : Vars ⊢
 afterEx1 = ((` a) · (` b))
 
 ex1 : Inlined {X = Vars} [] □ beforeEx1 afterEx1
-ex1 = complete (complete (ƛ+
-                           (ƛ+ (partial (sub refl refl) (sub refl refl)))))
+ex1 = {!!} --complete (complete (ƛ+ (ƛ+ (partial (sub refl) (sub refl)))))
 
 ```
 Partial inlining is allowed, so  `(\a -> f (a 0 1) (a 2)) g` can become  `(\a -> f (g 0 1) (a 2)) g`
@@ -184,7 +266,7 @@ afterEx2 : Vars ⊢
 afterEx2 = (ƛ (((` (just f)) · (((` (just g)) · (con Zero)) · (con One))) · ((` nothing) · (con Two)) )) · (` g)
 
 ex2 : Inlined {X = Vars} [] □ beforeEx2 afterEx2
-ex2 = partial (ƛb (partial (partial refl (partial (partial (sub refl refl) refl) refl)) refl)) refl
+ex2 = {!!} -- partial (ƛb (partial (partial refl (partial (partial (sub refl) refl) refl)) refl)) refl
 
 ```
 Interleaved inlining and not inlining should also work, along with correcting the scopes
@@ -199,7 +281,7 @@ afterEx3 : Ex3Vars ⊢
 afterEx3 = (ƛ ((` (just nothing)) · (` nothing))) · (` nothing)
 
 ex3 : Inlined {X = Ex3Vars} [] □ beforeEx3 afterEx3
-ex3 = complete (ƛ+ (partial (ƛb (partial (sub refl refl) refl)) refl))
+ex3 = {!!} -- complete (ƛ+ (partial (ƛb (partial (sub refl) refl)) refl))
 
 ```
 The `callsiteInline` example from the test suite:
@@ -219,7 +301,7 @@ callsiteInlineAfter : Vars ⊢
 callsiteInlineAfter = (ƛ (((weaken (` f)) · (((weaken (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))) · (con Zero)) · (con One))) · ((` nothing) · (con Two)))) · (ƛ (ƛ (((weaken (weaken (` g))) · (` (just nothing))) · (` nothing))))
 
 callsiteInline : Inlined [] □ callsiteInlineBefore callsiteInlineAfter
-callsiteInline = partial (ƛb (partial (partial refl (partial (partial (sub refl refl) refl) refl)) refl)) refl
+callsiteInline = {!!} -- partial (ƛb (partial (partial refl (partial (partial (sub refl) refl) refl)) refl)) refl
 
 ```
 Continuing to inline:
@@ -233,8 +315,9 @@ Continuing to inline:
 callsiteInlineFinal : Vars ⊢
 callsiteInlineFinal = ((` f) · (((` g) · (con Zero)) · (con One))) · (ƛ (((` (just g)) · (con Two)) · (` nothing)))
 
-callsiteFinalProof : Inlined [] □ callsiteInlineBefore callsiteInlineFinal
-callsiteFinalProof = complete (ƛ+ (partial {!!} {!!}))
+-- This can't be done in one step without recursion.
+--callsiteFinalProof : Inlined [] □ callsiteInlineBefore callsiteInlineFinal
+--callsiteFinalProof = complete (ƛ+ (partial (partial refl (complete (complete (sub refl (ƛ+ (ƛ+ (partial (partial refl (sub refl refl)) (sub refl refl)))))))) (complete (sub refl (ƛ+ (ƛ (partial (partial refl (sub refl refl)) refl)))))))
 
 ```
 ## Decision Procedure
@@ -251,13 +334,19 @@ isInline? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Inli
 
 {-# TERMINATING #-}
 isIl? : {X : Set} {{_ : DecEq X}} → (e : List (X ⊢)) → (b : Bind X) → (ast ast' : X ⊢) → ProofOrCE (Inlined e b ast ast')
+isIl? e b ast ast' = {!!}
+{-
 isIl? e b ast ast' with ast ≟ ast'
 ... | yes refl = proof refl
 isIl? e b (` v₁) ast' | no ast≠ast' with get b v₁ in get-v
-... | nothing = ce (λ { (sub x xx) → contradiction (trans (sym get-v) x) λ () ; refl → ast≠ast' refl} ) inlineT (` v₁) ast'
-... | just t with isIl? e b t ast'
-...    | proof p = proof (sub get-v p)
+... | nothing = ce (λ { (sub x) → contradiction (trans (sym get-v) x) λ () ; refl → ast≠ast' refl} ) inlineT (` v₁) ast'
+... | just t with t ≟ ast'
+...     | yes refl = proof (sub get-v)
+...     | no ¬t=ast' = ce (λ { (sub x) → contradiction (trans (sym get-v) x) λ { refl → ¬t=ast' refl}  ; refl → ast≠ast' refl} ) inlineT t ast'
+{-
+...    | proof p = proof (sub get-v)
 ...    | ce ¬p tag bf af = ce (λ { (sub x xx) → contradiction (subst (λ t → Inlined e b t ast') (just-injective (trans (sym x) get-v))) λ z → ¬p (z xx) ; refl → ast≠ast' refl } ) inlineT t ast'
+-}
 isIl? e b (ƛ t₁) ast' | no ast≠ast' with isLambda? isTerm? ast'
 isIl? (v ∷ e) b (ƛ t₁) ast' | no ast≠ast' | no ¬ƛ with isIl? (listWeaken e) (bind b v) t₁ (weaken ast')
 ...   | ce ¬p t b a = ce (λ { (ƛb x) → ¬ƛ (islambda (isterm _)) ; (ƛ+ x) → ¬p x ; refl → ast≠ast' refl} ) t b a
@@ -311,7 +400,7 @@ isIl? e b (case t ts) ast' | no ast≠ast' with (isCase? isTerm? allTerms?) ast'
 ...     | proof ps = proof (case p ps)
 isIl? {X} e b (builtin b₁) ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (builtin {X} b₁) ast'
 isIl? {X} e b error ast' | no ast≠ast' = ce (λ { refl → ast≠ast' refl} ) inlineT (error {X}) ast'
-
+-}
 isInline? = translation? inlineT (λ {Y} → isIl? {Y} [] □)
 
 ```
