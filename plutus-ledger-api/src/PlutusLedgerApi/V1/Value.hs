@@ -426,7 +426,10 @@ unionWith f ls rs =
 
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
 -- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
--- @flattenValue v1 == flattenValue v2@.
+-- @flattenValue v1 == flattenValue v2@. Additionally, the entries in the
+-- result are listed in reverse order of the underlying data of the original ‘Value’.
+-- For instance, the lovelace entry which ordinarily appears first in the ‘Value’
+-- will appear last in the result.
 -- Also assumes that there are no duplicate keys in the 'Value' 'Map'.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toList $ getValue v)
