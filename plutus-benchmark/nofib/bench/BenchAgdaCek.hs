@@ -5,5 +5,6 @@ module Main where
 import PlutusBenchmark.Agda.Common (benchTermAgdaCek)
 import Shared (benchWith)
 
+
 main :: IO ()
 main = benchWith benchTermAgdaCek
