@@ -72,9 +72,9 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/intersectMBO/cardano-base
-  tag: 5b2244205b17b99196172684584778e3fec69ed7
-  --sha256: sha256-hDcxd0Fs1bkmH9y8dWsu1ArzGeWK89/vkZgkaK6XfVg=
+  location: https://github.com/perturbing/cardano-base
+  tag: b75b7fbc646635c5aeec7f91c2034de5a0d8e929
+  --sha256: sha256-Yh/lnMfV3GGuOpE3WZIv55x5E9tv2JblsYnrvoPC/ic=
   subdir:
     cardano-crypto-class
     cardano-crypto-praos
