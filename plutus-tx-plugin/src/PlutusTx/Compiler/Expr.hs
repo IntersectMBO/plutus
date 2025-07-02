@@ -64,7 +64,6 @@ import PlutusIR.Purity qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
-import PlutusCore.Pretty qualified as PP
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
 
@@ -650,19 +649,31 @@ hoistExpr var t = do
         (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
-      t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
+      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
       pure $ PIR.mkVar var'
 
+-- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
 maybeProfileRhs
-  :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
-maybeProfileRhs var t = do
+  :: (CompilingDefault uni fun m ann)
+  => GHC.Var
+  -> PLCVar uni
+  -> PIRTerm uni fun
+  -> m (PIRTerm uni fun)
+maybeProfileRhs ghcVar var t = do
   CompileContext{ccOpts = compileOpts} <- ask
-  let ty = PLC._varDeclType var
-      varName = PLC._varDeclName var
-      displayName = T.pack $ PP.displayPlcSimple varName
-      isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
+  let
+    nameStr = GHC.occNameString $ GHC.occName $ GHC.varName $ ghcVar
+    displayName = T.pack $
+      case getVarSourceSpan ghcVar of
+        -- FIXME: Variables will miss span information when the module they are defined
+        -- in is loaded from cache instead of getting compiled.
+        Nothing  -> nameStr
+        Just src -> nameStr <> ":" <> show (src ^. srcSpanIso)
+
+    ty = PLC._varDeclType var
+    isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
   -- Trace only if profiling is on *and* the thing being defined is a function
   if coProfile compileOpts == All && isFunctionOrAbstraction
     then do
@@ -1159,7 +1170,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         _ -> compileTypeNorm $ GHC.varType b
       -- See Note [Non-strict let-bindings]
       withVarTyScoped b ty $ \v -> do
-        rhs'' <- maybeProfileRhs v rhs'
+        rhs'' <- maybeProfileRhs b v rhs'
         let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
         body' <- compileExpr body
         pure $ PIR.Let annMayInline PIR.NonRec binds body'
@@ -1167,8 +1178,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       withVarsScoped (fmap (second (const Nothing)) bs) $ \vars -> do
         -- the bindings are scope in both the body and the args
         -- TODO: this is a bit inelegant matching the vars back up
-        binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
-          rhs' <- maybeProfileRhs v =<< compileExpr rhs
+        binds <- for (zip vars bs) $ \(v, (ghcVar, rhs)) -> do
+          rhs' <- maybeProfileRhs ghcVar v =<< compileExpr rhs
           -- See Note [Non-strict let-bindings]
           pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
         body' <- compileExpr body

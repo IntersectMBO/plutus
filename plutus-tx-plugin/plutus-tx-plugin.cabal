@@ -136,6 +136,9 @@ test-suite plutus-tx-plugin-tests
     BuiltinList.Budget.Spec
     ByteStringLiterals.Lib
     ByteStringLiterals.Spec
+    CallTrace.OtherModule
+    CallTrace.Spec
+    CallTrace.Utils
     DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
@@ -196,6 +199,7 @@ test-suite plutus-tx-plugin-tests
     , plutus-tx                        ^>=1.48
     , plutus-tx-plugin                 ^>=1.48
     , plutus-tx:plutus-tx-testlib
+    , prettyprinter
     , serialise
     , tasty
     , tasty-golden
