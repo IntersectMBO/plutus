@@ -177,4 +177,4 @@ compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBind
 -- Below this, a naive approach (repeated add/mul) is faster.
 -- The threshold should be determined by the costing benchmarked.
 multiScalarMul :: [Integer] -> [Element] -> Element
-multiScalarMul = coerce (\s p -> BlstBindings.blsMSM @BlstBindings.Curve1 10 (zip s p))
+multiScalarMul = coerce (\s p -> BlstBindings.blsMSM @BlstBindings.Curve1 0 (zip s p))
