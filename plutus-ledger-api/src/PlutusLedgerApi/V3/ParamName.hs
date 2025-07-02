@@ -330,6 +330,5 @@ data ParamName =
   | ListToArray'memory'arguments'slope
   | IndexArray'cpu'arguments
   | IndexArray'memory'arguments
-
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
