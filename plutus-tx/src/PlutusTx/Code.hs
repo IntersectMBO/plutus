@@ -13,16 +13,15 @@
 
 module PlutusTx.Code where
 
-import Control.Exception
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
 import PlutusCore qualified as PLC
-import PlutusCore.Annotation
-import PlutusCore.Pretty
+import PlutusCore.Annotation (SrcSpans)
+import PlutusCore.Pretty (PrettyConst, RenderContext)
 import PlutusIR qualified as PIR
-import PlutusTx.Coverage
+import PlutusTx.Coverage (CoverageIndex)
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
 
@@ -49,13 +48,20 @@ Note: the compiled PLC program does *not* have normalized types,
 if you want to put it on the chain you must normalize the types first.
 -}
 data CompiledCodeIn uni fun a
-  = -- | Serialized UPLC code and possibly serialized PIR code with metadata used for program coverage.
-    SerializedCode BS.ByteString (Maybe BS.ByteString) CoverageIndex
-  | -- | Deserialized UPLC program, and possibly deserialized PIR program with metadata used for program coverage.
+  = SerializedCode
+      BS.ByteString
+      -- ^ Serialized UPLC program of type 'UPLC.Program NamedDeBruijn uni fun SrcSpans'.
+      (Maybe BS.ByteString)
+      -- ^ Serialized PIR program of type 'PIR.Program PIR.TyName PIR.Name uni fun SrcSpans'.
+      CoverageIndex
+  | -- Metadata used for program coverage.
     DeserializedCode
       (UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans)
+      -- ^ Deserialized UPLC program
       (Maybe (PIR.Program PLC.TyName PLC.Name uni fun SrcSpans))
+      -- ^ Deserialized PIR program, if available
       CoverageIndex
+      -- ^ Metadata used for program coverage.
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
@@ -113,10 +119,12 @@ unsafeApplyCode fun arg = case applyCode fun arg of
   Right c  -> c
   Left err -> error err
 
--- | The size of a 'CompiledCodeIn', in AST nodes.
-sizePlc
-  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
-sizePlc = UPLC.unSize . UPLC.programSize . getPlc
+-- | The size of a 'CompiledCodeIn' as measured in AST nodes.
+countAstNodes
+  :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+  => CompiledCodeIn uni fun a
+  -> Integer
+countAstNodes = UPLC.unSize . UPLC.programSize . getPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.

@@ -1,6 +1,6 @@
 CPU:                10_690_487
 Memory:                 43_214
 Term Size:                  66
-Flat Size:                 216
+Flat Size:                 107
 
 (con (list data) [I 8, I 9, I 10])
