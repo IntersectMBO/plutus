@@ -87,8 +87,3 @@ allow-newer:
 --   flags: +force-build
 -- allow-newer: *:plutus-ledger-api
 -- allow-older: *:nothunks
-
-if impl (ghc >= 9.12)
-  allow-newer:
-    -- https://github.com/typeclasses/hex-text/issues/9
-    , hex-text:base
