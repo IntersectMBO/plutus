@@ -1,5 +1,6 @@
-CPU:               9_659_244
-Memory:               35_712
-Size:                     47
+CPU:                 9_659_244
+Memory:                 35_712
+Term Size:                  47
+Flat Size:                  88
 
 (con integer 10)

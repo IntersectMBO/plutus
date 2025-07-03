@@ -1,5 +1,6 @@
-CPU:                 681_907
-Memory:                2_596
-Size:                     25
+CPU:                   681_907
+Memory:                  2_596
+Term Size:                  25
+Flat Size:                  39
 
 (constr 0 (con integer 1))

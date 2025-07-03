@@ -9,8 +9,10 @@ module PlutusLedgerApi.V3.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.ProtocolVersions (futurePV)
 import PlutusLedgerApi.V3.ParamName as V3
 
+import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantC))
 
 import Control.Monad
@@ -29,14 +31,19 @@ supplied in the wrong order then script cost calculations will be incorrect.
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon
 a protocol update with the updated cost model parameters.
 -}
-mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
-                    => [Int64] -- ^ the (updated) cost model parameters of the protocol
-                    -> m EvaluationContext
+mkEvaluationContext
+  :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
+  => [Int64] -- ^ the (updated) cost model parameters of the protocol
+  -> m EvaluationContext
 mkEvaluationContext =
-    tagWithParamNames @V3.ParamName
+  tagWithParamNames @V3.ParamName
     >=> pure . toCostModelParams
     >=> mkDynEvaluationContext
         PlutusV3
+        (\pv ->
+          if pv < futurePV
+            then unavailableCaserBuiltin $ getMajorProtocolVersion pv
+            else CaserBuiltin caseBuiltin)
         [DefaultFunSemanticsVariantC]
         -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
         (const DefaultFunSemanticsVariantC)

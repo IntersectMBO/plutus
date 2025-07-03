@@ -12,6 +12,7 @@ module Evaluation.Builtins.Common
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
+    , PlcType
     , PlcTerm
     , UplcTerm
     , CekResult (..)
@@ -21,6 +22,7 @@ module Evaluation.Builtins.Common
     , ok
     , fails
     , evalOkEq
+    , evalOkTrue
     , integer
     , bytestring
     , zero
@@ -58,7 +60,7 @@ import Test.Tasty.QuickCheck (Property, property, (===))
 -- | Type check and evaluate a term.
 typecheckAnd
     :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage
+       , CaseBuiltin uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinSemanticsVariant fun
     -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
@@ -71,7 +73,7 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
     _ <- TPLC.inferType tcConfig term
     return . action runtime $ TPLC.eraseTerm term
     where
-      runtime = mkMachineParameters semvar $
+      runtime = MachineParameters def . mkMachineVariantParameters semvar $
                 -- FIXME: make sure we have the the correct cost model for the semantics variant.
                    CostModel defaultCekMachineCostsForTesting costingPart
 
@@ -79,6 +81,7 @@ typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
 typecheckEvaluateCek
     :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin uni
        )
     => BuiltinSemanticsVariant fun
     -> CostingPart uni fun
@@ -92,6 +95,7 @@ typecheckEvaluateCek semvar =
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin uni
        )
     => BuiltinSemanticsVariant fun
     -> CostingPart uni fun
@@ -105,6 +109,7 @@ typecheckEvaluateCekNoEmit semvar =
 typecheckReadKnownCek
     :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
+       , CaseBuiltin uni
        , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => BuiltinSemanticsVariant fun
@@ -117,6 +122,7 @@ typecheckReadKnownCek semvar =
 
 -- TPLC/UPLC utilities
 
+type PlcType = TPLC.Type TPLC.TyName TPLC.DefaultUni ()
 type PlcTerm  = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
 type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
@@ -187,5 +193,7 @@ evalOkEq t1 t2 =
       r@(CekSuccess _) -> r === evalTerm t2
       _                -> property False
 
+evalOkTrue :: PlcTerm -> Property
+evalOkTrue t = evalOkEq t true
 
 

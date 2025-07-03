@@ -1,5 +1,6 @@
-CPU:              22_448_934
-Memory:               93_792
-Size:                    110
+CPU:                22_448_934
+Memory:                 93_792
+Term Size:                 110
+Flat Size:                 111
 
 (con (list integer) [2,4,6,8,10,12,14,16,18,20])

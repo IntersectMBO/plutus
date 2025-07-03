@@ -6,8 +6,8 @@
 module PlutusIR.Transform.NonStrict (compileNonStrictBindings, compileNonStrictBindingsPass, compileNonStrictBindingsPassSC) where
 
 import PlutusIR
+import PlutusIR.Subst
 import PlutusIR.Transform.Rename ()
-import PlutusIR.Transform.Substitute
 
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.ScottUnit qualified as Unit

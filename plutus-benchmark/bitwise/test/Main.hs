@@ -13,7 +13,7 @@ import PlutusBenchmark.NQueens.Compiled (dimAsData, nqueensCompiled)
 import PlutusBenchmark.SHA512 (sha512)
 import PlutusTx.Builtins (fromBuiltin, toBuiltin)
 import PlutusTx.Code (unsafeApplyCode)
-import PlutusTx.Test (goldenEvalCekCatchBudget, goldenPirReadable)
+import PlutusTx.Test (goldenBundle')
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (TestNested, runTestNested, testNestedGhc)
 import Test.Tasty.HUnit (assertEqual, testCase)
@@ -25,17 +25,13 @@ main = defaultMain . testGroup "bitwise" $ [
       [(0,0), (1,4), (2,7), (3,5), (4,2), (5,6), (6,1), (7,3)]
       (nqueens 8),
     runTestGhc
-      [ goldenPirReadable "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData
-      , goldenEvalCekCatchBudget "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData
-      ]
+      [goldenBundle' "8 queens" $ nqueensCompiled `unsafeApplyCode` dimAsData]
     ],
   testGroup "Ed25519" [
     testCase "SHA512 works" sha512Case,
     testCase "Ed25519 works" ed25519Case,
-    runTestGhc [
-      goldenPirReadable "Ed25519" $
-        checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData,
-      goldenEvalCekCatchBudget "Ed25519" $
+    runTestGhc
+      [ goldenBundle' "Ed25519" $
         checkValidCompiled `unsafeApplyCode` signatureAsData `unsafeApplyCode` msgAsData `unsafeApplyCode` pkAsData
       ]
     ]

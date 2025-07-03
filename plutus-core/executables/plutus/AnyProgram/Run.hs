@@ -45,7 +45,7 @@ runPlc :: (?opts :: Opts)
 runPlc (PLC.Program _ _ t)
     | Nothing <- _budget ?opts =
       -- CK machine currently only works with ann==() , so we void before
-      case PLC.runCk defaultBuiltinsRuntimeForTesting False (void t) of
+      case PLC.runCk defaultBuiltinsRuntimeForTesting def False (void t) of
         (Left errorWithCause, logs) -> do
             for_ logs (printE . unpack)
             failE $ show errorWithCause

@@ -40,7 +40,8 @@ let
                          {all dead. dead})
           in
           go
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   ~and : list bool -> Bool
     = all
         {bool}

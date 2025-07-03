@@ -16,32 +16,29 @@
                                         s s)
                                        (\s
                                          ds ->
-                                          force
-                                            (case
-                                               ds
-                                               [ (delay (constr 0 []))
-                                               , (\x
-                                                   xs ->
-                                                    delay
-                                                      (constr 1
-                                                         [ (case
-                                                              x
-                                                              [ (\c
-                                                                  a ->
-                                                                   constr 0
-                                                                     [ c
-                                                                     , (case
-                                                                          a
-                                                                          [ (\b ->
-                                                                               b)
-                                                                          , (\a
-                                                                              b ->
-                                                                               addInteger
-                                                                                 a
-                                                                                 b)
-                                                                          , (\a ->
-                                                                               a) ]) ]) ])
-                                                         , (s s xs) ])) ]))
+                                          case
+                                            ds
+                                            [ (constr 0 [])
+                                            , (\x
+                                                xs ->
+                                                 constr 1
+                                                   [ (case
+                                                        x
+                                                        [ (\c
+                                                            a ->
+                                                             constr 0
+                                                               [ c
+                                                               , (case
+                                                                    a
+                                                                    [ (\b -> b)
+                                                                    , (\a
+                                                                        b ->
+                                                                         addInteger
+                                                                           a
+                                                                           b)
+                                                                    , (\a ->
+                                                                         a) ]) ]) ])
+                                                   , (s s xs) ]) ])
                                        ((\s ->
                                            s s)
                                           (\s ->
@@ -58,58 +55,46 @@
                                                          , ((\tup ->
                                                                (\index ->
                                                                   (\args ->
-                                                                     force
-                                                                       (force
-                                                                          ifThenElse
-                                                                          (equalsInteger
-                                                                             0
-                                                                             index)
-                                                                          (delay
-                                                                             (constr 2
-                                                                                [ (unIData
-                                                                                     (force
-                                                                                        headList
-                                                                                        args)) ]))
-                                                                          (delay
-                                                                             (force
-                                                                                (force
-                                                                                   ifThenElse
-                                                                                   (equalsInteger
-                                                                                      1
-                                                                                      index)
-                                                                                   (delay
-                                                                                      (constr 0
-                                                                                         [ (unIData
-                                                                                              (force
-                                                                                                 headList
-                                                                                                 args)) ]))
-                                                                                   (delay
+                                                                     case
+                                                                       (equalsInteger
+                                                                          0
+                                                                          index)
+                                                                       [ (case
+                                                                            (equalsInteger
+                                                                               1
+                                                                               index)
+                                                                            [ (case
+                                                                                 (equalsInteger
+                                                                                    2
+                                                                                    index)
+                                                                                 [ ((\x ->
+                                                                                       error)
                                                                                       (force
-                                                                                         (force
-                                                                                            ifThenElse
-                                                                                            (equalsInteger
-                                                                                               2
-                                                                                               index)
-                                                                                            (delay
-                                                                                               (constr 1
-                                                                                                  [ (unIData
-                                                                                                       (force
-                                                                                                          headList
-                                                                                                          args))
-                                                                                                  , (unIData
-                                                                                                       (force
-                                                                                                          headList
-                                                                                                          (force
-                                                                                                             tailList
-                                                                                                             args))) ]))
-                                                                                            (delay
-                                                                                               ((\x ->
-                                                                                                   error)
-                                                                                                  (force
-                                                                                                     trace
-                                                                                                     "PT1"
-                                                                                                     (constr 0
-                                                                                                        [  ]))))))))))))
+                                                                                         trace
+                                                                                         "PT1"
+                                                                                         (constr 0
+                                                                                            [  ])))
+                                                                                 , (constr 1
+                                                                                      [ (unIData
+                                                                                           (force
+                                                                                              headList
+                                                                                              args))
+                                                                                      , (unIData
+                                                                                           (force
+                                                                                              headList
+                                                                                              (force
+                                                                                                 tailList
+                                                                                                 args))) ]) ])
+                                                                            , (constr 0
+                                                                                 [ (unIData
+                                                                                      (force
+                                                                                         headList
+                                                                                         args)) ]) ])
+                                                                       , (constr 2
+                                                                            [ (unIData
+                                                                                 (force
+                                                                                    headList
+                                                                                    args)) ]) ])
                                                                     (force
                                                                        (force
                                                                           sndPair)
@@ -136,40 +121,33 @@
                                                     tl ->
                                                      (\v ->
                                                         (\k ->
-                                                           force
-                                                             (case
-                                                                (lookup' k nt)
-                                                                [ (\r ->
-                                                                     delay
-                                                                       (force
-                                                                          mkCons
-                                                                          (mkPairData
-                                                                             k
-                                                                             (`$fToDataThese_$ctoBuiltinData`
-                                                                                `$dToData`
-                                                                                `$dToData`
-                                                                                (constr 1
-                                                                                   [ (unIData
-                                                                                        v)
-                                                                                   , (unIData
-                                                                                        r) ])))
-                                                                          (s
-                                                                             s
-                                                                             tl)))
-                                                                , (delay
-                                                                     (force
-                                                                        mkCons
-                                                                        (mkPairData
-                                                                           k
-                                                                           (`$fToDataThese_$ctoBuiltinData`
-                                                                              `$dToData`
-                                                                              `$dToData`
-                                                                              (constr 2
-                                                                                 [ (unIData
-                                                                                      v) ])))
-                                                                        (s
-                                                                           s
-                                                                           tl))) ]))
+                                                           case
+                                                             (lookup' k nt)
+                                                             [ (\r ->
+                                                                  force
+                                                                    mkCons
+                                                                    (mkPairData
+                                                                       k
+                                                                       (`$fToDataThese_$ctoBuiltinData`
+                                                                          `$dToData`
+                                                                          `$dToData`
+                                                                          (constr 1
+                                                                             [ (unIData
+                                                                                  v)
+                                                                             , (unIData
+                                                                                  r) ])))
+                                                                    (s s tl))
+                                                             , (force
+                                                                  mkCons
+                                                                  (mkPairData
+                                                                     k
+                                                                     (`$fToDataThese_$ctoBuiltinData`
+                                                                        `$dToData`
+                                                                        `$dToData`
+                                                                        (constr 2
+                                                                           [ (unIData
+                                                                                v) ])))
+                                                                  (s s tl)) ])
                                                           (force (force fstPair)
                                                              hd))
                                                        (force (force sndPair)
@@ -185,40 +163,33 @@
                                                  tl ->
                                                   (\v ->
                                                      (\k ->
-                                                        force
-                                                          (case
-                                                             (lookup' k nt)
-                                                             [ (\r ->
-                                                                  delay
-                                                                    (force
-                                                                       mkCons
-                                                                       (mkPairData
-                                                                          k
-                                                                          (`$fToDataThese_$ctoBuiltinData`
-                                                                             `$dToData`
-                                                                             `$dToData`
-                                                                             (constr 1
-                                                                                [ (unIData
-                                                                                     v)
-                                                                                , (unIData
-                                                                                     r) ])))
-                                                                       (s
-                                                                          s
-                                                                          tl)))
-                                                             , (delay
-                                                                  (force
-                                                                     mkCons
-                                                                     (mkPairData
-                                                                        k
-                                                                        (`$fToDataThese_$ctoBuiltinData`
-                                                                           `$dToData`
-                                                                           `$dToData`
-                                                                           (constr 0
-                                                                              [ (unIData
-                                                                                   v) ])))
-                                                                     (s
-                                                                        s
-                                                                        tl))) ]))
+                                                        case
+                                                          (lookup' k nt)
+                                                          [ (\r ->
+                                                               force
+                                                                 mkCons
+                                                                 (mkPairData
+                                                                    k
+                                                                    (`$fToDataThese_$ctoBuiltinData`
+                                                                       `$dToData`
+                                                                       `$dToData`
+                                                                       (constr 1
+                                                                          [ (unIData
+                                                                               v)
+                                                                          , (unIData
+                                                                               r) ])))
+                                                                 (s s tl))
+                                                          , (force
+                                                               mkCons
+                                                               (mkPairData
+                                                                  k
+                                                                  (`$fToDataThese_$ctoBuiltinData`
+                                                                     `$dToData`
+                                                                     `$dToData`
+                                                                     (constr 0
+                                                                        [ (unIData
+                                                                             v) ])))
+                                                               (s s tl)) ])
                                                        (force (force fstPair)
                                                           hd))
                                                     (force (force sndPair)
@@ -263,22 +234,19 @@
                               (\go eta -> goList (go eta))
                                 ((\s -> s s)
                                    (\s ds ->
-                                      force
-                                        (case
-                                           ds
-                                           [ (delay (constr 0 []))
-                                           , (\x xs ->
-                                                delay
-                                                  (constr 1
-                                                     [ (case
-                                                          x
-                                                          [ (\k a ->
-                                                               constr 0
-                                                                 [ (`$dToData`
-                                                                      k)
-                                                                 , (`$dToData`
-                                                                      a) ]) ])
-                                                     , (s s xs) ])) ])))))
+                                      case
+                                        ds
+                                        [ (constr 0 [])
+                                        , (\x xs ->
+                                             constr 1
+                                               [ (case
+                                                    x
+                                                    [ (\k a ->
+                                                         constr 0
+                                                           [ (`$dToData` k)
+                                                           , (`$dToData`
+                                                                a) ]) ])
+                                               , (s s xs) ]) ]))))
                         ((\s -> s s)
                            (\s ds ->
                               case
@@ -308,10 +276,10 @@
                     caseList'
                       (constr 1 [])
                       (\hd ->
-                         force ifThenElse
+                         case
                            (equalsData k (force (force fstPair) hd))
-                           (\ds -> constr 0 [(force (force sndPair) hd)])
-                           (\x -> s s x)))
+                           [ (\x -> s s x)
+                           , (\ds -> constr 0 [(force (force sndPair) hd)]) ]))
                  m))
          ((\s -> s s)
             (\s xs xs ->
@@ -327,19 +295,14 @@
                                      caseList'
                                        nilCase
                                        (\hd ->
-                                          force
-                                            (force ifThenElse
-                                               (equalsData
-                                                  k
-                                                  (force (force fstPair) hd))
-                                               (delay
-                                                  (force mkCons
-                                                     (mkPairData k v)))
-                                               (delay
-                                                  (\eta ->
-                                                     force mkCons
-                                                       hd
-                                                       (s s eta))))))
+                                          case
+                                            (equalsData
+                                               k
+                                               (force (force fstPair) hd))
+                                            [ (\eta ->
+                                                 force mkCons hd (s s eta))
+                                            , (force mkCons
+                                                 (mkPairData k v)) ]))
                                   eta)
                                (force mkCons (mkPairData k v) []))
                             (s s tl xs))

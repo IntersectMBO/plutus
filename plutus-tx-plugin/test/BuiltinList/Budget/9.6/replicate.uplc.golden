@@ -8,14 +8,11 @@
            (\go arg ->
               delay
                 (\n ->
-                   force
-                     (force ifThenElse
-                        (lessThanEqualsInteger n 0)
-                        (delay [])
-                        (delay
-                           (force mkCons
-                              0
-                              (force (go (delay (\x -> x)))
-                                 (subtractInteger n 1)))))))
+                   case
+                     (lessThanEqualsInteger n 0)
+                     [ (force mkCons
+                          0
+                          (force (go (delay (\x -> x))) (subtractInteger n 1)))
+                     , [] ]))
            (delay (\x -> x)))
         10))

@@ -36,11 +36,10 @@ in
     !tup : pair integer (list data) = unConstrData d
   in
   Bool_match
-    (ifThenElse
-       {Bool}
+    (case
+       Bool
        (equalsInteger 0 (fstPair {integer} {list data} tup))
-       True
-       False)
+       [False, True])
     {all dead. data}
     (/\dead -> headList {data} (sndPair {integer} {list data} tup))
     (/\dead ->
@@ -48,11 +47,10 @@ in
          !tup : pair integer (list data) = unConstrData d
        in
        Bool_match
-         (ifThenElse
-            {Bool}
+         (case
+            Bool
             (equalsInteger 1 (fstPair {integer} {list data} tup))
-            True
-            False)
+            [False, True])
          {all dead. data}
          (/\dead -> headList {data} (sndPair {integer} {list data} tup))
          (/\dead ->
@@ -60,11 +58,10 @@ in
               !tup : pair integer (list data) = unConstrData d
             in
             Bool_match
-              (ifThenElse
-                 {Bool}
+              (case
+                 Bool
                  (equalsInteger 2 (fstPair {integer} {list data} tup))
-                 True
-                 False)
+                 [False, True])
               {all dead. data}
               (/\dead ->
                  let

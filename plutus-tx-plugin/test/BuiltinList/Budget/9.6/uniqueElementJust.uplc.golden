@@ -13,21 +13,19 @@
                delay
                  (delay
                     (\`$dMkNil` n l ->
-                       force
-                         (force ifThenElse
-                            (lessThanEqualsInteger n 0)
-                            (delay `$dMkNil`)
-                            (delay
-                               (caseList'
-                                  `$dMkNil`
-                                  (\x xs ->
-                                     force mkCons
-                                       x
-                                       (force (force (take (delay (\x -> x))))
-                                          `$dMkNil`
-                                          (subtractInteger n 1)
-                                          xs))
-                                  l))))))
+                       case
+                         (lessThanEqualsInteger n 0)
+                         [ (caseList'
+                              `$dMkNil`
+                              (\x xs ->
+                                 force mkCons
+                                   x
+                                   (force (force (take (delay (\x -> x))))
+                                      `$dMkNil`
+                                      (subtractInteger n 1)
+                                      xs))
+                              l)
+                         , `$dMkNil` ])))
             (delay (\x -> x))))
       (\z f xs ->
          force

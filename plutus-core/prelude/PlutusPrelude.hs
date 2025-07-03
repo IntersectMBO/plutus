@@ -59,6 +59,7 @@ module PlutusPrelude
     , set
     , (%~)
     , over
+    , purely
     , (<^>)
     -- * Debugging
     , traceShowId
@@ -68,7 +69,7 @@ module PlutusPrelude
     -- * Custom functions
     , (<<$>>)
     , (<<*>>)
-    , mtraverse
+    , forJoin
     , foldMapM
     , reoption
     , enumerate
@@ -106,7 +107,8 @@ import Control.Arrow ((&&&), (>>>))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
-import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
+import Control.Lens (Fold, Identity, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>),
+                     (^.))
 import Control.Monad
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
@@ -121,6 +123,7 @@ import Data.Functor (($>))
 #if ! MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
+import Data.Functor.Identity (Identity (..))
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -189,8 +192,8 @@ coerceRes = coerce
 through :: Functor f => (a -> f b) -> (a -> f a)
 through f x = f x $> x
 
-mtraverse :: (Monad m, Traversable m, Applicative f) => (a -> f (m b)) -> m a -> f (m b)
-mtraverse f a = join <$> traverse f a
+forJoin :: (Monad m, Traversable m, Applicative f) => m a -> (a -> f (m b)) -> f (m b)
+forJoin a f = join <$> for a f
 
 -- | Fold a monadic function over a 'Foldable'. The monadic version of 'foldMap'.
 foldMapM :: (Foldable f, Monad m, Monoid b) => (a -> m b) -> f a -> m b
@@ -235,6 +238,9 @@ printPretty = print . pretty
 
 showText :: Show a => a -> T.Text
 showText = T.pack . show
+
+purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
+purely = coerce
 
 -- | Compose two folds to make them run in parallel. The results are concatenated.
 (<^>) :: Fold s a -> Fold s a -> Fold s a

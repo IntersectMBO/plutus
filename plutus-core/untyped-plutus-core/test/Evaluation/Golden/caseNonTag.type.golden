@@ -2,6 +2,6 @@
 Expected a term of type
   '(sop)'
 But found one of type
-  '(con integer)'
+  '(fun (con integer) (fun (con integer) (con integer)))'
 Namely,
-  '(con integer 1)')
+  '(builtin addInteger)')

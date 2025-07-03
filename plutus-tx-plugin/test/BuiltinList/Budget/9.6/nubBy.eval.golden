@@ -1,5 +1,6 @@
-CPU:              26_348_119
-Memory:              122_070
-Size:                    199
+CPU:                24_047_678
+Memory:                111_961
+Term Size:                 186
+Flat Size:                 180
 
 (con (list integer) [1])

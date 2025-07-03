@@ -67,7 +67,8 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   !subtractInteger : integer -> integer -> integer = subtractInteger
   ~replicate : all a. (\arep -> list arep) a -> integer -> a -> list a

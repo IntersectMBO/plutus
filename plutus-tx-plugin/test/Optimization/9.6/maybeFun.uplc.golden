@@ -1,14 +1,8 @@
 program
   1.1.0
   (\ds ds ->
-     force
-       (case
-          ds
-          [ (\x' ->
-               delay
-                 (force
-                    (case
-                       ds
-                       [ (\y' -> delay (constr 0 [(addInteger x' y')]))
-                       , (delay (constr 1 [])) ])))
-          , (delay (constr 1 [])) ]))
+     case
+       ds
+       [ (\x' ->
+            case ds [(\y' -> constr 0 [(addInteger x' y')]), (constr 1 [])])
+       , (constr 1 []) ])

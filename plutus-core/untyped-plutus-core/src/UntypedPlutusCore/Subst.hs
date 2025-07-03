@@ -8,6 +8,10 @@ module UntypedPlutusCore.Subst
     , termSubstNames
     , termMapNames
     , programMapNames
+    , substConstantA
+    , substConstant
+    , termSubstConstantsM
+    , termSubstConstants
     , vTerm
     ) where
 
@@ -16,9 +20,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 
 import Control.Lens
-
-purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
-purely = coerce
+import Universe
 
 -- | Applicatively replace a variable using the given function.
 substVarA
@@ -86,3 +88,34 @@ programMapNames f (Program a v term) = Program a v (termMapNames f term)
 -- | Get all the term variables in a term.
 vTerm :: Fold (Term name uni fun ann) name
 vTerm = termSubtermsDeep . termVars
+
+-- | Applicatively replace a constant using the given function.
+substConstantA
+    :: Applicative f
+    => (ann -> Some (ValueOf uni) -> f (Maybe (Term name uni fun ann)))
+    -> Term name uni fun ann
+    -> f (Term name uni fun ann)
+substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
+substConstantA _    t                    = pure t
+
+-- | Replace a constant using the given function.
+substConstant
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun ann))
+    -> Term name uni fun ann
+    -> Term name uni fun ann
+substConstant = purely (substConstantA . curry) . uncurry
+
+-- | Monadically substitute constants using the given function.
+termSubstConstantsM
+    :: Monad m
+    => (ann -> Some (ValueOf uni) -> m (Maybe (Term name uni fun ann)))
+    -> Term name uni fun ann
+    -> m (Term name uni fun ann)
+termSubstConstantsM = transformMOf termSubterms . substConstantA
+
+-- | Substitute constants using the given function.
+termSubstConstants
+    :: (ann -> Some (ValueOf uni) -> Maybe (Term name uni fun ann))
+    -> Term name uni fun ann
+    -> Term name uni fun ann
+termSubstConstants = purely (termSubstConstantsM . curry) . uncurry

@@ -81,7 +81,8 @@ testBudget runtime name term =
     (render
       $ prettyPlcReadable
       $ runCekNoEmit
-        (MachineParameters Plc.defaultCekMachineCostsForTesting runtime)
+        (MachineParameters def $
+            MachineVariantParameters Plc.defaultCekMachineCostsForTesting runtime)
         Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun

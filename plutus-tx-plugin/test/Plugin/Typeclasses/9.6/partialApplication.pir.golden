@@ -7,7 +7,8 @@ let
     GT : Ordering
     LT : Ordering
   !equalsInteger : integer -> integer -> bool = equalsInteger
-  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !ifThenElse : all a. bool -> a -> a -> a
+    = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
   !lessThanEqualsInteger : integer -> integer -> bool = lessThanEqualsInteger
   ~`$fOrdInteger_$ccompare` : integer -> integer -> Ordering
     = \(eta : integer) ->
