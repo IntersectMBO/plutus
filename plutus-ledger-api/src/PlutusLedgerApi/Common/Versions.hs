@@ -81,56 +81,93 @@ data PlutusLedgerLanguage =
 instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
 
+-- Batches of builtins which were introduced at the same time: see
+-- `builtinsIntroducedIn` below.
+batch1 :: [DefaultFun]
+batch1 =
+  [ AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger
+  , RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger
+  , AppendByteString, ConsByteString, SliceByteString, LengthOfByteString
+  , IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString
+  , Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature, AppendString, EqualsString
+  , EncodeUtf8, DecodeUtf8, IfThenElse, ChooseUnit, Trace, FstPair, SndPair, ChooseList
+  , MkCons, HeadList, TailList, NullList, ChooseData, ConstrData, MapData, ListData
+  , IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData
+  , MkPairData, MkNilData, MkNilPairData
+  ]
+
+batch2 :: [DefaultFun]
+batch2 =
+  [ SerialiseData ]
+
+batch3 :: [DefaultFun]
+batch3 =
+  [ VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature ]
+
+-- batch4, excluding IntegerToByteString and ByteStringToInteger.
+batch4a :: [DefaultFun]
+batch4a =
+  [ Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul
+  , Bls12_381_G1_equal, Bls12_381_G1_hashToGroup
+  , Bls12_381_G1_compress, Bls12_381_G1_uncompress
+  , Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul
+  , Bls12_381_G2_equal, Bls12_381_G2_hashToGroup
+  , Bls12_381_G2_compress, Bls12_381_G2_uncompress
+  , Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify
+  , Keccak_256, Blake2b_224
+  ]
+
+{- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
+PlutusV2 at PV10 in #6056 and #6065.  They are available on the chain, but
+they're prohibitively expensive because the proposal to update the relevant
+protocol parameters has not (yet) been enacted.  However, if we move this into
+the next PV there's a theoretical risk of turning a phase 2 failure into a phase
+1 failure: would that be problematic?
+-}
+batch4b :: [DefaultFun]
+batch4b =
+  [ IntegerToByteString, ByteStringToInteger ]
+
+batch4 :: [DefaultFun]
+batch4 = batch4a ++ batch4b
+
+batch5 :: [DefaultFun]
+batch5 =
+  [ AndByteString, OrByteString, XorByteString, ComplementByteString
+  , ReadBit, WriteBits, ReplicateByte
+  , ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit
+  , Ripemd_160
+  ]
+
+batch6 :: [DefaultFun]
+batch6 =
+  [ ExpModInteger, DropList
+  , ListToArray, IndexArray, LengthOfArray
+  -- , CaseList, CaseData,
+  ]
+
 {-| A map indicating which builtin functions were introduced in which 'MajorProtocolVersion'.
 
 This __must__ be updated when new builtins are added.
 See Note [New builtins/language versions and protocol versions]
+
+All builtins will become available in all protocol versions from `futurePV` onwards.
 -}
 builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
-builtinsIntroducedIn = Map.fromList [
-  ((PlutusV1, alonzoPV), Set.fromList [
-          AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
-          AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
-          Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature,
-          AppendString, EqualsString, EncodeUtf8, DecodeUtf8,
-          IfThenElse,
-          ChooseUnit,
-          Trace,
-          FstPair, SndPair,
-          ChooseList, MkCons, HeadList, TailList, NullList,
-          ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
-          MkPairData, MkNilData, MkNilPairData
-          ]),
-  ((PlutusV2, vasilPV), Set.fromList [
-          SerialiseData
-          ]),
-  ((PlutusV2, valentinePV), Set.fromList [
-          VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
-          ]),
-  ((PlutusV2, plominPV), Set.fromList [
-          IntegerToByteString, ByteStringToInteger
-          ]),
-  ((PlutusV3, changPV), Set.fromList [
-          Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
-          Bls12_381_G1_equal, Bls12_381_G1_hashToGroup,
-          Bls12_381_G1_compress, Bls12_381_G1_uncompress,
-          Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul,
-          Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
-          Bls12_381_G2_compress, Bls12_381_G2_uncompress,
-          Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
-          Keccak_256, Blake2b_224, IntegerToByteString, ByteStringToInteger
-          ]),
-  ((PlutusV3, plominPV), Set.fromList [
-          AndByteString, OrByteString, XorByteString, ComplementByteString,
-          ReadBit, WriteBits, ReplicateByte,
-          ShiftByteString, RotateByteString, CountSetBits, FindFirstSetBit,
-          Ripemd_160
-          ]),
-  ((PlutusV3, futurePV), Set.fromList [
-          ExpModInteger,
-          CaseList, CaseData, DropList,
-          ListToArray, IndexArray, LengthOfArray
-          ])
+builtinsIntroducedIn =
+  Map.fromList [
+  -- PlutusV1
+    ((PlutusV1, alonzoPV),    Set.fromList batch1)
+  , ((PlutusV1, futurePV),    Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+  -- PlutusV2
+  , ((PlutusV2, vasilPV),     Set.fromList batch2)
+  , ((PlutusV2, valentinePV), Set.fromList batch3)
+  , ((PlutusV2, plominPV),    Set.fromList batch4a)
+  , ((PlutusV2, futurePV),    Set.fromList (batch4b ++ batch5 ++ batch6))
+  -- PlutusV3
+  , ((PlutusV3, changPV),     Set.fromList batch4)
+  , ((PlutusV3, plominPV),    Set.fromList batch5)
+  , ((PlutusV3, futurePV),    Set.fromList batch6)
   ]
 
 {-| A map indicating which Plutus Core versions were introduced in which
