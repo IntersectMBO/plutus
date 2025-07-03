@@ -148,6 +148,7 @@ let
 
 
   shell = {
+    ghc967 = full-shell;
     ghc966 = full-shell;
     ghc984 = quick-shell;
     ghc9101 = quick-shell;
