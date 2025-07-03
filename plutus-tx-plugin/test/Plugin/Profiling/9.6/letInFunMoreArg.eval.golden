@@ -1,11 +1,11 @@
-[ entering f
+[ entering f:test/Plugin/Profiling/Spec.hs:130:9-130:9
 , entering addInteger
 , exiting addInteger
-, exiting f
-, entering f
+, exiting f:test/Plugin/Profiling/Spec.hs:130:9-130:9
+, entering f:test/Plugin/Profiling/Spec.hs:130:9-130:9
 , entering addInteger
 , exiting addInteger
-, exiting f
+, exiting f:test/Plugin/Profiling/Spec.hs:130:9-130:9
 , entering addInteger
 , exiting addInteger
 , entering multiplyInteger

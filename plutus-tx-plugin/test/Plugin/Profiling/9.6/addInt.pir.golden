@@ -22,9 +22,12 @@ let
         in
         trace
           {unit -> integer -> integer}
-          "entering addInt"
+          "entering addInt:test/Plugin/Profiling/Spec.hs:115:1-115:6"
           (\(thunk : unit) ->
-             trace {integer -> integer} "exiting addInt" (addInteger x))
+             trace
+               {integer -> integer}
+               "exiting addInt:test/Plugin/Profiling/Spec.hs:115:1-115:6"
+               (addInteger x))
           ()
 in
 addInt

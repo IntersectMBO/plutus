@@ -1,12 +1,12 @@
-[ entering useTypeclass
-, entering methodA
-, exiting methodA
+[ entering useTypeclass:test/Plugin/Profiling/Spec.hs:167:1-167:12
+, entering methodA:test/Plugin/Profiling/Spec.hs:156:3-156:30
+, exiting methodA:test/Plugin/Profiling/Spec.hs:156:3-156:30
 , entering addInteger
 , exiting addInteger
-, entering methodB
-, exiting methodB
+, entering methodB:test/Plugin/Profiling/Spec.hs:157:3-157:30
+, exiting methodB:test/Plugin/Profiling/Spec.hs:157:3-157:30
 , entering subtractInteger
 , exiting subtractInteger
 , entering addInteger
 , exiting addInteger
-, exiting useTypeclass ]
+, exiting useTypeclass:test/Plugin/Profiling/Spec.hs:167:1-167:12 ]

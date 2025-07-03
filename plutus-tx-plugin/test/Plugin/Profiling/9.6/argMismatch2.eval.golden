@@ -1,1 +1,2 @@
-[entering obscuredFunction, exiting obscuredFunction]
+[ entering obscuredFunction:test/Plugin/Profiling/Spec.hs:183:1-183:16
+, exiting obscuredFunction:test/Plugin/Profiling/Spec.hs:183:1-183:16 ]
