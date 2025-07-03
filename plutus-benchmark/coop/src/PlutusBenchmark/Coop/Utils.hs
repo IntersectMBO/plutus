@@ -7,12 +7,17 @@ module PlutusBenchmark.Coop.Utils where
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V2
-import PlutusTx.AssocMap
+import PlutusLedgerApi.V1.Value (Value (Value), flattenValue, valueOf, withCurrencySymbol)
+import PlutusLedgerApi.V2 (CurrencySymbol, Datum (Datum), DatumHash,
+                           OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
+                           ScriptContext (ScriptContext), ScriptPurpose (Spending), TxId (TxId),
+                           TxInInfo (TxInInfo, txInInfoOutRef),
+                           TxInfo (TxInfo, txInfoInputs, txInfoMint), TxOut (TxOut, txOutValue),
+                           TxOutRef (TxOutRef))
+import PlutusTx.AssocMap (Map, lookup)
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.List
+import PlutusTx.List (find)
 
 findOwnInput :: [TxInInfo] -> TxOutRef -> TxInInfo
 findOwnInput inputs oref =

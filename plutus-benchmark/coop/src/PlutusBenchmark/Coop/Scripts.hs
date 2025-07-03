@@ -13,13 +13,21 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude
 import Prelude ()
 
-import PlutusLedgerApi.V1.Interval
-import PlutusLedgerApi.V1.Value
+import PlutusLedgerApi.V1.Interval (contains)
+import PlutusLedgerApi.V1.Value (AssetClass (AssetClass), isZero, unAssetClass, valueOf,
+                                 withCurrencySymbol)
 import PlutusLedgerApi.V1.Value qualified as Value
-import PlutusLedgerApi.V2
+import PlutusLedgerApi.V2 (Datum, Extended (PosInf), Interval (Interval, ivTo),
+                           LedgerBytes (getLedgerBytes), LowerBound (LowerBound),
+                           ScriptContext (ScriptContext), ScriptPurpose (Minting),
+                           TokenName (TokenName), TxId (getTxId), TxInInfo (TxInInfo),
+                           TxInfo (TxInfo, txInfoData, txInfoInputs, txInfoMint, txInfoOutputs, txInfoReferenceInputs, txInfoSignatories, txInfoValidRange),
+                           TxOut (TxOut, txOutAddress, txOutDatum, txOutValue),
+                           TxOutRef (TxOutRef, txOutRefId, txOutRefIdx), UpperBound (UpperBound),
+                           Value (Value, getValue))
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.List
+import PlutusTx.List (elem, find, foldl, null)
 
 import PlutusBenchmark.Coop.Types
 import PlutusBenchmark.Coop.Utils

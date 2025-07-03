@@ -9,24 +9,26 @@ in `validation/data` directory for `validation` benchmark runner to run COOP scr
 
 module Main where
 
+import PlutusTx
+
 import Data.ByteString.Lazy qualified as BSL
 import Flat (flat, unflat)
-import System.Directory
-import System.FilePath
-import Test.QuickCheck.Gen
-import Test.QuickCheck.Random
+import System.Directory (doesFileExist)
+import System.FilePath ((<.>), (</>))
+import Test.QuickCheck.Gen (Gen (unGen))
+import Test.QuickCheck.Random (mkQCGen)
 
-import PlutusCore.Annotation
-import PlutusLedgerApi.V1.Address
-import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V2
-import PlutusTx
-import PlutusTx.Code
-import PlutusTx.Test.Util.Apply
+import PlutusCore.Annotation (SrcSpans)
+import PlutusLedgerApi.V1.Address (scriptHashAddress)
+import PlutusLedgerApi.V1.Value (AssetClass, assetClass)
+import PlutusLedgerApi.V2 (Address, CurrencySymbol (CurrencySymbol), Datum (Datum),
+                           Redeemer (Redeemer), ScriptHash (ScriptHash), TokenName (TokenName))
+import PlutusTx.Code (CompiledCodeIn (DeserializedCode, SerializedCode))
+import PlutusTx.Test.Util.Apply (unsafeApplyCodeN)
 import UntypedPlutusCore qualified as UPLC
 
-import PlutusBenchmark.Common
-import PlutusBenchmark.Coop.Gen
+import PlutusBenchmark.Common (getDataDir)
+import PlutusBenchmark.Coop.Gen qualified as CG
 import PlutusBenchmark.Coop.Scripts qualified as Scripts
 import PlutusBenchmark.Coop.Types
 
@@ -108,47 +110,45 @@ main = do
     runGen :: Gen a -> a
     runGen g = unGen g (mkQCGen seed) 1
     scripts =
-      [ compiledCodeToHaskUnsafe
+      [ unsafeApplyCodeN
           Scripts.fsV
           (liftCodeDef $ Datum $ toBuiltinData ())
           (liftCodeDefAsData ())
-          (liftCodeDefAsData $ runGen genCorrectMustBurnOwnSingletonValueCtx)
+          (liftCodeDefAsData $ runGen CG.genCorrectMustBurnOwnSingletonValueCtx)
 
-      , compiledCodeToHaskUnsafe
+      , unsafeApplyCodeN
           Scripts.certMp
           (liftCodeDef certMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData CertMpMint))
-          (liftCodeDefAsData $ runGen (genCorrectCertMpMintingCtx certMpParams certCs))
-      , compiledCodeToHaskUnsafe
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpMint)
+          (liftCodeDefAsData $ runGen $ CG.genCorrectCertMpMintingCtx certMpParams certCs)
+      , unsafeApplyCodeN
           Scripts.certMp
           (liftCodeDef certMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData CertMpBurn))
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpBurn)
           (liftCodeDefAsData $
-             runGen (genCertRdmrAc >>= genCorrectCertMpBurningCtx certMpParams certCs))
+             runGen $ CG.genCertRdmrAc >>= CG.genCorrectCertMpBurningCtx certMpParams certCs)
 
-      , compiledCodeToHaskUnsafe
+      , unsafeApplyCodeN
           Scripts.fsMp
           (liftCodeDef fsMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData FsMpMint))
-          (liftCodeDefAsData $ runGen (genCorrectFsMpMintingCtx fsMpParams fsCs))
-      , compiledCodeToHaskUnsafe
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpMint)
+          (liftCodeDefAsData $ runGen $ CG.genCorrectFsMpMintingCtx fsMpParams fsCs)
+      , unsafeApplyCodeN
           Scripts.fsMp
           (liftCodeDef fsMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData FsMpBurn))
-          (liftCodeDefAsData $
-             runGen (genCorrectFsMpBurningCtx fsMpParams fsCs))
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpBurn)
+          (liftCodeDefAsData $ runGen $ CG.genCorrectFsMpBurningCtx fsMpParams fsCs)
 
-      , compiledCodeToHaskUnsafe
+      , unsafeApplyCodeN
           Scripts.authMp
           (liftCodeDef authMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData AuthMpMint))
-          (liftCodeDefAsData $ runGen (genCorrectAuthMpMintingCtx authMpParams authCs))
-      , compiledCodeToHaskUnsafe
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpMint)
+          (liftCodeDefAsData $ runGen $ CG.genCorrectAuthMpMintingCtx authMpParams authCs)
+      , unsafeApplyCodeN
           Scripts.authMp
           (liftCodeDef authMpParams)
-          (liftCodeDefAsData (Redeemer $ toBuiltinData AuthMpBurn))
-          (liftCodeDefAsData $
-             runGen (genCorrectAuthMpBurningCtx authCs))
+          (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpBurn)
+          (liftCodeDefAsData $ runGen $ CG.genCorrectAuthMpBurningCtx authCs)
       ]
 
   _ <- traverse (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1..]) scripts)
