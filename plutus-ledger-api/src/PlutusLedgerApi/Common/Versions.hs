@@ -104,6 +104,9 @@ batch3 :: [DefaultFun]
 batch3 =
   [ VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature ]
 
+-- `cekCase` and `cekConstr` costs come between Batch 3 and Batch 4 in the
+-- PlutusV3 cost model parameters, although that's irrelevant here.
+
 -- batch4, excluding IntegerToByteString and ByteStringToInteger.
 batch4a :: [DefaultFun]
 batch4a =
@@ -124,7 +127,7 @@ protocol parameters has not (yet) been enacted.  This has left a "gap" in the
 cost model paramters: for PlutusV3, the parameters for Batch 3 are followed
 those for 4a, then 4b, but for PlutusV2 those for Batch3 are followed by those
 for Batch 4b, and those for 4a aren't in use yet.  Since you can't actually use
-the 4a builtins in PlutusV2 at the moment, it's tempting to insert the 4a
+the 4b builtins in PlutusV2 at the moment, it's tempting to insert the 4a
 parameter before the 4b parameters and enable them all at PV11 and with a
 suitable parameter update.  However, if we do do this there's a theoretical risk
 of turning a phase 2 failure into a phase 1 failure: would that be problematic?
