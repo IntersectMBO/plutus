@@ -120,9 +120,14 @@ batch4a =
 {- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
 PlutusV2 at PV10 in #6056 and #6065.  They are available on the chain, but
 they're prohibitively expensive because the proposal to update the relevant
-protocol parameters has not (yet) been enacted.  However, if we move this into
-the next PV there's a theoretical risk of turning a phase 2 failure into a phase
-1 failure: would that be problematic?
+protocol parameters has not (yet) been enacted.  This has left a "gap" in the
+cost model paramters: for PlutusV3, the parameters for Batch 3 are followed
+those for 4a, then 4b, but for PlutusV2 those for Batch3 are followed by those
+for Batch 4b, and those for 4a aren't in use yet.  Since you can't actually use
+the 4a builtins in PlutusV2 at the moment, it's tempting to insert the 4a
+parameter before the 4b parameters and enable them all at PV11 and with a
+suitable parameter update.  However, if we do do this there's a theoretical risk
+of turning a phase 2 failure into a phase 1 failure: would that be problematic?
 -}
 batch4b :: [DefaultFun]
 batch4b =
@@ -162,8 +167,8 @@ builtinsIntroducedIn =
   -- PlutusV2
   , ((PlutusV2, vasilPV),     Set.fromList batch2)
   , ((PlutusV2, valentinePV), Set.fromList batch3)
-  , ((PlutusV2, plominPV),    Set.fromList batch4a)
-  , ((PlutusV2, futurePV),    Set.fromList (batch4b ++ batch5 ++ batch6))
+  , ((PlutusV2, plominPV),    Set.fromList batch4b)
+  , ((PlutusV2, futurePV),    Set.fromList (batch4a ++ batch5 ++ batch6))
   -- PlutusV3
   , ((PlutusV3, changPV),     Set.fromList batch4)
   , ((PlutusV3, plominPV),    Set.fromList batch5)
