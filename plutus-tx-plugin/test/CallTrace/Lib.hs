@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module CallTrace.Utils where
+module CallTrace.Lib where
 
 import PlutusTx.Code
 
@@ -17,9 +17,13 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal qualified as UPLC
 
-import PlutusTx.Test (prettyBudget)
+import PlutusTx.Test (prettyBudget, prettyCodeSize)
 
-goldenEvalCekTraceWithEmitter :: UPLC.EmitterMode UPLC.DefaultUni UPLC.DefaultFun -> TestName -> CompiledCode a -> TestNested
+goldenEvalCekTraceWithEmitter
+  :: UPLC.EmitterMode UPLC.DefaultUni UPLC.DefaultFun
+  -> TestName
+  -> CompiledCode a
+  -> TestNested
 goldenEvalCekTraceWithEmitter emitter name compiledCode =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ do
     uplc <- toUPlc compiledCode
@@ -30,30 +34,25 @@ goldenEvalCekTraceWithEmitter emitter name compiledCode =
           UPLC.counting
           emitter
           (uplc ^. UPLC.progTerm)
-      termSize = UPLC.programSize uplc
-      flatSize = UPLC.serialisedSize $ UPLC.UnrestrictedProgram uplc
 
       traceMsg =
         case logOut of
           [] -> ["Trace: <empty>"]
-          x  -> [ "Trace:" , vsep $ pretty <$> x]
+          x  -> ["Trace:", vsep $ pretty <$> x]
 
-    case evalRes of
+    pure $ render @Text $ case evalRes of
       Left evalErr ->
-        pure $
-          render @Text $
-            vsep
-              [ prettyReadable evalErr
-              , mempty
-              , vsep traceMsg
-              ]
+        vsep
+          [ prettyReadable evalErr
+          , mempty
+          , vsep traceMsg
+          ]
       Right termRes ->
-        pure $
-          render @Text $
-            vsep
-              [ prettyBudget budget termSize flatSize
-              , mempty
-              , vsep traceMsg
-              , mempty
-              , prettyPlcClassicSimple termRes
-              ]
+        vsep
+          [ prettyBudget budget
+          , prettyCodeSize compiledCode
+          , mempty
+          , vsep traceMsg
+          , mempty
+          , prettyPlcClassicSimple termRes
+          ]

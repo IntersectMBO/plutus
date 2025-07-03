@@ -1,2 +1,2 @@
-[ entering swap:test/Plugin/Profiling/Spec.hs:148:1-148:4
-, exiting swap:test/Plugin/Profiling/Spec.hs:148:1-148:4 ]
+[ -> swap:test/Plugin/Profiling/Spec.hs:148:1-148:4
+, <- swap:test/Plugin/Profiling/Spec.hs:148:1-148:4 ]

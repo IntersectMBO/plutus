@@ -791,9 +791,9 @@ entryExitTracing lamName displayName e ty =
         annMayInline
         ( mkTrace
             (PLC.TyFun annMayInline defaultUnitTy ty) -- ()-> ty
-            ("entering " <> displayName)
+            ("-> " <> displayName)
             -- \() -> trace @c "exiting f" e
-            (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("exiting " <> displayName) e))
+            (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("<- " <> displayName) e))
         )
         defaultUnit
 

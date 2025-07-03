@@ -3,5 +3,5 @@ The machine terminated because of an error, either from a built-in function or f
 Caused by: error
 
 Trace:
-entering func:test/CallTrace/Spec.hs:69:1-69:4
-entering $fMyClassInOtherModule()_$cmyClassFuncInOtherModule:test/CallTrace/OtherModule.hs:23:3-23:26
+-> func:test/CallTrace/Spec.hs:78:1-78:4
+-> $fMyClassInOtherModule()_$cmyClassFuncInOtherModule:test/CallTrace/OtherModule.hs:23:3-23:26

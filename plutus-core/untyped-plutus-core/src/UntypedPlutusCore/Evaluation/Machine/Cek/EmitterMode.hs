@@ -75,8 +75,8 @@ logWithBudgetEmitter = EmitterMode $ \getBudget -> do
 
 This requires script to be compiled with `PlutusTx.Plugin:profile-all` turned on because this relies
 on compiler-generated trace calls that notifies entrance and exit of a function call. These traces
-that mark entrance and exit are ordinary traces like "entering rob:Example.hs:3:1-3:15" and "exiting
-bob:Example.hs:1:1-1:13" with "entering" and "exiting" prefixies, where "bob" and "rob" is the name
+that mark entrance and exit are ordinary traces like "-> rob:Example.hs:3:1-3:15" and "<-
+bob:Example.hs:1:1-1:13" with "->" and "<-" prefixies, where "bob" and "rob" is the name
 of the function with source span. If regular script with no entrance/exit marker is given, this
 emitter will behave identically to 'logEmitter'.
 
@@ -97,8 +97,8 @@ logWithCallTraceEmitter = EmitterMode $ \_ -> do
         go [] l = l
         go (x:xs) l =
           case (T.words (last l), T.words x) of
-            ("entering":enterRest, "exiting":exitRest) | enterRest == exitRest -> go xs (init l)
-            _                                                                  -> go xs (l <> [x])
+            ("->":enterRest, "<-":exitRest) | enterRest == exitRest -> go xs (init l)
+            _                                                       -> go xs (l <> [x])
 
     emitter logs = CekM $ modifySTRef logsRef (addTrace logs)
   pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)

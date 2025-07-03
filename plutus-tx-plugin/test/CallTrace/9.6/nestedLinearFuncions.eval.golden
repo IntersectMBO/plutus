@@ -3,8 +3,8 @@ The machine terminated because of an error, either from a built-in function or f
 Caused by: error
 
 Trace:
-entering nestedLinear:test/CallTrace/Spec.hs:62:1-62:12
-entering nestedLinear2:test/CallTrace/Spec.hs:63:1-63:13
-entering nestedLinear3:test/CallTrace/Spec.hs:64:1-64:13
-entering nestedLinear4:test/CallTrace/Spec.hs:65:1-65:13
-entering error
+-> nestedLinear:test/CallTrace/Spec.hs:71:1-71:12
+-> nestedLinear2:test/CallTrace/Spec.hs:72:1-72:13
+-> nestedLinear3:test/CallTrace/Spec.hs:73:1-73:13
+-> nestedLinear4:test/CallTrace/Spec.hs:74:1-74:13
+-> error

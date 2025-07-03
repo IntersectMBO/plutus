@@ -136,9 +136,9 @@ test-suite plutus-tx-plugin-tests
     BuiltinList.Budget.Spec
     ByteStringLiterals.Lib
     ByteStringLiterals.Spec
+    CallTrace.Lib
     CallTrace.OtherModule
     CallTrace.Spec
-    CallTrace.Utils
     DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec

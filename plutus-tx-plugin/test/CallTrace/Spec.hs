@@ -9,10 +9,10 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Redundant if" #-}
@@ -25,19 +25,28 @@ import Prelude ()
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
+import CallTrace.Lib
 import CallTrace.OtherModule
-import CallTrace.Utils
 
 tests :: TestNested
 tests =
-  testNested "CallTrace" . pure $
-    testNestedGhc
-      [ goldenEvalCekTraceWithEmitter Cek.logWithCallTraceEmitter "nestedLinearFuncions" $$(compile [||nestedLinear False||])
-      , goldenEvalCekTraceWithEmitter Cek.logWithCallTraceEmitter "nestedLinearFuncions-error" $$(compile [||nestedLinear True||])
-      , goldenEvalCekTraceWithEmitter Cek.logWithCallTraceEmitter
+  testNested "CallTrace"
+    . pure
+    $ testNestedGhc
+      [ goldenEvalCekTraceWithEmitter
+          Cek.logWithCallTraceEmitter
+          "nestedLinearFuncions"
+          $$(compile [||nestedLinear False||])
+      , goldenEvalCekTraceWithEmitter
+          Cek.logWithCallTraceEmitter
+          "nestedLinearFuncions-error"
+          $$(compile [||nestedLinear True||])
+      , goldenEvalCekTraceWithEmitter
+          Cek.logWithCallTraceEmitter
           "funcionFromOtherModule"
           $$(compile [||functionFromOtherModule False||])
-      , goldenEvalCekTraceWithEmitter Cek.logWithCallTraceEmitter
+      , goldenEvalCekTraceWithEmitter
+          Cek.logWithCallTraceEmitter
           "funcionFromOtherModule-error"
           $$(compile [||functionFromOtherModule True||])
       , goldenEvalCekTraceWithEmitter Cek.logWithCallTraceEmitter "func01" $$(compile [||func 1||])
@@ -55,8 +64,8 @@ tests =
 bob :: Integer -> Integer -> ()
 bob x y =
   if x == y
-  then ()
-  else error ()
+    then ()
+    else error ()
 
 nestedLinear, nestedLinear2, nestedLinear3, nestedLinear4 :: Bool -> BuiltinString
 nestedLinear x = nestedLinear2 x
@@ -66,7 +75,7 @@ nestedLinear4 True  = error ()
 nestedLinear4 False = error ()
 
 func :: Integer -> BuiltinString
-func 1 = (trace "func 1" (\_thunk -> nestedLinear True)) ()
+func 1 = trace "func 1" (\_thunk -> nestedLinear True) ()
 func 2 = nestedLinear2 True
 func 3 = trace "func 3" $ functionFromOtherModule True
 func 4 = myClassFunc @Integer 4
@@ -77,11 +86,11 @@ func 8 = myClassFuncInOtherModule @Integer 8
 func 9 = trace "func 9" $ myClassFuncInOtherModule ()
 func n =
   if bob 42 n == ()
-  then error ()
-  else ""
+    then error ()
+    else ""
 
 functionFromOtherModule :: Bool -> BuiltinString
-functionFromOtherModule x = wraps (not $ not x)
+functionFromOtherModule x = wraps $ not $ not x
 
 class MyClass a where
   myClassFunc :: a -> BuiltinString
