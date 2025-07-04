@@ -1,74 +1,74 @@
-[ entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fib
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fib
-, entering addInteger
-, exiting addInteger
-, exiting fib
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fib
-, entering addInteger
-, exiting addInteger
-, exiting fib
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fib
-, entering subtractInteger
-, exiting subtractInteger
-, entering fib
-, entering equalsInteger
-, exiting equalsInteger
-, exiting fib
-, entering addInteger
-, exiting addInteger
-, exiting fib
-, entering addInteger
-, exiting addInteger
-, exiting fib ]
+[ -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> subtractInteger
+, <- subtractInteger
+, -> fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> equalsInteger
+, <- equalsInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3)
+, -> addInteger
+, <- addInteger
+, <- fib (test/Plugin/Profiling/Spec.hs:99:1-99:3) ]
