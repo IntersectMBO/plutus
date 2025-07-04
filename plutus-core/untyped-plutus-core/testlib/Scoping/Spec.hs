@@ -8,7 +8,6 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, genTerm, mangleNames, runAstGen)
 import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
-import UntypedPlutusCore.Transform.CaseOfCase (caseOfCase)
 import UntypedPlutusCore.Transform.CaseReduce (caseReduce)
 import UntypedPlutusCore.Transform.Cse (cse)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
@@ -70,13 +69,9 @@ test_names = testGroup "names"
         rename
     , T.test_scopingSpoilRenamer (genProgram @DefaultFun) markNonFreshProgram
         renameProgramM
-    , T.test_scopingGood "case-of-case" (genTerm @DefaultFun) T.BindingRemovalOk T.PrerenameYes $
-        evalSimplifierT . caseOfCase
-    , -- COKC removes entire branches, some of which are going to contain binders, but we still use
-      -- 'BindingRemovalNotOk', because the 'EstablishScoping' instance does not attempt to
-      -- reference bindings from one branch in another one. We could do that, but then we'd be
-      -- removing not just TODO.
-      T.test_scopingGood "case-of-known-constructor"
+    -- We don't test case-of-case, because it duplicates binders and we don't support that in the
+    -- scoping tests machinery.
+    , T.test_scopingGood "case-of-known-constructor"
         (genTerm @DefaultFun)
         T.BindingRemovalOk  -- COKC removes branches, which may (and likely do) contain bindings.
         T.PrerenameYes
