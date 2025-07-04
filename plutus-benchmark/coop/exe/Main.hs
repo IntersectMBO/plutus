@@ -3,8 +3,8 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-
-This module itself won't run any benchmark on it's own. It will only generate `.flat` file, if missing,
-in `validation/data` directory for `validation` benchmark runner to run COOP scripts.
+This module itself won't run any benchmark on it's own. It will only generate `.flat` file, if
+missing, in `validation/data` directory for `validation` benchmark runner to run COOP scripts.
 -}
 
 module Main where
@@ -12,6 +12,7 @@ module Main where
 import PlutusTx
 
 import Data.ByteString.Lazy qualified as BSL
+import Data.Foldable (traverse_)
 import Flat (flat, unflat)
 import System.Directory (doesFileExist)
 import System.FilePath ((<.>), (</>))
@@ -84,7 +85,14 @@ createIfNotExists name term = do
         let
           parsed =
             UPLC.unUnrestrictedProgram
-            <$> (unflat @(UPLC.UnrestrictedProgram UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun SrcSpans) $ bs)
+              <$> unflat
+                @( UPLC.UnrestrictedProgram
+                     UPLC.NamedDeBruijn
+                     UPLC.DefaultUni
+                     UPLC.DefaultFun
+                     SrcSpans
+                 )
+                bs
         in case parsed of
           Left err -> error $ "failed to parse UPLC flat from compiled code" <> show err
           Right parsed' ->
@@ -107,8 +115,9 @@ main :: IO ()
 main = do
   let
     seed = 1
+    size = 1
     runGen :: Gen a -> a
-    runGen g = unGen g (mkQCGen seed) 1
+    runGen g = unGen g (mkQCGen seed) size
     scripts =
       [ unsafeApplyCodeN
           Scripts.fsV
@@ -151,5 +160,5 @@ main = do
           (liftCodeDefAsData $ runGen $ CG.genCorrectAuthMpBurningCtx authCs)
       ]
 
-  _ <- traverse (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1..]) scripts)
+  traverse_ (uncurry createIfNotExists) (zip ((\i -> "coop-" <> show @Integer i) <$> [1..]) scripts)
   pure ()
