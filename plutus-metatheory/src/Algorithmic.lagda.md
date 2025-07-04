@@ -18,7 +18,7 @@ open import Data.Vec as Vec using (Vec;[];_∷_;lookup)
 open import Data.List.Properties using (foldr-++)
 
 
-open import Utils renaming (_×_ to _U×_; List to UList; map to umap)
+open import Utils renaming (_×_ to _U×_; List to UList; Array to UArray; map to umap;lengthOfArray to ulengthOfArray)
 open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
@@ -128,6 +128,7 @@ ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f
 ... | ()
 ty2sty (ne ((^ pair · x) · y)) = pair (ty2sty x) (ty2sty y)
 ty2sty (ne (^ list · x)) = list (ty2sty x)
+ty2sty (ne (^ array · x)) = array (ty2sty x)
 ty2sty (ne (^ (atomic x))) = atomic x
 
 sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
@@ -143,11 +144,13 @@ ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
 ... | ()
 ty≅sty₁ (ne ((^ pair · x) · y))  = cong ne (cong₂ _·_ (cong (^ pair ·_) (ty≅sty₁ x)) (ty≅sty₁ y))
 ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x))
+ty≅sty₁ (ne (^ array · x))        = cong ne (cong (^ array ·_) (ty≅sty₁ x))
 ty≅sty₁ (ne (^ (atomic x)))      = refl
 
 ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
 ty≅sty₂ (atomic x) = refl
 ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
+ty≅sty₂ (array A) = cong array (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
 ```
 
@@ -160,6 +163,7 @@ interpretation function
 ... | ()
 ⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
 ⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
+⟦ ne (^ array · x) ⟧ = UArray ⟦ x ⟧
 ⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
 ```
 
