@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -Wno-orphans #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+<span class="lineno">    4 </span>  ( noEmitter
+<span class="lineno">    5 </span>  , logEmitter
+<span class="lineno">    6 </span>  , logWithTimeEmitter
+<span class="lineno">    7 </span>  , logWithBudgetEmitter
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Control.Monad.ST.Unsafe (unsafeIOToST)
+<span class="lineno">   13 </span>import Data.ByteString.Builder qualified as BS
+<span class="lineno">   14 </span>import Data.ByteString.Lazy qualified as BSL
+<span class="lineno">   15 </span>import Data.Csv qualified as CSV
+<span class="lineno">   16 </span>import Data.Csv.Builder qualified as CSV
+<span class="lineno">   17 </span>import Data.DList qualified as DList
+<span class="lineno">   18 </span>import Data.Fixed
+<span class="lineno">   19 </span>import Data.Functor
+<span class="lineno">   20 </span>import Data.SatInt
+<span class="lineno">   21 </span>import Data.STRef (modifySTRef, newSTRef, readSTRef)
+<span class="lineno">   22 </span>import Data.Text qualified as T
+<span class="lineno">   23 </span>import Data.Text.Encoding qualified as T
+<span class="lineno">   24 </span>import Data.Time.Clock
+<span class="lineno">   25 </span>import Data.Time.Clock.POSIX
+<span class="lineno">   26 </span>import PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">   27 </span>import PlutusCore.Evaluation.Machine.ExMemory
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | No emitter.
+<span class="lineno">   30 </span>noEmitter :: EmitterMode uni fun
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">noEmitter = EmitterMode $ \_ -&gt; pure $ CekEmitterInfo (\_ -&gt; pure <span class="nottickedoff">()</span>) (pure <span class="nottickedoff">mempty</span>)</span></span>
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>-- | Emits log only.
+<span class="lineno">   34 </span>logEmitter :: EmitterMode uni fun
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">logEmitter = EmitterMode $ \_ -&gt; do</span>
+<span class="lineno">   36 </span><span class="spaces">  </span><span class="istickedoff">logsRef &lt;- newSTRef DList.empty</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="istickedoff">let emitter logs = CekM $ modifySTRef logsRef (`DList.append` logs)</span>
+<span class="lineno">   38 </span><span class="spaces">  </span><span class="istickedoff">pure $ CekEmitterInfo emitter (DList.toList &lt;$&gt; readSTRef logsRef)</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>-- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is
+<span class="lineno">   41 </span>-- annoying since we're recording the output line-by-line.
+<span class="lineno">   42 </span>encodeRecord :: (CSV.ToRecord a) =&gt; a -&gt; T.Text
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">encodeRecord a = T.stripEnd $ T.decodeUtf8 $ BSL.toStrict $ BS.toLazyByteString $ CSV.encodeRecord a</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- | Emits log with timestamp.
+<span class="lineno">   46 </span>logWithTimeEmitter :: EmitterMode uni fun
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">logWithTimeEmitter = EmitterMode $ \_ -&gt; do</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="nottickedoff">logsRef &lt;- newSTRef DList.empty</span>
+<span class="lineno">   49 </span><span class="spaces">  </span><span class="nottickedoff">let emitter logs = CekM $ do</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">time &lt;- unsafeIOToST getCurrentTime</span>
+<span class="lineno">   51 </span><span class="spaces">        </span><span class="nottickedoff">let secs = let MkFixed s = nominalDiffTimeToSeconds $ utcTimeToPOSIXSeconds time in s</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">let withTime = logs &lt;&amp;&gt; \str -&gt; encodeRecord (str, secs)</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">modifySTRef logsRef (`DList.append` withTime)</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">pure $ CekEmitterInfo emitter (DList.toList &lt;$&gt; readSTRef logsRef)</span></span>
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>instance CSV.ToField ExCPU where
+<span class="lineno">   57 </span>  <span class="decl"><span class="nottickedoff">toField (ExCPU t) = CSV.toField $ unSatInt t</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>instance CSV.ToField ExMemory where
+<span class="lineno">   60 </span>  <span class="decl"><span class="nottickedoff">toField (ExMemory t) = CSV.toField $ unSatInt t</span></span>
+<span class="lineno">   61 </span>
+<span class="lineno">   62 </span>-- | Emits log with the budget.
+<span class="lineno">   63 </span>logWithBudgetEmitter :: EmitterMode uni fun
+<span class="lineno">   64 </span><span class="decl"><span class="nottickedoff">logWithBudgetEmitter = EmitterMode $ \getBudget -&gt; do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="nottickedoff">logsRef &lt;- newSTRef DList.empty</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="nottickedoff">let emitter logs = CekM $ do</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="nottickedoff">ExBudget exCpu exMemory &lt;- getBudget</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="nottickedoff">let withBudget = logs &lt;&amp;&gt; \str -&gt; encodeRecord (str, exCpu, exMemory)</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="nottickedoff">modifySTRef logsRef (`DList.append` withBudget)</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="nottickedoff">pure $ CekEmitterInfo emitter (DList.toList &lt;$&gt; readSTRef logsRef)</span></span>
+
+</pre>
+</body>
+</html>
