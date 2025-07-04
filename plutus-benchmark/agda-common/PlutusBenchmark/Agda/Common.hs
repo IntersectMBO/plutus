@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module PlutusBenchmark.Agda.Common
   ( benchTermAgdaCek
   , benchProgramAgdaCek
@@ -10,7 +12,8 @@ import UntypedPlutusCore qualified as UPLC
 
 import MAlonzo.Code.Evaluator.Term (runUAgda)
 
-import Criterion.Main (Benchmarkable, nf)
+import Control.DeepSeq (force)
+import Criterion.Main (Benchmark, bench, whnf)
 
 -- This code is in its own file so that we only build the metatheory when we really need it.
 
@@ -19,13 +22,15 @@ type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 ---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
 
-benchTermAgdaCek :: Term -> Benchmarkable
-benchTermAgdaCek term =
-    nf unsafeRunAgdaCek $! term
+benchTermAgdaCek :: String -> Term -> Benchmark
+benchTermAgdaCek name term =
+    let !term' = force term
+    in bench name $ whnf unsafeRunAgdaCek term'
 
-benchProgramAgdaCek :: Program -> Benchmarkable
-benchProgramAgdaCek (UPLC.Program _ _ term) =
-    nf unsafeRunAgdaCek $! term
+benchProgramAgdaCek :: String -> Program -> Benchmark
+benchProgramAgdaCek name (UPLC.Program _ _ term) =
+    let !term' = force term
+    in bench name $ whnf unsafeRunAgdaCek term'
 
 unsafeRunAgdaCek :: Term -> PLC.EvaluationResult Term
 unsafeRunAgdaCek =
