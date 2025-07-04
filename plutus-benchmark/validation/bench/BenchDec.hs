@@ -12,6 +12,7 @@ import Criterion
 import Data.ByteString as BS
 import Data.Functor
 
+
 {-|
 for each data/*.flat validation script, it benchmarks
 the time taken to only flat-deserialize the script
