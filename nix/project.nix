@@ -12,6 +12,9 @@ let
 
       src = ../.;
 
+      index-state = "2025-06-17T07:53:04Z";
+      index-sha256 = "sha256-/9/Z6Fpdzil6tDmMrKMKKVcnXksfIpLOQ/2drHo1Rts=";
+
       flake.variants = {
         ghc96 = { }; # Alias for the default project
         ghc96-profiled.modules = [{
@@ -70,7 +73,9 @@ let
               pkgs.ocaml-ng.ocamlPackages_4_10.findlib
               pkgs.coqPackages_8_13.coq
               pkgs.coqPackages_8_13.mathcomp
-              pkgs.coqPackages_8_13.coq-ext-lib
+              # Commented out because it started causing error:
+              #   attribute 'coq-ext-lib' missing
+              # pkgs.coqPackages_8_13.coq-ext-lib
               pkgs.coqPackages_8_13.ssreflect
               pkgs.coqPackages_8_13.equations
             ];
