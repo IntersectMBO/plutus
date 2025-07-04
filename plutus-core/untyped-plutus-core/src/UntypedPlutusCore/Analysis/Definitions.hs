@@ -12,6 +12,7 @@ import UntypedPlutusCore.Core
 import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
 import PlutusCore.Error (UniqueError)
 import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), Unique (Unique))
+import PlutusCore.Name.UniqueMap (emptyUniqueMap)
 
 import Control.Lens (forMOf_)
 import Control.Monad.State (MonadState, execStateT)
@@ -48,4 +49,4 @@ runTermDefs
         Monad m)
     => Term name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
-runTermDefs = runWriterT . flip execStateT mempty . termDefs
+runTermDefs = runWriterT . flip execStateT emptyUniqueMap . termDefs

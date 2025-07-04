@@ -107,7 +107,7 @@ simplifyArgs ::
   PLC.UniqueSet PLC.TermUnique ->
   Term name uni fun a ->
   (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
-simplifyArgs blacklist = runWriter . go
+simplifyArgs blacklist = undefined {- runWriter . go
   where
     go :: Term name uni fun ann -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)
     go = \case
@@ -116,7 +116,7 @@ simplifyArgs blacklist = runWriter . go
         , n `USet.notMemberByName` blacklist -> do
             tell (UMap.singletonByName n delayAnn)
             (Apply appAnn . LamAbs lamAnn n <$> go lamBody) <*> go arg
-      t -> forOf termSubterms t go
+      t -> forOf termSubterms t go -}
 
 -- | Third pass. Turns @Force n@ into @Force (Delay n)@ for all eligibile @n@.
 simplifyBodies
