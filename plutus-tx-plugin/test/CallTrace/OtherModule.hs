@@ -20,4 +20,4 @@ instance MyClassInOtherModule Integer where
   myClassFuncInOtherModule _ = error ()
 
 instance MyClassInOtherModule () where
-  myClassFuncInOtherModule () = error ()
+  myClassFuncInOtherModule () =  error ()

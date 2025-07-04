@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
-  ( noEmitter
-  , logEmitter
-  , logWithTimeEmitter
-  , logWithBudgetEmitter
-  , logWithCallTraceEmitter
-  ) where
+module UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode (
+  noEmitter,
+  logEmitter,
+  logWithTimeEmitter,
+  logWithBudgetEmitter,
+  logWithCallTraceEmitter,
+) where
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
@@ -71,7 +71,7 @@ logWithBudgetEmitter = EmitterMode $ \getBudget -> do
         modifySTRef logsRef (`DList.append` withBudget)
   pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
-{- | Emits log and, when script evaluation fails, call trace.
+{-| Emits log and, when script evaluation fails, call trace.
 
 This requires script to be compiled with `PlutusTx.Plugin:profile-all` turned on because this relies
 on compiler-generated trace calls that notifies entrance and exit of a function call. These traces
@@ -92,13 +92,13 @@ logWithCallTraceEmitter = EmitterMode $ \_ -> do
     addTrace DList.Nil logs = logs
     addTrace newLogs DList.Nil = newLogs
     addTrace newLogs logs = DList.fromList $ go (DList.toList newLogs) (DList.toList logs)
-      where
-        go l [] = l
-        go [] l = l
-        go (x:xs) l =
-          case (T.words (last l), T.words x) of
-            ("->":enterRest, "<-":exitRest) | enterRest == exitRest -> go xs (init l)
-            _                                                       -> go xs (l <> [x])
+     where
+      go l [] = l
+      go [] l = l
+      go (x : xs) l =
+        case (T.words (last l), T.words x) of
+          ("->" : enterRest, "<-" : exitRest) | enterRest == exitRest -> go xs (init l)
+          _                                                           -> go xs (l <> [x])
 
     emitter logs = CekM $ modifySTRef logsRef (addTrace logs)
   pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)

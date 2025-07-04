@@ -37,7 +37,7 @@ goldenEvalCekTraceWithEmitter emitter name compiledCode =
 
       traceMsg =
         case logOut of
-          [] -> ["Trace: <empty>"]
+          [] -> ["No Trace Produced"]
           x  -> ["Trace:", vsep $ pretty <$> x]
 
     pure $ render @Text $ case evalRes of

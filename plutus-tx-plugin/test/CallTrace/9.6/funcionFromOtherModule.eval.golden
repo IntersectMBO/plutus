@@ -1,8 +1,8 @@
 CPU:                 4_513_072
 Memory:                 23_548
 Term Size:                 176
-Flat Size:                 518
+Flat Size:                 530
 
-Trace: <empty>
+No Trace Produced
 
 (con string "hi")

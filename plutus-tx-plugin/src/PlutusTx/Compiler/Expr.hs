@@ -670,7 +670,7 @@ maybeProfileRhs ghcVar var t = do
         -- FIXME: Variables will miss span information when the module they are defined
         -- in is loaded from cache instead of getting compiled.
         Nothing  -> nameStr
-        Just src -> nameStr <> ":" <> show (src ^. srcSpanIso)
+        Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
 
     ty = PLC._varDeclType var
     isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
