@@ -170,8 +170,6 @@ builtinMemoryModels = BuiltinCostModelBase
   , paramFindFirstSetBit                 = Id $ ModelOneArgumentConstantCost 1
   , paramRipemd_160                      = Id $ hashMemModel Hash.ripemd_160
   , paramExpModInteger                   = Id $ ModelThreeArgumentsLinearInZ identityFunction
-  -- paramCaseList
-  -- paramCaseData
   , paramDropList                        = Id $ ModelTwoArgumentsConstantCost 4
   , paramLengthOfArray                   = Id $ ModelOneArgumentConstantCost 10
   , paramListToArray                     = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 7 1
