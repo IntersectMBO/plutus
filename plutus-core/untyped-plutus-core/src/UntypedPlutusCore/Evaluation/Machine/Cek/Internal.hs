@@ -614,7 +614,7 @@ data Context uni fun ann
     -- See Note [Accumulators for terms]
     | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
+    | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann) -- TODO: This is bad
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
 
@@ -749,9 +749,9 @@ enterComputeCek = computeCek
           (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
           []         -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-    computeCek !ctx !env (Case _ scrut cs) = do
+    computeCek !ctx !env (Case ann scrut cs) = do
         stepAndMaybeSpend BCase
-        computeCek (FrameCases env cs ctx) env scrut
+        computeCek (FrameCases ann env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -793,20 +793,21 @@ enterComputeCek = computeCek
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
           []             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
-    returnCek (FrameCases env cs ctx) e = case e of
+    returnCek (FrameCases ann env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
         -- As it happens, this will currently never trigger, since i is a Word64, and the largest
         -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
         -- "apparently good" value.
         (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
-        -- Otherwise, we can safely convert the index to an Int and use it
+        -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-            Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-            Right res -> computeCek ctx env res
+            Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+            Right (args, res) -> computeCek ctx env (foldl (Apply ann) res (Constant ann <$> args))
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with

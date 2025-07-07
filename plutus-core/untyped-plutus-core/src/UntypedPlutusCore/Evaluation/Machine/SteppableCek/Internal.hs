@@ -213,7 +213,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right res -> pure $ Computing ctx env res
+        Right (args, res) -> pure $ Computing ctx env (foldl (Apply ann) res (Constant ann <$> args))
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.

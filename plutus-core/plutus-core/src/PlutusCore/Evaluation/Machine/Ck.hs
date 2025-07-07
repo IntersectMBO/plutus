@@ -247,7 +247,8 @@ FrameCase cs : stack <| e = case e of
         case unCaserBuiltin caser val $ Vector.fromList cs of
             Left err  ->
                 throwErrorWithCause (OperationalError $ CkCaseBuiltinError err) $ ckValueToTerm e
-            Right res -> stack |> res
+            Right (args, res) ->
+              stack |> foldl (Apply ()) res (Constant () <$> args)
     _ -> throwErrorWithCause (StructuralError NonConstrScrutinizedMachineError) $ ckValueToTerm e
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
