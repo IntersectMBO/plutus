@@ -85,3 +85,5 @@ allow-newer:
   , inline-r:containers
   , inline-r:primitive
 
+allow-newer:
+  *:QuickCheck
