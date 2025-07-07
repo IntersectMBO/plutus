@@ -71,7 +71,7 @@ import Data.Text (Text)
 
 -- The type of the machine (runner function).
 type MachineRunner cost uni fun ann =
-      MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+      MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> NTerm uni fun ann
@@ -94,7 +94,7 @@ A wrapper around the internal runCek to debruijn input and undebruijn output.
 -}
 runCek ::
       MachineRunner cost uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term Name uni fun ann
@@ -125,7 +125,7 @@ runCek runner params mode emitMode term =
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 runCekNoEmit ::
       MachineRunner cost uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
@@ -139,7 +139,7 @@ evaluateCek
     :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
     -> EmitterMode uni fun
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
 evaluateCek runner emitMode params =
@@ -151,7 +151,7 @@ evaluateCek runner emitMode params =
 evaluateCekNoEmit
     :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEnormous
@@ -161,7 +161,7 @@ evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEn
 readKnownCek
     :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
     => MachineRunner RestrictingSt uni fun ann
-    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) a
 readKnownCek runner params = evaluateCekNoEmit runner params >=> readKnownSelf

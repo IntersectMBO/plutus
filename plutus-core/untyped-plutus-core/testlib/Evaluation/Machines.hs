@@ -70,7 +70,7 @@ test_machines =
 
 testBudget
     :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)
-    => BuiltinsRuntime fun (CekValue DefaultUni fun ())
+    => BuiltinsRuntime fun (CekValue DefaultUni fun)
     -> TestName
     -> Term Name DefaultUni fun ()
     -> TestNested

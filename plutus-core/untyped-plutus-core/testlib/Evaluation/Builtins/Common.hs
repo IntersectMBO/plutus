@@ -63,7 +63,7 @@ typecheckAnd
        , CaseBuiltin uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinSemanticsVariant fun
-    -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
+    -> (MachineParameters CekMachineCosts fun (CekValue uni fun) ->
             UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
@@ -195,5 +195,3 @@ evalOkEq t1 t2 =
 
 evalOkTrue :: PlcTerm -> Property
 evalOkTrue t = evalOkEq t true
-
-

@@ -77,7 +77,7 @@ pairWith f = fmap (\a -> (a, f a))
 
 benchWith
     :: (Pretty fun, Typeable fun)
-    => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
+    => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun)
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark
@@ -430,4 +430,3 @@ createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
     [bgroup (showMemoryUsage (wrapY y))
       [mkBM x y z | z <- zs] | y <- ys] | x <- xs]
   where mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
-

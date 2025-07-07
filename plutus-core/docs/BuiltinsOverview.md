@@ -213,7 +213,7 @@ Here's a concrete example of what a `TypeScheme` for `DivideInteger` might look 
 ```haskell
 divideIntegerTypeScheme ::
     TypeScheme
-        (CekValue DefaultUni fun ann)
+        (CekValue DefaultUni fun)
         '[Integer, Integer]
         (BuiltinResult Integer)
 divideIntegerTypeScheme = TypeSchemeArrow $ TypeSchemeArrow TypeSchemeResult

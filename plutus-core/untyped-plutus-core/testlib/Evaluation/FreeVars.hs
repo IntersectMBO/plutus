@@ -58,7 +58,7 @@ testDischargeFree = testGroup "discharge" $ fmap (uncurry testCase)
   where
     freeRemains1 =
         -- dis( empty |- (delay (\x ->var0)) ) === (delay (\x -> var0))
-        dis (VDelay (toFakeTerm fun0var0)
+        dis (VDelay (forgetAnn $ toFakeTerm fun0var0)
             []) -- empty env
         @?=
         toFakeTerm (Delay () fun0var0)
@@ -69,7 +69,7 @@ testDischargeFree = testGroup "discharge" $ fmap (uncurry testCase)
         -- y is discharged from the env
         -- var0 is free so it is left alone
         dis (VLamAbs (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
-                (toFakeTerm $
+                (forgetAnn $ toFakeTerm $
                  v 1 @@ -- x
                  [v 2 -- y
                  ,var0 -- free
