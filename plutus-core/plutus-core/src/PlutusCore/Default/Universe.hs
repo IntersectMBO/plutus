@@ -45,12 +45,14 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
+import PlutusCore.Core.Type (Type (TyBuiltin))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
+import PlutusCore.Name.Unique (TyName)
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
 import Control.Monad.Except (throwError)
@@ -530,9 +532,19 @@ outOfBoundsErr x branches = fold
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
+    annotateCaseBuiltin ann (SomeTypeIn uni) branches = case uni of
         DefaultUniBool    -> Right $ map (, []) branches
         DefaultUniInteger -> Right $ map (, []) branches
+        DefaultUniList ty ->
+          case branches of
+            [nil, cons] ->
+              Right
+                [ (nil, [])
+                , (cons, [ TyBuiltin @TyName ann $ SomeTypeIn ty
+                         , TyBuiltin @TyName ann $ SomeTypeIn $ DefaultUniList ty
+                         ])
+                ]
+            _ -> Left $ "Casing on list requires two branches"
         _                 -> Left $ display uni <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
@@ -541,12 +553,18 @@ instance CaseBuiltin DefaultUni where
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
-            False | len == 1 || len == 2 -> Right $ branches Vector.! 0
-            True  |             len == 2 -> Right $ branches Vector.! 1
+            False | len == 1 || len == 2 -> Right $ ([], branches Vector.! 0)
+            True  |             len == 2 -> Right $ ([], branches Vector.! 1)
             _                            -> Left  $ outOfBoundsErr x branches
         DefaultUniInteger
-            | 0 <= x && x < toInteger len -> Right $ branches Vector.! fromInteger x
+            | 0 <= x && x < toInteger len -> Right $ ([], branches Vector.! fromInteger x)
             | otherwise                   -> Left  $ outOfBoundsErr x branches
+        DefaultUniList ty
+            | length branches == 2 ->
+              case x of
+                []       -> Right ([], branches Vector.! 0)
+                (y : ys) -> Right ([Some (ValueOf ty y), Some (ValueOf uni ys)], branches Vector.! 1)
+            | otherwise            -> Left "Casing on builtin list requires exactly two branches"
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches
