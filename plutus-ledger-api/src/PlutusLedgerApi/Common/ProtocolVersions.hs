@@ -10,6 +10,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , valentinePV
     , changPV
     , plominPV
+    , anonPV
     , knownPVs
     , futurePV
     ) where
@@ -73,6 +74,10 @@ changPV = MajorProtocolVersion 9
 plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
+-- Not sure what this is going to be called yet
+anonPV :: MajorProtocolVersion
+anonPV = MajorProtocolVersion 11
+
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
 knownPVs :: Set.Set MajorProtocolVersion
@@ -86,6 +91,7 @@ knownPVs =
     , valentinePV
     , changPV
     , plominPV
+    , anonPV
     ]
 
 -- | This is a placeholder for when we don't yet know what protocol version will

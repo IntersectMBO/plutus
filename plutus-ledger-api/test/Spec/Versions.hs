@@ -60,6 +60,7 @@ testLedgerLanguages = testGroup "ledger languages"
 
 deriving newtype instance Arbitrary MajorProtocolVersion
 
+-- ** FIXME: should we extend this???
 testBuiltinVersions :: TestTree
 testBuiltinVersions = testGroup "builtins"
     [ testCase "all builtins are available some time" $

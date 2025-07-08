@@ -159,23 +159,23 @@ batch6 =
 This __must__ be updated when new builtins are added.
 See Note [New builtins/language versions and protocol versions]
 
-All builtins will become available in all protocol versions from `futurePV` onwards.
+All builtins will become available in all protocol versions from `anonPV` onwards.
 -}
 builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn =
   Map.fromList [
   -- PlutusV1
     ((PlutusV1, alonzoPV),    Set.fromList batch1)
-  , ((PlutusV1, futurePV),    Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+  , ((PlutusV1, anonPV),      Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
   -- PlutusV2
   , ((PlutusV2, vasilPV),     Set.fromList batch2)
   , ((PlutusV2, valentinePV), Set.fromList batch3)
   , ((PlutusV2, plominPV),    Set.fromList batch4b)
-  , ((PlutusV2, futurePV),    Set.fromList (batch4a ++ batch5 ++ batch6))
+  , ((PlutusV2, anonPV),      Set.fromList (batch4a ++ batch5 ++ batch6))
   -- PlutusV3
   , ((PlutusV3, changPV),     Set.fromList batch4)
   , ((PlutusV3, plominPV),    Set.fromList batch5)
-  , ((PlutusV3, futurePV),    Set.fromList batch6)
+  , ((PlutusV3, anonPV),      Set.fromList batch6)
   ]
 
 {-| A map indicating which Plutus Core versions were introduced in which
@@ -185,9 +185,12 @@ This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
 plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
-plcVersionsIntroducedIn = Map.fromList [
-  ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ]),
-  ((PlutusV3, changPV), Set.fromList [ plcVersion110 ])
+plcVersionsIntroducedIn =
+  Map.fromList [
+    ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
+  , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
+  , ((PlutusV2, anonPV),   Set.fromList [ plcVersion110 ])
+  , ((PlutusV3, anonPV),   Set.fromList [ plcVersion110 ])
   ]
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.

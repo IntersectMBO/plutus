@@ -6,5 +6,4 @@ module PlutusCore.StdLib.Data.MatchOption
 -- 'ChooseList'-like builtins or via 'CaseList'-like ones.
 data MatchOption
     = UseChoose
-    | UseCase
     deriving stock (Show, Eq, Bounded, Enum)

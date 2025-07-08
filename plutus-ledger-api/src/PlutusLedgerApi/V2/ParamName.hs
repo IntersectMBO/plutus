@@ -191,10 +191,10 @@ data ParamName =
   | VerifySchnorrSecp256k1Signature'cpu'arguments'slope
   | VerifySchnorrSecp256k1Signature'memory'arguments
   -- End of original cost moodel parameters
---  | CekConstrCost'exBudgetCPU
---  | CekConstrCost'exBudgetMemory
---  | CekCaseCost'exBudgetCPU
---  | CekCaseCost'exBudgetMemory
+  | CekConstrCost'exBudgetCPU
+  | CekConstrCost'exBudgetMemory
+  | CekCaseCost'exBudgetCPU
+  | CekCaseCost'exBudgetMemory
   | Bls12_381_G1_add'cpu'arguments
   | Bls12_381_G1_add'memory'arguments
   | Bls12_381_G1_compress'cpu'arguments
