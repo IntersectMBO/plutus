@@ -23,6 +23,7 @@ module PlutusCore.Builtin.KnownType
     , ReadKnownM
     , Spine (..)
     , HeadSpine (..)
+    , headSpine
     , MonoHeadSpine
     , MakeKnownIn (..)
     , readKnownConstant
@@ -298,13 +299,24 @@ data Spine a
 data HeadSpine a b
     = HeadOnly a
     | HeadSpine a (Spine b)
-    deriving stock (Show, Eq, Functor, Foldable)
+    deriving stock (Show, Eq, Functor)
 
+-- | @HeadSpine@ but the type of head and spine is same
 type MonoHeadSpine a = HeadSpine a a
 
 instance Bifunctor HeadSpine where
   bimap headF _ (HeadOnly a)         = HeadOnly $ headF a
   bimap headF spineF (HeadSpine a b) = HeadSpine (headF a) (spineF <$> b)
+
+-- | Construct @HeadSpine@ from head and list.
+headSpine :: a -> [b] -> HeadSpine a b
+headSpine h [] = HeadOnly h
+headSpine h (x:xs) =
+  -- It's critical to use 'foldr' here, so that deforestation kicks in.
+  -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
+  -- of the trick.
+  -- FIXME: Note is missing
+  HeadSpine h $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x
 
 -- |
 --

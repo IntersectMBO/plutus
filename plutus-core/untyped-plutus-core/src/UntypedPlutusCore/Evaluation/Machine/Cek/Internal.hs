@@ -614,7 +614,7 @@ data Context uni fun ann
     -- See Note [Accumulators for terms]
     | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    | FrameCases ann !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann) -- TODO: This is bad
+    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann) -- TODO: This is bad
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
 
@@ -659,6 +659,13 @@ transferSpine
     -> Context uni fun ann
 transferSpine args ctx = foldr FrameAwaitFunValue ctx args
 {-# INLINE transferSpine #-}
+
+-- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
+transferConstantSpine
+    :: Spine (Some (ValueOf uni))
+    -> Context uni fun ann
+    -> Context uni fun ann
+transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
 
 runCekM
     :: forall a cost uni fun ann
@@ -749,9 +756,9 @@ enterComputeCek = computeCek
           (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
           []         -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
-    computeCek !ctx !env (Case ann scrut cs) = do
+    computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
-        computeCek (FrameCases ann env cs ctx) env scrut
+        computeCek (FrameCases env cs ctx) env scrut
     -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwErrorWithCause (OperationalError CekEvaluationFailure) (Error ())
@@ -793,7 +800,7 @@ enterComputeCek = computeCek
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
           []             -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
-    returnCek (FrameCases ann env cs ctx) e = case e of
+    returnCek (FrameCases env cs ctx) e = case e of
         -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
         -- As it happens, this will currently never trigger, since i is a Word64, and the largest
         -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
@@ -807,7 +814,8 @@ enterComputeCek = computeCek
         -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
             Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-            Right (args, res) -> computeCek ctx env (foldl (Apply ann) res (Constant ann <$> args))
+            Right (HeadOnly fX) -> computeCek ctx env fX
+            Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with

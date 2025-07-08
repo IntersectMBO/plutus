@@ -977,7 +977,7 @@ evaluate it and let the evaluator perform all the necessary reductions.
 So if you want to return an application from a built-in function, you need to use 'HeadSpine' at the
 type level and 'headSpine' at the term level, where the latter has the following signature:
 
-    headSpine :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
+    headSpineOpaque :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
 
 'headSpine' takes the head of the application, i.e. a function from @a0@, @a1@ ... @an@ to @b@, and
 applies it to a list of values of respective types, returning a `b`. Whether types match or not is
@@ -1000,8 +1000,8 @@ Here's how we can define it as a built-in function using 'headSpine':
             caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []                                             -- [1]
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
+                        []     -> headSpineOpaque z []                                             -- [1]
+                        x : xs -> headSpineOpaque f [fromValueOf uniA x, fromValueOf uniListA xs]  -- [2]
                     _ ->
                         throwError $ structuralUnliftingError "Expected a list but got something else"
             {-# INLINE caseListDenotation #-}
@@ -1107,15 +1107,15 @@ functions.
 -}
 
 -- | Take a function and a list of arguments and apply the former to the latter.
-headSpine :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
-headSpine (Opaque f) = Opaque . \case
+headSpineOpaque :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
+headSpineOpaque (Opaque f) = Opaque . \case
     []      -> HeadOnly f
     x0 : xs ->
         -- It's critical to use 'foldr' here, so that deforestation kicks in.
         -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
         -- of the trick.
         HeadSpine f $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x0
-{-# INLINE headSpine #-}
+{-# INLINE headSpineOpaque #-}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
@@ -2111,8 +2111,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of
-                        []     -> headSpine z []
-                        x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+                        []     -> headSpineOpaque z []
+                        x : xs -> headSpineOpaque f [fromValueOf uniA x, fromValueOf uniListA xs]
                     _ ->
                         -- See Note [Structural vs operational errors within builtins].
                         throwError $ structuralUnliftingError "Expected a list but got something else"
@@ -2131,11 +2131,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -> Data
                 -> Opaque (MonoHeadSpine val) b
             caseDataDenotation fConstr fMap fList fI fB = \case
-                Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
-                Map es      -> headSpine fMap [fromValue es]
-                List ds     -> headSpine fList [fromValue ds]
-                I i         -> headSpine fI [fromValue i]
-                B b         -> headSpine fB [fromValue b]
+                Constr i ds -> headSpineOpaque fConstr [fromValue i, fromValue ds]
+                Map es      -> headSpineOpaque fMap [fromValue es]
+                List ds     -> headSpineOpaque fList [fromValue ds]
+                I i         -> headSpineOpaque fI [fromValue i]
+                B b         -> headSpineOpaque fB [fromValue b]
             {-# INLINE caseDataDenotation #-}
         in makeBuiltinMeaning
             caseDataDenotation

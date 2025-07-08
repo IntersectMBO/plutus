@@ -55,6 +55,7 @@ module PlutusCore.MkPlc
     , mkIterKindArrow
     , mkFreshTermLet
     , headSpineToTerm
+    , headSpineToTermNoAnn
     ) where
 
 import PlutusPrelude
@@ -339,5 +340,11 @@ mkFreshTermLet aT a = do
     pure (var mempty genName, termLet mempty (Def (VarDecl mempty genName aT) a))
 
 -- | 'apply' the head of the application to the arguments iteratively.
-headSpineToTerm :: TermLike term tyname name uni fun => MonoHeadSpine (term ()) -> term ()
-headSpineToTerm = foldl1 (apply ())
+headSpineToTerm :: TermLike term tyname name uni fun => ann -> MonoHeadSpine (term ann) -> term ann
+headSpineToTerm _ (HeadOnly t)       = t
+headSpineToTerm ann (HeadSpine t ts) = apply ann t $ foldl1 (apply ann) ts
+
+-- | @headSpineToTerm@ but without annotation.
+headSpineToTermNoAnn :: TermLike term tyname name uni fun => MonoHeadSpine (term ()) -> term ()
+headSpineToTermNoAnn (HeadOnly t)     = t
+headSpineToTermNoAnn (HeadSpine t ts) = apply () t $ foldl1 (apply ()) ts

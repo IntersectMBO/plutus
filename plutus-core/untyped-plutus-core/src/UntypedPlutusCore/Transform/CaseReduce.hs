@@ -5,14 +5,14 @@ module UntypedPlutusCore.Transform.CaseReduce
     , processTerm
     ) where
 
+import Control.Lens (transformOf)
+import Data.Bifunctor (second)
+import Data.Vector qualified as V
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseReduce), SimplifierT,
                                                recordSimplification)
-
-import Control.Lens (transformOf)
-import Data.Vector qualified as V
 
 caseReduce
     :: (Monad m, CaseBuiltin uni)
@@ -30,5 +30,7 @@ processTerm = \case
     -- not to fully optimize such scripts, since they aren't valid anyway.
     Case ann (Constr _ i args) cs | Just c <- (V.!?) cs (fromIntegral i) ->
                                     mkIterApp c ((ann,) <$> args)
-    Case ann (Constant _ con) cs | Right (args, res) <- caseBuiltin con cs -> foldl (Apply ann) res (Constant ann <$> args)
+    Case ann (Constant _ con) cs | Right fXs <- caseBuiltin con cs ->
+                                    headSpineToTerm ann (second (Constant ann) fXs)
+
     t -> t

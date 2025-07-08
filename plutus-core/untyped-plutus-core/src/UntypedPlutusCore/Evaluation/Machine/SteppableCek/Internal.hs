@@ -117,6 +117,10 @@ transferArgStack ann = go
 transferSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
 transferSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
 
+-- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
+transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
+transferConstantSpine ann args ctx = foldr (FrameAwaitFunValue ann . VCon) ctx args
+
 computeCek
     :: forall uni fun ann s
     . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
@@ -213,7 +217,8 @@ returnCek (FrameCases ann env cs ctx) e = case e of
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right (args, res) -> pure $ Computing ctx env (foldl (Apply ann) res (Constant ann <$> args))
+        Right (HeadOnly fX) -> pure $ Computing ctx env fX
+        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.

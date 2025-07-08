@@ -537,6 +537,12 @@ instance AnnotateCaseBuiltin DefaultUni where
         DefaultUniInteger -> Right $ map (, []) branches
         DefaultUniList ty ->
           case branches of
+            [cons] ->
+              Right
+                [ (cons, [ TyBuiltin @TyName ann $ SomeTypeIn ty
+                         , TyBuiltin @TyName ann $ SomeTypeIn $ DefaultUniList ty
+                         ])
+                ]
             [nil, cons] ->
               Right
                 [ (nil, [])
@@ -553,17 +559,21 @@ instance CaseBuiltin DefaultUni where
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
-            False | len == 1 || len == 2 -> Right $ ([], branches Vector.! 0)
-            True  |             len == 2 -> Right $ ([], branches Vector.! 1)
+            False | len == 1 || len == 2 -> Right $ HeadOnly $ branches Vector.! 0
+            True  |             len == 2 -> Right $ HeadOnly $ branches Vector.! 1
             _                            -> Left  $ outOfBoundsErr x branches
         DefaultUniInteger
-            | 0 <= x && x < toInteger len -> Right $ ([], branches Vector.! fromInteger x)
+            | 0 <= x && x < toInteger len -> Right $ HeadOnly $ branches Vector.! fromInteger x
             | otherwise                   -> Left  $ outOfBoundsErr x branches
         DefaultUniList ty
+            | length branches == 1 ->
+              case x of
+                [] -> Left "Expected non-empty list, got empty list"
+                (y : ys) -> Right $ headSpine (branches Vector.! 0) [Some (ValueOf ty y), Some (ValueOf uni ys)]
             | length branches == 2 ->
               case x of
-                []       -> Right ([], branches Vector.! 0)
-                (y : ys) -> Right ([Some (ValueOf ty y), Some (ValueOf uni ys)], branches Vector.! 1)
+                []       -> Right $ HeadOnly $ branches Vector.! 0
+                (y : ys) -> Right $ headSpine (branches Vector.! 1) [Some (ValueOf ty y), Some (ValueOf uni ys)]
             | otherwise            -> Left "Casing on builtin list requires exactly two branches"
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
