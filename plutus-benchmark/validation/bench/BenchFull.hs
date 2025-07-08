@@ -27,8 +27,8 @@ main = do
   -- The validation benchmarks were all created with PlutusV1, so let's make
   -- sure that the evaluation context matches.
   evalCtx <- evaluate $ mkEvalCtx PlutusV1 DefaultFunSemanticsVariantA
-  let mkFullBM :: FilePath -> BS.ByteString -> Benchmarkable
-      mkFullBM file bsFlat =
+  let mkFullBM :: String -> FilePath -> BS.ByteString -> Benchmark
+      mkFullBM name file bsFlat =
         let UPLC.Program () ver body = unsafeUnflat file bsFlat
               -- We make some effort to mimic what happens on-chain, including the provision of
               -- the script arguments. However, the inputs we have are *fully applied*. So we try
@@ -49,5 +49,5 @@ main = do
               (unExRestrictingBudget enormousBudget)
               (either (error . show) id $ deserialiseScript futurePV script)
               args
-        in whnf eval benchScript
+        in bench name $ whnf eval benchScript
   benchWith mkFullBM

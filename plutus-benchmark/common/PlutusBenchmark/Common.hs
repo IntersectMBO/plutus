@@ -134,14 +134,14 @@ evaluateCekForBench
     -> ()
 evaluateCekForBench evalCtx = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
 
-benchTermCek :: LedgerApi.EvaluationContext -> Term -> Benchmarkable
-benchTermCek evalCtx term =
+benchTermCek :: String -> LedgerApi.EvaluationContext -> Term -> Benchmark
+benchTermCek name evalCtx term =
     let !term' = force term
-    in whnf (evaluateCekForBench evalCtx) term'
+    in bench name $ whnf (evaluateCekForBench evalCtx) term'
 
-benchProgramCek :: LedgerApi.EvaluationContext -> Program -> Benchmarkable
-benchProgramCek evalCtx (UPLC.Program _ _ term) =
-  benchTermCek evalCtx term
+benchProgramCek :: String -> LedgerApi.EvaluationContext -> Program -> Benchmark
+benchProgramCek name evalCtx (UPLC.Program _ _ term) =
+  benchTermCek name evalCtx term
 
 ---------------- Printing tables of information about costs ----------------
 

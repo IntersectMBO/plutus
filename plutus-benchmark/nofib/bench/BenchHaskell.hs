@@ -12,17 +12,17 @@ import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
-benchClausify :: Clausify.StaticFormula -> Benchmarkable
-benchClausify f = nf Clausify.runClausify f
+benchClausify :: String -> Clausify.StaticFormula -> Benchmark
+benchClausify name f = bench name $ whnf Clausify.runClausify f
 
-benchKnights :: Integer -> Integer -> Benchmarkable
-benchKnights depth sz = nf (Knights.runKnights depth) sz
+benchKnights :: String -> Integer -> Integer -> Benchmark
+benchKnights name depth sz = bench name $ whnf (Knights.runKnights depth) sz
 
-benchPrime :: Prime.PrimeID -> Benchmarkable
-benchPrime pid = nf Prime.runFixedPrimalityTest pid
+benchPrime :: String -> Prime.PrimeID -> Benchmark
+benchPrime name pid = bench name $ whnf Prime.runFixedPrimalityTest pid
 
-benchQueens :: Integer -> Queens.Algorithm -> Benchmarkable
-benchQueens sz alg = nf (Queens.runQueens sz) alg
+benchQueens :: String -> Integer -> Queens.Algorithm -> Benchmark
+benchQueens name sz alg = bench name $ whnf (Queens.runQueens sz) alg
 
 main :: IO ()
 main = do
