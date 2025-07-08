@@ -37,8 +37,7 @@ examples =
     FolderContents
       [ treeFolderContents "Examples"
           [ treeFolderContents "Data"
-              [ plcTermFile "ofoldrData" $ ofoldrData UseCase
-              , plcTermFile "ofoldrDataViaChoose" $ ofoldrData UseChoose
+              [ plcTermFile "ofoldrDataUseChoose" $ ofoldrData UseChoose
               , plcTermFile "exampleData" exampleData
               ]
           , treeFolderContents "Function"
@@ -51,8 +50,9 @@ examples =
               , plcTermFile "FoldrInterList" foldrInterList
               ]
           , treeFolderContents "List"
-              [ plcTermFile "omapList" $ omapList UseCase
-              , plcTermFile "omapListViaChoose" $ omapList UseChoose
+              [ plcTermFile (name ++ show optMatch) $ f optMatch
+              | optMatch <- enumerate
+              , (name, f) <- [("omapList", omapList)]
               ]
           , treeFolderContents "Pair"
               [ plcTermFile "obothPair" obothPair
