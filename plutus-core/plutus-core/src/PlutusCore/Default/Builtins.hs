@@ -977,7 +977,7 @@ evaluate it and let the evaluator perform all the necessary reductions.
 So if you want to return an application from a built-in function, you need to use 'HeadSpine' at the
 type level and 'headSpine' at the term level, where the latter has the following signature:
 
-    headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
+    headSpine :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
 
 'headSpine' takes the head of the application, i.e. a function from @a0@, @a1@ ... @an@ to @b@, and
 applies it to a list of values of respective types, returning a `b`. Whether types match or not is
@@ -996,7 +996,7 @@ Here's how we can define it as a built-in function using 'headSpine':
                 :: Opaque val b
                 -> Opaque val (a -> [a] -> b)
                 -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
+                -> BuiltinResult (Opaque (MonoHeadSpine val) b)
             caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) = do
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of
@@ -1107,7 +1107,7 @@ functions.
 -}
 
 -- | Take a function and a list of arguments and apply the former to the latter.
-headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
+headSpine :: Opaque val asToB -> [val] -> Opaque (MonoHeadSpine val) b
 headSpine (Opaque f) = Opaque . \case
     []      -> HeadOnly f
     x0 : xs ->
@@ -2107,7 +2107,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: Opaque val (LastArg a b)
                 -> Opaque val (a -> [a] -> b)
                 -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
+                -> BuiltinResult (Opaque (MonoHeadSpine val) b)
             caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of
@@ -2129,7 +2129,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -> Opaque val (Integer -> b)
                 -> Opaque val (BS.ByteString -> b)
                 -> Data
-                -> Opaque (HeadSpine val) b
+                -> Opaque (MonoHeadSpine val) b
             caseDataDenotation fConstr fMap fList fI fB = \case
                 Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
                 Map es      -> headSpine fMap [fromValue es]

@@ -814,7 +814,7 @@ enterComputeCek = computeCek
     -- the returning phase of the CEK machine.
     returnCekHeadSpine
         :: Context uni fun ann
-        -> HeadSpine (CekValue uni fun ann)
+        -> MonoHeadSpine (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
     returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferSpine xs ctx) f

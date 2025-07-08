@@ -264,7 +264,7 @@ transferSpine args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
 -- the returning phase of the CK machine, i.e. @<|@.
 returnCkHeadSpine
     :: Context uni fun
-    -> HeadSpine (CkValue uni fun)
+    -> HeadSpine (CkValue uni fun) (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
 returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
 returnCkHeadSpine stack (HeadSpine f xs) = transferSpine xs stack <| f

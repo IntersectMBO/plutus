@@ -448,7 +448,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 returnCekHeadSpine
     :: ann
     -> Context uni fun ann
-    -> HeadSpine (CekValue uni fun ann)
+    -> MonoHeadSpine (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
 returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
 returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine ann xs ctx) f
