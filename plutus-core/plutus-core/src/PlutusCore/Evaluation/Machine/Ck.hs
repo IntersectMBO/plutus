@@ -255,10 +255,10 @@ FrameCase cs : stack <| e = case e of
 --
 -- >>> import PlutusCore.Default
 -- >>> import PlutusCore.Builtin
--- >>> transferSpine (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
+-- >>> transferValueSpine (SpineCons (fromValue (1 :: Integer)) (SpineLast (fromValue (2 :: Integer)))) [FrameUnwrap :: Frame DefaultUni DefaultFun]
 -- [FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 1))),FrameAwaitFunValue (VCon (Some (ValueOf DefaultUniInteger 2))),FrameUnwrap]
-transferSpine :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
-transferSpine args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
+transferValueSpine :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
+transferValueSpine args ctx = foldr ((:) . FrameAwaitFunValue) ctx args
 
 transferConstantSpine :: Spine (Some (ValueOf uni)) -> Context uni fun -> Context uni fun
 transferConstantSpine args ctx = foldr ((:) . FrameAwaitFunValue . VCon) ctx args
@@ -270,7 +270,7 @@ returnCkHeadSpine
     -> HeadSpine (CkValue uni fun) (CkValue uni fun)
     -> CkM uni fun s (Term TyName Name uni fun ())
 returnCkHeadSpine stack (HeadOnly  x)    = stack <| x
-returnCkHeadSpine stack (HeadSpine f xs) = transferSpine xs stack <| f
+returnCkHeadSpine stack (HeadSpine f xs) = transferValueSpine xs stack <| f
 
 -- | Take a possibly partial builtin application and
 --

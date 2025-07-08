@@ -114,8 +114,8 @@ transferArgStack ann = go
     go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
-transferSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+transferValueSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+transferValueSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
 
 -- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
@@ -456,7 +456,7 @@ returnCekHeadSpine
     -> MonoHeadSpine (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
 returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
-returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine ann xs ctx) f
+returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferValueSpine ann xs ctx) f
 
 -- | Take a possibly partial builtin application and
 --
