@@ -95,13 +95,15 @@ Figure~\ref{fig:type-variables}.
     \label{fig:type-variables}
 \end{minipage}
 % Previously we had fully polymorphic type variables like a_*, which allowed us
-% to re-use this notation with typed PLC.  This was OK until the advent of
-% caseData and caseList, which take term arguments which are expected to be
-% whose types involve arrows: the problem is that (a), we can't represent these
-% in the UPLC "type system", and (b) caseData and caseList in fact return a
-% HeadSpine object and if you supply a non-function argument it'll be embedded
-% in one of these and the type mismatch won't be discovered until the HeadSpine
-% is later evaluated.
+% to re-use this notation with typed PLC.  This was OK until the experiments
+% with caseData and caseList, which took arguments which whose types involved
+% arrows: the problem was that (a), we couldn't represent these in the UPLC
+% "type system", and (b) caseData and caseList in fact returned a HeadSpine
+% object and if you supplied a non-function argument it would be embedded in one
+% of these and the type mismatch wouldn't be discovered until the HeadSpine was
+% later evaluated.  At some point we will remove the notational machinery
+% introduced to deal with these builtins, but it will probably make sense to
+% keep the single fully-polymorphic type variable * if we do that.
 
 % If we ever specify TPLC we'll need a richer grammar of types for it, and here
 % we will need genuine type variables which are polymorphic over terms; these
@@ -305,14 +307,12 @@ $$%%
 
 \noindent We will denote elements of $\R^+$ by expressions of the form $(v|v_1,
 \ldots, v_k)$ with $v, v_i \in \R$ and $k \geq 0$, the case $k=0$ indicating a
-list $(v|)$ with a single entry.  The majority of builtins return a single
+list $(v|)$ with a single entry.  Currently all builtins return a single
 value, and to simplify notation we will identify $\R$ with $\{(v|): v \in \R\}
 \subseteq \R^+$.  The intention is that $(v|v_1, \ldots, v_k)$ will
 immediately be interpreted as an application $v \;v_1\; \ldots\; v_k$ in the
 ambient language (eg, typed or untyped Plutus Core); the number of arguments $k$
-may depend on the values of the inputs to the function, as is the case for the
-$\texttt{caseList}$ and $\texttt{caseData}$ functions described in
-Appendix~\ref{sec:default-builtins-6}.
+may depend on the values of the inputs to the function.
 
 \subsubsection{Signatures and denotations of built-in functions}
 \label{sec:signatures}
