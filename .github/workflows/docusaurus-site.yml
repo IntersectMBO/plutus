@@ -47,8 +47,9 @@ jobs:
         working-directory: doc/docusaurus
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}" 
-          # This matches the URL expected by rossjrw/pr-preview-action@v1:
-          export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org/pr-preview/pr-${PR_NUMBER}"
+          # These match the URL expected by rossjrw/pr-preview-action@v1:
+          export DOCUSAURUS_URL="https://plutus.cardano.intersectmbo.org"
+          export DOCUSAURUS_BASE_URL="/pr-preview/pr-${PR_NUMBER}"
           nix develop --no-warn-dirty --accept-flake-config --command bash -c 'yarn && yarn build'
 
       - name: Deploy Preview Site 
