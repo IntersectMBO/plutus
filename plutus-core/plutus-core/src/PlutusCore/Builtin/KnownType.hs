@@ -4,6 +4,7 @@
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs           #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -43,6 +44,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Control.Monad.Except
+import Data.Bifunctor
 import Data.Either.Extras
 import Data.Functor.Identity
 import Data.String
@@ -293,10 +295,14 @@ data Spine a
 -- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
 --
 -- Used in built-in functions returning function applications such as 'CaseList'.
-data HeadSpine a
+data HeadSpine a b
     = HeadOnly a
-    | HeadSpine a (Spine a)
+    | HeadSpine a (Spine b)
     deriving stock (Show, Eq, Functor, Foldable)
+
+instance Bifunctor HeadSpine where
+  bimap headF _ (HeadOnly a)         = HeadOnly $ headF a
+  bimap headF spineF (HeadSpine a b) = HeadSpine (headF a) (spineF <$> b)
 
 -- |
 --
@@ -315,19 +321,19 @@ deriving via PrettyCommon (Spine a)
 -- z
 -- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
 -- f `applyN` [x, y]
-instance Pretty a => Pretty (HeadSpine a) where
+instance (Pretty a, Pretty b) => Pretty (HeadSpine a b) where
     pretty (HeadOnly x)     = pretty x
     pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
-instance PrettyBy config a => DefaultPrettyBy config (HeadSpine a)
-deriving via PrettyCommon (HeadSpine a)
-    instance PrettyDefaultBy config (HeadSpine a) => PrettyBy config (HeadSpine a)
+instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (HeadSpine a b)
+deriving via PrettyCommon (HeadSpine a b)
+    instance PrettyDefaultBy config (HeadSpine a b) => PrettyBy config (HeadSpine a b)
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> BuiltinResult (HeadSpine val)
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult (HeadSpine val)
+    makeKnown :: a -> BuiltinResult (HeadSpine val val)
+    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult (HeadSpine val val)
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -336,7 +342,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . HeadOnly . fromValue $! x
+    makeKnown x = pure . HeadOnly @val @val . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -354,7 +360,7 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
-makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val)
+makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val val)
 makeKnownOrFail x = case makeKnown x of
     BuiltinSuccess val           -> EvaluationSuccess val
     BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
@@ -415,6 +421,6 @@ instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
     readKnown = coerceArg pure
     {-# INLINE readKnown #-}
 
-instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val) rep) where
+instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val val) rep) where
     makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}

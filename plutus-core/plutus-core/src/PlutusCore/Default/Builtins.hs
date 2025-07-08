@@ -1107,7 +1107,7 @@ functions.
 -}
 
 -- | Take a function and a list of arguments and apply the former to the latter.
-headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val) b
+headSpine :: Opaque val asToB -> [val] -> Opaque (HeadSpine val val) b
 headSpine (Opaque f) = Opaque . \case
     []      -> HeadOnly f
     x0 : xs ->
@@ -2107,7 +2107,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: Opaque val (LastArg a b)
                 -> Opaque val (a -> [a] -> b)
                 -> SomeConstant uni [a]
-                -> BuiltinResult (Opaque (HeadSpine val) b)
+                -> BuiltinResult (Opaque (HeadSpine val val) b)
             caseListDenotation z f (SomeConstant (Some (ValueOf uniListA xs0))) =
                 case uniListA of
                     DefaultUniList uniA -> pure $ case xs0 of

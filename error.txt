@@ -1,0 +1,729 @@
+plutus-core/src/PlutusCore/Default/Builtins.hs:1454:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniPair uniA _
+      In a case alternative:
+          DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
+      In the expression:
+        case uniPairAB of
+          DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a pair but got something else"
+    • Relevant bindings include
+        uniPairAB :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1452:60)
+        fstPairDenotation :: SomeConstant uni (a, b)
+                             -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1452:13)
+     |
+1454 |                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
+     |                     ^^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1454:65: error: [GHC-05617]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f1 a2), Esc f1 ~ Esc (f2 a3),
+                         Esc f2 ~ Esc (,))
+        bound by a pattern with pattern synonym:
+                   DefaultUniPair :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f1 :: k1 -> k2} {a1 :: k1} {k3} {k4}
+                                            {f2 :: k3 -> k4} {a2 :: k3}.
+                                     (a ~ Esc (f1 a1), Esc f1 ~ Esc (f2 a2), Esc f2 ~ Esc (,)) =>
+                                     DefaultUni (Esc a2) -> DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1454:21-41
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val a) (Esc a3)
+        Actual: DefaultUni (Esc a3)
+    • In the first argument of ‘fromValueOf’, namely ‘uniA’
+      In the second argument of ‘(.)’, namely ‘fromValueOf uniA’
+      In the first argument of ‘($)’, namely ‘pure . fromValueOf uniA’
+    • Relevant bindings include
+        fstPairDenotation :: SomeConstant uni (a, b)
+                             -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1452:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+1454 |                     DefaultUniPair uniA _ -> pure . fromValueOf uniA $ fst xy
+     |                                                                 ^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1467:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniPair _ uniB
+      In a case alternative:
+          DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
+      In the expression:
+        case uniPairAB of
+          DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a pair but got something else"
+    • Relevant bindings include
+        uniPairAB :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1465:60)
+        sndPairDenotation :: SomeConstant uni (a, b)
+                             -> BuiltinResult (Opaque val b)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1465:13)
+     |
+1467 |                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
+     |                     ^^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1467:65: error: [GHC-05617]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f1 a2), Esc f1 ~ Esc (f2 a3),
+                         Esc f2 ~ Esc (,))
+        bound by a pattern with pattern synonym:
+                   DefaultUniPair :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f1 :: k1 -> k2} {a1 :: k1} {k3} {k4}
+                                            {f2 :: k3 -> k4} {a2 :: k3}.
+                                     (a ~ Esc (f1 a1), Esc f1 ~ Esc (f2 a2), Esc f2 ~ Esc (,)) =>
+                                     DefaultUni (Esc a2) -> DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1467:21-41
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val b) (Esc a2)
+        Actual: DefaultUni (Esc a2)
+    • In the first argument of ‘fromValueOf’, namely ‘uniB’
+      In the second argument of ‘(.)’, namely ‘fromValueOf uniB’
+      In the first argument of ‘($)’, namely ‘pure . fromValueOf uniB’
+    • Relevant bindings include
+        sndPairDenotation :: SomeConstant uni (a, b)
+                             -> BuiltinResult (Opaque val b)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1465:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+1467 |                     DefaultUniPair _ uniB -> pure . fromValueOf uniB $ snd xy
+     |                                                                 ^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1481:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList _
+      In a case alternative:
+          DefaultUniList _
+            -> pure
+                 $ case xs of
+                     [] -> a
+                     _ : _ -> b
+      In the expression:
+        case uniListA of
+          DefaultUniList _
+            -> pure
+                 $ case xs of
+                     [] -> a
+                     _ : _ -> b
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1479:63)
+        chooseListDenotation :: SomeConstant uni [a]
+                                -> b -> b -> BuiltinResult b
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1479:13)
+     |
+1481 |                     DefaultUniList _ -> pure $ case xs of
+     |                     ^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1500:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a2)
+        Actual: DefaultUni (Esc a2)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList uniA'
+      In a case alternative:
+          DefaultUniList uniA'
+            -> case uniA `geq` uniA' of
+                 Just Refl -> pure . fromValueOf uniListA $ x : xs
+                 _ -> throwError
+                        $ structuralUnliftingError
+                            "The type of the value does not match the type of elements in the list"
+      In the expression:
+        case uniListA of
+          DefaultUniList uniA'
+            -> case uniA `geq` uniA' of
+                 Just Refl -> pure . fromValueOf uniListA $ x : xs
+                 _ -> throwError
+                        $ structuralUnliftingError
+                            "The type of the value does not match the type of elements in the list"
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a2)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1497:44)
+        uniA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1496:44)
+        mkConsDenotation :: SomeConstant uni a
+                            -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1495:13)
+     |
+1500 |                     DefaultUniList uniA' -> case uniA `geq` uniA' of
+     |                     ^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1500:61: error: [GHC-25897]
+    • Could not deduce ‘uni ~ DefaultUni’
+      from the context: (Esc a2 ~ Esc (f a3), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1500:21-40
+      Expected: uni (Esc a3)
+        Actual: DefaultUni (Esc a3)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the second argument of ‘geq’, namely ‘uniA'’
+      In the expression: uniA `geq` uniA'
+      In the expression:
+        case uniA `geq` uniA' of
+          Just Refl -> pure . fromValueOf uniListA $ x : xs
+          _ -> throwError
+                 $ structuralUnliftingError
+                     "The type of the value does not match the type of elements in the list"
+    • Relevant bindings include
+        uniListA :: uni (Esc a2)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1497:44)
+        uniA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1496:44)
+        mkConsDenotation :: SomeConstant uni a
+                            -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1495:13)
+     |
+1500 |                     DefaultUniList uniA' -> case uniA `geq` uniA' of
+     |                                                             ^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1501:57: error: [GHC-25897]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ uni’
+      from the context: (Esc a2 ~ Esc (f a3), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1500:21-40
+      or from: Esc a3 ~ Esc a1
+        bound by a pattern with constructor:
+                   Refl :: forall {k} (a :: k). a :~: a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1501:30-33
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val [a]) (Esc [a1])
+        Actual: uni (Esc a2)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the first argument of ‘fromValueOf’, namely ‘uniListA’
+      In the second argument of ‘(.)’, namely ‘fromValueOf uniListA’
+      In the first argument of ‘($)’, namely
+        ‘pure . fromValueOf uniListA’
+    • Relevant bindings include
+        uniListA :: uni (Esc a2)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1497:44)
+        uniA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1496:44)
+        mkConsDenotation :: SomeConstant uni a
+                            -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1495:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+1501 |                         Just Refl -> pure . fromValueOf uniListA $ x : xs
+     |                                                         ^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1514:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList uniA
+      In a case alternative:
+          DefaultUniList uniA
+            -> case xs of
+                 [] -> fail "Expected a non-empty list but got an empty one"
+                 x : _ -> pure $ fromValueOf uniA x
+      In the expression:
+        case uniListA of
+          DefaultUniList uniA
+            -> case xs of
+                 [] -> fail "Expected a non-empty list but got an empty one"
+                 x : _ -> pure $ fromValueOf uniA x
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1512:61)
+        headListDenotation :: SomeConstant uni [a]
+                              -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1512:13)
+     |
+1514 |                     DefaultUniList uniA -> case xs of
+     |                     ^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1516:53: error: [GHC-05617]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1514:21-39
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val a) (Esc a2)
+        Actual: DefaultUni (Esc a2)
+    • In the first argument of ‘fromValueOf’, namely ‘uniA’
+      In the second argument of ‘($)’, namely ‘fromValueOf uniA x’
+      In the expression: pure $ fromValueOf uniA x
+    • Relevant bindings include
+        headListDenotation :: SomeConstant uni [a]
+                              -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1512:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+1516 |                         x : _ -> pure $ fromValueOf uniA x
+     |                                                     ^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1527:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList _argUni
+      In a case alternative:
+          DefaultUniList _argUni
+            -> case xs of
+                 [] -> fail "Expected a non-empty list but got an empty one"
+                 _ : xs' -> pure $ fromValueOf uniListA xs'
+      In the expression:
+        case uniListA of
+          DefaultUniList _argUni
+            -> case xs of
+                 [] -> fail "Expected a non-empty list but got an empty one"
+                 _ : xs' -> pure $ fromValueOf uniListA xs'
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1525:61)
+        tailListDenotation :: SomeConstant uni [a]
+                              -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1525:13)
+     |
+1527 |                     DefaultUniList _argUni ->
+     |                     ^^^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1530:55: error: [GHC-25897]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ uni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1527:21-42
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val [a]) (Esc [a2])
+        Actual: uni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the first argument of ‘fromValueOf’, namely ‘uniListA’
+      In the second argument of ‘($)’, namely ‘fromValueOf uniListA xs'’
+      In the expression: pure $ fromValueOf uniListA xs'
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1525:61)
+        tailListDenotation :: SomeConstant uni [a]
+                              -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1525:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+1530 |                         _ : xs' -> pure $ fromValueOf uniListA xs'
+     |                                                       ^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:1541:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList _uniA
+      In a case alternative: DefaultUniList _uniA -> pure $ null xs
+      In the expression:
+        case uniListA of
+          DefaultUniList _uniA -> pure $ null xs
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1539:61)
+        nullListDenotation :: SomeConstant uni [a] -> BuiltinResult Bool
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1539:13)
+     |
+1541 |                     DefaultUniList _uniA -> pure $ null xs
+     |                     ^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2027:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList _
+      In a case alternative:
+          DefaultUniList _
+            -> fromValueOf uniListA
+                 <$>
+                   case unIntegerCostedLiterally i of
+                     IS i# -> pure $ drop (I# i#) xs
+                     IN _ -> pure xs
+                     IP _
+                       -> case drop maxBound xs of
+                            [] -> pure []
+                            _ -> throwError
+                                   $ structuralUnliftingError "Panic: unreachable clause executed"
+      In a stmt of a 'do' block:
+        case uniListA of
+          DefaultUniList _
+            -> fromValueOf uniListA
+                 <$>
+                   case unIntegerCostedLiterally i of
+                     IS i# -> pure $ drop (I# i#) xs
+                     IN _ -> pure xs
+                     IP _
+                       -> case drop maxBound xs of
+                            [] -> ...
+                            _ -> ...
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2024:63)
+        dropListDenotation :: IntegerCostedLiterally
+                              -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2024:13)
+     |
+2027 |                     DefaultUniList _ ->
+     |                     ^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2032:37: error: [GHC-25897]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ uni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:2027:21-36
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val [a]) (Esc [a2])
+        Actual: uni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the first argument of ‘fromValueOf’, namely ‘uniListA’
+      In the first argument of ‘(<$>)’, namely ‘fromValueOf uniListA’
+      In the expression:
+        fromValueOf uniListA
+          <$>
+            case unIntegerCostedLiterally i of
+              IS i# -> pure $ drop (I# i#) xs
+              IN _ -> pure xs
+              IP _
+                -> case drop maxBound xs of
+                     [] -> pure []
+                     _ -> throwError
+                            $ structuralUnliftingError "Panic: unreachable clause executed"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2024:63)
+        dropListDenotation :: IntegerCostedLiterally
+                              -> SomeConstant uni [a] -> BuiltinResult (Opaque val [a])
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2024:13)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+2032 |                         fromValueOf uniListA <$> case unIntegerCostedLiterally i of
+     |                                     ^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2075:15: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniArray _uniA
+      In a case alternative:
+          DefaultUniArray _uniA -> pure $ Vector.length vec
+      In the expression:
+        case uni of
+          DefaultUniArray _uniA -> pure $ Vector.length vec
+          _ -> throwError
+                 $ structuralUnliftingError
+                     "Expected an array but got something else"
+    • Relevant bindings include
+        uni :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2073:64)
+        lengthOfArrayDenotation :: SomeConstant uni (Vector a)
+                                   -> BuiltinResult Int
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2073:11)
+     |
+2075 |               DefaultUniArray _uniA -> pure $ Vector.length vec
+     |               ^^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2084:15: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList uniA
+      In a case alternative:
+          DefaultUniList uniA
+            -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+      In the expression:
+        case uniListA of
+          DefaultUniList uniA
+            -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2082:62)
+        listToArrayDenotation :: SomeConstant uni [a]
+                                 -> BuiltinResult (Opaque val (Vector a))
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2082:11)
+     |
+2084 |               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+     |               ^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2084:58: error: [GHC-05617]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:2084:15-33
+      Expected: PlutusCore.Core.Type.UniOf
+                  (Opaque val (Vector a)) (Esc (Vector a2))
+        Actual: DefaultUni (Esc (Vector a2))
+    • In the first argument of ‘fromValueOf’, namely
+        ‘(DefaultUniArray uniA)’
+      In the first argument of ‘($)’, namely
+        ‘fromValueOf (DefaultUniArray uniA)’
+      In the second argument of ‘($)’, namely
+        ‘fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs’
+    • Relevant bindings include
+        listToArrayDenotation :: SomeConstant uni [a]
+                                 -> BuiltinResult (Opaque val (Vector a))
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2082:11)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+2084 |               DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+     |                                                          ^^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2093:15: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniArray arg
+      In a case alternative:
+          DefaultUniArray arg
+            -> do case vec Vector.!? n of
+                    Nothing -> fail "Array index out of bounds"
+                    Just el -> pure $ fromValueOf arg el
+      In the expression:
+        case uni of
+          DefaultUniArray arg
+            -> do case vec Vector.!? n of
+                    Nothing -> ...
+                    Just el -> ...
+          _ -> throwError
+                 $ structuralUnliftingError
+                     "Expected an array but got something else"
+    • Relevant bindings include
+        uni :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2091:61)
+        indexArrayDenotation :: SomeConstant uni (Vector a)
+                                -> Int -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2091:11)
+     |
+2093 |               DefaultUniArray arg -> do
+     |               ^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2096:49: error: [GHC-05617]
+    • Could not deduce ‘PlutusCore.Core.Type.UniOf val ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc Vector)
+        bound by a pattern with pattern synonym:
+                   DefaultUniArray :: forall {a}.
+                                      () =>
+                                      forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                      (a ~ Esc (f a1), Esc f ~ Esc Vector) =>
+                                      DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:2093:15-33
+      Expected: PlutusCore.Core.Type.UniOf (Opaque val a) (Esc a2)
+        Actual: DefaultUni (Esc a2)
+    • In the first argument of ‘fromValueOf’, namely ‘arg’
+      In the second argument of ‘($)’, namely ‘fromValueOf arg el’
+      In the expression: pure $ fromValueOf arg el
+    • Relevant bindings include
+        indexArrayDenotation :: SomeConstant uni (Vector a)
+                                -> Int -> BuiltinResult (Opaque val a)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2091:11)
+        toBuiltinMeaning :: BuiltinSemanticsVariant DefaultFun
+                            -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:1141:5)
+     |
+2096 |                   Just el -> pure $ fromValueOf arg el
+     |                                                 ^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2113:21: error: [GHC-25897]
+    • Couldn't match type ‘uni’ with ‘DefaultUni’
+      Expected: uni (Esc a1)
+        Actual: DefaultUni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the pattern: DefaultUniList uniA
+      In a case alternative:
+          DefaultUniList uniA
+            -> pure
+                 $ case xs0 of
+                     [] -> headSpine z []
+                     x : xs -> headSpine f [fromValueOf uniA x, ....]
+      In the expression:
+        case uniListA of
+          DefaultUniList uniA
+            -> pure
+                 $ case xs0 of
+                     [] -> headSpine z []
+                     x : xs -> headSpine f [...]
+          _ -> throwError
+                 $ structuralUnliftingError "Expected a list but got something else"
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2111:65)
+        caseListDenotation :: Opaque val (LastArg a b)
+                              -> Opaque val (a -> [a] -> b)
+                              -> SomeConstant uni [a]
+                              -> BuiltinResult (Opaque (HeadSpine val val) b)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2111:13)
+     |
+2113 |                     DefaultUniList uniA -> pure $ case xs0 of
+     |                     ^^^^^^^^^^^^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2115:80: error: [GHC-25897]
+    • Could not deduce ‘uni ~ DefaultUni’
+      from the context: (Esc a1 ~ Esc (f a2), Esc f ~ Esc [])
+        bound by a pattern with pattern synonym:
+                   DefaultUniList :: forall {a}.
+                                     () =>
+                                     forall {k1} {k2} {f :: k1 -> k2} {a1 :: k1}.
+                                     (a ~ Esc (f a1), Esc f ~ Esc []) =>
+                                     DefaultUni (Esc a1) -> DefaultUni a,
+                 in a case alternative
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:2113:21-39
+      Expected: PlutusCore.Core.Type.UniOf val (Esc [a2])
+        Actual: uni (Esc a1)
+      ‘uni’ is a rigid type variable bound by
+        the instance declaration
+        at plutus-core/src/PlutusCore/Default/Builtins.hs:1120:10-60
+    • In the first argument of ‘fromValueOf’, namely ‘uniListA’
+      In the expression: fromValueOf uniListA xs
+      In the second argument of ‘headSpine’, namely
+        ‘[fromValueOf uniA x, fromValueOf uniListA xs]’
+    • Relevant bindings include
+        uniListA :: uni (Esc a1)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2111:65)
+        caseListDenotation :: Opaque val (LastArg a b)
+                              -> Opaque val (a -> [a] -> b)
+                              -> SomeConstant uni [a]
+                              -> BuiltinResult (Opaque (HeadSpine val val) b)
+          (bound at plutus-core/src/PlutusCore/Default/Builtins.hs:2111:13)
+     |
+2115 |                         x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+     |                                                                                ^^^^^^^^
+
+plutus-core/src/PlutusCore/Default/Builtins.hs:2132:28: error: [GHC-83865]
+    • Expecting one more argument to ‘HeadSpine val’
+      Expected a type, but ‘HeadSpine val’ has kind ‘* -> *’
+    • In the first argument of ‘Opaque’, namely ‘(HeadSpine val)’
+      In the type signature:
+        caseDataDenotation :: Opaque val (Integer -> [Data] -> b)
+                              -> Opaque val ([(Data, Data)] -> b)
+                                 -> Opaque val ([Data] -> b)
+                                    -> Opaque val (Integer -> b)
+                                       -> Opaque val (BS.ByteString -> b)
+                                          -> Data -> Opaque (HeadSpine val) b
+      In the expression:
+        let
+          caseDataDenotation ::
+            Opaque val (Integer -> [Data] -> b)
+            -> Opaque val ([(Data, Data)] -> b)
+               -> Opaque val ([Data] -> b)
+                  -> Opaque val (Integer -> b)
+                     -> Opaque val (BS.ByteString -> b)
+                        -> Data -> Opaque (HeadSpine val) b
+          caseDataDenotation fConstr fMap fList fI fB
+            = \case
+                Constr i ds -> ...
+                Map es -> ...
+                List ds -> ...
+                I i -> ...
+                B b -> ...
+          {-# INLINE caseDataDenotation #-}
+        in
+          makeBuiltinMeaning
+            caseDataDenotation
+            (runCostingFunSixArguments . unimplementedCostingFun)
+     |
+2132 |                 -> Opaque (HeadSpine val) b
+     |                            ^^^^^^^^^^^^^
