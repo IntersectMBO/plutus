@@ -4,7 +4,7 @@ sidebar_position: 0
 
 # Plinth User Guide
 
-Welcome to the Plinth user guide!!!.
+Welcome to the Plinth user guide.
 This guide covers __Plinth__ (formerly Plutus Tx), a subset of Haskell tailored for implementing smart contracts on Cardano, and its compilation target, __Plutus Core__, a low level lambda calculus based language for on-chain execution.
 
 As a subset of Haskell, Plinth is high level and purely functional, and leverages Haskell's powerful type system.
