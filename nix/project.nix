@@ -96,6 +96,9 @@ let
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           };
         }
+        ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
+          packages.basement.configureFlags = [ "--hsc2hs-option=--cflag=-Wno-int-conversion" ];
+        })
       ];
     });
 in
