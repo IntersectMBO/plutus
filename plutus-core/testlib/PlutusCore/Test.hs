@@ -192,7 +192,7 @@ instance
   ( TPLC.Typecheckable uni fun
   , CaseBuiltin uni
   , Hashable fun
-  , TPLC.GEq uni, TPLC.Closed uni, TPLC.Everywhere uni Eq
+  , TPLC.GEq uni, TPLC.Closed uni, TPLC.Everywhere uni Eq, TPLC.Everywhere uni Hashable
   )
   => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
   toUPlc =

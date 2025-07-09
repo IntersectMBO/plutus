@@ -74,6 +74,7 @@ safeLiftWith
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -119,6 +120,7 @@ safeLift
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -143,6 +145,7 @@ safeLiftUnopt
    . ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -171,6 +174,7 @@ safeLiftProgram
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -194,6 +198,7 @@ safeLiftProgramUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -214,6 +219,7 @@ safeLiftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -240,6 +246,7 @@ safeLiftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , MonadError (PIR.Error uni fun (Provenance ())) m
      , MonadQuote m
      , PLC.Typecheckable uni fun
@@ -278,6 +285,7 @@ lift
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
@@ -298,6 +306,7 @@ liftUnopt
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
@@ -316,6 +325,7 @@ liftProgram
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
@@ -336,6 +346,7 @@ liftProgramUnopt
      , PLC.Typecheckable uni fun
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , PLC.CaseBuiltin uni
      , Default (PLC.CostingPart uni fun)
      , Default (PIR.BuiltinsInfo uni fun)
@@ -372,6 +383,7 @@ liftCode
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -390,6 +402,7 @@ liftCodeUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -406,6 +419,7 @@ liftCodeDef
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -424,6 +438,7 @@ liftCodeDefUnopt
   :: ( Lift.Lift uni a
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , ThrowableBuiltins uni fun
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
@@ -495,6 +510,7 @@ typeCode
      , MonadQuote m
      , PLC.GEq uni
      , PLC.Everywhere uni Eq
+     , PLC.Everywhere uni Hashable
      , PLC.Typecheckable uni fun
      , PLC.CaseBuiltin uni
      , PrettyUni uni

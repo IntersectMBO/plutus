@@ -34,7 +34,7 @@ into
 
 This is always an improvement.
 -}
-module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
+module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase, processTerm, annotateIsDuplicatedOn) where
 
 import PlutusPrelude
 
@@ -42,16 +42,18 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin (CaseBuiltin (..))
 import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
+import UntypedPlutusCore.Size (termSize)
 import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CaseOfCase), SimplifierT,
                                                recordSimplification)
 
 import Control.Lens
-import Data.List (nub)
+import Data.Hashable (Hashable)
+import Data.HashMap.Strict qualified as HashMap
 
 caseOfCase
     :: ( fun ~ PLC.DefaultFun, Monad m, CaseBuiltin uni
-       , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` Eq
+       , PLC.Closed uni, PLC.GEq uni, uni `PLC.Everywhere` Eq, uni `PLC.Everywhere` Hashable
        )
     => Term name uni fun a
     -> SimplifierT name uni fun a m (Term name uni fun a)
@@ -60,9 +62,15 @@ caseOfCase term = do
   recordSimplification term CaseOfCase result
   return result
 
+-- >>> annotateIsDuplicatedOn id "abacdeffdbdg"
+-- [('a',True),('b',True),('a',True),('c',False),('d',True),('e',False),('f',True),('f',True),('d',True),('b',True),('d',True),('g',False)]
+annotateIsDuplicatedOn :: (Functor f, Foldable f, Hashable b) => (a -> b) -> f a -> f (a, Bool)
+annotateIsDuplicatedOn f xs = fmap (\x -> (x, duplMap HashMap.! f x)) xs where
+    duplMap = HashMap.fromListWith (\_ _ -> True) . map (\x -> (f x, False)) $ toList xs
+
 processTerm
     :: ( fun ~ PLC.DefaultFun, CaseBuiltin uni
-       , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` Eq
+       , PLC.Closed uni, PLC.GEq uni, uni `PLC.Everywhere` Eq, uni `PLC.Everywhere` Hashable
        )
     => Term name uni fun a -> Term name uni fun a
 processTerm = \case
@@ -88,11 +96,13 @@ processTerm = \case
       original
       (Case annInner scrut)
       (do
-        constrs <- for altsInner $ \case
+        constrsDupl <- fmap (annotateIsDuplicatedOn fst) . for altsInner $ \case
           c@(Constr _ i _)   -> Just (Left i, c)
           c@(Constant _ val) -> Just (Right val, c)
           _                  -> Nothing
         -- See Note [Case-of-case and duplicating code].
-        guard $ length (nub . toList $ fmap fst constrs) == length constrs
-        pure $ constrs <&> \(_, c) -> CaseReduce.processTerm $ Case annOuter c altsOuter)
+        for constrsDupl $ \((_, c), dupl) -> do
+            let alt = CaseReduce.processTerm $ Case annOuter c altsOuter
+            guard $ not dupl || termSize alt <= 3
+            pure alt)
   other -> other
