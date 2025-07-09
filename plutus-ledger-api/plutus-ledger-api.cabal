@@ -62,6 +62,7 @@ library
     PlutusLedgerApi.Data.V1
     PlutusLedgerApi.Data.V2
     PlutusLedgerApi.Data.V3
+    PlutusLedgerApi.Envelope
     PlutusLedgerApi.MachineParameters
     PlutusLedgerApi.V1
     PlutusLedgerApi.V1.Address
@@ -110,6 +111,8 @@ library
     Prettyprinter.Extras
 
   build-depends:
+    , aeson
+    , aeson-pretty
     , base               >=4.9   && <5
     , base16-bytestring  >=1
     , bytestring
@@ -222,6 +225,7 @@ test-suite plutus-ledger-api-plugin-test
     Spec.Data.MintValue.V3
     Spec.Data.ScriptContext
     Spec.Data.Value
+    Spec.Envelope
     Spec.MintValue.V3
     Spec.ReturnUnit.V1
     Spec.ReturnUnit.V2
@@ -237,6 +241,7 @@ test-suite plutus-ledger-api-plugin-test
     , base                                         >=4.9   && <5
     , bytestring
     , containers
+    , filepath
     , lens
     , mtl
     , plutus-core                                  ^>=1.49
@@ -249,6 +254,7 @@ test-suite plutus-ledger-api-plugin-test
     , prettyprinter
     , QuickCheck
     , tasty
+    , tasty-golden
     , tasty-hunit
     , tasty-quickcheck
 
