@@ -264,7 +264,7 @@ library casing-internal
     , base                     >=4.9   && <5
     , mtl
     , plutus-benchmark-common
-    , plutus-core              ^>=1.48
+    , plutus-core              ^>=1.49
 
 benchmark casing
   import:         lang, ghc-version-support, os-support
@@ -276,7 +276,7 @@ benchmark casing
     , casing-internal
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
-    , plutus-ledger-api        ^>=1.48
+    , plutus-ledger-api        ^>=1.49
 
 ---------------- validation ----------------
 
