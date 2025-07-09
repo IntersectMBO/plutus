@@ -10,6 +10,7 @@ import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+-- import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParamsForTesting)
 
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer.Strict (WriterT (runWriterT))
@@ -41,15 +42,14 @@ tests =
         for_ v3_ParamNames \p ->
           assertBool "tripping v3 cm params failed" $
             Just p == readParamName (showParamName p)
-    , -- \*** FIXME (https://github.com/IntersectMBO/plutus-private/issues/1612) !!! *** :
       -- The introduction of the new bitwise builtins has
       -- messed this up because defaultCostModelParamsForTesting is the cost
       -- model parameters for model C,
       -- which now includes the new bitwise builtins.
-      --    , testCase "default values costmodelparamsfortesting" do
-      --        defaultCostModelParamsForTesting
-      --          @=? Just (toCostModelParams V3.costModelParamsForTesting)
-      embed $ testCase "context length" do
+      --  , embed $ testCase "default values costmodelparamsfortesting" do
+      --    defaultCostModelParamsForTesting
+      --      @=? Just (toCostModelParams V3.costModelParamsForTesting)
+    , embed $ testCase "context length" do
         let costValuesForTesting = fmap snd V3.costModelParamsForTesting
         -- the `costModelParamsForTesting` reflects only the latest
         -- version (V3), so this should succeed because the lengths match

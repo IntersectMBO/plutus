@@ -151,7 +151,6 @@ batch6 :: [DefaultFun]
 batch6 =
   [ ExpModInteger, DropList
   , ListToArray, IndexArray, LengthOfArray
-  -- , CaseList, CaseData,
   ]
 
 {-| A map indicating which builtin functions were introduced in which 'MajorProtocolVersion'.
@@ -178,19 +177,55 @@ builtinsIntroducedIn =
   , ((PlutusV3, anonPV),      Set.fromList batch6)
   ]
 
+
+-- I THINK THIS IS BROKEN NOW: we assume that if something's introduced in eg V1
+-- then it's available in V2 and V3 as well, but introducing 1.1.0 for V2 in Anon
+-- may confuse it about when it's introduced for V3
+--
 {-| A map indicating which Plutus Core versions were introduced in which
 'MajorProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
 
 This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
+
+{-
+-- ** This should probably be something like
+-- Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion) (Set.Set Version))
 plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn =
   Map.fromList [
     ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
   , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
-  , ((PlutusV2, anonPV),   Set.fromList [ plcVersion110 ])
-  , ((PlutusV3, anonPV),   Set.fromList [ plcVersion110 ])
+  , ((PlutusV1, anonPV),   Set.fromList [ plcVersion110 ])
+  ]
+-}
+
+{-
+plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
+ plcVersionsIntroducedIn =
+   Map.fromList [
+     ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
+   , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
+   , ((PlutusV1, anonPV),   Set.fromList [ plcVersion110 ])
+  ]
+
+
+plcVersionsAvailableIn thisLv thisPv = fold $ Map.elems $
+    Map.takeWhileAntitone plcVersionAvailableIn plcVersionsIntroducedIn
+    where
+      plcVersionAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
+      plcVersionAvailableIn (introducedInLv,introducedInPv) =
+          -- both should be satisfied
+          introducedInLv <= thisLv && introducedInPv <= thisPv
+-}
+
+plcVersionsIntroducedIn :: Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set Version))
+plcVersionsIntroducedIn =
+  Map.fromList [
+    (PlutusV1, Map.fromList [(alonzoPV, Set.fromList [ plcVersion100 ]), (anonPV, Set.fromList [plcVersion110])])
+  , (PlutusV2, Map.fromList [(alonzoPV, Set.fromList [ plcVersion100 ]), (anonPV, Set.fromList [plcVersion110])])
+  , (PlutusV3, Map.fromList [(changPV,  Set.fromList [ plcVersion110 ])])
   ]
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
@@ -221,13 +256,10 @@ and 'MajorProtocolVersion'?
 See Note [New builtins/language versions and protocol versions]
 -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
-plcVersionsAvailableIn thisLv thisPv = fold $ Map.elems $
-    Map.takeWhileAntitone plcVersionAvailableIn plcVersionsIntroducedIn
-    where
-      plcVersionAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
-      plcVersionAvailableIn (introducedInLv,introducedInPv) =
-          -- both should be satisfied
-          introducedInLv <= thisLv && introducedInPv <= thisPv
+plcVersionsAvailableIn thisLv thisPv =
+  fold $ -- ie, union
+  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
+  Map.findWithDefault Map.empty thisLv plcVersionsIntroducedIn
 
 {-| Which builtin functions are available in the given given 'PlutusLedgerLanguage'
 and 'MajorProtocolVersion'?
@@ -242,3 +274,13 @@ builtinsAvailableIn thisLv thisPv = fold $
       alreadyIntroduced (introducedInLv,introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv
+
+{-
+i < j => p i >= p j
+ie, if p i is true and i < j then p j can be true or false, if p i is false and j > i then p j must also be false.
+-}
+-- ** We can probably assume (for now) that if a builtin or laguage feature is
+-- introduced for a particular Plutus LL version, then it'll also be available
+-- _for that version_ in all later PVs.  What is no longer true is that if
+-- something's introduced in PlutusV<n> then it won't be introduced in a PlutusV<m>
+-- with m < n at a later PV.

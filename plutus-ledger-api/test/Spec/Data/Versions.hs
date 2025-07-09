@@ -104,13 +104,13 @@ testRmdr = testGroup "rmdr"
 -- See Note [Checking the Plutus Core language version] for why these have to use mkTermToEvaluate
 testLanguageVersions :: TestTree
 testLanguageVersions = testGroup "Plutus Core language versions"
-  [ testCase "v1.1.0 is available in l3,future and not before" $ do
+  [ testCase "v1.1.0 is available in l3,Chang and not before" $ do
       -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
       assertBool "in l3,Vasil" $ isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-      assertBool "in l2,future" $ isLeft $ mkTermToEvaluate PlutusV2 changPV (either (Prelude.error . show) id (V2.deserialiseScript changPV $ serialiseUPLC v110script)) []
+      assertBool "in l2,Chang" $ isLeft $ mkTermToEvaluate PlutusV2 changPV (either (Prelude.error . show) id (V2.deserialiseScript changPV $ serialiseUPLC v110script)) []
       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-      assertBool "not in l3,future" $ isRight $ mkTermToEvaluate PlutusV3 changPV (either (Prelude.error . show) id (V3.deserialiseScript changPV $ serialiseUPLC v110script)) []
+      assertBool "not in l3,Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV (either (Prelude.error . show) id (V3.deserialiseScript changPV $ serialiseUPLC v110script)) []
     -- The availability of `case` and `constr` is checked in `deserialise`
   , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
   , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
