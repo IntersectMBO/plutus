@@ -31,6 +31,7 @@ tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
     , testBuiltinVersions
+    , testNumBuiltins
     , testLanguageVersions
     , testRmdr
     ]
@@ -85,6 +86,64 @@ testBuiltinVersions = testGroup "builtins"
              assertBool "in l2,Valentine" $ isLeft $ V2.deserialiseScript valentinePV script
              assertBool "not in l3,future" $ isRight $ V3.deserialiseScript futurePV script
     ]
+
+{- 1: 51
+   2: 1
+   3: 2
+   4: 2 + 19
+   5: 12
+   6: 5
+-}
+testNumBuiltins :: TestTree
+testNumBuiltins =
+  let numBuiltins :: [(PlutusLedgerLanguage, [(MajorProtocolVersion, Int)])] =
+        [ (PlutusV1, [ (shelleyPV, 0)
+                     , (allegraPV, 0)
+                     , (maryPV, 0)
+                     , (alonzoPV, 51)    -- Batch 1
+                     , (vasilPV, 51)
+                     , (valentinePV, 51)
+                     , (changPV, 51)
+                     , (plominPV, 51)
+                     , (anonPV, 92)      -- Batches 1-6
+                     ])
+        , (PlutusV2, [ (shelleyPV, 0)
+                     , (allegraPV, 0)
+                     , (maryPV, 0)
+                     , (alonzoPV, 51)    -- Batch 1
+                     , (vasilPV, 52)     -- Batch 2
+                     , (valentinePV, 54) -- Batch 3
+                     , (changPV, 54)
+                     , (plominPV, 56)    -- Batch 4a
+                     , (anonPV, 92)      -- Batches 1-6
+                     ])
+        , (PlutusV3, [ (shelleyPV, 0)
+                     , (allegraPV, 0)
+                     , (maryPV, 0)
+                     , (alonzoPV, 0)
+                     , (vasilPV, 0)
+                     , (valentinePV, 0)
+                     , (changPV, 75)     -- Batches 1-4
+                     , (plominPV, 87)    -- Batch 5
+                     , (anonPV, 92)      -- Batch 6
+                     ])
+        ]
+      numKnownPVs = length knownPVs
+      numKnownLLs = length $ enumerate @PlutusLedgerLanguage
+  in testGroup "Correct number of builtins" $
+     [ testCase "All ledger languages are accounted for in tests" $
+       assertBool "Only PlutusV1..V3 are known" $ numKnownLLs == length numBuiltins
+     , testCase "All known protocol versions are accounted for in tests" $
+       mapM_ (\(ll, nbi) ->  do
+                 assertBool ("Wrong number of PVs for " ++ show ll) $ length nbi == numKnownPVs) numBuiltins
+     ] ++ fmap mkTestsFor numBuiltins
+  where mkTestsFor (ll, builtinCounts) = testGroup ("Number of builtins for " ++ show ll) $ fmap (mkTest ll) builtinCounts
+        mkTest ll (pv, expected) =
+          let actual = length (builtinsAvailableIn ll pv)
+          in testCase ("PV" ++ show pv ++ ": " ++ show expected ++ " builtins expected") $
+          assertBool ("Expected " ++ show expected ++ " builtins, found " ++ show actual) $ actual == expected
+
+
 
 testRmdr :: TestTree
 testRmdr = testGroup "rmdr"

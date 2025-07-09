@@ -271,7 +271,7 @@ builtinsAvailableIn thisLv thisPv = fold $
     Map.filterWithKey (const . alreadyIntroduced) builtinsIntroducedIn
     where
       alreadyIntroduced :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
-      alreadyIntroduced (introducedInLv,introducedInPv) =
+      alreadyIntroduced (introducedInLv, introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv
 

@@ -16,7 +16,6 @@ module PlutusLedgerApi.Common.ProtocolVersions
     ) where
 
 import Codec.Serialise (Serialise)
-import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
@@ -69,20 +68,19 @@ valentinePV = MajorProtocolVersion 8
 changPV :: MajorProtocolVersion
 changPV = MajorProtocolVersion 9
 
--- | The Plomin HF will be an intra-era HF where some new builtin functions
--- are introduced in Plutus V2 and V3.
+-- | The Plomin HF was an intra-era HF where some new builtin functions were
+-- introduced in Plutus V2 and V3.
 plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
--- Not sure what this is going to be called yet
+-- | Not sure what this is going to be called yet
 anonPV :: MajorProtocolVersion
 anonPV = MajorProtocolVersion 11
 
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
-knownPVs :: Set.Set MajorProtocolVersion
+knownPVs :: [MajorProtocolVersion]
 knownPVs =
-  Set.fromList
     [ shelleyPV
     , allegraPV
     , maryPV
