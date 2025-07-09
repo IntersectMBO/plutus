@@ -149,7 +149,7 @@ module UntypedPlutusCore.Transform.ForceDelay
     ) where
 
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
-import PlutusCore.Default (DefaultFun (IfThenElse), DefaultUni)
+import PlutusCore.Default (DefaultFun (ChooseData, ChooseList, IfThenElse), DefaultUni)
 import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isPure, isWorkFree)
@@ -190,11 +190,50 @@ processTerm semVar = \case
             mkIterApp
                 forceIfThenElse
                 [cond, (trueAnn, trueAlt), (falseAnn, falseAlt)]
+    Force _ (splitApplication ->
+        ( forceChooseList@(Force _ (Force _ (Builtin _ ChooseList)))
+        , [ xs
+          , (nilAnn, (Delay _ nilAlt))
+          , (consAnn, (Delay _ consAlt))
+          ]
+        )) | all
+            (\alt -> isPure semVar alt && isWorkFree semVar alt)
+            [nilAlt, consAlt] ->
+                mkIterApp
+                    forceChooseList
+                        [ xs
+                        , (nilAnn, nilAlt)
+                        , (consAnn, consAlt)
+                        ]
+    Force _ (splitApplication ->
+        ( forceChooseData@(Force _ (Builtin _ ChooseData))
+        , [ d
+          , (constrAnn, (Delay _ constrAlt))
+          , (mapAnn, (Delay _ mapAlt))
+          , (listAnn, (Delay _ listAlt))
+          , (iAnn, (Delay _ iAlt))
+          , (bAnn, (Delay _ bAlt))
+          ]
+        )) | all
+            (\alt -> isPure semVar alt && isWorkFree semVar alt)
+            [constrAlt, mapAlt, listAlt, iAlt, bAlt] ->
+                mkIterApp
+                    forceChooseData
+                        [ d
+                        , (constrAnn, constrAlt)
+                        , (mapAnn, mapAlt)
+                        , (listAnn, listAlt)
+                        , (iAnn, iAlt)
+                        , (bAnn, bAlt)
+                        ]
     original@(Force _ subTerm) ->
         case optimisationProcedure subTerm of
             Just result -> result
             Nothing     -> original
     t -> t
+
+            -- chooseDataDenotation d xConstr xMap xList xI xB =
+
 
 {- | Converts the subterm of a 'Force' into specialised types for representing
  multiple applications on top of multiple abstractions. Checks whether the lambda
