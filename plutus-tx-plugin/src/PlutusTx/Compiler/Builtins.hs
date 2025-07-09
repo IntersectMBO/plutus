@@ -42,6 +42,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Pair qualified as PLC
 
 import GHC.Plugins qualified as GHC
 
@@ -226,6 +227,7 @@ builtinNames =
   , 'Builtins.head
   , 'Builtins.tail
   , 'Builtins.chooseList
+  , 'Builtins.caseList'
   , 'Builtins.mkNilData
   , 'Builtins.mkNilPairData
   , 'Builtins.mkCons
@@ -236,6 +238,7 @@ builtinNames =
   , 'Builtins.indexArray
   , ''Builtins.BuiltinData
   , 'Builtins.chooseData
+  , 'Builtins.caseData'
   , 'Builtins.equalsData
   , 'Builtins.serialiseData
   , 'Builtins.mkConstr
