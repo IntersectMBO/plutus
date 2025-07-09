@@ -695,3 +695,28 @@ executable linear-vesting
     , linear-vesting-internal
     , plutus-tx:plutus-tx-testlib
     , text
+
+------------------ cardano loans -------------------
+
+library cardano-loans-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  cardano-loans/src
+  exposed-modules:
+    CardanoLoans.Test
+    CardanoLoans.Validator
+
+  build-depends:
+    , base               >=4.9 && <5
+    , plutus-ledger-api
+    , plutus-tx
+    , plutus-tx-plugin
+
+executable cardano-loans
+  import:         lang, ghc-version-support, os-support
+  main-is:        Main.hs
+  hs-source-dirs: cardano-loans/exe
+  build-depends:
+    , base                         >=4.9 && <5
+    , cardano-loans-internal
+    , plutus-tx:plutus-tx-testlib
+    , text
