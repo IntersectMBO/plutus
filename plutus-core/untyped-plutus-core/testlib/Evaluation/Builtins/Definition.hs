@@ -1254,8 +1254,8 @@ test_Case =
                             (mkConstant () scrut)
                             (map (mkConstant ()) is)
                 in case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term of
-                    Left _                        -> False
-                    Right EvaluationFailure       -> length is /= 2 && (scrut || length is /= 1)
+                    Left _                        -> length is /= 1 && length is /= 2
+                    Right EvaluationFailure       -> scrut || length is == 2 -- scrut implies length = 2
                     Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromEnum scrut)
         , QC.testProperty "Integer success" . QC.withMaxSuccess 99 $
             \(QC.NonEmpty is :: QC.NonEmptyList Integer) ->
