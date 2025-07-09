@@ -51,7 +51,6 @@ let
       };
       editorconfig-checker = {
         enable = true;
-        args = [ "-config" ".editorconfig" ];
         package = pkgs.editorconfig-checker;
       };
       generate-malonzo-code = {
