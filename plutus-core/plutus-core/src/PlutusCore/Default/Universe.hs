@@ -45,14 +45,12 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
-import PlutusCore.Core.Type (Type (TyBuiltin))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (IntegerCostedLiterally (..),
                                                     NumBytesCostedAsNumWords (..))
-import PlutusCore.Name.Unique (TyName)
 import PlutusCore.Pretty.Extra (juxtRenderContext)
 
 import Control.Monad.Except (throwError)
@@ -66,6 +64,7 @@ import Data.Vector qualified as Vector
 import Data.Vector.Strict qualified as Strict (Vector)
 import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
+import PlutusCore.MkPlc (mkTyBuiltinOf)
 import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
 import Universe as Export
 
@@ -533,48 +532,42 @@ outOfBoundsErr x branches = fold
 
 instance AnnotateCaseBuiltin DefaultUni where
     annotateCaseBuiltin ann (SomeTypeIn uni) branches = case uni of
-        DefaultUniBool    -> Right $ map (, []) branches
+        DefaultUniBool    ->
+          case branches of
+            [f]    -> Right $ [(f, [])]
+            [f, t] -> Right $ [(f, []), (t, [])]
+            _      -> Left $ "Casing on bool requires exactly one branch or two branches"
         DefaultUniInteger -> Right $ map (, []) branches
         DefaultUniList ty ->
           case branches of
-            [cons] ->
-              Right
-                [ (cons, [ TyBuiltin @TyName ann $ SomeTypeIn ty
-                         , TyBuiltin @TyName ann $ SomeTypeIn $ DefaultUniList ty
-                         ])
-                ]
+            [cons] -> Right [(cons, [mkTyBuiltinOf ann ty, mkTyBuiltinOf ann $ DefaultUniList ty])]
             [nil, cons] ->
-              Right
-                [ (nil, [])
-                , (cons, [ TyBuiltin @TyName ann $ SomeTypeIn ty
-                         , TyBuiltin @TyName ann $ SomeTypeIn $ DefaultUniList ty
-                         ])
-                ]
-            _ -> Left $ "Casing on list requires two branches"
+              Right [(nil, []), (cons, [mkTyBuiltinOf ann ty, mkTyBuiltinOf ann $ DefaultUniList ty])]
+            _ -> Left $ "Casing on list requires exactly one branch or two branches"
         _                 -> Left $ display uni <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
-    caseBuiltin (Some (ValueOf uni x)) branches = case uni of
+    caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
         DefaultUniBool -> case x of
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
             False | len == 1 || len == 2 -> Right $ HeadOnly $ branches Vector.! 0
             True  |             len == 2 -> Right $ HeadOnly $ branches Vector.! 1
-            _                            -> Left  $ outOfBoundsErr x branches
+            _                            -> Left  $ outOfBoundsErr someVal branches
         DefaultUniInteger
             | 0 <= x && x < toInteger len -> Right $ HeadOnly $ branches Vector.! fromInteger x
-            | otherwise                   -> Left  $ outOfBoundsErr x branches
+            | otherwise                   -> Left  $ outOfBoundsErr someVal branches
         DefaultUniList ty
-            | length branches == 1 ->
+            | len == 1 ->
               case x of
-                [] -> Left "Expected non-empty list, got empty list"
-                (y : ys) -> Right $ headSpine (branches Vector.! 0) [Some (ValueOf ty y), Some (ValueOf uni ys)]
-            | length branches == 2 ->
+                [] -> Left "Expected non-empty list, got empty list for casing list"
+                (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+            | len == 2 ->
               case x of
                 []       -> Right $ HeadOnly $ branches Vector.! 0
-                (y : ys) -> Right $ headSpine (branches Vector.! 1) [Some (ValueOf ty y), Some (ValueOf uni ys)]
-            | otherwise            -> Left "Casing on builtin list requires exactly two branches"
+                (y : ys) -> Right $ headSpine (branches Vector.! 1) [someValueOf ty y, someValueOf uni ys]
+            | otherwise            -> Left $ outOfBoundsErr someVal branches
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches

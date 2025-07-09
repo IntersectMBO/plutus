@@ -342,9 +342,9 @@ mkFreshTermLet aT a = do
 -- | 'apply' the head of the application to the arguments iteratively.
 headSpineToTerm :: TermLike term tyname name uni fun => ann -> MonoHeadSpine (term ann) -> term ann
 headSpineToTerm _ (HeadOnly t)       = t
-headSpineToTerm ann (HeadSpine t ts) = apply ann t $ foldl1 (apply ann) ts
+headSpineToTerm ann (HeadSpine t ts) = foldl (apply ann) t ts
 
 -- | @headSpineToTerm@ but without annotation.
 headSpineToTermNoAnn :: TermLike term tyname name uni fun => MonoHeadSpine (term ()) -> term ()
 headSpineToTermNoAnn (HeadOnly t)     = t
-headSpineToTermNoAnn (HeadSpine t ts) = apply () t $ foldl1 (apply ()) ts
+headSpineToTermNoAnn (HeadSpine t ts) = foldl (apply ()) t ts

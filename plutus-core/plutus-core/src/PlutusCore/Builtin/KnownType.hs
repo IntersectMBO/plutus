@@ -316,6 +316,7 @@ headSpine h (x:xs) =
   -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
   -- of the trick.
   HeadSpine h $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x
+{-# INLINE headSpine #-}
 
 -- |
 --
