@@ -382,6 +382,7 @@ test-suite plutus-core-test
   build-depends:
     , aeson
     , base                             >=4.9     && <5
+    , base16-bytestring                ^>=1.0
     , bytestring
     , containers
     , data-default-class
@@ -389,7 +390,6 @@ test-suite plutus-core-test
     , filepath
     , flat                             ^>=0.6
     , hedgehog
-    , hex-text
     , mmorph
     , mtl
     , plutus-core                      ^>=1.48
