@@ -50,4 +50,4 @@ main = do
               (either (error . show) id $ deserialiseScript futurePV script)
               args
         in whnf eval benchScript
-  benchWith mkFullBM
+  benchWith $ \file script (~_) -> mkFullBM file script
