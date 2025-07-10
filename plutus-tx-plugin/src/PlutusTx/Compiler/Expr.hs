@@ -777,6 +777,18 @@ entryExitTracingInside lamName displayName = go mempty
     let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
      in entryExitTracing lamName displayName e ty'
 
+{- Note [Profiling Markers]
+   The @profile-all@ will insert trarces when entering and exciting functions. These
+   traces have a string marker to indicate that a given traces message is for enter/exit
+   marking. Markers are just simple strings: "->" and "<-". So for any reason in the
+   future this marker needs to be changed, all of utilities that uses this marker will
+   need to be updated.
+
+   This list will track of all of the utilities that uses this marker:
+   - plutus-core:traceToStacks
+   - @UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.logWithCallTraceEmitter@
+-}
+
 -- | Add tracing before entering and after exiting a term.
 entryExitTracing
   :: PLC.Name
@@ -792,6 +804,7 @@ entryExitTracing lamName displayName e ty =
         annMayInline
         ( mkTrace
             (PLC.TyFun annMayInline defaultUnitTy ty) -- ()-> ty
+            -- See Note [Profiling Marker]
             ("-> " <> displayName)
             -- \() -> trace @c "exiting f" e
             (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("<- " <> displayName) e))

@@ -96,6 +96,7 @@ logWithCallTraceEmitter = EmitterMode $ \_ -> do
       go l [] = l
       go [] l = l
       go (x : xs) l =
+        -- See Note [Profiling Marker]
         case (T.words (last l), T.words x) of
           ("->" : enterRest, "<-" : exitRest) | enterRest == exitRest -> go xs (init l)
           _                                                           -> go xs (l <> [x])

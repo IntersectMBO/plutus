@@ -64,6 +64,7 @@ parseProfileEvent valIx (LogRow str vals) =
   let val = vals !! (valIx-1)
   in case words str of
     [transition,var] ->
+      -- See Note [Profiling Marker]
       case transition of
         "->" -> MkProfileEvent val Enter (T.pack var)
         "<-" -> MkProfileEvent val Exit (T.pack var)
