@@ -2,6 +2,7 @@
 {-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -21,7 +22,6 @@ module CallTrace.Spec where
 
 import PlutusTx
 import PlutusTx.Prelude
-import Prelude ()
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 

@@ -1,9 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module CallTrace.OtherModule where
 
 import PlutusTx.Prelude
-import Prelude ()
 
 errorWhenTrue :: Bool -> BuiltinString
 errorWhenTrue True  = error ()
