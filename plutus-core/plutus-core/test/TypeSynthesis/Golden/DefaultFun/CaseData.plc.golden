@@ -1,8 +1,0 @@
-all a.
-  (integer -> list data -> a) ->
-  (list (pair data data) -> a) ->
-  (list data -> a) ->
-  (integer -> a) ->
-  (bytestring -> a) ->
-  data ->
-  a

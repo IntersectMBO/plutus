@@ -772,8 +772,7 @@ test_List = testNestedM "List" $ do
     evals @[Integer] [1] MkCons [integer] [cons @Integer 1, cons @[Integer] []]
     evals @[Integer] [1,2] MkCons [integer] [cons @Integer 1, cons @[Integer] [2]]
 
-    test_MatchList UseChoose
-    test_MatchList UseCase
+    testNested "MatchList" $ map test_MatchList enumerate
 
 test_MatchData :: MatchOption -> TestNested
 test_MatchData optMatch = testNestedM (show optMatch) $ do
@@ -850,9 +849,7 @@ test_Data = testNestedM "Data" $ do
     evals @[Data] [I 3, I 4, B ""] UnListData [] [cons $ List [I 3, I 4, B ""]]
     evals @ByteString "\162\ETX@Ehello8c" SerialiseData [] [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
-    testNestedM "MatchData" $ do
-        test_MatchData UseChoose
-        test_MatchData UseCase
+    testNested "MatchData" $ map test_MatchData enumerate
 
 -- | Test all cryptography-related builtins
 test_Crypto :: TestNested
