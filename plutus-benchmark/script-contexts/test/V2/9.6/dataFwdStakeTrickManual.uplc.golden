@@ -1,72 +1,46 @@
 (program
    1.1.0
    (\r_stake_cred ->
-      (\cse ->
-         (\lookForCred ->
-            (\lookForCred ->
-               (\lookForCred r_ctx ->
-                  (\wdrl ->
-                     (\wdrlAtZero ->
-                        (\rest ->
-                           (\wdrlAtOne ->
-                              case
-                                (equalsData r_stake_cred wdrlAtZero)
-                                [ (case
-                                     (equalsData r_stake_cred wdrlAtOne)
-                                     [(force lookForCred rest), (constr 0 [])])
-                                , (constr 0 []) ])
-                             (force (force fstPair) (force headList rest)))
-                          (force tailList wdrl))
-                       (force (force fstPair) (force headList wdrl)))
-                    (unMapData
-                       (force headList
+      (\lookForCred r_ctx ->
+         (\wdrl ->
+            (\wdrlAtZero ->
+               (\rest ->
+                  (\wdrlAtOne ->
+                     case
+                       (equalsData r_stake_cred wdrlAtZero)
+                       [ (case
+                            (equalsData r_stake_cred wdrlAtOne)
+                            [(lookForCred rest), (constr 0 [])])
+                       , (constr 0 []) ])
+                    (force (force fstPair) (force headList rest)))
+                 (force tailList wdrl))
+              (force (force fstPair) (force headList wdrl)))
+           (unMapData
+              (force headList
+                 (force tailList
+                    (force tailList
+                       (force tailList
                           (force tailList
                              (force tailList
                                 (force tailList
-                                   (force tailList
-                                      (force tailList
-                                         (force tailList
+                                   (force (force sndPair)
+                                      (unConstrData
+                                         (force headList
                                             (force (force sndPair)
-                                               (unConstrData
-                                                  (force headList
-                                                     (force (force sndPair)
-                                                        (unConstrData
-                                                           r_ctx))))))))))))))
-                 (lookForCred (delay (\x -> x))))
-              (cse (\arg_0 arg_1 -> arg_1)))
-           (cse (\arg_0 arg_1 -> arg_0)))
-        (force
-           ((\s -> s s)
-              (\s h ->
-                 delay
-                   (\fr ->
-                      (\k ->
-                         fr
-                           (\x -> k (\f_0 f_1 -> f_0 x))
-                           (\x -> k (\f_0 f_1 -> f_1 x)))
-                        (\fq -> force (s s h) (force h fq))))
-              (delay
-                 (\choose lookForCred lookForCred ->
-                    choose
-                      (\arg ->
-                         delay
-                           (\l ->
-                              force
-                                (force (force chooseList)
-                                   l
-                                   (delay
-                                      (\ds ->
-                                         (\x -> error)
-                                           (force trace
-                                              "not found"
-                                              (constr 0 []))))
-                                   (delay
-                                      ((\x xs ds -> lookForCred x xs)
-                                         (force headList l)
-                                         (force tailList l))))
-                                (constr 0 [])))
-                      (\p tl ->
-                         case
-                           (equalsData r_stake_cred (force (force fstPair) p))
-                           [ (force (lookForCred (delay (\x -> x))) tl)
-                           , (constr 0 []) ])))))))
+                                               (unConstrData r_ctx))))))))))))))
+        ((\s -> s s)
+           (\s l ->
+              force
+                (force (force chooseList)
+                   l
+                   (delay
+                      (\ds ->
+                         (\x -> error) (force trace "not found" (constr 0 []))))
+                   (delay
+                      ((\x xs ds ->
+                          case
+                            (equalsData r_stake_cred (force (force fstPair) x))
+                            [(s s xs), (constr 0 [])])
+                         (force headList l)
+                         (force tailList l))))
+                (constr 0 [])))))

@@ -76,7 +76,7 @@ stdLib =
                     ]
               , treeFolderContents "Data"
                   [ plcTypeFile "Data" dataTy
-                  , plcTermFile "matchDataUseChoose" $ matchData UseChoose
+                  , plcTermFile "matchDataUseChoose" matchData
                   ]
               , treeFolderContents "ScottList"
                   [ plcTypeFile "List"       listTy

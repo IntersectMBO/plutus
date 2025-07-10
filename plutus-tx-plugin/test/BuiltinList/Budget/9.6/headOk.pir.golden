@@ -9,38 +9,9 @@ let
             (/\dead -> z)
             (/\dead -> f (headList {a} xs) (tailList {a} xs))
             {r}
+  ~headEmptyBuiltinListError : string = "PT23"
   data Unit | Unit_match where
     Unit : Unit
-  ~caseList : all a r. (Unit -> r) -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(nilCase : Unit -> r) ->
-          let
-            !nilCase : Unit -> r = nilCase
-          in
-          \(consCase : a -> list a -> r) ->
-            let
-              !consCase : a -> list a -> r = consCase
-            in
-            \(l : list a) ->
-              let
-                !l : list a = l
-              in
-              caseList'
-                {a}
-                {Unit -> r}
-                nilCase
-                (\(x : a) ->
-                   let
-                     !x : a = x
-                   in
-                   \(xs : list a) ->
-                     let
-                       !xs : list a = xs
-                     in
-                     \(ds : Unit) -> consCase x xs)
-                l
-                Unit
-  ~headEmptyBuiltinListError : string = "PT23"
   !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
   !trace : all a. string -> a -> a = trace
   !unitval : unit = ()
@@ -54,10 +25,16 @@ let
           error {a} unitval
   ~head : all a. list a -> a
     = /\a ->
-        caseList
-          {a}
-          {a}
-          (\(ds : Unit) -> traceError {a} headEmptyBuiltinListError)
-          (\(x : a) -> let !x : a = x in \(ds : list a) -> x)
+        \(eta : list a) ->
+          let
+            !l : list a = eta
+          in
+          caseList'
+            {a}
+            {Unit -> a}
+            (\(ds : Unit) -> traceError {a} headEmptyBuiltinListError)
+            (\(x : a) -> let !x : a = x in \(xs : list a) (ds : Unit) -> x)
+            l
+            Unit
 in
 \(xs : list integer) -> let !xs : list integer = xs in head {integer} xs
