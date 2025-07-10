@@ -774,11 +774,11 @@ test_List = testNestedM "List" $ do
 
     testNested "MatchList" $ map test_MatchList enumerate
 
-test_MatchData :: MatchOption -> TestNested
-test_MatchData optMatch = testNestedM (show optMatch) $ do
+test_MatchData :: TestNested
+test_MatchData = testNestedM "MatchData" $ do
     let actualExp =
             mkIterAppNoAnn
-                (tyInst () (apply () (matchData optMatch) $ cons $ I 3) bool)
+                (tyInst () (apply () matchData $ cons $ I 3) bool)
                 [ -- constr
                   runQuote $ do
                     a1 <- freshName "a1"
@@ -849,7 +849,7 @@ test_Data = testNestedM "Data" $ do
     evals @[Data] [I 3, I 4, B ""] UnListData [] [cons $ List [I 3, I 4, B ""]]
     evals @ByteString "\162\ETX@Ehello8c" SerialiseData [] [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
-    testNested "MatchData" $ map test_MatchData enumerate
+    test_MatchData
 
 -- | Test all cryptography-related builtins
 test_Crypto :: TestNested

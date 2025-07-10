@@ -50,8 +50,6 @@ module PlutusTx.Builtins (
   -- * Data
   BuiltinData,
   chooseData,
-  BI.caseData',
-  caseData,
   matchData,
   matchData',
   equalsData,
@@ -556,23 +554,6 @@ equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 {-# INLINEABLE equalsData #-}
 
-caseData
-  :: (Integer -> [BuiltinData] -> r)
-  -> ([(BuiltinData, BuiltinData)] -> r)
-  -> ([BuiltinData] -> r)
-  -> (Integer -> r)
-  -> (BuiltinByteString -> r)
-  -> BuiltinData
-  -> r
-caseData constrCase mapCase listCase iCase bCase =
-  BI.caseData'
-    (\i ds -> constrCase i (fromOpaque ds))
-    (\ps -> mapCase (fromOpaque ps))
-    (\ds -> listCase (fromOpaque ds))
-    iCase
-    bCase
-{-# INLINEABLE caseData #-}
-
 matchData'
   :: BuiltinData
   -> (Integer -> BI.BuiltinList BuiltinData -> r)
@@ -582,7 +563,14 @@ matchData'
   -> (BuiltinByteString -> r)
   -> r
 matchData' d constrCase mapCase listCase iCase bCase =
-  BI.caseData' constrCase mapCase listCase iCase bCase d
+  chooseData
+    d
+    (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
+    (\_ -> mapCase (BI.unsafeDataAsMap d))
+    (\_ -> listCase (BI.unsafeDataAsList d))
+    (\_ -> iCase (unsafeDataAsI d))
+    (\_ -> bCase (unsafeDataAsB d))
+    ()
 {-# INLINEABLE matchData' #-}
 
 {-| Given a 'BuiltinData' value and matching functions for the five constructors,
@@ -597,7 +585,13 @@ matchData
   -> (BuiltinByteString -> r)
   -> r
 matchData d constrCase mapCase listCase iCase bCase =
-  caseData constrCase mapCase listCase iCase bCase d
+  matchData'
+    d
+    (\i ds -> constrCase i (fromOpaque ds))
+    (\ps -> mapCase (fromOpaque ps))
+    (\ds -> listCase (fromOpaque ds))
+    iCase
+    bCase
 {-# INLINEABLE matchData #-}
 
 -- G1 --
