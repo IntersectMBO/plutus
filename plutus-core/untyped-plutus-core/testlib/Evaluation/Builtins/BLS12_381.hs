@@ -23,9 +23,10 @@ import Data.ByteString as BS (empty, length, pack)
 import Data.List as List (foldl', genericReplicate, length, nub)
 import Text.Printf (printf)
 
-import Test.QuickCheck
+import Test.QuickCheck (Arbitrary(..), Gen, Property, Testable, (===), (==>), (.&.))
 import Test.Tasty
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck ()
+import Test.Tasty.QuickCheck qualified as QC
 
 -- QuickCheck utilities
 
@@ -33,7 +34,7 @@ mkTestName :: forall g. TestableAbelianGroup g => String -> String
 mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
-withNTests = withMaxSuccess 200
+withNTests = QC.withMaxSuccess 200
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
@@ -63,7 +64,7 @@ finalVerifyTerm = mkApp2 Bls12_381_finalVerify
 -- | Group addition is associative.
 test_add_assoc :: forall g. TestableAbelianGroup g => TestTree
 test_add_assoc =
-    testProperty
+    QC.testProperty
     (mkTestName @g "add_assoc") .
     withNTests $ do
       p1 <- arbitraryConstant @g
@@ -75,7 +76,7 @@ test_add_assoc =
 -- | Zero is an identity for addition.
 test_add_zero :: forall g. TestableAbelianGroup g => TestTree
 test_add_zero =
-    testProperty
+    QC.testProperty
     (mkTestName @g "add_zero") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -86,7 +87,7 @@ test_add_zero =
 -- | a+(-a) = 0 for all group elements.
 test_neg :: forall g. TestableAbelianGroup g => TestTree
 test_neg =
-    testProperty
+    QC.testProperty
     (mkTestName @g "additive_inverse") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -96,7 +97,7 @@ test_neg =
 -- | Group addition is commutative.
 test_add_commutative :: forall g. TestableAbelianGroup g => TestTree
 test_add_commutative =
-    testProperty
+    QC.testProperty
     (mkTestName @g "add_commutative") .
     withNTests $ do
       p1 <- arbitraryConstant @g
@@ -118,7 +119,7 @@ test_is_an_abelian_group =
 -- | (ab)p = a(bp) for all scalars a and b and all group elements p.
 test_scalarMul_assoc :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_assoc =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_mul_assoc") .
     withNTests $ do
       m <- arbitraryScalar
@@ -132,7 +133,7 @@ test_scalarMul_assoc =
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
 test_scalarMul_distributive_left :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_distributive_left =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_distributive_left") .
     withNTests $  do
       m <- arbitraryScalar
@@ -146,7 +147,7 @@ test_scalarMul_distributive_left =
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
 test_scalarMul_distributive_right :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_distributive_right =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_distributive_right") .
     withNTests $  do
       n <- arbitraryScalar
@@ -160,7 +161,7 @@ test_scalarMul_distributive_right =
 -- | 0p = 0 for all group elements p.
 test_scalarMul_zero :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_zero =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_zero") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -170,7 +171,7 @@ test_scalarMul_zero =
 -- | 1p = p for all group elements p.
 test_scalarMul_one :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_one =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_one") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -180,7 +181,7 @@ test_scalarMul_one =
 -- | (-1)p = -p for all group elements p.
 test_scalarMul_inverse :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_inverse =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_inverse") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -193,10 +194,10 @@ test_scalarMul_inverse =
 -- has 256 bits (about 5*10^76).
 test_scalarMul_repeated_addition :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_repeated_addition =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_repeated_addition") .
     withNTests $ do
-      n <- resize 100 arbitrary
+      n <- QC.resize 100 arbitrary
       p <- arbitraryConstant @g
       let e1 = repeatedAdd n p
           e2 = eqTerm @g (scalarMulTerm @g (integer n) p) e1
@@ -212,7 +213,7 @@ test_scalarMul_repeated_addition =
 -- We have |G1| = |G2| = scalarPeriod
 test_scalarMul_periodic :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_periodic =
-    testProperty
+    QC.testProperty
     (mkTestName @g "scalarMul_periodic") .
     withNTests $ do
       m <- arbitraryScalar
@@ -243,7 +244,7 @@ test_Z_action_good =
 
 test_roundtrip_compression :: forall g. HashAndCompress g => TestTree
 test_roundtrip_compression =
-    testProperty
+    QC.testProperty
     (mkTestName @g "roundtrip_compression") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -258,10 +259,10 @@ test_roundtrip_compression =
 -- 3.1*10^152 for G2).
 test_uncompression_wrong_size :: forall g. HashAndCompress g => TestTree
 test_uncompression_wrong_size =
-    testProperty
+    QC.testProperty
     (mkTestName @g "uncompression_wrong_size") .
     withNTests $ do
-      b <- suchThat (resize 128 arbitrary) incorrectSize
+      b <- QC.suchThat (QC.resize 128 arbitrary) incorrectSize
       let e = uncompressTerm @g (bytestring b)
       pure $ evalTerm e === CekError
     where incorrectSize s = BS.length s /= compressedSize @g
@@ -276,10 +277,10 @@ test_uncompression_wrong_size =
 -- encoding.  Maybe this just isn't a very good test.
 test_uncompress_out_of_group :: forall g. HashAndCompress g => TestTree
 test_uncompress_out_of_group =
-    testProperty
+    QC.testProperty
     (mkTestName @g "uncompress_out_of_group") .
-    withMaxSuccess 99 $ do
-      b <- suchThat (resize  128 arbitrary) correctSize
+    QC.withMaxSuccess 99 $ do
+      b <- QC.suchThat (QC.resize  128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
       let e = uncompressTerm @g (bytestring b')
       pure $ evalTerm e === CekError
@@ -288,7 +289,7 @@ test_uncompress_out_of_group =
 -- | Check that the most significant bit is set for all compressed points
 test_compression_bit_set :: forall g. HashAndCompress g => TestTree
 test_compression_bit_set =
-    testProperty
+    QC.testProperty
     (mkTestName @g "compression_bit_set") .
     withNTests $ do
       p <- arbitraryConstant @g
@@ -300,7 +301,7 @@ test_compression_bit_set =
 -- | Check that bytestrings with the compression bit clear fail to uncompress.
 test_clear_compression_bit :: forall g. HashAndCompress g => TestTree
 test_clear_compression_bit =
-    testProperty
+    QC.testProperty
     (mkTestName @g "clear_compression_bit") .
     withNTests $ do
       p <- arbitrary @g
@@ -312,7 +313,7 @@ test_clear_compression_bit =
 -- the point.
 test_flip_sign_bit :: forall g. HashAndCompress g => TestTree
 test_flip_sign_bit =
-    testProperty
+    QC.testProperty
     (mkTestName @g "flip_sign_bit") .
     withNTests $ do
       p <- arbitrary @g
@@ -326,7 +327,7 @@ test_flip_sign_bit =
 -- | Check that bytestrings with the infinity bit set fail to uncompress.
 test_set_infinity_bit :: forall g. HashAndCompress g => TestTree
 test_set_infinity_bit =
-    testProperty
+    QC.testProperty
     (mkTestName @g "set_infinity_bit") .
     withNTests $ do
       p <- arbitrary @g
@@ -349,12 +350,12 @@ numHashCollisionInputs = 200
 test_no_hash_collisions :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions =
     let emptyBS = bytestring BS.empty
-    in testProperty
-           (mkTestName @g "no_hash_collisions") . withMaxSuccess 1 $ do
+    in QC.testProperty
+           (mkTestName @g "no_hash_collisions") . QC.withMaxSuccess 1 $ do
              msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
              let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
                  hashed = fmap evalTerm terms
-                 noErrors = property $ all (/= CekError) hashed -- Just in case
+                 noErrors = QC.property $ all (/= CekError) hashed -- Just in case
                  noDuplicates = List.length hashed === List.length (nub hashed)
              pure $ noErrors .&. noDuplicates
 
@@ -367,12 +368,12 @@ test_no_hash_collisions_dst :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions_dst =
     let msg = bytestring $ pack [0x01, 0x02]
         maxDstSize = 255
-    in testProperty
-           (mkTestName @g "no_hash_collisions_dst") . withMaxSuccess 1 $ do
-             dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
+    in QC.testProperty
+           (mkTestName @g "no_hash_collisions_dst") . QC.withMaxSuccess 1 $ do
+             dsts <- nub <$> replicateM numHashCollisionInputs (QC.resize maxDstSize arbitrary)
              let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
                  hashed = fmap evalTerm terms
-                 noErrors = property $ all (/= CekError) hashed
+                 noErrors = QC.property $ all (/= CekError) hashed
                  noDuplicates = List.length hashed === List.length (nub hashed)
              pure $ noErrors .&. noDuplicates
 
@@ -396,7 +397,7 @@ test_compress_hash =
 -- <p1+p2,q> = <p1,q>.<p2,q>
 test_pairing_left_additive :: TestTree
 test_pairing_left_additive =
-    testProperty
+    QC.testProperty
     "pairing_left_additive" .
     withNTests $ do
       p1 <- arbitraryConstant @G1.Element
@@ -410,7 +411,7 @@ test_pairing_left_additive =
 -- <p,q1+q2> = <p,q1>.<p,q2>
 test_pairing_right_additive :: TestTree
 test_pairing_right_additive =
-    testProperty
+    QC.testProperty
     "pairing_right_additive" .
     withNTests $ do
       p  <- arbitraryConstant @G1.Element
@@ -424,7 +425,7 @@ test_pairing_right_additive =
 -- <[n]p,q> = <p,[n]q>
 test_pairing_balanced :: TestTree
 test_pairing_balanced =
-     testProperty
+     QC.testProperty
      "pairing_balanced" .
      withNTests $ do
       n <- arbitraryScalar
@@ -438,7 +439,7 @@ test_pairing_balanced =
 -- finalVerify returns False for random inputs
 test_random_pairing :: TestTree
 test_random_pairing =
-    testProperty
+    QC.testProperty
     "pairing_random_unequal" .
     withNTests $ do
        p1 <- arbitraryConstant @G1.Element

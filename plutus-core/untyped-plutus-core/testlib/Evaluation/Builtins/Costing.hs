@@ -22,7 +22,8 @@ import Data.Maybe
 import Data.SatInt
 import Test.QuickCheck.Gen
 import Test.Tasty
-import Test.Tasty.QuickCheck
+import Test.Tasty.QuickCheck (Arbitrary(..), CoArbitrary(..), Fun(..), Function(..), NonEmptyList(..), Positive(..), Property, (===), (.&&.))
+import Test.Tasty.QuickCheck qualified as QC
 
 deriving newtype instance Foldable NonEmptyList  -- QuickCheck...
 
@@ -103,12 +104,12 @@ instance CoArbitrary SatInt where
 
 instance Function SatInt where
     -- See Note [QuickCheck and integral types]. No idea what kind of coverages we get here though.
-    function = functionMap fromSatInt $ fromIntegral @Int64
+    function = QC.functionMap fromSatInt $ fromIntegral @Int64
 
 -- | Same as '(===)' except accepts a custom equality checking function.
 checkEqualsVia :: Show a => (a -> a -> Bool) -> a -> a -> Property
 checkEqualsVia eq x y =
-    counterexample (show x ++ interpret res ++ show y) res
+    QC.counterexample (show x ++ interpret res ++ show y) res
   where
     res = eq x y
     interpret True  = " === "
@@ -121,7 +122,7 @@ bottom = error "this value wasn't supposed to be forced"
 -- | Test that 'magnitudes' has the correct bounds.
 test_magnitudes :: TestTree
 test_magnitudes =
-    testProperty "magnitudes" $
+    QC.testProperty "magnitudes" $
         let check (0, 0)   (1,   10)  = True
             check (_, hi1) (lo2, hi2) = hi1 + 1 == lo2 && hi1 * 10 == hi2
         in and
@@ -133,16 +134,16 @@ test_magnitudes =
 -- | Show the distribution of generated 'CostStream's as a diagnostic.
 test_CostStreamDistribution :: TestTree
 test_CostStreamDistribution =
-    testProperty "distribution of the generated CostStream values" . withMaxSuccess 10000 $
+    QC.testProperty "distribution of the generated CostStream values" . QC.withMaxSuccess 10000 $
         \costs ->
             let costsSum = sumCostStream costs
                 (low, high) = toRange costsSum
-            in label (show low ++ " - " ++ show high) True
+            in QC.label (show low ++ " - " ++ show high) True
 
 -- | Test that @fromCostList . toCostList@ is identity.
 test_toCostListRoundtrip :: TestTree
 test_toCostListRoundtrip =
-    testProperty "fromCostList cancels toCostList" . withMaxSuccess 5000 $ \costs ->
+    QC.testProperty "fromCostList cancels toCostList" . QC.withMaxSuccess 5000 $ \costs ->
         checkEqualsVia eqCostStream
             (fromCostList $ toCostList costs)
             costs
@@ -150,14 +151,14 @@ test_toCostListRoundtrip =
 -- | Test that @toCostList . fromCostList@ is identity.
 test_fromCostListRoundtrip :: TestTree
 test_fromCostListRoundtrip =
-    testProperty "toCostList cancels fromCostList" . withMaxSuccess 5000 $ \costs ->
+    QC.testProperty "toCostList cancels fromCostList" . QC.withMaxSuccess 5000 $ \costs ->
         toCostList (fromCostList costs) ===
             costs
 
 -- | Test that @uncurry reconsCost . unconsCost@ is identity.
 test_unconsCostRoundtrip :: TestTree
 test_unconsCostRoundtrip =
-    testProperty "reconsCost cancels unconsCost" . withMaxSuccess 5000 $ \costs ->
+    QC.testProperty "reconsCost cancels unconsCost" . QC.withMaxSuccess 5000 $ \costs ->
         checkEqualsVia eqCostStream
             (uncurry reconsCost $ unconsCost costs)
             costs
@@ -165,14 +166,14 @@ test_unconsCostRoundtrip =
 -- | Test that 'sumCostStream' returns the sum of the elements of a 'CostStream'.
 test_sumCostStreamIsSum :: TestTree
 test_sumCostStreamIsSum =
-    testProperty "sumCostStream is sum" . withMaxSuccess 5000 $ \costs ->
+    QC.testProperty "sumCostStream is sum" . QC.withMaxSuccess 5000 $ \costs ->
         sumCostStream costs ===
             sum (toCostList costs)
 
 -- | Test that 'mapCostStream' applies a function to each element of a 'CostStream'.
 test_mapCostStreamIsMap :: TestTree
 test_mapCostStreamIsMap =
-    testProperty "mapCostStream is map" . withMaxSuccess 500 $ \(Fun _ f) costs ->
+    QC.testProperty "mapCostStream is map" . QC.withMaxSuccess 500 $ \(Fun _ f) costs ->
         checkEqualsVia eqCostStream
             (mapCostStream f $ fromCostList costs)
             (fromCostList $ fmap f costs)
@@ -181,7 +182,7 @@ test_mapCostStreamIsMap =
 -- arguments.
 test_addCostStreamIsAdd :: TestTree
 test_addCostStreamIsAdd =
-    testProperty "addCostStream is add" . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "addCostStream is add" . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         sumCostStream (addCostStream costs1 costs2) ===
             sumCostStream costs1 + sumCostStream costs2
 
@@ -189,7 +190,7 @@ test_addCostStreamIsAdd =
 -- two arguments.
 test_minCostStreamIsMin :: TestTree
 test_minCostStreamIsMin =
-    testProperty "minCostStream is min" . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "minCostStream is min" . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         sumCostStream (minCostStream costs1 costs2) ===
             min (sumCostStream costs1) (sumCostStream costs2)
 
@@ -197,14 +198,14 @@ test_minCostStreamIsMin =
 -- sums of its two arguments.
 test_zipCostStreamIsZip :: TestTree
 test_zipCostStreamIsZip =
-    testProperty "zipCostStream is zip" . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "zipCostStream is zip" . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         sumExBudgetStream (zipCostStream costs1 costs2) ===
             ExBudget (ExCPU $ sumCostStream costs1) (ExMemory $ sumCostStream costs2)
 
 -- | Test that 'mapCostStream' preserves the length of the stream.
 test_mapCostStreamReasonableLength :: TestTree
 test_mapCostStreamReasonableLength =
-    testProperty "mapCostStream: reasonable length" . withMaxSuccess 500 $ \(Fun _ f) costs ->
+    QC.testProperty "mapCostStream: reasonable length" . QC.withMaxSuccess 500 $ \(Fun _ f) costs ->
         length (toCostList (mapCostStream f costs)) ===
             length (toCostList costs)
 
@@ -212,7 +213,7 @@ test_mapCostStreamReasonableLength =
 -- its two arguments.
 test_addCostStreamReasonableLength :: TestTree
 test_addCostStreamReasonableLength =
-    testProperty "addCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "addCostStream: reasonable length " . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         max 2 (length (toCostList (addCostStream costs1 costs2))) ===
             length (toCostList costs1) + length (toCostList costs2)
 
@@ -222,7 +223,7 @@ test_addCostStreamReasonableLength =
 -- 2. smaller than or equal to the sum of the lengths of its two arguments.
 test_minCostStreamReasonableLength :: TestTree
 test_minCostStreamReasonableLength =
-    testProperty "minCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "minCostStream: reasonable length " . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         let len1   = length $ toCostList costs1
             len2   = length $ toCostList costs2
             lenMin = length . toCostList $ minCostStream costs1 costs2
@@ -232,14 +233,14 @@ test_minCostStreamReasonableLength =
 -- lengths of its two arguments.
 test_zipCostStreamReasonableLength :: TestTree
 test_zipCostStreamReasonableLength =
-    testProperty "zipCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
+    QC.testProperty "zipCostStream: reasonable length " . QC.withMaxSuccess 5000 $ \costs1 costs2 ->
         length (toExBudgetList (zipCostStream costs1 costs2)) ===
             max (length (toCostList costs1)) (length (toCostList costs2))
 
 -- | Test that 'mapCostStream' preserves the laziness of its argument.
 test_mapCostStreamHandlesBottom :: TestTree
 test_mapCostStreamHandlesBottom =
-    testProperty "mapCostStream handles bottom suffixes" . withMaxSuccess 500 $ \(Fun _ f) xs ->
+    QC.testProperty "mapCostStream handles bottom suffixes" . QC.withMaxSuccess 500 $ \(Fun _ f) xs ->
         let n = length xs
             -- 'fromCostList' forces an additional element, so we account for that here.
             suff = 0 : bottom
@@ -249,7 +250,7 @@ test_mapCostStreamHandlesBottom =
 -- | Test that 'mapCostStream' preserves the laziness of its two arguments.
 test_addCostStreamHandlesBottom :: TestTree
 test_addCostStreamHandlesBottom =
-    testProperty "addCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \(Positive n) ->
+    QC.testProperty "addCostStream handles bottom suffixes" . QC.withMaxSuccess 5000 $ \(Positive n) ->
         let interleave xs ys = concat $ transpose [xs, ys]
             zeroToN = map unsafeToSatInt [0 .. n] ++ bottom
             nPlus1To2NPlus1 = map unsafeToSatInt [n + 1 .. n * 2 + 1] ++ bottom
@@ -264,7 +265,7 @@ test_addCostStreamHandlesBottom =
 -- | Test that 'minCostStream' preserves the laziness of its two arguments.
 test_minCostStreamHandlesBottom :: TestTree
 test_minCostStreamHandlesBottom =
-    testProperty "minCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \xs ys ->
+    QC.testProperty "minCostStream handles bottom suffixes" . QC.withMaxSuccess 5000 $ \xs ys ->
         let m = min (sum xs) (sum ys)
             -- 'minCostStream' can force only a single extra element of the stream.
             suff = 0 : bottom
@@ -289,7 +290,7 @@ postAlignWith z xs ys = (align xs, align ys) where
 -- | Test that 'zipCostStream' preserves the laziness of its two arguments.
 test_zipCostStreamHandlesBottom :: TestTree
 test_zipCostStreamHandlesBottom =
-    testProperty "zipCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \xs ys ->
+    QC.testProperty "zipCostStream handles bottom suffixes" . QC.withMaxSuccess 5000 $ \xs ys ->
         let z = ExBudget (ExCPU $ sum xs) (ExMemory $ sum ys)
             (xsA, ysA) = postAlignWith 0 xs ys
             -- 'fromCostList' forces an additional element, so we account for that here.
@@ -320,8 +321,8 @@ sierpinskiRose n0
 test_flattenCostRoseIsLinearForSierpinskiRose :: Int -> TestTree
 test_flattenCostRoseIsLinearForSierpinskiRose depth =
     let size = sierpinskiSize depth
-    in testProperty ("sierpinski rose: taking " ++ show size ++ " elements") $
-        withMaxSuccess 1 $
+    in QC.testProperty ("sierpinski rose: taking " ++ show size ++ " elements") $
+        QC.withMaxSuccess 1 $
             length (toCostList . flattenCostRose $ sierpinskiRose depth) ===
                 size
 
@@ -378,28 +379,28 @@ collectListLengths (CostRose _ costs) = length costs : concatMap collectListLeng
 -- | Show the distribution of forest lengths in generated 'CostRose' values as a diagnostic.
 test_CostRoseListLengthsDistribution :: TestTree
 test_CostRoseListLengthsDistribution =
-    testProperty "distribution of list lengths in CostRose values" $
-        withMaxSuccess 1000 $ \rose ->
+    QC.testProperty "distribution of list lengths in CostRose values" $
+        QC.withMaxSuccess 1000 $ \rose ->
             let render n
                     | n <= 10   = show n
                     | otherwise = show m ++ " < n <= " ++ show (m + 10)
                     where m = head $ dropWhile (< n) [10, 20..]
-            in tabulate "n" (map render . filter (/= 0) $ collectListLengths rose) True
+            in QC.tabulate "n" (map render . filter (/= 0) $ collectListLengths rose) True
 
 -- | Test that 'genCostRose' only takes costs from its argument when generating a 'CostRose'.
 test_genCostRoseSound :: TestTree
 test_genCostRoseSound =
-    testProperty "genCostRose puts 100% of its input and nothing else into the output" $
-        withMaxSuccess 1000 $ \costs ->
-            forAll (genCostRose costs) $ \rose ->
+    QC.testProperty "genCostRose puts 100% of its input and nothing else into the output" $
+        QC.withMaxSuccess 1000 $ \costs ->
+            QC.forAll (genCostRose costs) $ \rose ->
                 fromCostRose rose ===
                     costs
 
 -- | Test that 'flattenCostRose' returns the elements of its argument.
 test_flattenCostRoseSound :: TestTree
 test_flattenCostRoseSound =
-    testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
-        withMaxSuccess 1000 $ \rose ->
+    QC.testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
+        QC.withMaxSuccess 1000 $ \rose ->
             -- This assumes that 'flattenCostRose' is left-biased, which isn't really necessary, but
             -- it doesn't seem like we're giving up on the assumption any time soon anyway, so why
             -- not keep it simple instead of sorting the results.
@@ -410,13 +411,13 @@ test_flattenCostRoseSound =
 -- | Test that 'flattenCostRose' is lazy.
 test_flattenCostRoseHandlesBottom :: TestTree
 test_flattenCostRoseHandlesBottom =
-    testProperty "flattenCostRose handles bottom subtrees" . withMaxSuccess 5000 $ \xs ys ->
+    QC.testProperty "flattenCostRose handles bottom subtrees" . QC.withMaxSuccess 5000 $ \xs ys ->
         -- Create a 'CostRose' with a negative cost somewhere in it, then replace the subtree after
         -- that cost with 'bottom' and check that we can get to the negative cost without forcing
         -- the bottom. We could've implemented generation of 'CostRose's with bottoms in them, but
         -- 'genCostRose' is already complicated enough, so it's easier to put a magical number into
         -- its input and postprocess the generated rose.
-        forAll (genCostRose . NonEmpty $ xs ++ (-1) : ys) $ \rose ->
+        QC.forAll (genCostRose . NonEmpty $ xs ++ (-1) : ys) $ \rose ->
             let spoilCostRose (CostRose cost forest) =
                     CostRose cost $ if cost == -1
                         -- 'flattenCostRose' forces an additional constructor, which is why 'bottom'
@@ -429,8 +430,8 @@ test_flattenCostRoseHandlesBottom =
 -- containing a negative cost.
 test_costsAreNeverNegative :: TestTree
 test_costsAreNeverNegative =
-    testProperty "costs coming from 'memoryUsage' are never negative" $
-        withMaxSuccess 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
+    QC.testProperty "costs coming from 'memoryUsage' are never negative" $
+        QC.withMaxSuccess 1000 $ \(val :: Some (ValueOf DefaultUni)) ->
             all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
 
 test_costing :: TestTree

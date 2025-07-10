@@ -30,7 +30,8 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict qualified as Strict
-import Test.QuickCheck
+import Test.QuickCheck (Arbitrary(..), Gen, NonEmptyList(..))
+import Test.QuickCheck qualified as QC
 import Test.QuickCheck.Instances.ByteString ()
 import Test.QuickCheck.Instances.Vector ()
 import Universe
@@ -89,11 +90,11 @@ magnitudesPositive next high =
 
 chooseIntegerPreferEnds :: (Integer, Integer) -> Gen Integer
 chooseIntegerPreferEnds (lo, hi)
-    | hi - lo < 20 = chooseInteger (lo, hi)
-    | otherwise    = frequency $ concat
+    | hi - lo < 20 = QC.chooseInteger (lo, hi)
+    | otherwise    = QC.frequency $ concat
         [ zip (50 : [9, 8.. 1]) $ map pure [lo..]
         , zip (50 : [9, 8.. 1]) $ map pure [hi, hi - 1]
-        , [(200, chooseInteger (lo + 10, hi - 10))]
+        , [(200, QC.chooseInteger (lo + 10, hi - 10))]
         ]
 
 -- | Generate asymptotically larger positive negative numbers (sans zero) with exponentially lower
@@ -103,7 +104,7 @@ chooseIntegerPreferEnds (lo, hi)
 -- generated than at the very end, but only by a fairly small factor. The size parameter is ignored,
 -- which is perhaps wrong and should be fixed.
 arbitraryPositive :: (Integer -> Integer) -> Integer -> Gen Integer
-arbitraryPositive next high = frequency . zip freqs $ map chooseIntegerPreferEnds magnitudes where
+arbitraryPositive next high = QC.frequency . zip freqs $ map chooseIntegerPreferEnds magnitudes where
     magnitudes = magnitudesPositive next high
     prefreqs = map floor $ iterate (* 1.1) (100 :: Double)
     freqs = concat
@@ -116,7 +117,7 @@ arbitraryNegative :: (Integer -> Integer) -> Integer -> Gen Integer
 arbitraryNegative next high = negate <$> arbitraryPositive next high
 
 arbitrarySigned :: (Integer -> Integer) -> Integer -> Gen Integer
-arbitrarySigned next high = frequency
+arbitrarySigned next high = QC.frequency
     [ (48, arbitraryNegative next high)
     , (4, pure 0)
     , (48, arbitraryPositive next high)
@@ -153,8 +154,8 @@ instance ArbitraryBuiltin Integer where
 -- >>> shrinkBuiltin $ Text.pack "abcd"
 -- ["","cd","ab","bcd","acd","abd","abc","aacd","abad","abbd","abca","abcb","abcc"]
 instance ArbitraryBuiltin Text where
-    arbitraryBuiltin = Text.pack . getPrintableString <$> arbitrary
-    shrinkBuiltin = map (Text.pack . getPrintableString) . shrink . PrintableString . Text.unpack
+    arbitraryBuiltin = Text.pack . QC.getPrintableString <$> arbitrary
+    shrinkBuiltin = map (Text.pack . QC.getPrintableString) . shrink . QC.PrintableString . Text.unpack
 
 instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
@@ -162,11 +163,11 @@ instance ArbitraryBuiltin ByteString where
 
 -- | Generate a tag for the 'Constr' constructor.
 genConstrTag :: Gen Integer
-genConstrTag = frequency
+genConstrTag = QC.frequency
     [ -- We want to generate most plausible constructor IDs most often.
-      (6, chooseInteger (0, 2))
+      (6, QC.chooseInteger (0, 2))
     , -- Less plausible -- less often.
-      (3, chooseInteger (3, 5))
+      (3, QC.chooseInteger (3, 5))
     , -- And some meaningless garbage occasionally just to have good coverage.
       (1, (`mod` toInteger (maxBound :: Int64)) <$> arbitraryBuiltin)
     ]
@@ -176,18 +177,18 @@ genConstrTag = frequency
 -- list splitting.
 genDataFromSpine :: [()] -> Gen Data
 genDataFromSpine [] =
-    oneof
+    QC.oneof
         [ Constr <$> genConstrTag <*> pure []
         , pure $ List []
         , pure $ Map []
         ]
-genDataFromSpine [()] = oneof [I <$> arbitraryBuiltin, B <$> arbitraryBuiltin]
-genDataFromSpine els = oneof
+genDataFromSpine [()] = QC.oneof [I <$> arbitraryBuiltin, B <$> arbitraryBuiltin]
+genDataFromSpine els = QC.oneof
     [ Constr <$> genConstrTag <*> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
     , List <$> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
     , do
         elss <- multiSplit1 els
-        Map <$> frequency
+        Map <$> QC.frequency
             [ -- Generate maps from 'ByteString's most often.
               (6, for elss $ \(NonEmpty els') ->
                 (,) . B <$> arbitraryBuiltin <*> genDataFromSpine (drop 1 els'))
@@ -293,7 +294,7 @@ instance ArbitraryBuiltin a => ArbitraryBuiltin [a] where
         for spine $ \() ->
             -- Scale the elements, so that generating a list of lists of lists doesn't take
             -- exponential size (and thus time).
-            scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
+            QC.scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
     shrinkBuiltin = coerce $ shrink @[AsArbitraryBuiltin a]
 
 instance ArbitraryBuiltin a => ArbitraryBuiltin (Strict.Vector a) where
@@ -303,8 +304,8 @@ instance ArbitraryBuiltin a => ArbitraryBuiltin (Strict.Vector a) where
 instance (ArbitraryBuiltin a, ArbitraryBuiltin b) => ArbitraryBuiltin (a, b) where
     arbitraryBuiltin = do
         (,)
-            <$> coerce (scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin a))
-            <*> coerce (scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin b))
+            <$> coerce (QC.scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin a))
+            <*> coerce (QC.scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin b))
     shrinkBuiltin = coerce $ shrink @(AsArbitraryBuiltin a, AsArbitraryBuiltin b)
 
 -- | Either a fail to generate anything or a built-in type of a given kind.
@@ -331,7 +332,7 @@ genDefaultUniApply = do
     -- come first to be smaller than those that come latter as that would make no sense.
     mayFun <- arbitrary
     -- We don't want to generate deeply nested built-in types, hence the scaling.
-    mayArg <- scale (`div` 5) arbitrary :: Gen (MaybeSomeTypeOf GHC.Type)
+    mayArg <- QC.scale (`div` 5) arbitrary :: Gen (MaybeSomeTypeOf GHC.Type)
     pure $ case (mayFun, mayArg) of
         (JustSomeType fun, JustSomeType arg) -> JustSomeType $ fun `DefaultUniApply` arg
         _                                    -> NothingSomeType
@@ -403,8 +404,8 @@ I.e. we have a correct-by-construction built-in type generator.
 -- See Note [Kind-driven generation of built-in types].
 instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
    arbitrary = do
-       size <- getSize
-       oneof $ case knownKind @k of
+       size <- QC.getSize
+       QC.oneof $ case knownKind @k of
            SingType ->
                [genDefaultUniApply | size > 10] ++ map pure
                [ JustSomeType DefaultUniInteger
@@ -504,8 +505,8 @@ shrinkBuiltinType (SomeTypeIn uni) = concat
     ]
 
 instance Arbitrary (SomeTypeIn DefaultUni) where
-    arbitrary = genKindOfBuiltin >>= (`suchThatMap` id) . genBuiltinTypeOf where
-        genKindOfBuiltin = frequency
+    arbitrary = genKindOfBuiltin >>= (`QC.suchThatMap` id) . genBuiltinTypeOf where
+        genKindOfBuiltin = QC.frequency
             [ (8, pure $ Type ())
             , (1, pure . KindArrow () (Type ()) $ Type ())
             , (1, pure . KindArrow () (Type ()) . KindArrow () (Type ()) $ Type ())
