@@ -438,14 +438,7 @@ program
             a = pair data data
           in
           /\r ->
-            \(z : r) (f : a -> list a -> r) (xs : list a) ->
-              chooseList
-                {a}
-                {all dead. r}
-                xs
-                (/\dead -> z)
-                (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                {r})
+            \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f])
           {List (Tuple2 data data)}
           (Nil {Tuple2 data data})
           (\(x : pair data data) (xs : list (pair data data)) ->

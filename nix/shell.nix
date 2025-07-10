@@ -69,6 +69,7 @@ let
   ];
 
   common-pkgs = [
+    pkgs.ghcid
     agda-tools.agda
     agda-tools.agda-with-stdlib
     agda-tools.agda-mode
@@ -76,7 +77,7 @@ let
     metatheory.generate-malonzo-code
     metatheory.agda-with-stdlib-and-metatheory
 
-    r-with-packages
+    # r-with-packages
     inputs.nixpkgs-2405.legacyPackages.${pkgs.system}.linkchecker
 
     tools.haskell-language-server

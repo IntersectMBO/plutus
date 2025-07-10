@@ -10,17 +10,13 @@
                  (\`$dMkNil` n l ->
                     case
                       (lessThanEqualsInteger n 0)
-                      [ (force
-                           (force (force chooseList)
-                              l
-                              (delay `$dMkNil`)
-                              (delay
-                                 ((\ds xs ->
-                                     force (force (drop (delay (\x -> x))))
-                                       `$dMkNil`
-                                       (subtractInteger n 1)
-                                       xs)
-                                    (force headList l)
-                                    (force tailList l)))))
+                      [ (case
+                           l
+                           [ `$dMkNil`
+                           , (\ds xs ->
+                                force (force (drop (delay (\x -> x))))
+                                  `$dMkNil`
+                                  (subtractInteger n 1)
+                                  xs) ])
                       , l ])))
          (delay (\x -> x)))))
