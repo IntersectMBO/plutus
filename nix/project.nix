@@ -73,9 +73,7 @@ let
               pkgs.ocaml-ng.ocamlPackages_4_10.findlib
               pkgs.coqPackages_8_13.coq
               pkgs.coqPackages_8_13.mathcomp
-              # Commented out because it started causing error:
-              #   attribute 'coq-ext-lib' missing
-              # pkgs.coqPackages_8_13.coq-ext-lib
+              pkgs.coqPackages_8_13.ExtLib
               pkgs.coqPackages_8_13.ssreflect
               pkgs.coqPackages_8_13.equations
             ];
