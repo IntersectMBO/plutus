@@ -669,7 +669,7 @@ maybeProfileRhs ghcVar var t = do
       case getVarSourceSpan ghcVar of
         -- When module is not compiled and GHC is using cached build from previous build, it will
         -- lack source span. There's nothing much we can do about this here since this is GHC
-        -- behavior
+        -- behavior. Issue #7203
         Nothing  -> nameStr
         Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
 
