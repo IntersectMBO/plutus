@@ -667,8 +667,9 @@ maybeProfileRhs ghcVar var t = do
     nameStr = GHC.occNameString $ GHC.occName $ GHC.varName $ ghcVar
     displayName = T.pack $
       case getVarSourceSpan ghcVar of
-        -- FIXME: Variables will miss span information when the module they are defined
-        -- in is loaded from cache instead of getting compiled.
+        -- When module is not compiled and GHC is using cached build from previous build, it will
+        -- lack source span. There's nothing much we can do about this here since this is GHC
+        -- behavior
         Nothing  -> nameStr
         Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
 

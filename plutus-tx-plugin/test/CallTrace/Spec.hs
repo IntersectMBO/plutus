@@ -43,7 +43,7 @@ tests =
           $$(compile [||nestedLinear True||])
       , goldenEvalCekTraceWithEmitter
           Cek.logWithCallTraceEmitter
-          "funcionFromOtherModule"
+          "successfullEvaluationYieldsNoTraceLog"
           $$(compile [||functionFromOtherModule False||])
       , goldenEvalCekTraceWithEmitter
           Cek.logWithCallTraceEmitter
