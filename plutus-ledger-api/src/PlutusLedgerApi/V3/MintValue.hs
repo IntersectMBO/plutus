@@ -20,7 +20,6 @@ module PlutusLedgerApi.V3.MintValue
   ( MintValue (..) -- Constructor is exported for testing
   , emptyMintValue
   , mintValueToMap
-  , mintValueToValue
   , mintValueMinted
   , mintValueBurned
   )
@@ -99,10 +98,6 @@ emptyMintValue = UnsafeMintValue Map.empty
 mintValueToMap :: MintValue -> Map CurrencySymbol (Map TokenName Integer)
 mintValueToMap (UnsafeMintValue m) = m
 {-# INLINEABLE mintValueToMap #-}
-
-mintValueToValue :: MintValue -> Value
-mintValueToValue (UnsafeMintValue m) = Value m
-{-# INLINEABLE mintValueToValue #-}
 
 -- | Get the 'Value' minted by the 'MintValue'.
 mintValueMinted :: MintValue -> Value
