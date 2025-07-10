@@ -9,7 +9,7 @@ module Common (
     , Term
     ) where
 
-import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx)
+import PlutusBenchmark.Common (benchTermCek, getConfig, getDataDir, mkEvalCtx, toNamedDeBruijnTerm)
 import PlutusBenchmark.NaturalSort
 
 import PlutusCore.Builtin qualified as PLC
@@ -21,6 +21,7 @@ import Criterion.Main.Options (Mode, parseWith)
 import Criterion.Types (Config (..))
 import Options.Applicative
 
+import Control.Exception (evaluate)
 import Data.ByteString qualified as BS
 import Data.List (isPrefixOf)
 import Flat
@@ -102,7 +103,13 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
-benchWith :: (FilePath -> BS.ByteString -> Benchmarkable) -> IO ()
+benchWith
+    :: (   FilePath
+        -> BS.ByteString
+        -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+        -> Benchmarkable
+       )
+    -> IO ()
 benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
     options <- execParser $ parserInfo cfg
@@ -122,8 +129,10 @@ benchWith act = do
 
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
-        env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
-            bench (dropExtension file) $ act file scriptBS
+        let prep = toNamedDeBruijnTerm . UPLC._progTerm . unsafeUnflat file
+        in env (BS.readFile (dir </> file)) $ \(~script) ->
+            env (evaluate $ prep script) $ \(~term) ->
+                bench (dropExtension file) $ act file script term
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
