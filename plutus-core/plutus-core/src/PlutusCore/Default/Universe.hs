@@ -45,6 +45,7 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
+import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -64,7 +65,6 @@ import Data.Vector qualified as Vector
 import Data.Vector.Strict qualified as Strict (Vector)
 import Data.Word (Word16, Word32, Word64)
 import GHC.Exts (inline, oneShot)
-import PlutusCore.MkPlc (mkTyBuiltinOf)
 import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
 import Universe as Export
 
@@ -531,20 +531,20 @@ outOfBoundsErr x branches = fold
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin ann (SomeTypeIn uni) branches = case uni of
-        DefaultUniBool    ->
+    annotateCaseBuiltin ty branches = case ty of
+        TyBuiltin _ (SomeTypeIn DefaultUniBool)    ->
           case branches of
             [f]    -> Right $ [(f, [])]
             [f, t] -> Right $ [(f, []), (t, [])]
             _      -> Left $ "Casing on bool requires exactly one branch or two branches"
-        DefaultUniInteger -> Right $ map (, []) branches
-        DefaultUniList ty ->
+        TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
+          Right $ map (, []) branches
+        listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
           case branches of
-            [cons] -> Right [(cons, [mkTyBuiltinOf ann ty, mkTyBuiltinOf ann $ DefaultUniList ty])]
-            [nil, cons] ->
-              Right [(nil, []), (cons, [mkTyBuiltinOf ann ty, mkTyBuiltinOf ann $ DefaultUniList ty])]
-            _ -> Left $ "Casing on list requires exactly one branch or two branches"
-        _                 -> Left $ display uni <> " isn't supported in 'case'"
+            [cons]      -> Right [(cons, [argTy, listTy])]
+            [nil, cons] -> Right [(nil, []), (cons, [argTy, listTy])]
+            _           -> Left $ "Casing on list requires exactly one branch or two branches"
+        _                 -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
     caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of

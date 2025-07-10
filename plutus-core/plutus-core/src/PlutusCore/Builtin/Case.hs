@@ -24,8 +24,7 @@ class AnnotateCaseBuiltin uni where
     -- returning list here.
     annotateCaseBuiltin
         :: UniOf term ~ uni
-        => ann
-        -> SomeTypeIn uni
+        => Type TyName uni ann
         -> [term]
         -> Either Text [(term, [Type TyName uni ann])]
 

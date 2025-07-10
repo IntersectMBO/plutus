@@ -565,7 +565,7 @@ inferTypeM (Case ann resTy scrut branches) = do
     vScrutTy <- inferTypeM scrut
 
     -- We don't know exactly what to expect, we only know that it should
-    -- be a SOP with the right number of sum alternatives
+    -- be a SOP with the right number of sum alternatives when type of scrutinee is SOP
     let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length branches - 1]
         expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
     case unNormalized vScrutTy of
@@ -576,14 +576,12 @@ inferTypeM (Case ann resTy scrut branches) = do
             -- scrutinee does not have a SOP type with the right number of alternatives
             -- for the number of branches
             Nothing -> throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
-        TyBuiltin _ someUni -> case annotateCaseBuiltin () someUni branches of
+        ty -> case annotateCaseBuiltin ty branches of
             Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
                 vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
                 -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () vArgTypes (unNormalized vResTy))
             Left err -> throwError $ UnsupportedCaseBuiltin ann err
-        -- scrutinee does not have a SOP type at all
-        _ -> throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
 
     -- If we got through all that, then every case type is correct, including that
     -- they all result in vResTy, so we can safely conclude that that is the type of the
