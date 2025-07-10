@@ -1,4 +1,11 @@
 
+<a id='changelog-1.49.0.0'></a>
+# 1.49.0.0 — 2025-07-08
+
+## Added
+
+- Module 'PlutusTx.Test.Util.Compiled' of the 'plutus-tx-testlib' package got a new function 'countFlatBytes' that counts the size of a 'CompiledCode' in Flat bytes.
+
 <a id='changelog-1.47.0.0'></a>
 # 1.47.0.0 — 2025-06-10
 

@@ -43,6 +43,10 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r +with-cert
 
+if arch(wasm32)
+  package plutus-core
+    flags: +do-not-build-plutus-exec
+
 -- Various dependencies of coq don't work when cross building for windows
 if os(windows)
   -- Note: we enable this and then disable it conditionally, rather than enabling
