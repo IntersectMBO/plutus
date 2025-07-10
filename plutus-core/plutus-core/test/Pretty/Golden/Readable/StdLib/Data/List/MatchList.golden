@@ -1,3 +1,0 @@
-/\a ->
-  \(xs : list a) ->
-    /\r -> \(z : r) (f : a -> list a -> r) -> caseList {a} {r} z f xs

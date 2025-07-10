@@ -291,8 +291,6 @@ data Spine a
 -- constructor for performance reasons (it only takes a single pattern match to access the head when
 -- there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
 -- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
---
--- Used in built-in functions returning function applications such as 'CaseList'.
 data HeadSpine a
     = HeadOnly a
     | HeadSpine a (Spine a)
