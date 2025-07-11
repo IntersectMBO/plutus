@@ -36,26 +36,34 @@ import PlutusCore.Version (plcVersion100, plcVersion110)
 import Prettyprinter
 
 {- Note [New builtins/language versions and protocol versions]
+
+Abbreviations: LL = ledger language, PV = (major) protocol version.
+
 When we add a new builtin to the Plutus language, that is a *backwards-compatible* change.
 Old scripts will still work (since they don't use the new builtins), we just make some more
 scripts possible.
 
 The same is true for new Plutus Core language versions: adding these is also backwards-compatible.
 
-It would be nice, therefore, to get away with just having one definition of the set of builtin
-functions/language features. Then the new features will just "work". However, this neglects the fact that
-support for the new feature will be added in the *software update* that
-brings a new Plutus ledger language, but they should only be usable after the corresponding
-*hard fork*. So there is a period of time in which the feature must be present in the software but not
+It would be nice, therefore, to get away with just having one definition of the
+set of builtin functions/language features. Then the new features will just
+"work". However, this neglects the fact that support for the new feature will be
+added in the *software update* that brings a new Plutus ledger language, but
+they should only be usable after the corresponding *hard fork*. So there is a
+period of time in which the feature must be present in the software but not
 usable, so we need to decide this conditionally based on the protocol version.
 
 To do this we need to:
 - Know which protocol version a feature was introduced in.
 - Given the protocol version, check a program for features that should not be usable yet.
 
-To simplify our lives, we pervasively make the assumption that after a
-feature is introduced in a ledger-language/protocol-version combo, it is present in all
-later ledger-languages/protocol-versions.
+To simplify our lives, we pervasively make the assumption that after a feature
+is introduced in a particular ledger language and protocol version, it remains
+present in the same ledger language in all later protocol versions (but not
+necessarily in other ledger languages; there was previously an assumption that
+if a feature was available in a given LL then it would also be available in all
+later LLs, but this led to complications when we retrospectively introduced
+certain features in earlier LLs).
 
 Note that this doesn't currently handle removals, although it fairly straighforwardly
 could do, just by tracking when they were removed.
@@ -72,14 +80,43 @@ and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
 IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version`
 -}
 data PlutusLedgerLanguage =
-      PlutusV1 -- ^ introduced in shelley era
-    | PlutusV2 -- ^ introduced in vasil era
-    | PlutusV3 -- ^ not yet enabled
+      PlutusV1 -- ^ introduced in Alonzo HF
+    | PlutusV2 -- ^ introduced in Vasil HF
+    | PlutusV3 -- ^ introduced in Chang HF
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
    deriving anyclass (NFData, NoThunks, Serialise)
 
 instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
+
+{-| Query the protocol version that a specific Plutus ledger language was first introduced in.
+-}
+ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> MajorProtocolVersion
+ledgerLanguageIntroducedIn = \case
+    PlutusV1 -> alonzoPV
+    PlutusV2 -> vasilPV
+    PlutusV3 -> changPV
+
+{-| Which Plutus language versions are available in the given
+'MajorProtocolVersion'?
+See Note [New builtins/language versions and protocol versions].
+Assumes that once a LL is available it remains available in all later
+PVs and that if m <= n, PlutusVm is introduced before PlutusVn.
+-}
+ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
+ledgerLanguagesAvailableIn searchPv =
+  Set.fromList $ takeWhile (\ll -> ledgerLanguageIntroducedIn ll <= searchPv) enumerate
+
+-- | Given a map from PVs to a type `a`, return a `Set a` containing all of the
+-- entries with PV <= thisPv
+collectUpTo
+  :: Ord a
+  => Map.Map MajorProtocolVersion (Set.Set a)
+  -> MajorProtocolVersion
+  -> Set.Set a
+collectUpTo m thisPv =
+  fold $  -- ie, iterated `union`
+  Map.elems $ Map.takeWhileAntitone (<= thisPv) m
 
 -- Batches of builtins which were introduced at the same time: see
 -- `builtinsIntroducedIn` below.
@@ -153,150 +190,64 @@ batch6 =
   , ListToArray, IndexArray, LengthOfArray
   ]
 
-{-| A map indicating which builtin functions were introduced in which 'MajorProtocolVersion'.
-
-This __must__ be updated when new builtins are added.
-See Note [New builtins/language versions and protocol versions]
-
-All builtins will become available in all protocol versions from `anonPV` onwards.
+{-| Given a ledger language, return a map indicating which builtin functions were
+  introduced in which 'MajorProtocolVersion'.  This __must__ be updated when new
+  builtins are added.  It is not necessary to add entries for protocol versions
+  where no new builtins are added.  See Note [New builtins/language versions and
+  protocol versions]
 -}
-builtinsIntroducedIn :: Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set DefaultFun))
+builtinsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set DefaultFun)
 builtinsIntroducedIn =
-  Map.fromList
-  [ (PlutusV1,
-     Map.fromList
-     [ (alonzoPV, Set.fromList batch1)
-     , (anonPV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-     ]),
-    (PlutusV2,
-     Map.fromList
-     [ (vasilPV,     Set.fromList (batch1 ++ batch2))
-     , (valentinePV, Set.fromList batch3)
-     , (plominPV,    Set.fromList batch4b)
-     , (anonPV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
-     ]),
-    (PlutusV3,
-     Map.fromList
-     [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
-     , (plominPV, Set.fromList batch5)
-     , (anonPV,   Set.fromList batch6)
-     ])
-  ]
+  \case
+    PlutusV1 ->
+      Map.fromList
+      [ (alonzoPV, Set.fromList batch1)
+      , (anonPV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+      ]
+    PlutusV2 ->
+      Map.fromList
+      [ (vasilPV,     Set.fromList (batch1 ++ batch2))
+      , (valentinePV, Set.fromList batch3)
+      , (plominPV,    Set.fromList batch4b)
+      , (anonPV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+      ]
+    PlutusV3 ->
+      Map.fromList
+      [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
+      , (plominPV, Set.fromList batch5)
+      , (anonPV,   Set.fromList batch6)
+      ]
+
+{- | Return a set containing the builtins which are available in a given LL in a
+given PV.  All builtins are available in all LLs from `anonPV` onwards. -}
+builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
+builtinsAvailableIn = collectUpTo . builtinsIntroducedIn
 
 
--- I THINK THIS IS BROKEN NOW: we assume that if something's introduced in eg V1
--- then it's available in V2 and V3 as well, but introducing 1.1.0 for V2 in Anon
--- may confuse it about when it's introduced for V3
---
 {-| A map indicating which Plutus Core versions were introduced in which
 'MajorProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
-
 This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
-
-plcVersionsIntroducedIn :: Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set Version))
+plcVersionsIntroducedIn :: PlutusLedgerLanguage -> Map.Map MajorProtocolVersion (Set.Set Version)
 plcVersionsIntroducedIn =
-  Map.fromList
-  [ (PlutusV1,
-     Map.fromList
-     [ (alonzoPV, Set.fromList [ plcVersion100 ])
-     , (anonPV,   Set.fromList [ plcVersion110 ])
-     ])
-  , (PlutusV2,
-     Map.fromList
-     [ (alonzoPV, Set.fromList [ plcVersion100 ])
-     , (anonPV,   Set.fromList [ plcVersion110 ])
-     ])
-  , (PlutusV3,
-     Map.fromList
-     [(changPV, Set.fromList [ plcVersion110 ])
-     ])
-  ]
-
-{-| Query the protocol version that a specific Plutus ledger language was first introduced in.
--}
-ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> MajorProtocolVersion
-ledgerLanguageIntroducedIn = \case
-    PlutusV1 -> alonzoPV
-    PlutusV2 -> vasilPV
-    PlutusV3 -> changPV
-
-{-| Which Plutus language versions are available in the given 'MajorProtocolVersion'?
-
-See Note [New builtins/language versions and protocol versions]
--}
-
-
-{-
-ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
-ledgerLanguagesAvailableIn searchPv =
-    foldMap ledgerVersionToSet enumerate
-  where
-    -- OPTIMIZE: could be done faster using takeWhile
-    ledgerVersionToSet :: PlutusLedgerLanguage -> Set.Set PlutusLedgerLanguage
-    ledgerVersionToSet ll
-        | ledgerLanguageIntroducedIn ll <= searchPv = Set.singleton ll
-        | otherwise = mempty
--}
-
-ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
-ledgerLanguagesAvailableIn searchPv =
-    foldMap ledgerVersionToSet enumerate
-  where
-    -- OPTIMIZE: could be done faster using takeWhile
-    ledgerVersionToSet :: PlutusLedgerLanguage -> Set.Set PlutusLedgerLanguage
-    ledgerVersionToSet ll
-        | ledgerLanguageIntroducedIn ll <= searchPv = Set.singleton ll
-        | otherwise = mempty
+  \case
+    PlutusV1 ->
+      Map.fromList
+      [ (alonzoPV, Set.fromList [ plcVersion100 ])
+      , (anonPV,   Set.fromList [ plcVersion110 ])
+      ]
+    PlutusV2 ->
+      Map.fromList
+      [ (alonzoPV, Set.fromList [ plcVersion100 ])
+      , (anonPV,   Set.fromList [ plcVersion110 ])
+      ]
+    PlutusV3 ->
+      Map.fromList
+      [(changPV, Set.fromList [ plcVersion110 ])
+      ]
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
-and 'MajorProtocolVersion'?
-
-See Note [New builtins/language versions and protocol versions]
--}
+and 'MajorProtocolVersion'? -}
 plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
-plcVersionsAvailableIn thisLv thisPv =
-  fold $ -- ie, union
-  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
-  Map.findWithDefault Map.empty thisLv plcVersionsIntroducedIn
-
-{-| Which builtin functions are available in the given given 'PlutusLedgerLanguage'
-and 'MajorProtocolVersion'?
-
-See Note [New builtins/language versions and protocol versions]
--}
-builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn thisLv thisPv =
-  fold $
-  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
-  Map.findWithDefault Map.empty thisLv builtinsIntroducedIn
-
--- | Given a map from LLs to PVs to a, collect all of the entries for
--- thisLv with PV <= thisPv.
-collectUpTo
-  :: Ord a
-  => Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set a))
-  -> PlutusLedgerLanguage
-  -> MajorProtocolVersion
-  -> Set.Set a
-collectUpTo m thisLv thisPv =
-  fold $
-  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
-  Map.findWithDefault Map.empty thisLv m
-
-plcVersionsAvailableIn' :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
-plcVersionsAvailableIn' = collectUpTo plcVersionsIntroducedIn
-
-builtinsAvailableIn' :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn' = collectUpTo builtinsIntroducedIn
-
-{-
-i < j => p i >= p j
-ie, if p i is true and i < j then p j can be true or false, if p i is false and j > i then p j must also be false.
--}
--- ** We can probably assume (for now) that if a builtin or laguage feature is
--- introduced for a particular Plutus LL version, then it'll also be available
--- _for that version_ in all later PVs.  What is no longer true is that if
--- something's introduced in PlutusV<n> then it won't be introduced in a PlutusV<m>
--- with m < n at a later PV.
+plcVersionsAvailableIn = collectUpTo . plcVersionsIntroducedIn
