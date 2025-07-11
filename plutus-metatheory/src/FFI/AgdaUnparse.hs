@@ -6,6 +6,7 @@ import Data.ByteString (ByteString)
 import Data.Functor.Identity
 import Data.Text (Text)
 import Data.Text qualified as T
+import Data.Vector.Strict qualified as Vector
 import FFI.Untyped qualified as AgdaFFI
 import PlutusCore qualified as PLC
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -117,7 +118,7 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
   agdaUnparse PLC.DefaultUniBLS12_381_G1_Element = "bls12-381-g1-element"
   agdaUnparse PLC.DefaultUniBLS12_381_G2_Element = "bls12-381-g2-element"
   agdaUnparse PLC.DefaultUniBLS12_381_MlResult = "bls12-381-mlresult"
-  agdaUnparse (PLC.DefaultUniArray _) = error "Arrays are currently not supported."
+  agdaUnparse (PLC.DefaultUniArray t) = "(array " ++ agdaUnparse t ++ ")"
   agdaUnparse (PLC.DefaultUniApply _ _) = error "Application of an unknown type is not supported."
 
 agdaUnparseValue :: DSum (PLC.ValueOf UPLC.DefaultUni) Identity -> String
@@ -151,8 +152,9 @@ agdaUnparseValue dSum =
         "bls12-381-g2-element " ++  agdaUnparse val
       PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult _ :=> Identity val ->
         "bls12-381-mlresult " ++ agdaUnparse val
-      PLC.ValueOf (PLC.DefaultUniArray _) _ :=> Identity _ ->
-        error "Arrays are currently not supported."
+      PLC.ValueOf (PLC.DefaultUniArray elemType) _ :=> Identity val ->
+        "(array " ++ agdaUnparse elemType ++ ")"
+          ++ agdaUnparseDList elemType (Vector.toList val)
       PLC.ValueOf (PLC.DefaultUniApply _ _) _ :=> Identity _ ->
         error "Application of an unknown type is not supported."
   ++ ")"
