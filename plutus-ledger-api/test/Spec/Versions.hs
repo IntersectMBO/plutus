@@ -67,7 +67,7 @@ deriving newtype instance Arbitrary MajorProtocolVersion
 testBuiltinVersions :: TestTree
 testBuiltinVersions = testGroup "builtins"
     [ testCase "all builtins are available some time" $
-            let allPvBuiltins = fold $ Map.elems builtinsIntroducedIn
+            let allPvBuiltins = fold $ Map.elems $ fold $ Map.elems builtinsIntroducedIn
                 allBuiltins = enumerate @DefaultFun
             in for_ allBuiltins $ \f -> assertBool (show f) (f `Set.member` allPvBuiltins)
     , testCase "builtins aren't available before Alonzo" $

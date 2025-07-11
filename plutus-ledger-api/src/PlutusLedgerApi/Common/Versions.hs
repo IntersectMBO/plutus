@@ -160,21 +160,27 @@ See Note [New builtins/language versions and protocol versions]
 
 All builtins will become available in all protocol versions from `anonPV` onwards.
 -}
-builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
+builtinsIntroducedIn :: Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set DefaultFun))
 builtinsIntroducedIn =
-  Map.fromList [
-  -- PlutusV1
-    ((PlutusV1, alonzoPV),    Set.fromList batch1)
-  , ((PlutusV1, anonPV),      Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
-  -- PlutusV2
-  , ((PlutusV2, vasilPV),     Set.fromList (batch1 ++ batch2))
-  , ((PlutusV2, valentinePV), Set.fromList batch3)
-  , ((PlutusV2, plominPV),    Set.fromList batch4b)
-  , ((PlutusV2, anonPV),      Set.fromList (batch4a ++ batch5 ++ batch6))
-  -- PlutusV3
-  , ((PlutusV3, changPV),     Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
-  , ((PlutusV3, plominPV),    Set.fromList batch5)
-  , ((PlutusV3, anonPV),      Set.fromList batch6)
+  Map.fromList
+  [ (PlutusV1,
+     Map.fromList
+     [ (alonzoPV, Set.fromList batch1)
+     , (anonPV,   Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
+     ]),
+    (PlutusV2,
+     Map.fromList
+     [ (vasilPV,     Set.fromList (batch1 ++ batch2))
+     , (valentinePV, Set.fromList batch3)
+     , (plominPV,    Set.fromList batch4b)
+     , (anonPV ,     Set.fromList (batch4a ++ batch5 ++ batch6))
+     ]),
+    (PlutusV3,
+     Map.fromList
+     [ (changPV,  Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
+     , (plominPV, Set.fromList batch5)
+     , (anonPV,   Set.fromList batch6)
+     ])
   ]
 
 
@@ -189,43 +195,23 @@ This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
 
-{-
--- ** This should probably be something like
--- Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion) (Set.Set Version))
-plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
-plcVersionsIntroducedIn =
-  Map.fromList [
-    ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
-  , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
-  , ((PlutusV1, anonPV),   Set.fromList [ plcVersion110 ])
-  ]
--}
-
-{-
-plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
- plcVersionsIntroducedIn =
-   Map.fromList [
-     ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ])
-   , ((PlutusV3, changPV),  Set.fromList [ plcVersion110 ])
-   , ((PlutusV1, anonPV),   Set.fromList [ plcVersion110 ])
-  ]
-
-
-plcVersionsAvailableIn thisLv thisPv = fold $ Map.elems $
-    Map.takeWhileAntitone plcVersionAvailableIn plcVersionsIntroducedIn
-    where
-      plcVersionAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
-      plcVersionAvailableIn (introducedInLv,introducedInPv) =
-          -- both should be satisfied
-          introducedInLv <= thisLv && introducedInPv <= thisPv
--}
-
 plcVersionsIntroducedIn :: Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set Version))
 plcVersionsIntroducedIn =
-  Map.fromList [
-    (PlutusV1, Map.fromList [(alonzoPV, Set.fromList [ plcVersion100 ]), (anonPV, Set.fromList [plcVersion110])])
-  , (PlutusV2, Map.fromList [(alonzoPV, Set.fromList [ plcVersion100 ]), (anonPV, Set.fromList [plcVersion110])])
-  , (PlutusV3, Map.fromList [(changPV,  Set.fromList [ plcVersion110 ])])
+  Map.fromList
+  [ (PlutusV1,
+     Map.fromList
+     [ (alonzoPV, Set.fromList [ plcVersion100 ])
+     , (anonPV,   Set.fromList [ plcVersion110 ])
+     ])
+  , (PlutusV2,
+     Map.fromList
+     [ (alonzoPV, Set.fromList [ plcVersion100 ])
+     , (anonPV,   Set.fromList [ plcVersion110 ])
+     ])
+  , (PlutusV3,
+     Map.fromList
+     [(changPV, Set.fromList [ plcVersion110 ])
+     ])
   ]
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
@@ -240,6 +226,20 @@ ledgerLanguageIntroducedIn = \case
 
 See Note [New builtins/language versions and protocol versions]
 -}
+
+
+{-
+ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
+ledgerLanguagesAvailableIn searchPv =
+    foldMap ledgerVersionToSet enumerate
+  where
+    -- OPTIMIZE: could be done faster using takeWhile
+    ledgerVersionToSet :: PlutusLedgerLanguage -> Set.Set PlutusLedgerLanguage
+    ledgerVersionToSet ll
+        | ledgerLanguageIntroducedIn ll <= searchPv = Set.singleton ll
+        | otherwise = mempty
+-}
+
 ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
 ledgerLanguagesAvailableIn searchPv =
     foldMap ledgerVersionToSet enumerate
@@ -267,13 +267,29 @@ and 'MajorProtocolVersion'?
 See Note [New builtins/language versions and protocol versions]
 -}
 builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
-builtinsAvailableIn thisLv thisPv = fold $
-    Map.filterWithKey (const . alreadyIntroduced) builtinsIntroducedIn
-    where
-      alreadyIntroduced :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
-      alreadyIntroduced (introducedInLv, introducedInPv) =
-          -- both should be satisfied
-          introducedInLv == thisLv && introducedInPv <= thisPv
+builtinsAvailableIn thisLv thisPv =
+  fold $
+  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
+  Map.findWithDefault Map.empty thisLv builtinsIntroducedIn
+
+-- | Given a map from LLs to PVs to a, collect all of the entries for
+-- thisLv with PV <= thisPv.
+collectUpTo
+  :: Ord a
+  => Map.Map PlutusLedgerLanguage (Map.Map MajorProtocolVersion (Set.Set a))
+  -> PlutusLedgerLanguage
+  -> MajorProtocolVersion
+  -> Set.Set a
+collectUpTo m thisLv thisPv =
+  fold $
+  Map.elems $ Map.takeWhileAntitone (<= thisPv) $
+  Map.findWithDefault Map.empty thisLv m
+
+plcVersionsAvailableIn' :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
+plcVersionsAvailableIn' = collectUpTo plcVersionsIntroducedIn
+
+builtinsAvailableIn' :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
+builtinsAvailableIn' = collectUpTo builtinsIntroducedIn
 
 {-
 i < j => p i >= p j

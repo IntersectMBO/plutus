@@ -63,11 +63,12 @@ deriving newtype instance Arbitrary MajorProtocolVersion
 testBuiltinVersions :: TestTree
 testBuiltinVersions = testGroup "builtins"
     [ testCase "all builtins are available some time" $
-            let allPvBuiltins = fold $ Map.elems builtinsIntroducedIn
+            let allPvBuiltins = fold $ Map.elems $ fold $ Map.elems builtinsIntroducedIn
                 allBuiltins = enumerate @DefaultFun
             in for_ allBuiltins $ \f -> assertBool (show f) (f `Set.member` allPvBuiltins)
     , testCase "builtins aren't available before Alonzo" $
-        assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 maryPV)
+
+      assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 maryPV)
     , testCase "serializeData is only available in l2,Vasil and after" $ do
          assertBool "in l1,Alonzo" $ isLeft $ V1.deserialiseScript alonzoPV serialiseDataExScript
          assertBool "in l1,Vasil" $ isLeft $ V1.deserialiseScript vasilPV serialiseDataExScript
