@@ -5,6 +5,7 @@ import Spec.Data.Budget qualified
 import Spec.Data.MintValue.V3 qualified
 import Spec.Data.ScriptContext qualified
 import Spec.Data.Value qualified
+import Spec.Envelope qualified
 import Spec.MintValue.V3 qualified
 import Spec.ReturnUnit.V1 qualified
 import Spec.ReturnUnit.V2 qualified
@@ -27,6 +28,7 @@ tests =
     , Spec.Data.ScriptContext.tests
     , Spec.Data.Value.test_EqValue
     , Spec.Data.MintValue.V3.tests
+    , Spec.Envelope.tests
     , Spec.ReturnUnit.V1.tests
     , Spec.ReturnUnit.V2.tests
     , Spec.ReturnUnit.V3.tests

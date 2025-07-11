@@ -58,11 +58,6 @@ testEvalOrderIsLazy =
   - Builtin functions with 2 type arguments followed by N>0 term arguments:
       - FstPair    : [ forall a, forall b, pair(a, b) ] -> a
       - ChooseList : [ forall a, forall b, list(a), b, b ] -> b
-      - CaseList   : [ forall a, forall b
-                      , b
-                      , (fun a (fun [ (con list) a ] b))
-                      , list(a)
-                      ] -> b
 
   When it comes to purity of builtin terms,
   we want to test the following cases:

@@ -92,15 +92,6 @@ matchData optMatch = runQuote $ do
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () bytestring $ TyVar () r)
         $ case optMatch of
-            UseCase ->
-                mkIterAppNoAnn (tyInst () (builtin () CaseData) $ TyVar () r)
-                    [ var () fConstr
-                    , var () fMap
-                    , var () fList
-                    , var () fI
-                    , var () fB
-                    , var () d
-                    ]
             UseChoose ->
                 mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
                     [ var () d
