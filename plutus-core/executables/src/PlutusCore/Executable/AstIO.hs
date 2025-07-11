@@ -160,9 +160,9 @@ serialiseUplcProgramFlat
     -> BSL.ByteString
 serialiseUplcProgramFlat =
     \case
-     Named         -> BSL.fromStrict . flat. UPLC.UnrestrictedProgram
-     DeBruijn      -> BSL.fromStrict . flat. UPLC.UnrestrictedProgram . toDeBruijnUPLC
-     NamedDeBruijn -> BSL.fromStrict . flat .UPLC.UnrestrictedProgram . toNamedDeBruijnUPLC
+     Named         -> BSL.fromStrict . flat . UPLC.UnrestrictedProgram
+     DeBruijn      -> BSL.fromStrict . flat . UPLC.UnrestrictedProgram . toDeBruijnUPLC
+     NamedDeBruijn -> BSL.fromStrict . flat . UPLC.UnrestrictedProgram . toNamedDeBruijnUPLC
 
 -- Deserialising ASTs from Flat
 
@@ -213,4 +213,3 @@ loadUplcASTfromFlat flatMode inp =
       Named         -> unflatOrFail <&> UPLC.unUnrestrictedProgram
       DeBruijn      -> unflatOrFail <&> UPLC.unUnrestrictedProgram <&> fromDeBruijnUPLC
       NamedDeBruijn -> unflatOrFail <&> UPLC.unUnrestrictedProgram <&> fromNamedDeBruijnUPLC
-
