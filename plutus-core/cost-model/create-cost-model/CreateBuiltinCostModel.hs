@@ -270,8 +270,6 @@ createBuiltinCostModel bmfile rfile = do
   paramRipemd_160                      <- getParams readCF1 paramRipemd_160
   -- Batch 6
   paramExpModInteger                   <- getParams readCF3 paramExpModInteger
-  -- paramCaseList
-  -- paramCaseData
   paramDropList                        <- getParams readCF2 paramDropList
   -- Arrays
   paramLengthOfArray                   <- getParams readCF1 paramLengthOfArray

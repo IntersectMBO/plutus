@@ -74,16 +74,6 @@ matchList optMatch = runQuote $ do
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ case optMatch of
-            UseCase ->
-                mkIterAppNoAnn
-                    (mkIterInstNoAnn (builtin () CaseList)
-                        [ TyVar () a
-                        , TyVar () r
-                        ])
-                    [ var () z
-                    , var () f
-                    , var () xs
-                    ]
             UseChoose ->
                 mkIterAppNoAnn
                     (mkIterInstNoAnn (builtin () ChooseList)

@@ -8,7 +8,7 @@ import Control.Monad.Except
 import Data.Either
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.StdLib.Data.List qualified as BuiltinList
-import PlutusCore.StdLib.Data.MatchOption (MatchOption (UseCase))
+import PlutusCore.StdLib.Data.MatchOption (MatchOption (UseChoose))
 import PlutusCore.StdLib.Data.ScottList qualified as ScottList
 import PlutusCore.Version qualified as PLC
 import PlutusTx qualified as Tx
@@ -23,11 +23,11 @@ mkBuiltinList l = compiledCodeToTerm (Tx.liftCodeDef $ BI.BuiltinList l)
 
 mkSumLeftBuiltinTerm :: [Integer] -> Term
 mkSumLeftBuiltinTerm l =
-    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sum UseCase)) (mkBuiltinList l)
+    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sum UseChoose)) (mkBuiltinList l)
 
 mkSumRightBuiltinTerm :: [Integer] -> Term
 mkSumRightBuiltinTerm l =
-    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sumr UseCase)) (mkBuiltinList l)
+    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sumr UseChoose)) (mkBuiltinList l)
 
 mkScottList :: [Integer] -> Term
 mkScottList l = compiledCodeToTerm (Tx.liftCode PLC.plcVersion100 l)

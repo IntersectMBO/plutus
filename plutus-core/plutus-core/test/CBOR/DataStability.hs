@@ -33,10 +33,12 @@ where
 import PlutusCore.Data
 
 import Codec.Serialise (deserialise)
+import Data.ByteString.Base16 qualified as Base16 (decode)
+import Data.ByteString.Char8 (ByteString)
 import Data.ByteString.Lazy qualified as BSL (fromStrict, length)
 import Data.Maybe (fromJust)
 import Data.Text (Text)
-import Text.Hex (decodeHex)
+import Data.Text.Encoding qualified as Text (encodeUtf8)
 import Text.Printf (printf)
 
 import Test.Tasty
@@ -135,5 +137,8 @@ testData =
      )
    ]
 
-
-
+-- Lifted from the `hex-text` package which is being dropped because it
+-- is poorly maintained.
+decodeHex :: Text -> Maybe ByteString
+decodeHex txt =
+  either (const Nothing) Just (Base16.decode (Text.encodeUtf8 txt))
