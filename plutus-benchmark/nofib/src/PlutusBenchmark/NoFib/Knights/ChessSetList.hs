@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE Strict            #-}
 -- Turning this off makes things fail, should investigate why
 {-# OPTIONS_GHC -fno-strictness #-}
 

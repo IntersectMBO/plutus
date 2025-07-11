@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module PlutusBenchmark.NoFib.Knights.Sort

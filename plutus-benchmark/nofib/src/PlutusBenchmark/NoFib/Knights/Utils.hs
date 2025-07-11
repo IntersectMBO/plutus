@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE Strict            #-}
 
 module PlutusBenchmark.NoFib.Knights.Utils where
 
