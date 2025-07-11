@@ -1,0 +1,78 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DataKinds         #-}
+<span class="lineno">    2 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    3 </span>{-# LANGUAGE RankNTypes        #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeOperators     #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module PlutusCore.Builtin.Case where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import PlutusCore.Core.Type (Type, UniOf)
+<span class="lineno">    9 </span>import PlutusCore.Name.Unique
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Control.DeepSeq (NFData (..), rwhnf)
+<span class="lineno">   12 </span>import Data.Default.Class (Default (..))
+<span class="lineno">   13 </span>import Data.Text (Text)
+<span class="lineno">   14 </span>import Data.Vector (Vector)
+<span class="lineno">   15 </span>import NoThunks.Class
+<span class="lineno">   16 </span>import Text.PrettyBy (display)
+<span class="lineno">   17 </span>import Universe
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>class AnnotateCaseBuiltin uni where
+<span class="lineno">   20 </span>    -- | Given a tag for a built-in type and a list of branches, annotate each of the branches with
+<span class="lineno">   21 </span>    -- its expected argument types or fail if casing on values of the built-in type isn't supported.
+<span class="lineno">   22 </span>    annotateCaseBuiltin
+<span class="lineno">   23 </span>        :: UniOf term ~ uni
+<span class="lineno">   24 </span>        =&gt; SomeTypeIn uni
+<span class="lineno">   25 </span>        -&gt; [term]
+<span class="lineno">   26 </span>        -&gt; Either Text [(term, [Type TyName uni ann])]
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>class CaseBuiltin uni where
+<span class="lineno">   29 </span>    -- | Given a constant with its type tag and a vector of branches, choose the appropriate branch
+<span class="lineno">   30 </span>    -- or fail if the constant doesn't correspond to any of the branches (or casing on constants of
+<span class="lineno">   31 </span>    -- this type isn't supported at all).
+<span class="lineno">   32 </span>    caseBuiltin :: UniOf term ~ uni =&gt; Some (ValueOf uni) -&gt; Vector term -&gt; Either Text term
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- See Note [DO NOT newtype-wrap functions].
+<span class="lineno">   35 </span>-- | A @data@ version of 'CaseBuiltin'. we parameterize the evaluator by a 'CaserBuiltin' so that
+<span class="lineno">   36 </span>-- the caller can choose whether to use the 'caseBuiltin' method or the always failing caser (the
+<span class="lineno">   37 </span>-- latter is required for earlier protocol versions when we didn't support casing on builtins).
+<span class="lineno">   38 </span>data CaserBuiltin uni = CaserBuiltin
+<span class="lineno">   39 </span>    { <span class="istickedoff"><span class="decl"><span class="istickedoff">unCaserBuiltin</span></span></span>
+<span class="lineno">   40 </span>        :: !(forall term. UniOf term ~ uni =&gt; Some (ValueOf uni) -&gt; Vector term -&gt; Either Text term)
+<span class="lineno">   41 </span>    }
+<span class="lineno">   42 </span>
+<span class="lineno">   43 </span>instance NFData (CaserBuiltin uni) where
+<span class="lineno">   44 </span>    <span class="decl"><span class="nottickedoff">rnf = rwhnf</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via OnlyCheckWhnfNamed &quot;PlutusCore.Builtin.Case.CaserBuiltin&quot; (CaserBuiltin uni)</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="nottickedoff">instance NoThunks (CaserBuiltin uni)</span></span></span></span></span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>instance CaseBuiltin uni =&gt; Default (CaserBuiltin uni) where
+<span class="lineno">   50 </span>    <span class="decl"><span class="istickedoff">def = CaserBuiltin caseBuiltin</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>unavailableCaserBuiltin :: Int -&gt; CaserBuiltin uni
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">unavailableCaserBuiltin ver =</span>
+<span class="lineno">   54 </span><span class="spaces">    </span><span class="istickedoff">CaserBuiltin $ \_ _ -&gt; <span class="nottickedoff">Left $</span></span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="istickedoff"><span class="nottickedoff">&quot;'case' on values of built-in types is not supported in protocol version &quot; &lt;&gt; display ver</span></span></span>
+
+</pre>
+</body>
+</html>
