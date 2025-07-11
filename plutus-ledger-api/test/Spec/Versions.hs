@@ -1,7 +1,9 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Spec.Versions (tests) where
 
 import PlutusCore as PLC
@@ -31,7 +33,7 @@ tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
     , testBuiltinVersions
-    , testNumBuiltins
+    , testBuiltinsAvailableIn
     , testLanguageVersions
     , testRmdr
     ]
@@ -87,63 +89,59 @@ testBuiltinVersions = testGroup "builtins"
              assertBool "not in l3,future" $ isRight $ V3.deserialiseScript futurePV script
     ]
 
-{- 1: 51
-   2: 1
-   3: 2
-   4: 2 + 19
-   5: 12
-   6: 5
--}
-testNumBuiltins :: TestTree
-testNumBuiltins =
-  let numBuiltins :: [(PlutusLedgerLanguage, [(MajorProtocolVersion, Int)])] =
-        [ (PlutusV1, [ (shelleyPV, 0)
-                     , (allegraPV, 0)
-                     , (maryPV, 0)
-                     , (alonzoPV, 51)    -- Batch 1
-                     , (vasilPV, 51)
-                     , (valentinePV, 51)
-                     , (changPV, 51)
-                     , (plominPV, 51)
-                     , (anonPV, 92)      -- Batches 1-6
-                     ])
-        , (PlutusV2, [ (shelleyPV, 0)
-                     , (allegraPV, 0)
-                     , (maryPV, 0)
-                     , (alonzoPV, 51)    -- Batch 1
-                     , (vasilPV, 52)     -- Batch 2
-                     , (valentinePV, 54) -- Batch 3
-                     , (changPV, 54)
-                     , (plominPV, 56)    -- Batch 4a
-                     , (anonPV, 92)      -- Batches 1-6
-                     ])
-        , (PlutusV3, [ (shelleyPV, 0)
-                     , (allegraPV, 0)
-                     , (maryPV, 0)
-                     , (alonzoPV, 0)
-                     , (vasilPV, 0)
-                     , (valentinePV, 0)
-                     , (changPV, 75)     -- Batches 1-4
-                     , (plominPV, 87)    -- Batch 5
-                     , (anonPV, 92)      -- Batch 6
-                     ])
-        ]
+
+-- Check that the `builtinsAvailableIn` function returns the correct number of
+-- buitins for each LL and PV (but not that it returns the _correct_ builtins).
+-- The `builtinCounts` function MUST be updated whenever `builtinsAvailableIn`
+-- is updated, which will usually happen in the run-up to the introduction of a
+-- new LL or PV.
+testBuiltinsAvailableIn :: TestTree
+testBuiltinsAvailableIn =
+  let builtinCounts :: PlutusLedgerLanguage -> [(MajorProtocolVersion, Int)]
+      builtinCounts = \case
+        PlutusV1 -> [ (shelleyPV, 0)
+                    , (allegraPV, 0)
+                    , (maryPV, 0)
+                    , (alonzoPV, 51)    -- Batch 1
+                    , (vasilPV, 51)
+                    , (valentinePV, 51)
+                    , (changPV, 51)
+                    , (plominPV, 51)
+                    , (anonPV, 92)      -- Batches 2-6
+                    ]
+        PlutusV2 -> [ (shelleyPV, 0)
+                    , (allegraPV, 0)
+                    , (maryPV, 0)
+                    , (alonzoPV, 0)
+                    , (vasilPV, 52)     -- Batches 1 and 2
+                    , (valentinePV, 54) -- Batch 3
+                    , (changPV, 54)
+                    , (plominPV, 56)    -- Batch 4a
+                    , (anonPV, 92)      -- Batches 4b-6
+                    ]
+        PlutusV3 -> [ (shelleyPV, 0)
+                    , (allegraPV, 0)
+                    , (maryPV, 0)
+                    , (alonzoPV, 0)
+                    , (vasilPV, 0)
+                    , (valentinePV, 0)
+                    , (changPV, 75)     -- Batches 1-4
+                    , (plominPV, 87)    -- Batch 5
+                    , (anonPV, 92)      -- Batch 6
+                    ]
+      allKnownLLs = enumerate @PlutusLedgerLanguage
       numKnownPVs = length knownPVs
-      numKnownLLs = length $ enumerate @PlutusLedgerLanguage
-  in testGroup "Correct number of builtins" $
-     [ testCase "All ledger languages are accounted for in tests" $
-       assertBool "Only PlutusV1..V3 are known" $ numKnownLLs == length numBuiltins
-     , testCase "All known protocol versions are accounted for in tests" $
-       mapM_ (\(ll, nbi) ->  do
-                 assertBool ("Wrong number of PVs for " ++ show ll) $ length nbi == numKnownPVs) numBuiltins
-     ] ++ fmap mkTestsFor numBuiltins
-  where mkTestsFor (ll, builtinCounts) = testGroup ("Number of builtins for " ++ show ll) $ fmap (mkTest ll) builtinCounts
-        mkTest ll (pv, expected) =
-          let actual = length (builtinsAvailableIn ll pv)
-          in testCase ("PV" ++ show pv ++ ": " ++ show expected ++ " builtins expected") $
-          assertBool ("Expected " ++ show expected ++ " builtins, found " ++ show actual) $ actual == expected
-
-
+      mkTestsFor ll =
+        testGroup ("Number of builtins for " ++ show ll) $
+        checkPVcount ll : fmap (mkTest ll) (builtinCounts ll)
+      checkPVcount ll =
+        testCase "Test accounts for all known protocol versions" $
+        (assertBool ("Wrong number of PVs for " ++ show ll) $ length (builtinCounts ll) == numKnownPVs)
+      mkTest ll (pv, expected) =
+        let actual = length $ builtinsAvailableIn ll pv
+        in testCase ("PV" ++ show pv ++ ": " ++ show expected ++ " builtins expected") $
+           assertBool ("Expected " ++ show expected ++ " builtins, found " ++ show actual) $ actual == expected
+  in testGroup "builtinsAvailableIn returns correct number of builtins" $ fmap mkTestsFor allKnownLLs
 
 testRmdr :: TestTree
 testRmdr = testGroup "rmdr"

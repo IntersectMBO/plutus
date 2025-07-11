@@ -167,12 +167,12 @@ builtinsIntroducedIn =
     ((PlutusV1, alonzoPV),    Set.fromList batch1)
   , ((PlutusV1, anonPV),      Set.fromList (batch2 ++ batch3 ++ batch4 ++ batch5 ++ batch6))
   -- PlutusV2
-  , ((PlutusV2, vasilPV),     Set.fromList batch2)
+  , ((PlutusV2, vasilPV),     Set.fromList (batch1 ++ batch2))
   , ((PlutusV2, valentinePV), Set.fromList batch3)
   , ((PlutusV2, plominPV),    Set.fromList batch4b)
   , ((PlutusV2, anonPV),      Set.fromList (batch4a ++ batch5 ++ batch6))
   -- PlutusV3
-  , ((PlutusV3, changPV),     Set.fromList batch4)
+  , ((PlutusV3, changPV),     Set.fromList (batch1 ++ batch2 ++ batch3 ++ batch4))
   , ((PlutusV3, plominPV),    Set.fromList batch5)
   , ((PlutusV3, anonPV),      Set.fromList batch6)
   ]
@@ -273,7 +273,7 @@ builtinsAvailableIn thisLv thisPv = fold $
       alreadyIntroduced :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
       alreadyIntroduced (introducedInLv, introducedInPv) =
           -- both should be satisfied
-          introducedInLv <= thisLv && introducedInPv <= thisPv
+          introducedInLv == thisLv && introducedInPv <= thisPv
 
 {-
 i < j => p i >= p j
