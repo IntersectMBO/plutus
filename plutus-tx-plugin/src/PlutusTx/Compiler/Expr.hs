@@ -64,7 +64,6 @@ import PlutusIR.Purity qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
-import PlutusCore.Pretty qualified as PP
 import PlutusCore.StdLib.Data.Function qualified
 import PlutusCore.Subst qualified as PLC
 
@@ -650,19 +649,32 @@ hoistExpr var t = do
         (PIR.Def var' (PIR.mkVar var', PIR.Strict))
         mempty
 
-      t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
+      t' <- maybeProfileRhs var var' =<< addSpan (compileExpr t)
       -- See Note [Non-strict let-bindings]
       PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
       pure $ PIR.mkVar var'
 
+-- 'GHC.Var' in argument is only for extracting srcspan and accurate name.
 maybeProfileRhs
-  :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
-maybeProfileRhs var t = do
+  :: (CompilingDefault uni fun m ann)
+  => GHC.Var
+  -> PLCVar uni
+  -> PIRTerm uni fun
+  -> m (PIRTerm uni fun)
+maybeProfileRhs ghcVar var t = do
   CompileContext{ccOpts = compileOpts} <- ask
-  let ty = PLC._varDeclType var
-      varName = PLC._varDeclName var
-      displayName = T.pack $ PP.displayPlcSimple varName
-      isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
+  let
+    nameStr = GHC.occNameString $ GHC.occName $ GHC.varName $ ghcVar
+    displayName = T.pack $
+      case getVarSourceSpan ghcVar of
+        -- When module is not compiled and GHC is using cached build from previous build, it will
+        -- lack source span. There's nothing much we can do about this here since this is GHC
+        -- behavior. Issue #7203
+        Nothing  -> nameStr
+        Just src -> nameStr <> " (" <> show (src ^. srcSpanIso) <> ")"
+
+    ty = PLC._varDeclType var
+    isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
   -- Trace only if profiling is on *and* the thing being defined is a function
   if coProfile compileOpts == All && isFunctionOrAbstraction
     then do
@@ -765,6 +777,18 @@ entryExitTracingInside lamName displayName = go mempty
     let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
      in entryExitTracing lamName displayName e ty'
 
+{- Note [Profiling Markers]
+   The @profile-all@ will insert trarces when entering and exciting functions. These
+   traces have a string marker to indicate that a given traces message is for enter/exit
+   marking. Markers are just simple strings: "->" and "<-". So for any reason in the
+   future this marker needs to be changed, all of utilities that uses this marker will
+   need to be updated.
+
+   This list will track of all of the utilities that uses this marker:
+   - plutus-core:traceToStacks
+   - @UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode.logWithCallTraceEmitter@
+-}
+
 -- | Add tracing before entering and after exiting a term.
 entryExitTracing
   :: PLC.Name
@@ -780,9 +804,10 @@ entryExitTracing lamName displayName e ty =
         annMayInline
         ( mkTrace
             (PLC.TyFun annMayInline defaultUnitTy ty) -- ()-> ty
-            ("entering " <> displayName)
+            -- See Note [Profiling Marker]
+            ("-> " <> displayName)
             -- \() -> trace @c "exiting f" e
-            (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("exiting " <> displayName) e))
+            (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("<- " <> displayName) e))
         )
         defaultUnit
 
@@ -1159,7 +1184,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         _ -> compileTypeNorm $ GHC.varType b
       -- See Note [Non-strict let-bindings]
       withVarTyScoped b ty $ \v -> do
-        rhs'' <- maybeProfileRhs v rhs'
+        rhs'' <- maybeProfileRhs b v rhs'
         let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
         body' <- compileExpr body
         pure $ PIR.Let annMayInline PIR.NonRec binds body'
@@ -1167,8 +1192,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       withVarsScoped (fmap (second (const Nothing)) bs) $ \vars -> do
         -- the bindings are scope in both the body and the args
         -- TODO: this is a bit inelegant matching the vars back up
-        binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
-          rhs' <- maybeProfileRhs v =<< compileExpr rhs
+        binds <- for (zip vars bs) $ \(v, (ghcVar, rhs)) -> do
+          rhs' <- maybeProfileRhs ghcVar v =<< compileExpr rhs
           -- See Note [Non-strict let-bindings]
           pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
         body' <- compileExpr body

@@ -42,6 +42,7 @@ module UntypedPlutusCore.Evaluation.Machine.CommonAPI
     , logEmitter
     , logWithTimeEmitter
     , logWithBudgetEmitter
+    , logWithCallTraceEmitter
     -- * Misc
     , CekValue(..)
     , readKnownCek

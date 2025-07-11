@@ -64,9 +64,10 @@ parseProfileEvent valIx (LogRow str vals) =
   let val = vals !! (valIx-1)
   in case words str of
     [transition,var] ->
+      -- See Note [Profiling Marker]
       case transition of
-        "entering" -> MkProfileEvent val Enter (T.pack var)
-        "exiting" -> MkProfileEvent val Exit (T.pack var)
+        "->" -> MkProfileEvent val Enter (T.pack var)
+        "<-" -> MkProfileEvent val Exit (T.pack var)
         badLog -> error $
           "parseProfileEvent: expecting \"entering\" or \"exiting\" but got "
           <> show badLog
@@ -105,4 +106,3 @@ getStacks = go []
     go [] [] = []
     go stacks [] = error $
       "getStacks; go: stack " <> show stacks <> " isn't empty but the log is."
-

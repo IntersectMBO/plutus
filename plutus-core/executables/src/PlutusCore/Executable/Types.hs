@@ -55,7 +55,13 @@ data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report progra
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
 data PrintMode = Classic | Simple | Readable | ReadableSimple deriving stock (Show, Read)
 data NameFormat = IdNames | DeBruijnNames -- Format for textual output of names
-data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
+data TraceMode
+  = None
+  | Logs
+  | LogsWithTimestamps
+  | LogsWithBudgets
+  | LogsWithCallTrace
+  deriving stock (Show, Read)
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 
@@ -95,4 +101,3 @@ pirFormatToFormat FlatNamed  = Flat Named
 
 -- | Output types for some pir commands
 data Language = PLC | UPLC
-

@@ -40,6 +40,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , logEmitter
     , logWithTimeEmitter
     , logWithBudgetEmitter
+    , logWithCallTraceEmitter
     -- * Misc
     , BuiltinsRuntime (..)
     , CekValue (..)
