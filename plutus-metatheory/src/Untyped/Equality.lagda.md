@@ -36,13 +36,15 @@ open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; b
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary.Definitions as Binary using (Decidable)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Relation.Nullary.Decidable.Core using (isYes)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
-open import Utils as U using (Maybe; nothing; just; Either)
+open import Utils as U using (Maybe; nothing; just; Either; _×_; _,_)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
 open import Agda.Builtin.String using (String; primStringEquality)
+open import Agda.Builtin.Unit using (⊤)
 ```
 Instances of `DecEq` will provide a Decidable Equality procedure for their type.
 
@@ -61,23 +63,21 @@ postulate
   HasEq : Set → Set
 {-# COMPILE GHC HasEq = type HasEq #-}
 
+postulate
+    hasEq-TyTag : (t : TyTag) → HasEq ⟦ t ⟧tag
+
 record HsEq (A : Set) : Set where
   field
     hsEq : A → A → Bool
 open HsEq {{...}} public
 
-postulate
-  instance
-    hasEq-TyTag : {t : TyTag} → HasEq ⟦ t ⟧tag
-
 -- This uses the same mechanism as eqBytestring.
 -- This is only used in the decidable equality function which also
 -- uses `refl` to unify the two sides and defacto confirms or refutes
 -- structural equality.
-eqArray : {A : Set} → {{_ : HasEq A}} → U.Array A → U.Array A → Bool
+eqArray : {A : Set} → {{HE : HasEq A}} → U.Array A → U.Array A → Bool
 eqArray _ _ = Bool.true
 {-# COMPILE GHC eqArray = \ _ HasEq -> (==) #-}
-
 
 ```
 Several of the decision procedures depend on other `DecEq` instances, so it is useful
@@ -88,12 +88,6 @@ implementations further down.
 decEq-TmCon : DecidableEquality TmCon
 
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
-
-postulate
-  decEq-Array-TyTag :
-                     { t : TyTag }
-                     → DecidableEquality ⟦ t ⟧tag
-                     → DecidableEquality ⟦ _⊢♯.array t ⟧tag
 
 decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
 
@@ -138,8 +132,8 @@ instance
   DecEq-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (X ⊢)
   DecEq-⊢ ._≟_ = decEq-⊢
 
-  DecEq-List-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (List (X ⊢))
-  DecEq-List-⊢ ._≟_ = LP.≡-dec decEq-⊢
+  DecEq-List : ∀{X} {{DE : DecEq X}} → DecEq (List X)
+  DecEq-List {{DE}} = record {_≟_ =  LP.≡-dec (DecEq._≟_ DE)}
 
   DecEq-Builtin : DecEq Builtin
   DecEq-Builtin ._≟_ = decBuiltin
@@ -150,8 +144,43 @@ instance
   DecEq-ℤ : DecEq ℤ
   DecEq-ℤ ._≟_ = Data.Integer.Properties._≟_
 
+  DecEq-String : DecEq String
+  DecEq-String ._≟_ = Data.String.Properties._≟_
+
+  DecEq-Unit : DecEq ⊤
+  DecEq-Unit ._≟_ = Data.Unit.Properties._≟_
+
+  DecEq-Bool : DecEq Bool
+  DecEq-Bool ._≟_ = Data.Bool.Properties._≟_
+
   DecEq-TyTag : DecEq TyTag
   DecEq-TyTag ._≟_ = decTyTag
+
+DecEq-⟦_⟧tag : (t : TyTag) → DecEq ⟦ t ⟧tag
+DecEq-⟦ t ⟧tag = record { _≟_ = decEq-⟦ t ⟧tag }
+
+listDec : {A : Set} → DecidableEquality A → DecidableEquality (U.List A)
+listDec _ U.[] U.[] = yes refl
+listDec _ U.[] (x U.∷ ls₂) = no (λ ())
+listDec _ (x₁ U.∷ ls₁) U.[] = no (λ ())
+listDec _≟_ (x₁ U.∷ ls₁) (x₂ U.∷ ls₂) with x₁ ≟ x₂
+... | no x₁≠x₂ = no λ { refl → x₁≠x₂ refl }
+... | yes refl with listDec _≟_ ls₁ ls₂
+...     | no ls₁≠ls₂ = no λ { refl → ls₁≠ls₂ refl }
+...     | yes refl = yes refl
+
+pairDec : {A B : Set} → DecidableEquality A → DecidableEquality B → DecidableEquality (A × B)
+pairDec eqA eqB (a₁ , b₁) (a₂ , b₂) with (eqA a₁ a₂) | (eqB b₁ b₂)
+... | yes refl   | yes refl = yes refl
+... | no a₁≠a₂ | _ = no λ { refl → a₁≠a₂ refl }
+... | _             | no b₁≠b₂ = no λ { refl → b₁≠b₂ refl }
+
+instance
+  DecEq-UList : ∀{X} {{DE : DecEq X}} → DecEq (U.List X)
+  DecEq-UList {{DE}} = record {_≟_ =  listDec (DecEq._≟_ DE)}
+
+  DecEq-Pair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → DecEq (A × B)
+  DecEq-Pair {{DE-A}} {{DE-B}} = record { _≟_ = pairDec (DecEq._≟_ DE-A) (DecEq._≟_ DE-B) }
 
 ```
 # Decidable Equality of Builtins
@@ -195,11 +224,18 @@ Agda's unification algorithm, while at runtime, the matching on `refl` becomes a
 
 ```
 
+fromDec : {A : Set} → {{DE : DecEq A}} → HsEq A
+fromDec = record { hsEq = λ x₁ x₂ → isYes (x₁ ≟ x₂) }
+
 instance
   HsEqBytestring : HsEq U.ByteString
   HsEqBytestring = record { hsEq = U.eqByteString }
-  HsEqArray : {A : Set} {{HE : HasEq A}} {{ _ : HsEq A}} → HsEq (U.Array A)
+  HsEqArray : {A : Set} {{HE : HasEq A}} {{HS : HsEq A}} → HsEq (U.Array A)
   HsEqArray {{HE = HE}} = record { hsEq = eqArray {{HE}}}
+  HsEqList : {A : Set} {{DE : DecEq A}} → HsEq (U.List A)
+  HsEqList = fromDec
+  HsEqPair : {A B : Set} {{DE-A : DecEq A}} {{DE-B : DecEq B}} → HsEq (A × B)
+  HsEqPair = fromDec
   HsEqBlsG1 : HsEq U.Bls12-381-G1-Element
   HsEqBlsG1 = record { hsEq = U.eqBls12-381-G1-Element }
   HsEqBlsG2 : HsEq U.Bls12-381-G2-Element
@@ -209,6 +245,19 @@ instance
   HsEqDATA : HsEq U.DATA
   HsEqDATA = record { hsEq = U.eqDATA }
 
+HsEq-⟦_⟧tag : (t : TyTag) → HsEq ⟦ t ⟧tag
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aInteger ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBytestring ⟧tag = HsEqBytestring
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aString ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aUnit ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBool ⟧tag = fromDec
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aData ⟧tag = HsEqDATA
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g1-element ⟧tag = HsEqBlsG1
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-g2-element ⟧tag = HsEqBlsG2
+HsEq-⟦ _⊢♯.atomic AtomicTyCon.aBls12-381-mlresult ⟧tag = HsEqBlsMlResult
+HsEq-⟦ _⊢♯.list t ⟧tag = HsEqList {A = ⟦ t ⟧tag} {{DE = DecEq-⟦ t ⟧tag }}
+HsEq-⟦ _⊢♯.array t ⟧tag = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}}
+HsEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag = HsEqPair {A = ⟦ t₁ ⟧tag} {B = ⟦ t₂ ⟧tag} {{DE-A = DecEq-⟦ t₁ ⟧tag}} {{DE-B = DecEq-⟦ t₂ ⟧tag}}
 ```
 
 ## An example
@@ -231,12 +280,16 @@ at runtime and the proof gets erased anyway.
 postulate
   magicNeg : ∀ {A : Set} {a b : A} → ¬ a ≡ b
 
-builtinEq : {A : Set} {{_ : HsEq A}} → Binary.Decidable {A = A} _≡_
+builtinEq : {A : Set} {{HS : HsEq A}} → Binary.Decidable {A = A} _≡_
 builtinEq {A} x y with hsEq x y
 ... | false = no magicNeg
 ... | true with primTrustMe {Agda.Primitive.lzero} {A} {x} {y}
 ...             | refl = yes refl
 
+decEq-Array-⟦_⟧tag :
+                     (t : TyTag)
+                     → DecidableEquality ⟦ _⊢♯.array t ⟧tag
+decEq-Array-⟦ t ⟧tag = builtinEq {A = U.Array ⟦ t ⟧tag} {{HS = HsEqArray {A = ⟦ t ⟧tag} {{HE = hasEq-TyTag t}} {{HS = HsEq-⟦ t ⟧tag}} }}
 ```
 # Decidable Equality for TmCon
 
@@ -262,11 +315,10 @@ decEq-⟦ _⊢♯.list t ⟧tag (x U.∷ v) (x₁ U.∷ v₁) with decEq-⟦ t �
 ... | yes refl with decEq-⟦ _⊢♯.list t ⟧tag v v₁
 ...                  | yes refl = yes refl
 ...                  | no ¬v=v₁ = no λ { refl → ¬v=v₁ refl }
-decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-TyTag {t} decEq-⟦ t ⟧tag
+decEq-⟦ _⊢♯.array t ⟧tag = decEq-Array-⟦ t ⟧tag
 decEq-⟦ _⊢♯.pair t₁ t₂ ⟧tag (proj₁ U., proj₂) (proj₃ U., proj₄) with (decEq-⟦ t₁ ⟧tag proj₁ proj₃) ×-dec (decEq-⟦ t₂ ⟧tag proj₂ proj₄)
 ... | yes ( refl , refl ) = yes refl
 ... | no ¬pq = no λ { refl → ¬pq (refl , refl) }
-
 
 decEq-TmCon (tmCon t x) (tmCon t₁ x₁) with t ≟ t₁
 ... | no ¬t=t₁ = no λ { refl → ¬t=t₁ refl }

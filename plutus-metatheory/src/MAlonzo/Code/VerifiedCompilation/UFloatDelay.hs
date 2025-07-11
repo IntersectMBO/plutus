@@ -199,7 +199,7 @@ du_isAllForced'63'_90 v0 v1 v2
                                       = coe
                                           du_isAllForced'63'_90
                                           (coe
-                                             MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150
+                                             MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                              (coe v0))
                                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v1))
                                           (coe v6) in
@@ -508,7 +508,7 @@ du_subs'45'delay_412 v0 v1 v2
              MAlonzo.Code.Untyped.C_ƛ_20
              (coe
                 du_subs'45'delay_412
-                (coe MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150 (coe v0))
+                (coe MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146 (coe v0))
                 (coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 (coe v1)) (coe v3))
       MAlonzo.Code.Untyped.C__'183'__22 v3 v4
         -> coe
@@ -675,7 +675,7 @@ du_isFlD'63'_510 v0 v1 v2
                                                                                                                                             = coe
                                                                                                                                                 du_isFloatDelay'63'_504
                                                                                                                                                 (coe
-                                                                                                                                                   MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150
+                                                                                                                                                   MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                                                                                                                    (coe
                                                                                                                                                       v0))
                                                                                                                                                 (coe

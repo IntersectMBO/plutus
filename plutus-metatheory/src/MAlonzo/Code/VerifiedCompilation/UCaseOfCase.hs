@@ -404,9 +404,11 @@ du_isCoCForce'63'_168 v0 v1
                                                                                                                                                                                                            (coe
                                                                                                                                                                                                               MAlonzo.Code.Untyped.Equality.d__'8799'__12
                                                                                                                                                                                                               (coe
-                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.du_DecEq'45'List'45''8866'_172
+                                                                                                                                                                                                                 MAlonzo.Code.Untyped.Equality.du_DecEq'45'List_168
                                                                                                                                                                                                                  (coe
-                                                                                                                                                                                                                    v0))
+                                                                                                                                                                                                                    MAlonzo.Code.Untyped.Equality.du_DecEq'45''8866'_162
+                                                                                                                                                                                                                    (coe
+                                                                                                                                                                                                                       v0)))
                                                                                                                                                                                                               v39
                                                                                                                                                                                                               v51) in
                                                                                                                                                                                                  coe
@@ -568,7 +570,7 @@ du_isCoC'63'_274 v0 v1 v2
                                                                                                                                                                    (coe
                                                                                                                                                                       MAlonzo.Code.Untyped.Equality.d__'8799'__12
                                                                                                                                                                       (coe
-                                                                                                                                                                         MAlonzo.Code.Untyped.Equality.du_DecEq'45''8866'_166
+                                                                                                                                                                         MAlonzo.Code.Untyped.Equality.du_DecEq'45''8866'_162
                                                                                                                                                                          (coe
                                                                                                                                                                             v0))
                                                                                                                                                                       v16

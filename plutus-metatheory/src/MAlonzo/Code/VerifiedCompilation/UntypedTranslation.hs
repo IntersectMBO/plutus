@@ -469,7 +469,7 @@ du_translation'63'_178 v0 v1 v2 v3 v4 v5
                                                       = coe
                                                           du_translation'63'_178 erased
                                                           (coe
-                                                             MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150
+                                                             MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                                              (coe v1))
                                                           (coe v2) (coe v3) (coe v8) (coe v10) in
                                                 coe
@@ -3008,7 +3008,7 @@ du_convert_1676 v0 v1 v2 v3 v4 v5
                                      (coe
                                         du_convert_1676 erased (coe v12) (coe v13)
                                         (coe
-                                           MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150
+                                           MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146
                                            (coe v3))
                                         (coe v4) (coe v11)))
                            _ -> MAlonzo.RTE.mazUnreachableError
@@ -3178,7 +3178,7 @@ du_reflexive_1756 v0 v1
                 (coe
                    du_reflexive_1756 (coe v2)
                    (coe
-                      MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_150 (coe v1))))
+                      MAlonzo.Code.Untyped.Equality.du_DecEq'45'Maybe_146 (coe v1))))
       MAlonzo.Code.Untyped.C__'183'__22 v2 v3
         -> coe
              C_match_106
