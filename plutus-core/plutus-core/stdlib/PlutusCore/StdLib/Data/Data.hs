@@ -20,7 +20,6 @@ import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Integer
-import PlutusCore.StdLib.Data.MatchOption
 import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.Unit
 
@@ -70,8 +69,8 @@ dataTy = mkTyBuiltin @_ @Data ()
 -- >               unitval
 --
 -- depending on the 'MatchOption' argument.
-matchData :: TermLike term TyName Name DefaultUni DefaultFun => MatchOption -> term ()
-matchData optMatch = runQuote $ do
+matchData :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+matchData = runQuote $ do
     r       <- freshTyName "r"
     fConstr <- freshName "fConstr"
     fMap    <- freshName "fMap"
@@ -91,30 +90,28 @@ matchData optMatch = runQuote $ do
         . lamAbs () fList (TyFun () listData $ TyVar () r)
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () bytestring $ TyVar () r)
-        $ case optMatch of
-            UseChoose ->
-                mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
-                    [ var () d
-                    ,   lamAbs () u unit
-                      $ mkIterAppNoAnn (mkIterInstNoAnn uncurry [integer, listData, TyVar () r])
-                          [ var () fConstr
-                          , apply () (builtin () UnConstrData) $ var () d
-                          ]
-                    ,   lamAbs () u unit
-                      . apply () (var () fMap)
-                      . apply () (builtin () UnMapData)
-                      $ var () d
-                    ,   lamAbs () u unit
-                      . apply () (var () fList)
-                      . apply () (builtin () UnListData)
-                      $ var () d
-                    ,   lamAbs () u unit
-                      . apply () (var () fI)
-                      . apply () (builtin () UnIData)
-                      $ var () d
-                    ,   lamAbs () u unit
-                      . apply () (var () fB)
-                      . apply () (builtin () UnBData)
-                      $ var () d
-                    , unitval
-                    ]
+        $ mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
+            [ var () d
+            ,   lamAbs () u unit
+              $ mkIterAppNoAnn (mkIterInstNoAnn uncurry [integer, listData, TyVar () r])
+                  [ var () fConstr
+                  , apply () (builtin () UnConstrData) $ var () d
+                  ]
+            ,   lamAbs () u unit
+              . apply () (var () fMap)
+              . apply () (builtin () UnMapData)
+              $ var () d
+            ,   lamAbs () u unit
+              . apply () (var () fList)
+              . apply () (builtin () UnListData)
+              $ var () d
+            ,   lamAbs () u unit
+              . apply () (var () fI)
+              . apply () (builtin () UnIData)
+              $ var () d
+            ,   lamAbs () u unit
+              . apply () (var () fB)
+              . apply () (builtin () UnBData)
+              $ var () d
+            , unitval
+            ]

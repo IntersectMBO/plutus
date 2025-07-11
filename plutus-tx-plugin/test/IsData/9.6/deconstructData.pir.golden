@@ -4,39 +4,6 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !caseData' :
-     all r.
-       (integer -> list data -> r) ->
-       (list (pair data data) -> r) ->
-       (list data -> r) ->
-       (integer -> r) ->
-       (bytestring -> r) ->
-       data ->
-       r
-    = /\r ->
-        \(fConstr : integer -> list data -> r)
-         (fMap : list (pair data data) -> r)
-         (fList : list data -> r)
-         (fI : integer -> r)
-         (fB : bytestring -> r)
-         (d : data) ->
-          chooseData
-            {all dead. r}
-            d
-            (/\dead ->
-               (/\a b c ->
-                  \(f : a -> b -> c) (p : pair a b) ->
-                    f (fstPair {a} {b} p) (sndPair {a} {b} p))
-                 {integer}
-                 {list data}
-                 {r}
-                 fConstr
-                 (unConstrData d))
-            (/\dead -> fMap (unMapData d))
-            (/\dead -> fList (unListData d))
-            (/\dead -> fI (unIData d))
-            (/\dead -> fB (unBData d))
-            {r}
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
     = /\a r ->
         \(z : r) (f : a -> list a -> r) (xs : list a) ->
@@ -53,6 +20,66 @@ let
     Nothing : Maybe a
   !ifThenElse : all a. bool -> a -> a -> a
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
+  data Unit | Unit_match where
+    Unit : Unit
+  !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
+  !fst : all a b. pair a b -> a = fstPair
+  !snd : all a b. pair a b -> b = sndPair
+  !unsafeDataAsB : data -> bytestring = unBData
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  !unsafeDataAsI : data -> integer = unIData
+  !unsafeDataAsList : data -> list data = unListData
+  !unsafeDataAsMap : data -> list (pair data data) = unMapData
+  ~matchData' :
+     all r.
+       data ->
+       (integer -> list data -> r) ->
+       (list (pair data data) -> r) ->
+       (list data -> r) ->
+       (integer -> r) ->
+       (bytestring -> r) ->
+       r
+    = /\r ->
+        \(d : data) ->
+          let
+            !d : data = d
+          in
+          \(constrCase : integer -> list data -> r) ->
+            let
+              !constrCase : integer -> list data -> r = constrCase
+            in
+            \(mapCase : list (pair data data) -> r) ->
+              let
+                !mapCase : list (pair data data) -> r = mapCase
+              in
+              \(listCase : list data -> r) ->
+                let
+                  !listCase : list data -> r = listCase
+                in
+                \(iCase : integer -> r) ->
+                  let
+                    !iCase : integer -> r = iCase
+                  in
+                  \(bCase : bytestring -> r) ->
+                    let
+                      !bCase : bytestring -> r = bCase
+                    in
+                    chooseData
+                      {Unit -> r}
+                      d
+                      (\(ds : Unit) ->
+                         let
+                           !tup : pair integer (list data)
+                             = unsafeDataAsConstr d
+                         in
+                         constrCase
+                           (fst {integer} {list data} tup)
+                           (snd {integer} {list data} tup))
+                      (\(ds : Unit) -> mapCase (unsafeDataAsMap d))
+                      (\(ds : Unit) -> listCase (unsafeDataAsList d))
+                      (\(ds : Unit) -> iCase (unsafeDataAsI d))
+                      (\(ds : Unit) -> bCase (unsafeDataAsB d))
+                      Unit
   ~`$fFromDataTuple2_$cfromBuiltinData` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -66,8 +93,9 @@ let
           let
             !d : data = d
           in
-          caseData'
+          matchData'
             {Maybe (Tuple2 a b)}
+            d
             (\(index : integer) ->
                let
                  !index : integer = index
@@ -158,7 +186,6 @@ let
             (\(ds : list data) -> Nothing {Tuple2 a b})
             (\(ds : integer) -> Nothing {Tuple2 a b})
             (\(ds : bytestring) -> Nothing {Tuple2 a b})
-            d
   ~`$fFromDataTuple2` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -166,13 +193,18 @@ let
        (\a -> data -> Maybe a) (Tuple2 a b)
     = `$fFromDataTuple2_$cfromBuiltinData`
   ~`$fFromDataInteger_$cfromBuiltinData` : data -> Maybe integer
-    = caseData'
-        {Maybe integer}
-        (\(ds : integer) (ds : list data) -> Nothing {integer})
-        (\(ds : list (pair data data)) -> Nothing {integer})
-        (\(ds : list data) -> Nothing {integer})
-        (\(ds : integer) -> Just {integer} ds)
-        (\(ds : bytestring) -> Nothing {integer})
+    = \(d : data) ->
+        let
+          !d : data = d
+        in
+        matchData'
+          {Maybe integer}
+          d
+          (\(ds : integer) (ds : list data) -> Nothing {integer})
+          (\(ds : list (pair data data)) -> Nothing {integer})
+          (\(ds : list data) -> Nothing {integer})
+          (\(ds : integer) -> Just {integer} ds)
+          (\(ds : bytestring) -> Nothing {integer})
   ~`$fFromDataInteger` : (\a -> data -> Maybe a) integer
     = `$fFromDataInteger_$cfromBuiltinData`
   ~`$dFromData` : (\a -> data -> Maybe a) (Tuple2 integer integer)
