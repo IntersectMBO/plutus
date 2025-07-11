@@ -12,6 +12,9 @@ let
 
       src = ../.;
 
+      index-state = "2025-07-08T15:23:02Z";
+      index-sha256 = "sha256-3RPP6vkVs7n+4buxEt+Q/Bk3irJdpqeoH4y74NIMy3U=";
+
       flake.variants = {
         ghc96 = { }; # Alias for the default project
         ghc96-profiled.modules = [{
@@ -70,7 +73,7 @@ let
               pkgs.ocaml-ng.ocamlPackages_4_10.findlib
               pkgs.coqPackages_8_13.coq
               pkgs.coqPackages_8_13.mathcomp
-              pkgs.coqPackages_8_13.coq-ext-lib
+              pkgs.coqPackages_8_13.ExtLib
               pkgs.coqPackages_8_13.ssreflect
               pkgs.coqPackages_8_13.equations
             ];
@@ -91,6 +94,9 @@ let
             plutus-tx-plugin.ghcOptions = [ "-Werror" ];
           };
         }
+        ({ lib, pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
+          packages.basement.configureFlags = [ "--hsc2hs-option=--cflag=-Wno-int-conversion" ];
+        })
       ];
     });
 in
