@@ -3,10 +3,5 @@
    (\ds ->
       (\cse ->
          cse (constr 1 []) (\x -> cse (constr 0 [x]) (\ds ds -> constr 1 [])))
-        (\z f xs ->
-           force
-             (force (force chooseList)
-                xs
-                (delay z)
-                (delay (f (force headList xs) (force tailList xs)))))
+        (\z f xs -> case xs [z, f])
         []))

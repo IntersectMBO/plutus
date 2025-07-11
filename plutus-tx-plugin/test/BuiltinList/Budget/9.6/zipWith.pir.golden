@@ -11,15 +11,7 @@ let
   ~`+` : all a. (\a -> a -> a -> a) a -> a -> a -> a
     = /\a -> \(v : (\a -> a -> a -> a) a) -> v
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(z : r) (f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   !mkCons : all a. a -> list a -> list a = mkCons
   ~zipWith :
      all a b c.

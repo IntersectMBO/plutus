@@ -12,19 +12,15 @@
                          [ (case
                               ((\s -> s s)
                                  (\s xs ->
-                                    force
-                                      (force (force chooseList)
-                                         xs
-                                         (delay (constr 1 []))
-                                         (delay
-                                            (case
-                                               (equalsData
-                                                  obsScriptCred
-                                                  (force (force fstPair)
-                                                     (force headList xs)))
-                                               [ ((\x -> s s x)
-                                                    (force tailList xs))
-                                               , (constr 0 []) ]))))
+                                    case
+                                      xs
+                                      [ (constr 1 [])
+                                      , (\x xs ->
+                                           case
+                                             (equalsData
+                                                obsScriptCred
+                                                (force (force fstPair) x))
+                                             [(s s xs), (constr 0 [])]) ])
                                  rest)
                               [ (constr 0 [])
                               , ((\x -> error)

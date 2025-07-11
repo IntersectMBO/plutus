@@ -392,6 +392,15 @@ caseNoBranch = Case () integer tag1 []
 caseInteger :: Term TyName Name DefaultUni DefaultFun ()
 caseInteger = Case () integer (mkConstant @Integer () 1) []
 
+caseList :: Term TyName Name DefaultUni DefaultFun ()
+caseList = runQuote $ do
+  a <- freshName "a"
+  b <- freshName "b"
+  pure $
+    Case () integer (mkConstant @[Integer] () [1])
+      [ LamAbs () a integer $ LamAbs () b (mkTyBuiltin @_ @[Integer] ()) $ Var () a
+      ]
+
 caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
 caseNonTag = Case () integer (builtin () AddInteger) []
 
@@ -486,6 +495,7 @@ namesAndTests =
    , ("caseProd1", caseProd1)
    , ("caseNoBranch", caseNoBranch)
    , ("caseInteger", caseInteger)
+   , ("caseList", caseList)
    , ("caseNonTag", caseNonTag)
    ]
 

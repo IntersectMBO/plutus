@@ -7,14 +7,11 @@
          (\go arg ->
             delay
               (\xs ->
-                 force
-                   (force (force chooseList)
-                      xs
-                      (delay [])
-                      (delay
-                         ((\xs ->
-                             force mkCons
-                               (addInteger (force headList xs) 1)
-                               (force (go (delay (\x -> x))) xs))
-                            (force tailList xs))))))
+                 case
+                   xs
+                   [ []
+                   , (\x xs ->
+                        force mkCons
+                          (addInteger x 1)
+                          (force (go (delay (\x -> x))) xs)) ]))
          (delay (\x -> x)))))

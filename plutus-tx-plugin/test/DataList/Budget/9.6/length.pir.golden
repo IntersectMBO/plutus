@@ -1,16 +1,9 @@
 letrec
   !go : list data -> integer
     = \(xs : list data) ->
-        chooseList
-          {data}
-          {all dead. integer}
+        case
+          integer
           xs
-          (/\dead -> 0)
-          (/\dead ->
-             let
-               !ds : data = headList {data} xs
-             in
-             addInteger 1 (go (tailList {data} xs)))
-          {integer}
+          [0, (\(ds : data) (eta : list data) -> addInteger 1 (go eta))]
 in
 \(ds : (\a -> list data) integer) -> go ds

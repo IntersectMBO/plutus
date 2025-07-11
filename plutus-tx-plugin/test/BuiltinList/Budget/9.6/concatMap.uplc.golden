@@ -57,12 +57,6 @@
                                     (delay (\x -> x)))
                                  2))
                            (force (go (delay (\x -> x))) xs)))
-                   (\z f xs ->
-                      force
-                        (force (force chooseList)
-                           xs
-                           (delay z)
-                           (delay
-                              (f (force headList xs) (force tailList xs)))))))
+                   (\z f xs -> case xs [z, f])))
            (delay (\x -> x)))
         xss))

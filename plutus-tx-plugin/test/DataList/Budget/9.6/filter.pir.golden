@@ -10,13 +10,7 @@ letrec
             r = (\a -> list data) integer
           in
           \(z : r) (f : data -> list data -> r) (xs : list data) ->
-            chooseList
-              {data}
-              {all dead. r}
-              xs
-              (/\dead -> z)
-              (/\dead -> f (headList {data} xs) (tailList {data} xs))
-              {r})
+            case r xs [z, f])
           []
           (\(x : data) (eta : list data) ->
              let

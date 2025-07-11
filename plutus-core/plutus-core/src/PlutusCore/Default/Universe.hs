@@ -45,6 +45,7 @@ module PlutusCore.Default.Universe
 import PlutusCore.Builtin
 import PlutusPrelude
 
+import PlutusCore.Core.Type (Type (..))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -530,23 +531,43 @@ outOfBoundsErr x branches = fold
     ]
 
 instance AnnotateCaseBuiltin DefaultUni where
-    annotateCaseBuiltin (SomeTypeIn uni) branches = case uni of
-        DefaultUniBool    -> Right $ map (, []) branches
-        DefaultUniInteger -> Right $ map (, []) branches
-        _                 -> Left $ display uni <> " isn't supported in 'case'"
+    annotateCaseBuiltin ty branches = case ty of
+        TyBuiltin _ (SomeTypeIn DefaultUniBool)    ->
+          case branches of
+            [f]    -> Right $ [(f, [])]
+            [f, t] -> Right $ [(f, []), (t, [])]
+            _      -> Left $ "Casing on bool requires exactly one branch or two branches"
+        TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
+          Right $ map (, []) branches
+        listTy@(TyApp _ (TyBuiltin _ (SomeTypeIn DefaultUniProtoList)) argTy) ->
+          case branches of
+            [cons]      -> Right [(cons, [argTy, listTy])]
+            [nil, cons] -> Right [(nil, []), (cons, [argTy, listTy])]
+            _           -> Left $ "Casing on list requires exactly one branch or two branches"
+        _                 -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
-    caseBuiltin (Some (ValueOf uni x)) branches = case uni of
+    caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of
         DefaultUniBool -> case x of
             -- We allow there to be only one branch as long as the scrutinee is 'False'.
             -- This is strictly to save size by not having the 'True' branch if it was gonna be
             -- 'Error' anyway.
-            False | len == 1 || len == 2 -> Right $ branches Vector.! 0
-            True  |             len == 2 -> Right $ branches Vector.! 1
-            _                            -> Left  $ outOfBoundsErr x branches
+            False | len == 1 || len == 2 -> Right $ HeadOnly $ branches Vector.! 0
+            True  |             len == 2 -> Right $ HeadOnly $ branches Vector.! 1
+            _                            -> Left  $ outOfBoundsErr someVal branches
         DefaultUniInteger
-            | 0 <= x && x < toInteger len -> Right $ branches Vector.! fromInteger x
-            | otherwise                   -> Left  $ outOfBoundsErr x branches
+            | 0 <= x && x < toInteger len -> Right $ HeadOnly $ branches Vector.! fromInteger x
+            | otherwise                   -> Left  $ outOfBoundsErr someVal branches
+        DefaultUniList ty
+            | len == 1 ->
+              case x of
+                [] -> Left "Expected non-empty list, got empty list for casing list"
+                (y : ys) -> Right $ headSpine (branches Vector.! 0) [someValueOf ty y, someValueOf uni ys]
+            | len == 2 ->
+              case x of
+                []       -> Right $ HeadOnly $ branches Vector.! 0
+                (y : ys) -> Right $ headSpine (branches Vector.! 1) [someValueOf ty y, someValueOf uni ys]
+            | otherwise            -> Left $ outOfBoundsErr someVal branches
         _ -> Left $ display uni <> " isn't supported in 'case'"
       where
         !len = Vector.length branches

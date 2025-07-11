@@ -5,8 +5,9 @@
 
 module PlutusCore.Builtin.Case where
 
+import PlutusCore.Builtin.KnownType (HeadSpine)
 import PlutusCore.Core.Type (Type, UniOf)
-import PlutusCore.Name.Unique
+import PlutusCore.Name.Unique (TyName)
 
 import Control.DeepSeq (NFData (..), rwhnf)
 import Data.Default.Class (Default (..))
@@ -19,9 +20,11 @@ import Universe
 class AnnotateCaseBuiltin uni where
     -- | Given a tag for a built-in type and a list of branches, annotate each of the branches with
     -- its expected argument types or fail if casing on values of the built-in type isn't supported.
+    -- Note: you don't need to include the resulting type of the whole case matching in the
+    -- returning list here.
     annotateCaseBuiltin
         :: UniOf term ~ uni
-        => SomeTypeIn uni
+        => Type TyName uni ann
         -> [term]
         -> Either Text [(term, [Type TyName uni ann])]
 
@@ -29,7 +32,11 @@ class CaseBuiltin uni where
     -- | Given a constant with its type tag and a vector of branches, choose the appropriate branch
     -- or fail if the constant doesn't correspond to any of the branches (or casing on constants of
     -- this type isn't supported at all).
-    caseBuiltin :: UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term
+    caseBuiltin
+        :: UniOf term ~ uni
+        => Some (ValueOf uni)
+        -> Vector term
+        -> Either Text (HeadSpine term (Some (ValueOf uni)))
 
 -- See Note [DO NOT newtype-wrap functions].
 -- | A @data@ version of 'CaseBuiltin'. we parameterize the evaluator by a 'CaserBuiltin' so that
@@ -37,7 +44,7 @@ class CaseBuiltin uni where
 -- latter is required for earlier protocol versions when we didn't support casing on builtins).
 data CaserBuiltin uni = CaserBuiltin
     { unCaserBuiltin
-        :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text term)
+        :: !(forall term. UniOf term ~ uni => Some (ValueOf uni) -> Vector term -> Either Text (HeadSpine term (Some (ValueOf uni))))
     }
 
 instance NFData (CaserBuiltin uni) where

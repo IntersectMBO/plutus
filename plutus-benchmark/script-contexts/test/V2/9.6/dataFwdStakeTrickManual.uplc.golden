@@ -51,19 +51,12 @@
                       (\arg ->
                          delay
                            (\l ->
-                              force
-                                (force (force chooseList)
-                                   l
-                                   (delay
-                                      (\ds ->
-                                         (\x -> error)
-                                           (force trace
-                                              "not found"
-                                              (constr 0 []))))
-                                   (delay
-                                      ((\x xs ds -> lookForCred x xs)
-                                         (force headList l)
-                                         (force tailList l))))
+                              case
+                                l
+                                [ (\ds ->
+                                     (\x -> error)
+                                       (force trace "not found" (constr 0 [])))
+                                , (\x xs ds -> lookForCred x xs) ]
                                 (constr 0 [])))
                       (\p tl ->
                          case

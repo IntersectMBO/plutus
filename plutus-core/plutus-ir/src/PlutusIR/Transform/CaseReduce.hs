@@ -11,6 +11,7 @@ import PlutusCore.MkPlc
 import PlutusIR.Core
 
 import Control.Lens (transformOf, (^?))
+import Data.Bifunctor (second)
 import Data.List.Extras
 import GHC.IsList (fromList)
 import PlutusCore qualified as PLC
@@ -38,5 +39,6 @@ processTerm = \case
     -- structural error into an operational one, which would be unfortunate, so instead we decided
     -- not to fully optimize such scripts, since they aren't valid anyway.
     Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
-    Case _ _ (Constant _ con) cs | Right res <- caseBuiltin con (fromList cs) -> res
+    Case ann _ (Constant _ con) cs | Right fXs <- caseBuiltin con (fromList cs) ->
+                                    headSpineToTerm ann (second (Constant ann) fXs)
     t -> t

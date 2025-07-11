@@ -123,7 +123,7 @@ prop_builtinEvaluation ::
     -- outcome, and decides whether to pass or fail the property.
     (fun ->
         [Term uni fun] ->
-        Either SomeException (BuiltinResult (HeadSpine (Term uni fun))) ->
+        Either SomeException (BuiltinResult (MonoHeadSpine (Term uni fun))) ->
         PropertyT IO ()) ->
     Property
 prop_builtinEvaluation runtimes bn mkGen f = property $ do
@@ -132,7 +132,7 @@ prop_builtinEvaluation runtimes bn mkGen f = property $ do
         eval ::
             [Term uni fun] ->
             BuiltinRuntime (Term uni fun) ->
-            BuiltinResult (HeadSpine (Term uni fun))
+            BuiltinResult (MonoHeadSpine (Term uni fun))
         eval [] (BuiltinCostedResult _ getFxs) =
             getFxs
         eval (arg : args) (BuiltinExpectArgument toRuntime) =

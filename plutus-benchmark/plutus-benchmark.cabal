@@ -254,6 +254,30 @@ test-suite plutus-benchmark-lists-tests
     , tasty
     , tasty-quickcheck
 
+---------------- casing ----------------
+
+library casing-internal
+  import:          lang, ghc-version-support, os-support
+  hs-source-dirs:  casing/src
+  exposed-modules: PlutusBenchmark.Casing
+  build-depends:
+    , base                     >=4.9   && <5
+    , mtl
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.49
+
+benchmark casing
+  import:         lang, ghc-version-support, os-support
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: casing/bench
+  build-depends:
+    , base                     >=4.9     && <5
+    , casing-internal
+    , criterion                >=1.5.9.0
+    , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.49
+
 ---------------- validation ----------------
 
 benchmark validation

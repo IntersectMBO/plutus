@@ -8,16 +8,13 @@
            (\go arg ->
               delay
                 (\xs ->
-                   force
-                     (force (force chooseList)
-                        xs
-                        (delay (constr 0 []))
-                        (delay
-                           ((\xs ->
-                               case
-                                 (force headList xs)
-                                 [ (constr 1 [])
-                                 , (force (go (delay (\x -> x))) xs) ])
-                              (force tailList xs))))))
+                   case
+                     xs
+                     [ (constr 0 [])
+                     , (\x xs ->
+                          case
+                            x
+                            [ (constr 1 [])
+                            , (force (go (delay (\x -> x))) xs) ]) ]))
            (delay (\x -> x)))
         xs))

@@ -1,9 +1,1 @@
-(program
-   1.1.0
-   (\xs ->
-      force
-        (force (force chooseList)
-           xs
-           (delay (constr 1 []))
-           (delay
-              ((\ds -> constr 0 [(force headList xs)]) (force tailList xs))))))
+(program 1.1.0 (\xs -> case xs [(constr 1 []), (\x ds -> constr 0 [x])]))

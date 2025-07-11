@@ -3,16 +3,13 @@
    ((\go eta -> go eta)
       ((\s -> s s)
          (\s ds ->
-            force
-              (force (force chooseList)
-                 ds
-                 (delay [])
-                 (delay
-                    ((\eta ->
-                        (\h ->
-                           case
-                             (lessThanInteger h 8)
-                             [ ((\nt -> force mkCons (iData h) nt) (s s eta))
-                             , (s s eta) ])
-                          (unIData (force headList ds)))
-                       (force tailList ds))))))))
+            case
+              ds
+              [ []
+              , (\x eta ->
+                   (\h ->
+                      case
+                        (lessThanInteger h 8)
+                        [ ((\nt -> force mkCons (iData h) nt) (s s eta))
+                        , (s s eta) ])
+                     (unIData x)) ]))))

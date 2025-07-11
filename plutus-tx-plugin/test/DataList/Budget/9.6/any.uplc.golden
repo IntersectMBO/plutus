@@ -3,15 +3,10 @@
    ((\go eta -> go eta)
       ((\s -> s s)
          (\s ds ->
-            force
-              (force (force chooseList)
-                 ds
-                 (delay (constr 1 []))
-                 (delay
-                    ((\x ->
-                        (\eta ->
-                           case
-                             (lessThanInteger (unIData x) 8)
-                             [(constr 0 []), (s s eta)])
-                          (force tailList ds))
-                       (force headList ds))))))))
+            case
+              ds
+              [ (constr 1 [])
+              , (\x eta ->
+                   case
+                     (lessThanInteger (unIData x) 8)
+                     [(constr 0 []), (s s eta)]) ]))))

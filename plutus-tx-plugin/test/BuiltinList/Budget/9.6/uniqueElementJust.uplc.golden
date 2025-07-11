@@ -1,35 +1,28 @@
 (program
    1.1.0
-   ((\caseList' ->
-       (\take xs ->
-          caseList'
-            (constr 1 [])
-            (\x -> caseList' (constr 0 [x]) (\ds ds -> constr 1 []))
-            (force (force take) [] 1 xs))
-         ((\f ->
-             (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-               (\s -> f (\x -> s s x)))
-            (\take arg ->
-               delay
-                 (delay
-                    (\`$dMkNil` n l ->
-                       case
-                         (lessThanEqualsInteger n 0)
-                         [ (caseList'
-                              `$dMkNil`
-                              (\x xs ->
-                                 force mkCons
-                                   x
-                                   (force (force (take (delay (\x -> x))))
-                                      `$dMkNil`
-                                      (subtractInteger n 1)
-                                      xs))
-                              l)
-                         , `$dMkNil` ])))
-            (delay (\x -> x))))
-      (\z f xs ->
-         force
-           (force (force chooseList)
-              xs
-              (delay z)
-              (delay (f (force headList xs) (force tailList xs)))))))
+   ((\take xs ->
+       case
+         (force (force take) [] 1 xs)
+         [ (constr 1 [])
+         , (\x xs -> case xs [(constr 0 [x]), (\ds ds -> constr 1 [])]) ])
+      ((\f ->
+          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+            (\s -> f (\x -> s s x)))
+         (\take arg ->
+            delay
+              (delay
+                 (\`$dMkNil` n l ->
+                    case
+                      (lessThanEqualsInteger n 0)
+                      [ (case
+                           l
+                           [ `$dMkNil`
+                           , (\x xs ->
+                                force mkCons
+                                  x
+                                  (force (force (take (delay (\x -> x))))
+                                     `$dMkNil`
+                                     (subtractInteger n 1)
+                                     xs)) ])
+                      , `$dMkNil` ])))
+         (delay (\x -> x)))))

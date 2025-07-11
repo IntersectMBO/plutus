@@ -1,29 +1,23 @@
 (program
    1.1.0
-   ((\caseList' ->
-       (\last xs -> force (force last) xs)
-         ((\f ->
-             (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-               (\s -> f (\x -> s s x)))
-            (\last arg ->
-               delay
-                 (delay
-                    (\l ->
-                       caseList'
-                         (\ds ->
-                            (\x -> error) (force trace "PT25" (constr 0 [])))
-                         (\x xs ds ->
-                            caseList'
-                              x
-                              (\ds ds ->
-                                 force (force (last (delay (\x -> x)))) xs)
-                              xs)
-                         l
-                         (constr 0 []))))
-            (delay (\x -> x))))
-      (\z f xs ->
-         force
-           (force (force chooseList)
-              xs
-              (delay z)
-              (delay (f (force headList xs) (force tailList xs)))))))
+   ((\last xs -> force (force last) xs)
+      ((\f ->
+          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
+            (\s -> f (\x -> s s x)))
+         (\last arg ->
+            delay
+              (delay
+                 (\l ->
+                    case
+                      l
+                      [ (\ds ->
+                           (\x -> error) (force trace "PT25" (constr 0 [])))
+                      , (\x xs ds ->
+                           case
+                             xs
+                             [ x
+                             , (\ds ds ->
+                                  force (force (last (delay (\x -> x))))
+                                    xs) ]) ]
+                      (constr 0 []))))
+         (delay (\x -> x)))))
