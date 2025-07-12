@@ -22,6 +22,13 @@ module PlutusLedgerApi.Common.Versions
     , plcVersionsAvailableIn
     , builtinsIntroducedIn
     , builtinsAvailableIn
+    , batch1
+    , batch2
+    , batch3
+    , batch4a
+    , batch4b
+    , batch5
+    , batch6
     ) where
 
 import PlutusCore
@@ -118,7 +125,8 @@ collectUpTo m thisPv =
   fold $  -- ie, iterated `union`
   Map.elems $ Map.takeWhileAntitone (<= thisPv) m
 
--- Batches of builtins which were introduced at the same time: see
+-- Batches of builtins which were introduced in the same hard fork (but perhaps
+-- not for all LLs): see the Plutus Core specification and
 -- `builtinsIntroducedIn` below.
 batch1 :: [DefaultFun]
 batch1 =
@@ -132,6 +140,7 @@ batch1 =
   , IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData
   , MkPairData, MkNilData, MkNilPairData
   ]
+-- or fmap toEnum [0..50] etc.
 
 batch2 :: [DefaultFun]
 batch2 =
@@ -158,16 +167,17 @@ batch4a =
   ]
 
 {- batch4b: IntegerToByteString and ByteStringToInteger.  These were enabled in
-PlutusV2 at PV10 in #6056 and #6065.  They are available on the chain, but
-they're prohibitively expensive because the proposal to update the relevant
-protocol parameters has not (yet) been enacted.  This has left a "gap" in the
-cost model paramters: for PlutusV3, the parameters for Batch 3 are followed
-those for 4a, then 4b, but for PlutusV2 those for Batch3 are followed by those
-for Batch 4b, and those for 4a aren't in use yet.  Since you can't actually use
-the 4b builtins in PlutusV2 at the moment, it's tempting to insert the 4a
-parameter before the 4b parameters and enable them all at PV11 and with a
-suitable parameter update.  However, if we do do this there's a theoretical risk
-of turning a phase 2 failure into a phase 1 failure: would that be problematic?
+ PlutusV3 at PV9, along with batch4a, They were enabled in PlutusV2 at PV10 in
+ #6056 and #6065.  They are available on the chain, but they're prohibitively
+ expensive because the proposal to update the relevant protocol parameters has
+ not (yet) been enacted.  This has left a "gap" in the cost model paramters: for
+ PlutusV3, the parameters for Batch 3 are followed those for 4a, then 4b, but
+ for PlutusV2 those for Batch3 are followed by those for Batch 4a, and those for
+ 4b aren't in use yet.  Since you can't actually use the 4b builtins in PlutusV2
+ at the moment, it's tempting to insert the 4a parameter before the 4b
+ parameters and enable them all at PV11 and with a suitable parameter update.
+ However, if we do do this there's a theoretical risk of turning a phase 2
+ failure into a phase 1 failure: would that be problematic?
 -}
 batch4b :: [DefaultFun]
 batch4b =

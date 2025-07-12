@@ -205,6 +205,7 @@ test-suite plutus-ledger-api-test
     , tasty-hunit
     , tasty-quickcheck
     , text
+    , vector
 
 -- A suite for tests that use the Plutus Tx plugin. We don't merge those into
 -- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of
