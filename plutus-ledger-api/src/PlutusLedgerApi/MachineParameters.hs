@@ -1,7 +1,6 @@
 module PlutusLedgerApi.MachineParameters where
 
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.ProtocolVersions (anonPV)
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))

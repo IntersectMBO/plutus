@@ -1,7 +1,5 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Spec.Versions (tests) where
@@ -10,7 +8,7 @@ import PlutusCore as PLC
 import PlutusCore.MkPlc as PLC
 import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Common.Versions (batch1, batch2, batch3, batch4a, batch4b, batch5, batch6)
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
 
@@ -58,39 +56,37 @@ testLedgerLanguages = testGroup "ledger languages"
            -- generated an eq or gt the expected protocol version
            else isRight resPhase1
 
--- deriving newtype instance Arbitrary MajorProtocolVersion
-
 -- ** FIX THESE TOO
 -- See Note [Checking the Plutus Core language version] for why these have to use mkTermToEvaluate
 testLanguageVersions :: TestTree
 testLanguageVersions = testGroup "Plutus Core language versions"
-  [ testCase "v1.1.0 is available in l3,Chang and not before" $ do
+  [ testCase "v1.1.0 is available in PlutusV3/Chang and not before" $ do
       -- `LedgerLanguageNotAvailableError` is checked in `deserialiseScript`
-      assertBool "in l3,Vasil" $
+      assertBool "in PlutusV3/,Vasil" $
         isLeft $ uplcToScriptForEvaluation PlutusV3 vasilPV v110script
       -- `PlutusCoreLanguageNotAvailableError` is checked in `mkTermToEvaluate`
-      assertBool "in l2,Chang" $ isLeft $
+      assertBool "in PlutusV2/Chang" $ isLeft $
         mkTermToEvaluate PlutusV2 changPV
         (either (Prelude.error . show)
           id
          (V2.deserialiseScript changPV $ serialiseUPLC v110script)
         ) []
       -- Both `deserialiseScript` and `mkTermToEvaluate` should succeed
-      assertBool "not in l3,Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV
+      assertBool "not in PlutusV3/Chang" $ isRight $ mkTermToEvaluate PlutusV3 changPV
         (either (Prelude.error . show)
          id
          (V3.deserialiseScript changPV $ serialiseUPLC v110script)
         ) []
     -- The availability of `case` and `constr` is checked in `deserialise`
   , testCase "constr is not available with v1.0.0 ever" $
-    assertBool "in l3,future" $
+    assertBool "in PlutusV3/future" $
     isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badConstrScript
   , testCase "case is not available with v1.0.0 ever" $
-    assertBool "in l3,future" $
+    assertBool "in PlutusV3/future" $
     isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
   ]
 
--- * UPLC written examples to test deserialisation
+-- * UPLC examples to test deserialisation
 
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
@@ -212,6 +208,8 @@ testPermittedBuiltins =
     ]
 
 -- Test that the checks for extra bytes after ends of scripts behave properly
+deriving newtype instance Arbitrary MajorProtocolVersion
+
 testRmdr :: TestTree
 testRmdr = testGroup "extra bytes after end of script"
     [ testCase "remdr" $ do
