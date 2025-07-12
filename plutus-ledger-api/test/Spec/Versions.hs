@@ -7,7 +7,6 @@
 module Spec.Versions (tests) where
 
 import PlutusCore as PLC
-import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
 import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common
@@ -20,13 +19,10 @@ import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
 
-import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import Data.List (intercalate, (\\))
+import Data.List ((\\))
 import Data.Set qualified as Set
-import Data.Text (Text)
-import Data.Vector.Strict (Vector, fromList)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
@@ -201,3 +197,16 @@ testLanguageVersions = testGroup "Plutus Core language versions"
   , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
   ]
 
+-- * UPLC written examples to test deserialisation
+
+errorScript :: SerialisedScript
+errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
+
+v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
+
+badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
+
+badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) mempty
