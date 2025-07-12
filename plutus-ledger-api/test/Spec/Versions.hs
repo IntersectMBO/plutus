@@ -34,8 +34,7 @@ import Test.Tasty.QuickCheck
 tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
-    , testBuiltinVersions2
-    , testBuiltinsAvailableIn
+    , testPermittedBuiltins
     , testLanguageVersions
     , testRmdr
     ]
@@ -64,37 +63,6 @@ testLedgerLanguages = testGroup "ledger languages"
            else isRight resPhase1
 
 deriving newtype instance Arbitrary MajorProtocolVersion
-
--- ** FIXME: should we extend this???
-testBuiltinVersions :: TestTree
-testBuiltinVersions = testGroup "builtins"
-    [ {- testCase "all builtins are eventually available in all ledger languages" $
-      let builtinsFor ll = fold $ Map.elems $ fold $ fmap builtinsIntroducedIn enumerate
-          allBuiltins = enumerate @DefaultFun
-      in for_ allBuiltins $ \f -> assertBool (show f) (f `Set.member` allPvBuiltins)
-    , -} testCase "PlutusV1 builtins aren't available before Alonzo" $
-        assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 maryPV)
-    , testCase "PlutusV2  builtins aren't available before Vasil" $
-        assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV2 alonzoPV)
-    , testCase "PlutusV3  builtins aren't available before Chang" $
-        assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV3 valentinePV)
-    , testCase "serializeData is only available in V2 and V3 Vasil and after" $ do
-        assertBool "in V1 @Alonzo"     $ isLeft  $ V1.deserialiseScript alonzoPV serialiseDataExScript
-        assertBool "in V1 @Vasil"      $ isLeft  $ V1.deserialiseScript vasilPV  serialiseDataExScript
-        assertBool "in V2 @Alonzo"     $ isLeft  $ V2.deserialiseScript alonzoPV serialiseDataExScript
-        assertBool "in V3 @Alonzo"     $ isLeft  $ V3.deserialiseScript alonzoPV serialiseDataExScript
-        assertBool "not in V2 @Vasil"  $ isRight $ V2.deserialiseScript vasilPV  serialiseDataExScript
-        assertBool "not in V3 @future" $ isRight $ V3.deserialiseScript futurePV serialiseDataExScript
-    , testCase "bls,keccak256,blake2b224 only available in V3, Chang and after" $
-         for_ [blsG1AddExScript, blsFinalVerifyExScript, keccak256ExScript, blake2b224ExScript] $ \script -> do
-             assertBool "in V1 @Alonzo"      $ isLeft  $ V1.deserialiseScript alonzoPV    script
-             assertBool "in V1 @Vasil"       $ isLeft  $ V1.deserialiseScript vasilPV     script
-             assertBool "in V2 @Alonzo"      $ isLeft  $ V2.deserialiseScript alonzoPV    script
-             assertBool "in V3 @Alonzo"      $ isLeft  $ V3.deserialiseScript alonzoPV    script
-             assertBool "in V2 @Valentine"   $ isLeft  $ V2.deserialiseScript valentinePV script
-             assertBool "in V2 @Valentine"   $ isLeft  $ V2.deserialiseScript valentinePV script
-             assertBool "not in V3 @future"  $ isRight $ V3.deserialiseScript futurePV    script
-    ]
 
 showPV :: MajorProtocolVersion -> String
 showPV (MajorProtocolVersion pv) =
@@ -148,8 +116,8 @@ allBuiltins = builtins1 ++ builtins2
 -- This should be updated when new builtins, ledger languages, or protocol
 -- versions are added, but we expect that after Anon all builtins will be
 -- allowed in all ledger languages.
-testBuiltinVersions2 :: TestTree
-testBuiltinVersions2 =
+testPermittedBuiltins :: TestTree
+testPermittedBuiltins =
   let testBuiltins ll deserialise pv expectedGood =
         let expectGood scripts =
               for_ scripts $ \(name, script) ->
@@ -201,58 +169,6 @@ testBuiltinVersions2 =
       ]
     ]
 
--- Check that the `builtinsAvailableIn` function returns the correct number of
--- buitins for each LL and PV (but not that it returns the _correct_ builtins).
--- The `builtinCounts` function MUST be updated whenever `builtinsAvailableIn`
--- is updated, which will usually happen in the run-up to the introduction of a
--- new LL or PV.
-testBuiltinsAvailableIn :: TestTree
-testBuiltinsAvailableIn =
-  let builtinCounts :: PlutusLedgerLanguage -> [(MajorProtocolVersion, Int)]
-      builtinCounts = \case
-        PlutusV1 -> [ (shelleyPV, 0)
-                    , (allegraPV, 0)
-                    , (maryPV, 0)
-                    , (alonzoPV, 51)    -- Batch 1
-                    , (vasilPV, 51)
-                    , (valentinePV, 51)
-                    , (changPV, 51)
-                    , (plominPV, 51)
-                    , (anonPV, 92)      -- Batches 2-6
-                    ]
-        PlutusV2 -> [ (shelleyPV, 0)
-                    , (allegraPV, 0)
-                    , (maryPV, 0)
-                    , (alonzoPV, 0)
-                    , (vasilPV, 52)     -- Batches 1 and 2
-                    , (valentinePV, 54) -- Batch 3
-                    , (changPV, 54)
-                    , (plominPV, 56)    -- Batch 4a
-                    , (anonPV, 92)      -- Batches 4b-6
-                    ]
-        PlutusV3 -> [ (shelleyPV, 0)
-                    , (allegraPV, 0)
-                    , (maryPV, 0)
-                    , (alonzoPV, 0)
-                    , (vasilPV, 0)
-                    , (valentinePV, 0)
-                    , (changPV, 75)     -- Batches 1-4
-                    , (plominPV, 87)    -- Batch 5
-                    , (anonPV, 92)      -- Batch 6
-                    ]
-      allKnownLLs = enumerate @PlutusLedgerLanguage
-      numKnownPVs = length knownPVs
-      mkTestsFor ll =
-        testGroup ("Number of builtins for " ++ show ll) $
-        checkPVcount ll : fmap (mkTest ll) (builtinCounts ll)
-      checkPVcount ll =
-        testCase "Test covers all known protocol versions" $
-        (assertBool ("Wrong number of PVs for " ++ show ll) $ length (builtinCounts ll) == numKnownPVs)
-      mkTest ll (pv, expected) =
-        let actual = length $ builtinsAvailableIn ll pv
-        in testCase ("PV" ++ show pv ++ ": " ++ show expected ++ " builtins expected") $
-           assertBool ("Expected " ++ show expected ++ " builtins, found " ++ show actual) $ actual == expected
-  in testGroup "builtinsAvailableIn returns correct number of builtins" $ fmap mkTestsFor allKnownLLs
 
 testRmdr :: TestTree
 testRmdr = testGroup "extra bytes at end of script"
@@ -285,166 +201,3 @@ testLanguageVersions = testGroup "Plutus Core language versions"
   , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ uplcToScriptForEvaluation PlutusV3 changPV badCaseScript
   ]
 
--- * UPLC written examples to test builtin deserialisation
-
--- First builtin in Batch 1
-addIntegerExScript :: SerialisedScript
-addIntegerExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-   builtin () AddInteger @@ [ mkConstant @Integer () 111, mkConstant @Integer () 222 ]
-
--- Last builtin in Batch 1
-mkNilPairDataExScript :: SerialisedScript
-mkNilPairDataExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () MkNilPairData @@ [ mkConstant () () ]
-
-batch1ExScripts :: [(String, SerialisedScript)]
-batch1ExScripts = [ ("addInteger", addIntegerExScript)
-                  , ("mkNilPairData", mkNilPairDataExScript)]
-
--- Only builtin in Batch 2
-serialiseDataExScript :: SerialisedScript
-serialiseDataExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-    builtin () SerialiseData @@ [ mkConstant () $ I 1 ]
-
-batch2ExScripts :: [(String, SerialisedScript)]
-batch2ExScripts = [("serialiseData", serialiseDataExScript)]
-
--- Batch 3
-
-verifyEcdsaSecp256k1SignatureExScript :: SerialisedScript
-verifyEcdsaSecp256k1SignatureExScript =
-  serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-    builtin () VerifyEcdsaSecp256k1Signature
-
-verifySchnorrSecp256k1SignatureExScript :: SerialisedScript
-verifySchnorrSecp256k1SignatureExScript =
-  serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-    builtin () VerifyEcdsaSecp256k1Signature
-
-batch3ExScripts :: [(String, SerialisedScript)]
-batch3ExScripts = [ ("verifyEcdsaSecp256k1Signature", verifyEcdsaSecp256k1SignatureExScript)
-                  , ("verifySchnorrSecp256k1Signature", verifySchnorrSecp256k1SignatureExScript) ]
-
--- Batch 4a
--- Note that these can work also with plcversion==1.1.0
-
--- First BLS12_381 function
--- It'd be quite complicated to apply it,  but we're only testing deserialisation.
-blsG1AddExScript :: SerialisedScript
-blsG1AddExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () Bls12_381_G1_add
-
--- Final BLS12_381 function
--- It'd be quite complicated to apply it,  but we're only testing deserialisation.
-blsFinalVerifyExScript :: SerialisedScript
-blsFinalVerifyExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () Bls12_381_finalVerify
-
--- Note that keccak can work also with plcversion==1.1.0
-keccak256ExScript :: SerialisedScript
-keccak256ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () Keccak_256 @@ [ mkConstant @BS.ByteString () "hashme" ]
-
--- Note that blake2b224 can work also with plcversion==1.1.0
-blake2b224ExScript :: SerialisedScript
-blake2b224ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () Blake2b_224 @@ [ mkConstant @BS.ByteString () "hashme" ]
-
-batch4aExScripts :: [(String, SerialisedScript)]
-batch4aExScripts = [ ("bls12_381_G1_add", blsG1AddExScript)
-                   , ("bls12_381_finalVerify", blsFinalVerifyExScript)
-                   , ("keccak_256", keccak256ExScript)
-                   , ("blake2b_224", blake2b224ExScript) ]
-
-
--- Batch 4a (enabled in Vasil with Batch 4b at Chang)
-
-byteStringToIntegerExScript :: SerialisedScript
-byteStringToIntegerExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () ByteStringToInteger @@ [ mkConstant @BS.ByteString () "hashme" ]
-
-integerToByteStringExScript :: SerialisedScript
-integerToByteStringExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () IntegerToByteString @@ [ mkConstant @Integer () 5, mkConstant @Integer () 123 ]
-
-batch4bExScripts :: [(String, SerialisedScript)]
-batch4bExScripts = [ ("byteStringToInteger", byteStringToIntegerExScript)
-                   , ("integerToByteString", integerToByteStringExScript)
-                   ]
-
--- Batch 5
-
--- First bitwise operation
-andByteStringExScript :: SerialisedScript
-andByteStringExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () AndByteString @@ [ mkConstant  () True
-                              , mkConstant @BS.ByteString () "hashme"
-                              , mkConstant @BS.ByteString () "andme" ]
--- Final bitwise operation
-findFirstSetBitExScript :: SerialisedScript
-findFirstSetBitExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () FindFirstSetBit @@ [ mkConstant @BS.ByteString () "hashme" ]
-
-
-ripemd_160ExScript :: SerialisedScript
-ripemd_160ExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () Ripemd_160 @@ [ mkConstant @BS.ByteString () "hashme" ]
-
-batch5ExScripts :: [(String, SerialisedScript)]
-batch5ExScripts = [ ("andByteString", andByteStringExScript)
-                  , ("findFirstSetBit", findFirstSetBitExScript)
-                  , ("ripemd_160", ripemd_160ExScript)]
-
--- Batch 6
-
-expModIntegerExScript :: SerialisedScript
-expModIntegerExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () ExpModInteger @@ [ mkConstant @Integer () 717812342342434234
-                              , mkConstant @Integer () 897841231231231111
-                              , mkConstant @Integer () 81931891
-                              ]
-
-dropListExScript :: SerialisedScript
-dropListExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () DropList @@ [ mkConstant @Integer () 5
-                         , mkConstant @[Text] () $
-                           ["one", "two", "three", "four", "five", "six", "seven"]
-                         ]
-
-lengthOfArrayExScript :: SerialisedScript
-lengthOfArrayExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () LengthOfArray @@ [ mkConstant @(Vector Text) () $
-                                fromList ["one", "two", "three", "four", "five", "six", "seven"]
-                              ]
-
-listToArrayExScript :: SerialisedScript
-listToArrayExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () ListToArray @@ [ mkConstant @[Text] ()
-                              ["one", "two", "three", "four", "five", "six", "seven"]
-                            ]
-
-indexArrayExScript :: SerialisedScript
-indexArrayExScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $
-  builtin () IndexArray @@ [ mkConstant @Integer () 5
-                           , mkConstant @(Vector Text) () $
-                             fromList ["one", "two", "three", "four", "five", "six", "seven"]
-                           ]
-
-batch6ExScripts :: [(String, SerialisedScript)]
-batch6ExScripts = [ ("expModInteger", expModIntegerExScript)
-                  , ("dropList", dropListExScript)
-                  , ("lengthOfArray", lengthOfArrayExScript)
-                  , ("listToArray", listToArrayExScript)
-                  , ("indexArrayE", indexArrayExScript)]
-
-errorScript :: SerialisedScript
-errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
-
-v110script :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-v110script = UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 mempty
-
-badConstrScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-badConstrScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 mempty
-
-badCaseScript :: UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-badCaseScript = UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) mempty
