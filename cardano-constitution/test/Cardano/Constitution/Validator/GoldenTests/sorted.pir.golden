@@ -481,7 +481,7 @@ program
       Nothing : Maybe a
   in
   letrec
-    ~caseData_go : list (pair data data) -> List (Tuple2 data data)
+    ~matchData_go : list (pair data data) -> List (Tuple2 data data)
       = (let
             a = pair data data
           in
@@ -497,7 +497,7 @@ program
                   {data}
                   (fstPair {data} {data} x)
                   (sndPair {data} {data} x))
-               (caseData_go xs))
+               (matchData_go xs))
   in
   let
     !fun : List (Tuple2 data data) -> Bool
@@ -5321,7 +5321,7 @@ program
                      {data}
                      (tailList {data} (sndPair {integer} {list data} ds))
              in
-             caseData_go (unMapData d)))
+             matchData_go (unMapData d)))
         (/\dead ->
            Bool_match
              (case Bool (equalsInteger 2 x) [False, True])

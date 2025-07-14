@@ -7,9 +7,9 @@
          (\last arg ->
             delay
               (delay
-                 (\l ->
+                 (\eta ->
                     case
-                      l
+                      eta
                       [ (\ds ->
                            (\x -> error) (force trace "PT25" (constr 0 [])))
                       , (\x xs ds ->

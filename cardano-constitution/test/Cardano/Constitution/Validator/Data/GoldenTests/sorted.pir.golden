@@ -503,7 +503,7 @@ program
               {all dead. dead}
   in
   letrec
-    ~caseData_go : list (pair data data) -> List (Tuple2 data data)
+    ~matchData_go : list (pair data data) -> List (Tuple2 data data)
       = (let
             a = pair data data
           in
@@ -519,7 +519,7 @@ program
                   {data}
                   (fstPair {data} {data} x)
                   (sndPair {data} {data} x))
-               (caseData_go xs))
+               (matchData_go xs))
   in
   let
     !fun : List (Tuple2 data data) -> Bool
@@ -5363,7 +5363,7 @@ program
             {all dead. dead})
         nt
         (\(ds : Maybe data) (cparams : data) (ds : Maybe bytestring) ->
-           Just {List (Tuple2 data data)} (caseData_go (unMapData cparams)))
+           Just {List (Tuple2 data data)} (matchData_go (unMapData cparams)))
         (\(void : unit) ->
            (let
                r = Maybe (List (Tuple2 data data))

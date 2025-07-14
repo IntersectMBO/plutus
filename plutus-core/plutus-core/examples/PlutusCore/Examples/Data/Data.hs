@@ -68,7 +68,7 @@ ofoldrData optMatch = runQuote $ do
     let listData = mkTyBuiltin @_ @[Data] ()
         listR = TyApp () list r
         opair a = mkIterTyAppNoAnn pair [a, a]
-        unwrap' ann = apply ann $ mapFun Left (matchData optMatch)
+        unwrap' ann = apply ann $ mapFun Left matchData
     return
         . lamAbs () fConstr (TyFun () integer $ TyFun () listR r)
         . lamAbs () fMap (TyFun () (TyApp () list $ opair r) r)

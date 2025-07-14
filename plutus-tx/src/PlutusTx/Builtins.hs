@@ -50,8 +50,6 @@ module PlutusTx.Builtins (
   -- * Data
   BuiltinData,
   chooseData,
-  BI.caseData',
-  caseData,
   matchData,
   matchData',
   equalsData,
@@ -455,7 +453,8 @@ null l = fromOpaque (BI.null l)
 {-# INLINEABLE null #-}
 
 caseList :: forall a r. (() -> r) -> (a -> BI.BuiltinList a -> r) -> BI.BuiltinList a -> r
-caseList nilCase consCase l = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
+-- See Note [Making arguments non-strict in case and match functions]
+caseList ~nilCase ~consCase l = BI.caseList' nilCase (\x xs _ -> consCase x xs) l ()
 {-# INLINEABLE caseList #-}
 
 matchList :: forall a r. BI.BuiltinList a -> (() -> r) -> (a -> BI.BuiltinList a -> r) -> r
@@ -556,23 +555,6 @@ equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 {-# INLINEABLE equalsData #-}
 
-caseData
-  :: (Integer -> [BuiltinData] -> r)
-  -> ([(BuiltinData, BuiltinData)] -> r)
-  -> ([BuiltinData] -> r)
-  -> (Integer -> r)
-  -> (BuiltinByteString -> r)
-  -> BuiltinData
-  -> r
-caseData constrCase mapCase listCase iCase bCase =
-  BI.caseData'
-    (\i ds -> constrCase i (fromOpaque ds))
-    (\ps -> mapCase (fromOpaque ps))
-    (\ds -> listCase (fromOpaque ds))
-    iCase
-    bCase
-{-# INLINEABLE caseData #-}
-
 matchData'
   :: BuiltinData
   -> (Integer -> BI.BuiltinList BuiltinData -> r)
@@ -581,8 +563,16 @@ matchData'
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
   -> r
-matchData' d constrCase mapCase listCase iCase bCase =
-  BI.caseData' constrCase mapCase listCase iCase bCase d
+-- See Note [Making arguments non-strict in case and match functions]
+matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+  chooseData
+    d
+    (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
+    (\_ -> mapCase (BI.unsafeDataAsMap d))
+    (\_ -> listCase (BI.unsafeDataAsList d))
+    (\_ -> iCase (unsafeDataAsI d))
+    (\_ -> bCase (unsafeDataAsB d))
+    ()
 {-# INLINEABLE matchData' #-}
 
 {-| Given a 'BuiltinData' value and matching functions for the five constructors,
@@ -596,8 +586,15 @@ matchData
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
   -> r
-matchData d constrCase mapCase listCase iCase bCase =
-  caseData constrCase mapCase listCase iCase bCase d
+-- See Note [Making arguments non-strict in case and match functions]
+matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+  matchData'
+    d
+    (\i ds -> constrCase i (fromOpaque ds))
+    (\ps -> mapCase (fromOpaque ps))
+    (\ds -> listCase (fromOpaque ds))
+    iCase
+    bCase
 {-# INLINEABLE matchData #-}
 
 -- G1 --

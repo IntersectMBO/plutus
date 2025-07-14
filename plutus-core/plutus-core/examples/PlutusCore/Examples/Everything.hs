@@ -18,7 +18,6 @@ import PlutusCore.Default
 import PlutusCore.FsTree
 import PlutusCore.MkPlc
 
-import PlutusCore.StdLib.Data.MatchOption
 import PlutusCore.StdLib.Type
 
 import PlutusCore.Examples.Builtins
@@ -37,9 +36,11 @@ examples =
     FolderContents
       [ treeFolderContents "Examples"
           [ treeFolderContents "Data"
-              [ plcTermFile "ofoldrDataUseChoose" $ ofoldrData UseChoose
-              , plcTermFile "exampleData" exampleData
-              ]
+              $ plcTermFile "exampleData" exampleData
+              : [ plcTermFile (name ++ show optMatch) $ f optMatch
+                | optMatch <- enumerate
+                , (name, f) <- [("ofoldrData", ofoldrData)]
+                ]
           , treeFolderContents "Function"
               [ plcTermFile "unsafeCoerce" unsafeCoerce
               ]
