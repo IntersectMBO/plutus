@@ -1,1 +1,2 @@
-(Left Unsupported 'case' of a value of a built-in type at (): (fun (con integer) (fun (con integer) (con integer))) isn't supported in 'case')
+(Left Unsupported 'case' of a value of a built-in type at (): 
+ (fun (con integer) (fun (con integer) (con integer))) isn't supported in 'case')

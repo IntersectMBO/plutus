@@ -576,7 +576,7 @@ inferTypeM (Case ann resTy scrut branches) = do
             -- scrutinee does not have a SOP type with the right number of alternatives
             -- for the number of branches
             Nothing -> throwError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
-        ty -> case annotateCaseBuiltin ty branches of
+        vTy -> case annotateCaseBuiltin vTy branches of
             Right branchesAndArgTypes -> for_ branchesAndArgTypes $ \(c, argTypes) -> do
                 vArgTypes <- traverse (fmap unNormalized . normalizeTypeM) argTypes
                 -- made of sub-parts of a normalized type, so normalized
