@@ -2718,7 +2718,7 @@ d_BUILTIN_278 v0
                                                                        (coe
                                                                           MAlonzo.Code.Builtin.Constant.AtomicType.C_aInteger_8))
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.d_lengthOfArray_482
+                                                                       MAlonzo.Code.Utils.d_HSlengthOfArray_482
                                                                        erased v21))
                                                           _ -> coe v19
                                                    _ -> coe v19)
@@ -2766,7 +2766,7 @@ d_BUILTIN_278 v0
                                                                        MAlonzo.Code.Builtin.Signature.C_array_20
                                                                        v23)
                                                                     (coe
-                                                                       MAlonzo.Code.Utils.d_listToArray_486
+                                                                       MAlonzo.Code.Utils.d_HSlistToArray_486
                                                                        erased v21))
                                                           _ -> coe v19
                                                    _ -> coe v19)
@@ -2826,7 +2826,7 @@ d_BUILTIN_278 v0
                                                                                                                    (coe
                                                                                                                       v30)
                                                                                                                    (coe
-                                                                                                                      MAlonzo.Code.Utils.d_lengthOfArray_482
+                                                                                                                      MAlonzo.Code.Utils.d_HSlengthOfArray_482
                                                                                                                       erased
                                                                                                                       v26) in
                                                                                                          coe
@@ -2846,7 +2846,7 @@ d_BUILTIN_278 v0
                                                                                                                                   (coe
                                                                                                                                      v28)
                                                                                                                                   (coe
-                                                                                                                                     MAlonzo.Code.Utils.d_indexArray_488
+                                                                                                                                     MAlonzo.Code.Utils.d_HSindexArray_488
                                                                                                                                      erased
                                                                                                                                      v26
                                                                                                                                      v30)))

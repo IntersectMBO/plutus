@@ -528,17 +528,18 @@ d_map'45'cong_468 = erased
 type T_Array_478 a0 = Strict.Vector a0
 d_Array_478
   = error "MAlonzo Runtime Error: postulate evaluated: Utils.Array"
--- Utils.lengthOfArray
-d_lengthOfArray_482 :: forall xA. () -> T_Array_478 xA -> Integer
-d_lengthOfArray_482 = \() -> \as -> toInteger (Strict.length as)
--- Utils.listToArray
-d_listToArray_486 ::
+-- Utils.HSlengthOfArray
+d_HSlengthOfArray_482 :: forall xA. () -> T_Array_478 xA -> Integer
+d_HSlengthOfArray_482 = \() -> \as -> toInteger (Strict.length as)
+-- Utils.HSlistToArray
+d_HSlistToArray_486 ::
   forall xA. () -> T_List_384 xA -> T_Array_478 xA
-d_listToArray_486 = \() -> Strict.fromList
--- Utils.indexArray
-d_indexArray_488 ::
+d_HSlistToArray_486 = \() -> Strict.fromList
+-- Utils.HSindexArray
+d_HSindexArray_488 ::
   forall xA. () -> T_Array_478 xA -> Integer -> xA
-d_indexArray_488 = \() -> \as -> \i -> as Strict.! (fromInteger i)
+d_HSindexArray_488
+  = \() -> \as -> \i -> as Strict.! (fromInteger i)
 -- Utils.DATA
 d_DATA_490 = ()
 type T_DATA_490 = Data

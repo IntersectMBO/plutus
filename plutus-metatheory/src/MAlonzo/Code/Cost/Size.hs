@@ -100,7 +100,8 @@ d_defaultConstantMeasure_22 v0
                        MAlonzo.Code.Utils.C_'91''93'_388 -> coe (1 :: Integer)
                        _ -> coe v5)
              MAlonzo.Code.Builtin.Signature.C_array_20 v4
-               -> let v5 = coe MAlonzo.Code.Utils.d_lengthOfArray_482 erased v2 in
+               -> let v5
+                        = coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v2 in
                   coe
                     (case coe v5 of
                        0 -> coe (1 :: Integer)

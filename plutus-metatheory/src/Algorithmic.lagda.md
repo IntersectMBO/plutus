@@ -18,7 +18,7 @@ open import Data.Vec as Vec using (Vec;[];_∷_;lookup)
 open import Data.List.Properties using (foldr-++)
 
 
-open import Utils renaming (_×_ to _U×_; List to UList; Array to UArray; map to umap;lengthOfArray to ulengthOfArray)
+open import Utils renaming (_×_ to _U×_; List to UList; Array to UArray; map to umap)
 open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_

@@ -255,13 +255,13 @@ postulate Array : Set → Set
 variable A : Set
 
 postulate
-  lengthOfArray : Array A → ℤ
-  listToArray : (ls : List A) → Array A
-  indexArray : Array A → ℤ → A
+  HSlengthOfArray : Array A → ℤ
+  HSlistToArray : (ls : List A) → Array A
+  HSindexArray : Array A → ℤ → A
 -- These have to consume the hidden {A : Set} param in the Agda.
-{-# COMPILE GHC lengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
-{-# COMPILE GHC listToArray = \() -> Strict.fromList #-}
-{-# COMPILE GHC indexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
+{-# COMPILE GHC HSlengthOfArray = \() -> \as -> toInteger (Strict.length as) #-}
+{-# COMPILE GHC HSlistToArray = \() -> Strict.fromList #-}
+{-# COMPILE GHC HSindexArray = \() -> \as -> \i -> as Strict.! (fromInteger i) #-}
 
 
 ```

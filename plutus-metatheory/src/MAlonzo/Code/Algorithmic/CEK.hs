@@ -1556,7 +1556,7 @@ du_BUILTIN_368 v0 v1
                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                      (coe
                                         C_V'45'con_86
-                                        (coe MAlonzo.Code.Utils.d_lengthOfArray_482 erased v27))
+                                        (coe MAlonzo.Code.Utils.d_HSlengthOfArray_482 erased v27))
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1573,7 +1573,7 @@ du_BUILTIN_368 v0 v1
                                      MAlonzo.Code.Utils.C_inj'8322'_14
                                      (coe
                                         C_V'45'con_86
-                                        (coe MAlonzo.Code.Utils.d_listToArray_486 erased v27))
+                                        (coe MAlonzo.Code.Utils.d_HSlistToArray_486 erased v27))
                               _ -> MAlonzo.RTE.mazUnreachableError)
                     _ -> MAlonzo.RTE.mazUnreachableError
              _ -> MAlonzo.RTE.mazUnreachableError
@@ -1603,7 +1603,7 @@ du_BUILTIN_368 v0 v1
                                                                            = MAlonzo.Code.Data.Integer.Properties.d__'60''63'__3082
                                                                                (coe v39)
                                                                                (coe
-                                                                                  MAlonzo.Code.Utils.d_lengthOfArray_482
+                                                                                  MAlonzo.Code.Utils.d_HSlengthOfArray_482
                                                                                   erased v37) in
                                                                      coe
                                                                        (case coe v43 of
@@ -1617,7 +1617,7 @@ du_BUILTIN_368 v0 v1
                                                                                            (coe
                                                                                               C_V'45'con_86
                                                                                               (coe
-                                                                                                 MAlonzo.Code.Utils.d_indexArray_488
+                                                                                                 MAlonzo.Code.Utils.d_HSindexArray_488
                                                                                                  erased
                                                                                                  v37
                                                                                                  v39)))

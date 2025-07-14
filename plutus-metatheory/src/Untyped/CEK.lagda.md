@@ -358,20 +358,20 @@ BUILTIN nullList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN lengthOfArray = λ
-  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (Utils.lengthOfArray as))
+  { (app (app⋆ base) (V-con (array _) as)) → inj₂ (V-con integer (Utils.HSlengthOfArray as))
     ; _ -> inj₁ userError
   }
 BUILTIN listToArray = λ
-  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (Utils.listToArray ls))
+  { (app (app⋆ base) (V-con (list t) ls)) → inj₂ (V-con (array t) (Utils.HSlistToArray ls))
     ; _ -> inj₁ userError
   }
 BUILTIN indexArray = λ
   { (app (app (app⋆ base) (V-con (array t) as)) (V-con integer i)) →
       case Data.Integer.ℤ.pos 0 ≤? i of λ
         { (no  _) -> inj₁ userError
-        ; (yes _) -> case i <? Utils.lengthOfArray as of λ
+        ; (yes _) -> case i <? Utils.HSlengthOfArray as of λ
           { (no _)  -> inj₁ userError
-          ; (yes _) -> inj₂ (V-con t (Utils.indexArray as i))
+          ; (yes _) -> inj₂ (V-con t (Utils.HSindexArray as i))
           }
         }
     ; _ -> inj₁ userError
