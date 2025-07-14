@@ -344,56 +344,80 @@ defineBuiltinTerms = do
   defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
     PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
 
-  defineBuiltinTerm annMayInline 'Builtins.caseList' $
-    -- > /\a r ->
-    -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
-    -- >     chooseList
-    -- >       {a}
-    -- >       {all dead. r}
-    -- >       xs
-    -- >       (/\dead -> z)
-    -- >       (/\dead -> f (headList {a} xs) (tailList {a} xs))
-    -- >       {r}
-    fmap (const annMayInline) . runQuote $ do
-      a <- freshTyName "a"
-      r <- freshTyName "r"
-      dead <- freshTyName "dead"
-      xs <- freshName "xs"
-      z <- freshName "z"
-      f <- freshName "f"
-      let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
-          funAtXs headOrTail =
-            PIR.apply
-              ()
-              (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
-              (PIR.var () xs)
-      return
-        . PIR.tyAbs () a (PLC.Type ())
-        . PIR.tyAbs () r (PLC.Type ())
-        . PIR.lamAbs () z (PLC.TyVar () r)
-        . PIR.lamAbs
-          ()
-          f
-          (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
-        . PIR.lamAbs () xs listA
-        . PIR.tyInst
-          ()
-          ( PIR.mkIterAppNoAnn
-              ( PIR.mkIterInstNoAnn
-                  (PIR.builtin () PLC.ChooseList)
-                  [ PLC.TyVar () a
-                  , PLC.TyForall () dead (PLC.Type ()) $ PLC.TyVar () r
-                  ]
-              )
-              [ PIR.var () xs
-              , PIR.tyAbs () dead (PLC.Type ()) $ PIR.var () z
-              , PIR.tyAbs () dead (PLC.Type ()) $
-                  PIR.mkIterAppNoAnn
-                    (PIR.var () f)
-                    [funAtXs PLC.HeadList, funAtXs PLC.TailList]
-              ]
-          )
-        $ PLC.TyVar () r
+  defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
+    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+      -- > /\a r ->
+      -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
+      -- >     chooseList
+      -- >       {a}
+      -- >       {all dead. r}
+      -- >       xs
+      -- >       (/\dead -> z)
+      -- >       (/\dead -> f (headList {a} xs) (tailList {a} xs))
+      -- >       {r}
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        r <- freshTyName "r"
+        dead <- freshTyName "dead"
+        xs <- freshName "xs"
+        z <- freshName "z"
+        f <- freshName "f"
+        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+            funAtXs headOrTail =
+              PIR.apply
+                ()
+                (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
+                (PIR.var () xs)
+        return
+          . PIR.tyAbs () a (PLC.Type ())
+          . PIR.tyAbs () r (PLC.Type ())
+          . PIR.lamAbs () z (PLC.TyVar () r)
+          . PIR.lamAbs
+            ()
+            f
+            (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
+          . PIR.lamAbs () xs listA
+          . PIR.tyInst
+            ()
+            ( PIR.mkIterAppNoAnn
+                ( PIR.mkIterInstNoAnn
+                    (PIR.builtin () PLC.ChooseList)
+                    [ PLC.TyVar () a
+                    , PLC.TyForall () dead (PLC.Type ()) $ PLC.TyVar () r
+                    ]
+                )
+                [ PIR.var () xs
+                , PIR.tyAbs () dead (PLC.Type ()) $ PIR.var () z
+                , PIR.tyAbs () dead (PLC.Type ()) $
+                    PIR.mkIterAppNoAnn
+                      (PIR.var () f)
+                      [funAtXs PLC.HeadList, funAtXs PLC.TailList]
+                ]
+            )
+          $ PLC.TyVar () r
+    _BuiltinCasing ->
+      -- > /\a r ->
+      -- >   \(z : r) (f : a -> list a -> r) (xs : list a) ->
+      -- >     (case r xs z f)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        r <- freshTyName "r"
+        xs <- freshName "xs"
+        z <- freshName "z"
+        f <- freshName "f"
+        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+        return
+          $ PIR.tyAbs () a (PLC.Type ())
+          $ PIR.tyAbs () r (PLC.Type ())
+          $ PIR.lamAbs () z (PLC.TyVar () r)
+          $ PIR.lamAbs () f (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
+          $ PIR.lamAbs () xs listA
+          $ PIR.kase
+            ()
+            (PLC.TyVar () r)
+            (PIR.var () xs)
+            [PIR.var () z, PIR.var () f]
+
 
   -- See Note [Builtin terms and values]
   for_ enumerate $ \fun ->

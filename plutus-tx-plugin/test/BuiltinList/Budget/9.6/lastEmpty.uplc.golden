@@ -8,25 +8,16 @@
             delay
               (delay
                  (\eta ->
-                    (\cse ->
-                       cse
-                         (\ds ->
-                            (\x -> error) (force trace "PT25" (constr 0 [])))
-                         (\x xs ds ->
-                            cse
-                              x
-                              (\ds ds ->
-                                 force (force (last (delay (\x -> x)))) xs)
-                              xs)
-                         eta
-                         (constr 0 []))
-                      (\z f xs ->
-                         force
-                           (force (force chooseList)
-                              xs
-                              (delay z)
-                              (delay
-                                 (f
-                                    (force headList xs)
-                                    (force tailList xs))))))))
+                    case
+                      eta
+                      [ (\ds ->
+                           (\x -> error) (force trace "PT25" (constr 0 [])))
+                      , (\x xs ds ->
+                           case
+                             xs
+                             [ x
+                             , (\ds ds ->
+                                  force (force (last (delay (\x -> x))))
+                                    xs) ]) ]
+                      (constr 0 []))))
          (delay (\x -> x)))))

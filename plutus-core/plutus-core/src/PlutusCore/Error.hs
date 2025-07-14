@@ -274,6 +274,7 @@ instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
     prettyBy _ (UnsupportedCaseBuiltin ann err) = hsep
         [ "Unsupported 'case' of a value of a built-in type at"
         , pretty ann <> ":"
+        , hardline
         , pretty err
         ]
 

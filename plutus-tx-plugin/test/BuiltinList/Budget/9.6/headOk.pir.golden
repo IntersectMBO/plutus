@@ -1,14 +1,6 @@
 let
   !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r ->
-        \(z : r) (f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> z)
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
+    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [z, f]
   ~headEmptyBuiltinListError : string = "PT23"
   data Unit | Unit_match where
     Unit : Unit

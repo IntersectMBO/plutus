@@ -1251,8 +1251,9 @@ test_Case =
                             (mkConstant () scrut)
                             (map (mkConstant ()) is)
                 in case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term of
-                    Left _                        -> False
-                    Right EvaluationFailure       -> length is /= 2 && (scrut || length is /= 1)
+                    Left _                        -> length is /= 1 && length is /= 2
+                    -- Bool casing only fails if there's one branch and its trying to case True.
+                    Right EvaluationFailure       -> scrut && length is /= 2
                     Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromEnum scrut)
         , QC.testProperty "Integer success" . QC.withMaxSuccess 99 $
             \(QC.NonEmpty is :: QC.NonEmptyList Integer) ->
@@ -1277,6 +1278,47 @@ test_Case =
                     Left _                        -> False
                     Right EvaluationFailure       -> 0 > scrut || scrut >= fromIntegral (length is)
                     Right (EvaluationSuccess res) -> res == mkConstant () (is !! fromIntegral scrut)
+        , QC.testProperty "List success" . QC.withMaxSuccess 99 $
+            \(scrut :: [Integer]) ->
+                let
+                  term :: Term TyName Name DefaultUni DefaultFun ()
+                  term = runQuote $ do
+                    x <- freshName "x"
+                    xs <- freshName "xs"
+                    let
+                      listElem = mkTyBuiltin @_ @Integer ()
+                      list = mkTyBuiltin @_ @[Integer] ()
+                    pure $
+                      kase ()
+                        listElem
+                        (mkConstant () scrut)
+                        [ mkConstant @Integer () 42
+                        , lamAbs () x listElem $ lamAbs () xs list $ var () x
+                        ]
+                  expected []      = 42
+                  expected (x:_xs) = x
+                in Right (EvaluationSuccess . mkConstant () $ expected scrut) QC.===
+                        typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
+        , QC.testProperty "List any" . QC.withMaxSuccess 99 $
+            \(scrut :: [Integer]) ->
+                let
+                  term :: Term TyName Name DefaultUni DefaultFun ()
+                  term = runQuote $ do
+                    x <- freshName "x"
+                    xs <- freshName "xs"
+                    let
+                      listElem = mkTyBuiltin @_ @Integer ()
+                      list = mkTyBuiltin @_ @[Integer] ()
+                    pure $
+                      kase ()
+                        listElem
+                        (mkConstant () scrut)
+                        [ lamAbs () x listElem $ lamAbs () xs list $ var () x
+                        ]
+                in case (typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term, scrut) of
+                    (Right EvaluationFailure, [])            -> True
+                    (Right (EvaluationSuccess res), (x:_xs)) -> res == mkConstant () x
+                    _                                        -> False
         ]
 
 test_definition :: TestTree

@@ -147,17 +147,9 @@ test-suite cardano-constitution-test
 
 executable create-json-envelope
   import:         lang, ghc-version-support, os-support
-
-  -- This is a temporary workaround to solve the plutus-ledger-api dependency conflict
-  -- caused by the `cardano-api` dependency.
-  -- To force-build it, uncomment the relevant lines in `cabal.project`
-  if !flag(force-build)
-    buildable: False
-
   hs-source-dirs: app/create-json-envelope
   main-is:        Main.hs
   build-depends:
     , base
-    , cardano-api
     , cardano-constitution
     , plutus-ledger-api     ^>=1.49

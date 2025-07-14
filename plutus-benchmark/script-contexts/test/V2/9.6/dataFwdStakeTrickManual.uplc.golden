@@ -30,17 +30,11 @@
                                                (unConstrData r_ctx))))))))))))))
         ((\s -> s s)
            (\s l ->
-              force
-                (force (force chooseList)
-                   l
-                   (delay
-                      (\ds ->
-                         (\x -> error) (force trace "not found" (constr 0 []))))
-                   (delay
-                      ((\x xs ds ->
-                          case
-                            (equalsData r_stake_cred (force (force fstPair) x))
-                            [(s s xs), (constr 0 [])])
-                         (force headList l)
-                         (force tailList l))))
+              case
+                l
+                [ (\ds -> (\x -> error) (force trace "not found" (constr 0 [])))
+                , (\x xs ds ->
+                     case
+                       (equalsData r_stake_cred (force (force fstPair) x))
+                       [(s s xs), (constr 0 [])]) ]
                 (constr 0 [])))))
