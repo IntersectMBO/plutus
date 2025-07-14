@@ -11,15 +11,16 @@ module CardanoLoans.Test where
 import PlutusTx
 import PlutusTx.Prelude
 
-import CardanoLoans.Validator (LoanDatum (..), LoanRedeemer (..), validatorCode)
-import PlutusLedgerApi.Data.V3
-import PlutusLedgerApi.V1.Data.Value (assetClass)
-import PlutusTx.Data.AssocMap qualified as Map
-import PlutusTx.Data.List qualified as List
+import CardanoLoans.Validator (LoanDatum (..), LoanRedeemer (..), loanValidatorCode)
+import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
+import PlutusLedgerApi.V1.Value qualified as Value
+import PlutusLedgerApi.V2.Tx qualified as Tx
+import PlutusLedgerApi.V3
+import PlutusTx.AssocMap qualified as Map
 
 validatorCodeFullyApplied :: CompiledCode BuiltinUnit
 validatorCodeFullyApplied =
-  validatorCode `unsafeApplyCode` liftCodeDef (toBuiltinData testScriptContext)
+  loanValidatorCode `unsafeApplyCode` liftCodeDef (toBuiltinData testScriptContext)
 
 testScriptContext :: ScriptContext
 testScriptContext =
@@ -31,9 +32,22 @@ testScriptContext =
  where
   txInfo =
     TxInfo
-      { txInfoInputs = mempty
+      { txInfoInputs =
+          [
+            TxInInfo
+              { txInInfoOutRef = txOutRef
+              , txInInfoResolved = Tx.pubKeyHashTxOut (Value.lovelaceValue 1000) testBeneficiaryPKH
+              }
+          ]
       , txInfoReferenceInputs = mempty
-      , txInfoOutputs = mempty
+      , txInfoOutputs = [
+          TxOut
+            { txOutAddress = pubKeyHashAddress testBeneficiaryPKH
+            , txOutValue = Value.lovelaceValue 1000
+            , txOutDatum = NoOutputDatum
+            , txOutReferenceScript = Nothing
+            }
+          ]
       , txInfoTxCerts = mempty
       , txInfoRedeemers = Map.empty
       , txInfoVotes = Map.empty
@@ -47,7 +61,7 @@ testScriptContext =
           Interval
             (LowerBound (Finite 110) True)
             (UpperBound (Finite 1100) True)
-      , txInfoSignatories = List.singleton testBeneficiaryPKH
+      , txInfoSignatories = [testBeneficiaryPKH]
       , txInfoData = Map.empty
       , txInfoId = "058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145"
       }
@@ -55,26 +69,48 @@ testScriptContext =
   scriptContextRedeemer :: Redeemer
   scriptContextRedeemer = Redeemer $ toBuiltinData CloseAsk
 
-  scriptContextScriptInfo :: ScriptInfo
-  scriptContextScriptInfo =
-    SpendingScript (TxOutRef txOutRefId txOutRefIdx) (Just datum)
+  txOutRef :: TxOutRef
+  txOutRef = TxOutRef txOutRefId txOutRefIdx
     where
       txOutRefId = "058fdca70be67c74151cea3846be7f73342d92c0090b62c1052e6790ad83f145"
       txOutRefIdx = 0
 
+  scriptContextScriptInfo :: ScriptInfo
+  scriptContextScriptInfo = SpendingScript txOutRef (Just datum)
+    where
       datum :: Datum
       datum = Datum (toBuiltinData testLoanDatum)
 
 testLoanDatum :: LoanDatum
-testLoanDatum =
-  AskDatum
-    { collateral = []
-    -- , askBeacon = (CurrencySymbol,TokenName)
-    -- , borrowerId = (CurrencySymbol,TokenName)
-    -- , loanAsset = (CurrencySymbol,TokenName)
-    -- , loanPrinciple = Integer
-    -- , loanTerm = POSIXTime
-    }
+testLoanDatum = askDatum
+  where
+    testCurSym :: CurrencySymbol
+    testCurSym = CurrencySymbol "mysymbol"
+
+    testTokName :: TokenName
+    testTokName = TokenName "mytoken"
+
+    askDatum :: LoanDatum
+    askDatum = AskDatum
+      { collateral = [(testCurSym, testTokName)]
+      , askBeacon = (testCurSym, testTokName)
+      , borrowerId = (testCurSym, testTokName)
+      , loanAsset = (testCurSym, testTokName)
+      , loanPrinciple = 10
+      , loanTerm = 10
+      }
+
+    offerDatum :: LoanDatum
+    offerDatum = OfferDatum
+      { offerBeacon = (testCurSym, testTokName)
+      , lenderId = (testCurSym, testTokName)
+      , loanAsset = (testCurSym, testTokName)
+      , loanPrinciple = 10
+      , loanTerm = 10
+      , loanInterest = one
+      , loanBacking = 10
+      , collateralRates = [((testCurSym, testTokName), one)]
+      }
 
 testBeneficiaryPKH :: PubKeyHash
 testBeneficiaryPKH = PubKeyHash ""

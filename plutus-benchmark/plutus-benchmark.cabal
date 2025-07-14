@@ -706,7 +706,6 @@ library cardano-loans-internal
     CardanoLoans.Validator
 
   build-depends:
-    , base               >=4.9 && <5
     , plutus-ledger-api
     , plutus-tx
     , plutus-tx-plugin

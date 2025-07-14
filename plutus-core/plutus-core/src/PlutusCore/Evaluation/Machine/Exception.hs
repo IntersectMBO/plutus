@@ -67,8 +67,8 @@ data MachineError fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
-type EvaluationException structural operational =
-    ErrorWithCause (EvaluationError structural operational)
+type EvaluationException structural operational term =
+    ErrorWithCause (EvaluationError structural operational) term
 
 {- Note [Ignoring context in OperationalError]
 The 'OperationalError' error has a term argument, but 'splitStructuralOperational' just
