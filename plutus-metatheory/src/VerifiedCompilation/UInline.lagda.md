@@ -26,7 +26,7 @@ import RawU
 open import Data.List using (List; []; _∷_; sum; map)
 open import Data.Nat using (ℕ; _+_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
-
+open import Untyped.Purity using (Pure)
 ```
 ## Translation Relation
 
@@ -101,6 +101,10 @@ bind : Bind X → X ⊢ → Bind (Maybe X)
 bind b t = (b , weaken t)
 
 ```
+
+[ M X , M M X , M M M X ] : Bind (M M M X)
+
+
 Note that `get` weakens the terms as it retrieves them. This is because we are
 in the scope of the "tip" element. This is works out correctly, despite the fact
 that the terms were weakened once when they were bound.
@@ -148,13 +152,42 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
   sub : {{ _ : DecEq X}} {v : X} {e : List (X ⊢)} {b : Bind X} {t t' : X ⊢}
           → (get b v) ≡ just t
           → Inlined e b t t'
-          → Inlined e b (` v) t
+          → Inlined e b (` v) t'
+
+
 {-
   complete : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v : X ⊢}
           → Inlined (v ∷ e) b t₁ t₂
           → Inlined e b (t₁ · v) t₂
   partial : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
   -}
+
+```
+
+[] □ ((ƛ ƛ ƛ t) · a · b) t'
+
+==> _·_
+
+[b] □  ((ƛ ƛ ƛ t) · a) t'
+
+==> _·_
+
+[a , b] □  (ƛ ƛ ƛ t) t'
+
+==> ƛb
+
+[wk b] (□ , wk a) (ƛ ƛ t) (wk t')
+
+==> ƛb
+
+[] (□ , wk a , wk wk b) (ƛ t) (wk (wk t'))
+
+==> ƛ
+
+[] (□ , wk a , wk wk b , (` nothing)) t (wk (wk (wk t')))
+
+```
+
   _·_ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ v₁ v₂ : X ⊢}
           → Inlined (v₂ ∷ e) b t₁ t₂
           → Inlined [] b v₁ v₂
@@ -163,32 +196,6 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
   ƛb : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ t₂ : Maybe X ⊢} {v : X ⊢}
           → Inlined (listWeaken e) (bind b v) t₁ t₂
           → Inlined (v ∷ e) b (ƛ t₁) (ƛ t₂)
-
-  clean : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t : Maybe X ⊢} {t' v : X ⊢}
-          → { usage nothing t ≡ 0 }
-          → Inlined e b t t'
-          → Inlined e b ((ƛ t) · v) t'
-
-{-
--- Binding on only the "before" term requires weakening the "after" term to match scopes.
-  ƛ+ : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t₁ : Maybe X ⊢} {t₂ v : X ⊢}
-          → Inlined (listWeaken e) (bind b v) t₁ (weaken t₂)
-          → Inlined (v ∷ e) b (ƛ t₁) t₂
-          -}
-```
-[] □ (λ (` 0) · (` 1)) · (` 1) ==?==> (` 1) · (` 0)
-- complete -->
-[(` 1)] □ (λ (` 0) · (` 1)) ==?==> (` 1) · (` 0)
-- ƛ+ -->
-[] (□ , (` 2)) (` 0) · (` 1) ==?==> (` 2) · (` 1)
-- left ->
-[] (□ , (` 2)) (` 0) ==?==> (` 2)
-- sub ->
-(get (□ , (` 2))
-
-==>
-(` 1) · (` 0)
-```
 
   -- We can't recurse through Translation because it will become non-terminating,
   -- so traversing other AST nodes is done below.
@@ -216,8 +223,40 @@ data Inlined : List (X ⊢) → Bind X → (X ⊢) → (X ⊢) → Set₁ where
   refl : {{ _ : DecEq X}} {e : List (X ⊢)} {b : Bind X} {t : X ⊢}
           → Inlined e b t t
 
+
 Inline : {X : Set} {{ _ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
 Inline = Translation (λ {Y} → Inlined {Y} [] □)
+```
+Separating the "clean up" step allows the Inliner to be syntax directed.
+
+ƛ (ƛ (` 1) · b) · a
+
+== inline =>
+
+ƛ (ƛ a · b) · a
+
+== dead code =>
+
+ƛ a · b
+
+
+```
+
+data Clean : (X ⊢) → (X ⊢) → Set₁ where
+  clean : {a t' : X ⊢} {t : (Maybe X) ⊢}
+    → Pure a
+    → Clean t (weaken t')
+    → Clean (ƛ t · a) t'
+  refl : {t : X ⊢}
+    → Clean t t
+  _·_ : {t t' a a' : X ⊢}
+    → Clean t t'
+    → Clean a a'
+    → Clean (t · a) (t' · a')
+  ƛ : {t t' : X ⊢}
+    → Clean t t'
+    → Clean (ƛ (weaken t)) (ƛ (weaken t'))
+
 
 ```
 # Examples
@@ -238,8 +277,13 @@ instance
 
 [ (\a -> a) 1 ] becomes just 1
 ```
-simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) (con One)
-simple = {!!} --complete (ƛ+ (sub refl))
+--simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) (con One)
+simple : Inlined {X = ⊥} [] □ ((ƛ (` nothing)) · (con One)) ((ƛ (con One)) · (con One))
+simple = ƛb (sub refl refl) · refl
+
+simple-clean : Clean {⊥} ((ƛ (con One)) · (con One)) (con One)
+simple-clean = clean Pure.con refl
+
 ```
 
 Nearly as simple, but now both sides end up with application structure:
@@ -250,12 +294,17 @@ Nearly as simple, but now both sides end up with application structure:
 beforeEx1 : Vars ⊢
 beforeEx1 = (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b))
 
+uncleanEx1 : Vars ⊢
+uncleanEx1 = (((ƛ (ƛ ((weaken (weaken (` a))) · (weaken (weaken (` b)))))) · (` a)) · (` b))
+
 afterEx1 : Vars ⊢
 afterEx1 = ((` a) · (` b))
 
-ex1 : Inlined {X = Vars} [] □ beforeEx1 afterEx1
-ex1 = {!!} --complete (complete (ƛ+ (ƛ+ (partial (sub refl) (sub refl)))))
+ex1 : Inlined {X = Vars} [] □ beforeEx1 uncleanEx1
+ex1 = ((ƛb (ƛb ((sub refl refl) · (sub refl refl)))) · refl) · refl --complete (complete (ƛ+ (ƛ+ (partial (sub refl) (sub refl)))))
 
+ex1-clean : Clean uncleanEx1 afterEx1
+ex1-clean = {!!}
 ```
 Partial inlining is allowed, so  `(\a -> f (a 0 1) (a 2)) g` can become  `(\a -> f (g 0 1) (a 2)) g`
 ```
