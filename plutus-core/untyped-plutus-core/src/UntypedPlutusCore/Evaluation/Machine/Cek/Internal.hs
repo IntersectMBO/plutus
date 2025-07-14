@@ -653,12 +653,20 @@ transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunVa
 
 -- See Note [ArgStack vs Spine].
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferSpine
+transferValueSpine
     :: Spine (CekValue uni fun ann)
     -> Context uni fun ann
     -> Context uni fun ann
-transferSpine args ctx = foldr FrameAwaitFunValue ctx args
-{-# INLINE transferSpine #-}
+transferValueSpine args ctx = foldr FrameAwaitFunValue ctx args
+{-# INLINE transferValueSpine #-}
+
+-- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
+transferConstantSpine
+    :: Spine (Some (ValueOf uni))
+    -> Context uni fun ann
+    -> Context uni fun ann
+transferConstantSpine args ctx = foldr (FrameAwaitFunValue . VCon) ctx args
+{-# INLINE transferConstantSpine #-}
 
 runCekM
     :: forall a cost uni fun ann
@@ -800,23 +808,25 @@ enterComputeCek = computeCek
         -- "apparently good" value.
         (VConstr i _) | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
                         throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
-        -- Otherwise, we can safely convert the index to an Int and use it
+        -- Otherwise, we can safely convert the index to an Int and use it.
         (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
+        -- Proceed with caser when expression given is not Constr.
         VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
-            Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-            Right res -> computeCek ctx env res
+            Left err          -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
+            Right (HeadOnly fX) -> computeCek ctx env fX
+            Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
     -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
     -- the returning phase of the CEK machine.
     returnCekHeadSpine
         :: Context uni fun ann
-        -> HeadSpine (CekValue uni fun ann)
+        -> MonoHeadSpine (CekValue uni fun ann)
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
-    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferSpine xs ctx) f
+    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferValueSpine xs ctx) f
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;

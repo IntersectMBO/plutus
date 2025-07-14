@@ -114,8 +114,12 @@ transferArgStack ann = go
     go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
 -- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
-transferSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+transferValueSpine :: ann -> Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+transferValueSpine ann args ctx = foldr (FrameAwaitFunValue ann) ctx args
+
+-- | Transfers a 'Spine' of contant values onto the stack. The first argument will be at the top of the stack.
+transferConstantSpine :: ann -> Spine (Some (ValueOf uni)) -> Context uni fun ann -> Context uni fun ann
+transferConstantSpine ann args ctx = foldr (FrameAwaitFunValue ann . VCon) ctx args
 
 computeCek
     :: forall uni fun ann s
@@ -213,7 +217,8 @@ returnCek (FrameCases ann env cs ctx) e = case e of
         Nothing -> throwErrorDischarged (StructuralError $ MissingCaseBranchMachineError i) e
     VCon val -> case unCaserBuiltin ?cekCaserBuiltin val cs of
         Left err  -> throwErrorDischarged (OperationalError $ CekCaseBuiltinError err) e
-        Right res -> pure $ Computing ctx env res
+        Right (HeadOnly fX) -> pure $ Computing ctx env fX
+        Right (HeadSpine f xs) -> pure $ Computing (transferConstantSpine ann xs ctx) env f
     _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
 -- | @force@ a term and proceed.
@@ -448,10 +453,10 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 returnCekHeadSpine
     :: ann
     -> Context uni fun ann
-    -> HeadSpine (CekValue uni fun ann)
+    -> MonoHeadSpine (CekValue uni fun ann)
     -> CekM uni fun s (CekState uni fun ann)
 returnCekHeadSpine _   ctx (HeadOnly  x)    = pure $ Returning ctx x
-returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferSpine ann xs ctx) f
+returnCekHeadSpine ann ctx (HeadSpine f xs) = pure $ Returning (transferValueSpine ann xs ctx) f
 
 -- | Take a possibly partial builtin application and
 --

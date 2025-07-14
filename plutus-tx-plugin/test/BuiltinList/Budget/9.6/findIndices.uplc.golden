@@ -8,21 +8,17 @@
            (\go arg ->
               delay
                 (\i xs ->
-                   force
-                     (force (force chooseList)
-                        xs
-                        (delay [])
-                        (delay
-                           ((\x xs ->
-                               (\indices ->
-                                  case
-                                    (equalsInteger (modInteger x 2) 0)
-                                    [(force mkCons i indices), indices])
-                                 (force (go (delay (\x -> x)))
-                                    (addInteger i 1)
-                                    xs))
-                              (force headList xs)
-                              (force tailList xs))))))
+                   case
+                     xs
+                     [ []
+                     , (\x xs ->
+                          (\indices ->
+                             case
+                               (equalsInteger (modInteger x 2) 0)
+                               [(force mkCons i indices), indices])
+                            (force (go (delay (\x -> x)))
+                               (addInteger i 1)
+                               xs)) ]))
            (delay (\x -> x)))
         0
         xs))

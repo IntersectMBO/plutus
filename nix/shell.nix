@@ -69,6 +69,7 @@ let
   ];
 
   common-pkgs = [
+    pkgs.ghcid
     agda-tools.agda
     agda-tools.agda-with-stdlib
     agda-tools.agda-mode

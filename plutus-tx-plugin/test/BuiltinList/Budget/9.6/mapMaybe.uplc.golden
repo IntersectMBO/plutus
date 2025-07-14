@@ -8,23 +8,13 @@
            (\go arg ->
               delay
                 (\xs ->
-                   force
-                     (force (force chooseList)
-                        xs
-                        (delay [])
-                        (delay
-                           ((\xs ->
-                               case
-                                 ((\x ->
-                                     case
-                                       (equalsInteger (modInteger x 2) 0)
-                                       [(constr 0 [x]), (constr 1 [])])
-                                    (force headList xs))
-                                 [ (\y ->
-                                      force mkCons
-                                        y
-                                        (force (go (delay (\x -> x))) xs))
-                                 , (force (go (delay (\x -> x))) xs) ])
-                              (force tailList xs))))))
+                   case
+                     xs
+                     [ []
+                     , (\x xs ->
+                          case
+                            (equalsInteger (modInteger x 2) 0)
+                            [ (force mkCons x (force (go (delay (\x -> x))) xs))
+                            , (force (go (delay (\x -> x))) xs) ]) ]))
            (delay (\x -> x)))
         xs))

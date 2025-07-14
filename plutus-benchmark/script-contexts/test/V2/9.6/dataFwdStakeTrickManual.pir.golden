@@ -28,13 +28,7 @@ in
                   r = Unit -> r
                 in
                 \(z : r) (f : a -> list a -> r) (xs : list a) ->
-                  chooseList
-                    {a}
-                    {all dead. r}
-                    xs
-                    (/\dead -> z)
-                    (/\dead -> f (headList {a} xs) (tailList {a} xs))
-                    {r})
+                  case r xs [z, f])
                 nilCase
                 (\(x : a) (xs : list a) (ds : Unit) -> consCase x xs)
                 l
