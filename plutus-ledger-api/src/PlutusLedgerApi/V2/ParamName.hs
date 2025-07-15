@@ -190,7 +190,19 @@ data ParamName =
   | VerifySchnorrSecp256k1Signature'cpu'arguments'intercept
   | VerifySchnorrSecp256k1Signature'cpu'arguments'slope
   | VerifySchnorrSecp256k1Signature'memory'arguments
-  -- End of original cost moodel parameters
+  -- End of original cost model parameters
+  -- `integerToByteString` and `byteStringToInteger` enabled in V2 at Plomin
+  | IntegerToByteString'cpu'arguments'c0
+  | IntegerToByteString'cpu'arguments'c1
+  | IntegerToByteString'cpu'arguments'c2
+  | IntegerToByteString'memory'arguments'intercept
+  | IntegerToByteString'memory'arguments'slope
+  | ByteStringToInteger'cpu'arguments'c0
+  | ByteStringToInteger'cpu'arguments'c1
+  | ByteStringToInteger'cpu'arguments'c2
+  | ByteStringToInteger'memory'arguments'intercept
+  | ByteStringToInteger'memory'arguments'slope
+  -- Remaining parameters to be deployed in PV11
   | CekConstrCost'exBudgetCPU
   | CekConstrCost'exBudgetMemory
   | CekCaseCost'exBudgetCPU
@@ -239,17 +251,6 @@ data ParamName =
   | Blake2b_224'cpu'arguments'intercept
   | Blake2b_224'cpu'arguments'slope
   | Blake2b_224'memory'arguments
-  | IntegerToByteString'cpu'arguments'c0
-  | IntegerToByteString'cpu'arguments'c1
-  | IntegerToByteString'cpu'arguments'c2
-  | IntegerToByteString'memory'arguments'intercept
-  | IntegerToByteString'memory'arguments'slope
-  | ByteStringToInteger'cpu'arguments'c0
-  | ByteStringToInteger'cpu'arguments'c1
-  | ByteStringToInteger'cpu'arguments'c2
-  | ByteStringToInteger'memory'arguments'intercept
-  | ByteStringToInteger'memory'arguments'slope
--- Plomin
   | AndByteString'cpu'arguments'intercept
   | AndByteString'cpu'arguments'slope1
   | AndByteString'cpu'arguments'slope2

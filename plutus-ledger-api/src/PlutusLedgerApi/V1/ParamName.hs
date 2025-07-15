@@ -182,6 +182,7 @@ data ParamName =
   | VerifyEd25519Signature'cpu'arguments'slope
   | VerifyEd25519Signature'memory'arguments
   -- End of original cost model parameters
+  -- Remaining parameters to be deployed in PV11
   | SerialiseData'cpu'arguments'intercept
   | SerialiseData'cpu'arguments'slope
   | SerialiseData'memory'arguments'intercept

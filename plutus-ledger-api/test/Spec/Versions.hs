@@ -148,14 +148,15 @@ allBuiltins = builtins1 ++ builtins2
              ++ builtins4b ++ builtins5
              ++ builtins6
 
--- When does plutus-ledger-api get deployed with the node?
-
 -- | Test that the builtins that we expect to be allowed in each LL/PV
 -- combination can be successfully deserialised and that the rest cannot.  This
 -- is mostly testing that `builtinsAvailableIn` does what it's supposed to.
 -- This should be updated when new builtins, ledger languages, or protocol
 -- versions are added, but we expect that after Anon all builtins will be
 -- allowed in all ledger languages.
+--
+-- FIXME: Ideally we'd test that for PV11 scripts, all of the newer builtins
+-- have the same cost in each Plutus ledger language.
 testPermittedBuiltins :: TestTree
 testPermittedBuiltins =
   let testBuiltins ll deserialise pv expectedGood =
