@@ -30,7 +30,7 @@ import NoThunks.Class
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
-    = BuiltinCostedResult ExBudgetStream ~(BuiltinResult (HeadSpine val val))
+    = BuiltinCostedResult ExBudgetStream ~(BuiltinResult val)
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 
