@@ -100,17 +100,5 @@ testLoanDatum = askDatum
       , loanTerm = 10
       }
 
-    offerDatum :: LoanDatum
-    offerDatum = OfferDatum
-      { offerBeacon = (testCurSym, testTokName)
-      , lenderId = (testCurSym, testTokName)
-      , loanAsset = (testCurSym, testTokName)
-      , loanPrinciple = 10
-      , loanTerm = 10
-      , loanInterest = one
-      , loanBacking = 10
-      , collateralRates = [((testCurSym, testTokName), one)]
-      }
-
 testBeneficiaryPKH :: PubKeyHash
 testBeneficiaryPKH = PubKeyHash ""
