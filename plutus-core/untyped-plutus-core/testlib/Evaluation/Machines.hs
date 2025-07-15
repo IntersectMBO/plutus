@@ -34,7 +34,6 @@ import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import Data.Bifunctor (bimap)
 import Data.Proxy (Proxy (..))
 import GHC.Exts (fromString)
 import GHC.Ix
@@ -60,7 +59,7 @@ testMachine machine eval =
             let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case splitStructuralOperational . eval $ eraseTerm term of
                 Left err     -> fail $ show err
-                Right resAct -> fmap HeadOnly resAct === fmap (bimap eraseTerm eraseTerm) resExp
+                Right resAct -> resAct === fmap eraseTerm resExp
 
 test_machines :: TestTree
 test_machines =

@@ -651,15 +651,6 @@ transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni f
 transferArgStack EmptyStack c           = c
 transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
 
--- See Note [ArgStack vs Spine].
--- | Transfers a 'Spine' onto the stack. The first argument will be at the top of the stack.
-transferValueSpine
-    :: Spine (CekValue uni fun ann)
-    -> Context uni fun ann
-    -> Context uni fun ann
-transferValueSpine args ctx = foldr FrameAwaitFunValue ctx args
-{-# INLINE transferValueSpine #-}
-
 -- | Transfers a 'Spine' of constant values onto the stack. The first argument will be at the top of the stack.
 transferConstantSpine
     :: Spine (Some (ValueOf uni))
@@ -819,15 +810,6 @@ enterComputeCek = computeCek
             Right (HeadSpine f xs) -> computeCek (transferConstantSpine xs ctx) env f
         _ -> throwErrorDischarged (StructuralError NonConstrScrutinizedMachineError) e
 
-    -- | Evaluate a 'HeadSpine' by pushing the arguments (if any) onto the stack and proceeding with
-    -- the returning phase of the CEK machine.
-    returnCekHeadSpine
-        :: Context uni fun ann
-        -> MonoHeadSpine (CekValue uni fun ann)
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    returnCekHeadSpine ctx (HeadOnly  x)    = returnCek ctx x
-    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (transferValueSpine xs ctx) f
-
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
@@ -941,11 +923,11 @@ enterComputeCek = computeCek
                     spendBudget exCat budget *> spendBudgets budgets
             spendBudgets budgets0
             case getFXs of
-                BuiltinSuccess fXs ->
-                    returnCekHeadSpine ctx fXs
-                BuiltinSuccessWithLogs logs fXs -> do
+                BuiltinSuccess y ->
+                    returnCek ctx y
+                BuiltinSuccessWithLogs logs y -> do
                     ?cekEmitter logs
-                    returnCekHeadSpine ctx fXs
+                    returnCek ctx y
                 BuiltinFailure logs err -> do
                     ?cekEmitter logs
                     throwBuiltinErrorWithCause term err
